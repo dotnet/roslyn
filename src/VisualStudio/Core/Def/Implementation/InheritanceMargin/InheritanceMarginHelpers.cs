@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Windows;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -57,32 +57,67 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
         }
 
+        /// <summary>
+        /// Create the view models for the inheritance targets of a single member.
+        /// There are two cases:
+        /// 1. If all the targets have the same inheritance relationship. It would be an array of TargetViewModel
+        /// e.g.
+        /// Target1ViewModel
+        /// Target2ViewModel
+        /// Target3ViewModel
+        ///
+        /// 2. If targets belongs to different inheritance group. It would be grouped.
+        /// e.g.
+        /// Header1ViewModel
+        /// Target1ViewModel
+        /// Target2ViewModel
+        /// Header2ViewModel
+        /// Target1ViewModel
+        /// Target2ViewModel
+        /// </summary>
         public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
         {
-            var targetsByRelationship = targets.OrderBy(target => target.DisplayName).GroupBy(target => target.RelationToMember).ToImmutableArray();
-            if (targetsByRelationship.Length == 1)
+            var targetsByRelationship = targets.OrderBy(target => target.DisplayName).GroupBy(target => target.RelationToMember)
+                .ToImmutableDictionary(keySelector: g => g.Key, elementSelector: g => g);
+            if (targetsByRelationship.Count == 1)
             {
                 // If all targets have one relationship.
                 // e.g. interface IBar { void Bar(); }
                 // class A : IBar { void Bar() {} }
                 // class B : IBar { void Bar() {} }
                 // for 'IBar', the margin would be I↓. So header is not needed.
-                return targetsByRelationship[0].SelectAsArray(target => TargetMenuItemViewModel.Create(target, indent: false)).CastArray<InheritanceMenuItemViewModel>();
+                var (_, targetItems) = targetsByRelationship.Single();
+                return targetItems.SelectAsArray(target => TargetMenuItemViewModel.Create(target, indent: false)).CastArray<InheritanceMenuItemViewModel>();
             }
             else
             {
                 // Otherwise, it means these targets has different relationship,
                 // these targets would be shown in group, and a header should be shown as the first item to indicate the relationship to user.
-                using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
-                foreach (var (relationship, targetItems) in targetsByRelationship)
-                {
-                    builder.AddRange(CreateMenuItemsWithHeader(relationship, targetItems));
-                }
-
-                return builder.ToImmutable();
+                return targetsByRelationship.SelectMany(kvp => CreateMenuItemsWithHeader(kvp.Key, kvp.Value)).ToImmutableArray();
             }
         }
 
+        /// <summary>
+        /// Create the view models for the inheritance targets of multiple members
+        /// There are two cases:
+        /// 1. If all the targets have the same inheritance relationship. It would have this structure:
+        /// e.g.
+        /// MemberViewModel1 -> Target1ViewModel
+        ///                     Target2ViewModel
+        /// MemberViewModel2 -> Target4ViewModel
+        ///                     Target5ViewModel
+        ///
+        /// 2. If targets belongs to different inheritance group. It would be grouped.
+        /// e.g.
+        /// MemberViewModel1 -> HeaderViewModel
+        ///                     Target1ViewModel
+        ///                     HeaderViewModel
+        ///                     Target2ViewModel
+        /// MemberViewModel2 -> HeaderViewModel
+        ///                     Target4ViewModel
+        ///                     HeaderViewModel
+        ///                     Target5ViewModel
+        /// </summary>
         public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForMultipleMembers(ImmutableArray<InheritanceMarginItem> members)
         {
             Contract.ThrowIfTrue(members.Length <= 1);

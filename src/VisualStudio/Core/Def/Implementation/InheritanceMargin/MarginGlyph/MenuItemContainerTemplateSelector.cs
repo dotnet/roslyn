@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 {
     internal class MenuItemContainerTemplateSelector : ItemContainerTemplateSelector
     {
-        // By default, ContextMenu would create a same MenuItem for each ViewModel from ItemSource,
+        // By default, ContextMenu would create same MenuItem for each ViewModel from ItemSource,
         // this would override the default behavior, and let contextMenu create different MenuItem
         // based on the ViewModel's type
         public override DataTemplate SelectTemplate(object item, ItemsControl parentItemsControl)

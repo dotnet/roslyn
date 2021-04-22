@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// <summary>
         /// The margin for the default case.
         /// </summary>
-        private static Thickness s_defaultMargin = new Thickness(4, 1, 4, 1);
+        private static readonly Thickness s_defaultMargin = new Thickness(4, 1, 4, 1);
 
         /// <summary>
         /// The margin used when this target item needs to be indented when the target is shown with the header.
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         ///       Method 'Foo'
         /// It is 20 because the default left margin is 4, and the size of the image moniker(e.g. I↑) in the header is 16.
         /// </summary>
-        private static Thickness s_indentMargin = new Thickness(20, 1, 4, 1);
+        private static readonly Thickness s_indentMargin = new Thickness(20, 1, 4, 1);
 
         /// <summary>
         /// DefinitionItem used for navigation.

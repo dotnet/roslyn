@@ -59,19 +59,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             var displayName = member.DisplayTexts.JoinText();
             var targetsByRelationship = member.TargetItems
                 .OrderBy(item => item.DisplayName)
-                .GroupBy(target => target.RelationToMember).ToImmutableArray();
-
-            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
-            foreach (var (relationship, targetItems) in targetsByRelationship)
-            {
-                builder.AddRange(InheritanceMarginHelpers.CreateMenuItemsWithHeader(relationship, targetItems));
-            }
+                .GroupBy(target => target.RelationToMember)
+                .SelectMany(grouping => InheritanceMarginHelpers.CreateMenuItemsWithHeader(grouping.Key, grouping))
+                .ToImmutableArray();
 
             return new MemberMenuItemViewModel(
                 displayName,
                 member.Glyph.GetImageMoniker(),
                 displayName,
-                builder.ToImmutable());
+                targetsByRelationship);
         }
     }
 }
