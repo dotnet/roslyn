@@ -97,12 +97,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var helpLinkUri = BrowserHelper.GetHelpLink(data);
             var helpLinkToolTip = BrowserHelper.GetHelpLinkToolTip(data.Id, helpLinkUri);
 
-            Guid optionPageGuid = default;
-            if (data.Properties.TryGetValue("OptionName", out _))
-            {
-                data.Properties.TryGetValue("OptionLanguage", out _);
-            }
-
             return new PreviewPane(
                 severityIcon: null,//TODO: Mac GetSeverityIconForDiagnostic(diagnostic),
                 id: data.Id, title: title,
