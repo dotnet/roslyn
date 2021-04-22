@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    workspace.GetService(Of IForegroundNotificationService),
                     AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)

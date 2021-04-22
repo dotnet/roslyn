@@ -43,11 +43,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 
         protected AbstractStructureTaggerProvider(
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Outlining), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Outlining))
         {
             EditorOptionsFactoryService = editorOptionsFactoryService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;
