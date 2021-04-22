@@ -46,11 +46,20 @@ namespace Microsoft.CodeAnalysis
                     var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
                     var optionsChecksum = serializer.CreateChecksum(Options, cancellationToken);
 
+                    var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
+                    var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
+
+                    if (FrozenSourceGeneratedDocumentState != null)
+                    {
+                        frozenSourceGeneratedDocumentIdentityChecksum = serializer.CreateChecksum(FrozenSourceGeneratedDocumentState.Identity, cancellationToken);
+                        frozenSourceGeneratedDocumentTextChecksum = (await FrozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;
+                    }
+
                     var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<AnalyzerReferenceChecksumCollection>(AnalyzerReferences,
                         _ => new AnalyzerReferenceChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
 
                     var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                    return new SolutionStateChecksums(attributesChecksum, optionsChecksum, new ProjectChecksumCollection(projectChecksums), analyzerReferenceChecksums);
+                    return new SolutionStateChecksums(attributesChecksum, optionsChecksum, new ProjectChecksumCollection(projectChecksums), analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentityChecksum, frozenSourceGeneratedDocumentTextChecksum);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

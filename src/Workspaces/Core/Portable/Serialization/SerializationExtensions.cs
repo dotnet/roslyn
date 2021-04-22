@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 SerializableSourceText _ => WellKnownSynchronizationKind.SerializableSourceText,
                 SourceText _ => WellKnownSynchronizationKind.SourceText,
                 OptionSet _ => WellKnownSynchronizationKind.OptionSet,
+                SourceGeneratedDocumentIdentity _ => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
                 _ => throw ExceptionUtilities.UnexpectedValue(value),
             };
 

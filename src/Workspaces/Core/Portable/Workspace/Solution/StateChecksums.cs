@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal sealed class SolutionStateChecksums : ChecksumWithChildren
     {
-        public SolutionStateChecksums(Checksum attributesChecksum, Checksum optionsChecksum, ProjectChecksumCollection projectChecksums, AnalyzerReferenceChecksumCollection analyzerReferenceChecksums)
-            : this(new object[] { attributesChecksum, optionsChecksum, projectChecksums, analyzerReferenceChecksums })
+        public SolutionStateChecksums(Checksum attributesChecksum, Checksum optionsChecksum, ProjectChecksumCollection projectChecksums, AnalyzerReferenceChecksumCollection analyzerReferenceChecksums, Checksum frozenSourceGeneratedDocumentIdentity, Checksum frozenSourceGeneratedDocumentText)
+            : this(new object[] { attributesChecksum, optionsChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText })
         {
         }
 
@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Checksum Options => (Checksum)Children[1];
         public ProjectChecksumCollection Projects => (ProjectChecksumCollection)Children[2];
         public AnalyzerReferenceChecksumCollection AnalyzerReferences => (AnalyzerReferenceChecksumCollection)Children[3];
+        public Checksum FrozenSourceGeneratedDocumentIdentity => (Checksum)Children[4];
+        public Checksum FrozenSourceGeneratedDocumentText => (Checksum)Children[5];
 
         public async Task FindAsync(
             SolutionState state,
@@ -54,6 +56,18 @@ namespace Microsoft.CodeAnalysis.Serialization
             if (searchingChecksumsLeft.Remove(Options))
             {
                 result[Options] = state.Options;
+            }
+
+            if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
+            {
+                Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentIdentity checksum if we didn't have a text in the first place.");
+                result[FrozenSourceGeneratedDocumentIdentity] = state.FrozenSourceGeneratedDocumentState.Identity;
+            }
+
+            if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentText))
+            {
+                Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentState checksum if we didn't have a text in the first place.");
+                result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(state.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
             }
 
             if (searchingChecksumsLeft.Remove(Projects.Checksum))

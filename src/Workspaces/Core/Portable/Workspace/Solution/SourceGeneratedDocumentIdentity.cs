@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -13,13 +15,15 @@ namespace Microsoft.CodeAnalysis
     /// A small struct that holds the values that define the identity of a source generated document, and don't change
     /// as new generations happen. This is mostly for convenience as we are reguarly working with this combination of values.
     /// </summary>
-    internal readonly struct SourceGeneratedDocumentIdentity
+    internal readonly struct SourceGeneratedDocumentIdentity : IObjectWritable, IEquatable<SourceGeneratedDocumentIdentity>
     {
         public DocumentId DocumentId { get; }
         public string HintName { get; }
         public string GeneratorAssemblyName { get; }
         public string GeneratorTypeName { get; }
         public string FilePath { get; }
+
+        public bool ShouldReuseInSerialization => true;
 
         public SourceGeneratedDocumentIdentity(DocumentId documentId, string hintName, string generatorAssemblyName, string generatorTypeName, string filePath)
         {
@@ -73,6 +77,61 @@ namespace Microsoft.CodeAnalysis
             var documentId = DocumentId.CreateFromSerialized(projectId, guid, hintName);
 
             return new SourceGeneratedDocumentIdentity(documentId, hintName, generatorAssemblyName, generatorTypeName, filePath);
+        }
+
+        public void WriteTo(ObjectWriter writer)
+        {
+            DocumentId.WriteTo(writer);
+
+            writer.WriteString(HintName);
+            writer.WriteString(GeneratorAssemblyName);
+            writer.WriteString(GeneratorTypeName);
+            writer.WriteString(FilePath);
+        }
+
+        internal static SourceGeneratedDocumentIdentity ReadFrom(ObjectReader reader)
+        {
+            var documentId = DocumentId.ReadFrom(reader);
+
+            var hintName = reader.ReadString();
+            var generatorAssemblyName = reader.ReadString();
+            var generatorTypeName = reader.ReadString();
+            var filePath = reader.ReadString();
+
+            return new SourceGeneratedDocumentIdentity(documentId, hintName, generatorAssemblyName, generatorTypeName, filePath);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is SourceGeneratedDocumentIdentity identity && Equals(identity);
+        }
+
+        public bool Equals(SourceGeneratedDocumentIdentity other)
+        {
+            return EqualityComparer<DocumentId>.Default.Equals(DocumentId, other.DocumentId) &&
+                   HintName == other.HintName &&
+                   GeneratorAssemblyName == other.GeneratorAssemblyName &&
+                   GeneratorTypeName == other.GeneratorTypeName &&
+                   FilePath == other.FilePath;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(DocumentId,
+                   Hash.Combine(HintName,
+                   Hash.Combine(GeneratorAssemblyName,
+                   Hash.Combine(GeneratorTypeName,
+                   Hash.Combine(FilePath, 0)))));
+        }
+
+        public static bool operator ==(SourceGeneratedDocumentIdentity left, SourceGeneratedDocumentIdentity right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(SourceGeneratedDocumentIdentity left, SourceGeneratedDocumentIdentity right)
+        {
+            return !(left == right);
         }
     }
 }

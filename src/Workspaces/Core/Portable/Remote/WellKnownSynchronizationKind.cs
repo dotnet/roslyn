@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         SolutionAttributes,
         ProjectAttributes,
         DocumentAttributes,
+        SourceGeneratedDocumentIdentity,
 
         CompilationOptions,
         ParseOptions,
