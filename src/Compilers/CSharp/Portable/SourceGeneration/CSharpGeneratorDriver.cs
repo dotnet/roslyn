@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="optionsProvider">An <see cref="AnalyzerConfigOptionsProvider"/> that can be used to retrieve analyzer config values by the generators in this driver.</param>
         /// <param name="additionalTexts">A list of <see cref="AdditionalText"/>s available to generators in this driver.</param>
         internal CSharpGeneratorDriver(CSharpParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
-            : base(parseOptions, generators, optionsProvider, additionalTexts)
+            : base(parseOptions, generators, optionsProvider, additionalTexts, enableIncremental: parseOptions.LanguageVersion == LanguageVersion.Preview)
         {
         }
 

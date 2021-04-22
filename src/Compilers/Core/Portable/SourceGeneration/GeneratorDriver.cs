@@ -32,9 +32,10 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
+        internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, bool enableIncremental)
         {
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, GetIncrementalGenerators(generators), additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty);
+            (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, enableIncremental);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, enableIncremental);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -64,9 +65,10 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            var newState = _state.With(sourceGenerators: _state.Generators.AddRange(generators),
-                                       incrementalGenerators: _state.IncrementalGenerators.AddRange(GetIncrementalGenerators(generators)),
-                                       generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[generators.Length]));
+            (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, _state.EnableIncremental);
+            var newState = _state.With(sourceGenerators: _state.Generators.AddRange(filteredGenerators),
+                                       incrementalGenerators: _state.IncrementalGenerators.AddRange(incrementalGenerators),
+                                       generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[filteredGenerators.Length]));
             return FromState(newState);
         }
 
@@ -419,14 +421,22 @@ namespace Microsoft.CodeAnalysis
             return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
         }
 
-        private static ImmutableArray<IIncrementalGenerator> GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators)
+        private static (ImmutableArray<ISourceGenerator>, ImmutableArray<IIncrementalGenerator>) GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators, bool enableIncremental)
         {
-            return generators.SelectAsArray(g => g switch
+            if (enableIncremental)
             {
-                IncrementalGeneratorWrapper igw => igw.Generator,
-                IIncrementalGenerator ig => ig,
-                _ => new SourceGeneratorAdaptor(g)
-            });
+                return (generators, generators.SelectAsArray(g => g switch
+                {
+                    IncrementalGeneratorWrapper igw => igw.Generator,
+                    IIncrementalGenerator ig => ig,
+                    _ => new SourceGeneratorAdaptor(g)
+                }));
+            }
+            else
+            {
+                var filtered = generators.WhereAsArray(g => g is not IncrementalGeneratorWrapper);
+                return (filtered, filtered.SelectAsArray<ISourceGenerator, IIncrementalGenerator>(g => new SourceGeneratorAdaptor(g)));
+            }
         }
 
         internal abstract CommonMessageProvider MessageProvider { get; }
@@ -436,5 +446,6 @@ namespace Microsoft.CodeAnalysis
         internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken);
 
         internal abstract AdditionalSourcesCollection CreateSourcesCollection();
+
     }
 }

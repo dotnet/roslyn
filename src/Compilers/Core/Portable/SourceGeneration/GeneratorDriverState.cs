@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis
                                       ImmutableArray<IIncrementalGenerator> incrementalGenerators,
                                       ImmutableArray<AdditionalText> additionalTexts,
                                       ImmutableArray<GeneratorState> generatorStates,
-                                      DriverStateTable stateTable)
+                                      DriverStateTable stateTable,
+                                      bool enableIncremental)
         {
             Generators = sourceGenerators;
             IncrementalGenerators = incrementalGenerators;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
             StateTable = stateTable;
-
+            EnableIncremental = enableIncremental;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
@@ -74,6 +75,14 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly DriverStateTable StateTable;
 
+        /// <summary>
+        /// Should this driver run incremental generators or not
+        /// </summary>
+        /// <remarks>
+        /// Only used during preview period when incrmental generators are enabled/disabled by preview flag
+        /// </remarks>
+        internal readonly bool EnableIncremental;
+
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
             ImmutableArray<IIncrementalGenerator>? incrementalGenerators = null,
@@ -88,7 +97,8 @@ namespace Microsoft.CodeAnalysis
                 incrementalGenerators ?? this.IncrementalGenerators,
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,
-                stateTable ?? this.StateTable
+                stateTable ?? this.StateTable,
+                this.EnableIncremental
                 );
         }
     }
