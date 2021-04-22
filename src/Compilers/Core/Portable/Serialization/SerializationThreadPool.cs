@@ -139,6 +139,25 @@ namespace Roslyn.Utilities
                                 {
                                     if (s_queue.Count > 0)
                                     {
+                                        // The wait timed out, but a new item was added to the queue between the time
+                                        // this thread entered the ready queue and the point where the lock was
+                                        // reacquired. Make sure to process the available item, since there is no
+                                        // guarantee another thread will exist or be notified to handle it separately.
+                                        //
+                                        // The following is one sequence which requires this path handle the queued
+                                        // element for correctness:
+                                        //
+                                        //  1. Thread A calls tryDequeue, and releases the lock in Wait
+                                        //  2. Thread B calls enqueue and holds the lock
+                                        //  3. Thread A times out and enters the ready thread queue
+                                        //  4. Thread B observes that s_queue.Count (1) <= s_availableThreads (1), so it
+                                        //     calls Pulse instead of creating a new thread
+                                        //  5. Thread B releases the lock
+                                        //  6. Thread A acquires the lock, and Monitor.Wait returns false
+                                        //
+                                        // Since no new thread was created in step 4, we must handle the enqueued
+                                        // element or the thread will exit and the item will sit in the queue
+                                        // indefinitely.
                                         break;
                                     }
 
