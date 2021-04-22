@@ -38,6 +38,9 @@ namespace Roslyn.Utilities
         [Conditional("DEBUG")]
         internal static void AssertOrFailFast(bool condition, string? message = null)
         {
+#if NET20
+            Debug.Assert(false);
+#else
             if (!condition)
             {
                 if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("HELIX_DUMP_FOLDER")))
@@ -57,6 +60,7 @@ namespace Roslyn.Utilities
                     Debug.Assert(false);
                 }
             }
+#endif
         }
     }
 }
