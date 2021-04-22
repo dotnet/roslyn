@@ -116,13 +116,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// Depends upon the identifiers in the expression mapping back to parameters.
         /// Does not handle params parameters.
         /// </summary>
-        private static async Task<(bool shouldDisplay, bool containsClassExpression)> ShouldExpressionDisplayCodeActionAsync(Document document, TExpressionSyntax expression, CancellationToken cancellationToken)
+        private static async Task<(bool shouldDisplay, bool containsClassExpression)> ShouldExpressionDisplayCodeActionAsync(
+            Document document, TExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var variablesInExpression = expression.DescendantNodes();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var containsClassSpecificStatement = false;
-            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
-
             foreach (var variable in variablesInExpression)
             {
                 var symbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
@@ -145,16 +144,39 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     }
                 }
 
-                // If expression contains this or base keywords then we do not want to refactor call sites
-                // that are not overloads/trampolines because we do not know if the class specific information
-                // is available in other documents.
-                if (variable.RawKind == syntaxKinds.ThisExpression || variable.RawKind == syntaxKinds.BaseExpression)
+                var operation = semanticModel.GetOperation(variable, cancellationToken);
+                if (operation is null || containsClassSpecificStatement)
                 {
-                    containsClassSpecificStatement = true;
+                    continue;
                 }
+
+                // If expression contains this or base keywords, implicitly or explicitly,
+                // then we do not want to refactor call sites that are not overloads/trampolines
+                // because we do not know if the class specific information is available in other documents.
+                containsClassSpecificStatement = OperationOrChildIsInstanceReference(operation, operation.Children);
             }
 
             return (true, containsClassSpecificStatement);
+        }
+
+        private static bool OperationOrChildIsInstanceReference(IOperation operation, IEnumerable<IOperation> children)
+        {
+            if (operation.Kind is OperationKind.InstanceReference)
+            {
+                return true;
+            }
+            else
+            {
+                if (children is not null)
+                {
+                    foreach (var child in children)
+                    {
+                        return OperationOrChildIsInstanceReference(child, child.Children);
+                    }
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

@@ -1582,6 +1582,129 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestThisImplicitInExpression()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    public int M1()
+    {
+        return 5;
+    }
+
+    public int M(int x, int y)
+    {
+        int m = [|x * M1();|]
+        return m;
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    public int M1()
+    {
+        return 5;
+    }
+
+    public int GetM(int x)
+    {
+        return x * M1();
+    }
+
+    public int M(int x, int y, int m)
+    {
+        return m;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestStaticMethodCallInExpression()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    public static int M1()
+    {
+        return 5;
+    }
+
+    public int M(int x, int y)
+    {
+        int m = [|x * M1();|]
+        return m;
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    public static int M1()
+    {
+        return 5;
+    }
+
+    public int M(int x, int y, int m)
+    {
+        return m;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestBaseKeywordInExpression()
+        {
+            var code =
+@"using System;
+class Net
+{
+    public int _value = 6;
+}
+
+class Perl : Net
+{
+    public new int _value = 7;
+
+    public void Write()
+    {
+        int x = [|base._value + 1;|]
+    }
+}";
+
+            var expected =
+@"using System;
+class Net
+{
+    public int _value = 6;
+}
+
+class Perl : Net
+{
+    public new int _value = 7;
+
+    public int GetX()
+    {
+        return base._value + 1;
+    }
+
+    public void Write(int x)
+    {
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
         public async Task TestFieldReferenceInOptionalParameter()
         {
             var code =
