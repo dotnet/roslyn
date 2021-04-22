@@ -1,4 +1,5 @@
 const Microsoft.CodeAnalysis.TextTags.Record = "Record" -> string
+const Microsoft.CodeAnalysis.TextTags.RecordStruct = "RecordStruct" -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.IsComplexTextEdit.get -> bool
 Microsoft.CodeAnalysis.Completion.CompletionItem.WithIsComplexTextEdit(bool isComplexTextEdit) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 static Microsoft.CodeAnalysis.Completion.CompletionChange.Create(Microsoft.CodeAnalysis.Text.TextChange textChange, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange> textChanges, int? newPosition = null, bool includesCommitCharacter = false) -> Microsoft.CodeAnalysis.Completion.CompletionChange

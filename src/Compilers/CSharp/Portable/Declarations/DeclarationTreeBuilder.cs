@@ -380,7 +380,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitRecordDeclaration(RecordDeclarationSyntax node)
-            => VisitTypeDeclaration(node, DeclarationKind.Record);
+        {
+            var declarationKind = node.Kind() switch
+            {
+                SyntaxKind.RecordDeclaration => DeclarationKind.Record,
+                SyntaxKind.RecordStructDeclaration => DeclarationKind.RecordStruct,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
+            };
+
+            return VisitTypeDeclaration(node, declarationKind);
+        }
 
         private SingleNamespaceOrTypeDeclaration VisitTypeDeclaration(TypeDeclarationSyntax node, DeclarationKind kind)
         {
@@ -627,6 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 
                 case SyntaxKind.DelegateDeclaration:
