@@ -135,7 +135,8 @@ stages:
       displayName: 'Use .NET Core sdk'
       inputs:
         packageType: sdk
-        version: 6.0.100-preview.1.21103.13
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
         installationPath: '$(Build.SourcesDirectory)/.dotnet'
       condition: eq(variables['System.TeamProject'], 'internal')
 
