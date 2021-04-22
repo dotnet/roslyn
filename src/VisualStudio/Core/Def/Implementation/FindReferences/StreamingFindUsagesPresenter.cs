@@ -140,14 +140,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public (FindUsagesContext context, CancellationToken cancellationToken) StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
-            var context = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns: false, includeKindColumn: false, cancellationToken);
+            var (context, combinedCancellationToken) = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns: false, includeKindColumn: false, cancellationToken);
 
             // Keep track of this context object as long as it is being displayed in the UI.
             // That way we can Clear it out if requested by a client.  When the context is
             // no longer being displayed, VS will dispose it and it will remove itself from
             // this set.
             _currentContexts.Add(context);
-            return (context, context.CancellationTokenSource!.Token);
+            return (context, combinedCancellationToken);
         }
 
         /// <summary>
@@ -157,17 +157,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
-            var context = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
+            var (context, combinedCancellationToken) = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
 
             // Keep track of this context object as long as it is being displayed in the UI.
             // That way we can Clear it out if requested by a client.  When the context is
             // no longer being displayed, VS will dispose it and it will remove itself from
             // this set.
             _currentContexts.Add(context);
-            return (context, context.CancellationTokenSource!.Token);
+            return (context, combinedCancellationToken);
         }
 
-        private AbstractTableDataSourceFindUsagesContext StartSearchWorker(
+        private (AbstractTableDataSourceFindUsagesContext context, CancellationToken cancellationToken) StartSearchWorker(
             string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
@@ -175,6 +175,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
             // Get the appropriate window for FAR results to go into.
             var window = vsFindAllReferencesService.StartSearch(title);
+
+            // Wrap the passed in CT with our own CTS that we can control cancellation over.  This way either our
+            // caller can cancel our work or we can cancel the work.
+            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             // Keep track of the users preference for grouping by definition if we don't already know it.
             // We need this because we disable the Definition column when we're not showing references
@@ -186,13 +190,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 StoreCurrentGroupingPriority(window);
             }
 
-            return supportsReferences
-                ? StartSearchWithReferences(window, desiredGroupingPriority, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken)
-                : StartSearchWithoutReferences(window, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
+            var context = supportsReferences
+                ? StartSearchWithReferences(window, cancellationTokenSource, desiredGroupingPriority, includeContainingTypeAndMemberColumns, includeKindColumn)
+                : StartSearchWithoutReferences(window, cancellationTokenSource, includeContainingTypeAndMemberColumns, includeKindColumn);
+
+            return (context, cancellationTokenSource.Token);
         }
 
         private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences(
-            IFindAllReferencesWindow window, int desiredGroupingPriority, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
+            IFindAllReferencesWindow window, CancellationTokenSource cancellationTokenSource,
+            int desiredGroupingPriority, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
         {
             // Ensure that the window's definition-grouping reflects what the user wants.
             // i.e. we may have disabled this column for a previous GoToImplementation call. 
@@ -207,17 +214,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var tableControl = (IWpfTableControl2)window.TableControl;
             tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority(window);
 
-            return new WithReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
+            return new WithReferencesFindUsagesContext(this, window, cancellationTokenSource, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn);
         }
 
         private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences(
-            IFindAllReferencesWindow window, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
+            IFindAllReferencesWindow window, CancellationTokenSource cancellationTokenSource,
+            bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
         {
             // If we're not showing references, then disable grouping by definition, as that will
             // just lead to a poor experience.  i.e. we'll have the definition entry buckets, 
             // with the same items showing underneath them.
             SetDefinitionGroupingPriority(window, 0);
-            return new WithoutReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
+            return new WithoutReferencesFindUsagesContext(this, window, cancellationTokenSource, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn);
         }
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)

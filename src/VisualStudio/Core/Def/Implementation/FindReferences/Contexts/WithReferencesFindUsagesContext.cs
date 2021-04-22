@@ -31,11 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public WithReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
+                CancellationTokenSource cancellationTokenSource,
                 ImmutableArray<ITableColumnDefinition> customColumns,
                 bool includeContainingTypeAndMemberColumns,
-                bool includeKindColumn,
-                CancellationToken cancellationToken)
-                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken)
+                bool includeKindColumn)
+                : base(presenter, findReferencesWindow, cancellationTokenSource, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 

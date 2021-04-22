@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            public CancellationTokenSource? CancellationTokenSource;
+            private CancellationTokenSource? _cancellationTokenSource;
 
             private ITableDataSink _tableDataSink;
 
@@ -88,16 +88,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
+                 CancellationTokenSource cancellationTokenSource,
                  ImmutableArray<ITableColumnDefinition> customColumns,
                  bool includeContainingTypeAndMemberColumns,
-                 bool includeKindColumn,
-                 CancellationToken cancellationToken)
+                 bool includeKindColumn)
             {
                 presenter.AssertIsForeground();
 
-                // Wrap the passed in CT with our own CTS that we can control cancellation over.  This way either our
-                // caller can cancel our work or we can cancel the work.
-                this.CancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                _cancellationTokenSource = cancellationTokenSource;
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
@@ -131,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
                     TimeSpan.FromMilliseconds(250),
                     this.UpdateTableProgressAsync,
-                    this.CancellationTokenSource.Token);
+                    _cancellationTokenSource.Token);
             }
 
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
@@ -225,11 +223,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Presenter.AssertIsForeground();
 
                 // Cancel any in flight find work that is going on.
-                if (this.CancellationTokenSource != null)
+                if (_cancellationTokenSource != null)
                 {
-                    this.CancellationTokenSource.Cancel();
-                    this.CancellationTokenSource.Dispose();
-                    this.CancellationTokenSource = null;
+                    _cancellationTokenSource.Cancel();
+                    _cancellationTokenSource.Dispose();
+                    _cancellationTokenSource = null;
                 }
             }
 
