@@ -208,12 +208,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private void OnActiveDocumentChanged(object? sender, DocumentId activeDocumentId)
+            private void OnActiveDocumentChanged(object? sender, DocumentId? activeDocumentId)
             {
                 var solution = _registration.GetSolutionToAnalyze();
-                if (solution.GetProject(activeDocumentId.ProjectId) is not { } activeProject)
+                if (solution.GetProject(activeDocumentId?.ProjectId) is not { } activeProject)
                     return;
 
+                RoslynDebug.AssertNotNull(activeDocumentId);
                 var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeProject);
                 if (analysisScope == BackgroundAnalysisScope.ActiveFile)
                 {
