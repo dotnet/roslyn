@@ -200,7 +200,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // If expression contains this or base keywords, implicitly or explicitly,
             // then we do not want to refactor call sites that are not overloads/trampolines
             // because we do not know if the class specific information is available in other documents.
-            var containsClassSpecificStatement = ExpressionVisitor.CheckIfInstanceReference(semanticModel, expression, cancellationToken);
+            var operation = semanticModel.GetOperation(expression, cancellationToken);
+            var containsClassSpecificStatement = false;
+            if (operation is not null)
+            {
+                containsClassSpecificStatement = operation.Descendants().Any(op => op.Kind == OperationKind.InstanceReference);
+            }
 
             return (true, containsClassSpecificStatement);
         }
@@ -283,36 +288,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             return methodCallSites;
-        }
-
-        private class ExpressionVisitor : OperationWalker
-        {
-            private bool _containsInstanceReference;
-
-            public static bool CheckIfInstanceReference(SemanticModel semanticModel,
-                TExpressionSyntax expression, CancellationToken cancellationToken)
-            {
-                var visitor = new ExpressionVisitor();
-                var operation = semanticModel.GetOperation(expression, cancellationToken);
-                visitor.Visit(operation);
-                return visitor._containsInstanceReference;
-            }
-
-            public override void Visit(IOperation? operation)
-            {
-                if (operation == null)
-                {
-                    return;
-                }
-
-                if (operation.Kind == OperationKind.InstanceReference)
-                {
-                    _containsInstanceReference = true;
-                    return;
-                }
-
-                base.Visit(operation);
-            }
         }
 
         private class MyCodeAction : SolutionChangeAction
