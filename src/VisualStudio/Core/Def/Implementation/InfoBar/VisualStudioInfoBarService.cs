@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// show the same message again, block that from happening so we don't spam the user with
         /// the same message.  When the info bar item is dismissed though, we then may show the
         /// same message in the future.  This is important for user clarity as it's possible for 
-        /// a feature to fail for some reason, then work fine for a while, then fail again.  We
+        /// a feature to fail for some reason, then work fine for a while, then fail again.  We want
         /// the second failure message to be reported to ensure the user is not confused.
         /// </summary>
         private readonly HashSet<string> _currentlyShowingMessages = new();
