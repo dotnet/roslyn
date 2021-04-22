@@ -378,23 +378,17 @@ internal static class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/52297#discussion_r605273814"), Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
-        [WorkItem(52290, "https://github.com/dotnet/roslyn/issues/52290")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [WorkItem(52297, "https://github.com/dotnet/roslyn/pull/52297")]
         public async Task TestInLocalFunction()
         {
-            await TestInRegularAndScript1Async(
+            // Not handled for performance reason.
+            await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     public static async void M()
     {
         [|async|] static void Local() { }
-    }
-}",
-@"class C
-{
-    public static async void M()
-    {
-        static async void Local() { }
     }
 }");
         }
