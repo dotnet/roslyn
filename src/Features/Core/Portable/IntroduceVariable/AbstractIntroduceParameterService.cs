@@ -167,11 +167,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
             else
             {
-                if (children is not null)
+                foreach (var child in children)
                 {
-                    foreach (var child in children)
+                    if (OperationOrChildIsInstanceReference(child, child.Children))
                     {
-                        return OperationOrChildIsInstanceReference(child, child.Children);
+                        return true;
                     }
                 }
             }
