@@ -1924,9 +1924,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                    return DeclarationKind.Class;
                 case SyntaxKind.RecordDeclaration:
-                    return DeclarationKind.RecordClass;
+                    return DeclarationKind.Class;
                 case SyntaxKind.StructDeclaration:
                     return DeclarationKind.Struct;
                 case SyntaxKind.InterfaceDeclaration:
@@ -2059,6 +2058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.GetAccessorDeclaration:
                     return DeclarationKind.GetAccessor;
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     return DeclarationKind.SetAccessor;
                 case SyntaxKind.AddAccessorDeclaration:
                     return DeclarationKind.AddAccessor;

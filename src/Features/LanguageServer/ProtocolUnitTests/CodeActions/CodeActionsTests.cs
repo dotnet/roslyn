@@ -204,9 +204,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             LSP.Location caret,
             LSP.ClientCapabilities clientCapabilities = null)
         {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.CodeActionParams, LSP.VSCodeAction[]>(
+            var result = await testLspServer.ExecuteRequestAsync<LSP.CodeActionParams, LSP.CodeAction[]>(
                 LSP.Methods.TextDocumentCodeActionName, CreateCodeActionParams(caret), clientCapabilities, null, CancellationToken.None);
-            return result;
+            return result.Cast<LSP.VSCodeAction>().ToArray();
         }
 
         internal static LSP.CodeActionParams CreateCodeActionParams(LSP.Location caret)
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         private static CodeActionsCache GetCodeActionsCache(TestLspServer testLspServer)
         {
             var dispatchAccessor = testLspServer.GetDispatcherAccessor();
-            var handler = (CodeActionsHandler)dispatchAccessor.GetHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>(LSP.Methods.TextDocumentCodeActionName);
+            var handler = (CodeActionsHandler)dispatchAccessor.GetHandler<LSP.CodeActionParams, LSP.CodeAction[]>(LSP.Methods.TextDocumentCodeActionName);
             Assert.NotNull(handler);
             var cache = handler.GetTestAccessor().GetCache();
             return Assert.IsType<CodeActionsCache>(cache);
