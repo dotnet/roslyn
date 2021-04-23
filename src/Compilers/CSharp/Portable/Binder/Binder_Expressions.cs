@@ -8326,11 +8326,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundTypeExpression:
                         if (!m.IsStatic) continue;
                         break;
-                    case { WasCompilerGenerated: false }:
+                    case BoundThisReference { WasCompilerGenerated: true }:
+                        break;
+                    default:
                         if (m.IsStatic) continue;
                         break;
                 }
-                if (!updateCandidate(ref method, m))
+                if (!isCandidateUnique(ref method, m))
                 {
                     return null;
                 }
@@ -8345,7 +8347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var m in methodGroup.Methods)
                     {
                         if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced &&
-                            !updateCandidate(ref method, reduced))
+                            !isCandidateUnique(ref method, reduced))
                         {
                             methodGroup.Free();
                             return null;
@@ -8369,7 +8371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return method;
 
-            static bool updateCandidate(ref MethodSymbol? method, MethodSymbol candidate)
+            static bool isCandidateUnique(ref MethodSymbol? method, MethodSymbol candidate)
             {
                 if (method is null)
                 {

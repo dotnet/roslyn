@@ -1471,6 +1471,77 @@ class B
         }
 
         [Fact]
+        public void SystemLinqExpressionsExpression_Missing()
+        {
+            var sourceA =
+@".assembly mscorlib
+{
+  .ver 0:0:0:0
+}
+.class public System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.ValueType extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public System.String extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public System.Type extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Void extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Boolean extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Int32 extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.Delegate extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.MulticastDelegate extends System.Delegate
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Func`1<T> extends System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig instance !T Invoke() { ldnull throw }
+}
+.class public abstract System.Linq.Expressions.Expression extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false, autoInherit: false);
+
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        System.Linq.Expressions.Expression e = () => 1;
+    }
+}";
+
+            var comp = CreateEmptyCompilation(sourceB, new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,48): error CS0518: Predefined type 'System.Linq.Expressions.Expression`1' is not defined or imported
+                //         System.Linq.Expressions.Expression e = () => 1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => 1").WithArguments("System.Linq.Expressions.Expression`1").WithLocation(5, 48));
+        }
+
+        [Fact]
         public void SystemLinqExpressionsExpression_UseSiteErrors()
         {
             var sourceA =
@@ -1782,6 +1853,36 @@ class Program
         }
 
         [Fact]
+        public void ImplicitlyTypedVariables()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var d1 = Main;
+        var d2 = () => { };
+        var d3 = delegate () { };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,13): error CS0815: Cannot assign method group to an implicitly-typed variable
+                //         var d1 = Main;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d1 = Main").WithArguments("method group").WithLocation(5, 13),
+                // (6,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         var d2 = () => { };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d2 = () => { }").WithArguments("lambda expression").WithLocation(6, 13),
+                // (7,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
+                //         var d3 = delegate () { };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d3 = delegate () { }").WithArguments("anonymous method").WithLocation(7, 13));
+        }
+
+        /// <summary>
+        /// Ensure the conversion group containing the implicit
+        /// conversion is handled correctly in NullableWalker.
+        /// </summary>
+        [Fact]
         public void NullableAnalysis_01()
         {
             var source =
@@ -1800,6 +1901,10 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        /// <summary>
+        /// Ensure the conversion group containing the explicit
+        /// conversion is handled correctly in NullableWalker.
+        /// </summary>
         [Fact]
         public void NullableAnalysis_02()
         {
