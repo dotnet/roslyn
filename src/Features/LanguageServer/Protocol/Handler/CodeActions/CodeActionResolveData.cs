@@ -24,16 +24,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// </remarks>
         public string UniqueIdentifier { get; }
 
-        public ImmutableArray<string> CustomTags { get; }
+        public ImmutableArray<string> Tags { get; }
 
         public LSP.Range Range { get; }
 
         public LSP.TextDocumentIdentifier TextDocument { get; }
 
-        public CodeActionResolveData(string uniqueIdentifier, ImmutableArray<string> customTags, LSP.Range range, LSP.TextDocumentIdentifier textDocument)
+        public CodeActionResolveData(string uniqueIdentifier, ImmutableArray<string> tags, LSP.Range range, LSP.TextDocumentIdentifier textDocument)
         {
             UniqueIdentifier = uniqueIdentifier;
-            CustomTags = customTags;
+            Tags = tags;
             Range = range;
             TextDocument = textDocument;
         }

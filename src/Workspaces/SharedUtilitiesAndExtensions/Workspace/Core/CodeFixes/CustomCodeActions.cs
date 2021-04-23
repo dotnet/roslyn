@@ -17,13 +17,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             public SimpleCodeAction(
                 string title,
-                string? equivalenceKey = null,
-                IEnumerable<string>? customTags = null)
+                string? equivalenceKey = null)
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
-
-                CustomTags = customTags.ToImmutableArrayOrEmpty();
             }
 
             public sealed override string Title { get; }
@@ -37,9 +34,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public DocumentChangeAction(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
-                string? equivalenceKey = null,
-                IEnumerable<string>? customTags = null)
-                : base(title, equivalenceKey, customTags)
+                string? equivalenceKey = null)
+                : base(title, equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;
             }
@@ -55,9 +51,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public SolutionChangeAction(
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
-                string? equivalenceKey = null,
-                IEnumerable<string>? customTags = null)
-                : base(title, equivalenceKey, customTags)
+                string? equivalenceKey = null)
+                : base(title, equivalenceKey)
             {
                 _createChangedSolution = createChangedSolution;
             }

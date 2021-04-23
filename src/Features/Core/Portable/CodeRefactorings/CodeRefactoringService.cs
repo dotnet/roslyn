@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     [Export(typeof(ICodeRefactoringService)), Shared]
     internal class CodeRefactoringService : ICodeRefactoringService
     {
+        internal const string ProviderTagPrefix = "CodeRefactoring_";
+
         private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
         private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap;
         private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>> _projectRefactoringsMap
@@ -180,10 +182,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         // Serialize access for thread safety - we don't know what thread the refactoring provider will call this delegate from.
                         lock (actions)
                         {
-                            // Add the Refactoring Provider Name to the parent CodeAction's CustomTags.
+                            // Add the Refactoring Provider Name to the parent CodeAction's Tags.
                             // Always add a name even in cases of 3rd party refactorings that do not export
                             // name metadata.
-                            action.AddCustomTag(providerMetadata?.Name ?? provider.GetTypeDisplayName());
+                            action.AddTag($"{ProviderTagPrefix}{providerMetadata?.Name ?? provider.GetTypeDisplayName()}");
 
                             actions.Add((action, applicableToSpan));
                         }

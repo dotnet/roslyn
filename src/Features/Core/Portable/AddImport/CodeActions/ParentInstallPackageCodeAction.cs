@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private class ParentInstallPackageCodeAction : CodeAction.CodeActionWithNestedActions
         {
-            public override ImmutableArray<string> Tags => WellKnownTagArrays.NuGet;
+            public override ImmutableArray<string> Tags => base.Tags.Concat(WellKnownTagArrays.NuGet);
 
             // Adding a nuget reference is lower priority than other fixes..
             internal override CodeActionPriority Priority => CodeActionPriority.Low;

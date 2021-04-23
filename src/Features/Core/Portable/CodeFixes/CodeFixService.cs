@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     [Export(typeof(ICodeFixService)), Shared]
     internal partial class CodeFixService : ICodeFixService
     {
+        internal const string ProviderTagPrefix = "CodeFix_";
+
         private static readonly Comparison<DiagnosticData> s_diagnosticDataComparisonById =
             new((d1, d2) => DiagnosticId.CompareOrdinal(d1.Id, d2.Id));
 
@@ -460,10 +462,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                         if (!applicableDiagnostics.IsEmpty)
                         {
-                            // Add the CodeFix Provider Name to the parent CodeAction's CustomTags.
+                            // Add the CodeFix Provider Name to the parent CodeAction's Tags.
                             // Always add a name even in cases of 3rd party fixers that do not export
                             // name metadata.
-                            action.AddCustomTag(fixerMetadata?.Name ?? fixer.GetTypeDisplayName());
+                            action.AddTag($"{ProviderTagPrefix}{fixerMetadata?.Name ?? fixer.GetTypeDisplayName()}");
 
                             fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
                         }

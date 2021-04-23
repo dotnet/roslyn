@@ -60,22 +60,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// Descriptive tags from <see cref="WellKnownTags"/>.
         /// These tags may influence how the item is displayed.
         /// </summary>
-        public virtual ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
+        public virtual ImmutableArray<string> Tags => _tags;
+        private ImmutableArray<string> _tags = ImmutableArray<string>.Empty;
 
         internal virtual ImmutableArray<CodeAction> NestedCodeActions
             => ImmutableArray<CodeAction>.Empty;
 
         /// <summary>
-        /// Gets custom tags for the CodeAction.
+        /// Used by the CodeFixService and CodeRefactoringService to add the Provider Name as a Tag.
         /// </summary>
-        public ImmutableArray<string> CustomTags { get; protected set; } = ImmutableArray<string>.Empty;
-
-        /// <summary>
-        /// Used by the CodeFixService and CodeRefactoringService to add the Provider Name as a CustomTag.
-        /// </summary>
-        internal void AddCustomTag(string tag)
+        internal void AddTag(string tag)
         {
-            CustomTags = CustomTags.Add(tag);
+            _tags = _tags.Add(tag);
         }
 
         /// <summary>
@@ -373,13 +369,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             public SimpleCodeAction(
                 string title,
-                string? equivalenceKey,
-                IEnumerable<string>? customTags = null)
+                string? equivalenceKey)
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
-
-                CustomTags = customTags.ToImmutableArrayOrEmpty();
             }
 
             public sealed override string Title { get; }
@@ -392,9 +385,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string title,
                 ImmutableArray<CodeAction> nestedActions,
                 bool isInlinable,
-                CodeActionPriority priority = CodeActionPriority.Medium,
-                IEnumerable<string>? customTags = null)
-                : base(title, ComputeEquivalenceKey(nestedActions), customTags)
+                CodeActionPriority priority = CodeActionPriority.Medium)
+                : base(title, ComputeEquivalenceKey(nestedActions))
             {
                 Debug.Assert(nestedActions.Length > 0);
                 NestedCodeActions = nestedActions;
@@ -434,9 +426,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public DocumentChangeAction(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
-                string? equivalenceKey = null,
-                IEnumerable<string>? customTags = null)
-                : base(title, equivalenceKey, customTags)
+                string? equivalenceKey = null)
+                : base(title, equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;
             }
@@ -452,9 +443,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public SolutionChangeAction(
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
-                string? equivalenceKey = null,
-                IEnumerable<string>? customTags = null)
-                : base(title, equivalenceKey, customTags)
+                string? equivalenceKey = null)
+                : base(title, equivalenceKey)
             {
                 _createChangedSolution = createChangedSolution;
             }
@@ -467,9 +457,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             public NoChangeAction(
                 string title,
-                string? equivalenceKey = null,
-                IEnumerable<string>? customTags = null)
-                : base(title, equivalenceKey, customTags)
+                string? equivalenceKey = null)
+                : base(title, equivalenceKey)
             {
             }
 

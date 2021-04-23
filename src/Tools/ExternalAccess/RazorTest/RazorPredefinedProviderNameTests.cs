@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests
         {
             var roslynProviderNames = GetPredefinedNamesFromFields(roslynProviderNamesType);
             var razorProviderNames = GetPredefinedNamesFromProperties(razorProviderNamesType);
+            var applyPrefixMethod = razorProviderNamesType.GetMethod("ApplyPrefix", BindingFlags.NonPublic | BindingFlags.Static);
 
             var failureMessage = new StringBuilder();
             failureMessage.AppendLine($"The following Names were inconsistent between {roslynProviderNamesType.Name} and {razorProviderNamesType.Name}:");
@@ -35,9 +36,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests
                 if (!razorProviderNames.TryGetValue(roslynKvp.Key, out var razorValue))
                 {
                     failureMessage.AppendLine($"The Name '{roslynKvp.Key}' does not exist.");
+                    continue;
                 }
 
-                if (roslynKvp.Value != razorValue)
+                var roslynNameWithPrefix = (string)applyPrefixMethod.Invoke(null, new object[] { roslynKvp.Value });
+                if (roslynNameWithPrefix != razorValue)
                 {
                     failureMessage.AppendLine($"The Value of '{roslynKvp.Key}' does not match.");
                 }
