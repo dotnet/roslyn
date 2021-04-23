@@ -315,6 +315,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Log\FunctionIdOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Log\LogLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.LogBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\LogMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\Capitalization.cs" />

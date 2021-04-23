@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var oldTagTree = GetTagTree(snapshot, oldTagTrees);
 
                 // everything from old tree is removed.
-                RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: oldTagTree.GetSpans(snapshot).Select(s => s.Span)));
+                RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: new(oldTagTree.GetSpans(snapshot).Select(s => s.Span))));
             }
 
             private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
@@ -97,15 +97,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         break;
 
                     default:
-                        var textChangeRanges = new TextChangeRange[count];
-                        for (var i = 0; i < count; i++)
                         {
-                            var c = contentChanges[i];
-                            textChangeRanges[i] = new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength);
-                        }
+                            using var _ = ArrayBuilder<TextChangeRange>.GetInstance(count, out var textChangeRanges);
+                            foreach (var c in contentChanges)
+                                textChangeRanges.Add(new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength));
 
-                        this.AccumulatedTextChanges = this.AccumulatedTextChanges.Accumulate(textChangeRanges);
-                        break;
+                            this.AccumulatedTextChanges = this.AccumulatedTextChanges.Accumulate(textChangeRanges);
+                            break;
+                        }
                 }
             }
 
@@ -129,22 +128,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void RemoveTagsThatIntersectEdit(TextContentChangedEventArgs e)
             {
-                if (!e.Changes.Any())
-                {
+                if (e.Changes.Count == 0)
                     return;
-                }
 
                 var buffer = e.After.TextBuffer;
                 if (!this.CachedTagTrees.TryGetValue(buffer, out var treeForBuffer))
-                {
                     return;
-                }
 
                 var tagsToRemove = e.Changes.SelectMany(c => treeForBuffer.GetIntersectingSpans(new SnapshotSpan(e.After, c.NewSpan)));
                 if (!tagsToRemove.Any())
-                {
                     return;
-                }
 
                 var allTags = treeForBuffer.GetSpans(e.After).ToList();
                 var newTagTree = new TagSpanIntervalTree<TTag>(
@@ -195,22 +188,38 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 this.AssertIsForeground();
 
-                using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, cancellationToken))
                 {
                     // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
                     // thread to do the computation. Finally, once new tags have been computed, then we update our state
                     // again on the foreground.
                     var spansToTag = GetSpansAndDocumentsToTag();
                     var caretPosition = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
-                    var textChangeRange = this.AccumulatedTextChanges;
                     var oldTagTrees = this.CachedTagTrees;
                     var oldState = this.State;
 
+                    var textChangeRange = this.AccumulatedTextChanges;
+                    this.AccumulatedTextChanges = null;
+
                     await TaskScheduler.Default;
 
-                    await this.RecomputeTagsAsync(
-                        oldState, caretPosition, textChangeRange, spansToTag,
-                        oldTagTrees, initialTags, cancellationToken).ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Create a context to store pass the information along and collect the results.
+                    var context = new TaggerContext<TTag>(
+                        oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
+                    await ProduceTagsAsync(context).ConfigureAwait(false);
+
+                    // Process the result to determine what changed.
+                    var newTagTrees = ComputeNewTagTrees(oldTagTrees, context);
+                    var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
+
+                    // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
+                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                    this.CachedTagTrees = newTagTrees;
+                    this.State = context.State;
+                    OnTagsChangedForBuffer(bufferToChanges, initialTags);
                 }
             }
 
@@ -223,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var snapshotToDocumentMap = new Dictionary<ITextSnapshot, Document>();
                 var spansToTag = _dataSource.GetSpansToTag(_textViewOpt, _subjectBuffer);
 
-                var spansAndDocumentsToTag = spansToTag.Select(span =>
+                var spansAndDocumentsToTag = spansToTag.SelectAsArray(span =>
                 {
                     if (!snapshotToDocumentMap.TryGetValue(span.Snapshot, out var document))
                     {
@@ -235,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // document can be null if the buffer the given span is part of is not part of our workspace.
                     return new DocumentSnapshotSpan(document, span);
-                }).ToImmutableArray();
+                });
 
                 return spansAndDocumentsToTag;
             }
@@ -251,12 +260,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTrees(
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ComputeNewTagTrees(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
-                ISet<ITextBuffer> buffersToTag,
-                ILookup<ITextBuffer, ITagSpan<TTag>> newTagsByBuffer,
-                IEnumerable<DocumentSnapshotSpan> spansTagged)
+                TaggerContext<TTag> context)
             {
+                // Ignore any tag spans reported for any buffers we weren't interested in.
+
+                var spansToTag = context.SpansToTag;
+                var buffersToTag = spansToTag.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer).ToSet();
+                var newTagsByBuffer =
+                    context.tagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
+                                    .ToLookup(t => t.Span.Snapshot.TextBuffer);
+                var spansTagged = context._spansTagged;
+
                 var spansToInvalidateByBuffer = spansTagged.ToLookup(
                     keySelector: span => span.SnapshotSpan.Snapshot.TextBuffer,
                     elementSelector: span => span.SnapshotSpan);
@@ -270,9 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     var newTagTree = ComputeNewTagTree(oldTagTrees, buffer, newTagsByBuffer[buffer], spansToInvalidateByBuffer[buffer]);
                     if (newTagTree != null)
-                    {
                         newTagTrees = newTagTrees.Add(buffer, newTagTree);
-                    }
                 }
 
                 return newTagTrees;
@@ -330,23 +344,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return oldTagTree.GetSpans(snapshot).Except(tagSpansToInvalidate, comparer: this);
             }
 
-            private async Task RecomputeTagsAsync(
-                object oldState,
-                SnapshotPoint? caretPosition,
-                TextChangeRange? textChangeRange,
-                ImmutableArray<DocumentSnapshotSpan> spansToTag,
-                ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
-                bool initialTags,
-                CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var context = new TaggerContext<TTag>(
-                    oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
-                await ProduceTagsAsync(context).ConfigureAwait(false);
-                await ProcessContextAsync(oldTagTrees, context, initialTags).ConfigureAwait(false);
-            }
-
             private bool ShouldSkipTagProduction()
             {
                 var options = _dataSource.Options ?? SpecializedCollections.EmptyEnumerable<Option2<bool>>();
@@ -364,34 +361,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     : _dataSource.ProduceTagsAsync(context);
             }
 
-            private Task ProcessContextAsync(
-                ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
-                TaggerContext<TTag> context,
-                bool initialTags)
-            {
-                var buffersToTag = context.SpansToTag.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer).ToSet();
-
-                // Ignore any tag spans reported for any buffers we weren't interested in.
-                var newTagsByBuffer = context.tagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
-                                                      .ToLookup(t => t.Span.Snapshot.TextBuffer);
-
-                var newTagTrees = ConvertToTagTrees(oldTagTrees, buffersToTag, newTagsByBuffer, context._spansTagged);
-                return ProcessNewTagTreesAsync(
-                    context.SpansToTag, oldTagTrees, newTagTrees,
-                    context.State, initialTags, context.CancellationToken);
-            }
-
-            private async Task ProcessNewTagTreesAsync(
+            private static Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
                 ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
-                object newState,
-                bool initialTags,
                 CancellationToken cancellationToken)
             {
-                var bufferToChanges = new Dictionary<ITextBuffer, DiffResult>();
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_ProcessNewTags, cancellationToken))
                 {
+                    var bufferToChanges = new Dictionary<ITextBuffer, DiffResult>();
+
                     foreach (var (latestBuffer, latestSpans) in newTagTrees)
                     {
                         var snapshot = spansToTag.First(s => s.SnapshotSpan.Snapshot.TextBuffer == latestBuffer).SnapshotSpan.Snapshot;
@@ -404,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         else
                         {
                             // It's a new buffer, so report all spans are changed
-                            bufferToChanges[latestBuffer] = new DiffResult(added: latestSpans.GetSpans(snapshot).Select(t => t.Span), removed: null);
+                            bufferToChanges[latestBuffer] = new DiffResult(added: new(latestSpans.GetSpans(snapshot).Select(t => t.Span)), removed: null);
                         }
                     }
 
@@ -413,23 +392,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         if (!newTagTrees.ContainsKey(oldBuffer))
                         {
                             // This buffer disappeared, so let's notify that the old tags are gone
-                            bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: previousSpans.GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span));
+                            bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: new(previousSpans.GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span)));
                         }
                     }
+
+                    return bufferToChanges;
                 }
-
-                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                this.AssertIsForeground();
-
-                // Now that we're back on the UI thread, we can safely update our state with
-                // what we've computed.
-                this.CachedTagTrees = newTagTrees;
-                this.AccumulatedTextChanges = null;
-                this.State = newState;
-
-                // Take all the changes we computed and enqueue them to notify the editor with in the future.
-                OnTagsChangedForBuffer(bufferToChanges, initialTags);
             }
 
             /// <summary>
@@ -443,16 +411,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var latestSpans = latestTree.GetSpans(snapshot);
                 var previousSpans = previousTree.GetSpans(snapshot);
 
-                using var addedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject();
-                using var removedPool = SharedPools.Default<List<SnapshotSpan>>().GetPooledObject();
+                using var _1 = ArrayBuilder<SnapshotSpan>.GetInstance(out var added);
+                using var _2 = ArrayBuilder<SnapshotSpan>.GetInstance(out var removed);
                 using var latestEnumerator = latestSpans.GetEnumerator();
                 using var previousEnumerator = previousSpans.GetEnumerator();
 
-                var added = addedPool.Object;
-                var removed = removedPool.Object;
-
-                var latest = NextOrDefault(latestEnumerator);
-                var previous = NextOrDefault(previousEnumerator);
+                var latest = NextOrNull(latestEnumerator);
+                var previous = NextOrNull(previousEnumerator);
 
                 while (latest != null && previous != null)
                 {
@@ -462,12 +427,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     if (latestSpan.Start < previousSpan.Start)
                     {
                         added.Add(latestSpan);
-                        latest = NextOrDefault(latestEnumerator);
+                        latest = NextOrNull(latestEnumerator);
                     }
                     else if (previousSpan.Start < latestSpan.Start)
                     {
                         removed.Add(previousSpan);
-                        previous = NextOrDefault(previousEnumerator);
+                        previous = NextOrNull(previousEnumerator);
                     }
                     else
                     {
@@ -476,20 +441,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         if (previousSpan.End > latestSpan.End)
                         {
                             removed.Add(previousSpan);
-                            latest = NextOrDefault(latestEnumerator);
+                            latest = NextOrNull(latestEnumerator);
                         }
                         else if (latestSpan.End > previousSpan.End)
                         {
                             added.Add(latestSpan);
-                            previous = NextOrDefault(previousEnumerator);
+                            previous = NextOrNull(previousEnumerator);
                         }
                         else
                         {
                             if (!EqualityComparer<TTag>.Default.Equals(latest.Tag, previous.Tag))
                                 added.Add(latestSpan);
 
-                            latest = NextOrDefault(latestEnumerator);
-                            previous = NextOrDefault(previousEnumerator);
+                            latest = NextOrNull(latestEnumerator);
+                            previous = NextOrNull(previousEnumerator);
                         }
                     }
                 }
@@ -497,18 +462,18 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 while (latest != null)
                 {
                     added.Add(latest.Span);
-                    latest = NextOrDefault(latestEnumerator);
+                    latest = NextOrNull(latestEnumerator);
                 }
 
                 while (previous != null)
                 {
                     removed.Add(previous.Span);
-                    previous = NextOrDefault(previousEnumerator);
+                    previous = NextOrNull(previousEnumerator);
                 }
 
-                return new DiffResult(added, removed);
+                return new DiffResult(new(added), new(removed));
 
-                static ITagSpan<TTag> NextOrDefault(IEnumerator<ITagSpan<TTag>> enumerator)
+                static ITagSpan<TTag> NextOrNull(IEnumerator<ITagSpan<TTag>> enumerator)
                     => enumerator.MoveNext() ? enumerator.Current : null;
             }
 
@@ -543,7 +508,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
             {
                 this.AssertIsForeground();
-
                 if (requestedSpans.Count == 0)
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 

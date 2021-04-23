@@ -6,7 +6,9 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.ExceptionServices
 Imports System.Runtime.InteropServices
 Imports EnvDTE
+Imports EnvDTE80
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -56,6 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim notificationService = workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
 
                 Dim state = New CodeModelState(
@@ -67,6 +70,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                         mockVisualStudioWorkspace,
                         mockServiceProvider,
                         threadingContext,
+                        notificationService,
                         listenerProvider))
 
                 Dim projectCodeModel = DirectCast(state.ProjectCodeModelFactory.CreateProjectCodeModel(project.Id, Nothing), ProjectCodeModel)

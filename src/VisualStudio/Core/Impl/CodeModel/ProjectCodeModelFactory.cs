@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly IThreadingContext _threadingContext;
 
+        private readonly IForegroundNotificationService _notificationService;
         private readonly IAsynchronousOperationListener _listener;
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
 
@@ -40,12 +41,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             VisualStudioWorkspace visualStudioWorkspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IThreadingContext threadingContext,
+            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
 
+            _notificationService = notificationService;
             _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
 
             // Queue up notifications we hear about docs changing.  that way we don't have to fire events multiple times
@@ -63,37 +66,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _visualStudioWorkspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
-        private Task ProcessNextDocumentBatchAsync(
+        private System.Threading.Tasks.Task ProcessNextDocumentBatchAsync(
             ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
-            const int MinimumDelayBetweenProcessing = 50;
-
-            // Now, enqueue foreground work to actually process these documents in a serialized and incremental
-            // fashion.  FireEventsForDocument will actually limit how much time it spends firing events so that it
-            // doesn't saturate the UI thread.
-            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+            foreach (var documentId in documentIds)
             {
-                using var _ = _listener.BeginAsyncOperation("CodeModelEvent");
+                // Now, enqueue foreground work to actually process these documents in a serialized and incremental
+                // fashion.  FireEventsForDocument will actually limit how much time it spends firing events so that it
+                // doesn't saturate  the UI thread.
+                _notificationService.RegisterNotification(
+                    () => FireEventsForDocument(documentId),
+                    _listener.BeginAsyncOperation("CodeModelEvent"),
+                    cancellationToken);
+            }
 
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                foreach (var documentId in documentIds)
-                {
-                    var stopwatch = SharedStopwatch.StartNew();
-
-                    // As long as we have events to fire for this document, keep yielding so we don't
-                    // bog down the UI thread.
-                    while (FireEventsForDocument(documentId))
-                        await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(true);
-
-                    // if we've also taken a lot of time processing documents on the UI thread, yield
-                    // so we don't bog things down.
-                    if (stopwatch.Elapsed.TotalMilliseconds > MinimumDelayBetweenProcessing)
-                        await Task.Delay(MinimumDelayBetweenProcessing).ConfigureAwait(true);
-                }
-            });
-
-            return Task.CompletedTask;
+            return System.Threading.Tasks.Task.CompletedTask;
 
             bool FireEventsForDocument(DocumentId documentId)
             {

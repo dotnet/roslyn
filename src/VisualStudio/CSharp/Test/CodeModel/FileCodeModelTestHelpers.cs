@@ -6,6 +6,7 @@
 
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -40,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
                 var visualStudioWorkspaceMock = new MockVisualStudioWorkspace(workspace);
                 var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
+                var notificationService = workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
                 var state = new CodeModelState(
@@ -51,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                         visualStudioWorkspaceMock,
                         serviceProvider,
                         threadingContext,
+                        notificationService,
                         listenerProvider));
 
                 var codeModel = FileCodeModel.Create(state, null, document, new MockTextManagerAdapter()).Handle;

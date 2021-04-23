@@ -27,10 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _infoBarService.ShowInfoBar(message, items);
 
             // Have to use KeyValueLogMessage so it gets reported in telemetry
-            Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(m =>
-            {
-                m["errorMessage"] = message;
-            }));
+            Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, message, LogLevel.Information);
         }
 
         public void ShowDetailedErrorInfo(Exception exception)

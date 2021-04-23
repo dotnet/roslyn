@@ -210,20 +210,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        private struct DiffResult
+        private readonly struct DiffResult
         {
-            public NormalizedSnapshotSpanCollection Added { get; }
-            public NormalizedSnapshotSpanCollection Removed { get; }
+            public readonly NormalizedSnapshotSpanCollection Added;
+            public readonly NormalizedSnapshotSpanCollection Removed;
 
-            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed)
-                : this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>?)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>?)removed)
+            public DiffResult(NormalizedSnapshotSpanCollection? added, NormalizedSnapshotSpanCollection? removed)
             {
-            }
-
-            public DiffResult(IEnumerable<SnapshotSpan>? added, IEnumerable<SnapshotSpan>? removed)
-            {
-                Added = added != null ? new NormalizedSnapshotSpanCollection(added) : NormalizedSnapshotSpanCollection.Empty;
-                Removed = removed != null ? new NormalizedSnapshotSpanCollection(removed) : NormalizedSnapshotSpanCollection.Empty;
+                Added = added ?? NormalizedSnapshotSpanCollection.Empty;
+                Removed = removed ?? NormalizedSnapshotSpanCollection.Empty;
             }
 
             public int Count => Added.Count + Removed.Count;
