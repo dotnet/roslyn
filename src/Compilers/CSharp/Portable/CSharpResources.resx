@@ -6606,4 +6606,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InheritingFromRecordWithSealedToString" xml:space="preserve">
     <value>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</value>
   </data>
+  <data name="ERR_HiddenPositionalMember" xml:space="preserve">
+    <value>The positional member '{0}' found corresponding to this parameter is hidden.</value>
+  </data>
 </root>
