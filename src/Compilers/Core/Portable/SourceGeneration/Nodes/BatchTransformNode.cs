@@ -46,11 +46,7 @@ namespace Microsoft.CodeAnalysis
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
 
-            var source = sourceTable.Batch(out var allCached); // PROTOTYPE(source-generators): we don't need the all cached if we have an IsCached property on the table?
-
-            //if all cached, then we don't do anything, right?
-            if (allCached)
-                return previousTable;
+            var source = sourceTable.Batch();
 
             // apply the transform
             var transformed = _func(source);

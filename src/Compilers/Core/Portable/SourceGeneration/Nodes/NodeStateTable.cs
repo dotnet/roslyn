@@ -63,15 +63,13 @@ namespace Microsoft.CodeAnalysis
         //           we should make it a discriminated union that has either 1 or more items instead.
         private readonly ImmutableArray<ImmutableArray<(T item, EntryState state)>> _states;
 
-        private readonly bool _isCompacted;
-
         private readonly Exception? _exception;
 
         private NodeStateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, bool isCompacted, Exception? exception)
         {
             _states = states;
-            _isCompacted = isCompacted;
             _exception = exception;
+            IsCompacted = isCompacted;
         }
 
         public bool IsFaulted { get => _exception is not null; }
@@ -80,6 +78,8 @@ namespace Microsoft.CodeAnalysis
 
         public int Count { get => _states.Length; }
 
+        public bool IsCompacted { get; }
+
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
         {
             return _states.SelectMany(s => s).GetEnumerator();
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> Compact()
         {
-            if (_isCompacted)
+            if (IsCompacted)
                 return this;
 
             var compacted = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
@@ -106,14 +106,11 @@ namespace Microsoft.CodeAnalysis
 
         IStateTable IStateTable.Compact() => Compact();
 
-        public ImmutableArray<T> Batch(out bool allCached)
+        public ImmutableArray<T> Batch()
         {
-            allCached = true;
             var sourceBuilder = ArrayBuilder<T>.GetInstance();
             foreach (var entry in this)
             {
-                allCached &= entry.state == EntryState.Cached;
-
                 // we don't return removed entries to the downstream node.
                 // we're creating a new state table as part of this call, so they're no longer needed
                 if (entry.state != EntryState.Removed)
@@ -149,6 +146,8 @@ namespace Microsoft.CodeAnalysis
 
             private Exception? _exception = null;
 
+            private bool _isCompacted = true;
+
             public Builder(int? capacity = null)
             {
                 _states = capacity.HasValue
@@ -164,6 +163,7 @@ namespace Microsoft.CodeAnalysis
 
             public void AddEntries(ImmutableArray<T> values, EntryState state)
             {
+                CheckCompacted(state);
                 _states.Add(values.SelectAsArray(v => (v, state)));
             }
 
@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis
                 //                               that see cached/removed entries upstream.
                 Debug.Assert(previousTable._states.Length > _states.Count);
                 var previousEntries = previousTable._states[_states.Count].SelectAsArray(s => (s.item, newState));
+                CheckCompacted(newState);
                 _states.Add(previousEntries);
             }
 
@@ -208,8 +209,9 @@ namespace Microsoft.CodeAnalysis
                     var previous = previousEnumerator.Current;
                     var replacement = outputEnumerator.Current;
 
-                    var cached = comparer.Equals(previous.item, replacement);
-                    modifiedEntries.Add((replacement, cached ? EntryState.Cached : EntryState.Modified));
+                    var entryState = comparer.Equals(previous.item, replacement) ? EntryState.Cached : EntryState.Modified;
+                    modifiedEntries.Add((replacement, entryState));
+                    CheckCompacted(entryState);
 
                     previousHasItems = previousEnumerator.MoveNext();
                     outputHasItems = outputEnumerator.MoveNext();
@@ -218,6 +220,7 @@ namespace Microsoft.CodeAnalysis
                 // removed
                 while (previousHasItems)
                 {
+                    _isCompacted = false;
                     modifiedEntries.Add((previousEnumerator.Current.item, EntryState.Removed));
                     previousHasItems = previousEnumerator.MoveNext();
                 }
@@ -225,6 +228,7 @@ namespace Microsoft.CodeAnalysis
                 // added
                 while (outputHasItems)
                 {
+                    _isCompacted = false;
                     modifiedEntries.Add((outputEnumerator.Current, EntryState.Added));
                     outputHasItems = outputEnumerator.MoveNext();
                 }
@@ -237,9 +241,14 @@ namespace Microsoft.CodeAnalysis
                 _exception = e;
             }
 
+            private void CheckCompacted(EntryState state)
+            {
+                _isCompacted &= state == EntryState.Cached;
+            }
+
             public NodeStateTable<T> ToImmutableAndFree() => _states.Count == 0
                                                              ? NodeStateTable<T>.Empty
-                                                             : new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: false, exception: _exception);
+                                                             : new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: _isCompacted, exception: _exception);
         }
     }
 }

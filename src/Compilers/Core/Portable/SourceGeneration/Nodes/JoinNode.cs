@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis
             // State of input1[i] otherwise.
 
             // gather the input2 items
-            IEnumerable<TInput2> input2 = input2Table.Batch(out var isInput2Cached);
+            var isInput2Cached = input2Table.IsCompacted;
+            IEnumerable<TInput2> input2 = input2Table.Batch();
 
             // append the input2 items to each item in input1 
             foreach (var entry1 in input1Table)
