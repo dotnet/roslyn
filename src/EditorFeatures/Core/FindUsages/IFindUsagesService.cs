@@ -4,13 +4,30 @@
 
 #nullable disable
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
+    [Obsolete("Legacy API for TypeScript.  Once TypeScript moves to IVSTypeScriptFindUsagesService", error: false)]
     internal interface IFindUsagesService : ILanguageService
+    {
+        /// <summary>
+        /// Finds the references for the symbol at the specific position in the document,
+        /// pushing the results into the context instance.
+        /// </summary>
+        Task FindReferencesAsync(Document document, int position, IFindUsagesContext context);
+
+        /// <summary>
+        /// Finds the implementations for the symbol at the specific position in the document,
+        /// pushing the results into the context instance.
+        /// </summary>
+        Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context);
+    }
+
+    internal interface IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess : ILanguageService
     {
         /// <summary>
         /// Finds the references for the symbol at the specific position in the document,

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToImplementation)]
-    internal class GoToImplementationCommandHandler : AbstractGoToCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>
+    internal class GoToImplementationCommandHandler : AbstractGoToCommandHandler<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess, GoToImplementationCommandArgs>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToImplementation;
 
-        protected override Task FindActionAsync(IFindUsagesService service, Document document, int caretPosition, IFindUsagesContext context)
+        protected override Task FindActionAsync(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess service, Document document, int caretPosition, IFindUsagesContext context)
             => service.FindImplementationsAsync(document, caretPosition, context);
     }
 }

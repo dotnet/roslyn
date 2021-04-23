@@ -15,9 +15,8 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
 {
-    // Export this once TS has actually provided an impl of IVSTypeScriptFindUsagesService
-    // [ExportLanguageService(typeof(IFindUsagesService), InternalLanguageNames.TypeScript), Shared]
-    internal class VSTypeScriptFindUsagesService : IFindUsagesService
+    [ExportLanguageService(typeof(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess), InternalLanguageNames.TypeScript), Shared]
+    internal class VSTypeScriptFindUsagesService : IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess
     {
         private readonly IVSTypeScriptFindUsagesService _underlyingService;
 
