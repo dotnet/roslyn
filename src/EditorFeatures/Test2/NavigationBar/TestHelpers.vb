@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
@@ -60,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
-                Dim model As New NavigationBarModel(items, VersionStamp.Create(), service)
+                Dim model As New NavigationBarModel(items.ToImmutableArray(), VersionStamp.Create(), service)
                 Dim selectedItems = NavigationBarController.ComputeSelectedTypeAndMember(model, New SnapshotPoint(hostDocument.GetTextBuffer().CurrentSnapshot, hostDocument.CursorPosition.Value), Nothing)
 
                 Dim isCaseSensitive = document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive
@@ -125,9 +126,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)
 
-                Dim navigationPoint = service.GetSymbolItemNavigationPoint(
+                Dim navigationPoint = (Await service.GetSymbolItemNavigationPointAsync(
                     sourceDocument, DirectCast(DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem),
-                    CancellationToken.None).Value
+                    CancellationToken.None)).Value
 
                 Dim expectedNavigationDocument = workspace.Documents.Single(Function(doc) doc.CursorPosition.HasValue)
                 Assert.Equal(expectedNavigationDocument.FilePath, navigationPoint.Tree.FilePath)

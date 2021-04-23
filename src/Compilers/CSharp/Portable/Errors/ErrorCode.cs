@@ -1860,7 +1860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitPropertyMismatchInitOnly = 8855,
         ERR_BadInitAccessor = 8856,
         ERR_InvalidWithReceiverType = 8857,
-        ERR_NoSingleCloneMethod = 8858,
+        ERR_CannotClone = 8858,
         ERR_CloneDisallowedInRecord = 8859,
         WRN_RecordNamedDisallowed = 8860,
         ERR_UnexpectedArgumentList = 8861,
@@ -1935,11 +1935,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# 10.0
 
         ERR_InheritingFromRecordWithSealedToString = 8912,
+        ERR_HiddenPositionalMember = 8913,
+        ERR_GlobalUsingInNamespace = 8914,
+        ERR_GlobalUsingOutOfOrder = 8915,
 
         #endregion
-
-        ERR_GlobalUsingInNamespace = 9001,
-        ERR_GlobalUsingOutOfOrder = 9002,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

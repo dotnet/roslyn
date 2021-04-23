@@ -376,6 +376,13 @@ breaks
         }
 
         [Fact]
+        public void TestSpacingOnRecord()
+        {
+            TestNormalizeDeclaration("record  class  C(int I, int J);", "record class C(int I, int J);");
+            TestNormalizeDeclaration("record  struct  S(int I, int J);", "record struct S(int I, int J);");
+        }
+
+        [Fact]
         [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnInvocationLikeKeywords()
         {

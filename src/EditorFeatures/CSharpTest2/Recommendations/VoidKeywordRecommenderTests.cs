@@ -816,6 +816,15 @@ struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterReadonlyInRecordStruct()
+        {
+            await VerifyKeywordAsync(@"
+record struct S
+{
+    public readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(43295, "https://github.com/dotnet/roslyn/issues/43295")]
         public async Task TestNotAfterReadonlyInClass()
         {

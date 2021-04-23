@@ -21,9 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         /// <summary>
         /// Handles the job of batching up change notifications so that don't spam the editor with too
-        /// many update requests at a time.  Updating the editor can even be paused and resumed at a
-        /// later point if some feature doesn't want the editor changing while it performs some bit of
-        /// work.
+        /// many update requests at a time.
         /// </summary>
         private class BatchChangeNotifier : ForegroundThreadAffinitizedObject
         {
@@ -49,18 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             // instead create a timer that will report the changes and we enqueue any pending updates to
             // a list that will be updated all at once the timer actually runs.
             private bool _notificationRequestEnqueued;
-            private readonly SortedDictionary<int, NormalizedSnapshotSpanCollection> _snapshotVersionToSpansMap =
-                new();
-
-            /// <summary>
-            /// True if we are currently suppressing UI updates.  While suppressed we still continue
-            /// doing everything as normal, except we do not update the UI.  Then, when we are no longer
-            /// suppressed we will issue all pending UI notifications to the editor.  During the time
-            /// that we're suppressed we will respond to all GetTags requests with the tags we had
-            /// before we were paused.
-            /// </summary>
-            public bool IsPaused { get; private set; }
-            private int _lastPausedTime;
+            private readonly SortedDictionary<int, NormalizedSnapshotSpanCollection> _snapshotVersionToSpansMap = new();
 
             private readonly Action<NormalizedSnapshotSpanCollection> _notifyEditorNow;
 
@@ -79,21 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _notificationService = notificationService;
                 _cancellationToken = cancellationToken;
                 _notifyEditorNow = notifyEditorNow;
-            }
-
-            public void Pause()
-            {
-                AssertIsForeground();
-
-                _lastPausedTime = Environment.TickCount;
-                this.IsPaused = true;
-            }
-
-            public void Resume()
-            {
-                AssertIsForeground();
-                _lastPausedTime = Environment.TickCount;
-                this.IsPaused = false;
             }
 
             private static readonly Func<int, NormalizedSnapshotSpanCollection> s_addFunction =
@@ -169,21 +141,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 AssertIsForeground();
 
-                // If we're currently suppressed, then just re-enqueue a request to update in the
-                // future.
-                if (this.IsPaused)
-                {
-                    // TODO(cyrusn): Do we need to make this delay customizable?  I don't think we do.
-                    // Pausing is only used for features we don't want to spam the user with (like
-                    // squiggles while the completion list is up.  It's ok to have them appear 1.5
-                    // seconds later once we become un-paused.
-                    if ((Environment.TickCount - _lastPausedTime) < TaggerConstants.IdleDelay)
-                    {
-                        EnqueueNotificationRequest(TaggerDelay.OnIdle);
-                        return;
-                    }
-                }
-
                 using (Logger.LogBlock(FunctionId.Tagger_BatchChangeNotifier_NotifyEditor, CancellationToken.None))
                 {
                     // Go through and report the snapshots from oldest to newest.
@@ -199,9 +156,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Finally, clear out the collection so that we don't re-report spans.
                 _snapshotVersionToSpansMap.Clear();
                 _lastReportTick = Environment.TickCount;
-
-                // reset paused time
-                _lastPausedTime = Environment.TickCount;
             }
         }
     }

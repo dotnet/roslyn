@@ -3338,12 +3338,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindRecordConstructorBody(RecordDeclarationSyntax recordDecl, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(recordDecl.ParameterList is object);
+            Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
 
             Binder bodyBinder = this.GetBinder(recordDecl);
             Debug.Assert(bodyBinder != null);
 
             BoundExpressionStatement initializer = null;
-            if (recordDecl.PrimaryConstructorBaseType is PrimaryConstructorBaseTypeSyntax baseWithArguments)
+            if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
             }

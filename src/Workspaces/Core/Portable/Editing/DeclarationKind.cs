@@ -42,5 +42,6 @@ namespace Microsoft.CodeAnalysis.Editing
         RemoveAccessor,
         RaiseAccessor,
         RecordClass,
+        RecordStruct,
     }
 }

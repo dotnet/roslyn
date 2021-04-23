@@ -317,23 +317,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition);
 
-            protected async Task<(Guid, string projectName, SourceText)> GetGuidAndProjectNameAndSourceTextAsync(Document document)
-            {
-                // The FAR system needs to know the guid for the project that a def/reference is 
-                // from (to support features like filtering).  Normally that would mean we could
-                // only support this from a VisualStudioWorkspace.  However, we want till work 
-                // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
-                // when we have another type of workspace.  This means we will show results, but
-                // certain features (like filtering) may not work in that context.
-                var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
-
-                var projectName = document.Project.Name;
-                var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
-
-                var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
-                return (guid, projectName, sourceText);
-            }
-
             protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
@@ -341,8 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> additionalProperties)
             {
-                var document = documentSpan.Document;
-                var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
+                var sourceText = await documentSpan.Document.GetTextAsync(CancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
@@ -352,12 +334,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return null;
                 }
 
-                return new DocumentSpanEntry(
+                return DocumentSpanEntry.TryCreate(
                     this,
                     definitionBucket,
+                    documentSpan,
                     spanKind,
-                    projectName,
-                    guid,
                     mappedDocumentSpan.Value,
                     excerptResult,
                     lineText,

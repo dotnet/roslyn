@@ -15,13 +15,9 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 {
     internal abstract class AbstractSimplifyInterpolationDiagnosticAnalyzer<
         TInterpolationSyntax,
-        TExpressionSyntax,
-        TConditionalExpressionSyntax,
-        TParenthesizedExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        TExpressionSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TInterpolationSyntax : SyntaxNode
         where TExpressionSyntax : SyntaxNode
-        where TConditionalExpressionSyntax : TExpressionSyntax
-        where TParenthesizedExpressionSyntax : TExpressionSyntax
     {
         protected AbstractSimplifyInterpolationDiagnosticAnalyzer()
            : base(IDEDiagnosticIds.SimplifyInterpolationId,
@@ -36,6 +32,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         protected abstract IVirtualCharService GetVirtualCharService();
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
+
+        protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 return;
             }
 
-            Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax, TConditionalExpressionSyntax, TParenthesizedExpressionSyntax>(
+            GetHelpers().UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
                 GetVirtualCharService(), GetSyntaxFacts(), interpolation, out _, out var alignment, out _,
                 out var formatString, out var unnecessaryLocations);
 

@@ -584,6 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.DelegateDeclaration:
                     case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         if (seen < NamespaceParts.TypesAndNamespaces)
                         {
                             seen = NamespaceParts.TypesAndNamespaces;
@@ -1186,9 +1187,9 @@ tryAgain:
                         // this is a partial ref struct declaration
                         {
                             var next = PeekToken(1);
-                            if (next.Kind == SyntaxKind.StructKeyword ||
+                            if (isStructOrRecordKeyword(next) ||
                                 (next.ContextualKind == SyntaxKind.PartialKeyword &&
-                                 PeekToken(2).Kind == SyntaxKind.StructKeyword))
+                                 isStructOrRecordKeyword(PeekToken(2))))
                             {
                                 modTok = this.EatToken();
                                 modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefStructs);
@@ -1224,6 +1225,25 @@ tryAgain:
                 }
 
                 tokens.Add(modTok);
+            }
+
+            bool isStructOrRecordKeyword(SyntaxToken token)
+            {
+                if (token.Kind == SyntaxKind.StructKeyword)
+                {
+                    return true;
+                }
+
+                if (token.ContextualKind == SyntaxKind.RecordKeyword)
+                {
+                    // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+                    // does not support a feature, but in this case we are effectively making a language breaking
+                    // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
+                    // older code that is not using C# 9 we conditionally parse based on langversion
+                    return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                }
+
+                return false;
             }
         }
 
@@ -1356,12 +1376,22 @@ tryAgain:
         private bool IsPartialType()
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            switch (this.PeekToken(1).Kind)
+            var nextToken = this.PeekToken(1);
+            switch (nextToken.Kind)
             {
                 case SyntaxKind.StructKeyword:
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.InterfaceKeyword:
                     return true;
+            }
+
+            if (nextToken.ContextualKind == SyntaxKind.RecordKeyword)
+            {
+                // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+                // does not support a feature, but in this case we are effectively making a language breaking
+                // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
+                // older code that is not using C# 9 we conditionally parse based on langversion
+                return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
             }
 
             return false;
@@ -1490,9 +1520,11 @@ tryAgain:
             var keyword = ConvertToKeyword(this.EatToken());
 
             var outerSaveTerm = _termState;
+            SyntaxToken? recordModifier = null;
             if (keyword.Kind == SyntaxKind.RecordKeyword)
             {
                 _termState |= TerminatorState.IsEndOfRecordSignature;
+                recordModifier = eatRecordModifierIfAvailable();
             }
 
             var saveTerm = _termState;
@@ -1504,13 +1536,13 @@ tryAgain:
             var paramList = keyword.Kind == SyntaxKind.RecordKeyword && CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? ParseParenthesizedParameterList() : null;
 
-            var baseList = this.ParseBaseList(keyword, paramList is object);
+            var baseList = this.ParseBaseList();
             _termState = saveTerm;
 
             // Parse class body
             bool parseMembers = true;
-            SyntaxListBuilder<MemberDeclarationSyntax> members = default(SyntaxListBuilder<MemberDeclarationSyntax>);
-            var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
+            SyntaxListBuilder<MemberDeclarationSyntax> members = default;
+            SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints = default;
             try
             {
                 if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
@@ -1595,6 +1627,38 @@ tryAgain:
                     closeBrace = null;
                 }
 
+                return constructTypeDeclaration(_syntaxFactory, attributes, modifiers, keyword, recordModifier, name, typeParameters, paramList, baseList, constraints, openBrace, members, closeBrace, semicolon);
+            }
+            finally
+            {
+                if (!members.IsNull)
+                {
+                    _pool.Free(members);
+                }
+
+                if (!constraints.IsNull)
+                {
+                    _pool.Free(constraints);
+                }
+            }
+
+            SyntaxToken? eatRecordModifierIfAvailable()
+            {
+                Debug.Assert(keyword.Kind == SyntaxKind.RecordKeyword);
+                if (CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword)
+                {
+                    var result = EatToken();
+                    result = CheckFeatureAvailability(result, MessageID.IDS_FeatureRecordStructs);
+                    return result;
+                }
+
+                return null;
+            }
+
+            static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxToken keyword, SyntaxToken? recordModifier,
+                SyntaxToken name, TypeParameterListSyntax typeParameters, ParameterListSyntax? paramList, BaseListSyntax baseList, SyntaxListBuilder<TypeParameterConstraintClauseSyntax> constraints,
+                SyntaxToken? openBrace, SyntaxListBuilder<MemberDeclarationSyntax> members, SyntaxToken? closeBrace, SyntaxToken semicolon)
+            {
                 var modifiersList = (SyntaxList<SyntaxToken>)modifiers.ToList();
                 var membersList = (SyntaxList<MemberDeclarationSyntax>)members;
                 var constraintsList = (SyntaxList<TypeParameterConstraintClauseSyntax>)constraints;
@@ -1604,7 +1668,7 @@ tryAgain:
                         RoslynDebug.Assert(paramList is null);
                         RoslynDebug.Assert(openBrace != null);
                         RoslynDebug.Assert(closeBrace != null);
-                        return _syntaxFactory.ClassDeclaration(
+                        return syntaxFactory.ClassDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
@@ -1621,7 +1685,7 @@ tryAgain:
                         RoslynDebug.Assert(paramList is null);
                         RoslynDebug.Assert(openBrace != null);
                         RoslynDebug.Assert(closeBrace != null);
-                        return _syntaxFactory.StructDeclaration(
+                        return syntaxFactory.StructDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
@@ -1638,7 +1702,7 @@ tryAgain:
                         RoslynDebug.Assert(paramList is null);
                         RoslynDebug.Assert(openBrace != null);
                         RoslynDebug.Assert(closeBrace != null);
-                        return _syntaxFactory.InterfaceDeclaration(
+                        return syntaxFactory.InterfaceDeclaration(
                             attributes,
                             modifiersList,
                             keyword,
@@ -1652,10 +1716,16 @@ tryAgain:
                             semicolon);
 
                     case SyntaxKind.RecordKeyword:
-                        return _syntaxFactory.RecordDeclaration(
+                        // record struct ...
+                        // record ...
+                        // record class ...
+                        SyntaxKind declarationKind = recordModifier?.Kind == SyntaxKind.StructKeyword ? SyntaxKind.RecordStructDeclaration : SyntaxKind.RecordDeclaration;
+                        return syntaxFactory.RecordDeclaration(
+                            declarationKind,
                             attributes,
                             modifiers.ToList(),
                             keyword,
+                            classOrStructKeyword: recordModifier,
                             name,
                             typeParameters,
                             paramList,
@@ -1668,18 +1738,6 @@ tryAgain:
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(keyword.Kind);
-                }
-            }
-            finally
-            {
-                if (!members.IsNull)
-                {
-                    _pool.Free(members);
-                }
-
-                if (!constraints.IsNull)
-                {
-                    _pool.Free(constraints);
                 }
             }
         }
@@ -1778,7 +1836,7 @@ tryAgain:
                 || this.IsCurrentTokenWhereOfConstraintClause();
         }
 
-        private BaseListSyntax ParseBaseList(SyntaxToken typeKeyword, bool haveParameters)
+        private BaseListSyntax ParseBaseList()
         {
             if (this.CurrentToken.Kind != SyntaxKind.ColonToken)
             {
@@ -1796,11 +1854,6 @@ tryAgain:
                 if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
                 {
                     argumentList = this.ParseParenthesizedArgumentList();
-
-                    if (typeKeyword.Kind != SyntaxKind.RecordKeyword || !haveParameters)
-                    {
-                        argumentList = this.AddErrorToFirstToken(argumentList, ErrorCode.ERR_UnexpectedArgumentList);
-                    }
                 }
 
                 list.Add(argumentList is object ? _syntaxFactory.PrimaryConstructorBaseType(firstType, argumentList) : (BaseTypeSyntax)_syntaxFactory.SimpleBaseType(firstType));
@@ -2086,6 +2139,7 @@ tryAgain:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.NamespaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return true;
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.MethodDeclaration:
@@ -4624,6 +4678,7 @@ tryAgain:
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         return ((CSharp.Syntax.TypeDeclarationSyntax)decl).Modifiers;
                     case SyntaxKind.DelegateDeclaration:
                         return ((CSharp.Syntax.DelegateDeclarationSyntax)decl).Modifiers;
