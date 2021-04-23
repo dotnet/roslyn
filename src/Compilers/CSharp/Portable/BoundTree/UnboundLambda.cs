@@ -658,7 +658,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }
 
-            // PROTOTYPE: Test that we're reporting diagnostics even in the case where we re-used the lambda above.
             lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
 
             if (lambdaSymbol.RefKind == CodeAnalysis.RefKind.RefReadOnly)

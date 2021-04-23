@@ -1863,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.ExpressionTreeFromAnonymousMethod)
             {
-                Debug.Assert(targetType.IsExpressionTree());
+                Debug.Assert(targetType.IsGenericOrNonGenericExpressionType(out _));
                 Error(diagnostics, ErrorCode.ERR_AnonymousMethodToExpressionTree, syntax);
                 return;
             }

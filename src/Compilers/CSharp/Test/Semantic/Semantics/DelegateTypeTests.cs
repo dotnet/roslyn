@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 using System.Linq;
 static class Utils
 {
+    internal static string GetDelegateMethodName(this Delegate d)
+    {
+        var method = d.Method;
+        return Concat(GetTypeName(method.DeclaringType), method.Name);
+    }
     internal static string GetDelegateTypeName(this Delegate d)
     {
         return d.GetType().GetTypeName();
@@ -37,15 +42,16 @@ static class Utils
         {
             typeName = typeName.Substring(0, index);
         }
-        if (!string.IsNullOrEmpty(type.Namespace))
-        {
-            typeName = type.Namespace + ""."" + typeName;
-        }
+        typeName = Concat(type.Namespace, typeName);
         if (!type.IsGenericType)
         {
             return typeName;
         }
         return $""{typeName}<{string.Join("", "", type.GetGenericArguments().Select(GetTypeName))}>"";
+    }
+    private static string Concat(string container, string name)
+    {
+        return string.IsNullOrEmpty(container) ? name : container + ""."" + name;
     }
 }";
 
@@ -253,6 +259,13 @@ $@"class Program
             {
                 comp.VerifyDiagnostics(expectedDiagnostics);
             }
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            Assert.Equal(expectedType ?? "System.Delegate", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType!.SpecialType);
         }
 
         public static IEnumerable<object?[]> GetLambdaData()
@@ -284,6 +297,11 @@ $@"class Program
             yield return getData("(int x) => throw null", null);
             yield return getData("() => { throw null; }", "System.Action");
             yield return getData("(int x) => { throw null; }", "System.Action<System.Int32>");
+            yield return getData("(string s) => { if (s.Length > 0) return s; return null; }", "System.Func<System.String, System.String>");
+            yield return getData("(string s) => { if (s.Length > 0) return default; return s; }", "System.Func<System.String, System.String>");
+            yield return getData("(int i) => { if (i > 0) return i; return default; }", "System.Func<System.Int32, System.Int32>");
+            yield return getData("(int x, short y) => { if (x > 0) return x; return y; }", "System.Func<System.Int32, System.Int16, System.Int32>");
+            yield return getData("(int x, short y) => { if (x > 0) return y; return x; }", "System.Func<System.Int32, System.Int16, System.Int32>");
 
             static object?[] getData(string expr, string? expectedType) =>
                 new object?[] { expr, expectedType };
@@ -376,6 +394,20 @@ $@"class Program
             {
                 CompileAndVerify(comp, expectedOutput: expectedType);
             }
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            if (expectedType is null)
+            {
+                Assert.True(typeInfo.Type.IsErrorType());
+            }
+            else
+            {
+                Assert.Equal(expectedType, typeInfo.Type.ToTestDisplayString());
+            }
+            Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType!.SpecialType);
         }
 
         public static IEnumerable<object?[]> GetExpressionData()
@@ -454,6 +486,20 @@ $@"class Program
             {
                 comp.VerifyDiagnostics();
             }
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var typeInfo = model.GetTypeInfo(expr);
+            if (expectedType is null)
+            {
+                Assert.True(typeInfo.Type.IsErrorType());
+            }
+            else
+            {
+                Assert.Equal($"System.Linq.Expressions.Expression<{expectedType}>", typeInfo.Type.ToTestDisplayString());
+            }
+            Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType!.SpecialType);
         }
 
         /// <summary>
@@ -637,17 +683,17 @@ partial class B : A
 
         public static IEnumerable<object?[]> GetExtensionMethodsSameScopeData()
         {
-            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "string.Empty.F", "F", null, "System.Action"); // different parameter type
-            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "this.F", "F", null, "System.Action"); // different parameter type
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "string.Empty.F", "F", null, "B.F", "System.Action"); // different parameter type
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "this.F", "F", null, "A.F", "System.Action"); // different parameter type
             yield return getData("internal static void F(this object x) { }", "internal static void F(this object x, object y) { }", "this.F", "F"); // different number of parameters
             yield return getData("internal static void F(this object x, object y) { }", "internal static void F(this object x, ref object y) { }", "this.F", "F"); // different parameter ref kind
             yield return getData("internal static void F(this object x, ref object y) { }", "internal static void F(this object x, object y) { }", "this.F", "F"); // different parameter ref kind
             yield return getData("internal static object F(this object x) => throw null;", "internal static ref object F(this object x) => throw null;", "this.F", "F"); // different return ref kind
             yield return getData("internal static ref object F(this object x) => throw null;", "internal static object F(this object x) => throw null;", "this.F", "F"); // different return ref kind
             yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F", "F"); // different arity
-            yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F<int>", "F<int>", null, "System.Action<System.Int32>"); // different arity
+            yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F<int>", "F<int>", null, "B.F", "System.Action<System.Int32>"); // different arity
             yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F", "F"); // different arity
-            yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F<int>", "F<int>", null, "System.Action"); // different arity
+            yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F<int>", "F<int>", null, "A.F", "System.Action"); // different arity
             yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) { }", "this.F<object>", "F<object>",
                 new[]
                 {
@@ -664,7 +710,7 @@ partial class B : A
                 }); // different type parameter constraints
             yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) where T : struct { }", "this.F<int>", "F<int>"); // different type parameter constraints
 
-            static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedType = null)
+            static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedMethod = null, string? expectedType = null)
             {
                 if (expectedDiagnostics is null && expectedType is null)
                 {
@@ -676,13 +722,13 @@ partial class B : A
                         Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(5, 29 + offset)
                     };
                 }
-                return new object?[] { methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedType };
+                return new object?[] { methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedMethod, expectedType };
             }
         }
 
         [Theory]
         [MemberData(nameof(GetExtensionMethodsSameScopeData))]
-        public void MethodGroup_ExtensionMethodsSameScope(string methodA, string methodB, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedType)
+        public void MethodGroup_ExtensionMethodsSameScope(string methodA, string methodB, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedMethod, string? expectedType)
         {
             var source =
 $@"class Program
@@ -690,7 +736,7 @@ $@"class Program
     void M()
     {{
         System.Delegate d = {methodGroupExpression};
-        System.Console.Write(d.GetDelegateTypeName());
+        System.Console.Write(""{{0}}: {{1}}"", d.GetDelegateMethodName(), d.GetDelegateTypeName());
     }}
     static void Main()
     {{
@@ -708,7 +754,7 @@ static class B
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                CompileAndVerify(comp, expectedOutput: expectedType);
+                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -721,31 +767,34 @@ static class B
             var typeInfo = model.GetTypeInfo(expr);
             Assert.Null(typeInfo.Type);
             Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
         }
 
         public static IEnumerable<object?[]> GetExtensionMethodsDifferentScopeData()
         {
-            yield return getData("internal static void F(this object x) { }", "internal static void F(this object x) { }", "this.F", "F", null, "System.Action"); // hiding
-            yield return getData("internal static void F(this object x) { }", "internal static void F(this object x) { }", "this.F", "F", null, "System.Action"); // hiding
-            yield return getData("internal static void F(this object x) { }", "internal static void F(this object y) { }", "this.F", "F", null, "System.Action"); // different parameter name
-            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "string.Empty.F", "F", null, "System.Action"); // different parameter type
-            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "this.F", "F", null, "System.Action"); // different parameter type
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this object x) { }", "this.F", "F", null, "A.F", "System.Action"); // hiding
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this object y) { }", "this.F", "F", null, "A.F", "System.Action"); // different parameter name
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "string.Empty.F", "F", null, "A.F", "System.Action"); // different parameter type
+            yield return getData("internal static void F(this object x) { }", "internal static void F(this string x) { }", "this.F", "F", null, "A.F", "System.Action"); // different parameter type
             yield return getData("internal static void F(this object x) { }", "internal static void F(this object x, object y) { }", "this.F", "F"); // different number of parameters
             yield return getData("internal static void F(this object x, object y) { }", "internal static void F(this object x, ref object y) { }", "this.F", "F"); // different parameter ref kind
             yield return getData("internal static void F(this object x, ref object y) { }", "internal static void F(this object x, object y) { }", "this.F", "F"); // different parameter ref kind
             yield return getData("internal static object F(this object x) => throw null;", "internal static ref object F(this object x) => throw null;", "this.F", "F"); // different return ref kind
             yield return getData("internal static ref object F(this object x) => throw null;", "internal static object F(this object x) => throw null;", "this.F", "F"); // different return ref kind
-            yield return getData("internal static void F(this object x, System.IntPtr y) { }", "internal static void F(this object x, nint y) { }", "this.F", "F", null, "System.Action<System.IntPtr>"); // System.IntPtr/nint
-            yield return getData("internal static nint F(this object x) => throw null;", "internal static System.IntPtr F(this object x) => throw null;", "this.F", "F", null, "System.Func<System.IntPtr>"); // System.IntPtr/nint
+            yield return getData("internal static void F(this object x, System.IntPtr y) { }", "internal static void F(this object x, nint y) { }", "this.F", "F", null, "A.F", "System.Action<System.IntPtr>"); // System.IntPtr/nint
+            yield return getData("internal static nint F(this object x) => throw null;", "internal static System.IntPtr F(this object x) => throw null;", "this.F", "F", null, "A.F", "System.Func<System.IntPtr>"); // System.IntPtr/nint
             yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F", "F"); // different arity
-            yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F<int>", "F<int>", null, "System.Action<System.Int32>"); // different arity
+            yield return getData("internal static void F(this object x, object y) { }", "internal static void F<T>(this object x, T y) { }", "this.F<int>", "F<int>", null, "N.B.F", "System.Action<System.Int32>"); // different arity
             yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F", "F"); // different arity
-            yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F<int>", "F<int>", null, "System.Action"); // different arity
-            yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) { }", "this.F<object>", "F<object>", null, "System.Action"); // different type parameter constraints
-            yield return getData("internal static void F<T>(this T t) { }", "internal static void F<T>(this T t) where T : class { }", "this.F<object>", "F<object>", null, "System.Action"); // different type parameter constraints
+            yield return getData("internal static void F<T>(this object x) { }", "internal static void F(this object x) { }", "this.F<int>", "F<int>", null, "A.F", "System.Action"); // different arity
+            yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) { }", "this.F<object>", "F<object>", null, "A.F", "System.Action"); // different type parameter constraints
+            yield return getData("internal static void F<T>(this T t) { }", "internal static void F<T>(this T t) where T : class { }", "this.F<object>", "F<object>", null, "A.F", "System.Action"); // different type parameter constraints
             yield return getData("internal static void F<T>(this T t) where T : class { }", "internal static void F<T>(this T t) where T : struct { }", "this.F<int>", "F<int>"); // different type parameter constraints
 
-            static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedType = null)
+            static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedMethod = null, string? expectedType = null)
             {
                 if (expectedDiagnostics is null && expectedType is null)
                 {
@@ -757,13 +806,13 @@ static class B
                         Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(6, 29 + offset)
                     };
                 }
-                return new object?[] { methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedType };
+                return new object?[] { methodA, methodB, methodGroupExpression, expectedDiagnostics, expectedMethod, expectedType };
             }
         }
 
         [Theory]
         [MemberData(nameof(GetExtensionMethodsDifferentScopeData))]
-        public void MethodGroup_ExtensionMethodsDifferentScope(string methodA, string methodB, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedType)
+        public void MethodGroup_ExtensionMethodsDifferentScope(string methodA, string methodB, string methodGroupExpression, DiagnosticDescription[]? expectedDiagnostics, string? expectedMethod, string? expectedType)
         {
             var source =
 $@"using N;
@@ -772,7 +821,7 @@ class Program
     void M()
     {{
         System.Delegate d = {methodGroupExpression};
-        System.Console.Write(d.GetDelegateTypeName());
+        System.Console.Write(""{{0}}: {{1}}"", d.GetDelegateMethodName(), d.GetDelegateTypeName());
     }}
     static void Main()
     {{
@@ -793,7 +842,7 @@ namespace N
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                CompileAndVerify(comp, expectedOutput: expectedType);
+                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -806,6 +855,10 @@ namespace N
             var typeInfo = model.GetTypeInfo(expr);
             Assert.Null(typeInfo.Type);
             Assert.Equal(SpecialType.System_Delegate, typeInfo.ConvertedType!.SpecialType);
+
+            var symbolInfo = model.GetSymbolInfo(expr);
+            // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
+            Assert.Null(symbolInfo.Symbol);
         }
 
         [Fact]
@@ -1231,7 +1284,7 @@ class Program
         return (T t, int* p) => { };
     }
 }";
-            // PROTOTYPE: When we synthesize delegate types, and infer a synthesized
+            // When we synthesize delegate types, and infer a synthesized
             // delegate type, run the program to report the actual delegate type.
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics(
@@ -1310,6 +1363,63 @@ class B
                 // (11,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
                 //         Report(A.F2);
                 Diagnostic(ErrorCode.ERR_BadArgType, "A.F2").WithArguments("1", "method group", "System.Delegate").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyAttribute_01()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+class Program
+{
+    static void Main()
+    {
+        Delegate d = F;
+    }
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+    static void F() { }
+}";
+            var comp = CreateCompilation(new[] { source, UnmanagedCallersOnlyAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,22): error CS8902: 'Program.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
+                //         Delegate d = F;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeConvertedToDelegate, "F").WithArguments("Program.F()").WithLocation(8, 22));
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnlyAttribute_02()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+class Program
+{
+    static void Main()
+    {
+        Delegate d = new S().F;
+    }
+}
+struct S
+{
+}
+static class E1
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
+    public static void F(this S s) { }
+}
+static class E2
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
+    public static void F(this S s) { }
+}";
+            var comp = CreateCompilation(new[] { source, UnmanagedCallersOnlyAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,22): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F(S)' and 'E2.F(S)'
+                //         Delegate d = new S().F;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new S().F").WithArguments("E1.F(S)", "E2.F(S)").WithLocation(8, 22));
         }
 
         [Fact]
@@ -1660,7 +1770,6 @@ class Program
         {
             var source =
 @"using System;
-
 class Program
 {
     static void Main()
@@ -1670,12 +1779,10 @@ class Program
         c.M(() => { }); // C#9: E.M(object x, Action y)
     }
 }
-
 class C
 {
     public void M(object y) { Console.WriteLine(""C.M(object y)""); }
 }
-
 static class E
 {
     public static void M(this object x, Action y) { Console.WriteLine(""E.M(object x, Action y)""); }
@@ -1689,8 +1796,81 @@ E.M(object x, Action y)
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput);
         }
 
+        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
         public void OverloadResolution_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.M(Main);      // C#9: E.M(object x, Action y)
+        c.M(() => { }); // C#9: E.M(object x, Action y)
+    }
+}
+class C
+{
+    public void M(Delegate d) { Console.WriteLine(""C.M""); }
+}
+static class E
+{
+    public static void M(this object o, Action a) { Console.WriteLine(""E.M""); }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         c.M(Main);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(7, 13),
+                // (8,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         c.M(() => { });
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(8, 13));
+
+            // Breaking change from C#9 which binds to E.M.
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+@"C.M
+C.M
+");
+        }
+
+        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [Fact]
+        public void OverloadResolution_04()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.M(() => 1);
+    }
+}
+class C
+{
+    public void M(Expression e) { Console.WriteLine(""C.M""); }
+}
+static class E
+{
+    public static void M(this object o, Func<int> a) { Console.WriteLine(""E.M""); }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         c.M(() => 1);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(8, 13));
+
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"C.M");
+        }
+
+        [Fact]
+        public void OverloadResolution_05()
         {
             var source =
 @"using System;
@@ -1758,45 +1938,7 @@ FB(Func<int>)
         }
 
         [Fact]
-        public void OverloadResolution_04()
-        {
-            var source =
-@"using System;
-class Program
-{
-    static void Main()
-    {
-        var c = new C();
-        c.M(Main);
-        c.M(() => { });
-    }
-}
-class C
-{
-    public void M(Delegate d) { Console.WriteLine(""C.M""); }
-}
-static class E
-{
-    public static void M(this object o, Action a) { Console.WriteLine(""E.M""); }
-}";
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (7,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         c.M(Main);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(7, 13),
-                // (8,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         c.M(() => { });
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(8, 13));
-
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
-@"C.M
-C.M
-");
-        }
-
-        [Fact]
-        public void OverloadResolution_05()
+        public void OverloadResolution_06()
         {
             var source =
 @"using System;
@@ -1826,7 +1968,7 @@ F(Expression): () => String.Empty
         }
 
         [Fact]
-        public void OverloadResolution_06()
+        public void OverloadResolution_07()
         {
             var source =
 @"using System;
@@ -1842,14 +1984,13 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE: Should report CS1946: An anonymous method expression cannot be converted to an expression tree.
             comp.VerifyDiagnostics(
-                // (9,11): error CS1945: An expression tree may not contain an anonymous method expression
+                // (9,11): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         F(delegate () { return 0; });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAnonymousMethod, "delegate () { return 0; }").WithLocation(9, 11),
-                // (10,11): error CS1945: An expression tree may not contain an anonymous method expression
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return 0; }").WithLocation(9, 11),
+                // (10,11): error CS1946: An anonymous method expression cannot be converted to an expression tree
                 //         F(delegate () { return string.Empty; });
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAnonymousMethod, "delegate () { return string.Empty; }").WithLocation(10, 11));
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return string.Empty; }").WithLocation(10, 11));
         }
 
         [Fact]

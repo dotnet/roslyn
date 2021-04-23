@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (destination.SpecialType == SpecialType.System_Delegate)
             {
                 CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
-                // PROTOTYPE: We're resolving the method group multiple times in the code path for a single conversion.
+                // https://github.com/dotnet/roslyn/issues/52869: Avoid calculating the delegate type multiple times during conversion.
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var delegateType = GetMethodGroupDelegateType(group, ref useSiteInfo);
                 var expr = createMethodGroupConversion(syntax, group, conversion, isCast, conversionGroup, delegateType!, hasErrors);

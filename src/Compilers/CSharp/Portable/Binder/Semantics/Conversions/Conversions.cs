@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var delegateType = (type.SpecialType == SpecialType.System_Delegate) ?
-                // PROTOTYPE: We're resolving the method group multiple times in the code path for a single conversion.
+                // https://github.com/dotnet/roslyn/issues/52869: Avoid calculating the delegate type multiple times during conversion.
                 _binder.GetMethodGroupDelegateType(methodGroup, ref useSiteInfo) :
                 type.GetDelegateType();
 
