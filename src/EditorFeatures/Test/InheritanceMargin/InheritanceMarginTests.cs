@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -929,6 +930,65 @@ public class {|target5:Bar2|} : Bar1, IBar
                 itemForFooInBar2);
         }
 
+        [Fact]
+        public Task TestCSharpFindGenericsBaseType()
+        {
+            var lessThanToken = SecurityElement.Escape("<");
+            var greaterThanToken = SecurityElement.Escape(">");
+            var markup = $@"
+public interface {{|target2:IBar|}}{lessThanToken}T{greaterThanToken}
+{{
+    void {{|target4:Foo|}}();
+}}
+
+public class {{|target1:Bar2|}} : IBar{lessThanToken}int{greaterThanToken}, IBar{lessThanToken}string{greaterThanToken}
+{{
+    public void {{|target3:Foo|}}();
+}}";
+
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "interface IBar<T>",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "class Bar2",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForFooInIBar = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "void IBar<T>.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void Bar2.Foo()",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            // Only have one IBar<T> item
+            var itemForBar2 = new TestInheritanceMemberItem(
+                lineNumber: 7,
+                memberName: "class Bar2",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "interface IBar<T>",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            // Only have one IBar<T>.Foo item
+            var itemForFooInBar2 = new TestInheritanceMemberItem(
+                lineNumber: 9,
+                memberName: "void Bar2.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void IBar<T>.Foo()",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            return VerifyInSingleDocumentAsync(
+                markup,
+                LanguageNames.CSharp,
+                itemForIBar,
+                itemForFooInIBar,
+                itemForBar2,
+                itemForFooInBar2);
+        }
+
         #endregion
 
         #region TestsForVisualBasic
@@ -1460,6 +1520,81 @@ End Class";
                 itemForFooInBar1,
                 itemForBar2,
                 itemForFooInBar2);
+        }
+
+        [Fact]
+        public Task TestVisualBasicFindGenericsBaseType()
+        {
+            var markup = @"
+Public Interface {|target5:IBar|}(Of T)
+    Sub {|target6:Foo|}()
+End Interface
+
+Public Class {|target1:Bar|}
+    Implements IBar(Of Integer)
+    Implements IBar(Of String)
+
+    Public Sub {|target3:Foo|}() Implements IBar(Of Integer).Foo
+        Throw New NotImplementedException()
+    End Sub
+
+    Private Sub {|target4:IBar_Foo|}() Implements IBar(Of String).Foo
+        Throw New NotImplementedException()
+    End Sub
+End Class";
+
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "Interface IBar(Of T)",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Class Bar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForFooInIBar = new TestInheritanceMemberItem(
+                lineNumber: 3,
+                memberName: "Sub IBar(Of T).Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Sub Bar.Foo()",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Implemented),
+                        new TargetInfo(
+                            targetSymbolDisplayName: "Sub Bar.IBar_Foo()",
+                            locationTag: "target4",
+                            relationship: InheritanceRelationship.Implemented)));
+
+            var itemForBar = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "Class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Interface IBar(Of T)",
+                        locationTag: "target5",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForFooInBar = new TestInheritanceMemberItem(
+                lineNumber: 10,
+                memberName: "Sub Bar.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Sub IBar(Of T).Foo()",
+                        locationTag: "target6",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForIBar_FooInBar = new TestInheritanceMemberItem(
+                lineNumber: 14,
+                memberName: "Sub Bar.IBar_Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Sub IBar(Of T).Foo()",
+                        locationTag: "target6",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            return VerifyInSingleDocumentAsync(
+                markup,
+                LanguageNames.VisualBasic,
+                itemForIBar,
+                itemForFooInIBar,
+                itemForBar,
+                itemForFooInBar,
+                itemForIBar_FooInBar);
         }
 
         #endregion

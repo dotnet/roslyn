@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -86,7 +85,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             // Get all base types.
-            var allBaseSymbols = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol);
+            var allBaseSymbols = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol)
+                .Select(symbol => symbol.OriginalDefinition)
+                .Distinct().ToImmutableArray();
 
             // Filter out
             // 1. System.Object. (otherwise margin would be shown for all classes)
@@ -263,10 +264,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // class Bar2 : Bar, IBar { public override void Foo() { } }
                 // Here IBar.Foo() would be added twice as an implementing members.
                 // The order is not important, because UI would sort it based on display name.
-                var builder = new HashSet<ISymbol>();
+                using var _ = PooledHashSet<ISymbol>.GetInstance(out var builder);
 
                 // 1. Add the direct implementing symbols in interfaces.
-                var directImplementingSymbols = memberSymbol.ExplicitOrImplicitInterfaceImplementations();
+                var directImplementingSymbols = memberSymbol.ExplicitOrImplicitInterfaceImplementations()
+                    .SelectAsArray(symbol => symbol.OriginalDefinition);
                 builder.AddRange(directImplementingSymbols);
 
                 // 2. Also add the direct implementing symbols for the overriding symbols.
@@ -277,7 +279,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // For 'Bar2.Foo()',  we need to find 'IBar.Foo()'
                 foreach (var symbol in overridingSymbols)
                 {
-                    builder.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
+                    builder.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations()
+                        .SelectAsArray(symbol => symbol.OriginalDefinition));
                 }
 
                 return builder.ToImmutableArray();
@@ -309,7 +312,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // class Bar2 : Bar, IBar { public override void Foo() { } }
                 // Here Bar2.Foo() would be added twice as an implemented members.
                 // The order is not important, because UI would sort it based on display name.
-                var builder = new HashSet<ISymbol>();
+                using var _ = PooledHashSet<ISymbol>.GetInstance(out var builder);
                 // 1. Find all direct implementations for this member
                 var implementationSymbols = await SymbolFinder.FindMemberImplementationsArrayAsync(
                     memberSymbol,
