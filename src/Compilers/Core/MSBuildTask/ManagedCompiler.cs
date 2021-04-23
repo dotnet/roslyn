@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
             using var logger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
-            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
         }
 
         internal int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
