@@ -3,8 +3,8 @@
 ## Summary
 
 Incremental generators are intended to be a new API that exists alongside
-[source generators](generators.md) to allow users to implement high performance
-incremental generation strategies.
+[source generators](generators.md) to allow users to specify generation
+strategies that can be applied in a high performance way by the hosting layer.
 
 ### High Level Design Goals
 
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
 {
     public interface IIncrementalGenerator
     {
-        void Initialize(IncrementalGeneratorInitializationContext context);
+        void Initialize(IncrementalGeneratorInitializationContext initContext);
     }
 }
 ```
@@ -45,9 +45,10 @@ incremental generators.
 ### Initialization
 
 `IIncrementalGenerator` has an `Initialize` method that is called by the host
-(either the IDE or the command-line compiler) exactly once. `Initialize` passes
-an instance of `IncrementalGeneratorInitializationContext` which can be used by
-the generator to register a set of callbacks that affect how future generation
+(either the IDE or the command-line compiler) exactly once, regardless of the
+number of further compilations that may occur. `Initialize` passes an instance
+of `IncrementalGeneratorInitializationContext` which can be used by the
+generator to register a set of callbacks that affect how future generation
 passes will occur.
 
 Currently `IncrementalGeneratorInitializationContext` supports two callbacks:
@@ -65,7 +66,7 @@ creates an execution 'pipeline' as part of the initialization process via the
 ```csharp
 public void Initialize(IncrementalGeneratorInitializationContext initContext)
 {
-    initContext.RegisterExecutionPipeline((context) =>
+    initContext.RegisterExecutionPipeline(context =>
     {
         // build the pipeline...
     });
@@ -73,8 +74,10 @@ public void Initialize(IncrementalGeneratorInitializationContext initContext)
 ```
 
 This pipeline is not directly executed, but instead consists of a set of steps
-that are executed on demand and cached as the input data to the pipeline
-changes.
+that are executed on demand as the input data to the pipeline changes. Between
+each step the data produced is cached, allowing previously calculated values to
+be reused in later computations when applicable, reducing the overall
+computation required between compilations.
 
 ### IncrementalValueSource&lt;T&gt;
 
@@ -84,7 +87,7 @@ can be accessed in the pipeline.
 
 These sources are defined up front by the compiler, and can be accessed from the
 `Values` property of the `context` passed as part of the
-`RegisterExecutionPipeline` callback. Example values sources might include
+`RegisterExecutionPipeline` callback. Example values sources include
 
 - Compilation
 - AdditionalTexts
@@ -114,13 +117,13 @@ conceptually somewhat similar to LINQ, over the values coming from the data
 source:
 
 ```csharp
-initContext.RegisterExecutionPipeline((context) =>
+initContext.RegisterExecutionPipeline(context =>
 {
     // get the additional text source
-    var additionalTexts = context.Sources.AdditionalTexts;
+    IncrementalValueSource<AdditionalText> additionalTexts = context.Sources.AdditionalTexts;
 
     // apply a 1-to-1 transform on each text, which represents extracting the path
-    var transformed = additionalTexts.Transform((text) => text.Path);
+    IncrementalValueSource<string> transformed = additionalTexts.Transform(static text => text.Path);
 
 });
 ```
@@ -134,11 +137,11 @@ the pipeline into multiple streams of processing.
 
 ```csharp
     // apply a 1-to-1 transform on each text, extracting the path
-    var transformed = additionalTexts.Transform((text) => text.Path);
+    IncrementalValueSource<string> transformed = additionalTexts.Transform(static text => text.Path);
 
     // split the processing into two streams of derived data
-    var prefixTransform = transformed.Transform(path => "prefix_" + path);
-    var postfixTransform = transformed.Transform(path => path + "_postfixed");
+    IncrementalValueSource<string> prefixTransform = transformed.Transform(static path => "prefix_" + path);
+    IncrementalValueSource<string> postfixTransform = transformed.Transform(static path => path + "_postfixed");
 ```
 
 ### Batching
@@ -166,20 +169,20 @@ public static partial class IncrementalValueSourceExtensions
 In our above example we could use `BatchTransform` to collect the individual
 file paths collected, and convert them into a single collection:
 
-```csharp
+``` csharp
     // apply a 1-to-1 transform on each text, which represents extracting the path
-    var transformed = additionalTexts.Transform((text) => text.Path);
+    IncrementalValueSource<string> transformed = additionalTexts.Transform(static text => text.Path);
 
     // batch the collected file paths into a single collection
-    var batched = transformed.BatchTransform(texts => texts);
+    IncrementalValueSource<IEnumerable<string>> batched = transformed.BatchTransform(static paths => paths);
 ```
 
 The author could have equally combined these two steps into a single operation
 that utilizes LINQ:
 
-```csharp
+``` csharp
     // using System.Linq;
-    var singleOp = additionalTexts.BatchTransform(texts => texts.Select(text => text.Path));
+    IncrementalValueSource<IEnumerable<string>> singleOp = additionalTexts.BatchTransform(static texts => texts.Select(text => text.Path));
 ```
 
 **OPEN QUESTION** Should there be versions of
@@ -191,8 +194,14 @@ perform the identity function as specified above?
 At some point in the pipeline the author will want to actually use the
 transformed data to produce an output, such as a `SourceText`. For this purpose
 there are 'terminating' extension methods that allow the author to provide the
-resulting data the generator produces. For instance there is a
-`GenerateSource(...)` method:
+resulting data the generator produces. The set of terminating extensions
+include:
+
+- GenerateSource
+- GenerateEmbeddedFile
+- GenerateArtifact
+
+GenerateSource for example looks like:
 
 ``` csharp
 static partial class IncrementalValueSourceExtensions
@@ -204,11 +213,11 @@ static partial class IncrementalValueSourceExtensions
 That can be used by the author to supply `SourceText` to be appended to the
 compilation via the passed in `SourceProductionContext`:
 
-```csharp
-    // create an output that takes the file paths from the above batch and makes some user visible syntax
-    var output = batched.GenerateSource((sourceContext, filePaths) =>
+``` csharp
+    // take the file paths from the above batch and make some user visible syntax
+    batched.GenerateSource(static (sourceProductionContext, filePaths) =>
     {
-        sourceContext.AddSource("additionalFiles.cs", @"
+        sourceProductionContext.AddSource("additionalFiles.cs", @"
 namespace Generated
 {
     public class AdditionalTextList
@@ -220,30 +229,15 @@ namespace Generated
     }
 }");
     });
-
-```
-
-After creation, output nodes must be then registered with the pipeline context:
-
-```csharp
-    context.RegisterOutput(output);
 ```
 
 A generator may create and register multiple output nodes as part of the
 pipeline, but an output cannot be further transformed once it is created.
 
-It is expected that there will be equivalent `Generate...` methods for
-generating non source outputs such as `GenerateArtifact(...)` or
-`GenerateEmbeddedFile(...)`. Splitting the outputs by type produced allows the
-host (such as the IDE) to not run outputs that are not required. For instance
-artifacts are only produced as part of a command line build, so the IDE has no
-need to run the artifact based outputs or steps that feed into it.
-
-**OPEN QUESTION:** Should we just make the registration automatic, as part of
-calling `.GenerateSource`? Its trickier to plumb through behind the scenes, but
-I don't see any obvious use case for an author to create a node and not register
-it? I've footgunned myself already with this where I forgot to register the
-output and wondered why nothing was happening.
+Splitting the outputs by type produced allows the host (such as the IDE) to not
+run outputs that are not required. For instance artifacts are only produced as
+part of a command line build, so the IDE has no need to run the artifact based
+outputs or steps that feed into it.
 
 **OPEN QUESTION** Should we have `GenerateBatch...` versions of the output
 methods? This can already be achieved by the author calling `BatchTransform`
@@ -255,25 +249,25 @@ that it could be useful.
 Putting together the various steps outlined above, an example incremental
 generator might look like the following:
 
-```csharp
+``` csharp
 [Generator(LanguageNames.CSharp)]
 public class MyGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext initContext)
     {
-        initContext.RegisterExecutionPipeline((context) =>
+        initContext.RegisterExecutionPipeline(context =>
         {
             // get the additional text source
-            var additionalTexts = context.Sources.AdditionalTexts;
+            IncrementalValueSource<AdditionalText> additionalTexts = context.Sources.AdditionalTexts;
 
             // apply a 1-to-1 transform on each text, extracting the path
-            var transformed = additionalTexts.Transform((text) => text.Path);
+            IncrementalValueSource<string> transformed = additionalTexts.Transform(static text => text.Path);
 
             // batch the collected file paths into a single collection
-            var batched = transformed.BatchTransform(texts => texts);
+            IncrementalValueSource<IEnumerable<string>> batched = transformed.BatchTransform(static paths => paths);
 
-            // create an output that takes the file paths from the above batch and makes some user visible syntax
-            var output = batched.GenerateSource((sourceContext, filePaths) =>
+            // take the file paths from the above batch and make some user visible syntax
+            batched.GenerateSource(static (sourceContext, filePaths) =>
             {
                 sourceContext.AddSource("additionalFiles.cs", @"
 namespace Generated
@@ -285,11 +279,11 @@ namespace Generated
             System.Console.WriteLine(""Additional Texts were: " + string.Join(", ", filePaths) + @" "");
         }
     }
-}
-");
+}");
             });
-
-            // register the output context.RegisterOutput(output); }); } }
+        });
+    }
+}
 ```
 
 ## Advanced Implementation
@@ -308,8 +302,8 @@ file basis.
 ```csharp
 public static partial class IncrementalValueSourceExtensions
 {
-    // join 1 => many ((source1[0], source2), (source1[0], source2), ...)
-    public static IncrementalValueSource<(T, IEnumerable<U>)> Combine<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => ...
+    // join 1 => many ((source1[0], source2), (source1[1], source2), (source1[2], source2), ...)
+    public static IncrementalValueSource<(T source1Item, IEnumerable<U> source2Batch)> Combine<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => ...
 }
 ```
 
@@ -324,7 +318,7 @@ In the following example the author combines the additional text source with the
 compilation:
 
 ```csharp
-var combined = context.Sources.AdditionalTexts.Combine(context.Sources.Compilation);
+IncrementalValueSource<(AdditionalText source1Item, IEnumerable<Compilation> source2Batch)> combined = context.Sources.AdditionalTexts.Combine(context.Sources.Compilation);
 ```
 
 The type of combined is an
@@ -335,7 +329,7 @@ compilation, they are free to transform the data to select the single
 compilation object:
 
 ```csharp
-IncrementalValueSource<(AdditionalText, Compilation)> transformed = combined.Transform(pair => (pair.Item1, pair.Item2.Single()));
+IncrementalValueSource<(AdditionalText, Compilation)> transformed = combined.Transform(static pair => (pair.source1Item, pair.source2Batch.Single()));
 ```
 
 Similarly a cross join can be achieved by first combining two value sources,
@@ -344,7 +338,7 @@ then batch transforming the resulting value source.
 ```csharp
 IncrementalValueSource<(AdditionalText, MetadataReference)> combined = context.Sources.AdditionalTexts
                                                                                       .Combine(context.Sources.MetadataReference)
-                                                                                      .TransformMany(pair => pair.Item2.Select(item2 => (pair.Item1, item2));
+                                                                                      .TransformMany(static pair => pair.source2Batch.Select(static metadataRef => (pair.source1Item, metadataRef));
 ```
 
 **OPEN QUESTION**: Combine is pretty low level, but does allow you to do
@@ -381,9 +375,9 @@ using non batch transforms it can do this on an element by element basis.
 Consider the following transform:
 
 ```csharp
-var transform = context.Sources.AdditionalTexts
-                               .Transform(t => t.Path)
-                               .Transform(p => "prefix_" + p);
+IValueSource<string> transform = context.Sources.AdditionalTexts
+                                                .Transform(static t => t.Path)
+                                                .Transform(static p => "prefix_" + p);
 ```
 
 During the first execution of the pipeline each of the two lambdas will be
@@ -475,8 +469,7 @@ can be less ergonomic as it requires the author to define a type not inline and
 reference it here. Should we provided a 'functional' overload that creates the
 equality comparer for the author under the hood given a lambda?
 
-### Syntax Trees 
-
+### Syntax Trees
 
 ## Internal Implementation
 
