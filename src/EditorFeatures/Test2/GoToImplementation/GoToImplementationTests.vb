@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
                 workspaceDefinition,
                 host,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
-                    Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
+                    Dim findUsagesService = document.GetLanguageService(Of IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess)
                     Await findUsagesService.FindImplementationsAsync(document, position, context).ConfigureAwait(False)
                 End Function,
                 shouldSucceed)

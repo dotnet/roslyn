@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -49,10 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SemanticClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
         }
@@ -71,7 +69,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // compilation is available so that reclassify and bring ourselves up to date.
             return new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
-                ThreadingContext,
                 AsyncListener,
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, this.AsyncListener),
