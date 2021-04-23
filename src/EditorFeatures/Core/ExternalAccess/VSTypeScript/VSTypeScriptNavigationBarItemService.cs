@@ -18,9 +18,8 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    // Not exported until TS actually provides an impl of IVSTypeScriptNavigationBarItemService
-    // [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.FSharp), Shared]
-    internal class VSTypeScriptNavigationBarItemService : INavigationBarItemService2
+    [ExportLanguageService(typeof(INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.FSharp), Shared]
+    internal class VSTypeScriptNavigationBarItemService : INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IVSTypeScriptNavigationBarItemService _service;
@@ -40,9 +39,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items.Select(x => ConvertToNavigationBarItem(x)).ToList();
         }
-
-        public void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
-            => throw new NotSupportedException($"Caller should call {nameof(NavigateToItemAsync)} instead");
 
         public async Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
         {

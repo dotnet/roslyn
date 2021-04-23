@@ -383,20 +383,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 var document = _subjectBuffer.CurrentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                 if (document != null)
                 {
-                    var navBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
+                    var navBarService = document.GetRequiredLanguageService<INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess>();
                     var snapshot = _subjectBuffer.CurrentSnapshot;
                     item.Spans = item.TrackingSpans.SelectAsArray(ts => ts.GetSpan(snapshot).Span.ToTextSpan());
                     var view = _presenter.TryGetCurrentView();
 
-                    if (navBarService is INavigationBarItemService2 navBarService2)
-                    {
-                        // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task below.
-                        await navBarService2.NavigateToItemAsync(document, item, view, cancellationToken).ConfigureAwait(true);
-                    }
-                    else
-                    {
-                        navBarService.NavigateToItem(document, item, view, cancellationToken);
-                    }
+                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task below.
+                    await navBarService.NavigateToItemAsync(document, item, view, cancellationToken).ConfigureAwait(true);
                 }
             }
 
