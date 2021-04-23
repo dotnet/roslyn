@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -23,6 +22,22 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     internal partial class AbstractAsynchronousTaggerProvider<TTag>
     {
+        /// <summary>
+        /// <para>The <see cref="TagSource"/> is the core part of our asynchronous
+        /// tagging infrastructure. It is the coordinator between <see cref="ProduceTagsAsync(TaggerContext{TTag})"/>s,
+        /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
+        /// 
+        /// <para>The <see cref="TagSource"/> is the type that actually owns the
+        /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
+        /// the tag source starts the computation and calls <see cref="ProduceTagsAsync(TaggerContext{TTag})"/> to build
+        /// the new list of tags. When that's done, the tags are stored in <see cref="CachedTagTrees"/>. The 
+        /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
+        /// <see cref="CachedTagTrees"/></para>
+        /// 
+        /// <para>There is a one-to-many relationship between <see cref="TagSource"/>s
+        /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
+        /// subject buffers at once) have their own providers and tag source derivations.</para>
+        /// </summary>
         private sealed partial class TagSource : ForegroundThreadAffinitizedObject
         {
             /// <summary>
@@ -35,15 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #region Fields that can be accessed from either thread
 
-            /// <summary>
-            /// The async worker we defer to handle foreground/background thread management for this
-            /// tagger. Note: some operations we perform on this must be uncancellable.  Specifically,
-            /// once we've updated our internal state we need to *ensure* that the UI eventually gets in
-            /// sync with it. As such, we allow cancellation of our tasks *until* we update our state.
-            /// From that point on, we must proceed and execute the tasks.
-            /// </summary>
-            private readonly AsynchronousSerialWorkQueue _workQueue;
-
             private readonly AbstractAsynchronousTaggerProvider<TTag> _dataSource;
 
             /// <summary>
@@ -51,10 +57,23 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly IAsynchronousOperationListener _asyncListener;
 
+            private readonly CancellationTokenSource _disposalTokenSource = new();
+
             /// <summary>
-            /// foreground notification service
+            /// Work queue that collects event notifications and kicks off the work to process them.
+            /// The value that is passed here tells us if this is the initial tag computation or not.
             /// </summary>
-            private readonly IForegroundNotificationService _notificationService;
+            private readonly AsyncBatchingWorkQueue<bool> _eventWorkQueue;
+
+            /// <summary>
+            /// Work queue that collects high priority requests to call TagsChanged with.
+            /// </summary>
+            private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _highPriTagsChangedQueue;
+
+            /// <summary>
+            /// Work queue that collects normal priority requests to call TagsChanged with.
+            /// </summary>
+            private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _normalPriTagsChangedQueue;
 
             #endregion
 
@@ -73,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// accumulated text changes since last tag calculation
             /// </summary>
             private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>? _cachedTagTrees_doNotAccessDirectly;
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
             private object? _state_doNotAccessDirecty;
 
             /// <summary>
@@ -85,21 +104,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #endregion
 
-            /// <summary>
-            /// A cancellation source we use for the initial tagging computation.  We only cancel
-            /// if our ref count actually reaches 0.  Otherwise, we always try to compute the initial
-            /// set of tags for our view/buffer.
-            /// </summary>
-            private readonly CancellationTokenSource _initialComputationCancellationTokenSource = new();
-
-            public TaggerDelay AddedTagNotificationDelay => _dataSource.AddedTagNotificationDelay;
-
             public TagSource(
                 ITextView textViewOpt,
                 ITextBuffer subjectBuffer,
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
-                IAsynchronousOperationListener asyncListener,
-                IForegroundNotificationService notificationService)
+                IAsynchronousOperationListener asyncListener)
                 : base(dataSource.ThreadingContext)
             {
                 this.AssertIsForeground();
@@ -110,18 +119,38 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _textViewOpt = textViewOpt;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
-                _notificationService = notificationService;
 
-                _batchChangeTokenSource = new CancellationTokenSource();
+                _eventWorkQueue = new AsyncBatchingWorkQueue<bool>(
+                    _dataSource.EventChangeDelay.ComputeTimeDelay(),
+                    ProcessEventsAsync,
+                    EqualityComparer<bool>.Default,
+                    asyncListener,
+                    _disposalTokenSource.Token);
 
-                _batchChangeNotifier = new BatchChangeNotifier(
-                    dataSource.ThreadingContext,
-                    subjectBuffer, asyncListener, notificationService, NotifyEditorNow, _batchChangeTokenSource.Token);
+                _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
+                    TaggerDelay.NearImmediate.ComputeTimeDelay(),
+                    ProcessTagsChangedAsync,
+                    equalityComparer: null,
+                    asyncListener,
+                    _disposalTokenSource.Token);
+
+                if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
+                {
+                    // if the tagger wants "added tags" to be reported "NearImmediate"ly, then just reuse
+                    // the "high pri" queue as that already reports things at that cadence.
+                    _normalPriTagsChangedQueue = _highPriTagsChangedQueue;
+                }
+                else
+                {
+                    _normalPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
+                        _dataSource.AddedTagNotificationDelay.ComputeTimeDelay(),
+                        ProcessTagsChangedAsync,
+                        equalityComparer: null,
+                        asyncListener,
+                        _disposalTokenSource.Token);
+                }
 
                 DebugRecordInitialStackTrace();
-
-                _workQueue = new AsynchronousSerialWorkQueue(ThreadingContext, asyncListener);
-                this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
                 _eventSource = CreateEventSource();
 
@@ -129,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
-                ComputeInitialTags();
+                _eventWorkQueue.AddWork(/*initialTags*/ true);
 
                 return;
 
@@ -169,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 // Stop computing any initial tags if we've been asked for them.
-                _initialComputationCancellationTokenSource.Cancel();
+                _disposalTokenSource.Cancel();
                 _disposed = true;
                 _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
                 GC.SuppressFinalize(this);
@@ -181,7 +210,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 void Disconnect()
                 {
                     this.AssertIsForeground();
-                    _workQueue.CancelCurrentWork(remainCancelled: true);
 
                     // Tell the interaction object to stop issuing events.
                     _eventSource.Disconnect();
@@ -198,18 +226,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     _eventSource.Changed -= OnEventSourceChanged;
                 }
-            }
-
-            private void ComputeInitialTags()
-            {
-                // Note: we always kick this off to the new UI pump instead of computing tags right
-                // on this thread.  The reason for that is that we may be getting created at a time
-                // when the view itself is initializing.  As such the view is not in a state where
-                // we want code touching it.
-                RegisterNotification(
-                    () => RecomputeTagsForeground(initialTags: true, synchronous: false),
-                    delay: 0,
-                    cancellationToken: GetCancellationToken(initialTags: true));
             }
 
             private ITaggerEventSource CreateEventSource()
@@ -247,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>? CachedTagTrees
+            private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
             {
                 get
                 {
@@ -276,9 +292,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _state_doNotAccessDirecty = value;
                 }
             }
-
-            public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
-                => _notificationService.RegisterNotification(action, delay, _asyncListener.BeginAsyncOperation(typeof(TTag).Name), cancellationToken);
 
             private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)
             {
