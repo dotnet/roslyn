@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
 
@@ -41,5 +42,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         protected override Task FindActionAsync(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess service, Document document, int caretPosition, IFindUsagesContext context)
             => service.FindImplementationsAsync(document, caretPosition, context);
+
+        protected override IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess GetService(Document document)
+        {
+            // Defer to the legacy interface if the language is still exporting it.
+            // Otherwise, move to the latest EA interface.
+#pragma warning disable CS0618 // Type or member is obsolete
+            var legacyService = document?.GetLanguageService<IFindUsagesService>();
+#pragma warning restore CS0618 // Type or member is obsolete
+            return legacyService == null
+                ? document?.GetLanguageService<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess>()
+                : new FindUsagesServiceWrapper(legacyService);
+
+        }
     }
 }

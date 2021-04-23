@@ -152,23 +152,5 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             {
             }
         }
-
-        private class FindUsagesServiceWrapper : IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            private readonly IFindUsagesService _legacyService;
-
-            public FindUsagesServiceWrapper(IFindUsagesService legacyService)
-            {
-                _legacyService = legacyService;
-            }
-#pragma warning restore CS0618 // Type or member is obsolete
-
-            public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
-                => _legacyService.FindImplementationsAsync(document, position, context);
-
-            public Task FindReferencesAsync(Document document, int position, IFindUsagesContext context)
-                => _legacyService.FindReferencesAsync(document, position, context);
-        }
     }
 }
