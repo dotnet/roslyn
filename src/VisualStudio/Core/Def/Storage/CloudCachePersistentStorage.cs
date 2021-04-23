@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             {
                 // Read and immediately report all bytes as "examined" so that the next ReadAsync call will block till more bytes come in.
                 // The goal here is to force the PipeReader to buffer everything internally (even if it were to exceed its natural writer threshold limit).
-                ReadResult readResult = await pipeReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+                var readResult = await pipeReader.ReadAsync(cancellationToken).ConfigureAwait(false);
                 pipeReader.AdvanceTo(readResult.Buffer.Start, readResult.Buffer.End);
 
                 if (readResult.IsCompleted)

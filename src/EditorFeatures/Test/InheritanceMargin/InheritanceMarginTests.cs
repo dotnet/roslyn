@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private static Task VerifyNoItemForDocumentAsync(string markup, string languageName)
             => VerifyInSingleDocumentAsync(markup, languageName);
 
-        private static async Task VerifyInSingleDocumentAsync(
+        private static Task VerifyInSingleDocumentAsync(
             string markup,
             string languageName,
             params TestInheritanceMemberItem[] memberItems)
@@ -47,18 +47,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 workspaceFile,
                 composition: EditorTestCompositions.EditorFeatures);
 
-            var testDocumentHost = testWorkspace.Documents[0];
-            var document = testWorkspace.CurrentSolution.GetRequiredDocument(testDocumentHost.Id);
-            var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
+            var testHostDocument = testWorkspace.Documents[0];
+            return VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, memberItems, cancellationToken);
+        }
 
+        private static async Task VerifyTestMemberInDocumentAsync(
+            TestWorkspace testWorkspace,
+            TestHostDocument testHostDocument,
+            TestInheritanceMemberItem[] memberItems,
+            CancellationToken cancellationToken)
+        {
+            var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var searchingSpan = root.Span;
             // Look for the search span, if not found, then pass the whole document span to the service.
-            if (testDocumentHost.AnnotatedSpans.TryGetValue(SearchAreaTag, out var spans) && spans.IsSingle())
+            if (testHostDocument.AnnotatedSpans.TryGetValue(SearchAreaTag, out var spans) && spans.IsSingle())
             {
                 searchingSpan = spans[0];
             }
 
+            var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
             var actualItems = await service.GetInheritanceMemberItemsAsync(
                 document,
                 searchingSpan,
@@ -108,6 +116,42 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                     Assert.Equal(expectedDocumentSpans[i].Document.FilePath, actualDocumentSpans[i].Document.FilePath);
                 }
             }
+        }
+
+        /// <summary>
+        /// Project of markup1 is referencing project of markup2
+        /// </summary>
+        private static async Task VerifyInDifferentProjectsAsync(
+            (string markupInProject1, string languageName) markup1,
+            (string markupInProject2, string languageName) markup2,
+            TestInheritanceMemberItem[] memberItemsInMarkup1,
+            TestInheritanceMemberItem[] memberItemsInMarkup2)
+        {
+            var workspaceFile =
+                $@"
+<Workspace>
+    <Project Language=""{markup1.languageName}"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <ProjectReference>Assembly2</ProjectReference>
+        <Document>
+            {markup1.markupInProject1}
+        </Document>
+    </Project>
+    <Project Language=""{markup2.languageName}"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document>
+            {markup2.markupInProject2}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var cancellationToken = CancellationToken.None;
+            using var testWorkspace = TestWorkspace.Create(
+                workspaceFile,
+                composition: EditorTestCompositions.EditorFeatures);
+
+            var testHostDocument1 = testWorkspace.Documents.Single(doc => doc.Project.AssemblyName.Equals("Assembly1"));
+            var testHostDocument2 = testWorkspace.Documents.Single(doc => doc.Project.AssemblyName.Equals("Assembly2"));
+            await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument1, memberItemsInMarkup1, cancellationToken).ConfigureAwait(false);
+            await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument2, memberItemsInMarkup2, cancellationToken).ConfigureAwait(false);
         }
 
         private class TestInheritanceMemberItem
@@ -218,6 +262,44 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         #endregion
 
         #region TestsForCSharp
+
+        [Fact]
+        public Task TestCSharpClassWithErrorBaseType()
+        {
+            var markup = @"
+public class Bar : SomethingUnknown
+{
+}";
+            return VerifyNoItemForDocumentAsync(markup, LanguageNames.CSharp);
+        }
+
+        [Fact]
+        public Task TestCSharpReferencingMetadata()
+        {
+            var markup = @"
+using System.Collections;
+public class Bar : IEnumerable
+{
+    public IEnumerator GetEnumerator () { return null };
+}";
+            var itemForBar = new TestInheritanceMemberItem(
+                lineNumber: 3,
+                memberName: "class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "interface IEnumerable",
+                        relationship: InheritanceRelationship.Implementing,
+                        inMetadata: true)));
+
+            var itemForGetEnumerator = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "IEnumerator Bar.GetEnumerator()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "IEnumerator IEnumerable.GetEnumerator()",
+                        relationship: InheritanceRelationship.Implementing,
+                        inMetadata: true)));
+
+            return VerifyInSingleDocumentAsync(markup, LanguageNames.CSharp, itemForBar, itemForGetEnumerator);
+        }
 
         [Fact]
         public Task TestCSharpClassImplementingInterface()
@@ -732,6 +814,50 @@ public class {{|target1:Bar2|}} : Bar
         #region TestsForVisualBasic
 
         [Fact]
+        public Task TestVisualBasicWithErrorBaseType()
+        {
+            var markup = @"
+Namespace MyNamespace
+    Public Class Bar
+        Implements SomethingNotExist
+    End Class
+End Namespace";
+
+            return VerifyNoItemForDocumentAsync(markup, LanguageNames.VisualBasic);
+        }
+
+        [Fact]
+        public Task TestVisualBasicReferencingMetadata()
+        {
+            var markup = @"
+Namespace MyNamespace
+    Public Class Bar
+        Implements System.Collections.IEnumerable
+        Public Function GetEnumerator() As System.Collections.IEnumerator Implements System.Collections.IEnumerable.GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+    End Class
+End Namespace";
+            var itemForBar = new TestInheritanceMemberItem(
+                lineNumber: 3,
+                memberName: "Class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Interface IEnumerable",
+                        relationship: InheritanceRelationship.Implementing,
+                        inMetadata: true)));
+
+            var itemForGetEnumerator = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "Function Bar.GetEnumerator() As IEnumerator",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Function IEnumerable.GetEnumerator() As IEnumerator",
+                        relationship: InheritanceRelationship.Implementing,
+                        inMetadata: true)));
+
+            return VerifyInSingleDocumentAsync(markup, LanguageNames.VisualBasic, itemForBar, itemForGetEnumerator);
+        }
+
+        [Fact]
         public Task TestVisualBasicClassImplementingInterface()
         {
             var markup = @"
@@ -1095,5 +1221,126 @@ End Class";
                 itemForFooInBar);
         }
         #endregion
+
+        [Fact]
+        public Task TestCSharpProjectReferencingVisualBasicProject()
+        {
+            var markup1 = @"
+using MyNamespace;
+namespace BarNs
+{
+    public class {|target2:Bar|} : IBar
+    {
+        public void {|target4:Foo|}() { }
+    }
+}";
+
+            var markup2 = @"
+Namespace MyNamespace
+    Public Interface {|target1:IBar|}
+        Sub {|target3:Foo|}()
+    End Interface
+End Namespace";
+
+            var itemForBar = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "class Bar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Interface IBar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForFooInMarkup1 = new TestInheritanceMemberItem(
+                lineNumber: 7,
+                memberName: "void Bar.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Sub IBar.Foo()",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 3,
+                memberName: "Interface IBar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "class Bar",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForFooInMarkup2 = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "Sub IBar.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void Bar.Foo()",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            return VerifyInDifferentProjectsAsync(
+                (markup1, LanguageNames.CSharp),
+                (markup2, LanguageNames.VisualBasic),
+                new[] { itemForBar, itemForFooInMarkup1 },
+                new[] { itemForIBar, itemForFooInMarkup2 });
+        }
+
+        [Fact]
+        public Task TestVisualBasicProjectReferencingCSharpProject()
+        {
+            var markup1 = @"
+Imports BarNs
+Namespace MyNamespace
+    Public Class {|target2:Bar44|}
+        Implements IBar
+
+        Public Sub {|target4:Foo|}() Implements IBar.Foo
+        End Sub
+    End Class
+End Namespace";
+
+            var markup2 = @"
+namespace BarNs
+{
+    public interface {|target1:IBar|}
+    {
+        void {|target3:Foo|}();
+    }
+}";
+
+            var itemForBar44 = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "Class Bar44",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "interface IBar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForFooInMarkup1 = new TestInheritanceMemberItem(
+                lineNumber: 7,
+                memberName: "Sub Bar44.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void IBar.Foo()",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "interface IBar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Class Bar44",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForFooInMarkup2 = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "void IBar.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Sub Bar44.Foo()",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            return VerifyInDifferentProjectsAsync(
+                (markup1, LanguageNames.VisualBasic),
+                (markup2, LanguageNames.CSharp),
+                new[] { itemForBar44, itemForFooInMarkup1 },
+                new[] { itemForIBar, itemForFooInMarkup2 });
+        }
     }
 }

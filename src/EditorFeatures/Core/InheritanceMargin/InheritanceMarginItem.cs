@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
@@ -38,6 +40,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             DisplayTexts = displayTexts;
             Glyph = glyph;
             TargetItems = targetItems;
+        }
+
+        public static async ValueTask<InheritanceMarginItem> ConvertAsync(
+            Solution solution,
+            SerializableInheritanceMarginItem serializableItem,
+            CancellationToken cancellationToken)
+        {
+            var targetItems = await serializableItem.TargetItems.SelectAsArrayAsync(
+                    (item, _) => InheritanceTargetItem.ConvertAsync(solution, item, cancellationToken), cancellationToken).ConfigureAwait(false);
+            return new InheritanceMarginItem(serializableItem.LineNumber, serializableItem.DisplayTexts, serializableItem.Glyph, targetItems);
         }
     }
 }

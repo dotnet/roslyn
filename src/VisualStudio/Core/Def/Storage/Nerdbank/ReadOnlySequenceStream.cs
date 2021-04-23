@@ -74,8 +74,8 @@ namespace Nerdbank.Streams
         /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            ReadOnlySequence<byte> remaining = this.readOnlySequence.Slice(this.position);
-            ReadOnlySequence<byte> toCopy = remaining.Slice(0, Math.Min(count, remaining.Length));
+            var remaining = this.readOnlySequence.Slice(this.position);
+            var toCopy = remaining.Slice(0, Math.Min(count, remaining.Length));
             this.position = toCopy.End;
             toCopy.CopyTo(buffer.AsSpan(offset, count));
             return (int)toCopy.Length;
@@ -85,7 +85,7 @@ namespace Nerdbank.Streams
         public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            int bytesRead = this.Read(buffer, offset, count);
+            var bytesRead = this.Read(buffer, offset, count);
             if (bytesRead == 0)
             {
                 return TaskOfZero;
@@ -104,10 +104,10 @@ namespace Nerdbank.Streams
         /// <inheritdoc/>
         public override int ReadByte()
         {
-            ReadOnlySequence<byte> remaining = this.readOnlySequence.Slice(this.position);
+            var remaining = this.readOnlySequence.Slice(this.position);
             if (remaining.Length > 0)
             {
-                byte result = remaining.First.Span[0];
+                var result = remaining.First.Span[0];
                 this.position = this.readOnlySequence.GetPosition(1, this.position);
                 return result;
             }
@@ -185,13 +185,13 @@ namespace Nerdbank.Streams
         {
             Requires.NotNull(stream, nameof(stream));
 
-            if (MemoryMarshal.TryGetArray(buffer, out ArraySegment<byte> array))
+            if (MemoryMarshal.TryGetArray(buffer, out var array))
             {
                 return new ValueTask(stream.WriteAsync(array.Array!, array.Offset, array.Count, cancellationToken));
             }
             else
             {
-                byte[] sharedBuffer = ArrayPool<byte>.Shared.Rent(buffer.Length);
+                var sharedBuffer = ArrayPool<byte>.Shared.Rent(buffer.Length);
                 buffer.Span.CopyTo(sharedBuffer);
                 return new ValueTask(FinishWriteAsync(stream.WriteAsync(sharedBuffer, 0, buffer.Length, cancellationToken), sharedBuffer));
             }
