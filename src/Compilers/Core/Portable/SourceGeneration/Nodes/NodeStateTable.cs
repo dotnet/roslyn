@@ -128,7 +128,6 @@ namespace Microsoft.CodeAnalysis
             return new Builder(this, capacity);
         }
 
-        // PROTOTYPE: this will be called to allow exceptions to flow through the graph
         public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
         {
             Debug.Assert(table.IsFaulted);
@@ -169,9 +168,6 @@ namespace Microsoft.CodeAnalysis
 
             public void AddEntriesFromPreviousTable(NodeStateTable<T> previousTable, EntryState newState)
             {
-                // PROTOTYPE(source-generators): this doesn't hold true if the node is added after an initial run. That 
-                //                               will occur in the IDE, so we'll need to make sure we support empty tables
-                //                               that see cached/removed entries upstream.
                 Debug.Assert(previousTable._states.Length > _states.Count);
                 var previousEntries = previousTable._states[_states.Count].SelectAsArray(s => (s.item, newState));
                 CheckCompacted(newState);
@@ -188,12 +184,7 @@ namespace Microsoft.CodeAnalysis
                 // - Removed when i > outputs.length
                 // - Added when i < previousTable.length
 
-
-                // PROTOTYPE(source-generators): this doesn't hold true if the node is added after an initial run. That 
-                //                               will occur in the IDE, so we'll need to make sure we support empty tables
-                //                               that see cached/removed entries upstream.
                 Debug.Assert(previousTable._states.Length > _states.Count);
-
                 var previousEntries = previousTable._states[_states.Count];
                 var modifiedEntries = ArrayBuilder<(T item, EntryState state)>.GetInstance();
 

@@ -17,13 +17,11 @@ namespace Microsoft.CodeAnalysis
 
         private readonly IIncrementalGeneratorNode<TInput2> _input2;
 
-        private readonly IEqualityComparer<(TInput1, IEnumerable<TInput2>)> _comparer;
 
-        public JoinNode(IIncrementalGeneratorNode<TInput1> input1, IIncrementalGeneratorNode<TInput2> input2, IEqualityComparer<(TInput1, IEnumerable<TInput2>)>? comparer = null)
+        public JoinNode(IIncrementalGeneratorNode<TInput1> input1, IIncrementalGeneratorNode<TInput2> input2)
         {
             _input1 = input1;
             _input2 = input2;
-            _comparer = comparer ?? EqualityComparer<(TInput1, IEnumerable<TInput2>)>.Default;
         }
 
         public NodeStateTable<(TInput1, IEnumerable<TInput2>)> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, IEnumerable<TInput2>)> previousTable, CancellationToken cancellationToken)
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        // PROTOTYPE(source-generators): Is it actually ever meaningful to have a comparer for a join?
-        public IIncrementalGeneratorNode<(TInput1, IEnumerable<TInput2>)> WithComparer(IEqualityComparer<(TInput1, IEnumerable<TInput2>)> comparer) => new JoinNode<TInput1,TInput2>(_input1, _input2, comparer);
+        // PROTOTYPE(source-generators): Is it actually ever meaningful to have a comparer for a join? Perhaps we should just put comparer on the transform nodes?
+        public IIncrementalGeneratorNode<(TInput1, IEnumerable<TInput2>)> WithComparer(IEqualityComparer<(TInput1, IEnumerable<TInput2>)> comparer) => this;
     }
 }

@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis
     {
         NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken);
 
-        // PROTOTYPE: will allow for custom comparison of values stored in statetables
         IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer);
     }
 }

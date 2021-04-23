@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var entry in sourceTable)
             {
-                if (entry.state == EntryState.Cached || entry.state == EntryState.Removed)
+                if ((entry.state == EntryState.Cached || entry.state == EntryState.Removed) && !previousTable.IsEmpty)
                 {
                     newTable.AddEntriesFromPreviousTable(previousTable, entry.state);
                 }
@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis
                     // generate the new entries
                     var newOutputs = _func(entry.item);
 
-                    if (entry.state == EntryState.Added)
+                    if (entry.state == EntryState.Modified && !previousTable.IsEmpty)
                     {
-                        newTable.AddEntries(newOutputs, EntryState.Added);
+                        newTable.ModifyEntriesFromPreviousTable(previousTable, newOutputs, _comparer);
                     }
                     else
                     {
-                        newTable.ModifyEntriesFromPreviousTable(previousTable, newOutputs, _comparer);
+                        newTable.AddEntries(newOutputs, EntryState.Added);
                     }
                 }
             }
