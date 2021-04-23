@@ -208,6 +208,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         void IRunningDocumentTableEventListener.OnCloseDocument(string moniker)
         {
+            _foregroundThreadAffintizedObject.AssertIsForeground();
+
             if (_openFiles.TryGetValue(moniker, out var openFile))
             {
                 openFile.Dispose();
@@ -292,6 +294,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private void DisconnectFromWorkspaceIfOpen()
             {
+                AssertIsForeground();
+
                 if (_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                 {
                     _workspace.OnSourceGeneratedDocumentClosed(_documentIdentity.DocumentId);
@@ -300,6 +304,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public void Dispose()
             {
+                AssertIsForeground();
+
                 using (var readOnlyRegionEdit = _textBuffer.CreateReadOnlyRegionEdit())
                 {
                     readOnlyRegionEdit.RemoveReadOnlyRegion(_readOnlyRegion);
