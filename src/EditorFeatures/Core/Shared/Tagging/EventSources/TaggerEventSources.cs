@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -32,11 +33,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public static ITaggerEventSource OnTextChanged(ITextBuffer subjectBuffer)
             => new TextChangedEventSource(subjectBuffer);
 
+        [Obsolete("Legacy api for TypeScript.  Can be removed once they call to the overload without TaggerDelay.")]
+        public static ITaggerEventSource OnTextChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
+            => OnTextChanged(subjectBuffer);
+
         /// <summary>
         /// Reports an event any time the workspace changes.
         /// </summary>
         public static ITaggerEventSource OnWorkspaceChanged(ITextBuffer subjectBuffer, IAsynchronousOperationListener listener)
             => new WorkspaceChangedEventSource(subjectBuffer, listener);
+
+        [Obsolete("Legacy api for TypeScript.  Can be removed once they call to the overload without TaggerDelay.")]
+        public static ITaggerEventSource OnWorkspaceChanged(ITextBuffer subjectBuffer, TaggerDelay delay, IAsynchronousOperationListener listener)
+            => OnWorkspaceChanged(subjectBuffer, listener);
 
         public static ITaggerEventSource OnDocumentActiveContextChanged(ITextBuffer subjectBuffer)
             => new DocumentActiveContextChangedEventSource(subjectBuffer);
@@ -58,6 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public static ITaggerEventSource OnWorkspaceRegistrationChanged(ITextBuffer subjectBuffer)
             => new WorkspaceRegistrationChangedEventSource(subjectBuffer);
+
+        [Obsolete("Legacy api for TypeScript.  Can be removed once they call to the overload without TaggerDelay.")]
+        public static ITaggerEventSource OnWorkspaceRegistrationChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
+            => OnWorkspaceRegistrationChanged(subjectBuffer);
 
         public static ITaggerEventSource OnViewSpanChanged(IThreadingContext threadingContext, ITextView textView)
             => new ViewSpanChangedEventSource(threadingContext, textView);

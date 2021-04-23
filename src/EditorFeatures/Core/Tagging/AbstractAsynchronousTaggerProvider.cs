@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <summary>
         /// How long the tagger should wait after hearing about an event before recomputing tags.
         /// </summary>
-        protected abstract TaggerDelay EventChangeDelay { get; }
+        protected virtual TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
         /// <summary>
         /// This controls what delay tagger will use to let editor know about newly inserted tags
