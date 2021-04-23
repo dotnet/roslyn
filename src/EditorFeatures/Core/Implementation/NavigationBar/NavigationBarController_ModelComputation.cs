@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 return null;
 
             // TODO: remove .FirstOrDefault()
-            var languageService = document.GetLanguageService<INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess>();
+            var languageService = GetNavBarService(document);
             if (languageService != null)
             {
                 // check whether we can re-use lastCompletedModel. otherwise, update lastCompletedModel here.
