@@ -25,6 +25,7 @@ Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Parameter = 20 -> Micros
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Property = 13 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RaiseAccessor = 28 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RecordClass = 29 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RecordStruct = 30 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RemoveAccessor = 27 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.SetAccessor = 25 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Struct = 3 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind

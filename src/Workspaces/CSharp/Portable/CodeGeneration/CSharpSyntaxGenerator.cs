@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return declaration;
                 default:
                     return null;
@@ -1473,6 +1474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return s_interfaceModifiers;
 
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return s_structModifiers;
 
                 case SyntaxKind.MethodDeclaration:
@@ -1967,6 +1969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case DeclarationKind.RecordClass:
                 case DeclarationKind.Interface:
                 case DeclarationKind.Struct:
+                case DeclarationKind.RecordStruct:
                 case DeclarationKind.Enum:
                 case DeclarationKind.Namespace:
                 case DeclarationKind.CompilationUnit:

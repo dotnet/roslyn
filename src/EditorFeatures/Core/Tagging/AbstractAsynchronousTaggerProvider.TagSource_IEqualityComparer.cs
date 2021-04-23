@@ -6,30 +6,19 @@
 
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     internal abstract partial class AbstractAsynchronousTaggerProvider<TTag>
     {
-        private class TagSpanComparer : IEqualityComparer<ITagSpan<TTag>>
+        private partial class TagSource : IEqualityComparer<ITagSpan<TTag>>
         {
-            private readonly IEqualityComparer<TTag> _tagComparer;
-
-            public TagSpanComparer(IEqualityComparer<TTag> tagComparer)
-                => _tagComparer = tagComparer;
-
             public bool Equals(ITagSpan<TTag> x, ITagSpan<TTag> y)
-            {
-                if (x.Span != y.Span)
-                {
-                    return false;
-                }
-
-                return _tagComparer.Equals(x.Tag, y.Tag);
-            }
+                => x.Span == y.Span && EqualityComparer<TTag>.Default.Equals(x.Tag, y.Tag);
 
             public int GetHashCode(ITagSpan<TTag> obj)
-                => obj.Span.GetHashCode() ^ _tagComparer.GetHashCode(obj.Tag);
+                => Hash.Combine(obj.Span.GetHashCode(), EqualityComparer<TTag>.Default.GetHashCode(obj.Tag));
         }
     }
 }

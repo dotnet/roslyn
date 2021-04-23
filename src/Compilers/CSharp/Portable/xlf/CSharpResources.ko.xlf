@@ -153,13 +153,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
-        <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="translated">위치 매개 변수 '{2}'과(와) 일치하려면 레코드 멤버 '{0}'이(가) 유형 '{1}'의 읽을 수 있는 인스턴스 속성이어야 합니다.</target>
+        <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
+        <target state="needs-review-translation">위치 매개 변수 '{2}'과(와) 일치하려면 레코드 멤버 '{0}'이(가) 유형 '{1}'의 읽을 수 있는 인스턴스 속성이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">명령줄 구문 오류: '{0}'은(는) '{1}' 옵션에 유효한 값이 아닙니다. 값은 '{2}' 형식이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotClone">
+        <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
+        <target state="new">The receiver type '{0}' is not a valid record type and is not a struct type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
@@ -457,6 +462,11 @@
         <target state="translated">goto는 using 선언 뒤 위치로 이동할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="new">The positional member '{0}' found corresponding to this parameter is hidden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">이 컨텍스트에서는 비표시 오류(Suppression) 연산자를 사용할 수 없습니다.</target>
@@ -655,11 +665,6 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">출력 디렉터리를 확인할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NoSingleCloneMethod">
-        <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="translated">수신기 형식 '{0}'이(가) 유효한 레코드 형식이 아닙니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -992,9 +997,24 @@
         <target state="translated">대상으로 형식화된 개체 만들기</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
+        <source>positional fields in records</source>
+        <target state="new">positional fields in records</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRecordStructs">
+        <source>record structs</source>
+        <target state="new">record structs</target>
+        <note>'record structs' is not localizable.</note>
+      </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="new">sealed ToString in record</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureWithOnStructs">
+        <source>with on structs</source>
+        <target state="new">with on structs</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -4176,8 +4196,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
-        <target state="translated">'{0}'의 partial 선언은 모든 클래스, 모든 레코드, 모든 구조체 또는 모든 인터페이스여야 합니다.</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
+        <target state="needs-review-translation">'{0}'의 partial 선언은 모든 클래스, 모든 레코드, 모든 구조체 또는 모든 인터페이스여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
