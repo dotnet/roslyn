@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // compilation is available so that reclassify and bring ourselves up to date.
                 _eventSource = new CompilationAvailableTaggerEventSource(
                     subjectBuffer,
-                    owner.ThreadingContext,
                     asyncListener,
                     TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
                     TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));

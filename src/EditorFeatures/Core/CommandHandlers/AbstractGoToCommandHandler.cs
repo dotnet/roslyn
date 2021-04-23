@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -39,36 +38,38 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public abstract string DisplayName { get; }
         protected abstract string ScopeDescription { get; }
         protected abstract FunctionId FunctionId { get; }
-        protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken);
+        protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken);
 
         public CommandState GetCommandState(TCommandArgs args)
         {
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var findUsagesService = document?.GetLanguageService<TLanguageService>();
+            var findUsagesService = GetService(document);
             return findUsagesService != null
                 ? CommandState.Available
                 : CommandState.Unspecified;
         }
 
+        protected abstract TLanguageService GetService(Document document);
+
         public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: true, ScopeDescription))
             {
-                var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                var subjectBuffer = args.SubjectBuffer;
+                var caret = args.TextView.GetCaretPoint(subjectBuffer);
                 if (!caret.HasValue)
                     return false;
 
-                var subjectBuffer = args.SubjectBuffer;
-                if (!subjectBuffer.TryGetWorkspace(out var workspace))
+                var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
                     return false;
 
-                var service = workspace.Services.GetLanguageServices(args.SubjectBuffer)?.GetService<TLanguageService>();
+                var service = GetService(document);
                 if (service == null)
                     return false;
 
-                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                    context.OperationContext, _threadingContext);
+                document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(context.OperationContext, _threadingContext);
                 if (document == null)
                     return false;
 

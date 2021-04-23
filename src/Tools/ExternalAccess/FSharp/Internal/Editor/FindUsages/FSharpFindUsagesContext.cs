@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.FindUsages;
@@ -13,10 +11,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
 {
     internal class FSharpFindUsagesContext : IFSharpFindUsagesContext
     {
-        private readonly IFindUsagesContext _context;
+        private readonly IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess _context;
         private readonly CancellationToken _cancellationToken;
 
-        public FSharpFindUsagesContext(IFindUsagesContext context, CancellationToken cancellationToken)
+        public FSharpFindUsagesContext(IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
         {
             _context = context;
             _cancellationToken = cancellationToken;
@@ -41,9 +39,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
 
         public Task ReportProgressAsync(int current, int maximum)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            return _context.ReportProgressAsync(current, maximum, _cancellationToken).AsTask();
-#pragma warning restore CS0618 // Type or member is obsolete
+            return Task.CompletedTask;
         }
 
         public Task SetSearchTitleAsync(string title)

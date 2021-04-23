@@ -43,7 +43,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ClassificationTypeMap),
                     listenerProvider)
 

@@ -16,8 +16,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsages
 {
     [Shared]
-    [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.FSharp)]
-    internal class FSharpFindUsagesService : IFindUsagesService
+    [ExportLanguageService(typeof(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.FSharp)]
+    internal class FSharpFindUsagesService : IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess
     {
         private readonly IFSharpFindUsagesService _service;
 
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
             _service = service;
         }
 
-        public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+        public Task FindImplementationsAsync(Document document, int position, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
         {
             return _service.FindImplementationsAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken));
         }
 
-        public Task FindReferencesAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+        public Task FindReferencesAsync(Document document, int position, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
         {
             return _service.FindReferencesAsync(document, position, new FSharpFindUsagesContext(context, cancellationToken));
         }

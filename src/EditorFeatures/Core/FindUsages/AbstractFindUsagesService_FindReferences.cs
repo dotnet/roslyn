@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
-        async Task IFindUsagesService.FindReferencesAsync(
-            Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+        async Task IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess.FindReferencesAsync(
+            Document document, int position, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         Task IFindUsagesLSPService.FindReferencesAsync(
-            Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+            Document document, int position, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
         {
             // We don't need to get third party definitions when finding references in LSP.
             // Currently, 3rd party definitions = XAML definitions, and XAML will provide
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         private static async Task FindLiteralOrSymbolReferencesAsync(
-            Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+            Document document, int position, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
         {
             // First, see if we're on a literal.  If so search for literals in the solution with
             // the same value.
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         private static async Task FindSymbolReferencesAsync(
-            Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+            Document document, int position, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// and want to push all the references to it into the Streaming-Find-References window.
         /// </summary>
         public static async Task FindSymbolReferencesAsync(
-            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
+            IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_references,
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         public static async Task FindReferencesAsync(
-            IFindUsagesContext context,
+            IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context,
             ISymbol symbol,
             Project project,
             FindReferencesSearchOptions options,
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         private static Task FindReferencesInCurrentProcessAsync(
-            IFindUsagesContext context,
+            IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context,
             ISymbol symbol,
             Project project,
             FindReferencesSearchOptions options,
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         private static async Task<bool> TryFindLiteralReferencesAsync(
-            Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+            Document document, int position, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

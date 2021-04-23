@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// definitions found to third parties in case they want to add any additional definitions
         /// to the results we present.
         /// </summary>
-        private class DefinitionTrackingContext : IFindUsagesContext
+        private class DefinitionTrackingContext : IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess
         {
-            private readonly IFindUsagesContext _underlyingContext;
+            private readonly IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess _underlyingContext;
             private readonly object _gate = new();
             private readonly List<DefinitionItem> _definitions = new();
 
-            public DefinitionTrackingContext(IFindUsagesContext underlyingContext)
+            public DefinitionTrackingContext(IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess underlyingContext)
                 => _underlyingContext = underlyingContext;
 
             public IStreamingProgressTracker ProgressTracker
@@ -44,10 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
                 => _underlyingContext.OnReferenceFoundAsync(reference, cancellationToken);
-
-            [Obsolete("Use ProgressTracker instead", error: false)]
-            public ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
-                => _underlyingContext.ReportProgressAsync(current, maximum, cancellationToken);
 
             public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {

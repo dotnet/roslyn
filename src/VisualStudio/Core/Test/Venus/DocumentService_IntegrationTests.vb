@@ -76,7 +76,7 @@ class {|Definition:C1|}
                 Dim startDocument = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
                 Assert.NotNull(startDocument)
 
-                Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
+                Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess)
                 Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context, CancellationToken.None)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))

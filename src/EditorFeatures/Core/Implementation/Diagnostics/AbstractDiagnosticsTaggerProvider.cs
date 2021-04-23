@@ -54,9 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected AbstractDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListener listener)
-            : base(threadingContext, listener, notificationService)
+            : base(threadingContext, listener)
         {
             _diagnosticService = diagnosticService;
             _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;

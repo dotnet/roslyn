@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private sealed class RemoteFindUsageContext : IFindUsagesContext, IStreamingProgressTracker
+        private sealed class RemoteFindUsageContext : IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess, IStreamingProgressTracker
         {
             private readonly RemoteCallback<IRemoteFindUsagesService.ICallback> _callback;
             private readonly RemoteServiceCallbackId _callbackId;
@@ -105,10 +104,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportMessageAsync(_callbackId, message, cancellationToken), cancellationToken);
-
-            [Obsolete]
-            public ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportProgressAsync(_callbackId, current, maximum, cancellationToken), cancellationToken);
 
             public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.SetSearchTitleAsync(_callbackId, title, cancellationToken), cancellationToken);

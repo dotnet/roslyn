@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
-    internal abstract class FindUsagesContext : IFindUsagesContext
+    internal abstract class FindUsagesContext : IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess
     {
         public IStreamingProgressTracker ProgressTracker { get; }
 
@@ -26,8 +26,5 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public virtual ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken) => default;
 
         protected virtual ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken) => default;
-
-        ValueTask IFindUsagesContext.ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
-            => ReportProgressAsync(current, maximum, cancellationToken);
     }
 }

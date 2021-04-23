@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a <see cref="ProjectInfo"/> structure initialized from a compilers command line arguments.
         /// </summary>
+#pragma warning disable RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
         public static ProjectInfo CreateProjectInfo(string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory, Workspace workspace = null)
+#pragma warning restore RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
         {
             // TODO (tomat): the method may throw all sorts of exceptions.
             var tmpWorkspace = workspace ?? new AdhocWorkspace();
@@ -176,7 +178,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a <see cref="ProjectInfo"/> structure initialized with data from a compiler command line.
         /// </summary>
+#pragma warning disable RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
         public static ProjectInfo CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Workspace workspace = null)
+#pragma warning restore RS0026 // Type is forwarded from MS.CA.Workspaces.Desktop.
         {
             var args = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: true);
             return CreateProjectInfo(projectName, language, args, baseDirectory, workspace);
