@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var encoding = DetermineEncoding(text, document);
                 if (document.FilePath is null)
                 {
-                    var message = string.Format(WorkspaceMSBuildResources.Path_for_document_0_was_null, document.Name);
+                    var message = string.Format(WorkspaceMSBuildResources.Path_for_additional_document_0_was_null, document.Name);
                     _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
                     return;
                 }
