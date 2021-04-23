@@ -17,9 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         protected AsynchronousTaggerProvider(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
-                : base(threadingContext, asyncListener, notificationService)
+            IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, asyncListener)
         {
         }
 

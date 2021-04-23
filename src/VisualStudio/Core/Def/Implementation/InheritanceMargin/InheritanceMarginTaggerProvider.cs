@@ -53,7 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // compilation is available so that reclassify and bring ourselves up to date.
             => new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
-                ThreadingContext,
                 AsyncListener,
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt),
