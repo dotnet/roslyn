@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         continue;
                     }
 
-                    await collector.VisitAsync(initializer, cancellationToken).ConfigureAwait(false); ;
+                    await collector.VisitAsync(initializer, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
