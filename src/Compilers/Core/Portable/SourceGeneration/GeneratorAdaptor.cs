@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            // PROTOTYPE(source-generators):
-            // we'll call initialize on the underlying generator and pull out any info that is needed
-            // then we'll set PostInit etc on our context and register a pipleine that
-            // executes the old generator in the new framework
-
             GeneratorInitializationContext oldContext = new GeneratorInitializationContext(context.CancellationToken);
             SourceGenerator.Initialize(oldContext);
 
@@ -52,16 +47,9 @@ namespace Microsoft.CodeAnalysis
                     // So we probably need an internal version that doesn't wrap it? Maybe we can just construct the nodes manually.
                     SourceGenerator.Execute(oldContext);
 
-                    // PROTOTYPE(source-generators): we should make the internals visible so we can just add directly here
-                    (var source, var diagnostics) = oldContext.ToImmutableAndFree();
-                    foreach (var s in source)
-                    {
-                        context.AddSource(s.HintName, s.Text);
-                    }
-                    foreach (var d in diagnostics)
-                    {
-                        context.ReportDiagnostic(d);
-                    }
+                    // copy the contents of the old context to the new
+                    oldContext.CopyToProductionContext(context);
+                    oldContext.Free();
                 });
                 ctx.RegisterOutput(output);
             });

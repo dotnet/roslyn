@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterExecutionPipeline(Action<IncrementalGeneratorPipelineContext> callback)
         {
-            // PROTOTYPE(source-generators): should this be a required method on the interface?
             InfoBuilder.PipelineCallback = callback;
         }
     }
@@ -75,14 +74,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct SourceProductionContext
     {
-        private readonly ArrayBuilder<GeneratedSourceText> _sources;
-        private readonly DiagnosticBag _diagnostics;
+        internal readonly ArrayBuilder<GeneratedSourceText> Sources;
+        internal readonly DiagnosticBag Diagnostics;
 
         internal SourceProductionContext(ArrayBuilder<GeneratedSourceText> sources, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             CancellationToken = cancellationToken;
-            _sources = sources;
-            _diagnostics = diagnostics;
+            Sources = sources;
+            Diagnostics = diagnostics;
         }
 
         public CancellationToken CancellationToken { get; }
@@ -99,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
-        public void AddSource(string hintName, SourceText sourceText) => _sources.Add(new GeneratedSourceText(hintName, sourceText));
+        public void AddSource(string hintName, SourceText sourceText) => Sources.Add(new GeneratedSourceText(hintName, sourceText));
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the users compilation 
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="Compilation"/> settings.
         /// </remarks>
-        public void ReportDiagnostic(Diagnostic diagnostic) => _diagnostics.Add(diagnostic);
+        public void ReportDiagnostic(Diagnostic diagnostic) => Diagnostics.Add(diagnostic);
     }
 
     // PROTOTYPE(source-generators): right now we only support generating source + diagnostics, but actively want to support generation of other things
