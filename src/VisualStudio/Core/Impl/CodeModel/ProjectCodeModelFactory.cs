@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     [Export(typeof(IProjectCodeModelFactory))]
     [Export(typeof(ProjectCodeModelFactory))]
-    internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
+    internal sealed class ProjectCodeModelFactory : ForegroundThreadAffinitizedObject, IProjectCodeModelFactory
     {
         private readonly ConcurrentDictionary<ProjectId, ProjectCodeModel> _projectCodeModels = new ConcurrentDictionary<ProjectId, ProjectCodeModel>();
 
@@ -31,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly IThreadingContext _threadingContext;
 
-        private readonly IForegroundNotificationService _notificationService;
         private readonly IAsynchronousOperationListener _listener;
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
 
@@ -41,14 +41,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             VisualStudioWorkspace visualStudioWorkspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext)
         {
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
 
-            _notificationService = notificationService;
             _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
 
             // Queue up notifications we hear about docs changing.  that way we don't have to fire events multiple times
@@ -66,21 +65,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _visualStudioWorkspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
-        private System.Threading.Tasks.Task ProcessNextDocumentBatchAsync(
+        private async System.Threading.Tasks.Task ProcessNextDocumentBatchAsync(
             ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
+            // This logic preserves teh previous behavior we had with IForegroundNotificationService.
+            // Specifically, we don't run on the UI thread for more than 15ms at a time.  And once we 
+            // have, we wait 50ms before continuing.  These constants are just what we defined from
+            // legacy, and otherwise have no special meaning.
+            const int MaxTimeSlice = 15;
+            const int DelayBetweenProcessing = 50;
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var stopwatch = SharedStopwatch.StartNew();
             foreach (var documentId in documentIds)
             {
-                // Now, enqueue foreground work to actually process these documents in a serialized and incremental
-                // fashion.  FireEventsForDocument will actually limit how much time it spends firing events so that it
-                // doesn't saturate  the UI thread.
-                _notificationService.RegisterNotification(
-                    () => FireEventsForDocument(documentId),
-                    _listener.BeginAsyncOperation("CodeModelEvent"),
-                    cancellationToken);
+                do
+                {
+                    // Keep firing events for this doc, as long as we haven't exceeded the max amount
+                    // of waiting time, and there's no user input that should take precedence.
+                    if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IsInputPending())
+                    {
+                        await Task.Delay(DelayBetweenProcessing, cancellationToken).ConfigureAwait(true);
+                        stopwatch = SharedStopwatch.StartNew();
+                    }
+                }
+                while (FireEventsForDocument(documentId));
             }
 
-            return System.Threading.Tasks.Task.CompletedTask;
+            return;
 
             bool FireEventsForDocument(DocumentId documentId)
             {
