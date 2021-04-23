@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     // A call System.HashCode.Combine(ISymbol) will do the wrong thing and should be avoided
                     if (systemHashCodeType is not null &&
                         invocationOperation.Instance is null &&
-                        systemHashCodeType.Equals(method.ContainingType) &&
+                        systemHashCodeType.Equals(method.ContainingType, SymbolEqualityComparer.Default) &&
                         invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolType)))
                     {
                         context.ReportDiagnostic(invocationOperation.CreateDiagnostic(GetHashCodeRule));

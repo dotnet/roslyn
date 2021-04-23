@@ -1171,13 +1171,7 @@ class C
         [Fact]
         public async Task RS1024_GetHashCodeOnInt64()
         {
-            await new VerifyCS.Test
-            {
-                TestState =
-                {
-                    Sources =
-                    {
-                        @"
+            var code = @"
 using System;
 using Microsoft.CodeAnalysis;
 
@@ -1228,10 +1222,25 @@ public class C
 
         return HashCode.Combine(o1, o2);
     }
-}"
-                        , SymbolEqualityComparerStubCSharp
-                   },
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        code, SymbolEqualityComparerStubCSharp
+                    },
                 },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        code, SymbolEqualityComparerStubCSharp
+                    },
+                    MarkupHandling = Testing.MarkupMode.Allow
+                }
             }.RunAsync();
         }
     }
