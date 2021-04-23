@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         protected override Task FindActionAsync(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess service, Document document, int caretPosition, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
             => service.FindImplementationsAsync(document, caretPosition, context, cancellationToken);
 
-        protected override IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess? GetService(Document document)
+        protected override IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess? GetService(Document? document)
         {
             // Defer to the legacy interface if the language is still exporting it.
             // Otherwise, move to the latest EA interface.

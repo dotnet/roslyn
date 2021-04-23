@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 : CommandState.Unspecified;
         }
 
-        protected abstract TLanguageService GetService(Document document);
+        protected abstract TLanguageService? GetService(Document? document);
 
         public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
         {
@@ -79,14 +77,15 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
 
         private void ExecuteCommand(
-           Document document, int caretPosition,
+           Document document,
+           int caretPosition,
            TLanguageService service,
            CommandExecutionContext context)
         {
             if (service != null)
             {
                 // We have all the cheap stuff, so let's do expensive stuff now
-                string messageToShow = null;
+                string? messageToShow = null;
 
                 var userCancellationToken = context.OperationContext.UserCancellationToken;
                 using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     // wait context. That means the command system won't attempt to show its own wait dialog 
                     // and also will take it into consideration when measuring command handling duration.
                     context.OperationContext.TakeOwnership();
-                    var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+                    var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
                     notificationService.SendNotification(
                         message: messageToShow,
                         title: DisplayName,
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             }
         }
 
-        private async Task<string> NavigateToOrPresentResultsAsync(
+        private async Task<string?> NavigateToOrPresentResultsAsync(
             Document document,
             int caretPosition,
             TLanguageService service,
