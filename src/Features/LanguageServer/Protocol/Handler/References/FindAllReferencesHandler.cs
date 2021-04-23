@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
     [ProvidesMethod(LSP.Methods.TextDocumentReferencesName)]
-    internal class FindAllReferencesHandler : AbstractStatelessRequestHandler<LSP.ReferenceParams, LSP.VSReferenceItem[]?>
+    internal class FindAllReferencesHandler : AbstractStatelessRequestHandler<LSP.ReferenceParams, LSP.ReferenceItem[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
 
-        public override async Task<LSP.VSReferenceItem[]?> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<LSP.ReferenceItem[]?> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
         {
             Debug.Assert(context.ClientCapabilities.HasVisualStudioLspCapability());
 

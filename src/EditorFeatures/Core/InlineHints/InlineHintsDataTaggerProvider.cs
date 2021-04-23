@@ -49,9 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         [ImportingConstructor]
         public InlineHintsDataTaggerProvider(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IForegroundNotificationService notificationService)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints), notificationService)
+            IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints))
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints);
         }

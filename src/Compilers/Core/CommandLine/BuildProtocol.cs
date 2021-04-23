@@ -45,6 +45,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// </summary>
     internal class BuildRequest
     {
+        /// <summary>
+        /// The maximum size of a request supported by the compiler server.
+        /// </summary>
+        /// <remarks>
+        /// Currently this limit is 5MB.
+        /// </remarks>
+        private const int MaximumRequestSize = 0x500000;
+
         public readonly Guid RequestId;
         public readonly RequestLanguage Language;
         public readonly ReadOnlyCollection<Argument> Arguments;
@@ -115,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Read a Request from the given stream.
         /// 
-        /// The total request size must be less than 1MB.
+        /// The total request size must be less than <see cref="MaximumRequestSize"/>.
         /// </summary>
         /// <returns>null if the Request was too large, the Request otherwise.</returns>
         public static async Task<BuildRequest> ReadAsync(Stream inStream, CancellationToken cancellationToken)
@@ -125,10 +133,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             await ReadAllAsync(inStream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
             var length = BitConverter.ToInt32(lengthBuffer, 0);
 
-            // Back out if the request is > 1MB
-            if (length > 0x100000)
+            // Back out if the request is too large
+            if (length > MaximumRequestSize)
             {
-                throw new ArgumentException("Request is over 1MB in length");
+                throw new ArgumentException($"Request is over {MaximumRequestSize >> 20}MB in length");
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -194,10 +202,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // Write the length of the request
             int length = checked((int)memoryStream.Length);
 
-            // Back out if the request is > 1 MB
-            if (memoryStream.Length > 0x100000)
+            // Back out if the request is too large
+            if (memoryStream.Length > MaximumRequestSize)
             {
-                throw new ArgumentOutOfRangeException("Request is over 1MB in length");
+                throw new ArgumentOutOfRangeException($"Request is over {MaximumRequestSize >> 20}MB in length");
             }
 
             await outStream.WriteAsync(BitConverter.GetBytes(length), 0, 4,

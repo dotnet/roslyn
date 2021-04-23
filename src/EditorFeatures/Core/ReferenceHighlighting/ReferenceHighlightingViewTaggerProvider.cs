@@ -48,9 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ReferenceHighlightingViewTaggerProvider(
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting))
         {
         }
 
