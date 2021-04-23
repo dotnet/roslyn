@@ -88,10 +88,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             Assert.Equal(expectedItem.MemberName, actualItem.DisplayTexts.JoinText());
             Assert.Equal(expectedItem.Targets.Length, actualItem.TargetItems.Length);
             var expectedTargets = expectedItem.Targets
-                .SelectAsArray(info => TestInheritanceTargetItem.Create(info, testWorkspace));
+                .Select(info => TestInheritanceTargetItem.Create(info, testWorkspace))
+                .OrderBy(target => target.TargetSymbolName)
+                .ToImmutableArray();
+            var sortedActualTargets = actualItem.TargetItems.OrderBy(target => target.DefinitionItem.DisplayParts.JoinText())
+                .ToImmutableArray();
             for (var i = 0; i < expectedTargets.Length; i++)
             {
-                VerifyInheritanceTarget(expectedTargets[i], actualItem.TargetItems[i]);
+                VerifyInheritanceTarget(expectedTargets[i], sortedActualTargets[i]);
             }
         }
 
@@ -809,6 +813,122 @@ public class {{|target1:Bar2|}} : Bar
                 itemForEooInAbstractClass);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public Task TestCSharpOverrideMemberCanFindImplementingInterface(bool testDuplicate)
+        {
+            var markup1 = @"using System;
+public interface {|target4:IBar|}
+{
+    void {|target6:Foo|}();
+}
+public class {|target1:Bar1|} : IBar
+{
+    public virtual void {|target2:Foo|}() { }
+}
+public class {|target5:Bar2|} : Bar1
+{
+    public override void {|target3:Foo|}() { }
+}";
+
+            var markup2 = @"using System;
+public interface {|target4:IBar|}
+{
+    void {|target6:Foo|}();
+}
+public class {|target1:Bar1|} : IBar
+{
+    public virtual void {|target2:Foo|}() { }
+}
+public class {|target5:Bar2|} : Bar1, IBar
+{
+    public override void {|target3:Foo|}() { }
+}";
+
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "interface IBar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "class Bar1",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implemented),
+                new TargetInfo(
+                    targetSymbolDisplayName: "class Bar2",
+                    locationTag: "target5",
+                    relationship: InheritanceRelationship.Implemented)));
+
+            var itemForFooInIBar = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "void IBar.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "virtual void Bar1.Foo()",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Implemented),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "override void Bar2.Foo()",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForBar1 = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "class Bar1",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "interface IBar",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implementing),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "class Bar2",
+                        locationTag: "target5",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForFooInBar1 = new TestInheritanceMemberItem(
+                lineNumber: 8,
+                memberName: "virtual void Bar1.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void IBar.Foo()",
+                        locationTag: "target6",
+                        relationship: InheritanceRelationship.Implementing),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "override void Bar2.Foo()",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Overridden)));
+
+            var itemForBar2 = new TestInheritanceMemberItem(
+                lineNumber: 10,
+                memberName: "class Bar2",
+                targets: ImmutableArray.Create(
+                    new TargetInfo(
+                        targetSymbolDisplayName: "class Bar1",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implementing),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "interface IBar",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForFooInBar2 = new TestInheritanceMemberItem(
+                lineNumber: 12,
+                memberName: "override void Bar2.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void IBar.Foo()",
+                        locationTag: "target6",
+                        relationship: InheritanceRelationship.Implementing),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "virtual void Bar1.Foo()",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Overriding)));
+
+            return VerifyInSingleDocumentAsync(
+                testDuplicate ? markup2 : markup1,
+                LanguageNames.CSharp,
+                itemForIBar,
+                itemForFooInIBar,
+                itemForBar1,
+                itemForFooInBar1,
+                itemForBar2,
+                itemForFooInBar2);
+        }
+
         #endregion
 
         #region TestsForVisualBasic
@@ -1220,6 +1340,128 @@ End Class";
                 itemForFooInBar1,
                 itemForFooInBar);
         }
+
+        [Theory]
+        [CombinatorialData]
+        public Task TestVisualBasicOverrideMemberCanFindImplementingInterface(bool testDuplicate)
+        {
+            var markup1 = @"
+Interface {|target4:IBar|}
+    Sub {|target6:Foo|}()
+End Interface
+
+Class {|target1:Bar1|}
+    Implements IBar
+    Public Overridable Sub {|target2:Foo|}() Implements IBar.Foo
+    End Sub
+End Class
+
+Class {|target5:Bar2|}
+    Inherits Bar1
+    Public Overrides Sub {|target3:Foo|}()
+    End Sub
+End Class";
+
+            var markup2 = @"
+Interface {|target4:IBar|}
+    Sub {|target6:Foo|}()
+End Interface
+
+Class {|target1:Bar1|}
+    Implements IBar
+    Public Overridable Sub {|target2:Foo|}() Implements IBar.Foo
+    End Sub
+End Class
+
+Class {|target5:Bar2|}
+    Inherits Bar1
+    Public Overrides Sub {|target3:Foo|}()
+    End Sub
+End Class";
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "Interface IBar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Class Bar1",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implemented),
+                new TargetInfo(
+                    targetSymbolDisplayName: "Class Bar2",
+                    locationTag: "target5",
+                    relationship: InheritanceRelationship.Implemented)));
+
+            var itemForFooInIBar = new TestInheritanceMemberItem(
+                lineNumber: 3,
+                memberName: "Sub IBar.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Overridable Sub Bar1.Foo()",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Implemented),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Overrides Sub Bar2.Foo()",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForBar1 = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "Class Bar1",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Interface IBar",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implementing),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Class Bar2",
+                        locationTag: "target5",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForFooInBar1 = new TestInheritanceMemberItem(
+                lineNumber: 8,
+                memberName: "Overridable Sub Bar1.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Sub IBar.Foo()",
+                        locationTag: "target6",
+                        relationship: InheritanceRelationship.Implementing),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Overrides Sub Bar2.Foo()",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Overridden)));
+
+            var itemForBar2 = new TestInheritanceMemberItem(
+                lineNumber: 12,
+                memberName: "Class Bar2",
+                targets: ImmutableArray.Create(
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Class Bar1",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implementing),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Interface IBar",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForFooInBar2 = new TestInheritanceMemberItem(
+                lineNumber: 14,
+                memberName: "Overrides Sub Bar2.Foo()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "Sub IBar.Foo()",
+                        locationTag: "target6",
+                        relationship: InheritanceRelationship.Implementing),
+                    new TargetInfo(
+                        targetSymbolDisplayName: "Overridable Sub Bar1.Foo()",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Overriding)));
+
+            return VerifyInSingleDocumentAsync(
+                testDuplicate ? markup2 : markup1,
+                LanguageNames.VisualBasic,
+                itemForIBar,
+                itemForFooInIBar,
+                itemForBar1,
+                itemForFooInBar1,
+                itemForBar2,
+                itemForFooInBar2);
+        }
+
         #endregion
 
         [Fact]
