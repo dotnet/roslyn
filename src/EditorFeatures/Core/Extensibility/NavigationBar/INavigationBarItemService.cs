@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,19 +11,40 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
+    [Obsolete("Legacy API for TypeScript.  Once TypeScript moves to IVSTypeScriptNavigationBarItemService", error: false)]
     internal interface INavigationBarItemService : ILanguageService
     {
         Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken);
         bool ShowItemGrayedIfNear(NavigationBarItem item);
-
-        /// <summary>
-        /// Legacy api for TypeScript.  Needed until we can move them to EA pattern for navbars.
-        /// </summary>
         void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken);
     }
 
-    internal interface INavigationBarItemService2 : INavigationBarItemService
+    internal interface INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess : ILanguageService
     {
+        Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken);
+        bool ShowItemGrayedIfNear(NavigationBarItem item);
         Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken);
+    }
+
+    internal class NavigationBarItemServiceWrapper : INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        private readonly INavigationBarItemService _service;
+
+        public NavigationBarItemServiceWrapper(INavigationBarItemService service)
+            => _service = service;
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        public Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken)
+            => _service.GetItemsAsync(document, cancellationToken);
+
+        public bool ShowItemGrayedIfNear(NavigationBarItem item)
+            => _service.ShowItemGrayedIfNear(item);
+
+        public Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
+        {
+            _service.NavigateToItem(document, item, view, cancellationToken);
+            return Task.CompletedTask;
+        }
     }
 }
