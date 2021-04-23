@@ -104,8 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 helpLink: helpLinkUri,
                 helpLinkToolTipText: helpLinkToolTip,
                 previewContent: previewContent,
-                logIdVerbatimInTelemetry: data.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
-                optionPageGuid: optionPageGuid);
+                logIdVerbatimInTelemetry: data.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry));
         }
     }
 }
