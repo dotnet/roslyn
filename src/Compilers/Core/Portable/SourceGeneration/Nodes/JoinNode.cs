@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             // When input1[i] is cached:
             //  - cached if input2 is also cached
             //  - modified otherwise
-            // State of input[i] otherwise.
+            // State of input1[i] otherwise.
 
             // gather the input2 items
             IEnumerable<TInput2> input2 = input2Table.Batch(out var isInput2Cached);
