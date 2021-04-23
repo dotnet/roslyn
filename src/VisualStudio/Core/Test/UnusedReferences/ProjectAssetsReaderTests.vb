@@ -86,13 +86,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnusedReferences
                 ImmutableArray.Create(assemblyPath),
                 dependencies.ToImmutableArray())
         End Function
-
-        Private Shared Function WithDependencies(reference As ReferenceInfo, ParamArray dependencies As ReferenceInfo()) As ReferenceInfo
-            Return New ReferenceInfo(reference.ReferenceType,
-                reference.ItemSpecification,
-                reference.TreatAsUsed,
-                reference.CompilationAssemblies,
-                dependencies.ToImmutableArray())
-        End Function
     End Class
 End Namespace
