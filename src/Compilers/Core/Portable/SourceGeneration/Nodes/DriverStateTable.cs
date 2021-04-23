@@ -11,10 +11,6 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
-    // PROTOTYPE(source-generators):
-    // the builder seems useful as a type, but the actual table is just a wrapper around a dict
-    // do we actually need the type itself, or should we just store the dict directly as
-    // part of the driver state?
     internal sealed class DriverStateTable
     {
         // PROTOTYPE(source-generators): should we make a non generic node interface that we can use as the key
@@ -68,7 +64,6 @@ namespace Microsoft.CodeAnalysis
                 return newTable;
             }
 
-            // PROTOTYPE: we only test this, but it'll eventually be called as part of saving the state back to the GeneratorDriverState
             public DriverStateTable ToImmutable()
             {
                 // we can compact the tables at this point, as we'll no longer be using them to determine current state

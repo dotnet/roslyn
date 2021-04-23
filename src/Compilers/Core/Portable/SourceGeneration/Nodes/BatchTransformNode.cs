@@ -34,7 +34,16 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
-            // PROTOTYPE(source-generators):caching, faulted etc.
+            // grab the source inputs
+            var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
+            if (sourceTable.IsCompacted)
+            {
+                return previousTable;
+            }
+            if (sourceTable.IsFaulted)
+            {
+                return NodeStateTable<TOutput>.FromFaultedTable(sourceTable);
+            }
 
             // Semantics of a batch transform:
             // Batches will always exist (a batch of the empty table is still [])
@@ -42,9 +51,6 @@ namespace Microsoft.CodeAnalysis
             // - Output is cached when upstream is all cached
             // - Added when the previous table was empty
             // - Modified otherwise
-
-            // grab the source inputs
-            var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
 
             var source = sourceTable.Batch();
 

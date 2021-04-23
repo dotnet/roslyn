@@ -28,11 +28,17 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
-            // PROTOTYPE(source-generators):caching, faulted etc. need to extract out the common logic 
+            var sourceTable = graphState.GetLatestStateTableForNode(_source);
+            if (sourceTable.IsCompacted)
+            {
+                return previousTable;
+            }
+            if (sourceTable.IsFaulted)
+            {
+                return NodeStateTable<TOutput>.FromFaultedTable(sourceTable);
+            }
 
             var nodeTable = new NodeStateTable<TOutput>.Builder();
-
-            var sourceTable = graphState.GetLatestStateTableForNode(_source);
             foreach (var entry in sourceTable)
             {
                 if (entry.state == EntryState.Cached || entry.state == EntryState.Removed)
@@ -41,7 +47,10 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (entry.state == EntryState.Added || entry.state == EntryState.Modified)
                 {
-                    // TODO: handle modified properly
+                    // we don't currently handle modified any differently than added at the output
+                    // we just run the action and mark the new source as added. In theory we could compare
+                    // the diagnostics and sources produced and compare them, to see if they are any different 
+                    // than before.
 
                     var sourcesBuilder = ArrayBuilder<GeneratedSourceText>.GetInstance();
                     var diagnostics = DiagnosticBag.GetInstance();
@@ -50,7 +59,6 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         _action(context, entry.item);
-                        // PROTOTYPE(source-generators):
                         nodeTable.AddEntries(ImmutableArray.Create<TOutput>((sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly())), EntryState.Added);
                     }
                     finally
@@ -92,7 +100,6 @@ namespace Microsoft.CodeAnalysis
                     context.Diagnostics.AddRange(diagnostics);
                 }
             }
-
         }
     }
 }

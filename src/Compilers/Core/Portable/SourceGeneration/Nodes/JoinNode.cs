@@ -28,13 +28,24 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<(TInput1, IEnumerable<TInput2>)> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, IEnumerable<TInput2>)> previousTable, CancellationToken cancellationToken)
         {
-            // PROTOTYPE(source-generators): all cached, faulted handling etc.
-
-            var builder = new NodeStateTable<(TInput1, IEnumerable<TInput2>)>.Builder();
-
             // get both input tables
             var input1Table = graphState.GetLatestStateTableForNode(_input1);
             var input2Table = graphState.GetLatestStateTableForNode(_input2);
+
+            if (input1Table.IsCompacted && input2Table.IsCompacted)
+            {
+                return previousTable;
+            }
+            if (input1Table.IsFaulted)
+            {
+                return NodeStateTable<(TInput1, IEnumerable<TInput2>)>.FromFaultedTable(input1Table);
+            }
+            if (input2Table.IsFaulted)
+            {
+                return NodeStateTable<(TInput1, IEnumerable<TInput2>)>.FromFaultedTable(input2Table);
+            }
+
+            var builder = new NodeStateTable<(TInput1, IEnumerable<TInput2>)>.Builder();
 
             // Semantics of a join:
             //

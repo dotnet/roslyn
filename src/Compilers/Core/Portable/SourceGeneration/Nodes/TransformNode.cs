@@ -33,7 +33,16 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
-            // PROTOTYPE(source-generators):caching, faulted etc.
+            // grab the source inputs
+            var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
+            if (sourceTable.IsCompacted)
+            {
+                return previousTable;
+            }
+            if (sourceTable.IsFaulted)
+            {
+                return NodeStateTable<TOutput>.FromFaultedTable(sourceTable);
+            }
 
             // Semantics of a transform:
             // Element-wise comparison of upstream table
@@ -41,8 +50,6 @@ namespace Microsoft.CodeAnalysis
             // - Added: perform transform and add
             // - Modified: perform transform and do element wise comparison with previous results
 
-            // grab the source inputs
-            var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
             var newTable = new NodeStateTable<TOutput>.Builder();
 
             foreach (var entry in sourceTable)
