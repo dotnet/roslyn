@@ -27,9 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         ///       Method 'Bar'
         /// 'I↑ Implementing members'
         ///       Method 'Foo'
-        /// It is 20 because the default left margin is 4, and the size of the image moniker(e.g. I↑) in the header is 16.
+        /// It is 22 because the default left margin is 4, and we want to keep the same indentation margin same as solution explorer, which is 18.
         /// </summary>
-        private static readonly Thickness s_indentMargin = new Thickness(20, 1, 4, 1);
+        private static readonly Thickness s_indentMargin = new Thickness(22, 1, 4, 1);
 
         /// <summary>
         /// DefinitionItem used for navigation.
