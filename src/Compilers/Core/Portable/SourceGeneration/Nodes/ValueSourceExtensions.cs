@@ -34,5 +34,8 @@ namespace Microsoft.CodeAnalysis
 
         // 1 => 1 production
         public static IncrementalGeneratorOutput GenerateSource<T>(this IncrementalValueSource<T> source, Action<SourceProductionContext, T> action) => new IncrementalGeneratorOutput(new SourceOutputNode<T>(source.Node, action.WrapUserAction()));
+
+        // custom comparer for given node
+        public static IncrementalValueSource<T> WithComparer<T>(this IncrementalValueSource<T> source, IEqualityComparer<T> comparer) => new IncrementalValueSource<T>(source.Node.WithComparer(comparer));
     }
 }

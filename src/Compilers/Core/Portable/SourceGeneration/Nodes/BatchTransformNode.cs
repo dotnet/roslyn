@@ -16,20 +16,21 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly Func<ImmutableArray<TInput>, ImmutableArray<TOutput>> _func;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
+        private readonly IEqualityComparer<TOutput> _comparer;
 
-        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<ImmutableArray<TInput>, TOutput> userFunc)
-            : this(sourceNode, userFunc: i => ImmutableArray.Create(userFunc(i)))
+        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<ImmutableArray<TInput>, TOutput> userFunc, IEqualityComparer<TOutput>? comparer = null)
+            : this(sourceNode, userFunc: (i) => ImmutableArray.Create(userFunc(i)), comparer)
         {
         }
 
-        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<ImmutableArray<TInput>, ImmutableArray<TOutput>> userFunc)
+        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<ImmutableArray<TInput>, ImmutableArray<TOutput>> userFunc, IEqualityComparer<TOutput>? comparer = null)
         {
             _sourceNode = sourceNode;
             _func = userFunc;
+            _comparer = comparer ?? EqualityComparer<TOutput>.Default;
         }
 
-        // PROTOTYPE(source-generators):
-        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => this;
+        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new BatchTransformNode<TInput, TOutput>(_sourceNode, _func, comparer);
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 Debug.Assert(previousTable.Count == 1);
-                newTable.ModifyEntriesFromPreviousTable(previousTable, transformed);
+                newTable.ModifyEntriesFromPreviousTable(previousTable, transformed, _comparer);
             }
             return newTable.ToImmutableAndFree();
         }

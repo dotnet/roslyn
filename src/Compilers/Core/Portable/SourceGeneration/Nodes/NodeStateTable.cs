@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
                 _states.Add(previousEntries);
             }
 
-            public void ModifyEntriesFromPreviousTable(NodeStateTable<T> previousTable, ImmutableArray<T> outputs)
+            public void ModifyEntriesFromPreviousTable(NodeStateTable<T> previousTable, ImmutableArray<T> outputs, IEqualityComparer<T> comparer)
             {
 
                 // Semantics:
@@ -208,8 +208,7 @@ namespace Microsoft.CodeAnalysis
                     var previous = previousEnumerator.Current;
                     var replacement = outputEnumerator.Current;
 
-                    // PROTOTYPE(source-generators): support custom IEqualityComparer
-                    var cached = EqualityComparer<T>.Default.Equals(previous.item, replacement);
+                    var cached = comparer.Equals(previous.item, replacement);
                     modifiedEntries.Add((replacement, cached ? EntryState.Cached : EntryState.Modified));
 
                     previousHasItems = previousEnumerator.MoveNext();

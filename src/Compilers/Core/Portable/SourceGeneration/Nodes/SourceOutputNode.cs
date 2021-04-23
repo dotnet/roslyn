@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 using TOutput = System.ValueTuple<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.GeneratedSourceText>, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>>;
 
@@ -63,8 +64,7 @@ namespace Microsoft.CodeAnalysis
             return nodeTable.ToImmutableAndFree();
         }
 
-        // PROTOTYPE(source-generators):
-        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) { return this; }
+        IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable;
 
         public void AppendOutputs(IncrementalExecutionContext context)
         {

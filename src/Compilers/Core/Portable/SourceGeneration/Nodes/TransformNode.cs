@@ -14,21 +14,22 @@ namespace Microsoft.CodeAnalysis
     internal sealed class TransformNode<TInput, TOutput> : IIncrementalGeneratorNode<TOutput>
     {
         private readonly Func<TInput, ImmutableArray<TOutput>> _func;
+        private readonly IEqualityComparer<TOutput> _comparer;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
 
-        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, TOutput> userFunc)
-            : this(sourceNode, userFunc: i => ImmutableArray.Create(userFunc(i)))
+        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, TOutput> userFunc, IEqualityComparer<TOutput>? comparer = null)
+            : this(sourceNode, userFunc: i => ImmutableArray.Create(userFunc(i)), comparer)
         {
         }
 
-        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, ImmutableArray<TOutput>> userFunc)
+        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, ImmutableArray<TOutput>> userFunc, IEqualityComparer<TOutput>? comparer = null)
         {
             _sourceNode = sourceNode;
             _func = userFunc;
+            _comparer = comparer ?? EqualityComparer<TOutput>.Default;
         }
 
-        // PROTOTYPE(source-generators):
-        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => this;
+        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new TransformNode<TInput, TOutput>(_sourceNode, _func, comparer);
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        newTable.ModifyEntriesFromPreviousTable(previousTable, newOutputs);
+                        newTable.ModifyEntriesFromPreviousTable(previousTable, newOutputs, _comparer);
                     }
                 }
             }
