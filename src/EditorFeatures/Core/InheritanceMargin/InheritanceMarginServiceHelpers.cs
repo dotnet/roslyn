@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
@@ -138,14 +140,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // Go down the inheritance chain to find all the overrides targets.
             var allOverriddenSymbols = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            // Go up the inheritance chain to find all the implemented targets.
-            var implementingSymbols = memberSymbol.ExplicitOrImplicitInterfaceImplementations();
-
             // Go up the inheritance chain to find all overriding targets
             var overridingSymbols = GetOverridingSymbols(memberSymbol);
 
+            // Go up the inheritance chain to find all the implemented targets.
+            var implementingSymbols = GetImplementingSymbolsForTypeMember(memberSymbol, overridingSymbols);
+
             // Go down the inheritance chain to find all the implementing targets.
-            var allImplementedSymbols = await GetImplementedSymbolsAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
+            var allImplementedSymbols = await GetImplementedSymbolsForTypeMemberAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
 
             // For all overriden & implemented symbols, make sure it is in source.
             // For example, if the user is viewing System.Threading.SynchronizationContext from metadata,
@@ -248,6 +250,42 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     .Concat(overridingMemberItems));
         }
 
+        private static ImmutableArray<ISymbol> GetImplementingSymbolsForTypeMember(
+            ISymbol memberSymbol,
+            ImmutableArray<ISymbol> overridingSymbols)
+        {
+            if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol)
+            {
+                // Use a hashset builder because there could be duplicates.
+                // For example:
+                // interface IBar { void Foo(); }
+                // class Bar : IBar { public virtual void Foo() { } }
+                // class Bar2 : Bar, IBar { public override void Foo() { } }
+                // Here IBar.Foo() would be added twice as an implementing members.
+                // The order is not important, because UI would sort it based on display name.
+                var builder = new HashSet<ISymbol>();
+
+                // 1. Add the direct implementing symbols in interfaces.
+                var directImplementingSymbols = memberSymbol.ExplicitOrImplicitInterfaceImplementations();
+                builder.AddRange(directImplementingSymbols);
+
+                // 2. Also add the direct implementing symbols for the overriding symbols.
+                // For example:
+                // interface IBar { void Foo(); }
+                // class Bar : IBar { public override void Foo() { } }
+                // class Bar2 : Bar { public override void Foo() { } }
+                // For 'Bar2.Foo()',  we need to find 'IBar.Foo()'
+                foreach (var symbol in overridingSymbols)
+                {
+                    builder.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
+                }
+
+                return builder.ToImmutableArray();
+            }
+
+            return ImmutableArray<ISymbol>.Empty;
+        }
+
         /// <summary>
         /// For the <param name="memberSymbol"/>, get all the implemented symbols.
         /// Table for the mapping between images and inheritanceRelationship
@@ -256,23 +294,40 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// Overridden: O↓
         /// Overriding: O↑
         /// </summary>
-        private static async Task<ImmutableArray<ISymbol>> GetImplementedSymbolsAsync(
+        private static async Task<ImmutableArray<ISymbol>> GetImplementedSymbolsForTypeMemberAsync(
             Solution solution,
             ISymbol memberSymbol,
             CancellationToken cancellationToken)
         {
-            if (memberSymbol is INamedTypeSymbol { IsSealed: false } namedTypeSymbol)
-            {
-                var derivedTypes = await GetDerivedTypesAndImplementationsAsync(solution, namedTypeSymbol, cancellationToken).ConfigureAwait(false);
-                return derivedTypes.CastArray<ISymbol>();
-            }
-            else if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol
+            if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol
                  && memberSymbol.ContainingSymbol.IsInterfaceType())
             {
-                return await SymbolFinder.FindMemberImplementationsArrayAsync(
+                // Use a hashset builder because there could be duplicates.
+                // For example:
+                // interface IBar { void Foo(); }
+                // class Bar : IBar { public virtual void Foo() { } }
+                // class Bar2 : Bar, IBar { public override void Foo() { } }
+                // Here Bar2.Foo() would be added twice as an implemented members.
+                // The order is not important, because UI would sort it based on display name.
+                var builder = new HashSet<ISymbol>();
+                // 1. Find all direct implementations for this member
+                var implementationSymbols = await SymbolFinder.FindMemberImplementationsArrayAsync(
                     memberSymbol,
                     solution,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
+                builder.AddRange(implementationSymbols);
+
+                // 2. Continue searching the overriden symbols. For example:
+                // interface IBar { void Foo(); }
+                // class Bar : IBar { public virtual void Foo() { } }
+                // class Bar2 : IBar { public override void Foo() { } }
+                // For 'IBar.Foo()', we need to find 'Bar2.Foo()'
+                foreach (var implementationSymbol in implementationSymbols)
+                {
+                    builder.AddRange(await SymbolFinder.FindOverridesArrayAsync(implementationSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
+                }
+
+                return builder.ToImmutableArray();
             }
 
             return ImmutableArray<ISymbol>.Empty;
