@@ -362,6 +362,16 @@
         <target state="new">Id</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implemented_members">
+        <source>Implemented members</source>
+        <target state="new">Implemented members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_members">
+        <source>Implementing members</source>
+        <target state="new">Implementing members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">その他の演算子内で</target>
@@ -725,6 +735,16 @@
       <trans-unit id="Other">
         <source>Others</source>
         <target state="translated">その他</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overridden_members">
+        <source>Overridden members</source>
+        <target state="new">Overridden members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overriding_members">
+        <source>Overriding members</source>
+        <target state="new">Overriding members</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
@@ -1300,11 +1320,6 @@
       <trans-unit id="Not_a_valid_value">
         <source>Not a valid value</source>
         <target state="translated">有効な値ではありません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_in_1">
-        <source>'{0}' in '{1}'</source>
-        <target state="new">'{0}' in '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_inherited">
