@@ -82,23 +82,40 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
             var capturedTypeParameters =
                 fields.Select(p => p.Type)
-                      .SelectMany<ITypeSymbol, ITypeParameterSymbol>(t => t.GetReferencedTypeParameters())
+                      .SelectMany(t => t.GetReferencedTypeParameters())
                       .Distinct()
                       .ToImmutableArray();
+
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            if (syntaxFacts.SupportsRecordStruct(syntaxTree.Options))
+            {
+                context.RegisterRefactoring(
+                    new CodeAction.CodeActionWithNestedActions(
+                        FeaturesResources.Convert_to_record_struct,
+                        CreateChildActions(context, tupleExprOrTypeNode, fields, capturedTypeParameters, isRecord: true),
+                        isInlinable: false),
+                    tupleExprOrTypeNode.Span);
+            }
 
             context.RegisterRefactoring(
                 new CodeAction.CodeActionWithNestedActions(
                     FeaturesResources.Convert_to_struct,
-                    CreateChildActions(context, tupleExprOrTypeNode, fields, capturedTypeParameters),
+                    CreateChildActions(context, tupleExprOrTypeNode, fields, capturedTypeParameters, isRecord: false),
                     isInlinable: false),
                 tupleExprOrTypeNode.Span);
 
             return;
 
-            ImmutableArray<CodeAction> CreateChildActions(CodeRefactoringContext context, SyntaxNode tupleExprOrTypeNode, ImmutableArray<IFieldSymbol> fields, ImmutableArray<ITypeParameterSymbol> capturedTypeParameters)
+            ImmutableArray<CodeAction> CreateChildActions(
+                CodeRefactoringContext context,
+                SyntaxNode tupleExprOrTypeNode,
+                ImmutableArray<IFieldSymbol> fields,
+                ImmutableArray<ITypeParameterSymbol> capturedTypeParameters,
+                bool isRecord)
             {
                 using var scopes = TemporaryArray<CodeAction>.Empty;
-                scopes.Add(CreateAction(context, Scope.ContainingMember));
+                scopes.Add(CreateAction(context, Scope.ContainingMember, isRecord));
 
                 // If we captured any Method type-parameters, we can only replace the tuple types we
                 // find in the containing method.  No other tuple types in other members would be able
@@ -107,7 +124,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 {
                     var containingType = tupleExprOrTypeNode.GetAncestor<TTypeBlockSyntax>();
                     if (containingType != null)
-                        scopes.Add(CreateAction(context, Scope.ContainingType));
+                        scopes.Add(CreateAction(context, Scope.ContainingType, isRecord));
 
                     // If we captured any Type type-parameters, we can only replace the tuple
                     // types we find in the containing type.  No other tuple types in other
@@ -122,8 +139,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                         // latter has members called Item1 and Item2, but those names don't show up in source.
                         if (fields.All(f => f.CorrespondingTupleField != f))
                         {
-                            scopes.Add(CreateAction(context, Scope.ContainingProject));
-                            scopes.Add(CreateAction(context, Scope.DependentProjects));
+                            scopes.Add(CreateAction(context, Scope.ContainingProject, isRecord));
+                            scopes.Add(CreateAction(context, Scope.DependentProjects, isRecord));
                         }
                     }
                 }
@@ -132,8 +149,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             }
         }
 
-        private CodeAction CreateAction(CodeRefactoringContext context, Scope scope)
-            => new MyCodeAction(GetTitle(scope), c => ConvertToStructAsync(context.Document, context.Span, scope, c));
+        private CodeAction CreateAction(CodeRefactoringContext context, Scope scope, bool isRecord)
+            => new MyCodeAction(GetTitle(scope), c => ConvertToStructAsync(context.Document, context.Span, scope, isRecord, c));
 
         private static string GetTitle(Scope scope)
             => scope switch
@@ -168,7 +185,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         public async Task<Solution> ConvertToStructAsync(
-            Document document, TextSpan span, Scope scope, CancellationToken cancellationToken)
+            Document document, TextSpan span, Scope scope, bool isRecord, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -180,7 +197,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 {
                     var result = await client.TryInvokeAsync<IRemoteConvertTupleToStructCodeRefactoringService, SerializableConvertTupleToStructResult>(
                         solution,
-                        (service, solutionInfo, cancellationToken) => service.ConvertToStructAsync(solutionInfo, document.Id, span, scope, cancellationToken),
+                        (service, solutionInfo, cancellationToken) => service.ConvertToStructAsync(solutionInfo, document.Id, span, scope, isRecord, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
 
                     if (!result.HasValue)
@@ -197,7 +214,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             }
 
             return await ConvertToStructInCurrentProcessAsync(
-                document, span, scope, cancellationToken).ConfigureAwait(false);
+                document, span, scope, isRecord, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Solution> AddRenameTokenAsync(
@@ -214,7 +231,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private async Task<Solution> ConvertToStructInCurrentProcessAsync(
-            Document document, TextSpan span, Scope scope, CancellationToken cancellationToken)
+            Document document, TextSpan span, Scope scope, bool isRecord, CancellationToken cancellationToken)
         {
             var (tupleExprOrTypeNode, tupleType) = await TryGetTupleInfoAsync(
                 document, span, cancellationToken).ConfigureAwait(false);
@@ -238,7 +255,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
             var capturedTypeParameters =
                 tupleType.TupleElements.Select(p => p.Type)
-                                       .SelectMany<ITypeSymbol, ITypeParameterSymbol>(t => t.GetReferencedTypeParameters())
+                                       .SelectMany(t => t.GetReferencedTypeParameters())
                                        .Distinct()
                                        .ToImmutableArray();
 
@@ -249,7 +266,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // Next, generate the full struct that will be used to replace all instances of this
             // tuple type.
             var namedTypeSymbol = await GenerateFinalNamedTypeAsync(
-                document, scope, structName, capturedTypeParameters, tupleType, parameterNamingRule, cancellationToken).ConfigureAwait(false);
+                document, scope, isRecord, structName, capturedTypeParameters, tupleType, parameterNamingRule, cancellationToken).ConfigureAwait(false);
 
             var documentToEditorMap = new Dictionary<Document, SyntaxEditor>();
             var documentsToUpdate = await GetDocumentsToUpdateAsync(
@@ -745,8 +762,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private static async Task<INamedTypeSymbol> GenerateFinalNamedTypeAsync(
-            Document document, Scope scope, string structName,
-            ImmutableArray<ITypeParameterSymbol> typeParameters,
+            Document document, Scope scope, bool isRecord, string structName, ImmutableArray<ITypeParameterSymbol> typeParameters,
             INamedTypeSymbol tupleType, NamingRule parameterNamingRule, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -760,7 +776,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             // help create members like Equals/GetHashCode.  Then, once we have all the members we
             // create the final type.
             var namedTypeWithoutMembers = CreateNamedType(
-                semanticModel.Compilation.Assembly, scope, structName, typeParameters, members: default);
+                semanticModel.Compilation.Assembly, scope, isRecord, structName, typeParameters, members: default);
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
@@ -777,15 +793,26 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 document, namedTypeWithoutMembers,
                 ImmutableArray<ISymbol>.CastUp(fields), cancellationToken).ConfigureAwait(false);
 
-            var members = ArrayBuilder<ISymbol>.GetInstance();
-            members.AddRange(fields);
-            members.Add(constructor);
-            members.Add(equalsMethod);
-            members.Add(getHashCodeMethod);
-            members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
-            AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var members);
 
-            var namedTypeSymbol = CreateNamedType(semanticModel.Compilation.Assembly, scope, structName, typeParameters, members.ToImmutableAndFree());
+            if (isRecord)
+            {
+                members.Add(constructor);
+                members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
+                AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
+            }
+            else
+            {
+                members.AddRange(fields);
+                members.Add(constructor);
+                members.Add(equalsMethod);
+                members.Add(getHashCodeMethod);
+                members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
+                AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
+            }
+
+            var namedTypeSymbol = CreateNamedType(
+                semanticModel.Compilation.Assembly, scope, isRecord, structName, typeParameters, members.ToImmutable());
             return namedTypeSymbol;
         }
 
@@ -846,14 +873,14 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
         private static INamedTypeSymbol CreateNamedType(
             IAssemblySymbol containingAssembly,
-            Scope scope, string structName,
+            Scope scope, bool isRecord, string structName,
             ImmutableArray<ITypeParameterSymbol> typeParameters, ImmutableArray<ISymbol> members)
         {
             var accessibility = scope == Scope.DependentProjects
                 ? Accessibility.Public
                 : Accessibility.Internal;
             return CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                attributes: default, accessibility, modifiers: default,
+                attributes: default, accessibility, modifiers: default, isRecord,
                 TypeKind.Struct, structName, typeParameters, members: members, containingAssembly: containingAssembly);
         }
 
