@@ -3,7 +3,7 @@
 namespace Analyzer.Utilities
 {
     /// <summary>
-    /// Kind of option to fetch from <see cref="AnalyzerOptionsExtensions"/>.
+    /// Kind of option to fetch from <see cref="ICategorizedAnalyzerConfigOptions"/>.
     /// </summary>
     internal enum OptionKind
     {
