@@ -4,12 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -192,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentIdentity, _threadingContext);
                     _openFiles.Add(moniker, openFile);
 
-                    _threadingContext.JoinableTaskFactory.Run(() => openFile.UpdateBufferContentsAsync(CancellationToken.None));
+                    _threadingContext.JoinableTaskFactory.Run(() => openFile.RefreshFileAsync(CancellationToken.None));
 
                     // Update the RDT flags to ensure the file can't be saved or appears in any MRUs as it's a temporary generated file name.
                     var cookie = ((IVsRunningDocumentTable4)_runningDocumentTable).GetDocumentCookie(moniker);
@@ -287,7 +286,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 _batchingWorkQueue = new AsyncBatchingDelay(
                     TimeSpan.FromSeconds(1),
-                    UpdateBufferContentsAsync,
+                    RefreshFileAsync,
                     asyncListener: _fileManager._listener,
                     _cancellationTokenSource.Token);
             }
@@ -322,7 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private string GeneratorDisplayName => _documentIdentity.GeneratorTypeName;
 
-            public async Task UpdateBufferContentsAsync(CancellationToken cancellationToken)
+            public async Task RefreshFileAsync(CancellationToken cancellationToken)
             {
                 SourceText? generatedSource = null;
                 var project = _workspace.CurrentSolution.GetProject(_documentIdentity.DocumentId.ProjectId);
@@ -411,7 +410,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
                 else
                 {
-                    // The file doesn't exist, so remove it from the workspace if it's still linked
+                    // The user made an edit that meant the source generator that generated this file is no longer generating this file.
+                    // We can't update buffer contents anymore. We'll remove the connection between this buffer and the workspace,
+                    // so this file now appears in Miscellaneous Files.
                     DisconnectFromWorkspaceIfOpen();
                 }
 
