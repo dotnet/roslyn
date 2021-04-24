@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -650,31 +649,11 @@ namespace Analyzer.Utilities
             // Local functions.
             ICategorizedAnalyzerConfigOptions ComputeCategorizedAnalyzerConfigOptions()
             {
-                var categorizedOptionsFromAdditionalFiles = ComputeCategorizedAnalyzerConfigOptionsFromAdditionalFiles();
-
 #if CODEANALYSIS_V3_OR_BETTER
-                return AggregateCategorizedAnalyzerConfigOptions.Create(options.AnalyzerConfigOptionsProvider, compilation, categorizedOptionsFromAdditionalFiles);
+                return AggregateCategorizedAnalyzerConfigOptions.Create(options.AnalyzerConfigOptionsProvider, compilation);
 #else
                 return categorizedOptionsFromAdditionalFiles;
 #endif
-            }
-
-            CompilationCategorizedAnalyzerConfigOptions ComputeCategorizedAnalyzerConfigOptionsFromAdditionalFiles()
-            {
-                foreach (var additionalFile in options.AdditionalFiles)
-                {
-                    var fileName = Path.GetFileName(additionalFile.Path);
-                    if (fileName.Equals(".editorconfig", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var text = additionalFile.GetText(cancellationToken);
-                        if (text is null)
-                            return CompilationCategorizedAnalyzerConfigOptions.Empty;
-
-                        return EditorConfigParser.Parse(text);
-                    }
-                }
-
-                return CompilationCategorizedAnalyzerConfigOptions.Empty;
             }
         }
     }
