@@ -194,9 +194,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return builder.ToImmutable();
             }
 
-            protected override void AnalyzeNode(SymbolAnalysisContext symbolContext, TInvocationExpressionSyntax invocation, SemanticModel semanticModel)
+            protected override void AnalyzeNode(SymbolAnalysisContext symbolContext, TInvocationExpressionSyntax syntaxNode, SemanticModel semanticModel)
             {
-                ISymbol symbol = semanticModel.GetSymbolInfo(invocation, symbolContext.CancellationToken).Symbol;
+                ISymbol symbol = semanticModel.GetSymbolInfo(syntaxNode, symbolContext.CancellationToken).Symbol;
                 if (symbol == null ||
                     symbol.Kind != SymbolKind.Method ||
                     !symbol.Name.Equals(DiagnosticWellKnownNames.ReportDiagnosticName, StringComparison.OrdinalIgnoreCase) ||
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                IEnumerable<SyntaxNode>? arguments = GetArgumentExpressions(invocation);
+                IEnumerable<SyntaxNode>? arguments = GetArgumentExpressions(syntaxNode);
                 if (arguments?.HasExactly(1) == true)
                 {
                     SyntaxNode argument = arguments.First();
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                 if (descriptorFields.Length == 1 &&
                                     !_supportedDescriptorFieldsMap[(INamedTypeSymbol)symbolContext.Symbol].Contains(descriptorFields[0]))
                                 {
-                                    Diagnostic diagnostic = invocation.CreateDiagnostic(InvalidReportDiagnosticRule, descriptorFields[0].Name);
+                                    Diagnostic diagnostic = syntaxNode.CreateDiagnostic(InvalidReportDiagnosticRule, descriptorFields[0].Name);
                                     symbolContext.ReportDiagnostic(diagnostic);
                                 }
                             }

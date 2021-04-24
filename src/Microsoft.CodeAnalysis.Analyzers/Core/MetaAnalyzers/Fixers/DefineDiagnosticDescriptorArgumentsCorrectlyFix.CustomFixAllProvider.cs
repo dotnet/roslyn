@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
     {
         private sealed class CustomFixAllProvider : FixAllProvider
         {
-            public static CustomFixAllProvider Instance = new CustomFixAllProvider();
+            public static CustomFixAllProvider Instance = new();
 
             private CustomFixAllProvider()
             {

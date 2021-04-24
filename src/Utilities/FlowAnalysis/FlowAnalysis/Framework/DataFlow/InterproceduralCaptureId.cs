@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => obj is InterproceduralCaptureId id && Equals(id);
 
         public override int GetHashCode()
-            => HashUtilities.Combine(Id.GetHashCode(), ControlFlowGraph.GetHashCode());
+            => RoslynHashCode.Combine(Id.GetHashCode(), ControlFlowGraph.GetHashCode());
 
         public static bool operator ==(InterproceduralCaptureId left, InterproceduralCaptureId right)
         {

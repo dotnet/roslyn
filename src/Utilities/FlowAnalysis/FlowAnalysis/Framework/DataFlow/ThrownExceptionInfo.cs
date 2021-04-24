@@ -103,10 +103,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => Equals(obj as ThrownExceptionInfo);
 
         public override int GetHashCode()
-            => HashUtilities.Combine(InterproceduralCallStack,
-                HashUtilities.Combine(BasicBlockOrdinal.GetHashCodeOrDefault(),
-                HashUtilities.Combine(HandlingCatchRegion.GetHashCodeOrDefault(),
-                HashUtilities.Combine(ContainingFinallyRegion.GetHashCodeOrDefault(),
-                HashUtilities.Combine(ExceptionType.GetHashCode(), IsDefaultExceptionForExceptionsPathAnalysis.GetHashCode())))));
+        {
+            var hashCode = new RoslynHashCode();
+            HashUtilities.Combine(InterproceduralCallStack, ref hashCode);
+            hashCode.Add(BasicBlockOrdinal.GetHashCode());
+            hashCode.Add(HandlingCatchRegion.GetHashCodeOrDefault());
+            hashCode.Add(ContainingFinallyRegion.GetHashCodeOrDefault());
+            hashCode.Add(ExceptionType.GetHashCode());
+            hashCode.Add(IsDefaultExceptionForExceptionsPathAnalysis.GetHashCode());
+            return hashCode.ToHashCode();
+        }
     }
 }
