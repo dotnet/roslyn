@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -85,7 +86,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                       .Distinct()
                       .ToImmutableArray();
 
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var scopes);
+            using var scopes = TemporaryArray<CodeAction>.Empty;
+
             scopes.Add(CreateAction(context, Scope.ContainingMember));
 
             // If we captured any Method type-parameters, we can only replace the tuple types we
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             context.RegisterRefactoring(
                 new CodeAction.CodeActionWithNestedActions(
                     FeaturesResources.Convert_to_struct,
-                    scopes.ToImmutable(),
+                    scopes.ToImmutableAndClear(),
                     isInlinable: false),
                 tupleExprOrTypeNode.Span);
         }
