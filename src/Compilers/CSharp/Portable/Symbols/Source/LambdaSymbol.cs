@@ -34,9 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static readonly TypeSymbol InferenceFailureReturnType = new UnsupportedMetadataTypeSymbol();
 
-        // PROTOTYPE: We shouldn't be binding attributes each time we create a LambdaSymbol.
-        // Instead, the attributes should be bound by the UnboundLambda and passed in explicitly.
-        // That includes attributes on parameters as well as method level attributes.
         public LambdaSymbol(
             Binder binder,
             CSharpCompilation compilation,

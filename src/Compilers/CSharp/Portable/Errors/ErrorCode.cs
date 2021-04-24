@@ -1930,6 +1930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 9.0
 
+        ERR_CannotInferDelegateType = 8915,
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

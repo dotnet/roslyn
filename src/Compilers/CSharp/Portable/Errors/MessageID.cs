@@ -217,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureConstantInterpolatedStrings = MessageBase + 12792,
         IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction = MessageBase + 12793,
         IDS_FeatureLambdaAttributes = MessageBase + 12798,
+        IDS_FeatureInferredDelegateType = MessageBase + 12799,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -326,6 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# preview features.
                 case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction:
                 case MessageID.IDS_FeatureLambdaAttributes: // semantic check
+                case MessageID.IDS_FeatureInferredDelegateType: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 9.0 features.
