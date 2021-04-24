@@ -86,6 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public bool ContainsAwait = false;
 
+            public override BoundNode? Visit(BoundNode? node) => ContainsAwait ? null : base.Visit(node);
+
             public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
             {
                 ContainsAwait = true;

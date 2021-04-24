@@ -547,9 +547,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             )
         {
-            return new InterpolatedStringBuilderLocalSymbol(CurrentFunction, syntax, TypeWithAnnotations.Create(type), valEscapeScope
+            return new SynthesizedLocalWithValEscape(
+                CurrentFunction,
+                TypeWithAnnotations.Create(type),
+                SynthesizedLocalKind.InterpolatedStringBuilder,
+                valEscapeScope,
+                syntax
 #if DEBUG
-                , createdAtLineNumber, createdAtFilePath
+                , createdAtLineNumber: createdAtLineNumber, createdAtFilePath: createdAtFilePath
 #endif
                 );
         }

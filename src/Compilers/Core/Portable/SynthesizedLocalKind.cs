@@ -234,8 +234,8 @@ namespace Microsoft.CodeAnalysis
         DelegateRelaxationReceiver = 0x101,
 
         /// <summary>
-        /// The builder type of an interpolated string, when using the interpolated string builder pattern.
-        /// This synthesized local is allowed to have a val escape
+        /// The interpoled string builder, when the interpolated string is being lowered through the builder pattern
+        /// or the interpolated string expression is being converted directly to System.String.
         /// </summary>
         InterpolatedStringBuilder = 0x102,
     }

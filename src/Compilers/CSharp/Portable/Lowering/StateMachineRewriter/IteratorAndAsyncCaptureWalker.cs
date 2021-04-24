@@ -194,12 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
             if (type.IsRestrictedType())
             {
-                // Interpolated string builder variables are limited in lifetime, and will not be used in a context that
-                // actually needs to be saved to the closure.
-                if (variable is not InterpolatedStringBuilderLocalSymbol)
-                {
-                    (_lazyDisallowedCaptures ??= new MultiDictionary<Symbol, SyntaxNode>()).Add(variable, syntax);
-                }
+                (_lazyDisallowedCaptures ??= new MultiDictionary<Symbol, SyntaxNode>()).Add(variable, syntax);
             }
             else
             {

@@ -695,8 +695,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
-                         WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__CreateInt32Int32,
-                         WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__Dispose
+                         WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__ToStringAndClear
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -838,8 +837,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
-                         WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__CreateInt32Int32,
-                         WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__Dispose
+                         WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__ToStringAndClear
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

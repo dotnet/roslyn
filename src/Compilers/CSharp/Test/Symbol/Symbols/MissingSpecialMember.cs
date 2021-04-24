@@ -962,8 +962,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject:
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
-                    case WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__CreateInt32Int32:
-                    case WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__Dispose:
+                    case WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__ToStringAndClear:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

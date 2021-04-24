@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 
 
@@ -34,6 +34,7 @@
   <ValueType Name="NullableAnnotation"/>
   <ValueType Name="ErrorCode"/>
   <ValueType Name="ImmutableBindingDiagnostic"/>
+  <ValueType Name="InterpolatedStringBuilderData"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -2004,8 +2005,8 @@
 
   <AbstractNode Name="BoundInterpolatedStringBase" Base="BoundExpression">
     <!-- The sequence of parts of an interpolated string. The even numbered positions (starting with 0) are
-         from the literal parts of the input. The odd numbered positions are the string inserts. When a
-         width or format string are provided, the corresponding insert will be a BoundStringInsert -->
+         from the literal parts of the input. The odd numbered positions are the string inserts. If the interpolated
+         string has been bound using the builder pattern, literals are replaced with calls. -->
     <Field Name="Parts" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
   </AbstractNode>
@@ -2014,17 +2015,17 @@
   </Node>
 
   <Node Name="BoundInterpolatedString" Base="BoundInterpolatedStringBase">
-      <Field Name="InterpolationData" Type="InterpolatedStringBuilderData?"/>
-  </Node>
-    
-  <Node Name="BoundInterpolatedStringElementPlaceholder" Base="BoundExpression">
-      <Field Name="Index" Type="int"/>
+    <Field Name="InterpolationData" Type="InterpolatedStringBuilderData?"/>
   </Node>
 
+  <Node Name="BoundInterpolatedStringBuilderPlaceholder" Base="BoundValuePlaceholderBase"/>
+
   <Node Name="BoundStringInsert" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Alignment" Type="BoundExpression?"/>
     <Field Name="Format" Type="BoundLiteral?"/>
+    <Field Name="IsInterpolatedStringBuilderAppendCall" Type="bool"/>
   </Node>
   
     <!-- An 'is pattern'. The fields DecisionDag, WhenTrueLabel, and WhenFalseLabel represent the inner pattern

@@ -82,14 +82,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             SeparatedSyntaxList<TypeSyntax> typeArgsSyntax = default(SeparatedSyntaxList<TypeSyntax>),
             ImmutableArray<TypeWithAnnotations> typeArgs = default(ImmutableArray<TypeWithAnnotations>),
+            ImmutableArray<(string Name, Location Location)?> names = default,
             CSharpSyntaxNode? queryClause = null,
             bool allowFieldsAndProperties = false,
-            bool allowUnexpandedForm = true)
+            bool allowUnexpandedForm = true,
+            bool searchExtensionMethodsIfNecessary = true)
         {
             Debug.Assert(receiver != null);
+            Debug.Assert(names.IsDefault || names.Length == args.Length);
 
             receiver = BindToNaturalType(receiver, diagnostics);
-            var boundExpression = BindInstanceMemberAccess(node, node, receiver, methodName, typeArgs.NullToEmpty().Length, typeArgsSyntax, typeArgs, invoked: true, indexed: false, diagnostics);
+            var boundExpression = BindInstanceMemberAccess(node, node, receiver, methodName, typeArgs.NullToEmpty().Length, typeArgsSyntax, typeArgs, invoked: true, indexed: false, diagnostics, searchExtensionMethodsIfNecessary);
 
             // The other consumers of this helper (await and collection initializers) require the target member to be a method.
             if (!allowFieldsAndProperties && (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess))
@@ -125,6 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         e.Kind == BoundKind.OutDeconstructVarPendingInference ||
                                         e.Kind == BoundKind.DiscardExpression && !e.HasExpressionType()));
             analyzedArguments.Arguments.AddRange(args);
+
+            if (!names.IsDefault)
+            {
+                analyzedArguments.Names.AddRange(names);
+            }
+
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
                 allowUnexpandedForm: allowUnexpandedForm);

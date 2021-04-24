@@ -1082,6 +1082,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitInterpolatedStringBuilderPlaceholder(BoundInterpolatedStringBuilderPlaceholder node)
+        {
+            // PROTOTYPE(interp-string): handle if necessary
+            return null;
+        }
+
         public override BoundNode VisitArgList(BoundArgList node)
         {
             // The "__arglist" expression that is legal inside a varargs method has no

@@ -6263,7 +6263,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             bool invoked,
             bool indexed,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool searchExtensionMethodsIfNecessary = true)
         {
             Debug.Assert(rightArity == (typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length));
             var leftType = boundLeft.Type;
@@ -6294,7 +6295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // SPEC: Otherwise, an attempt is made to process E.I as an extension method invocation.
                 // SPEC: If this fails, E.I is an invalid member reference, and a binding-time error occurs.
-                var searchExtensionMethodsIfNecessary = !leftIsBaseReference;
+                searchExtensionMethodsIfNecessary = searchExtensionMethodsIfNecessary && !leftIsBaseReference;
 
                 BoundMethodGroupFlags flags = 0;
                 if (searchExtensionMethodsIfNecessary)
