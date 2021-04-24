@@ -20,25 +20,9 @@ namespace Test.Utilities
             public Test()
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.Default;
-
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    if (AnalyzerConfigDocument is not null)
-                    {
-                        solution = solution.AddAnalyzerConfigDocument(
-                            DocumentId.CreateNewId(projectId, debugName: ".editorconfig"),
-                            ".editorconfig",
-                            SourceText.From($"is_global = true" + Environment.NewLine + AnalyzerConfigDocument),
-                            filePath: @"/.editorconfig");
-                    }
-
-                    return solution;
-                });
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic15_5;
-
-            public string? AnalyzerConfigDocument { get; set; }
 
             protected override ParseOptions CreateParseOptions()
             {
