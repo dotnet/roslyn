@@ -262,10 +262,11 @@ $@"class Program
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var expr = ((CastExpressionSyntax)tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value).Expression;
             var typeInfo = model.GetTypeInfo(expr);
-            Assert.Equal(expectedType ?? "System.Delegate", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType!.SpecialType);
+            // https://github.com/dotnet/roslyn/issues/52874: GetTypeInfo() for method group should return inferred delegate type.
+            Assert.Null(typeInfo.Type);
+            Assert.Null(typeInfo.ConvertedType);
         }
 
         public static IEnumerable<object?[]> GetLambdaData()
@@ -397,17 +398,10 @@ $@"class Program
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var expr = ((CastExpressionSyntax)tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value).Expression;
             var typeInfo = model.GetTypeInfo(expr);
-            if (expectedType is null)
-            {
-                Assert.True(typeInfo.Type.IsErrorType());
-            }
-            else
-            {
-                Assert.Equal(expectedType, typeInfo.Type.ToTestDisplayString());
-            }
-            Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType!.SpecialType);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal(expectedType, typeInfo.ConvertedType?.ToTestDisplayString());
         }
 
         public static IEnumerable<object?[]> GetExpressionData()
@@ -489,17 +483,17 @@ $@"class Program
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var expr = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value;
+            var expr = ((CastExpressionSyntax)tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer!.Value).Expression;
             var typeInfo = model.GetTypeInfo(expr);
+            Assert.Null(typeInfo.Type);
             if (expectedType is null)
             {
-                Assert.True(typeInfo.Type.IsErrorType());
+                Assert.Null(typeInfo.ConvertedType);
             }
             else
             {
-                Assert.Equal($"System.Linq.Expressions.Expression<{expectedType}>", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal($"System.Linq.Expressions.Expression<{expectedType}>", typeInfo.ConvertedType.ToTestDisplayString());
             }
-            Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType!.SpecialType);
         }
 
         /// <summary>
@@ -1866,6 +1860,7 @@ static class E
                 //         c.M(() => 1);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(8, 13));
 
+            // Breaking change from C#9 which binds to E.M.
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"C.M");
         }
 
