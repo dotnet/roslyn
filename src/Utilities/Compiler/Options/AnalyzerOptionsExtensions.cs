@@ -634,7 +634,7 @@ namespace Analyzer.Utilities
 
 #pragma warning disable CA1801 // Review unused parameters - 'compilation' is used conditionally.
         private static ICategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(
-            this AnalyzerOptions options, Compilation compilation, CancellationToken cancellationToken)
+            this AnalyzerOptions options, Compilation compilation)
 #pragma warning restore CA1801 // Review unused parameters
         {
             // TryGetValue upfront to avoid allocating createValueCallback if the entry already exists.
@@ -647,12 +647,14 @@ namespace Analyzer.Utilities
             return s_cachedOptions.GetValue(options, createValueCallback);
 
             // Local functions.
+#pragma warning disable IDE0062 // Make local function static - 'compilation' is used conditionally.
             ICategorizedAnalyzerConfigOptions ComputeCategorizedAnalyzerConfigOptions()
+#pragma warning restore IDE0062 // Make local function static - 'compilation' is used conditionally.
             {
 #if CODEANALYSIS_V3_OR_BETTER
                 return AggregateCategorizedAnalyzerConfigOptions.Create(options.AnalyzerConfigOptionsProvider, compilation);
 #else
-                return categorizedOptionsFromAdditionalFiles;
+                return AggregateCategorizedAnalyzerConfigOptions.Empty;
 #endif
             }
         }
