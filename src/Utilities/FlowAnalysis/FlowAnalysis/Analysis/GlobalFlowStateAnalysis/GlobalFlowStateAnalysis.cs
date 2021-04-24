@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, cfg, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
             var pointsToAnalysisKind = analyzerOptions.GetPointsToAnalysisKindOption(rule, owningSymbol, wellKnownTypeProvider.Compilation,
-                defaultValue: PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties, cancellationToken);
+                defaultValue: PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties);
             return TryGetOrComputeResult(cfg, owningSymbol, createOperationVisitor, wellKnownTypeProvider, analyzerOptions,
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicate, pointsToAnalysisKind, pessimisticAnalysis,
                 performValueContentAnalysis, out valueContentAnalysisResult,

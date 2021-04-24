@@ -61,15 +61,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 throw new ArgumentNullException(nameof(cfg));
             }
 
-            Debug.Assert(!analyzerOptions.IsConfiguredToSkipAnalysis(rule, owningSymbol, wellKnownTypeProvider.Compilation, cancellationToken));
+            Debug.Assert(!analyzerOptions.IsConfiguredToSkipAnalysis(rule, owningSymbol, wellKnownTypeProvider.Compilation));
 
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, cfg, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
             return TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
-                pointsToAnalysisKind: analyzerOptions.GetPointsToAnalysisKindOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultPointsToAnalysisKind, cancellationToken),
+                pointsToAnalysisKind: analyzerOptions.GetPointsToAnalysisKindOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultPointsToAnalysisKind),
                 interproceduralAnalysisConfig, out copyAnalysisResult,
                 out pointsToAnalysisResult, pessimisticAnalysis,
-                performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
+                performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: performCopyAnalysisIfNotUserConfigured),
                 interproceduralAnalysisPredicate,
                 additionalSupportedValueTypes,
                 getValueContentValueForAdditionalSupportedValueTypeOperation);

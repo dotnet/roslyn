@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -71,15 +70,15 @@ namespace Analyzer.Utilities.Extensions
         /// <summary>
         /// Gets a value indicating whether the project of the compilation is a Web SDK project based on project properties.
         /// </summary>
-        internal static bool IsWebProject(this Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        internal static bool IsWebProject(this Compilation compilation, AnalyzerOptions options)
         {
-            var propertyValue = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.UsingMicrosoftNETSdkWeb, compilation, cancellationToken);
+            var propertyValue = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.UsingMicrosoftNETSdkWeb, compilation);
             if (string.Equals(propertyValue?.Trim(), "true", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
 
-            propertyValue = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.ProjectTypeGuids, compilation, cancellationToken);
+            propertyValue = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.ProjectTypeGuids, compilation);
             if (!RoslynString.IsNullOrEmpty(propertyValue) &&
                 (propertyValue.Contains(WebAppProjectGuidString, StringComparison.OrdinalIgnoreCase) ||
                  propertyValue.Contains(WebSiteProjectGuidString, StringComparison.OrdinalIgnoreCase)))
