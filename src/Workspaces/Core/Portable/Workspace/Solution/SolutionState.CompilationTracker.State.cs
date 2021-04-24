@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis
                 public static State Create(
                     Compilation compilation,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<ValueTuple<ProjectState, CompilationAndGeneratorDriverTranslationAction>> intermediateProjects)
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
                     return intermediateProjects.Length == 0
                         ? new FullDeclarationState(compilation, generatedDocuments, generatedDocumentsAreFinal: false)
-                        : (State)new InProgressState(compilation, generatedDocuments, intermediateProjects);
+                        : (State)new InProgressState(compilation, generatedDocuments, compilationWithGeneratedDocuments, intermediateProjects);
                 }
 
                 public static ValueSource<Optional<Compilation>> CreateValueSource(
@@ -122,9 +123,18 @@ namespace Microsoft.CodeAnalysis
             {
                 public ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
 
+                /// <summary>
+                /// The result of taking the original completed compilation that had generated documents and updating them by
+                /// apply the <see cref="CompilationAndGeneratorDriverTranslationAction" />; this is not a correct snapshot in that
+                /// the generators have not been rerun, but may be reusable if the generators are later found to give the
+                /// same output.
+                /// </summary>
+                public Compilation? CompilationWithGeneratedDocuments { get; }
+
                 public InProgressState(
                     Compilation inProgressCompilation,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilationWithoutGeneratedDocuments: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
@@ -135,6 +145,7 @@ namespace Microsoft.CodeAnalysis
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
 
                     this.IntermediateProjects = intermediateProjects;
+                    this.CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
                 }
             }
 
