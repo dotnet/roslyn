@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#pragma warning disable IDE0005 // Using directive is unnecessary - used in conditional compilation.
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+#pragma warning restore IDE0005
 
 namespace Analyzer.Utilities.Extensions
 {
