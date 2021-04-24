@@ -234,7 +234,7 @@ public class C
                 expectedDiagnostics = new[] { GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C") };
             }
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, editorconfigText, expectedDiagnostics);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, $"[*]\r\n{editorconfigText}", expectedDiagnostics);
         }
 
         [Fact]
