@@ -603,20 +603,14 @@ namespace Analyzer.Utilities
                 return categorizedAnalyzerConfigOptions;
             }
 
-            var createValueCallback = new ConditionalWeakTable<AnalyzerOptions, ICategorizedAnalyzerConfigOptions>.CreateValueCallback(_ => ComputeCategorizedAnalyzerConfigOptions());
-            return s_cachedOptions.GetValue(options, createValueCallback);
-
-            // Local functions.
-#pragma warning disable IDE0062 // Make local function static - 'compilation' is used conditionally.
-            ICategorizedAnalyzerConfigOptions ComputeCategorizedAnalyzerConfigOptions()
-#pragma warning restore IDE0062 // Make local function static - 'compilation' is used conditionally.
-            {
+            var createValueCallback = new ConditionalWeakTable<AnalyzerOptions, ICategorizedAnalyzerConfigOptions>.CreateValueCallback(_ =>
 #if CODEANALYSIS_V3_OR_BETTER
-                return AggregateCategorizedAnalyzerConfigOptions.Create(options.AnalyzerConfigOptionsProvider, compilation);
+                AggregateCategorizedAnalyzerConfigOptions.Create(options.AnalyzerConfigOptionsProvider, compilation)
 #else
-                return AggregateCategorizedAnalyzerConfigOptions.Empty;
+                EmptyCategorizedAnalyzerConfigOptions.Empty
 #endif
-            }
+            );
+            return s_cachedOptions.GetValue(options, createValueCallback);
         }
     }
 }
