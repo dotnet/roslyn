@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             try
             {
 #if BOOTSTRAP
-                ExitingTraceListener.Install();
+                ExitingTraceListener.Install(logger);
 #endif
 
 #if NET472
