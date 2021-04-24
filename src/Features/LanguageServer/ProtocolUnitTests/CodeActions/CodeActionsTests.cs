@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 data: CreateCodeActionResolveData(
                     CSharpAnalyzersResources.Use_implicit_type,
                     caretLocation,
-                    customTags: new[] { PredefinedCodeRefactoringProviderNames.UseImplicitType }),
+                    tags: new[] { $"{CodeRefactoringService.ProviderTagPrefix}{PredefinedCodeRefactoringProviderNames.UseImplicitType}" }),
                 priority: PriorityLevel.Low,
                 groupName: "Roslyn1",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
