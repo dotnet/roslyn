@@ -7,9 +7,9 @@
 using System;
 using System.Reflection;
 
-namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.ReflectionExtensions
+namespace Microsoft.CodeAnalysis.UnitTests
 {
-    internal static class ObjectExtensions
+    public static class ObjectExtensions
     {
         public static PropertyType GetPropertyValue<PropertyType>(this object instance, string propertyName)
         {
