@@ -86,44 +86,50 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                       .Distinct()
                       .ToImmutableArray();
 
-            using var scopes = TemporaryArray<CodeAction>.Empty;
-
-            scopes.Add(CreateAction(context, Scope.ContainingMember));
-
-            // If we captured any Method type-parameters, we can only replace the tuple types we
-            // find in the containing method.  No other tuple types in other members would be able
-            // to reference this type parameter.
-            if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Method))
-            {
-                var containingType = tupleExprOrTypeNode.GetAncestor<TTypeBlockSyntax>();
-                if (containingType != null)
-                    scopes.Add(CreateAction(context, Scope.ContainingType));
-
-                // If we captured any Type type-parameters, we can only replace the tuple
-                // types we find in the containing type.  No other tuple types in other
-                // types would be able to reference this type parameter.
-                if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Type))
-                {
-                    // To do a global find/replace of matching tuples, we need to search for documents
-                    // containing tuples *and* which have the names of the tuple fields in them.  That means
-                    // the tuple field name must exist in the document.
-                    //
-                    // this means we can only find tuples like ```(x: 1, ...)``` but not ```(1, 2)```.  The
-                    // latter has members called Item1 and Item2, but those names don't show up in source.
-                    if (fields.All(f => f.CorrespondingTupleField != f))
-                    {
-                        scopes.Add(CreateAction(context, Scope.ContainingProject));
-                        scopes.Add(CreateAction(context, Scope.DependentProjects));
-                    }
-                }
-            }
-
             context.RegisterRefactoring(
                 new CodeAction.CodeActionWithNestedActions(
                     FeaturesResources.Convert_to_struct,
-                    scopes.ToImmutableAndClear(),
+                    CreateChildActions(context, tupleExprOrTypeNode, fields, capturedTypeParameters),
                     isInlinable: false),
                 tupleExprOrTypeNode.Span);
+
+            return;
+
+            ImmutableArray<CodeAction> CreateChildActions(CodeRefactoringContext context, SyntaxNode tupleExprOrTypeNode, ImmutableArray<IFieldSymbol> fields, ImmutableArray<ITypeParameterSymbol> capturedTypeParameters)
+            {
+                using var scopes = TemporaryArray<CodeAction>.Empty;
+                scopes.Add(CreateAction(context, Scope.ContainingMember));
+
+                // If we captured any Method type-parameters, we can only replace the tuple types we
+                // find in the containing method.  No other tuple types in other members would be able
+                // to reference this type parameter.
+                if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Method))
+                {
+                    var containingType = tupleExprOrTypeNode.GetAncestor<TTypeBlockSyntax>();
+                    if (containingType != null)
+                        scopes.Add(CreateAction(context, Scope.ContainingType));
+
+                    // If we captured any Type type-parameters, we can only replace the tuple
+                    // types we find in the containing type.  No other tuple types in other
+                    // types would be able to reference this type parameter.
+                    if (!capturedTypeParameters.Any(tp => tp.TypeParameterKind == TypeParameterKind.Type))
+                    {
+                        // To do a global find/replace of matching tuples, we need to search for documents
+                        // containing tuples *and* which have the names of the tuple fields in them.  That means
+                        // the tuple field name must exist in the document.
+                        //
+                        // this means we can only find tuples like ```(x: 1, ...)``` but not ```(1, 2)```.  The
+                        // latter has members called Item1 and Item2, but those names don't show up in source.
+                        if (fields.All(f => f.CorrespondingTupleField != f))
+                        {
+                            scopes.Add(CreateAction(context, Scope.ContainingProject));
+                            scopes.Add(CreateAction(context, Scope.DependentProjects));
+                        }
+                    }
+                }
+
+                return scopes.ToImmutableAndClear();
+            }
         }
 
         private CodeAction CreateAction(CodeRefactoringContext context, Scope scope)
