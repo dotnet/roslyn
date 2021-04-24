@@ -1386,6 +1386,7 @@
     <TypeComment>
       <summary>Provides the base class from which the classes that represent lambda expressions are derived.</summary>
     </TypeComment>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;"/>
     <Field Name="ArrowToken" Type="SyntaxToken">
       <!-- should be EqualsGreaterThanToken -->
       <Kind Name="EqualsGreaterThanToken"/>
@@ -1396,6 +1397,7 @@
   </AbstractNode>
   <Node Name="SimpleLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
     <Kind Name="SimpleLambdaExpression"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="Parameter" Type="ParameterSyntax">
       <Kind Name="Parameter"/>
@@ -1444,6 +1446,7 @@
   </Node>
   <Node Name="ParenthesizedLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
     <Kind Name="ParenthesizedLambdaExpression"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="ParameterList" Type="ParameterListSyntax">
       <PropertyComment>

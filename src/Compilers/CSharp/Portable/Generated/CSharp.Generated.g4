@@ -744,11 +744,11 @@ lambda_expression
   ;
 
 parenthesized_lambda_expression
-  : modifier* parameter_list '=>' (block | expression)
+  : attribute_list* modifier* parameter_list '=>' (block | expression)
   ;
 
 simple_lambda_expression
-  : modifier* parameter '=>' (block | expression)
+  : attribute_list* modifier* parameter '=>' (block | expression)
   ;
 
 anonymous_object_creation_expression

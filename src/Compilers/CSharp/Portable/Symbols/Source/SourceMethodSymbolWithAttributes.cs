@@ -62,6 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
             }
         }
+
+        internal virtual Binder? SignatureBinder => null;
+
+        internal virtual Binder? ParameterBinder => null;
+
 #nullable disable
 
         internal SyntaxReference SyntaxRef
@@ -279,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     declarations,
                     ref lazyCustomAttributesBag,
                     symbolPart,
-                    binderOpt: (this as LocalFunctionSymbol)?.SignatureBinder);
+                    binderOpt: SignatureBinder);
             }
 
             if (bagCreatedOnThisThread)
@@ -640,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (!this.CanBeReferencedByName || this.MethodKind == MethodKind.Destructor)
             {
-                // CS0577: The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation
+                // CS0577: The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
                 diagnostics.Add(ErrorCode.ERR_ConditionalOnSpecialMethod, node.Location, this);
             }
             else if (!this.ReturnsVoid)
