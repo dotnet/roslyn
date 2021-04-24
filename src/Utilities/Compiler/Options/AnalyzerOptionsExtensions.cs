@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if CODEANALYSIS_V3_OR_BETTER
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -44,7 +46,7 @@ namespace Analyzer.Utilities
             ? options.GetSymbolVisibilityGroupOption(rule, tree, compilation, defaultValue)
             : defaultValue;
 
-        public static SymbolVisibilityGroup GetSymbolVisibilityGroupOption(
+        private static SymbolVisibilityGroup GetSymbolVisibilityGroupOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             SyntaxTree tree,
@@ -80,7 +82,7 @@ namespace Analyzer.Utilities
             ? options.GetEnumValuesPrefixTriggerOption(rule, tree, compilation, defaultValue)
             : defaultValue;
 
-        public static EnumValuesPrefixTrigger GetEnumValuesPrefixTriggerOption(
+        private static EnumValuesPrefixTrigger GetEnumValuesPrefixTriggerOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             SyntaxTree tree,
@@ -105,7 +107,7 @@ namespace Analyzer.Utilities
             ? options.GetAnalyzedSymbolKindsOption(rule, tree, compilation, defaultSymbolKinds)
             : defaultSymbolKinds;
 
-        public static ImmutableHashSet<SymbolKind> GetAnalyzedSymbolKindsOption(
+        private static ImmutableHashSet<SymbolKind> GetAnalyzedSymbolKindsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             SyntaxTree tree,
@@ -196,17 +198,6 @@ namespace Analyzer.Utilities
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(compilation);
             return analyzerConfigOptions.GetOptionValue(optionName, tree, rule, bool.TryParse, defaultValue);
         }
-
-        public static uint GetUnsignedIntegralOptionValue(
-            this AnalyzerOptions options,
-            string optionName,
-            DiagnosticDescriptor rule,
-            ISymbol symbol,
-            Compilation compilation,
-            uint defaultValue)
-        => TryGetSyntaxTreeForOption(symbol, out var tree)
-            ? options.GetUnsignedIntegralOptionValue(optionName, rule, tree, compilation, defaultValue)
-            : defaultValue;
 
         public static uint GetUnsignedIntegralOptionValue(
             this AnalyzerOptions options,
@@ -321,7 +312,7 @@ namespace Analyzer.Utilities
             Compilation compilation)
         => options.GetDisallowedSymbolNamesWithValueOption(rule, symbol.Locations[0].SourceTree, compilation);
 
-        public static SymbolNamesWithValueOption<Unit> GetDisallowedSymbolNamesWithValueOption(
+        private static SymbolNamesWithValueOption<Unit> GetDisallowedSymbolNamesWithValueOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             SyntaxTree? tree,
@@ -335,7 +326,7 @@ namespace Analyzer.Utilities
             Compilation compilation)
         => options.GetAdditionalRequiredSuffixesOption(rule, symbol.Locations[0].SourceTree, compilation);
 
-        public static SymbolNamesWithValueOption<string?> GetAdditionalRequiredSuffixesOption(
+        private static SymbolNamesWithValueOption<string?> GetAdditionalRequiredSuffixesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             SyntaxTree? tree,
@@ -384,7 +375,7 @@ namespace Analyzer.Utilities
             Compilation compilation)
         => options.GetAdditionalRequiredGenericInterfaces(rule, symbol.Locations[0].SourceTree, compilation);
 
-        public static SymbolNamesWithValueOption<INamedTypeSymbol?> GetAdditionalRequiredGenericInterfaces(
+        private static SymbolNamesWithValueOption<INamedTypeSymbol?> GetAdditionalRequiredGenericInterfaces(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             SyntaxTree? tree,
@@ -592,10 +583,8 @@ namespace Analyzer.Utilities
             return symbol.GetSymbolModifiers().Contains(requiredModifiers);
         }
 
-#pragma warning disable CA1801 // Review unused parameters - 'compilation' is used conditionally.
         private static ICategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(
             this AnalyzerOptions options, Compilation compilation)
-#pragma warning restore CA1801 // Review unused parameters
         {
             // TryGetValue upfront to avoid allocating createValueCallback if the entry already exists.
             if (s_cachedOptions.TryGetValue(options, out var categorizedAnalyzerConfigOptions))
@@ -604,13 +593,10 @@ namespace Analyzer.Utilities
             }
 
             var createValueCallback = new ConditionalWeakTable<AnalyzerOptions, ICategorizedAnalyzerConfigOptions>.CreateValueCallback(_ =>
-#if CODEANALYSIS_V3_OR_BETTER
                 AggregateCategorizedAnalyzerConfigOptions.Create(options.AnalyzerConfigOptionsProvider, compilation)
-#else
-                EmptyCategorizedAnalyzerConfigOptions.Empty
-#endif
             );
             return s_cachedOptions.GetValue(options, createValueCallback);
         }
     }
 }
+#endif
