@@ -7,25 +7,24 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Wpf;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.Core.Imaging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tags
 {
-    [ExportImageMonikerService(Name = Name)]
-    internal class DefaultImageMonikerService : IImageMonikerService
+    [ExportImageIdService(Name = Name)]
+    internal class DefaultImageIdService : IImageIdService
     {
-        public const string Name = nameof(DefaultImageMonikerService);
+        public const string Name = nameof(DefaultImageIdService);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultImageMonikerService()
+        public DefaultImageIdService()
         {
         }
 
-        public bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageMoniker imageMoniker)
+        public bool TryGetImageId(ImmutableArray<string> tags, out ImageId imageId)
         {
             var glyph = tags.GetFirstGlyph();
 
@@ -38,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tags
                     break;
             }
 
-            imageMoniker = glyph.GetImageMoniker();
-            return !imageMoniker.IsNullImage();
+            imageId = glyph.GetImageId();
+            return imageId != default;
         }
     }
 }
