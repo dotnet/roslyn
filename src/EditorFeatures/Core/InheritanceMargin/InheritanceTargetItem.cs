@@ -29,20 +29,20 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         /// <summary>
-        /// The name for containing type of this target. Empty if it is global namespace.
+        /// The display name used in margin.
         /// </summary>
-        public readonly string DisplayNameForContainingType;
+        public readonly string DisplayName;
 
         public InheritanceTargetItem(
             InheritanceRelationship relationToMember,
             DefinitionItem definitionItem,
             Glyph glyph,
-            string displayNameForContainingType)
+            string displayName)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
             Glyph = glyph;
-            DisplayNameForContainingType = displayNameForContainingType;
+            DisplayName = displayName;
         }
 
         public static async ValueTask<InheritanceTargetItem> ConvertAsync(
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 serializableItem.RelationToMember,
                 definitionItem,
                 serializableItem.Glyph,
-                serializableItem.DisplayNameForContainingType);
+                serializableItem.DisplayName);
         }
     }
 }
