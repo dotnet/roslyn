@@ -20,14 +20,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 {
-    internal abstract class AbstractDocumentationCommentCommandHandler<TDocumentationComment, TMemberNode> :
+    internal abstract class AbstractDocumentationCommentCommandHandler :
         IChainedCommandHandler<TypeCharCommandArgs>,
         ICommandHandler<ReturnKeyCommandArgs>,
         ICommandHandler<InsertCommentCommandArgs>,
         IChainedCommandHandler<OpenLineAboveCommandArgs>,
         IChainedCommandHandler<OpenLineBelowCommandArgs>
-        where TDocumentationComment : SyntaxNode, IStructuredTriviaSyntax
-        where TMemberNode : SyntaxNode
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;

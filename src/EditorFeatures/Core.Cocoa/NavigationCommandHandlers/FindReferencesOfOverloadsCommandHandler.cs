@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
         protected override bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)
         {
-            var streamingService = document.GetLanguageService<IFindUsagesService>();
+            var streamingService = document.GetLanguageService<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess>();
             var streamingPresenter = GetStreamingPresenter();
 
             //See if we're running on a host that can provide streaming results.
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     return; // would be useful if we could notify the user why we didn't do anything
                             // maybe using something like an info bar?
 
-                var findUsagesService = document.GetLanguageService<IFindUsagesService>();
+                var findUsagesService = document.GetLanguageService<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess>();
 
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
 
