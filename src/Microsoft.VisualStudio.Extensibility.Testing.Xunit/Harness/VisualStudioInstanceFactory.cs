@@ -263,7 +263,7 @@ namespace Xunit.Harness
                     isMatch &= version.Major == instance.Item2.Major;
                     isMatch &= instance.Item2 >= version;
 
-                    if (haveVsInstallDir && version.Major == 15)
+                    if (haveVsInstallDir && version.Major >= 15)
                     {
                         var installationPath = instance.Item1;
                         installationPath = Path.GetFullPath(installationPath);
@@ -298,7 +298,7 @@ namespace Xunit.Harness
                 instanceFoundWithInvalidState = true;
             }
 
-            throw new Exception(instanceFoundWithInvalidState ?
+            throw new PlatformNotSupportedException(instanceFoundWithInvalidState ?
                                 "An instance matching the specified requirements was found but it was in an invalid state." :
                                 "There were no instances of Visual Studio found that match the specified requirements.");
         }

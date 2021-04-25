@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" Version="15.0.26201" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="15.6.56" />
   </ItemGroup>
 
   <ItemGroup>
