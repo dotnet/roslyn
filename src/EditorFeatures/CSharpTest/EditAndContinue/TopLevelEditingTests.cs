@@ -1062,7 +1062,7 @@ public class D
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "public class D", "class"));
+                Diagnostic(RudeEditKind.Insert, "public class D", FeaturesResources.class_));
         }
 
         [Fact]
