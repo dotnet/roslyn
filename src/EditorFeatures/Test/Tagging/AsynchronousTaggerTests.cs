@@ -62,15 +62,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
             WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
 
-            var notificationService = workspace.GetService<IForegroundNotificationService>();
-
             var eventSource = CreateEventSource();
             var taggerProvider = new TestTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 tagProducer,
                 eventSource,
-                asyncListener,
-                notificationService);
+                asyncListener);
 
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
@@ -155,9 +152,8 @@ class Program
                 IThreadingContext threadingContext,
                 Callback callback,
                 ITaggerEventSource eventSource,
-                IAsynchronousOperationListener asyncListener,
-                IForegroundNotificationService notificationService)
-                    : base(threadingContext, asyncListener, notificationService)
+                IAsynchronousOperationListener asyncListener)
+                : base(threadingContext, asyncListener)
             {
                 _callback = callback;
                 _eventSource = eventSource;

@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string CircularProjectReferences_CircularCSharpProject1 => GetText("CircularProjectReferences.CircularCSharpProject1.csproj");
                 public static string CircularProjectReferences_CircularCSharpProject2 => GetText("CircularProjectReferences.CircularCSharpProject2.csproj");
                 public static string CSharpProject => GetText("ProjectFiles.CSharp.CSharpProject.csproj");
+                public static string AdditionalFile => GetText("ProjectFiles.CSharp.AdditionalFile.csproj");
                 public static string DuplicateFile => GetText("ProjectFiles.CSharp.DuplicateFile.csproj");
                 public static string DuplicateReferences => GetText("ProjectFiles.CSharp.DuplicateReferences.csproj");
                 public static string DuplicatedGuidLibrary1 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary1.csproj");
