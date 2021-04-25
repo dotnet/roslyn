@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -31,6 +32,66 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleType_AtTopLevel(TestHost host)
+        {
+            var text = @"
+var t1 = [||](a: 1, b: 2);
+";
+            var expected = @"
+var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+
+internal struct NewStruct
+{
+    public int a;
+    public int b;
+
+    public NewStruct(int a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, int b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestExactActionSetOfferedAsync(text, new[]
+            {
+                FeaturesResources.updating_usages_in_containing_project,
+                FeaturesResources.updating_usages_in_dependent_projects,
+            }, new TestParameters(testHost: host));
+
+            await TestAsync(text, expected, parseOptions: CSharp9, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+        }
 
         #region update containing member tests
 
