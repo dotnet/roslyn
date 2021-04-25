@@ -592,12 +592,16 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.ColonToken && ConvertPatternToExpressionIfPossible(pattern) is ExpressionSyntax expr)
             {
                 var colon = EatToken();
-                if (expr is not IdentifierNameSyntax identifierName)
+                if (expr is IdentifierNameSyntax identifierName)
                 {
-                    // TODO(alrz)
+                    exprColon = _syntaxFactory.NameColon(identifierName, colon);
+                }
+                else
+                {
+                    // TODO(alrz) LanguageVersion
+                    exprColon = _syntaxFactory.ExpressionColon(expr, colon);
                 }
 
-                exprColon = _syntaxFactory.ExpressionColon(expr, colon);
                 pattern = ParsePattern(Precedence.Conditional);
             }
 
