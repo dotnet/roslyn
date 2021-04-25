@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         {
                             if (sibling.IsImplicitlyDeclared)
                             {
-                                if (!sibling.IsConstructor())
+                                if (!((sibling as IMethodSymbol)?.MethodKind is MethodKind.Constructor or MethodKind.PropertyGet or MethodKind.PropertySet))
                                 {
                                     continue;
                                 }
