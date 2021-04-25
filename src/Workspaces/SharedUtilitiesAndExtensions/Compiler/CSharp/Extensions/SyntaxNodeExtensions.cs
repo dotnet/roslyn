@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBrackets(this SyntaxNode node)
+        public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBrackets(this SyntaxNode node)
         {
             switch (node)
             {
@@ -952,6 +952,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
                 case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
+                case LocalFunctionStatementSyntax localFunction: return localFunction.Modifiers;
+                case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.Modifiers;
             }
 
             return default;
@@ -963,6 +965,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
                 case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
+                case LocalFunctionStatementSyntax localFunction: return localFunction.WithModifiers(modifiers);
+                case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.WithModifiers(modifiers);
             }
 
             return null;

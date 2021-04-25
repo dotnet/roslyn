@@ -1932,9 +1932,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 9.0
 
+        #region diagnostics introduced for C# 10.0
+
         // PROTOTYPE(extended-property-patterns)
         ERR_InvalidNameInSubpattern = 9000,
         ERR_ConditionalAccessInSubpattern,
+
+        ERR_InheritingFromRecordWithSealedToString = 8912,
+        ERR_HiddenPositionalMember = 8913,
+
+        #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

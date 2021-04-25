@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
-        async Task IFindUsagesService.FindReferencesAsync(
+        async Task IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess.FindReferencesAsync(
             Document document, int position, IFindUsagesContext context)
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
