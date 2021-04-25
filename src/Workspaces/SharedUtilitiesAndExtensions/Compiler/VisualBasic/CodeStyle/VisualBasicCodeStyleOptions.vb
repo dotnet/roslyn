@@ -50,6 +50,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
             "visual_basic_style_prefer_isnot_expression",
             $"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferIsNotExpression)}")
 
+        Public Shared ReadOnly PreferSimplifiedObjectCreation As Option2(Of CodeStyleOption2(Of Boolean)) = CreateOption(
+            VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences, NameOf(PreferSimplifiedObjectCreation),
+            defaultValue:=New CodeStyleOption2(Of Boolean)(True, NotificationOption2.Suggestion),
+            "visual_basic_style_prefer_simplified_object_creation",
+            $"TextEditor.%LANGUAGE%.Specific.{NameOf(PreferSimplifiedObjectCreation)}")
+
         Public Shared ReadOnly UnusedValueExpressionStatement As [Option2](Of CodeStyleOption2(Of UnusedValuePreference)) =
             CodeStyleHelpers.CreateUnusedExpressionAssignmentOption(
                 group:=VisualBasicCodeStyleOptionGroups.ExpressionLevelPreferences,

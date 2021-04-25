@@ -117,5 +117,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         SourceFileTooBig = 89,
         MemberBodyTooBig = 90,
         InsertIntoGenericType = 91,
+
+        ImplementRecordParameterAsReadOnly = 92,
+        ImplementRecordParameterWithSet = 93,
+        AddRecordPositionalParameter = 94,
+        DeleteRecordPositionalParameter = 95,
+        ExplicitRecordMethodParameterNamesMustMatch = 96
     }
 }

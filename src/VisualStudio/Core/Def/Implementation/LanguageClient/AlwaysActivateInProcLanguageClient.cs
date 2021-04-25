@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -32,12 +31,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
-        private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
-            IGlobalOptionService globalOptionService,
             CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -47,13 +44,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             IThreadingContext threadingContext)
             : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, diagnosticsClientName: null)
         {
-            _globalOptionService = globalOptionService;
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
-        public override string Name => "C#/Visual Basic Language Server Client";
+        public override string Name => CSharpVisualBasicLanguageServerFactory.UserVisibleName;
 
-        protected internal override VSServerCapabilities GetCapabilities()
+        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var serverCapabilities = new VSServerCapabilities();
 
@@ -61,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var isLspEditorEnabled = Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName);
             if (isLspEditorEnabled)
             {
-                serverCapabilities = _defaultCapabilitiesProvider.GetCapabilities();
+                serverCapabilities = (VSServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
             }
             else
             {

@@ -119,8 +119,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 peStream,
                 pdbStream,
                 Path.GetFileName(peFilePath),
-                compilation.SyntaxTrees.ToImmutableArray(),
-                compilation.References.ToImmutableArray());
+                new CompilationRebuildArtifactResolver(compilation));
         }
 
         private void AddCSharpSourceFiles()
@@ -187,9 +186,11 @@ class Library
                 new CommandInfo("hw.cs", "test.exe", null),
                 PermutateOptimizations, PermutateExeKinds, PermutatePdbFormat);
             Permutate(new CommandInfo("lib1.cs", "test.dll", null),
-                PermutateOptimizations, PermutateDllKinds, PermutatePdbFormat);
+                PermutateOptimizations, PermutateDllKinds, PermutatePdbFormat, PermutatePathMap);
             Permutate(new CommandInfo("lib2.cs /target:library /r:SystemRuntime=System.Runtime.dll /debug:embedded", "test.dll", null),
                 PermutateOptimizations);
+            Permutate(new CommandInfo("lib3.cs /target:library", "test.dll", null),
+                PermutateOptimizations, PermutateExternAlias, PermutatePdbFormat);
             Permutate(new CommandInfo("lib3.cs /target:library", "test.dll", null),
                 PermutateOptimizations, PermutateExternAlias, PermutatePdbFormat);
 
@@ -204,6 +205,15 @@ class Library
                 }
 
                 Add(e);
+            }
+
+            static IEnumerable<CommandInfo> PermutatePathMap(CommandInfo commandInfo)
+            {
+                yield return commandInfo;
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + $" /pathmap:{RootDirectory}=/root/test",
+                };
             }
 
             // Permutate the alias before and after the standard references so that we make sure the 

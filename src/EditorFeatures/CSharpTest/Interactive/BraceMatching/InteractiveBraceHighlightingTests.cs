@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             var producer = new BraceHighlightingViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 workspace.GetService<IBraceMatchingService>(),
-                workspace.GetService<IForegroundNotificationService>(),
                 AsynchronousOperationListenerProvider.NullProvider);
 
             var context = new TaggerContext<BraceHighlightTag>(
