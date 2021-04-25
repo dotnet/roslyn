@@ -1936,6 +1936,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InheritingFromRecordWithSealedToString = 8912,
         ERR_HiddenPositionalMember = 8913,
+        ERR_GlobalUsingInNamespace = 8914,
+        ERR_GlobalUsingOutOfOrder = 8915,
 
         #endregion
 

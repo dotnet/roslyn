@@ -3000,6 +3000,9 @@
   </Node>
   <Node Name="UsingDirectiveSyntax" Base="CSharpSyntaxNode">
     <Kind Name="UsingDirective"/>
+    <Field Name="GlobalKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="GlobalKeyword"/>
+    </Field>
     <Field Name="UsingKeyword" Type="SyntaxToken">
       <Kind Name="UsingKeyword"/>
     </Field>
