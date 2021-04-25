@@ -5674,8 +5674,130 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    internal abstract partial class BaseExpressionColonSyntax : CSharpSyntaxNode
+    {
+        internal BaseExpressionColonSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+        }
+
+        internal BaseExpressionColonSyntax(SyntaxKind kind)
+          : base(kind)
+        {
+        }
+
+        protected BaseExpressionColonSyntax(ObjectReader reader)
+          : base(reader)
+        {
+        }
+
+        public abstract ExpressionSyntax Expression { get; }
+
+        public abstract SyntaxToken ColonToken { get; }
+    }
+
+    internal sealed partial class ExpressionColonSyntax : BaseExpressionColonSyntax
+    {
+        internal readonly ExpressionSyntax expression;
+        internal readonly SyntaxToken colonToken;
+
+        internal ExpressionColonSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken colonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+        }
+
+        internal ExpressionColonSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken colonToken, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+        }
+
+        internal ExpressionColonSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken colonToken)
+          : base(kind)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            this.AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+        }
+
+        public override ExpressionSyntax Expression => this.expression;
+        public override SyntaxToken ColonToken => this.colonToken;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.expression,
+                1 => this.colonToken,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ExpressionColonSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExpressionColon(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExpressionColon(this);
+
+        public ExpressionColonSyntax Update(ExpressionSyntax expression, SyntaxToken colonToken)
+        {
+            if (expression != this.Expression || colonToken != this.ColonToken)
+            {
+                var newNode = SyntaxFactory.ExpressionColon(expression, colonToken);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new ExpressionColonSyntax(this.Kind, this.expression, this.colonToken, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new ExpressionColonSyntax(this.Kind, this.expression, this.colonToken, GetDiagnostics(), annotations);
+
+        internal ExpressionColonSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 2;
+            var expression = (ExpressionSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+            var colonToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(colonToken);
+            this.colonToken = colonToken;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.expression);
+            writer.WriteValue(this.colonToken);
+        }
+
+        static ExpressionColonSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(ExpressionColonSyntax), r => new ExpressionColonSyntax(r));
+        }
+    }
+
     /// <summary>Class which represents the syntax node for name colon syntax.</summary>
-    internal sealed partial class NameColonSyntax : CSharpSyntaxNode
+    internal sealed partial class NameColonSyntax : BaseExpressionColonSyntax
     {
         internal readonly IdentifierNameSyntax name;
         internal readonly SyntaxToken colonToken;
@@ -5712,9 +5834,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>IdentifierNameSyntax representing the identifier name.</summary>
-        public IdentifierNameSyntax Name => this.name;
+        public new IdentifierNameSyntax Name => this.name;
         /// <summary>SyntaxToken representing colon.</summary>
-        public SyntaxToken ColonToken => this.colonToken;
+        public override SyntaxToken ColonToken => this.colonToken;
 
         internal override GreenNode? GetSlot(int index)
             => index switch
@@ -10882,75 +11004,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal sealed partial class SubpatternSyntax : CSharpSyntaxNode
     {
-        internal readonly NameColonSyntax? nameColon;
-        internal readonly ExpressionColonSyntax? expressionColon;
+        internal readonly BaseExpressionColonSyntax expressionColon;
         internal readonly PatternSyntax pattern;
 
-        internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax? nameColon, ExpressionColonSyntax? expressionColon, PatternSyntax pattern, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal SubpatternSyntax(SyntaxKind kind, BaseExpressionColonSyntax expressionColon, PatternSyntax pattern, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 3;
-            if (nameColon != null)
-            {
-                this.AdjustFlagsAndWidth(nameColon);
-                this.nameColon = nameColon;
-            }
-            if (expressionColon != null)
-            {
-                this.AdjustFlagsAndWidth(expressionColon);
-                this.expressionColon = expressionColon;
-            }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expressionColon);
+            this.expressionColon = expressionColon;
             this.AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
         }
 
-        internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax? nameColon, ExpressionColonSyntax? expressionColon, PatternSyntax pattern, SyntaxFactoryContext context)
+        internal SubpatternSyntax(SyntaxKind kind, BaseExpressionColonSyntax expressionColon, PatternSyntax pattern, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 3;
-            if (nameColon != null)
-            {
-                this.AdjustFlagsAndWidth(nameColon);
-                this.nameColon = nameColon;
-            }
-            if (expressionColon != null)
-            {
-                this.AdjustFlagsAndWidth(expressionColon);
-                this.expressionColon = expressionColon;
-            }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expressionColon);
+            this.expressionColon = expressionColon;
             this.AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
         }
 
-        internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax? nameColon, ExpressionColonSyntax? expressionColon, PatternSyntax pattern)
+        internal SubpatternSyntax(SyntaxKind kind, BaseExpressionColonSyntax expressionColon, PatternSyntax pattern)
           : base(kind)
         {
-            this.SlotCount = 3;
-            if (nameColon != null)
-            {
-                this.AdjustFlagsAndWidth(nameColon);
-                this.nameColon = nameColon;
-            }
-            if (expressionColon != null)
-            {
-                this.AdjustFlagsAndWidth(expressionColon);
-                this.expressionColon = expressionColon;
-            }
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(expressionColon);
+            this.expressionColon = expressionColon;
             this.AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
         }
 
-        public NameColonSyntax? NameColon => this.nameColon;
-        public ExpressionColonSyntax? ExpressionColon => this.expressionColon;
+        public BaseExpressionColonSyntax ExpressionColon => this.expressionColon;
         public PatternSyntax Pattern => this.pattern;
 
         internal override GreenNode? GetSlot(int index)
             => index switch
             {
-                0 => this.nameColon,
-                1 => this.expressionColon,
-                2 => this.pattern,
+                0 => this.expressionColon,
+                1 => this.pattern,
                 _ => null,
             };
 
@@ -10959,11 +11054,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSubpattern(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitSubpattern(this);
 
-        public SubpatternSyntax Update(NameColonSyntax nameColon, ExpressionColonSyntax expressionColon, PatternSyntax pattern)
+        public SubpatternSyntax Update(BaseExpressionColonSyntax expressionColon, PatternSyntax pattern)
         {
-            if (nameColon != this.NameColon || expressionColon != this.ExpressionColon || pattern != this.Pattern)
+            if (expressionColon != this.ExpressionColon || pattern != this.Pattern)
             {
-                var newNode = SyntaxFactory.Subpattern(nameColon, expressionColon, pattern);
+                var newNode = SyntaxFactory.Subpattern(expressionColon, pattern);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -10977,27 +11072,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new SubpatternSyntax(this.Kind, this.nameColon, this.expressionColon, this.pattern, diagnostics, GetAnnotations());
+            => new SubpatternSyntax(this.Kind, this.expressionColon, this.pattern, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new SubpatternSyntax(this.Kind, this.nameColon, this.expressionColon, this.pattern, GetDiagnostics(), annotations);
+            => new SubpatternSyntax(this.Kind, this.expressionColon, this.pattern, GetDiagnostics(), annotations);
 
         internal SubpatternSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 3;
-            var nameColon = (NameColonSyntax?)reader.ReadValue();
-            if (nameColon != null)
-            {
-                AdjustFlagsAndWidth(nameColon);
-                this.nameColon = nameColon;
-            }
-            var expressionColon = (ExpressionColonSyntax?)reader.ReadValue();
-            if (expressionColon != null)
-            {
-                AdjustFlagsAndWidth(expressionColon);
-                this.expressionColon = expressionColon;
-            }
+            this.SlotCount = 2;
+            var expressionColon = (BaseExpressionColonSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(expressionColon);
+            this.expressionColon = expressionColon;
             var pattern = (PatternSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
@@ -11006,7 +11092,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal override void WriteTo(ObjectWriter writer)
         {
             base.WriteTo(writer);
-            writer.WriteValue(this.nameColon);
             writer.WriteValue(this.expressionColon);
             writer.WriteValue(this.pattern);
         }
@@ -11098,106 +11183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         static ConstantPatternSyntax()
         {
             ObjectBinder.RegisterTypeReader(typeof(ConstantPatternSyntax), r => new ConstantPatternSyntax(r));
-        }
-    }
-
-    internal sealed partial class ExpressionColonSyntax : CSharpSyntaxNode
-    {
-        internal readonly ExpressionSyntax expression;
-        internal readonly SyntaxToken colonToken;
-
-        internal ExpressionColonSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken colonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
-          : base(kind, diagnostics, annotations)
-        {
-            this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(expression);
-            this.expression = expression;
-            this.AdjustFlagsAndWidth(colonToken);
-            this.colonToken = colonToken;
-        }
-
-        internal ExpressionColonSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken colonToken, SyntaxFactoryContext context)
-          : base(kind)
-        {
-            this.SetFactoryContext(context);
-            this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(expression);
-            this.expression = expression;
-            this.AdjustFlagsAndWidth(colonToken);
-            this.colonToken = colonToken;
-        }
-
-        internal ExpressionColonSyntax(SyntaxKind kind, ExpressionSyntax expression, SyntaxToken colonToken)
-          : base(kind)
-        {
-            this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(expression);
-            this.expression = expression;
-            this.AdjustFlagsAndWidth(colonToken);
-            this.colonToken = colonToken;
-        }
-
-        public ExpressionSyntax Expression => this.expression;
-        public SyntaxToken ColonToken => this.colonToken;
-
-        internal override GreenNode? GetSlot(int index)
-            => index switch
-            {
-                0 => this.expression,
-                1 => this.colonToken,
-                _ => null,
-            };
-
-        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ExpressionColonSyntax(this, parent, position);
-
-        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExpressionColon(this);
-        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExpressionColon(this);
-
-        public ExpressionColonSyntax Update(ExpressionSyntax expression, SyntaxToken colonToken)
-        {
-            if (expression != this.Expression || colonToken != this.ColonToken)
-            {
-                var newNode = SyntaxFactory.ExpressionColon(expression, colonToken);
-                var diags = GetDiagnostics();
-                if (diags?.Length > 0)
-                    newNode = newNode.WithDiagnosticsGreen(diags);
-                var annotations = GetAnnotations();
-                if (annotations?.Length > 0)
-                    newNode = newNode.WithAnnotationsGreen(annotations);
-                return newNode;
-            }
-
-            return this;
-        }
-
-        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new ExpressionColonSyntax(this.Kind, this.expression, this.colonToken, diagnostics, GetAnnotations());
-
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new ExpressionColonSyntax(this.Kind, this.expression, this.colonToken, GetDiagnostics(), annotations);
-
-        internal ExpressionColonSyntax(ObjectReader reader)
-          : base(reader)
-        {
-            this.SlotCount = 2;
-            var expression = (ExpressionSyntax)reader.ReadValue();
-            AdjustFlagsAndWidth(expression);
-            this.expression = expression;
-            var colonToken = (SyntaxToken)reader.ReadValue();
-            AdjustFlagsAndWidth(colonToken);
-            this.colonToken = colonToken;
-        }
-
-        internal override void WriteTo(ObjectWriter writer)
-        {
-            base.WriteTo(writer);
-            writer.WriteValue(this.expression);
-            writer.WriteValue(this.colonToken);
-        }
-
-        static ExpressionColonSyntax()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(ExpressionColonSyntax), r => new ExpressionColonSyntax(r));
         }
     }
 
@@ -33129,6 +33114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitArgumentList(ArgumentListSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitBracketedArgumentList(BracketedArgumentListSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitArgument(ArgumentSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitExpressionColon(ExpressionColonSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitNameColon(NameColonSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitDeclarationExpression(DeclarationExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitCastExpression(CastExpressionSyntax node) => this.DefaultVisit(node);
@@ -33171,7 +33157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
-        public virtual TResult VisitExpressionColon(ExpressionColonSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitRelationalPattern(RelationalPatternSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitTypePattern(TypePatternSyntax node) => this.DefaultVisit(node);
@@ -33365,6 +33350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitArgumentList(ArgumentListSyntax node) => this.DefaultVisit(node);
         public virtual void VisitBracketedArgumentList(BracketedArgumentListSyntax node) => this.DefaultVisit(node);
         public virtual void VisitArgument(ArgumentSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitExpressionColon(ExpressionColonSyntax node) => this.DefaultVisit(node);
         public virtual void VisitNameColon(NameColonSyntax node) => this.DefaultVisit(node);
         public virtual void VisitDeclarationExpression(DeclarationExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitCastExpression(CastExpressionSyntax node) => this.DefaultVisit(node);
@@ -33407,7 +33393,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
         public virtual void VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
         public virtual void VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
-        public virtual void VisitExpressionColon(ExpressionColonSyntax node) => this.DefaultVisit(node);
         public virtual void VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
         public virtual void VisitRelationalPattern(RelationalPatternSyntax node) => this.DefaultVisit(node);
         public virtual void VisitTypePattern(TypePatternSyntax node) => this.DefaultVisit(node);
@@ -33697,6 +33682,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override CSharpSyntaxNode VisitArgument(ArgumentSyntax node)
             => node.Update((NameColonSyntax)Visit(node.NameColon), (SyntaxToken)Visit(node.RefKindKeyword), (ExpressionSyntax)Visit(node.Expression));
 
+        public override CSharpSyntaxNode VisitExpressionColon(ExpressionColonSyntax node)
+            => node.Update((ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.ColonToken));
+
         public override CSharpSyntaxNode VisitNameColon(NameColonSyntax node)
             => node.Update((IdentifierNameSyntax)Visit(node.Name), (SyntaxToken)Visit(node.ColonToken));
 
@@ -33818,13 +33806,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Subpatterns), (SyntaxToken)Visit(node.CloseBraceToken));
 
         public override CSharpSyntaxNode VisitSubpattern(SubpatternSyntax node)
-            => node.Update((NameColonSyntax)Visit(node.NameColon), (ExpressionColonSyntax)Visit(node.ExpressionColon), (PatternSyntax)Visit(node.Pattern));
+            => node.Update((BaseExpressionColonSyntax)Visit(node.ExpressionColon), (PatternSyntax)Visit(node.Pattern));
 
         public override CSharpSyntaxNode VisitConstantPattern(ConstantPatternSyntax node)
             => node.Update((ExpressionSyntax)Visit(node.Expression));
-
-        public override CSharpSyntaxNode VisitExpressionColon(ExpressionColonSyntax node)
-            => node.Update((ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.ColonToken));
 
         public override CSharpSyntaxNode VisitParenthesizedPattern(ParenthesizedPatternSyntax node)
             => node.Update((SyntaxToken)Visit(node.OpenParenToken), (PatternSyntax)Visit(node.Pattern), (SyntaxToken)Visit(node.CloseParenToken));
@@ -35429,12 +35414,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        public ExpressionColonSyntax ExpressionColon(ExpressionSyntax expression, SyntaxToken colonToken)
+        {
+#if DEBUG
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
+#endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ExpressionColon, expression, colonToken, this.context, out hash);
+            if (cached != null) return (ExpressionColonSyntax)cached;
+
+            var result = new ExpressionColonSyntax(SyntaxKind.ExpressionColon, expression, colonToken, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
         public NameColonSyntax NameColon(IdentifierNameSyntax name, SyntaxToken colonToken)
         {
 #if DEBUG
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
-            if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
 #endif
 
             int hash;
@@ -36198,17 +36202,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public SubpatternSyntax Subpattern(NameColonSyntax? nameColon, ExpressionColonSyntax? expressionColon, PatternSyntax pattern)
+        public SubpatternSyntax Subpattern(BaseExpressionColonSyntax expressionColon, PatternSyntax pattern)
         {
 #if DEBUG
+            if (expressionColon == null) throw new ArgumentNullException(nameof(expressionColon));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
 #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.Subpattern, nameColon, expressionColon, pattern, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.Subpattern, expressionColon, pattern, this.context, out hash);
             if (cached != null) return (SubpatternSyntax)cached;
 
-            var result = new SubpatternSyntax(SyntaxKind.Subpattern, nameColon, expressionColon, pattern, this.context);
+            var result = new SubpatternSyntax(SyntaxKind.Subpattern, expressionColon, pattern, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -36228,27 +36233,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (cached != null) return (ConstantPatternSyntax)cached;
 
             var result = new ConstantPatternSyntax(SyntaxKind.ConstantPattern, expression, this.context);
-            if (hash >= 0)
-            {
-                SyntaxNodeCache.AddNode(result, hash);
-            }
-
-            return result;
-        }
-
-        public ExpressionColonSyntax ExpressionColon(ExpressionSyntax expression, SyntaxToken colonToken)
-        {
-#if DEBUG
-            if (expression == null) throw new ArgumentNullException(nameof(expression));
-            if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
-            if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-#endif
-
-            int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ExpressionColon, expression, colonToken, this.context, out hash);
-            if (cached != null) return (ExpressionColonSyntax)cached;
-
-            var result = new ExpressionColonSyntax(SyntaxKind.ExpressionColon, expression, colonToken, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -40319,12 +40303,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        public static ExpressionColonSyntax ExpressionColon(ExpressionSyntax expression, SyntaxToken colonToken)
+        {
+#if DEBUG
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
+#endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ExpressionColon, expression, colonToken, out hash);
+            if (cached != null) return (ExpressionColonSyntax)cached;
+
+            var result = new ExpressionColonSyntax(SyntaxKind.ExpressionColon, expression, colonToken);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
         public static NameColonSyntax NameColon(IdentifierNameSyntax name, SyntaxToken colonToken)
         {
 #if DEBUG
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
-            if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
 #endif
 
             int hash;
@@ -41088,17 +41091,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static SubpatternSyntax Subpattern(NameColonSyntax? nameColon, ExpressionColonSyntax? expressionColon, PatternSyntax pattern)
+        public static SubpatternSyntax Subpattern(BaseExpressionColonSyntax expressionColon, PatternSyntax pattern)
         {
 #if DEBUG
+            if (expressionColon == null) throw new ArgumentNullException(nameof(expressionColon));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
 #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Subpattern, nameColon, expressionColon, pattern, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Subpattern, expressionColon, pattern, out hash);
             if (cached != null) return (SubpatternSyntax)cached;
 
-            var result = new SubpatternSyntax(SyntaxKind.Subpattern, nameColon, expressionColon, pattern);
+            var result = new SubpatternSyntax(SyntaxKind.Subpattern, expressionColon, pattern);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -41118,27 +41122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (cached != null) return (ConstantPatternSyntax)cached;
 
             var result = new ConstantPatternSyntax(SyntaxKind.ConstantPattern, expression);
-            if (hash >= 0)
-            {
-                SyntaxNodeCache.AddNode(result, hash);
-            }
-
-            return result;
-        }
-
-        public static ExpressionColonSyntax ExpressionColon(ExpressionSyntax expression, SyntaxToken colonToken)
-        {
-#if DEBUG
-            if (expression == null) throw new ArgumentNullException(nameof(expression));
-            if (colonToken == null) throw new ArgumentNullException(nameof(colonToken));
-            if (colonToken.Kind != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-#endif
-
-            int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ExpressionColon, expression, colonToken, out hash);
-            if (cached != null) return (ExpressionColonSyntax)cached;
-
-            var result = new ExpressionColonSyntax(SyntaxKind.ExpressionColon, expression, colonToken);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -44085,6 +44068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(ArgumentListSyntax),
                 typeof(BracketedArgumentListSyntax),
                 typeof(ArgumentSyntax),
+                typeof(ExpressionColonSyntax),
                 typeof(NameColonSyntax),
                 typeof(DeclarationExpressionSyntax),
                 typeof(CastExpressionSyntax),
@@ -44127,7 +44111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(PropertyPatternClauseSyntax),
                 typeof(SubpatternSyntax),
                 typeof(ConstantPatternSyntax),
-                typeof(ExpressionColonSyntax),
                 typeof(ParenthesizedPatternSyntax),
                 typeof(RelationalPatternSyntax),
                 typeof(TypePatternSyntax),

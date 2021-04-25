@@ -585,27 +585,23 @@ tryAgain:
 
         private SubpatternSyntax ParseSubpatternElement()
         {
-            NameColonSyntax nameColon = null;
-            ExpressionColonSyntax exprColon = null;
+            BaseExpressionColonSyntax exprColon = null;
 
             PatternSyntax pattern = ParsePattern(Precedence.Conditional);
             // If there is a colon but it's not preceeded by a valid expression, leave it out to parse it as a missing comma, preserving C# 9.0 behavior.
             if (this.CurrentToken.Kind == SyntaxKind.ColonToken && ConvertPatternToExpressionIfPossible(pattern) is ExpressionSyntax expr)
             {
                 var colon = EatToken();
-                if (expr is IdentifierNameSyntax identifierName)
+                if (expr is not IdentifierNameSyntax identifierName)
                 {
-                    nameColon = _syntaxFactory.NameColon(identifierName, colon);
-                }
-                else
-                {
-                    exprColon = _syntaxFactory.ExpressionColon(expr, colon);
+                    // TODO(alrz)
                 }
 
+                exprColon = _syntaxFactory.ExpressionColon(expr, colon);
                 pattern = ParsePattern(Precedence.Conditional);
             }
 
-            return _syntaxFactory.Subpattern(nameColon, exprColon, pattern);
+            return _syntaxFactory.Subpattern(exprColon, pattern);
         }
 
         /// <summary>

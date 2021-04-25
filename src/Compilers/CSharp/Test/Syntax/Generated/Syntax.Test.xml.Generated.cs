@@ -154,6 +154,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.ArgumentSyntax GenerateArgument()
             => InternalSyntaxFactory.Argument(null, null, GenerateIdentifierName());
 
+        private static Syntax.InternalSyntax.ExpressionColonSyntax GenerateExpressionColon()
+            => InternalSyntaxFactory.ExpressionColon(GenerateIdentifierName(), InternalSyntaxFactory.Identifier("ColonToken"));
+
         private static Syntax.InternalSyntax.NameColonSyntax GenerateNameColon()
             => InternalSyntaxFactory.NameColon(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.ColonToken));
 
@@ -275,13 +278,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.PropertyPatternClause(InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.SubpatternSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static Syntax.InternalSyntax.SubpatternSyntax GenerateSubpattern()
-            => InternalSyntaxFactory.Subpattern(null, null, GenerateDiscardPattern());
+            => InternalSyntaxFactory.Subpattern(GenerateExpressionColon(), GenerateDiscardPattern());
 
         private static Syntax.InternalSyntax.ConstantPatternSyntax GenerateConstantPattern()
             => InternalSyntaxFactory.ConstantPattern(GenerateIdentifierName());
-
-        private static Syntax.InternalSyntax.ExpressionColonSyntax GenerateExpressionColon()
-            => InternalSyntaxFactory.ExpressionColon(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.ColonToken));
 
         private static Syntax.InternalSyntax.ParenthesizedPatternSyntax GenerateParenthesizedPattern()
             => InternalSyntaxFactory.ParenthesizedPattern(InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateDiscardPattern(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
@@ -1267,6 +1267,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestExpressionColonFactoryAndProperties()
+        {
+            var node = GenerateExpressionColon();
+
+            Assert.NotNull(node.Expression);
+            Assert.Equal(SyntaxKind.IdentifierToken, node.ColonToken.Kind);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
         public void TestNameColonFactoryAndProperties()
         {
             var node = GenerateNameColon();
@@ -1757,8 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateSubpattern();
 
-            Assert.Null(node.NameColon);
-            Assert.Null(node.ExpressionColon);
+            Assert.NotNull(node.ExpressionColon);
             Assert.NotNull(node.Pattern);
 
             AttachAndCheckDiagnostics(node);
@@ -1770,17 +1780,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateConstantPattern();
 
             Assert.NotNull(node.Expression);
-
-            AttachAndCheckDiagnostics(node);
-        }
-
-        [Fact]
-        public void TestExpressionColonFactoryAndProperties()
-        {
-            var node = GenerateExpressionColon();
-
-            Assert.NotNull(node.Expression);
-            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -4926,6 +4925,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestExpressionColonTokenDeleteRewriter()
+        {
+            var oldNode = GenerateExpressionColon();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestExpressionColonIdentityRewriter()
+        {
+            var oldNode = GenerateExpressionColon();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestNameColonTokenDeleteRewriter()
         {
             var oldNode = GenerateNameColon();
@@ -6011,32 +6036,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestConstantPatternIdentityRewriter()
         {
             var oldNode = GenerateConstantPattern();
-            var rewriter = new IdentityRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            Assert.Same(oldNode, newNode);
-        }
-
-        [Fact]
-        public void TestExpressionColonTokenDeleteRewriter()
-        {
-            var oldNode = GenerateExpressionColon();
-            var rewriter = new TokenDeleteRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestExpressionColonIdentityRewriter()
-        {
-            var oldNode = GenerateExpressionColon();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -9858,6 +9857,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static ArgumentSyntax GenerateArgument()
             => SyntaxFactory.Argument(default(NameColonSyntax), default(SyntaxToken), GenerateIdentifierName());
 
+        private static ExpressionColonSyntax GenerateExpressionColon()
+            => SyntaxFactory.ExpressionColon(GenerateIdentifierName(), SyntaxFactory.Identifier("ColonToken"));
+
         private static NameColonSyntax GenerateNameColon()
             => SyntaxFactory.NameColon(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.ColonToken));
 
@@ -9979,13 +9981,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.PropertyPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<SubpatternSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static SubpatternSyntax GenerateSubpattern()
-            => SyntaxFactory.Subpattern(default(NameColonSyntax), default(ExpressionColonSyntax), GenerateDiscardPattern());
+            => SyntaxFactory.Subpattern(GenerateExpressionColon(), GenerateDiscardPattern());
 
         private static ConstantPatternSyntax GenerateConstantPattern()
             => SyntaxFactory.ConstantPattern(GenerateIdentifierName());
-
-        private static ExpressionColonSyntax GenerateExpressionColon()
-            => SyntaxFactory.ExpressionColon(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.ColonToken));
 
         private static ParenthesizedPatternSyntax GenerateParenthesizedPattern()
             => SyntaxFactory.ParenthesizedPattern(SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateDiscardPattern(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
@@ -10971,6 +10970,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestExpressionColonFactoryAndProperties()
+        {
+            var node = GenerateExpressionColon();
+
+            Assert.NotNull(node.Expression);
+            Assert.Equal(SyntaxKind.IdentifierToken, node.ColonToken.Kind());
+            var newNode = node.WithExpression(node.Expression).WithColonToken(node.ColonToken);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
         public void TestNameColonFactoryAndProperties()
         {
             var node = GenerateNameColon();
@@ -11461,10 +11471,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateSubpattern();
 
-            Assert.Null(node.NameColon);
-            Assert.Null(node.ExpressionColon);
+            Assert.NotNull(node.ExpressionColon);
             Assert.NotNull(node.Pattern);
-            var newNode = node.WithNameColon(node.NameColon).WithExpressionColon(node.ExpressionColon).WithPattern(node.Pattern);
+            var newNode = node.WithExpressionColon(node.ExpressionColon).WithPattern(node.Pattern);
             Assert.Equal(node, newNode);
         }
 
@@ -11475,17 +11484,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(node.Expression);
             var newNode = node.WithExpression(node.Expression);
-            Assert.Equal(node, newNode);
-        }
-
-        [Fact]
-        public void TestExpressionColonFactoryAndProperties()
-        {
-            var node = GenerateExpressionColon();
-
-            Assert.NotNull(node.Expression);
-            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
-            var newNode = node.WithExpression(node.Expression).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
         }
 
@@ -14630,6 +14628,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestExpressionColonTokenDeleteRewriter()
+        {
+            var oldNode = GenerateExpressionColon();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestExpressionColonIdentityRewriter()
+        {
+            var oldNode = GenerateExpressionColon();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestNameColonTokenDeleteRewriter()
         {
             var oldNode = GenerateNameColon();
@@ -15715,32 +15739,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestConstantPatternIdentityRewriter()
         {
             var oldNode = GenerateConstantPattern();
-            var rewriter = new IdentityRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            Assert.Same(oldNode, newNode);
-        }
-
-        [Fact]
-        public void TestExpressionColonTokenDeleteRewriter()
-        {
-            var oldNode = GenerateExpressionColon();
-            var rewriter = new TokenDeleteRewriter();
-            var newNode = rewriter.Visit(oldNode);
-
-            if(!oldNode.IsMissing)
-            {
-                Assert.NotEqual(oldNode, newNode);
-            }
-
-            Assert.NotNull(newNode);
-            Assert.True(newNode.IsMissing, "No tokens => missing");
-        }
-
-        [Fact]
-        public void TestExpressionColonIdentityRewriter()
-        {
-            var oldNode = GenerateExpressionColon();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
