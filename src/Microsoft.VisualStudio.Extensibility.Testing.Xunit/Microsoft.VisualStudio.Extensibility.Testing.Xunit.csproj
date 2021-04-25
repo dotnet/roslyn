@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <RootNamespace>Xunit</RootNamespace>
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -34,6 +34,7 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.12\Microsoft.VisualStudio.VsixInstaller.12.csproj" ReferenceOutputAssembly="False" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.14\Microsoft.VisualStudio.VsixInstaller.14.csproj" ReferenceOutputAssembly="False" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.15\Microsoft.VisualStudio.VsixInstaller.15.csproj" ReferenceOutputAssembly="False" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.16\Microsoft.VisualStudio.VsixInstaller.16.csproj" ReferenceOutputAssembly="False" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,6 +43,7 @@
     <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.12\bin\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.12.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.12.dll" />
     <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.14\bin\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.14.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.14.dll" />
     <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.15\bin\x86\$(Configuration)\net46\Microsoft.VisualStudio.VsixInstaller.15.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.15.dll" />
+    <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.16\bin\x86\$(Configuration)\net472\Microsoft.VisualStudio.VsixInstaller.16.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.16.dll" />
     <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.Interop\bin\$(Configuration)\net45\Microsoft.VisualStudio.VsixInstaller.Interop.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.Interop.dll" />
     <EmbeddedResource Include="..\Microsoft.VisualStudio.IntegrationTestService\bin\$(Configuration)\net45\Microsoft.VisualStudio.IntegrationTestService.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.dll" />
 
