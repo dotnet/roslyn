@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var constructor = CreateConstructor(semanticModel, structName, fields, generator, parameterNamingRule);
+            var constructor = CreateConstructor(semanticModel, isRecord, structName, fields, generator, parameterNamingRule);
 
             // Generate Equals/GetHashCode.  We can defer to our existing language service for this
             // so that we generate the same Equals/GetHashCode that our other IDE features generate.
@@ -885,14 +885,14 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private static IMethodSymbol CreateConstructor(
-            SemanticModel semanticModel, string className,
+            SemanticModel semanticModel, bool isRecord, string className,
             ImmutableArray<IFieldSymbol> fields, SyntaxGenerator generator,
             NamingRule parameterNamingRule)
         {
             // For every property, create a corresponding parameter, as well as an assignment
             // statement from that parameter to the property.
             var parameterToPropMap = new Dictionary<string, ISymbol>();
-            var parameters = fields.SelectAsArray<IFieldSymbol, IParameterSymbol>(field =>
+            var parameters = fields.SelectAsArray(field =>
             {
                 var parameter = CodeGenerationSymbolFactory.CreateParameterSymbol(
                     field.Type, GetConstructorParameterName(parameterNamingRule, field.Name));
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default, Accessibility.Public, modifiers: default,
-                className, parameters, assignmentStatements);
+                className, parameters, assignmentStatements, isPrimaryConstructor: isRecord);
 
             return constructor;
         }

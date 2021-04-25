@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var members = GetMembers(namedType).Where(s => s.Kind != SymbolKind.Property || PropertyGenerator.CanBeGenerated((IPropertySymbol)s))
                                                .ToImmutableArray();
-            if (namedType.IsRecord && namedType.TypeKind is TypeKind.Class)
+            if (namedType.IsRecord)
             {
                 declaration = GenerateRecordMembers(service, options, (RecordDeclarationSyntax)declaration, members, cancellationToken);
             }
@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 // Otherwise, give the record a body.
                 recordDeclaration = recordDeclaration.WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
-                                                     .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+                                                     .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
+                                                     .WithSemicolonToken(default);
             }
 
             if (options.GenerateMembers)

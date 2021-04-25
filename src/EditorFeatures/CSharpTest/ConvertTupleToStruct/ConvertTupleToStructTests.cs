@@ -121,32 +121,8 @@ class Test
     }
 }
 
-internal struct NewStruct
+internal record struct NewStruct(int a, int b)
 {
-    public int a;
-    public int b;
-
-    public NewStruct(int a, int b)
-    {
-        this.a = a;
-        this.b = b;
-    }
-
-    public override bool Equals(object obj)
-    {
-        return obj is NewStruct other &&
-               a == other.a &&
-               b == other.b;
-    }
-
-    public override int GetHashCode()
-    {
-        var hashCode = 2118541809;
-        hashCode = hashCode * -1521134295 + a.GetHashCode();
-        hashCode = hashCode * -1521134295 + b.GetHashCode();
-        return hashCode;
-    }
-
     public void Deconstruct(out int a, out int b)
     {
         a = this.a;
