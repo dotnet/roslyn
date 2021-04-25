@@ -104,6 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             ImmutableArray<ISymbol> members,
             CancellationToken cancellationToken)
         {
+            if (!options.GenerateMembers)
+                members = ImmutableArray<ISymbol>.Empty;
+
             // For a record, add record parameters if we have a primary constructor.
             var primaryConstructor = members.OfType<IMethodSymbol>().FirstOrDefault(m => CodeGenerationConstructorInfo.GetIsPrimaryConstructor(m));
             if (primaryConstructor != null)
@@ -132,10 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 recordDeclaration = recordDeclaration.WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
                                                      .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
                                                      .WithSemicolonToken(default);
-            }
-
-            if (options.GenerateMembers)
                 recordDeclaration = service.AddMembers(recordDeclaration, members, options, cancellationToken);
+            }
 
             return recordDeclaration;
         }
