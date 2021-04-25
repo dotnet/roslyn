@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net452</TargetFramework>
     <RootNamespace>Xunit</RootNamespace>
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -33,8 +33,8 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.11\Microsoft.VisualStudio.VsixInstaller.11.csproj" ReferenceOutputAssembly="False" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.12\Microsoft.VisualStudio.VsixInstaller.12.csproj" ReferenceOutputAssembly="False" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.14\Microsoft.VisualStudio.VsixInstaller.14.csproj" ReferenceOutputAssembly="False" PrivateAssets="all" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.15\Microsoft.VisualStudio.VsixInstaller.15.csproj" ReferenceOutputAssembly="False" PrivateAssets="all" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.16\Microsoft.VisualStudio.VsixInstaller.16.csproj" ReferenceOutputAssembly="False" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.15\Microsoft.VisualStudio.VsixInstaller.15.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.16\Microsoft.VisualStudio.VsixInstaller.16.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
