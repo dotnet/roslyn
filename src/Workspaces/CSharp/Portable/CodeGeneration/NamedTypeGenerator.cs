@@ -126,19 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             // If there are no members, just make a simple record with no body
             if (members.Length == 0)
-            {
-                recordDeclaration = recordDeclaration.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-            }
-            else
-            {
-                // Otherwise, give the record a body.
-                recordDeclaration = recordDeclaration.WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
-                                                     .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
-                                                     .WithSemicolonToken(default);
-                recordDeclaration = service.AddMembers(recordDeclaration, members, options, cancellationToken);
-            }
+                return recordDeclaration.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
-            return recordDeclaration;
+            // Otherwise, give the record a body and add the members to it.
+            recordDeclaration = recordDeclaration.WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken))
+                                                 .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken))
+                                                 .WithSemicolonToken(default);
+            return service.AddMembers(recordDeclaration, members, options, cancellationToken);
         }
 
         public static MemberDeclarationSyntax UpdateNamedTypeDeclaration(
