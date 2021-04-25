@@ -1478,24 +1478,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (member is NamedTypeSymbol type)
             {
-                Debug.Assert(forDiagnostics);
-                Debug.Assert(Volatile.Read(ref _lazyTypeMembers)?.Values.Any(types => types.Contains(t => t == (object)type)) == true);
+                RoslynDebug.AssertOrFailFast(forDiagnostics);
+                RoslynDebug.AssertOrFailFast(Volatile.Read(ref _lazyTypeMembers)?.Values.Any(types => types.Contains(t => t == (object)type)) == true);
                 return;
             }
             else if (member is TypeParameterSymbol || member is SynthesizedMethodBaseSymbol)
             {
-                Debug.Assert(forDiagnostics);
+                RoslynDebug.AssertOrFailFast(forDiagnostics);
                 return;
             }
             else if (member is FieldSymbol field && field.AssociatedSymbol is EventSymbol e)
             {
-                Debug.Assert(forDiagnostics);
+                RoslynDebug.AssertOrFailFast(forDiagnostics);
                 // Backing fields for field-like events are not added to the members list.
                 member = e;
             }
 
             var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
-            Debug.Assert(declared != DeclaredMembersAndInitializers.UninitializedSentinel);
+            RoslynDebug.AssertOrFailFast(declared != DeclaredMembersAndInitializers.UninitializedSentinel);
 
             if ((declared is object && (declared.NonTypeMembers.Contains(m => m == (object)member) || declared.RecordPrimaryConstructor == (object)member)) ||
                 Volatile.Read(ref _lazyMembersAndInitializers)?.NonTypeMembers.Contains(m => m == (object)member) == true)
@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            Debug.Assert(false, "Premature symbol exposure.");
+            RoslynDebug.AssertOrFailFast(false, "Premature symbol exposure.");
         }
 
         protected Dictionary<string, ImmutableArray<Symbol>> GetMembersByName()
@@ -3410,8 +3410,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
             var membersSoFar = builder.GetNonTypeMembers(declaredMembersAndInitializers);
             var members = ArrayBuilder<Symbol>.GetInstance(membersSoFar.Count + 1);
+            var memberNames = PooledHashSet<string>.GetInstance();
             foreach (var member in membersSoFar)
             {
+                memberNames.Add(member.Name);
+
                 switch (member)
                 {
                     case FieldSymbol:
@@ -3467,6 +3470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addToStringMethod(printMembers);
 
             memberSignatures.Free();
+            memberNames.Free();
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
@@ -3731,7 +3735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
                         }
-                        else
+                        else if (!isInherited || checkMemberNotHidden(prop, param))
                         {
                             // Deconstruct() is specified to simply assign from this property to the corresponding out parameter.
                             existingOrAddedMembers.Add(prop);
@@ -3762,6 +3766,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return existingOrAddedMembers.ToImmutableAndFree();
+
+                bool checkMemberNotHidden(Symbol symbol, ParameterSymbol param)
+                {
+                    if (memberNames.Contains(symbol.Name) || this.GetTypeMembersDictionary().ContainsKey(symbol.Name))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_HiddenPositionalMember, param.Locations[0], symbol);
+                        return false;
+                    }
+                    return true;
+                }
             }
 
             void addObjectEquals(MethodSymbol thisEquals)

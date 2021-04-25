@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
-        public abstract void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
+        public abstract void AddSyntacticClassifications(SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         public abstract ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers();
         public abstract ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan);
@@ -53,5 +53,8 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             Worker.Classify(workspace, semanticModel, textSpan, result, getNodeClassifiers, getTokenClassifiers, cancellationToken);
         }
+
+        public TextChangeRange? ComputeSyntacticChangeRange(SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken)
+            => SyntacticChangeRangeComputer.ComputeSyntacticChangeRange(oldRoot, newRoot, timeout, cancellationToken);
     }
 }

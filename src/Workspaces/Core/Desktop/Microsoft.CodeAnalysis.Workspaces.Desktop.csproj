@@ -4,11 +4,14 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.ComponentModel.Composition" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

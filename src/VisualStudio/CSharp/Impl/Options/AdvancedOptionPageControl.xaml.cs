@@ -26,6 +26,7 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -86,6 +87,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.CSharp);
             BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.CSharp);
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.EnableOpeningInWorkspace, () =>
+            {
+                // If the option has not been set by the user, check if the option is enabled from experimentation.
+                // If so, default to that. Otherwise default to disabled
+                return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SourceGeneratorsEnableOpeningInWorkspace) ?? false;
+            });
 
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
 

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = document.GetLanguageService(Of INavigationBarItemService)()
+                Dim service = document.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)()
                 Dim actualItems = Await service.GetItemsAsync(document, Nothing)
                 actualItems.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
@@ -55,12 +56,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = document.GetLanguageService(Of INavigationBarItemService)()
+                Dim service = document.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)()
                 Dim items = Await service.GetItemsAsync(document, Nothing)
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
-                Dim model As New NavigationBarModel(items, VersionStamp.Create(), service)
+                Dim model As New NavigationBarModel(items.ToImmutableArray(), VersionStamp.Create(), service)
                 Dim selectedItems = NavigationBarController.ComputeSelectedTypeAndMember(model, New SnapshotPoint(hostDocument.GetTextBuffer().CurrentSnapshot, hostDocument.CursorPosition.Value), Nothing)
 
                 Dim isCaseSensitive = document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive
@@ -88,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = document.GetLanguageService(Of INavigationBarItemService)()
+                Dim service = document.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)()
 
                 Dim items = Await service.GetItemsAsync(document, Nothing)
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
@@ -118,16 +119,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
                 Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemService)(), AbstractEditorNavigationBarItemService)
+                Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)(), AbstractEditorNavigationBarItemService)
                 Dim items = Await service.GetItemsAsync(sourceDocument, Nothing)
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)
 
-                Dim navigationPoint = service.GetSymbolItemNavigationPoint(
+                Dim navigationPoint = (Await service.GetSymbolItemNavigationPointAsync(
                     sourceDocument, DirectCast(DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem),
-                    CancellationToken.None).Value
+                    CancellationToken.None)).Value
 
                 Dim expectedNavigationDocument = workspace.Documents.Single(Function(doc) doc.CursorPosition.HasValue)
                 Assert.Equal(expectedNavigationDocument.FilePath, navigationPoint.Tree.FilePath)

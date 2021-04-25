@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal readonly OptionStore OptionStore;
         private readonly List<BindingExpressionBase> _bindingExpressions = new List<BindingExpressionBase>();
 
-        public AbstractOptionPageControl(OptionStore optionStore)
+        protected AbstractOptionPageControl(OptionStore optionStore)
         {
             InitializeStyles();
 
