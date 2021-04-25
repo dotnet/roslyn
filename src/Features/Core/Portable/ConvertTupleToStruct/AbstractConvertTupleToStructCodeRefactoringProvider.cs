@@ -795,21 +795,18 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var members);
 
-            if (isRecord)
+            members.AddRange(fields);
+            members.Add(constructor);
+
+            // Not need to generate Equals/GetHashCode in a record.  The compiler already synthesizes good ones for us.
+            if (!isRecord)
             {
-                members.Add(constructor);
-                members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
-                AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
-            }
-            else
-            {
-                members.AddRange(fields);
-                members.Add(constructor);
                 members.Add(equalsMethod);
                 members.Add(getHashCodeMethod);
-                members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
-                AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
             }
+
+            members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
+            AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
 
             var namedTypeSymbol = CreateNamedType(
                 semanticModel.Compilation.Assembly, scope, isRecord, structName, typeParameters, members.ToImmutable());
