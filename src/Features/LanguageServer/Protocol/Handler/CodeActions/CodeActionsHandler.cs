@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// of the returned VSCodeActions blank, as these properties should be populated by the
     /// CodeActionsResolveHandler only when the user requests them.
     /// </summary>
-    internal class CodeActionsHandler : IRequestHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>
+    internal class CodeActionsHandler : IRequestHandler<LSP.CodeActionParams, LSP.CodeAction[]>
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public TextDocumentIdentifier? GetTextDocumentIdentifier(CodeActionParams request) => request.TextDocument;
 
-        public async Task<LSP.VSCodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.CodeAction[]> HandleRequestAsync(LSP.CodeActionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
