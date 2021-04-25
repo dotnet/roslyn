@@ -123,12 +123,6 @@ class Test
 
 internal record struct NewStruct(int a, int b)
 {
-    public void Deconstruct(out int a, out int b)
-    {
-        a = this.a;
-        b = this.b;
-    }
-
     public static implicit operator (int a, int b)(NewStruct value)
     {
         return (value.a, value.b);
@@ -137,6 +131,57 @@ internal record struct NewStruct(int a, int b)
     public static implicit operator NewStruct((int a, int b) value)
     {
         return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, parseOptions: CSharp10, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeToRecord_MismatchedNameCasing(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](A: 1, B: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+    }
+}
+
+internal record struct NewStruct
+{
+    public int A;
+    public int B;
+
+    public NewStruct(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = A;
+        b = B;
+    }
+
+    public static implicit operator (int A, int B)(NewStruct value)
+    {
+        return (value.A, value.B);
+    }
+
+    public static implicit operator NewStruct((int A, int B) value)
+    {
+        return new NewStruct(value.A, value.B);
     }
 }";
             await TestAsync(text, expected, parseOptions: CSharp10, options: this.PreferImplicitTypeWithInfo(), testHost: host);

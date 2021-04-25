@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            var constructor = CreateConstructor(semanticModel, isRecord, structName, fields, generator, parameterNamingRule);
+            var (constructor, isPrimaryConstructor) = CreateConstructor(semanticModel, isRecord, structName, fields, generator, parameterNamingRule);
 
             // Generate Equals/GetHashCode.  We can defer to our existing language service for this
             // so that we generate the same Equals/GetHashCode that our other IDE features generate.
@@ -798,14 +798,18 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             members.AddRange(fields);
             members.Add(constructor);
 
-            // Not need to generate Equals/GetHashCode in a record.  The compiler already synthesizes good ones for us.
+            // Not need to generate Equals/GetHashCode in a record.  The compiler already synthesizes those for us.
             if (!isRecord)
             {
                 members.Add(equalsMethod);
                 members.Add(getHashCodeMethod);
             }
 
-            members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
+            // If we have a primary constructor, don't bother making a deconstruct method as the compiler
+            // already synthesizes those for us.
+            if (!isPrimaryConstructor)
+                members.Add(GenerateDeconstructMethod(semanticModel, generator, tupleType, constructor));
+
             AddConversions(generator, members, tupleType, namedTypeWithoutMembers);
 
             var namedTypeSymbol = CreateNamedType(
@@ -881,14 +885,14 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 TypeKind.Struct, structName, typeParameters, members: members, containingAssembly: containingAssembly);
         }
 
-        private static IMethodSymbol CreateConstructor(
+        private static (IMethodSymbol constructor, bool isPrimaryConstructor) CreateConstructor(
             SemanticModel semanticModel, bool isRecord, string className,
             ImmutableArray<IFieldSymbol> fields, SyntaxGenerator generator,
             NamingRule parameterNamingRule)
         {
             // For every property, create a corresponding parameter, as well as an assignment
             // statement from that parameter to the property.
-            var parameterToPropMap = new Dictionary<string, ISymbol>();
+            using var _ = PooledDictionary<string, ISymbol>.GetInstance(out var parameterToPropMap);
             var parameters = fields.SelectAsArray(field =>
             {
                 var parameter = CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -899,15 +903,19 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 return parameter;
             });
 
+            // If we're making a record-struct and the parameters and properties all have the same name, then we can
+            // make a primary constructor here.
+            var isPrimaryConstructor = isRecord && parameterToPropMap.All(kvp => kvp.Key == kvp.Value.Name);
+
             var assignmentStatements = generator.CreateAssignmentStatements(
                 semanticModel, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
                 addNullChecks: false, preferThrowExpression: false);
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default, Accessibility.Public, modifiers: default,
-                className, parameters, assignmentStatements, isPrimaryConstructor: isRecord);
+                className, parameters, assignmentStatements, isPrimaryConstructor: isPrimaryConstructor);
 
-            return constructor;
+            return (constructor, isPrimaryConstructor);
         }
 
         private static string GetConstructorParameterName(NamingRule parameterNamingRule, string name)
