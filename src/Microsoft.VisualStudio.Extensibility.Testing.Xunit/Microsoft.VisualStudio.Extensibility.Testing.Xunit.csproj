@@ -44,7 +44,6 @@
     <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.14\bin\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.14.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.14.dll" />
     <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.15\bin\x86\$(Configuration)\net46\Microsoft.VisualStudio.VsixInstaller.15.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.15.dll" />
     <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.16\bin\x86\$(Configuration)\net472\Microsoft.VisualStudio.VsixInstaller.16.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.16.dll" />
-    <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.Interop\bin\$(Configuration)\net45\Microsoft.VisualStudio.VsixInstaller.Interop.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.Interop.dll" />
     <EmbeddedResource Include="..\Microsoft.VisualStudio.IntegrationTestService\bin\$(Configuration)\net45\Microsoft.VisualStudio.IntegrationTestService.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.dll" />
 
     <!-- Embedded extensions -->

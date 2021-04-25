@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.VsixInstaller
             using (var settingsManager = ExternalSettingsManager.CreateForApplication(vsExeFile, rootSuffix))
             {
                 var extensionManager = new ExtensionManagerService(settingsManager);
-                IVsExtensionManager vsExtensionManager = extensionManager;
+                IVsExtensionManager vsExtensionManager = (IVsExtensionManager)(object)extensionManager;
                 var extensions = vsixFiles.Select(vsExtensionManager.CreateInstallableExtension).ToArray();
 
                 foreach (var extension in extensions)

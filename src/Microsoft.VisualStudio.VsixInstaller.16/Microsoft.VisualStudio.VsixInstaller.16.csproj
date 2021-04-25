@@ -19,10 +19,6 @@
     <PackageReference Include="StreamJsonRpc" Version="2.7.67" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.Interop\Microsoft.VisualStudio.VsixInstaller.Interop.csproj" />
-  </ItemGroup>
-
   <Import Project="..\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems" Label="Shared" />
 
 </Project>
