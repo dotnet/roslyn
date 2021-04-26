@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     else
                     {
                         var (fileName, splicedFileExtensions) = GetHeaderParts(mostRecentHeaderText);
-                        if ((relativePath.IsEmpty() || new Regex(fileName).IsMatch(relativePath)) &&
+                        if ((relativePath.IsEmpty() || FileNameMatchesRelativePath(fileName, relativePath)) &&
                             HeaderMatchesLanguageRequirements(language, splicedFileExtensions))
                         {
                             lastValidHeader = mostRecentHeader;
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     else
                     {
                         var (fileName, splicedFileExtensions) = GetHeaderParts(mostRecentHeaderText);
-                        if ((relativePath.IsEmpty() || new Regex(fileName).IsMatch(relativePath)) &&
+                        if ((relativePath.IsEmpty() || FileNameMatchesRelativePath(fileName, relativePath)) &&
                             HeaderMatchesLanguageRequirements(language, splicedFileExtensions))
                         {
                             lastValidHeader = mostRecentHeader;
@@ -469,6 +469,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             fileName = fileName.Replace("/", @"\/");
 
             return (fileName, splicedFileExtensions);
+        }
+
+        private static bool FileNameMatchesRelativePath(string fileName, string relativePath)
+        {
+            return new Regex(fileName).IsMatch(relativePath);
         }
 
         private static bool IsNotEmptyOrComment(string currentLineText)
