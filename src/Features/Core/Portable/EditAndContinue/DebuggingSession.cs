@@ -97,8 +97,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
 
+        /// <summary>
+        /// Gets the capabilities of the runtime with respect to applying code changes.
+        /// </summary>
+        internal readonly ManagedEditAndContinueCapability Capabilities;
+
         private readonly DebuggingSessionTelemetry _telemetry;
-        private readonly ManagedEditAndContinueCapability _capabilities;
         internal EditSession EditSession;
 
         internal DebuggingSession(
@@ -112,8 +116,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             _compilationOutputsProvider = compilationOutputsProvider;
             _telemetry = debuggingSessionTelemetry;
-            _capabilities = capabilities;
 
+            Capabilities = capabilities;
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
             NonRemappableRegions = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
@@ -121,11 +125,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         internal CancellationToken CancellationToken => _cancellationSource.Token;
-
-        /// <summary>
-        /// Gets the capabilities of the runtime with respect to applying code changes.
-        /// </summary>
-        internal ManagedEditAndContinueCapability Capabilities => _capabilities;
 
         public void Dispose()
         {
