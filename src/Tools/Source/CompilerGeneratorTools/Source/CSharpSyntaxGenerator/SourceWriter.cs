@@ -1555,9 +1555,10 @@ namespace CSharpSyntaxGenerator
 
                 if (field.Type == "SyntaxToken")
                 {
-                    if (field.Kinds != null && field.Kinds.Count > 0)
+                    var fieldKinds = GetKindsOfFieldOrNearestParent(nd, field);
+                    if (fieldKinds != null && fieldKinds.Count > 0)
                     {
-                        var kinds = field.Kinds.ToList();
+                        var kinds = fieldKinds.ToList();
                         if (IsOptional(field))
                         {
                             kinds.Add(new Kind { Name = "None" });
@@ -1617,6 +1618,38 @@ namespace CSharpSyntaxGenerator
 
             WriteLine(").CreateRed();");
             CloseBlock();
+        }
+
+        private List<Kind> GetKindsOfFieldOrNearestParent(TreeType nd, Field field)
+        {
+            if (!IsOverride(field) || field.Kinds.Count > 0)
+            {
+                return field.Kinds;
+            }
+
+            while (IsOverride(field))
+            {
+                nd = Tree.Types.Single(t => t.Name == nd.Base);
+                if (nd is Node node)
+                {
+                    field = node.Fields.Single(f => f.Name == field.Name);
+                }
+                else if (nd is AbstractNode abstractNode)
+                {
+                    field = abstractNode.Fields.Single(f => f.Name == field.Name);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unexpected node type.");
+                }
+
+                if (field.Kinds.Count > 0)
+                {
+                    return field.Kinds;
+                }
+            }
+
+            return null;
         }
 
         private void WriteRedFactoryParameters(Node nd)
