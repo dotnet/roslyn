@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
@@ -84,10 +83,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ArrayBuilder<SerializableInheritanceMarginItem> builder,
             CancellationToken cancellationToken)
         {
-            // Get all base types.
+            // Make sure all the base symbol are unique.
+            // For example:
+            // interface IBar { void Foo(); }
+            // class Bar : IBar { public virtual void Foo() { } }
+            // class Bar2 : Bar, IBar { public override void Foo() { } }
+            // For 'class Bar2', the 'interface IBar' should only be shown once.
             var allBaseSymbols = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol)
                 .Select(symbol => symbol.OriginalDefinition)
-                .Distinct().ToImmutableArray();
+                .Distinct()
+                .ToImmutableArray();
 
             // Filter out
             // 1. System.Object. (otherwise margin would be shown for all classes)
@@ -145,7 +150,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var overridingSymbols = GetOverridingSymbols(memberSymbol);
 
             // Go up the inheritance chain to find all the implemented targets.
-            var implementingSymbols = GetImplementingSymbolsForTypeMember(memberSymbol, overridingSymbols);
+            var allImplementingSymbols = GetImplementingSymbolsForTypeMember(memberSymbol, overridingSymbols);
 
             // Go down the inheritance chain to find all the implementing targets.
             var allImplementedSymbols = await GetImplementedSymbolsForTypeMemberAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
@@ -154,7 +159,23 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // For example, if the user is viewing System.Threading.SynchronizationContext from metadata,
             // then don't show the derived overriden & implemented method in the default implementation for System.Threading.SynchronizationContext in metadata
             var overriddenSymbols = allOverriddenSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
-            var implementedSymbols = allImplementedSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
+
+            // Make sure all implemented symbols are unique.
+            // For example:
+            // interface IBar { void Foo(); }
+            // class Bar : IBar { public virtual void Foo() { } }
+            // class Bar2 : Bar, IBar { public override void Foo() { } }
+            // Here Bar2.Foo() would be added twice as an implemented members.
+            var implementedSymbols = allImplementedSymbols.Distinct().WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
+
+            // Make sure the symbols are unique for implementing symbols
+            // For example:
+            // interface IBar { void Foo(); }
+            // class Bar : IBar { public virtual void Foo() { } }
+            // class Bar2 : Bar, IBar { public override void Foo() { } }
+            // Here IBar.Foo() would be added twice as an implementing members.
+            // The order is not important, because UI would sort it based on display name.
+            var implementingSymbols = allImplementingSymbols.Distinct();
 
             if (overriddenSymbols.Any() || overridingSymbols.Any() || implementingSymbols.Any() || implementedSymbols.Any())
             {
@@ -257,19 +278,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol)
             {
-                // Use a hashset builder because there could be duplicates.
-                // For example:
-                // interface IBar { void Foo(); }
-                // class Bar : IBar { public virtual void Foo() { } }
-                // class Bar2 : Bar, IBar { public override void Foo() { } }
-                // Here IBar.Foo() would be added twice as an implementing members.
-                // The order is not important, because UI would sort it based on display name.
-                using var _ = PooledHashSet<ISymbol>.GetInstance(out var builder);
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
 
-                // 1. Add the direct implementing symbols in interfaces.
-                var directImplementingSymbols = memberSymbol.ExplicitOrImplicitInterfaceImplementations()
-                    .SelectAsArray(symbol => symbol.OriginalDefinition);
-                builder.AddRange(directImplementingSymbols);
+                // 1. Get the direct implementing symbols in interfaces.
+                var directImplementingSymbols = memberSymbol.ExplicitOrImplicitInterfaceImplementations();
 
                 // 2. Also add the direct implementing symbols for the overriding symbols.
                 // For example:
@@ -280,9 +292,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 foreach (var symbol in overridingSymbols)
                 {
                     builder.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations()
-                        .SelectAsArray(symbol => symbol.OriginalDefinition));
+                        .Select(symbol => symbol.OriginalDefinition));
                 }
 
+                builder.AddRange(directImplementingSymbols.Select(symbol => symbol.OriginalDefinition));
                 return builder.ToImmutableArray();
             }
 
@@ -305,14 +318,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol
                  && memberSymbol.ContainingSymbol.IsInterfaceType())
             {
-                // Use a hashset builder because there could be duplicates.
-                // For example:
-                // interface IBar { void Foo(); }
-                // class Bar : IBar { public virtual void Foo() { } }
-                // class Bar2 : Bar, IBar { public override void Foo() { } }
-                // Here Bar2.Foo() would be added twice as an implemented members.
-                // The order is not important, because UI would sort it based on display name.
-                using var _ = PooledHashSet<ISymbol>.GetInstance(out var builder);
+                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
                 // 1. Find all direct implementations for this member
                 var implementationSymbols = await SymbolFinder.FindMemberImplementationsArrayAsync(
                     memberSymbol,
