@@ -46,7 +46,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public override async Task<LSP.DocumentOnAutoInsertResponseItem?> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<LSP.DocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+            LSP.DocumentOnAutoInsertParams request,
+            RequestContext context,
+            CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
@@ -57,16 +60,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
             // We should use the options passed in by LSP instead of the document's options.
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var updatedOptions = options
-                .WithChangedOption(FormattingOptions.UseTabs, !autoInsertParams.Options.InsertSpaces)
-                .WithChangedOption(FormattingOptions.TabSize, autoInsertParams.Options.TabSize);
+            var documentOptions = await ProtocolConversions.FormattingOptionsToDocumentOptionsAsync(
+                request.Options, document, cancellationToken).ConfigureAwait(false);
 
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
-            if (autoInsertParams.Character == "\n" || autoInsertParams.Character == service.DocumentationCommentCharacter)
+            if (request.Character == "\n" || request.Character == service.DocumentationCommentCharacter)
             {
                 var documentationCommentResponse = await GetDocumentationCommentResponseAsync(
-                    autoInsertParams, document, service, updatedOptions, cancellationToken).ConfigureAwait(false);
+                    request, document, service, documentOptions, cancellationToken).ConfigureAwait(false);
                 if (documentationCommentResponse != null)
                 {
                     return documentationCommentResponse;
@@ -76,10 +77,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Only support this for razor as LSP doesn't support overtype yet.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1165179/
             // Once LSP supports overtype we can move all of brace completion to LSP.
-            if (autoInsertParams.Character == "\n" && context.ClientName == document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName)
+            if (request.Character == "\n" && context.ClientName == document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName)
             {
                 var braceCompletionAfterReturnResponse = await GetBraceCompletionAfterReturnResponseAsync(
-                    autoInsertParams, document, updatedOptions, cancellationToken).ConfigureAwait(false);
+                    request, document, documentOptions, cancellationToken).ConfigureAwait(false);
                 if (braceCompletionAfterReturnResponse != null)
                 {
                     return braceCompletionAfterReturnResponse;

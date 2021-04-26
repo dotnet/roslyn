@@ -204,8 +204,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public ImmutableArray<IIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
 
-                private Solution CurrentSolution => _registration.CurrentSolution;
-                private ProjectDependencyGraph DependencyGraph => CurrentSolution.GetProjectDependencyGraph();
+                private ProjectDependencyGraph DependencyGraph => _registration.GetSolutionToAnalyze().GetProjectDependencyGraph();
                 private IDiagnosticAnalyzerService? DiagnosticAnalyzerService => _lazyDiagnosticAnalyzerService?.Value;
 
                 public Task AsyncProcessorTask
@@ -337,7 +336,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // re-run just the body
                         await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, activeMember, reasons, c), cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }

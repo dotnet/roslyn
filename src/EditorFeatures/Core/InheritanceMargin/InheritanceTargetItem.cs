@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
@@ -27,20 +29,33 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         /// <summary>
-        /// The name for containing type of this target. Empty if it is global namespace.
+        /// The display name used in margin.
         /// </summary>
-        public readonly string DisplayNameForContainingType;
+        public readonly string DisplayName;
 
         public InheritanceTargetItem(
             InheritanceRelationship relationToMember,
             DefinitionItem definitionItem,
             Glyph glyph,
-            string displayNameForContainingType)
+            string displayName)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
             Glyph = glyph;
-            DisplayNameForContainingType = displayNameForContainingType;
+            DisplayName = displayName;
+        }
+
+        public static async ValueTask<InheritanceTargetItem> ConvertAsync(
+            Solution solution,
+            SerializableInheritanceTargetItem serializableItem,
+            CancellationToken cancellationToken)
+        {
+            var definitionItem = await serializableItem.DefinitionItem.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+            return new InheritanceTargetItem(
+                serializableItem.RelationToMember,
+                definitionItem,
+                serializableItem.Glyph,
+                serializableItem.DisplayName);
         }
     }
 }

@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests
@@ -42,7 +43,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ClassificationTypeMap),
                     listenerProvider)
 
@@ -106,13 +106,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim text = Await wrongDocument.GetTextAsync(CancellationToken.None)
 
                 ' make sure we don't crash with wrong document
-                Dim result = New List(Of ClassifiedSpan)()
+                Dim result = New ArrayBuilder(Of ClassifiedSpan)()
                 Await classificationService.AddSyntacticClassificationsAsync(wrongDocument, New TextSpan(0, text.Length), result, CancellationToken.None)
                 Await classificationService.AddSemanticClassificationsAsync(wrongDocument, New TextSpan(0, text.Length), result, CancellationToken.None)
             End Using
         End Function
 
-#Disable Warning BC40000 ' Type or member is obsolete
         <ExportLanguageService(GetType(IClassificationService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
         Private Class NoCompilationEditorClassificationService
             Implements IClassificationService
@@ -122,18 +121,29 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Public Sub New()
             End Sub
 
-            Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddLexicalClassifications
+            Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddLexicalClassifications
             End Sub
 
-            Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSemanticClassificationsAsync
+            Public Sub AddSyntacticClassifications(workspace As Workspace, root As SyntaxNode, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddSyntacticClassifications
+            End Sub
+
+            Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSemanticClassificationsAsync
                 Return Task.CompletedTask
             End Function
 
-            Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSyntacticClassificationsAsync
+            Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSyntacticClassificationsAsync
                 Return Task.CompletedTask
             End Function
 
             Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IClassificationService.AdjustStaleClassification
+            End Function
+
+            Public Function ComputeSyntacticChangeRangeAsync(oldDocument As Document, newDocument As Document, timeout As TimeSpan, cancellationToken As CancellationToken) As ValueTask(Of TextChangeRange?) Implements IClassificationService.ComputeSyntacticChangeRangeAsync
+                Return New ValueTask(Of TextChangeRange?)
+            End Function
+
+            Public Function ComputeSyntacticChangeRange(workspace As Workspace, oldRoot As SyntaxNode, newRoot As SyntaxNode, timeout As TimeSpan, cancellationToken As CancellationToken) As TextChangeRange? Implements IClassificationService.ComputeSyntacticChangeRange
+                Return Nothing
             End Function
         End Class
     End Class

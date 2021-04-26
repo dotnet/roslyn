@@ -292,6 +292,11 @@
         <target state="translated">Activer les diagnostics de 'tirage (pull)' Razor (expérimental, nécessite un redémarrage)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
+        <source>Enable all features in opened files from source generators (experimental)</source>
+        <target state="new">Enable all features in opened files from source generators (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="translated">Activer les diagnostics de 'tirage (pull)' (expérimental, nécessite un redémarrage)</target>
@@ -360,6 +365,16 @@
       <trans-unit id="Id">
         <source>Id</source>
         <target state="new">Id</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_members">
+        <source>Implemented members</source>
+        <target state="new">Implemented members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_members">
+        <source>Implementing members</source>
+        <target state="new">Implementing members</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -725,6 +740,16 @@
       <trans-unit id="Other">
         <source>Others</source>
         <target state="translated">Autres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overridden_members">
+        <source>Overridden members</source>
+        <target state="new">Overridden members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overriding_members">
+        <source>Overriding members</source>
+        <target state="new">Overriding members</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
@@ -1300,11 +1325,6 @@
       <trans-unit id="Not_a_valid_value">
         <source>Not a valid value</source>
         <target state="translated">Valeur non valide</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_in_1">
-        <source>'{0}' in '{1}'</source>
-        <target state="new">'{0}' in '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_inherited">

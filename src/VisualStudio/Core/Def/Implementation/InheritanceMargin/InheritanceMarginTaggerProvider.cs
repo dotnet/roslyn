@@ -45,19 +45,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
         }
 
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
             // compilation is available so that reclassify and bring ourselves up to date.
             => new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
-                TaggerDelay.OnIdle,
-                ThreadingContext,
                 AsyncListener,
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener),
-                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt, TaggerDelay.OnIdle, TaggerDelay.OnIdle),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.OnIdle),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin, TaggerDelay.Short));
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
+                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin));
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
         {

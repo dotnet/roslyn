@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return Glyph.Assembly;
 
                 case SymbolKind.ArrayType:
-                    return ((IArrayTypeSymbol)symbol).ElementType.GetGlyph();
+                    return Glyph.ClassPublic;
 
                 case SymbolKind.DynamicType:
                     return Glyph.ClassPublic;
