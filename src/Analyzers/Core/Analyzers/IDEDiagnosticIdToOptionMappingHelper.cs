@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return ids.ToImmutable();
+            return ids.OrderBy(StringComparer.OrdinalIgnoreCase).AsImmutable();
         }
 
         public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageOption> perLanguageOptions)

@@ -402,9 +402,7 @@ csharp_new_line_before_else=true";
         {
             var workspace = await CreateWorkspaceWithProjectAndDocumentsAsync();
             var updater = new OptionUpdater(workspace, "/a/b/config");
-            var ids = IDEDiagnosticIdToOptionMappingHelper.GetDiagnosticIdsForOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, LanguageNames.CSharp)
-                                                          .OrderBy(StringComparer.OrdinalIgnoreCase)
-                                                          .ToArray();
+            var ids = IDEDiagnosticIdToOptionMappingHelper.GetDiagnosticIdsForOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, LanguageNames.CSharp);
             Assert.Equal(2, ids.Length);
             var setting = CodeStyleSetting.Create(CSharpCodeStyleOptions.VarWhenTypeIsApparent,
                                                   "",
@@ -425,9 +423,7 @@ csharp_new_line_before_else=true";
         {
             var workspace = await CreateWorkspaceWithProjectAndDocumentsAsync();
             var updater = new OptionUpdater(workspace, "/a/b/config");
-            var ids = IDEDiagnosticIdToOptionMappingHelper.GetDiagnosticIdsForOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, LanguageNames.CSharp)
-                                                          .OrderBy(StringComparer.OrdinalIgnoreCase)
-                                                          .ToArray();
+            var ids = IDEDiagnosticIdToOptionMappingHelper.GetDiagnosticIdsForOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, LanguageNames.CSharp);
             Assert.Equal(2, ids.Length);
             var setting = CodeStyleSetting.Create(CSharpCodeStyleOptions.VarWhenTypeIsApparent,
                                                   "",
