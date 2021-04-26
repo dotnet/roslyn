@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             var project = workspace.CurrentSolution.Projects.First();
             var runner = new InProcOrRemoteHostAnalyzerRunner(new DiagnosticAnalyzerInfoCache());
-            var compilationWithAnalyzers = (await project.GetCompilationAsync().ConfigureAwait(false)).WithAnalyzers(
+            var compilationWithAnalyzers = (await project.GetCompilationAsync()!).WithAnalyzers(
                     analyzerReference.GetAnalyzers(project.Language).ToImmutableArray(),
                     new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
@@ -118,6 +118,21 @@ dotnet_diagnostic.IDE0016.severity=suggestion",
                 @"[*.cs]
 csharp_using_directive_placement=inside_namespace:silent",
                 @"[*.cs]
+csharp_using_directive_placement=inside_namespace
+dotnet_diagnostic.IDE0065.severity=warning",
+                (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, option));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public async Task TestAddNewEnumCodeStyleOptionWithSeverityOldOptionFormatExistHeadingMatchesAllFileTypesAsync()
+        {
+            var option = CSharpCodeStyleOptions.PreferredUsingDirectivePlacement.DefaultValue;
+            option.Value = AddImportPlacement.InsideNamespace;
+            option.Notification = CodeStyle.NotificationOption2.Warning;
+            await TestAsync(
+                @"[*]
+csharp_using_directive_placement=inside_namespace:silent",
+                @"[*]
 csharp_using_directive_placement=inside_namespace
 dotnet_diagnostic.IDE0065.severity=warning",
                 (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, option));
@@ -426,7 +441,7 @@ csharp_new_line_before_else=false", update.NewText);
             setting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            var value = (bool)setting.Value;
+            var value = setting.Value?.ToString().ToLower();
             var expected = $@"[*.cs]
 csharp_style_var_when_type_is_apparent={value}
 dotnet_diagnostic.{ids[0]}.severity=error

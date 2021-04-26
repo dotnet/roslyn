@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     continue;
                 }
 
-
                 (newText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd) = severity is not null && !ids.IsEmpty
                     ? AddMissingRuleMultiLine(updatedText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd, option, value, ids, severity, language)
                     : AddMissingRuleSingleLine(updatedText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd, option, value, language);
