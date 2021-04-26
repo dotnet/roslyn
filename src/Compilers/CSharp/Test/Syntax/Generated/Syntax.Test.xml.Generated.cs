@@ -407,13 +407,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.SwitchSection(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SwitchLabelSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.StatementSyntax>());
 
         private static Syntax.InternalSyntax.CasePatternSwitchLabelSyntax GenerateCasePatternSwitchLabel()
-            => InternalSyntaxFactory.CasePatternSwitchLabel(InternalSyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateDiscardPattern(), null, InternalSyntaxFactory.Identifier("ColonToken"));
+            => InternalSyntaxFactory.CasePatternSwitchLabel(InternalSyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateDiscardPattern(), null, InternalSyntaxFactory.Token(SyntaxKind.ColonToken));
 
         private static Syntax.InternalSyntax.CaseSwitchLabelSyntax GenerateCaseSwitchLabel()
-            => InternalSyntaxFactory.CaseSwitchLabel(InternalSyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Identifier("ColonToken"));
+            => InternalSyntaxFactory.CaseSwitchLabel(InternalSyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.ColonToken));
 
         private static Syntax.InternalSyntax.DefaultSwitchLabelSyntax GenerateDefaultSwitchLabel()
-            => InternalSyntaxFactory.DefaultSwitchLabel(InternalSyntaxFactory.Token(SyntaxKind.DefaultKeyword), InternalSyntaxFactory.Identifier("ColonToken"));
+            => InternalSyntaxFactory.DefaultSwitchLabel(InternalSyntaxFactory.Token(SyntaxKind.DefaultKeyword), InternalSyntaxFactory.Token(SyntaxKind.ColonToken));
 
         private static Syntax.InternalSyntax.SwitchExpressionSyntax GenerateSwitchExpression()
             => InternalSyntaxFactory.SwitchExpression(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.SwitchKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.SwitchExpressionArmSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
@@ -2334,7 +2334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CaseKeyword, node.Keyword.Kind);
             Assert.NotNull(node.Pattern);
             Assert.Null(node.WhenClause);
-            Assert.Equal(SyntaxKind.IdentifierToken, node.ColonToken.Kind);
+            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -2346,7 +2346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.CaseKeyword, node.Keyword.Kind);
             Assert.NotNull(node.Value);
-            Assert.Equal(SyntaxKind.IdentifierToken, node.ColonToken.Kind);
+            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateDefaultSwitchLabel();
 
             Assert.Equal(SyntaxKind.DefaultKeyword, node.Keyword.Kind);
-            Assert.Equal(SyntaxKind.IdentifierToken, node.ColonToken.Kind);
+            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -10070,13 +10070,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.SwitchSection(new SyntaxList<SwitchLabelSyntax>(), new SyntaxList<StatementSyntax>());
 
         private static CasePatternSwitchLabelSyntax GenerateCasePatternSwitchLabel()
-            => SyntaxFactory.CasePatternSwitchLabel(SyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateDiscardPattern(), default(WhenClauseSyntax), SyntaxFactory.Identifier("ColonToken"));
+            => SyntaxFactory.CasePatternSwitchLabel(SyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateDiscardPattern(), default(WhenClauseSyntax), SyntaxFactory.Token(SyntaxKind.ColonToken));
 
         private static CaseSwitchLabelSyntax GenerateCaseSwitchLabel()
-            => SyntaxFactory.CaseSwitchLabel(SyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateIdentifierName(), SyntaxFactory.Identifier("ColonToken"));
+            => SyntaxFactory.CaseSwitchLabel(SyntaxFactory.Token(SyntaxKind.CaseKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.ColonToken));
 
         private static DefaultSwitchLabelSyntax GenerateDefaultSwitchLabel()
-            => SyntaxFactory.DefaultSwitchLabel(SyntaxFactory.Token(SyntaxKind.DefaultKeyword), SyntaxFactory.Identifier("ColonToken"));
+            => SyntaxFactory.DefaultSwitchLabel(SyntaxFactory.Token(SyntaxKind.DefaultKeyword), SyntaxFactory.Token(SyntaxKind.ColonToken));
 
         private static SwitchExpressionSyntax GenerateSwitchExpression()
             => SyntaxFactory.SwitchExpression(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.SwitchKeyword), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<SwitchExpressionArmSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
@@ -11997,7 +11997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CaseKeyword, node.Keyword.Kind());
             Assert.NotNull(node.Pattern);
             Assert.Null(node.WhenClause);
-            Assert.Equal(SyntaxKind.IdentifierToken, node.ColonToken.Kind());
+            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithPattern(node.Pattern).WithWhenClause(node.WhenClause).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
         }
@@ -12009,7 +12009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.CaseKeyword, node.Keyword.Kind());
             Assert.NotNull(node.Value);
-            Assert.Equal(SyntaxKind.IdentifierToken, node.ColonToken.Kind());
+            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithValue(node.Value).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
         }
@@ -12020,7 +12020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateDefaultSwitchLabel();
 
             Assert.Equal(SyntaxKind.DefaultKeyword, node.Keyword.Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, node.ColonToken.Kind());
+            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
         }

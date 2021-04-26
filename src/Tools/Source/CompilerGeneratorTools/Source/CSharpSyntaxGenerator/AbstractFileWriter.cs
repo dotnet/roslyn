@@ -372,6 +372,38 @@ namespace CSharpSyntaxGenerator
             }
         }
 
+        protected List<Kind> GetKindsOfFieldOrNearestParent(TreeType nd, Field field)
+        {
+            if (!IsOverride(field) || field.Kinds.Count > 0)
+            {
+                return field.Kinds;
+            }
+
+            while (IsOverride(field))
+            {
+                nd = Tree.Types.Single(t => t.Name == nd.Base);
+                if (nd is Node node)
+                {
+                    field = node.Fields.Single(f => f.Name == field.Name);
+                }
+                else if (nd is AbstractNode abstractNode)
+                {
+                    field = abstractNode.Fields.Single(f => f.Name == field.Name);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Unexpected node type.");
+                }
+
+                if (field.Kinds.Count > 0)
+                {
+                    return field.Kinds;
+                }
+            }
+
+            return null;
+        }
+
         #endregion Node helpers
     }
 }
