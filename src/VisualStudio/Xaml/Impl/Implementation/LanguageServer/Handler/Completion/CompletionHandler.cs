@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
-            Dictionary<XamlCompletionKind, ImmutableArray<CommitCharacter>> commitCharactersCache = new Dictionary<XamlCompletionKind, ImmutableArray<CommitCharacter>>();
+            var commitCharactersCache = new Dictionary<XamlCompletionKind, ImmutableArray<CommitCharacter>>();
             return new VSCompletionList
             {
                 Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position, request.TextDocument, commitCharactersCache)).ToArray(),
