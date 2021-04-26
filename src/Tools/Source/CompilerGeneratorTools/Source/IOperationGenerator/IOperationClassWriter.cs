@@ -659,7 +659,7 @@ namespace IOperationGenerator
                             }
                         }
 
-                        WriteLine("protected override IOperation GetCurrent(int slot, int index)");
+                        WriteLine("internal override IOperation GetCurrent(int slot, int index)");
                         Indent();
                         WriteLine("=> slot switch");
                         Brace();
@@ -691,7 +691,7 @@ namespace IOperationGenerator
                         WriteLine("};");
                         Outdent();
 
-                        WriteLine("protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)");
+                        WriteLine("internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)");
                         Brace();
                         WriteLine("switch (previousSlot)");
                         Brace();
@@ -766,8 +766,8 @@ namespace IOperationGenerator
                     }
                     else
                     {
-                        WriteLine("protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));");
-                        WriteLine("protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);");
+                        WriteLine("internal override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));");
+                        WriteLine("internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);");
                     }
                 }
             }

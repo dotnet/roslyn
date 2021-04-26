@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal ImmutableArray<IOperation> Children { get; }
 
-        protected override IOperation GetCurrent(int slot, int index)
+        internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
                 0 when index < Children.Length
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index))
             };
 
-        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
             switch (previousSlot)
             {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal ImmutableArray<IOperation> Children { get; }
 
-        protected override IOperation GetCurrent(int slot, int index)
+        internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
                 0 when index < Children.Length
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index))
             };
 
-        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
             switch (previousSlot)
             {
@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.Operations
         }
         public IMethodSymbol Symbol => Original.Symbol;
 
-        protected override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
-        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        internal override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
 
         public override OperationKind Kind => OperationKind.FlowAnonymousFunction;
         public override ITypeSymbol? Type => null;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Operations
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.DynamicObjectCreation;
 
-        protected override IOperation GetCurrent(int slot, int index)
+        internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
                 0 when index < Arguments.Length
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
 
-        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
             switch (previousSlot)
             {
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Operation = SetParentOperation(operation, this);
         }
 
-        protected override IOperation GetCurrent(int slot, int index)
+        internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
                 0 when Operation != null
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
 
-        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
             switch (previousSlot)
             {
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Operations
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.DynamicIndexerAccess;
 
-        protected override IOperation GetCurrent(int slot, int index)
+        internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
                 0 when Operation != null
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
 
-        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
             switch (previousSlot)
             {
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed partial class WhileLoopOperation
     {
-        protected override IOperation GetCurrent(int slot, int index)
+        internal override IOperation GetCurrent(int slot, int index)
         {
             return ConditionIsTop ? getCurrentSwitchTop() : getCurrentSwitchBottom();
 
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 };
         }
 
-        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
             return ConditionIsTop ? moveNextConditionIsTop() : moveNextConditionIsBottom();
 

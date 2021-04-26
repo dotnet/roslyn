@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics.CodeAnalysis;
+using System;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -111,19 +112,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// In the compiler layer, always prefer <see cref="ChildOperations"/>.
-        /// </summary>
         IEnumerable<IOperation> IOperation.Children => this.ChildOperations;
 
-        /// <remarks>
-        /// Always prefer this over <see cref="IOperation.Children"/> in the compiler layer, as this does not introduce allocations.
-        /// </remarks>
-        // Making this public is tracked by https://github.com/dotnet/roslyn/issues/49475
-        internal Operation.Enumerable ChildOperations => new Operation.Enumerable(this);
+        /// <inheritdoc/>
+        public IOperation.Enumerable ChildOperations => new IOperation.Enumerable(this);
 
-        protected abstract IOperation GetCurrent(int slot, int index);
-        protected abstract (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex);
+        internal abstract IOperation GetCurrent(int slot, int index);
+        internal abstract (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex);
 
         SemanticModel? IOperation.SemanticModel => _owningSemanticModelOpt?.ContainingModelOrSelf;
 

@@ -610,9 +610,9 @@ class C
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
-            Assert.Equal(2, declarator.Children.Count());
-            Assert.Equal(OperationKind.Literal, declarator.Children.First().Kind);
-            Assert.Equal(OperationKind.VariableInitializer, declarator.Children.ElementAt(1).Kind);
+            Assert.Equal(2, declarator.ChildOperations.Count());
+            Assert.Equal(OperationKind.Literal, declarator.ChildOperations.First().Kind);
+            Assert.Equal(OperationKind.VariableInitializer, declarator.ChildOperations.ElementAt(1).Kind);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -632,8 +632,8 @@ class C
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
-            Assert.Equal(1, declarator.Children.Count());
-            Assert.Equal(OperationKind.Literal, declarator.Children.First().Kind);
+            Assert.Equal(1, declarator.ChildOperations.Count());
+            Assert.Equal(OperationKind.Literal, declarator.ChildOperations.First().Kind);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -653,8 +653,8 @@ class C
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
-            Assert.Equal(1, declarator.Children.Count());
-            Assert.Equal(OperationKind.VariableInitializer, declarator.Children.ElementAt(0).Kind);
+            Assert.Equal(1, declarator.ChildOperations.Count());
+            Assert.Equal(OperationKind.VariableInitializer, declarator.ChildOperations.ElementAt(0).Kind);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -673,7 +673,7 @@ class C
 
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
-            Assert.Empty(operation.Children);
+            Assert.Empty(operation.ChildOperations);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -848,9 +848,9 @@ class C
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclarationSyntax>(compilation);
             var declaration = (IVariableDeclarationOperation)operation;
-            Assert.Equal(2, declaration.Children.Count());
-            Assert.Equal(OperationKind.Literal, declaration.Children.First().Kind);
-            Assert.Equal(OperationKind.VariableDeclarator, declaration.Children.ElementAt(1).Kind);
+            Assert.Equal(2, declaration.ChildOperations.Count());
+            Assert.Equal(OperationKind.Literal, declaration.ChildOperations.First().Kind);
+            Assert.Equal(OperationKind.VariableDeclarator, declaration.ChildOperations.ElementAt(1).Kind);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -870,9 +870,9 @@ class C
             var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclarationSyntax>(compilation);
             var declaration = (IVariableDeclarationOperation)operation;
-            Assert.Equal(2, declaration.Children.Count());
-            Assert.Equal(OperationKind.Literal, declaration.Children.First().Kind);
-            Assert.Equal(OperationKind.VariableDeclarator, declaration.Children.ElementAt(1).Kind);
+            Assert.Equal(2, declaration.ChildOperations.Count());
+            Assert.Equal(OperationKind.Literal, declaration.ChildOperations.First().Kind);
+            Assert.Equal(OperationKind.VariableDeclarator, declaration.ChildOperations.ElementAt(1).Kind);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

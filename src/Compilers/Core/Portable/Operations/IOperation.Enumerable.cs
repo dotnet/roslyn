@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class Operation : IOperation
+    public partial interface IOperation
     {
         /// <summary>
         /// Implements a struct-based enumerable for <see cref="Operation"/> nodes, using a slot-based system that tracks
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         /// to <code>default(Enumerable)</code>, and will null reference in these cases.
         /// </summary>
         [NonDefaultable]
-        internal readonly struct Enumerable : IEnumerable<IOperation>
+        public readonly struct Enumerable : IEnumerable<IOperation>
         {
             private readonly Operation _operation;
 
@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="Enumerator.MoveNext"/> has returned false will throw an <see cref="InvalidOperationException"/>.
         /// </summary>
         [NonDefaultable]
-        internal struct Enumerator : IEnumerator<IOperation>
+        public struct Enumerator : IEnumerator<IOperation>
         {
             private readonly Operation _operation;
             private int _currentSlot;
             private int _currentIndex;
 
-            public Enumerator(Operation operation)
+            internal Enumerator(Operation operation)
             {
                 _operation = operation;
                 _currentSlot = -1;
