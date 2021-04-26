@@ -4268,47 +4268,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE(improved-definite-assignment):
         // this is not used outside 'VisitPossibleConditionalAccess' yet, but is expected to be used
         // when refactoring 'VisitBinaryOperatorChildren'
+        /// <summary>
+        /// Visits a node only if it is a conditional access.
+        /// Returns 'true' if and only if the node was visited.
+        /// </summary>
         private bool TryVisitConditionalAccess(BoundExpression node, out PossiblyConditionalState stateWhenNotNull)
         {
-            var (conversion, access) = node switch
+            var (operand, conversion) = RemoveConversion(node, includeExplicitConversions: true);
+            if (operand is not BoundConditionalAccess access || !isAcceptableConversion(access, conversion))
             {
-                BoundConditionalAccess ca => (null, ca),
-                BoundConversion { Conversion: Conversion innerConversion, Operand: BoundConditionalAccess ca } conv when isAcceptableConversion(ca, innerConversion) => (conv, ca),
-                _ => default
-            };
-
-            if (access is object)
-            {
-                EnterRegionIfNeeded(access);
-                Unsplit();
-                VisitConditionalAccess(access, out stateWhenNotNull);
-                if (conversion is object)
-                {
-                    var operandType = ResultType;
-                    TypeWithAnnotations explicitType = conversion.ConversionGroupOpt?.ExplicitType ?? default;
-                    bool fromExplicitCast = explicitType.HasType;
-                    TypeWithAnnotations targetType = fromExplicitCast ? explicitType : TypeWithAnnotations.Create(conversion.Type);
-                    Debug.Assert(targetType.HasType);
-                    var result = VisitConversion(conversion,
-                        access,
-                        conversion.Conversion,
-                        targetType,
-                        operandType,
-                        checkConversion: true,
-                        fromExplicitCast,
-                        useLegacyWarnings: true,
-                        assignmentKind: AssignmentKind.Assignment);
-                    SetResultType(conversion, result);
-                }
-                Debug.Assert(!IsConditionalState);
-                LeaveRegionIfNeeded(access);
-                return true;
+                stateWhenNotNull = default;
+                return false;
             }
 
-            stateWhenNotNull = default;
-            return false;
+            EnterRegionIfNeeded(access);
+            Unsplit();
+            VisitConditionalAccess(access, out stateWhenNotNull);
+            if (node is BoundConversion boundConversion)
+            {
+                var operandType = ResultType;
+                TypeWithAnnotations explicitType = boundConversion.ConversionGroupOpt?.ExplicitType ?? default;
+                bool fromExplicitCast = explicitType.HasType;
+                TypeWithAnnotations targetType = fromExplicitCast ? explicitType : TypeWithAnnotations.Create(boundConversion.Type);
+                Debug.Assert(targetType.HasType);
+                var result = VisitConversion(boundConversion,
+                    access,
+                    conversion,
+                    targetType,
+                    operandType,
+                    checkConversion: true,
+                    fromExplicitCast,
+                    useLegacyWarnings: true,
+                    assignmentKind: AssignmentKind.Assignment);
+                SetResultType(boundConversion, result);
+            }
+            Debug.Assert(!IsConditionalState);
+            LeaveRegionIfNeeded(access);
+            return true;
 
-            // "State when not null" cannot propagate out of a conditional access if its conversion can return null when the input is non-null.
+            // "State when not null" cannot propagate out of a conditional access if its conversion can return non-null when the input is null.
             bool isAcceptableConversion(BoundConditionalAccess operand, Conversion conversion)
             {
                 if (conversion.Kind is not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined))
@@ -4324,23 +4322,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var param = method.Parameters[0];
                 var paramAnnotations = GetParameterAnnotations(param);
                 var paramType = ApplyLValueAnnotations(param.TypeWithAnnotations, paramAnnotations);
-                if ((paramAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0
-                    || paramType.ToTypeWithState().IsNotNull)
+                var paramState = paramType.ToTypeWithState();
+                if (paramState.IsNotNull
+                    || (paramAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0)
                 {
                     return true;
                 }
 
-                if (method.ReturnNotNullIfParameterNotNull.Contains(param.Name))
-                {
-                    return true;
-                }
-
-                // if the return is allowed to be null for a non-null input, we can't propagate out the "state when not null".
+                // From here on we know the input is allowed to be `null`.
                 var returnState = ApplyUnconditionalAnnotations(method.ReturnTypeWithAnnotations.ToTypeWithState(), method.ReturnTypeFlowAnalysisAnnotations);
-                return returnState.IsNotNull;
+                if (returnState.IsNotNull)
+                {
+                    // We can't learn from this conversion because the result will be not-null even if the input was `null`.
+                    return false;
+                }
+
+                // Here the parameter may be null, and the return also may be null.
+                // We will only learn from this conversion if it has `[return: NotNullIfNotNull]`,
+                // because we will assume that the conversion always returns a `null` result for a `null` input,
+                // and always returns a non-null result for a non-null input.
+                Debug.Assert(returnState.MayBeNull);
+                return method.ReturnNotNullIfParameterNotNull.Contains(param.Name);
             }
         }
 
+        /// <summary>
+        /// Unconditionally visits an expression and returns the "state when not null" for the expression.
+        /// </summary>
         private void VisitPossibleConditionalAccess(BoundExpression node, out PossiblyConditionalState stateWhenNotNull)
         {
             if (!TryVisitConditionalAccess(node, out stateWhenNotNull))
