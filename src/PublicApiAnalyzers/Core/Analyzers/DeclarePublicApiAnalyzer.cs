@@ -318,8 +318,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return false;
             }
 
-            shippedData = ReadApiData(shippedText.Path, shippedText.GetText(cancellationToken), isShippedApi: true);
-            unshippedData = ReadApiData(unshippedText.Path, unshippedText.GetText(cancellationToken), isShippedApi: false);
+            shippedData = ReadApiData(shippedText.Value.path, shippedText.Value.text, isShippedApi: true);
+            unshippedData = ReadApiData(unshippedText.Value.path, unshippedText.Value.text, isShippedApi: false);
             return true;
         }
 
@@ -376,27 +376,41 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private static bool TryGetApiText(
             ImmutableArray<AdditionalText> additionalTexts,
             CancellationToken cancellationToken,
-            [NotNullWhen(returnValue: true)] out AdditionalText? shippedText,
-            [NotNullWhen(returnValue: true)] out AdditionalText? unshippedText)
+            [NotNullWhen(returnValue: true)] out (string path, SourceText text)? shippedText,
+            [NotNullWhen(returnValue: true)] out (string path, SourceText text)? unshippedText)
         {
             shippedText = null;
             unshippedText = null;
 
             StringComparer comparer = StringComparer.Ordinal;
-            foreach (AdditionalText text in additionalTexts)
+            foreach (AdditionalText additionalText in additionalTexts)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                string fileName = Path.GetFileName(text.Path);
-                if (comparer.Equals(fileName, ShippedFileName))
-                {
-                    shippedText = text;
-                    continue;
-                }
+                string fileName = Path.GetFileName(additionalText.Path);
 
-                if (comparer.Equals(fileName, UnshippedFileName))
+                bool isShippedFile = comparer.Equals(fileName, ShippedFileName);
+                bool isUnhippedFile = comparer.Equals(fileName, UnshippedFileName);
+
+                if (isShippedFile || isUnhippedFile)
                 {
-                    unshippedText = text;
+                    SourceText text = additionalText.GetText(cancellationToken);
+
+                    if (text.Lines == null)
+                    {
+                        continue;
+                    }
+
+                    var data = (additionalText.Path, text);
+                    if (isShippedFile)
+                    {
+                        shippedText = data;
+                    }
+
+                    if (isUnhippedFile)
+                    {
+                        unshippedText = data;
+                    }
                     continue;
                 }
             }
