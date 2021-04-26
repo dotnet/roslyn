@@ -2597,7 +2597,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     if (oldContainingType != null && !capabilities.HasFlag(ManagedEditAndContinueCapability.AddDefinitionToExistingType))
                                     {
                                         diagnostics.Add(new RudeEditDiagnostic(
-                                            RudeEditKind.Insert,
+                                            RudeEditKind.InsertNotSupportedByRuntime,
                                             GetDiagnosticSpan(edit.NewNode, EditKind.Insert),
                                             edit.NewNode,
                                             arguments: new[] { GetDisplayName(edit.NewNode, EditKind.Insert) }));
@@ -2636,7 +2636,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     if (!capabilities.HasFlag(ManagedEditAndContinueCapability.NewTypeDefinition))
                                     {
                                         diagnostics.Add(new RudeEditDiagnostic(
-                                            RudeEditKind.Insert,
+                                            RudeEditKind.InsertNotSupportedByRuntime,
                                             GetDiagnosticSpan(edit.NewNode, EditKind.Insert),
                                             edit.NewNode,
                                             arguments: new[] { GetDisplayName(edit.NewNode, EditKind.Insert) }));
@@ -3597,7 +3597,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         if (!CanAddNewLambda(newLambda, capabilities, matchedLambdas))
                         {
-                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Insert, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, new string[] { GetDisplayName(newLambda, EditKind.Insert) }));
+                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.InsertNotSupportedByRuntime, GetDiagnosticSpan(newLambda, EditKind.Insert), newLambda, new string[] { GetDisplayName(newLambda, EditKind.Insert) }));
                         }
 
                         // TODO: https://github.com/dotnet/roslyn/issues/37128
