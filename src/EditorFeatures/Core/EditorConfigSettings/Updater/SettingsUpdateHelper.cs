@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -22,9 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
         private const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
         private const string SeveritySuffix = ".severity";
 
-        public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
-                                                                  string filePath,
-                                                                  IReadOnlyList<(AnalyzerSetting option, DiagnosticSeverity value)> settingsToUpdate)
+        public static SourceText? TryUpdateAnalyzerConfigDocument(
+            SourceText originalText,
+            string filePath,
+            IReadOnlyList<(AnalyzerSetting option, DiagnosticSeverity value)> settingsToUpdate)
         {
             if (originalText is null)
                 return null;
@@ -46,10 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             }
         }
 
-        public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
-                                                                  string filePath,
-                                                                  OptionSet optionSet,
-                                                                  IReadOnlyList<(IOption2 option, object value)> settingsToUpdate)
+        public static SourceText? TryUpdateAnalyzerConfigDocument(
+            SourceText originalText,
+            string filePath,
+            OptionSet optionSet,
+            IReadOnlyList<(IOption2 option, object value)> settingsToUpdate)
         {
             if (originalText is null)
                 return null;
@@ -95,9 +97,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             }
         }
 
-        public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
-                                                                  string filePath,
-                                                                  IReadOnlyList<(string option, string value, ImmutableArray<string> ids, string? severity, Language language)> settingsToUpdate)
+        public static SourceText? TryUpdateAnalyzerConfigDocument(
+            SourceText originalText,
+            string filePath,
+            IReadOnlyList<(string option, string value, ImmutableArray<string> ids, string? severity, Language language)> settingsToUpdate)
         {
             if (originalText is null)
                 throw new ArgumentNullException(nameof(originalText));
