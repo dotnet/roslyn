@@ -102,7 +102,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             option.Notification = CodeStyle.NotificationOption2.Suggestion;
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_style_throw_expression=true\r\ndotnet_diagnostic.IDE0016.severity=suggestion",
+                @"[*.cs]
+csharp_style_throw_expression=true
+dotnet_diagnostic.IDE0016.severity=suggestion",
                 (CSharpCodeStyleOptions.PreferThrowExpression, option));
         }
 
@@ -113,8 +115,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             option.Value = AddImportPlacement.InsideNamespace;
             option.Notification = CodeStyle.NotificationOption2.Warning;
             await TestAsync(
-                "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace:silent",
-                "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace\r\ndotnet_diagnostic.IDE0065.severity=warning",
+                @"[*.cs]
+csharp_using_directive_placement=inside_namespace:silent",
+                @"[*.cs]
+csharp_using_directive_placement=inside_namespace
+dotnet_diagnostic.IDE0065.severity=warning",
                 (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, option));
         }
 
@@ -263,7 +268,10 @@ csharp_new_line_before_else=true";
         {
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_new_line_before_else=true\r\ncsharp_new_line_before_catch=true\r\ncsharp_new_line_before_finally=true",
+                @"[*.cs]
+csharp_new_line_before_else=true
+csharp_new_line_before_catch=true
+csharp_new_line_before_finally=true",
                 (CSharpFormattingOptions2.NewLineForElse, true),
                 (CSharpFormattingOptions2.NewLineForCatch, true),
                 (CSharpFormattingOptions2.NewLineForFinally, true));
@@ -358,7 +366,8 @@ csharp_new_line_before_else=true";
             analyzerSetting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity=error", update.NewText);
+            Assert.Equal($@"[*.cs]
+dotnet_diagnostic.{id}.severity=error", update.NewText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
@@ -375,13 +384,17 @@ csharp_new_line_before_else=true";
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
             var actual = update.NewText;
-            var expected = "[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true\r\ndotnet_diagnostic.IDE2004.severity=error";
+            var expected = @"[*.cs]
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true
+dotnet_diagnostic.IDE2004.severity=error";
             Assert.Equal(expected, actual);
             setting.ChangeValue(1);
             updates = await updater.GetChangedEditorConfigAsync(default);
             update = Assert.Single(updates);
             actual = update.NewText;
-            expected = "[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false\r\ndotnet_diagnostic.IDE2004.severity=error";
+            expected = @"[*.cs]
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false
+dotnet_diagnostic.IDE2004.severity=error";
             Assert.Equal(expected, actual);
         }
 
@@ -394,7 +407,8 @@ csharp_new_line_before_else=true";
             setting.SetValue(false);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            Assert.Equal("[*.cs]\r\ncsharp_new_line_before_else=false", update.NewText);
+            Assert.Equal(@"[*.cs]
+csharp_new_line_before_else=false", update.NewText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
@@ -413,7 +427,10 @@ csharp_new_line_before_else=true";
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
             var value = (bool)setting.Value;
-            var expected = $"[*.cs]\r\ncsharp_style_var_when_type_is_apparent={value}\r\ndotnet_diagnostic.{ids[0]}.severity=error\r\ndotnet_diagnostic.{ids[1]}.severity=error";
+            var expected = $@"[*.cs]
+csharp_style_var_when_type_is_apparent={value}
+dotnet_diagnostic.{ids[0]}.severity=error
+dotnet_diagnostic.{ids[1]}.severity=error";
             var actual = update.NewText;
             Assert.Equal(expected, actual);
         }
@@ -433,7 +450,10 @@ csharp_new_line_before_else=true";
             setting.ChangeValue(0);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            var expected = $"[*.cs]\r\ncsharp_style_var_when_type_is_apparent=true\r\ndotnet_diagnostic.{ids[0]}.severity=silent\r\ndotnet_diagnostic.{ids[1]}.severity=silent";
+            var expected = $@"[*.cs]
+csharp_style_var_when_type_is_apparent=true
+dotnet_diagnostic.{ids[0]}.severity=silent
+dotnet_diagnostic.{ids[1]}.severity=silent";
             var actual = update.NewText;
             Assert.Equal(expected, actual);
         }
