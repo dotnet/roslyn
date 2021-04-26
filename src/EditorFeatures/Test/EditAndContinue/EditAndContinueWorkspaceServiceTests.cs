@@ -3318,5 +3318,59 @@ class C { int Y => 1; }
 
             hotReload.EndSession();
         }
+
+        [Fact]
+        public void ParseCapabilities()
+        {
+            var capabilities = "Baseline";
+
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
+
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
+            Assert.False(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
+        }
+
+        [Fact]
+        public void ParseCapabilities_CaseSensitive()
+        {
+            var capabilities = "BaseLine";
+
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
+
+            Assert.False(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
+        }
+
+        [Fact]
+        public void ParseCapabilities_IgnoreInvalid()
+        {
+            var capabilities = "Baseline Invalid RuntimeEdits";
+
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
+
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
+        }
+
+        [Fact]
+        public void ParseCapabilities_IgnoreInvalidNumeric()
+        {
+            var capabilities = "Baseline 90 RuntimeEdits";
+
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
+
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
+        }
+
+        [Fact]
+        public void ParseCapabilities_MultipleSpaces()
+        {
+            var capabilities = "  Baseline      RuntimeEdits   ";
+
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
+
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
+        }
     }
 }
