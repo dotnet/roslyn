@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis
                     // Keep track of information about symbols from this Compilation.  This will help support other APIs
                     // the solution exposes that allows the user to map back from symbols to project information.
 
-                    var unrootedSymbolSet = GetUnrootedSymbols(finalCompilation);
+                    var unrootedSymbolSet = UnrootedSymbolSet.Create(finalCompilation);
                     RecordAssemblySymbols(projectId, finalCompilation, metadataReferenceToProjectId);
 
                     return new FinalState(
@@ -302,36 +302,6 @@ namespace Microsoft.CodeAnalysis
                         // we attempt to record the association.
                         Debug.Assert(tmp == projectId);
                     }
-                }
-
-                private static UnrootedSymbolSet GetUnrootedSymbols(Compilation compilation)
-                {
-                    var primaryAssembly = new WeakReference<IAssemblySymbol>(compilation.Assembly);
-
-                    // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
-                    // assembly).  So we have to keep track of it so we can get back from it to a project in case the 
-                    // underlying compilation is GC'ed.
-                    var primaryDynamic = new WeakReference<ITypeSymbol?>(
-                        compilation.Language == LanguageNames.CSharp ? compilation.DynamicType : null);
-
-                    // PERF: Preallocate this array so we don't have to resize it as we're adding assembly symbols.
-                    using var _ = ArrayBuilder<(int hashcode, WeakReference<ISymbol> symbol)>.GetInstance(
-                        compilation.ExternalReferences.Length + compilation.DirectiveReferences.Length, out var secondarySymbols);
-
-                    foreach (var reference in compilation.References)
-                    {
-                        var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
-                        if (symbol == null)
-                            continue;
-
-                        secondarySymbols.Add((ReferenceEqualityComparer.GetHashCode(symbol), new WeakReference<ISymbol>(symbol)));
-                    }
-
-                    // Sort all the secondary symbols by their hash.  This will allow us to easily binary search for
-                    // them afterwards. Note: it is fine for multiple symbols to have the same reference hash.  The
-                    // search algorithm will account for that.
-                    secondarySymbols.Sort(WeakSymbolComparer.Instance);
-                    return new UnrootedSymbolSet(primaryAssembly, primaryDynamic, secondarySymbols.ToImmutable());
                 }
             }
         }

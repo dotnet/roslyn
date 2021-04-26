@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public readonly IWaitIndicator WaitIndicator;
         public readonly ImmutableArray<Lazy<ISuggestedActionCallback>> ActionCallbacks;
 
-        public readonly ImmutableArray<Lazy<IImageMonikerService, OrderableMetadata>> ImageMonikerServices;
+        public readonly ImmutableArray<Lazy<IImageIdService, OrderableMetadata>> ImageIdServices;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IWaitIndicator waitIndicator,
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             IAsynchronousOperationListenerProvider listenerProvider,
-            [ImportMany] IEnumerable<Lazy<IImageMonikerService, OrderableMetadata>> imageMonikerServices,
+            [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices,
             [ImportMany] IEnumerable<Lazy<ISuggestedActionCallback>> actionCallbacks)
         {
             _threadingContext = threadingContext;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             WaitIndicator = waitIndicator;
             OperationListener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
 
-            ImageMonikerServices = ExtensionOrderer.Order(imageMonikerServices).ToImmutableArray();
+            ImageIdServices = ExtensionOrderer.Order(imageIdServices).ToImmutableArray();
         }
 
         public ISuggestedActionsSource? CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)

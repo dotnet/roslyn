@@ -223,7 +223,6 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-
         /// <summary>
         /// Maps an immutable array through a function that returns ValueTasks, returning the new ImmutableArray.
         /// </summary>
