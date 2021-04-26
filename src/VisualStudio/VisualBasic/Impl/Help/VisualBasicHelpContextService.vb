@@ -50,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 Return visitor.result
             End If
 
-            Dim trivia = tree.GetRoot().FindTrivia(span.Start, findInsideTrivia:=True)
+            Dim trivia = tree.GetRoot(cancellationToken).FindTrivia(span.Start, findInsideTrivia:=True)
 
             Dim text = If(trivia.ToFullString(), String.Empty).Replace(" ", "").TrimStart("'"c)
             If text.StartsWith("TODO:", StringComparison.CurrentCultureIgnoreCase) Then

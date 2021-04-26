@@ -15,6 +15,7 @@ using System.Text;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.Test.Utilities.PDB
@@ -72,18 +73,25 @@ namespace Roslyn.Test.Utilities.PDB
             Assert.Equal(compilation.Language, pdbOptions["language"]);
         }
 
-        public static void VerifyReferenceInfo(TestMetadataReferenceInfo[] references, BlobReader metadataReferenceReader)
+        public static void VerifyReferenceInfo(TestMetadataReferenceInfo[] references, TargetFramework targetFramework, BlobReader metadataReferenceReader)
         {
-            foreach (var reference in references)
+            var frameworkReferences = TargetFrameworkUtil.GetReferences(targetFramework);
+            var count = 0;
+            while (metadataReferenceReader.RemainingBytes > 0)
             {
                 var info = ParseMetadataReferenceInfo(ref metadataReferenceReader);
-                var originalInfo = reference.MetadataReferenceInfo;
+                if (frameworkReferences.Any(x => x.GetModuleVersionId() == info.Mvid))
+                {
+                    count++;
+                    continue;
+                }
 
-                originalInfo.AssertEqual(info);
+                var testReference = references.Single(x => x.MetadataReferenceInfo.Mvid == info.Mvid);
+                testReference.MetadataReferenceInfo.AssertEqual(info);
+                count++;
             }
 
-            // Make sure we read all the data
-            Assert.Equal(0, metadataReferenceReader.RemainingBytes);
+            Assert.Equal(references.Length + frameworkReferences.Length, count);
         }
 
         public static BlobReader GetSingleBlob(Guid infoGuid, MetadataReader pdbReader)

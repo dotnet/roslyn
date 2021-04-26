@@ -267,5 +267,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
             => ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental;
+
+        public static string Enable_all_features_in_opened_files_from_source_generators_experimental
+            => ServicesVSResources.Enable_all_features_in_opened_files_from_source_generators_experimental;
     }
 }
