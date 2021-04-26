@@ -98,13 +98,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
 
         private readonly DebuggingSessionTelemetry _telemetry;
-        private readonly ManagedEditAndContinueCapabilities _capabilities;
+        private readonly ManagedEditAndContinueCapability _capabilities;
         internal EditSession EditSession;
 
         internal DebuggingSession(
             Solution solution,
             IManagedEditAndContinueDebuggerService debuggerService,
-            ManagedEditAndContinueCapabilities capabilities,
+            ManagedEditAndContinueCapability capabilities,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
             IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
             DebuggingSessionTelemetry debuggingSessionTelemetry,
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Gets the capabilities of the runtime with respect to applying code changes.
         /// </summary>
-        internal ManagedEditAndContinueCapabilities Capabilities => _capabilities;
+        internal ManagedEditAndContinueCapability Capabilities => _capabilities;
 
         public void Dispose()
         {

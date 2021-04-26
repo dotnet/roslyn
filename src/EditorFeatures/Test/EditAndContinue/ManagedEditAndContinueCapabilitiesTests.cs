@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var capabilities = "Baseline";
 
-            var service = new ManagedEditAndContinueCapabilities(capabilities);
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
-            Assert.True(service.HasCapability(ManagedEditAndContinueCapability.Baseline));
-            Assert.False(service.HasCapability(ManagedEditAndContinueCapability.RuntimeEdits));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
+            Assert.False(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
         }
 
         [Fact]
@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var capabilities = "BaseLine";
 
-            var service = new ManagedEditAndContinueCapabilities(capabilities);
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
-            Assert.False(service.HasCapability(ManagedEditAndContinueCapability.Baseline));
+            Assert.False(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
         }
 
         [Fact]
@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var capabilities = "Baseline Invalid RuntimeEdits";
 
-            var service = new ManagedEditAndContinueCapabilities(capabilities);
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
-            Assert.True(service.HasCapability(ManagedEditAndContinueCapability.Baseline));
-            Assert.True(service.HasCapability(ManagedEditAndContinueCapability.RuntimeEdits));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
         }
 
         [Fact]
@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var capabilities = "Baseline 90 RuntimeEdits";
 
-            var service = new ManagedEditAndContinueCapabilities(capabilities);
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
-            Assert.True(service.HasCapability(ManagedEditAndContinueCapability.Baseline));
-            Assert.True(service.HasCapability(ManagedEditAndContinueCapability.RuntimeEdits));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
         }
 
         [Fact]
@@ -56,20 +56,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var capabilities = "  Baseline      RuntimeEdits   ";
 
-            var service = new ManagedEditAndContinueCapabilities(capabilities);
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
-            Assert.True(service.HasCapability(ManagedEditAndContinueCapability.Baseline));
-            Assert.True(service.HasCapability(ManagedEditAndContinueCapability.RuntimeEdits));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
         }
 
         [Fact]
-        public void HasCapability_IgnoreInvalid()
+        public void HasFlag_IgnoreInvalid()
         {
             var capabilities = "Baseline";
 
-            var service = new ManagedEditAndContinueCapabilities(capabilities);
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
-            Assert.False(service.HasCapability((ManagedEditAndContinueCapability)999));
+            Assert.False(service.HasFlag((ManagedEditAndContinueCapability)999));
         }
     }
 }

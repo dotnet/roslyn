@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static void VerifyRudeDiagnostics(
             this EditScript<SyntaxNode> editScript,
-            ManagedEditAndContinueCapabilities? capabilities = null,
+            ManagedEditAndContinueCapability? capabilities = null,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
             VerifySemanticDiagnostics(
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static void VerifySemanticDiagnostics(
             this EditScript<SyntaxNode> editScript,
             ActiveStatementsDescription activeStatements,
-            ManagedEditAndContinueCapabilities? capabilities = null,
+            ManagedEditAndContinueCapability? capabilities = null,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
             VerifySemantics(
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             this EditScript<SyntaxNode> editScript,
             ActiveStatementsDescription activeStatements,
             SemanticEditDescription[] expectedSemanticEdits,
-            ManagedEditAndContinueCapabilities? capabilities = null)
+            ManagedEditAndContinueCapability? capabilities = null)
         {
             VerifySemantics(
                 new[] { editScript },
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             EditScript<SyntaxNode>[] editScripts,
             DocumentAnalysisResultsDescription[] expected,
             TargetFramework[]? targetFrameworks = null,
-            ManagedEditAndContinueCapabilities? capabilities = null)
+            ManagedEditAndContinueCapability? capabilities = null)
         {
             foreach (var targetFramework in targetFrameworks ?? new[] { TargetFramework.NetStandard20, TargetFramework.NetCoreApp })
             {

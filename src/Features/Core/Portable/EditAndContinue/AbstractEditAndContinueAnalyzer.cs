@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ActiveStatement> oldActiveStatements,
             Document newDocument,
             ImmutableArray<TextSpan> newActiveStatementSpans,
-            ManagedEditAndContinueCapabilities capabilities,
+            ManagedEditAndContinueCapability capabilities,
             CancellationToken cancellationToken)
         {
             DocumentAnalysisResults.Log.Write("Analyzing document {0}", newDocument.Name);
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 // If the document has changed at all, lets make sure Edit and Continue is supported
-                if (!capabilities.HasCapability(ManagedEditAndContinueCapability.Baseline))
+                if (!capabilities.HasFlag(ManagedEditAndContinueCapability.Baseline))
                 {
                     return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
                        new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)), hasChanges);
@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ISymbol newSymbol,
             ImmutableArray<ActiveStatement> oldActiveStatements,
             ImmutableArray<TextSpan> newActiveStatementSpans,
-            ManagedEditAndContinueCapabilities capabilities,
+            ManagedEditAndContinueCapability capabilities,
             [Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
             [Out] ImmutableArray<ImmutableArray<LinePositionSpan>>.Builder newExceptionRegions,
             [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics,
@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     ReportStateMachineRudeEdits(oldModel.Compilation, oldSymbol, newBody, diagnostics);
                 }
                 else if (newHasStateMachineSuspensionPoint &&
-                    !capabilities.HasCapability(ManagedEditAndContinueCapability.NewTypeDefinition))
+                    !capabilities.HasFlag(ManagedEditAndContinueCapability.NewTypeDefinition))
                 {
                     // Adding a state machine, either for async or iterator, will require creating a new helper class
                     // so is a rude edit if the runtime doesn't support it
@@ -2219,7 +2219,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             ImmutableArray<ActiveStatement>.Builder newActiveStatements,
             ImmutableArray<ImmutableArray<LinePositionSpan>>.Builder newExceptionRegions,
-            ManagedEditAndContinueCapabilities capabilities,
+            ManagedEditAndContinueCapability capabilities,
             CancellationToken cancellationToken)
         {
             if (editScript.Edits.Length == 0 && triviaEdits.Count == 0)
@@ -2594,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     var containingSymbolKey = SymbolKey.Create(newContainingType, cancellationToken);
                                     oldContainingType = containingSymbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol as INamedTypeSymbol;
 
-                                    if (oldContainingType != null && !capabilities.HasCapability(ManagedEditAndContinueCapability.AddDefinitionToExistingType))
+                                    if (oldContainingType != null && !capabilities.HasFlag(ManagedEditAndContinueCapability.AddDefinitionToExistingType))
                                     {
                                         diagnostics.Add(new RudeEditDiagnostic(
                                             RudeEditKind.Insert,
@@ -2633,7 +2633,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     // adds a new top-level type
                                     Contract.ThrowIfFalse(newSymbol is INamedTypeSymbol);
 
-                                    if (!capabilities.HasCapability(ManagedEditAndContinueCapability.NewTypeDefinition))
+                                    if (!capabilities.HasFlag(ManagedEditAndContinueCapability.NewTypeDefinition))
                                     {
                                         diagnostics.Add(new RudeEditDiagnostic(
                                             RudeEditKind.Insert,
@@ -3401,7 +3401,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ISymbol newMember,
             IReadOnlyDictionary<SyntaxNode, LambdaInfo>? matchedLambdas,
             BidirectionalMap<SyntaxNode> map,
-            ManagedEditAndContinueCapabilities capabilities,
+            ManagedEditAndContinueCapability capabilities,
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             out bool syntaxMapRequired,
             CancellationToken cancellationToken)
@@ -3640,12 +3640,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             oldCapturesToClosureScopes.Free();
         }
 
-        private bool CanAddNewLambda(SyntaxNode newLambda, ManagedEditAndContinueCapabilities capabilities, IReadOnlyDictionary<SyntaxNode, LambdaInfo>? matchedLambdas)
+        private bool CanAddNewLambda(SyntaxNode newLambda, ManagedEditAndContinueCapability capabilities, IReadOnlyDictionary<SyntaxNode, LambdaInfo>? matchedLambdas)
         {
             // New local functions mean new methods in existing classes
             if (IsLocalFunction(newLambda))
             {
-                return capabilities.HasCapability(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
+                return capabilities.HasFlag(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
             }
 
             // New lambdas sometimes mean creating new helper classes, and sometimes mean new methods in exising helper classes
@@ -3655,14 +3655,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // This check is redundant with the below, once the limitation in the referenced issue is resolved
             if (matchedLambdas is { Count: > 0 })
             {
-                return capabilities.HasCapability(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
+                return capabilities.HasFlag(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
             }
 
             // If there is already a lambda in the class then the new lambda would result in a new method in the existing helper class.
             // If there isn't already a lambda in the class then the new lambda would result in a new helper class.
             // Unfortunately right now we can't determine which of these is true so we have to just check both capabilities instead.
-            return capabilities.HasCapability(ManagedEditAndContinueCapability.NewTypeDefinition) &&
-                capabilities.HasCapability(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
+            return capabilities.HasFlag(ManagedEditAndContinueCapability.NewTypeDefinition) &&
+                capabilities.HasFlag(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
         }
 
         private void ReportMultiScopeCaptures(

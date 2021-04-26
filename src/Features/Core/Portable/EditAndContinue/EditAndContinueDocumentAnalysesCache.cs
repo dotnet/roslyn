@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _baseActiveStatements = baseActiveStatements;
         }
 
-        public async ValueTask<ImmutableArray<ActiveStatement>> GetActiveStatementsAsync(Document baseDocument, Document document, ImmutableArray<TextSpan> activeStatementSpans, ManagedEditAndContinueCapabilities capabilities, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<ActiveStatement>> GetActiveStatementsAsync(Document baseDocument, Document document, ImmutableArray<TextSpan> activeStatementSpans, ManagedEditAndContinueCapability capabilities, CancellationToken cancellationToken)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async ValueTask<ImmutableArray<DocumentAnalysisResults>> GetDocumentAnalysesAsync(
             Project oldProject,
             IReadOnlyList<(Document newDocument, ImmutableArray<TextSpan> newActiveStatementSpans)> documentInfos,
-            ManagedEditAndContinueCapabilities capabilities,
+            ManagedEditAndContinueCapability capabilities,
             CancellationToken cancellationToken)
         {
             try
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <param name="baseProject">Base project.</param>
         /// <param name="document">Document snapshot to analyze.</param>
         /// <param name="activeStatementSpans">Active statement spans tracked by the editor.</param>
-        public async ValueTask<DocumentAnalysisResults> GetDocumentAnalysisAsync(Project baseProject, Document document, ImmutableArray<TextSpan> activeStatementSpans, ManagedEditAndContinueCapabilities capabilities, CancellationToken cancellationToken)
+        public async ValueTask<DocumentAnalysisResults> GetDocumentAnalysisAsync(Project baseProject, Document document, ImmutableArray<TextSpan> activeStatementSpans, ManagedEditAndContinueCapability capabilities, CancellationToken cancellationToken)
         {
             try
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Project baseProject, Document document, ImmutableArray<TextSpan> activeStatementSpans, ManagedEditAndContinueCapabilities capabilities)
+        private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Project baseProject, Document document, ImmutableArray<TextSpan> activeStatementSpans, ManagedEditAndContinueCapability capabilities)
         {
             // Do not reuse an analysis of the document unless its snasphot is exactly the same as was used to calculate the results.
             // Note that comparing document snapshots in effect compares the entire solution snapshots (when another document is changed a new solution snapshot is created

@@ -86,13 +86,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
 
             var runtimeCapabilities = await debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
-            var capabilities = new ManagedEditAndContinueCapabilities(runtimeCapabilities);
+            var capabilities = ParseCapabilities(runtimeCapabilities);
 
             var newSession = new DebuggingSession(solution, debuggerService, capabilities, _compilationOutputsProvider, initialDocumentStates, _debuggingSessionTelemetry, _editSessionTelemetry);
             var previousSession = Interlocked.CompareExchange(ref _debuggingSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
 
+        // internal for testing
+        internal static ManagedEditAndContinueCapability ParseCapabilities(string? capabilities)
+        {
+            var caps = ManagedEditAndContinueCapability.None;
+
+            if (!string.IsNullOrEmpty(capabilities))
+            {
+                foreach (var capability in capabilities.Split(' '))
+                {
+                    caps |= capability switch
+                    {
+                        "Baseline" => ManagedEditAndContinueCapability.Baseline,
+                        "AddDefinitionToExistingType" => ManagedEditAndContinueCapability.AddDefinitionToExistingType,
+                        "NewTypeDefinition" => ManagedEditAndContinueCapability.NewTypeDefinition,
+                        "RuntimeEdits" => ManagedEditAndContinueCapability.RuntimeEdits,
+
+                        _ => ManagedEditAndContinueCapability.None
+                    };
+                }
+            }
+
+            return caps;
+        }
         public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             var debuggingSession = Interlocked.Exchange(ref _debuggingSession, null);
