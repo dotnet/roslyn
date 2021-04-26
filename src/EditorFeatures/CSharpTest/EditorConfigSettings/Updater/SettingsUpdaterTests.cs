@@ -102,8 +102,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             option.Notification = CodeStyle.NotificationOption2.Suggestion;
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_style_throw_expression=true\r\ndotnet_diagnostic.IDE0016.severity=suggestion\r\n",
+                "[*.cs]\r\ncsharp_style_throw_expression=true\r\ndotnet_diagnostic.IDE0016.severity=suggestion",
                 (CSharpCodeStyleOptions.PreferThrowExpression, option));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public async Task TestAddNewEnumCodeStyleOptionWithSeverityOldOptionFormatExistAsync()
+        {
+            var option = CSharpCodeStyleOptions.PreferredUsingDirectivePlacement.DefaultValue;
+            option.Value = AddImportPlacement.InsideNamespace;
+            option.Notification = CodeStyle.NotificationOption2.Warning;
+            await TestAsync(
+                "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace:silent",
+                "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace\r\ndotnet_diagnostic.IDE0065.severity=warning",
+                (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, option));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
@@ -114,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             option.Notification = CodeStyle.NotificationOption2.Warning;
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace\r\ndotnet_diagnostic.IDE0065.severity=warning\r\n",
+                "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace\r\ndotnet_diagnostic.IDE0065.severity=warning",
                 (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, option));
         }
 
@@ -363,13 +375,13 @@ csharp_new_line_before_else=true";
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
             var actual = update.NewText;
-            var expected = "[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true\r\ndotnet_diagnostic.IDE2004.severity=error\r\n";
+            var expected = "[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true\r\ndotnet_diagnostic.IDE2004.severity=error";
             Assert.Equal(expected, actual);
             setting.ChangeValue(1);
             updates = await updater.GetChangedEditorConfigAsync(default);
             update = Assert.Single(updates);
             actual = update.NewText;
-            expected = "[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false\r\ndotnet_diagnostic.IDE2004.severity=error\r\n";
+            expected = "[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false\r\ndotnet_diagnostic.IDE2004.severity=error";
             Assert.Equal(expected, actual);
         }
 
@@ -403,7 +415,7 @@ csharp_new_line_before_else=true";
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
             var value = setting.GetCurrentValue() == "No" ? "false" : "true";
-            var expected = $"[*.cs]\r\ncsharp_style_var_when_type_is_apparent={value}\r\ndotnet_diagnostic.{ids[0]}.severity=error\r\ndotnet_diagnostic.{ids[1]}.severity=error\r\n";
+            var expected = $"[*.cs]\r\ncsharp_style_var_when_type_is_apparent={value}\r\ndotnet_diagnostic.{ids[0]}.severity=error\r\ndotnet_diagnostic.{ids[1]}.severity=error";
             var actual = update.NewText;
             Assert.Equal(expected, actual);
         }
@@ -425,7 +437,7 @@ csharp_new_line_before_else=true";
             setting.ChangeValue(0);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            var expected = $"[*.cs]\r\ncsharp_style_var_when_type_is_apparent=true\r\ndotnet_diagnostic.{ids[0]}.severity=silent\r\ndotnet_diagnostic.{ids[1]}.severity=silent\r\n";
+            var expected = $"[*.cs]\r\ncsharp_style_var_when_type_is_apparent=true\r\ndotnet_diagnostic.{ids[0]}.severity=silent\r\ndotnet_diagnostic.{ids[1]}.severity=silent";
             var actual = update.NewText;
             Assert.Equal(expected, actual);
         }

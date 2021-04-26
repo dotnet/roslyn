@@ -204,12 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                         // Verify the option name matches
                         if (string.Equals(key, optionName, StringComparison.OrdinalIgnoreCase))
                         {
-                            var sb = new StringBuilder($"{optionName}={optionValue}\r\n");
-                            foreach (var id in ids.OrderBy(StringComparer.OrdinalIgnoreCase))
-                            {
-                                sb.AppendLine($"dotnet_diagnostic.{id}.severity={optionSeverity}");
-                            }
-                            var newEntry = sb.ToString();
+                            var newEntry = GetStringForNewEntry(optionName, optionValue, ids, optionSeverity);
                             // We found the rule in the file -- replace it with updated option value.
                             textChanges.Add(new TextChange(curLine.Span, newEntry));
                             foundOptionName = true;
@@ -352,12 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             string severity,
             Language language)
         {
-            var sb = new StringBuilder($"{optionName}={optionValue}\r\n");
-            foreach (var id in ids.OrderBy(StringComparer.OrdinalIgnoreCase))
-            {
-                sb.AppendLine($"dotnet_diagnostic.{id}.severity={severity}");
-            }
-            var newEntry = sb.ToString();
+            var newEntry = GetStringForNewEntry(optionName, optionValue, ids, severity);
             return AddMissingRule(editorConfigText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd, newEntry, language);
         }
 
@@ -432,6 +422,19 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 
             var result = editorConfigText.WithChanges((TextChange)new TextChange(new TextSpan(editorConfigText.Length, 0), prefix + newEntry));
             return (result, lastValidHeaderSpanEnd, result.Lines[^2]);
+        }
+
+        private static string GetStringForNewEntry(string optionName, string optionValue, ImmutableArray<string> ids, string severity)
+        {
+            var sb = new StringBuilder($"{optionName}={optionValue}\r\n");
+            var orderedIds = ids.OrderBy(StringComparer.OrdinalIgnoreCase).ToArray();
+            foreach (var id in orderedIds.Take(orderedIds.Length - 1))
+            {
+                sb.AppendLine($"dotnet_diagnostic.{id}.severity={severity}");
+            }
+            // do not append an additional newline at the end of mult-line options
+            sb.Append($"dotnet_diagnostic.{orderedIds.Last()}.severity={severity}");
+            return sb.ToString();
         }
 
         private static (string untrimmedKey, string key, string value, string severitySuffixInValue, string commentValue) GetOptionParts(string? curLineText)
