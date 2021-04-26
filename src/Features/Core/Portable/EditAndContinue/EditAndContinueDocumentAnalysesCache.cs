@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal sealed class EditAndContinueDocumentAnalysesCache
     {
         private readonly object _guard = new();
-        private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<TextSpan> activeStatementSpans)> _analyses = new();
+        private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<TextSpan> activeStatementSpans, ManagedEditAndContinueCapability capabilities)> _analyses = new();
         private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements;
 
         public EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements)
@@ -105,13 +105,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // For example, when analyzing a partial class we can record all documents its declaration spans. However, in other cases the analysis
             // checks for absence of a top-level type symbol. Adding a symbol to any document thus invalidates such analysis. It'd be possible
             // to keep track of which type symbols an analysis is conditional upon, if it was worth the extra complexity.
-            // 
-            // Note that this doesn't check the runtime capabilities on the asusmption that they can't change without at least a project change,
-            // though possibly they can't change at all.
             if (_analyses.TryGetValue(document.Id, out var analysis) &&
                 analysis.baseProject == baseProject &&
                 analysis.document == document &&
-                analysis.activeStatementSpans.SequenceEqual(activeStatementSpans))
+                analysis.activeStatementSpans.SequenceEqual(activeStatementSpans) &&
+                analysis.capabilities == capabilities)
             {
                 return analysis.results;
             }
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // The only relevant analysis is for the latest base and document snapshots.
             // Note that the base snapshot may evolve if documents are dicovered that were previously
             // out-of-sync with the compiled outputs and are now up-to-date.
-            _analyses[document.Id] = (lazyResults, baseProject, document, activeStatementSpans);
+            _analyses[document.Id] = (lazyResults, baseProject, document, activeStatementSpans, capabilities);
 
             return lazyResults;
         }
