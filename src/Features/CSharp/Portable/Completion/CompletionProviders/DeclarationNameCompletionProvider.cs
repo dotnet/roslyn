@@ -310,9 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 foreach (var overloadParameter in methodSymbol.Parameters)
                 {
                     if (methodParameterType.Equals(overloadParameter.Type, SymbolEqualityComparer.Default))
-                    {
                         result.Add((overloadParameter.Name, SymbolKind.Parameter));
-                    }
                 }
             }
         }
