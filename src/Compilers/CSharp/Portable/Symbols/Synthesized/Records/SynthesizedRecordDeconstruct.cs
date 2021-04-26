@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 param.Ordinal,
                                                 RefKind.Out,
                                                 param.Name,
-                                                isDiscard: false,
                                                 locations),
                                         arg: Locations),
                     IsVararg: false,

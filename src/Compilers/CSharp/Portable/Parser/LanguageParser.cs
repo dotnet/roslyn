@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -848,7 +847,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 while (this.IsPossibleAttributeDeclaration())
                 {
-                    attributes.Add(this.ParseAttributeDeclaration());
+                    var attribute = this.ParseAttributeDeclaration();
+                    attributes.Add(attribute);
                 }
 
                 _termState = saveTerm;
@@ -9769,6 +9769,8 @@ tryAgain:
                     return true;
                 case SyntaxKind.StaticKeyword:
                     return IsPossibleAnonymousMethodExpression() || IsPossibleLambdaExpression(Precedence.Expression);
+                case SyntaxKind.OpenBracketToken:
+                    return IsPossibleLambdaExpression(Precedence.Expression);
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
                     // expression (whether it is used as an identifier or a keyword).
@@ -10444,6 +10446,12 @@ tryAgain:
                     {
                         return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
                     }
+                case SyntaxKind.OpenBracketToken:
+                    if (!this.IsPossibleLambdaExpression(precedence))
+                    {
+                        goto default;
+                    }
+                    return this.ParseLambdaExpression();
                 case SyntaxKind.ThisKeyword:
                     return _syntaxFactory.ThisExpression(this.EatToken());
                 case SyntaxKind.BaseKeyword:
@@ -11061,8 +11069,15 @@ tryAgain:
             return _syntaxFactory.RefValueExpression(@refvalue, openParen, expr, comma, type, closeParen);
         }
 
+        private bool ScanParenthesizedLambda(Precedence precedence)
+        {
+            return ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
+        }
+
         private bool ScanParenthesizedImplicitlyTypedLambda(Precedence precedence)
         {
+            Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
+
             if (!(precedence <= Precedence.Lambda))
             {
                 return false;
@@ -11122,6 +11137,8 @@ tryAgain:
 
         private bool ScanExplicitlyTypedLambda(Precedence precedence)
         {
+            Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
+
             if (!(precedence <= Precedence.Lambda))
             {
                 return false;
@@ -11132,7 +11149,7 @@ tryAgain:
             {
                 bool foundParameterModifier = false;
 
-                // do we have the following:
+                // do we have the following, possibly with attributes before the parameter:
                 //   case 1: ( T x , ... ) =>
                 //   case 2: ( T x ) =>
                 //   case 3: ( out T x,
@@ -11150,6 +11167,8 @@ tryAgain:
                 {
                     // Advance past the open paren or comma.
                     this.EatToken();
+
+                    _ = ParseAttributeDeclarations();
 
                     // Eat 'out' or 'ref' for cases [3, 6]. Even though not allowed in a lambda,
                     // we treat `params` similarly for better error recovery.
@@ -11431,14 +11450,47 @@ tryAgain:
 
         private bool IsPossibleLambdaExpression(Precedence precedence)
         {
-            // Only call into this if after `static` or after a legal identifier.
+            // Only call into this if after `static`, '[',  or after a legal identifier.
             Debug.Assert(
-                this.CurrentToken.Kind == SyntaxKind.StaticKeyword ||
+                this.CurrentToken.Kind is SyntaxKind.StaticKeyword or SyntaxKind.OpenBracketToken ||
                 this.IsTrueIdentifier(this.CurrentToken));
             if (precedence > Precedence.Lambda)
             {
                 return false;
             }
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+            {
+                var resetPoint = this.GetResetPoint();
+                try
+                {
+                    _ = ParseAttributeDeclarations();
+                    return CurrentToken.Kind switch
+                    {
+                        SyntaxKind.StaticKeyword or SyntaxKind.IdentifierToken => IsPossibleLambdaExpressionCore(precedence),
+                        SyntaxKind.OpenParenToken => ScanParenthesizedLambda(precedence),
+                        _ => false,
+                    };
+                }
+                finally
+                {
+                    this.Reset(ref resetPoint);
+                    this.Release(ref resetPoint);
+                }
+            }
+            else
+            {
+                return IsPossibleLambdaExpressionCore(precedence);
+            }
+        }
+
+        private bool IsPossibleLambdaExpressionCore(Precedence precedence)
+        {
+            // Only call into this if after `static` or after a legal identifier.
+            Debug.Assert(
+                this.CurrentToken.Kind == SyntaxKind.StaticKeyword ||
+                this.IsTrueIdentifier(this.CurrentToken));
+            Debug.Assert(precedence <= Precedence.Lambda);
 
             // If we start with `static` or `async static` then just jump past those and do the
             // analysis after that point.  Note, we don't just blindly consume `async` in `static
@@ -11543,7 +11595,7 @@ tryAgain:
             }
 
             // Check whether looks like implicitly or explicitly typed lambda
-            bool isAsync = ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
+            bool isAsync = ScanParenthesizedLambda(precedence);
 
             // Restore current token index
             this.Reset(ref resetPoint);
@@ -12362,6 +12414,7 @@ tryAgain:
 
         private LambdaExpressionSyntax ParseLambdaExpression()
         {
+            var attributes = ParseAttributeDeclarations();
             var parentScopeIsInAsync = this.IsInAsync;
             var result = parseLambdaExpressionWorker();
             this.IsInAsync = parentScopeIsInAsync;
@@ -12383,7 +12436,7 @@ tryAgain:
                     var (block, expression) = ParseLambdaBody();
 
                     return _syntaxFactory.ParenthesizedLambdaExpression(
-                        modifiers, paramList, arrow, block, expression);
+                        attributes, modifiers, paramList, arrow, block, expression);
                 }
                 else
                 {
@@ -12397,7 +12450,7 @@ tryAgain:
                     var (block, expression) = ParseLambdaBody();
 
                     return _syntaxFactory.SimpleLambdaExpression(
-                        modifiers, parameter, arrow, block, expression);
+                        attributes, modifiers, parameter, arrow, block, expression);
                 }
             }
         }
@@ -12474,6 +12527,7 @@ tryAgain:
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.InKeyword:
                 case SyntaxKind.OpenParenToken:   // tuple
+                case SyntaxKind.OpenBracketToken: // attribute
                     return true;
 
                 case SyntaxKind.IdentifierToken:
@@ -12497,6 +12551,8 @@ tryAgain:
 
         private ParameterSyntax ParseLambdaParameter()
         {
+            var attributes = ParseAttributeDeclarations();
+
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
             bool hasModifier = IsParameterModifier(this.CurrentToken.Kind);
@@ -12515,7 +12571,7 @@ tryAgain:
             }
 
             SyntaxToken paramName = this.ParseIdentifierToken();
-            var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, null);
+            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, paramName, null);
             _pool.Free(modifiers);
             return parameter;
         }

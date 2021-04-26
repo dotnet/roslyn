@@ -221,6 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureWithOnStructs = MessageBase + 12796,
         IDS_FeaturePositionalFieldsInRecords = MessageBase + 12797,
         IDS_FeatureGlobalUsing = MessageBase + 12798,
+        IDS_FeatureInferredDelegateType = MessageBase + 12799,
+        IDS_FeatureLambdaAttributes = MessageBase + 12800,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -334,7 +336,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureWithOnStructs: // semantic check
                 case MessageID.IDS_FeaturePositionalFieldsInRecords: // semantic check
                 case MessageID.IDS_FeatureGlobalUsing:
+                case MessageID.IDS_FeatureInferredDelegateType: // semantic check
+                case MessageID.IDS_FeatureLambdaAttributes: // semantic check
                     return LanguageVersion.Preview;
+
                 // C# 9.0 features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                 case MessageID.IDS_FeatureFunctionPointers:

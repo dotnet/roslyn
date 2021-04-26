@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                         new SourceSimpleParameterSymbol(owner: this,
                             TypeWithAnnotations.Create(Binder.GetWellKnownType(compilation, WellKnownType.System_Text_StringBuilder, diagnostics, location), annotation),
-                            ordinal: 0, RefKind.None, "builder", isDiscard: false, Locations)),
+                            ordinal: 0, RefKind.None, "builder", Locations)),
                     IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
         }
