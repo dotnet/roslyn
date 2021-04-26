@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
     internal class XamlCompletionItem
     {
         public string[] CommitCharacters { get; set; }
-        public XamlCommitCharacter[] XamlCommitCharacters { get; set; }
+        public XamlCommitCharacters? XamlCommitCharacters { get; set; }
         public string DisplayText { get; set; }
         public string InsertText { get; set; }
         public string Detail { get; set; }
