@@ -381,7 +381,7 @@ namespace CSharpSyntaxGenerator
 
             while (IsOverride(field))
             {
-                nd = Tree.Types.Single(t => t.Name == nd.Base);
+                nd = GetTreeType(nd.Base);
                 if (nd is Node node)
                 {
                     field = node.Fields.Single(f => f.Name == field.Name);
