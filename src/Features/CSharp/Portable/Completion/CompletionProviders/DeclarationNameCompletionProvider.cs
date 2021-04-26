@@ -298,9 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var overloads = namedType.GetMembers(method.Identifier.ValueText).WhereAsArray(m => m.Kind == SymbolKind.Method);
             if (overloads.IsDefaultOrEmpty)
-            {
                 return;
-            }
 
             var methodParameterType = semanticModel.GetTypeInfo(parameterType, cancellationToken).Type;
             if (methodParameterType is null)
