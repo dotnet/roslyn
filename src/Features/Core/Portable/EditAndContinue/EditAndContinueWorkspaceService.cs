@@ -94,24 +94,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         // internal for testing
-        internal static ManagedEditAndContinueCapability ParseCapabilities(string? capabilities)
+        internal static ManagedEditAndContinueCapability ParseCapabilities(ImmutableArray<string> capabilities)
         {
             var caps = ManagedEditAndContinueCapability.None;
 
-            if (!string.IsNullOrEmpty(capabilities))
+            foreach (var capability in capabilities)
             {
-                foreach (var capability in capabilities.Split(' '))
+                caps |= capability switch
                 {
-                    caps |= capability switch
-                    {
-                        "Baseline" => ManagedEditAndContinueCapability.Baseline,
-                        "AddDefinitionToExistingType" => ManagedEditAndContinueCapability.AddDefinitionToExistingType,
-                        "NewTypeDefinition" => ManagedEditAndContinueCapability.NewTypeDefinition,
-                        "RuntimeEdits" => ManagedEditAndContinueCapability.RuntimeEdits,
+                    "Baseline" => ManagedEditAndContinueCapability.Baseline,
+                    "AddDefinitionToExistingType" => ManagedEditAndContinueCapability.AddDefinitionToExistingType,
+                    "NewTypeDefinition" => ManagedEditAndContinueCapability.NewTypeDefinition,
+                    "RuntimeEdits" => ManagedEditAndContinueCapability.RuntimeEdits,
 
-                        _ => ManagedEditAndContinueCapability.None
-                    };
-                }
+                    _ => ManagedEditAndContinueCapability.None
+                };
             }
 
             return caps;

@@ -3322,7 +3322,7 @@ class C { int Y => 1; }
         [Fact]
         public void ParseCapabilities()
         {
-            var capabilities = "Baseline";
+            var capabilities = ImmutableArray.Create("Baseline");
 
             var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
@@ -3333,7 +3333,7 @@ class C { int Y => 1; }
         [Fact]
         public void ParseCapabilities_CaseSensitive()
         {
-            var capabilities = "BaseLine";
+            var capabilities = ImmutableArray.Create("BaseLine");
 
             var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
@@ -3343,7 +3343,7 @@ class C { int Y => 1; }
         [Fact]
         public void ParseCapabilities_IgnoreInvalid()
         {
-            var capabilities = "Baseline Invalid RuntimeEdits";
+            var capabilities = ImmutableArray.Create("Baseline", "Invalid", "RuntimeEdits");
 
             var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
@@ -3354,18 +3354,7 @@ class C { int Y => 1; }
         [Fact]
         public void ParseCapabilities_IgnoreInvalidNumeric()
         {
-            var capabilities = "Baseline 90 RuntimeEdits";
-
-            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
-
-            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
-            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
-        }
-
-        [Fact]
-        public void ParseCapabilities_MultipleSpaces()
-        {
-            var capabilities = "  Baseline      RuntimeEdits   ";
+            var capabilities = ImmutableArray.Create("Baseline", "90", "RuntimeEdits");
 
             var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
