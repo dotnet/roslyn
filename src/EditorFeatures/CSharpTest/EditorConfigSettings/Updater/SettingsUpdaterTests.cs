@@ -45,12 +45,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
             var project = workspace.CurrentSolution.Projects.First();
             var runner = new InProcOrRemoteHostAnalyzerRunner(new DiagnosticAnalyzerInfoCache());
-            var compilationWithAnalyzers = (await project.GetCompilationAsync()!).WithAnalyzers(
+            var compilationWithAnalyzers = (await project.GetCompilationAsync())?.WithAnalyzers(
                     analyzerReference.GetAnalyzers(project.Language).ToImmutableArray(),
                     new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
             // no result for open file only analyzer unless forced
-            _ = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: true, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
+            _ = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers!, forceExecuteAllAnalyzers: true, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
 
             return workspace;
         }
