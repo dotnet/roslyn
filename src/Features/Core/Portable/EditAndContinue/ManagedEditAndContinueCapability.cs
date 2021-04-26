@@ -17,6 +17,5 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         Baseline = 1 << 0,
         AddDefinitionToExistingType = 1 << 1,
         NewTypeDefinition = 1 << 2,
-        RuntimeEdits = 1 << 3,
     }
 }

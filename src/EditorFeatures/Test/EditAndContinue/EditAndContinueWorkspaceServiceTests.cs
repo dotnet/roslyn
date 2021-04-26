@@ -3327,7 +3327,7 @@ class C { int Y => 1; }
             var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
             Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
-            Assert.False(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
+            Assert.False(service.HasFlag(ManagedEditAndContinueCapability.NewTypeDefinition));
         }
 
         [Fact]
@@ -3343,23 +3343,23 @@ class C { int Y => 1; }
         [Fact]
         public void ParseCapabilities_IgnoreInvalid()
         {
-            var capabilities = ImmutableArray.Create("Baseline", "Invalid", "RuntimeEdits");
+            var capabilities = ImmutableArray.Create("Baseline", "Invalid", "NewTypeDefinition");
 
             var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
             Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
-            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.NewTypeDefinition));
         }
 
         [Fact]
         public void ParseCapabilities_IgnoreInvalidNumeric()
         {
-            var capabilities = ImmutableArray.Create("Baseline", "90", "RuntimeEdits");
+            var capabilities = ImmutableArray.Create("Baseline", "90", "NewTypeDefinition");
 
             var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
             Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
-            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.RuntimeEdits));
+            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.NewTypeDefinition));
         }
     }
 }

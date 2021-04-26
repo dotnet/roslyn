@@ -105,7 +105,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     "Baseline" => ManagedEditAndContinueCapability.Baseline,
                     "AddDefinitionToExistingType" => ManagedEditAndContinueCapability.AddDefinitionToExistingType,
                     "NewTypeDefinition" => ManagedEditAndContinueCapability.NewTypeDefinition,
-                    "RuntimeEdits" => ManagedEditAndContinueCapability.RuntimeEdits,
 
                     _ => ManagedEditAndContinueCapability.None
                 };
