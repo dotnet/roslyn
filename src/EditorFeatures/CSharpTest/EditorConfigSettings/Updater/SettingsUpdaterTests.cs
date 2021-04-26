@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -17,6 +21,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
@@ -24,17 +29,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [UseExportProvider]
     public partial class SettingsUpdaterTests : TestBase
     {
-        private static Workspace CreateWorkspaceWithProjectAndDocuments()
+        private static async Task<Workspace> CreateWorkspaceWithProjectAndDocumentsAsync()
         {
             var projectId = ProjectId.CreateNewId();
-
             var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices(), WorkspaceKind.Host);
+
+            var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
+            var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
                 .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
                 .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", "public class Goo { }")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", "text")
                 .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From(""), filePath: "/a/b/config")));
+
+            var project = workspace.CurrentSolution.Projects.First();
+            var runner = new InProcOrRemoteHostAnalyzerRunner(new DiagnosticAnalyzerInfoCache());
+            var compilationWithAnalyzers = (await project.GetCompilationAsync().ConfigureAwait(false)).WithAnalyzers(
+                    analyzerReference.GetAnalyzers(project.Language).ToImmutableArray(),
+                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
+
+            // no result for open file only analyzer unless forced
+            _ = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: true, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
 
             return workspace;
         }
@@ -53,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         private static async Task TestAsync(string initialEditorConfig, string updatedEditorConfig, params (IOption2, object)[] options)
         {
-            using var workspace = CreateWorkspaceWithProjectAndDocuments();
+            using var workspace = await CreateWorkspaceWithProjectAndDocumentsAsync();
             var analyzerConfigDocument = CreateAnalyzerConfigDocument(workspace, initialEditorConfig);
             var sourcetext = await analyzerConfigDocument.GetTextAsync(default);
             var result = SettingsUpdateHelper.TryUpdateAnalyzerConfigDocument(sourcetext, analyzerConfigDocument.FilePath!, workspace.Options, options);
@@ -62,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         private static async Task TestAsync(string initialEditorConfig, string updatedEditorConfig, params (AnalyzerSetting, DiagnosticSeverity)[] options)
         {
-            using var workspace = CreateWorkspaceWithProjectAndDocuments();
+            using var workspace = await CreateWorkspaceWithProjectAndDocumentsAsync();
             var analyzerConfigDocument = CreateAnalyzerConfigDocument(workspace, initialEditorConfig);
             var sourcetext = await analyzerConfigDocument.GetTextAsync(default);
             var result = SettingsUpdateHelper.TryUpdateAnalyzerConfigDocument(sourcetext, analyzerConfigDocument.FilePath!, options);
@@ -86,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             option.Notification = CodeStyle.NotificationOption2.Suggestion;
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_style_throw_expression=true:suggestion",
+                "[*.cs]\r\ncsharp_style_throw_expression=true\r\ndotnet_diagnostic.IDE0016.severity=suggestion\r\n",
                 (CSharpCodeStyleOptions.PreferThrowExpression, option));
         }
 
@@ -98,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             option.Notification = CodeStyle.NotificationOption2.Warning;
             await TestAsync(
                 string.Empty,
-                "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace:warning",
+                "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace\r\ndotnet_diagnostic.IDE0065.severity=warning\r\n",
                 (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, option));
         }
 
@@ -322,7 +338,7 @@ csharp_new_line_before_else=true";
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
         public async Task TestAnalyzerSettingsUpdaterService()
         {
-            var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var workspace = await CreateWorkspaceWithProjectAndDocumentsAsync();
             var updater = new AnalyzerSettingsUpdater(workspace, "/a/b/config");
             var id = "Test001";
             var descriptor = new DiagnosticDescriptor(id: id, title: "", messageFormat: "", category: "Naming", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: false);
@@ -336,7 +352,7 @@ csharp_new_line_before_else=true";
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
         public async Task TestCodeStyleSettingUpdaterService()
         {
-            var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var workspace = await CreateWorkspaceWithProjectAndDocumentsAsync();
             var updater = new OptionUpdater(workspace, "/a/b/config");
             var setting = CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer,
                                                   "",
@@ -346,23 +362,72 @@ csharp_new_line_before_else=true";
             setting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true:error", update.NewText);
+            var actual = update.NewText;
+            var expected = "[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true\r\ndotnet_diagnostic.IDE2004.severity=error\r\n";
+            Assert.Equal(expected, actual);
             setting.ChangeValue(1);
             updates = await updater.GetChangedEditorConfigAsync(default);
             update = Assert.Single(updates);
-            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false:error", update.NewText);
+            actual = update.NewText;
+            expected = "[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false\r\ndotnet_diagnostic.IDE2004.severity=error\r\n";
+            Assert.Equal(expected, actual);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
         public async Task TestFormattingSettingUpdaterService()
         {
-            var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var workspace = await CreateWorkspaceWithProjectAndDocumentsAsync();
             var updater = new OptionUpdater(workspace, "/a/b/config");
             var setting = FormattingSetting.Create(CSharpFormattingOptions2.NewLineForElse, "", TestAnalyzerConfigOptions.Instance, workspace.Options, updater);
             setting.SetValue(false);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
             Assert.Equal("[*.cs]\r\ncsharp_new_line_before_else=false", update.NewText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public async Task TestCodeStyleOption_BlankFile_Severity()
+        {
+            var workspace = await CreateWorkspaceWithProjectAndDocumentsAsync();
+            var updater = new OptionUpdater(workspace, "/a/b/config");
+            var ids = IDEDiagnosticIdToOptionMappingHelper.GetDiagnosticIdsForOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, LanguageNames.CSharp)
+                                                          .OrderBy(StringComparer.OrdinalIgnoreCase)
+                                                          .ToArray();
+            Assert.Equal(2, ids.Length);
+            var setting = CodeStyleSetting.Create(CSharpCodeStyleOptions.VarWhenTypeIsApparent,
+                                                  "",
+                                                  TestAnalyzerConfigOptions.Instance,
+                                                  workspace.Options,
+                                                  updater);
+            setting.ChangeSeverity(DiagnosticSeverity.Error);
+            var updates = await updater.GetChangedEditorConfigAsync(default);
+            var update = Assert.Single(updates);
+            var value = setting.GetCurrentValue() == "No" ? "false" : "true";
+            var expected = $"[*.cs]\r\ncsharp_style_var_when_type_is_apparent={value}\r\ndotnet_diagnostic.{ids[0]}.severity=error\r\ndotnet_diagnostic.{ids[1]}.severity=error\r\n";
+            var actual = update.NewText;
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public async Task TestCodeStyleOption_BlankFile_Value()
+        {
+            var workspace = await CreateWorkspaceWithProjectAndDocumentsAsync();
+            var updater = new OptionUpdater(workspace, "/a/b/config");
+            var ids = IDEDiagnosticIdToOptionMappingHelper.GetDiagnosticIdsForOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, LanguageNames.CSharp)
+                                                          .OrderBy(StringComparer.OrdinalIgnoreCase)
+                                                          .ToArray();
+            Assert.Equal(2, ids.Length);
+            var setting = CodeStyleSetting.Create(CSharpCodeStyleOptions.VarWhenTypeIsApparent,
+                                                  "",
+                                                  TestAnalyzerConfigOptions.Instance,
+                                                  workspace.Options,
+                                                  updater);
+            setting.ChangeValue(0);
+            var updates = await updater.GetChangedEditorConfigAsync(default);
+            var update = Assert.Single(updates);
+            var expected = $"[*.cs]\r\ncsharp_style_var_when_type_is_apparent=true\r\ndotnet_diagnostic.{ids[0]}.severity=silent\r\ndotnet_diagnostic.{ids[1]}.severity=silent\r\n";
+            var actual = update.NewText;
+            Assert.Equal(expected, actual);
         }
     }
 }
