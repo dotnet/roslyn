@@ -2594,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     var containingSymbolKey = SymbolKey.Create(newContainingType, cancellationToken);
                                     oldContainingType = containingSymbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol as INamedTypeSymbol;
 
-                                    if (oldContainingType != null && !capabilities.HasFlag(ManagedEditAndContinueCapability.AddDefinitionToExistingType))
+                                    if (oldContainingType != null && !CanAddNewMember(newSymbol, capabilities))
                                     {
                                         diagnostics.Add(new RudeEditDiagnostic(
                                             RudeEditKind.InsertNotSupportedByRuntime,
@@ -2879,6 +2879,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             return semanticEdits.ToImmutable();
+        }
+
+        private static bool CanAddNewMember(ISymbol newSymbol, ManagedEditAndContinueCapability capabilities)
+        {
+            if (newSymbol is IMethodSymbol or IPropertySymbol) // Properties are just get_ and set_ methods
+            {
+                return capabilities.HasFlag(ManagedEditAndContinueCapability.AddMethodToExistingType);
+            }
+            else if (newSymbol is IFieldSymbol field)
+            {
+                if (field.IsStatic)
+                {
+                    return capabilities.HasFlag(ManagedEditAndContinueCapability.AddStaticFieldToExistingType);
+                }
+
+                return capabilities.HasFlag(ManagedEditAndContinueCapability.AddInstanceFieldToExistingType);
+            }
+
+            return true;
         }
 
         private static void AddEditsForSynthesizedRecordMembers(Compilation compilation, INamedTypeSymbol recordType, ArrayBuilder<SemanticEditInfo> semanticEdits)
@@ -3645,7 +3664,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // New local functions mean new methods in existing classes
             if (IsLocalFunction(newLambda))
             {
-                return capabilities.HasFlag(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
+                return capabilities.HasFlag(ManagedEditAndContinueCapability.AddMethodToExistingType);
             }
 
             // New lambdas sometimes mean creating new helper classes, and sometimes mean new methods in exising helper classes
@@ -3655,14 +3674,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // This check is redundant with the below, once the limitation in the referenced issue is resolved
             if (matchedLambdas is { Count: > 0 })
             {
-                return capabilities.HasFlag(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
+                return capabilities.HasFlag(ManagedEditAndContinueCapability.AddMethodToExistingType);
             }
 
             // If there is already a lambda in the class then the new lambda would result in a new method in the existing helper class.
             // If there isn't already a lambda in the class then the new lambda would result in a new helper class.
             // Unfortunately right now we can't determine which of these is true so we have to just check both capabilities instead.
             return capabilities.HasFlag(ManagedEditAndContinueCapability.NewTypeDefinition) &&
-                capabilities.HasFlag(ManagedEditAndContinueCapability.AddDefinitionToExistingType);
+                capabilities.HasFlag(ManagedEditAndContinueCapability.AddMethodToExistingType);
         }
 
         private void ReportMultiScopeCaptures(

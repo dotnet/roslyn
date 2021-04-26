@@ -30,7 +30,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal abstract class EditAndContinueTestHelpers
     {
         public static readonly ManagedEditAndContinueCapability BaselineCapabilities = ManagedEditAndContinueCapability.Baseline;
-        public static readonly ManagedEditAndContinueCapability Net5RuntimeCapabilities = ManagedEditAndContinueCapability.Baseline | ManagedEditAndContinueCapability.AddDefinitionToExistingType | ManagedEditAndContinueCapability.NewTypeDefinition;
+        public static readonly ManagedEditAndContinueCapability Net5RuntimeCapabilities = ManagedEditAndContinueCapability.Baseline |
+                                                                                          ManagedEditAndContinueCapability.AddInstanceFieldToExistingType |
+                                                                                          ManagedEditAndContinueCapability.AddStaticFieldToExistingType |
+                                                                                          ManagedEditAndContinueCapability.AddMethodToExistingType |
+                                                                                          ManagedEditAndContinueCapability.NewTypeDefinition;
 
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
         public abstract SyntaxNode FindNode(SyntaxNode root, TextSpan span);

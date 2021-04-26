@@ -10516,7 +10516,20 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities | ManagedEditAndContinueCapability.AddStaticFieldToExistingType,
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a = 1", FeaturesResources.field));
+        }
+
+        [Fact]
+        public void FieldInsert_Static_NotSupportedByRuntime()
+        {
+            var src1 = "class C {  }";
+            var src2 = "class C { public static int a = 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities | ManagedEditAndContinueCapability.AddInstanceFieldToExistingType,
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a = 1", FeaturesResources.field));
         }
 

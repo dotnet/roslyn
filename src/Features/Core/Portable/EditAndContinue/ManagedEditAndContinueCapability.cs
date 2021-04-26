@@ -20,13 +20,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         Baseline = 1 << 0,
 
         /// <summary>
-        /// A new field/property/method definition can be added to an existing type.
+        /// Adding a static or instance method to an existing type.
         /// </summary>
-        AddDefinitionToExistingType = 1 << 1,
+        AddMethodToExistingType = 1 << 1,
 
         /// <summary>
-        /// A new type definition can be created.
+        /// Adding a static field to an existing type.
         /// </summary>
-        NewTypeDefinition = 1 << 2,
+        AddStaticFieldToExistingType = 1 << 2,
+
+        /// <summary>
+        /// Adding an instance field to an existing type.
+        /// </summary>
+        AddInstanceFieldToExistingType = 1 << 3,
+
+        /// <summary>
+        /// Creating a new type definition.
+        /// </summary>
+        NewTypeDefinition = 1 << 2
     }
 }
