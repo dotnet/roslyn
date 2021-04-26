@@ -8418,8 +8418,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">Parametry nebo lokální proměnné typu {0} nemůžou být deklarované v asynchronních metodách nebo lambda výrazech.</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="needs-review-translation">Parametry nebo lokální proměnné typu {0} nemůžou být deklarované v asynchronních metodách nebo lambda výrazech.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
