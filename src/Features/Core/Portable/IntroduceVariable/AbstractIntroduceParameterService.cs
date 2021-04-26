@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -112,52 +113,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         /// <summary>
-        /// Determines if the expression is something that should have code actions displayed for it.
-        /// Depends upon the identifiers in the expression mapping back to parameters.
-        /// Does not handle params parameters.
-        /// </summary>
-        private static async Task<(bool shouldDisplay, bool containsClassExpression)> ShouldExpressionDisplayCodeActionAsync(Document document, TExpressionSyntax expression, CancellationToken cancellationToken)
-        {
-            var variablesInExpression = expression.DescendantNodes();
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var containsClassSpecificStatement = false;
-            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
-
-            foreach (var variable in variablesInExpression)
-            {
-                var symbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
-
-                // If the expression contains locals or range variables then we do not want to offer
-                // code actions since there will be errors at call sites.
-                if (symbol is IRangeVariableSymbol or ILocalSymbol)
-                {
-                    return (false, false);
-                }
-
-                if (symbol is IParameterSymbol parameter)
-                {
-                    // We do not want to offer code actions if the expressions contains references
-                    // to params parameters because it is difficult to know what is being referenced
-                    // at the callsites.
-                    if (parameter.IsParams)
-                    {
-                        return (false, false);
-                    }
-                }
-
-                // If expression contains this or base keywords then we do not want to refactor call sites
-                // that are not overloads/trampolines because we do not know if the class specific information
-                // is available in other documents.
-                if (variable.RawKind == syntaxKinds.ThisExpression || variable.RawKind == syntaxKinds.BaseExpression)
-                {
-                    containsClassSpecificStatement = true;
-                }
-            }
-
-            return (true, containsClassSpecificStatement);
-        }
-
-        /// <summary>
         /// Creates new code actions for each introduce parameter possibility.
         /// Does not create actions for overloads/trampoline if there are optional parameters or if the methodSymbol
         /// is a constructor.
@@ -207,6 +162,52 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return new MyCodeAction(actionName, c => IntroduceParameterAsync(
                     document, expression, methodSymbol, containingMethod, allOccurrences, selectedCodeAction, c));
             }
+        }
+
+        /// <summary>
+        /// Determines if the expression is something that should have code actions displayed for it.
+        /// Depends upon the identifiers in the expression mapping back to parameters.
+        /// Does not handle params parameters.
+        /// </summary>
+        private static async Task<(bool shouldDisplay, bool containsClassExpression)> ShouldExpressionDisplayCodeActionAsync(
+            Document document, TExpressionSyntax expression, CancellationToken cancellationToken)
+        {
+            var variablesInExpression = expression.DescendantNodes();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var variable in variablesInExpression)
+            {
+                var symbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
+
+                // If the expression contains locals or range variables then we do not want to offer
+                // code actions since there will be errors at call sites.
+                if (symbol is IRangeVariableSymbol or ILocalSymbol)
+                {
+                    return (false, false);
+                }
+
+                if (symbol is IParameterSymbol parameter)
+                {
+                    // We do not want to offer code actions if the expressions contains references
+                    // to params parameters because it is difficult to know what is being referenced
+                    // at the callsites.
+                    if (parameter.IsParams)
+                    {
+                        return (false, false);
+                    }
+                }
+            }
+
+            // If expression contains this or base keywords, implicitly or explicitly,
+            // then we do not want to refactor call sites that are not overloads/trampolines
+            // because we do not know if the class specific information is available in other documents.
+            var operation = semanticModel.GetOperation(expression, cancellationToken);
+            var containsClassSpecificStatement = false;
+            if (operation is not null)
+            {
+                containsClassSpecificStatement = operation.Descendants().Any(op => op.Kind == OperationKind.InstanceReference);
+            }
+
+            return (true, containsClassSpecificStatement);
         }
 
         /// <summary>
