@@ -31,9 +31,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.16", "src\Microsoft.VisualStudio.VsixInstaller.16\Microsoft.VisualStudio.VsixInstaller.16.csproj", "{6A12CFF7-2499-4671-8EBE-EC3F2FF2ADF0}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.17", "src\Microsoft.VisualStudio.VsixInstaller.17\Microsoft.VisualStudio.VsixInstaller.17.csproj", "{43CC037C-8EBC-424C-AB73-9DD4047924A1}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{4232a7ba-a7b7-4c65-b7a1-17fb5cded299}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{43cc037c-8ebc-424c-ab73-9dd4047924a1}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{6a12cff7-2499-4671-8ebe-ec3f2ff2adf0}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{75edeb61-db9d-4f12-b922-ecef8081cef1}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{784cb5c8-6258-499d-8efb-7a601a6f7e46}*SharedItemsImports = 5
@@ -77,6 +80,10 @@ Global
 		{6A12CFF7-2499-4671-8EBE-EC3F2FF2ADF0}.Debug|Any CPU.Build.0 = Debug|x86
 		{6A12CFF7-2499-4671-8EBE-EC3F2FF2ADF0}.Release|Any CPU.ActiveCfg = Release|x86
 		{6A12CFF7-2499-4671-8EBE-EC3F2FF2ADF0}.Release|Any CPU.Build.0 = Release|x86
+		{43CC037C-8EBC-424C-AB73-9DD4047924A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43CC037C-8EBC-424C-AB73-9DD4047924A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43CC037C-8EBC-424C-AB73-9DD4047924A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43CC037C-8EBC-424C-AB73-9DD4047924A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

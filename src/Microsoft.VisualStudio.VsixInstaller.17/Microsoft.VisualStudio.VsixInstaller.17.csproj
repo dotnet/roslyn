@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <NoWarn>$(NoWarn);MSB3270</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.ExtensionEngine" HintPath="C:\Program Files\Microsoft Visual Studio\2022\Preview\MSBuild\Microsoft\VisualStudio\v17.0\VSSDK\Microsoft.VisualStudio.ExtensionEngine.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Sdk" Version="17.0.0-previews-1-31310-052" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" Version="17.0.0-previews-1-31310-052" />
+  </ItemGroup>
+
+  <Import Project="..\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems" Label="Shared" />
+
+</Project>
