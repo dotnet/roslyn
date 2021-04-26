@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -115,15 +115,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             foreach (var (option, value, ids, severity, language) in settingsToUpdate)
             {
                 SourceText? newText;
-                if (severity is not null && !ids.IsEmpty)
-                {
-                    // This option spans multiple lines
-                    (newText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd) = UpdateMultiLineOptionIfExistsInFile(updatedText, filePath, option, value, ids, severity, language);
-                }
-                else
-                {
-                    (newText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd) = UpdateSingleLineOptionIfExistsInFile(updatedText, filePath, option, value, language);
-                }
+                (newText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd) = severity is not null && !ids.IsEmpty
+                    ? UpdateMultiLineOptionIfExistsInFile(updatedText, filePath, option, value, ids, severity, language)
+                    : UpdateSingleLineOptionIfExistsInFile(updatedText, filePath, option, value, language);
 
                 if (newText != null)
                 {
@@ -131,14 +125,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     continue;
                 }
 
-                if (severity is not null && !ids.IsEmpty)
-                {
-                    (newText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd) = AddMissingRuleMultiLine(updatedText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd, option, value, ids, severity, language);
-                }
-                else
-                {
-                    (newText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd) = AddMissingRuleSingleLine(updatedText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd, option, value, language);
-                }
+
+                (newText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd) = severity is not null && !ids.IsEmpty
+                    ? AddMissingRuleMultiLine(updatedText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd, option, value, ids, severity, language)
+                    : AddMissingRuleSingleLine(updatedText, lastValidHeaderSpanEnd, lastValidSpecificHeaderSpanEnd, option, value, language);
+
                 if (newText != null)
                 {
                     updatedText = newText;
