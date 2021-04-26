@@ -36,8 +36,10 @@
   <ItemGroup>
     <Reference Include="System.Design" />
     <Reference Include="System.Windows.Forms" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.16.9.DesignTime" Version="$(MicrosoftVisualStudioShellInterop169DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" PrivateAssets="none" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Add explicit reference to avoid NU1603 missing package warning -->
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)"/>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />

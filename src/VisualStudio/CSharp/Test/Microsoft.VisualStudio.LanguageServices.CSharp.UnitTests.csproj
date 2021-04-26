@@ -49,13 +49,15 @@
     <ProjectReference Include="..\..\..\Interactive\HostProcess\InteractiveHost32.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
-    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
+    <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" Version="$(MicrosoftInternalVisualStudioInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Cache" Version="$(MicrosoftVisualStudioCacheVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
+    <!-- Add explicit reference to avoid NU1603 missing package warning -->
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)"/>
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x86\native\e_sqlite3.dll">
