@@ -414,7 +414,7 @@ csharp_new_line_before_else=true";
             setting.ChangeSeverity(DiagnosticSeverity.Error);
             var updates = await updater.GetChangedEditorConfigAsync(default);
             var update = Assert.Single(updates);
-            var value = setting.GetCurrentValue() == "No" ? "false" : "true";
+            var value = (bool)setting.Value;
             var expected = $"[*.cs]\r\ncsharp_style_var_when_type_is_apparent={value}\r\ndotnet_diagnostic.{ids[0]}.severity=error\r\ndotnet_diagnostic.{ids[1]}.severity=error";
             var actual = update.NewText;
             Assert.Equal(expected, actual);
