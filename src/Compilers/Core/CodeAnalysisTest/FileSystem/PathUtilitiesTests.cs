@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             Assert.Equal(expected, PathUtilities.CombinePaths(path1, path2));
         }
 
-        [Fact, WorkItem(51602, @"https://github.com/dotnet/roslyn/issues/51602")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem(51602, @"https://github.com/dotnet/roslyn/issues/51602")]
         public void GetRelativePath_IndexOutOfRangeException()
         {
             var expected = "";
