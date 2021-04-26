@@ -1062,7 +1062,7 @@ public class D
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "public class D", FeaturesResources.class_));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "public class D", FeaturesResources.class_));
         }
 
         [Fact]
@@ -5132,7 +5132,7 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "void goo()", FeaturesResources.method));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "void goo()", FeaturesResources.method));
         }
 
         [Fact]
@@ -10517,7 +10517,7 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "a = 1", FeaturesResources.field));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a = 1", FeaturesResources.field));
         }
 
         [Fact]
@@ -11007,7 +11007,7 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "int P", FeaturesResources.auto_property));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "int P", FeaturesResources.auto_property));
         }
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]

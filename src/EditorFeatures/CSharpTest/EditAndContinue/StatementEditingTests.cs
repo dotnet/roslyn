@@ -2655,7 +2655,7 @@ class C
             edits.VerifySemanticDiagnostics(
                 activeStatements: ActiveStatementsDescription.Empty,
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "a", "lambda"));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a", CSharpFeaturesResources.lambda));
         }
 
         [Fact]
@@ -2691,7 +2691,7 @@ class C
             edits.VerifySemanticDiagnostics(
                 activeStatements: ActiveStatementsDescription.Empty,
                 capabilities,
-                Diagnostic(RudeEditKind.Insert, "b", "lambda"));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "b", CSharpFeaturesResources.lambda));
         }
 
         [Fact]
@@ -2727,7 +2727,7 @@ class C
                 capabilities,
                 // TODO: https://github.com/dotnet/roslyn/issues/52759
                 // This is incorrect, there should be no rude edit reported
-                Diagnostic(RudeEditKind.Insert, "b", "lambda"));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "b", CSharpFeaturesResources.lambda));
         }
 
         [Fact]
@@ -5619,7 +5619,7 @@ class C
             edits.VerifySemanticDiagnostics(
                 activeStatements: ActiveStatementsDescription.Empty,
                 capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.Insert, "M", FeaturesResources.local_function));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "M", FeaturesResources.local_function));
         }
 
         [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
