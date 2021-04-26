@@ -2684,7 +2684,7 @@ class C
     }
 }
 ";
-            var capabilities = ManagedEditAndContinueCapability.Baseline | ManagedEditAndContinueCapability.NewTypeDefinition;
+            var capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.NewTypeDefinition;
 
             var edits = GetTopEdits(src1, src2);
 
@@ -2718,7 +2718,7 @@ class C
     }
 }
 ";
-            var capabilities = ManagedEditAndContinueCapability.Baseline | ManagedEditAndContinueCapability.NewTypeDefinition;
+            var capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.NewTypeDefinition;
 
             var edits = GetTopEdits(src1, src2);
 

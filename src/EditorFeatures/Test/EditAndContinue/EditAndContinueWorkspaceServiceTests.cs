@@ -3326,8 +3326,8 @@ class C { int Y => 1; }
 
             var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
-            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
-            Assert.False(service.HasFlag(ManagedEditAndContinueCapability.NewTypeDefinition));
+            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
+            Assert.False(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
         }
 
         [Fact]
@@ -3337,7 +3337,7 @@ class C { int Y => 1; }
 
             var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
-            Assert.False(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
+            Assert.False(service.HasFlag(EditAndContinueCapabilities.Baseline));
         }
 
         [Fact]
@@ -3347,8 +3347,8 @@ class C { int Y => 1; }
 
             var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
-            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
-            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.NewTypeDefinition));
+            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
+            Assert.True(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
         }
 
         [Fact]
@@ -3358,8 +3358,8 @@ class C { int Y => 1; }
 
             var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
 
-            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.Baseline));
-            Assert.True(service.HasFlag(ManagedEditAndContinueCapability.NewTypeDefinition));
+            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
+            Assert.True(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
         }
     }
 }

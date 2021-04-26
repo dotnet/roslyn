@@ -796,7 +796,7 @@ class C
             var baseActiveStatements = ImmutableArray.Create<ActiveStatement>();
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            var capabilities = ManagedEditAndContinueCapability.None;
+            var capabilities = EditAndContinueCapabilities.None;
 
             var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<TextSpan>.Empty, capabilities, CancellationToken.None);
 

@@ -94,24 +94,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         // internal for testing
-        internal static ManagedEditAndContinueCapability ParseCapabilities(ImmutableArray<string> capabilities)
+        internal static EditAndContinueCapabilities ParseCapabilities(ImmutableArray<string> capabilities)
         {
-            var caps = ManagedEditAndContinueCapability.None;
+            var caps = EditAndContinueCapabilities.None;
 
             foreach (var capability in capabilities)
             {
                 caps |= capability switch
                 {
-                    "Baseline" => ManagedEditAndContinueCapability.Baseline,
-                    "AddMethodToExistingType" => ManagedEditAndContinueCapability.AddMethodToExistingType,
-                    "AddStaticFieldToExistingType" => ManagedEditAndContinueCapability.AddStaticFieldToExistingType,
-                    "AddInstanceFieldToExistingType" => ManagedEditAndContinueCapability.AddInstanceFieldToExistingType,
-                    "NewTypeDefinition" => ManagedEditAndContinueCapability.NewTypeDefinition,
+                    "Baseline" => EditAndContinueCapabilities.Baseline,
+                    "AddMethodToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType,
+                    "AddStaticFieldToExistingType" => EditAndContinueCapabilities.AddStaticFieldToExistingType,
+                    "AddInstanceFieldToExistingType" => EditAndContinueCapabilities.AddInstanceFieldToExistingType,
+                    "NewTypeDefinition" => EditAndContinueCapabilities.NewTypeDefinition,
 
                     // To make it eaiser for  runtimes to specify more broad capabilities
-                    "AddDefinitionToExistingType" => ManagedEditAndContinueCapability.AddMethodToExistingType | ManagedEditAndContinueCapability.AddStaticFieldToExistingType | ManagedEditAndContinueCapability.AddInstanceFieldToExistingType,
+                    "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
 
-                    _ => ManagedEditAndContinueCapability.None
+                    _ => EditAndContinueCapabilities.None
                 };
             }
 

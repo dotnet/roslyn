@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal abstract class EditAndContinueTestHelpers
     {
-        public static readonly ManagedEditAndContinueCapability BaselineCapabilities = ManagedEditAndContinueCapability.Baseline;
-        public static readonly ManagedEditAndContinueCapability Net5RuntimeCapabilities = ManagedEditAndContinueCapability.Baseline |
-                                                                                          ManagedEditAndContinueCapability.AddInstanceFieldToExistingType |
-                                                                                          ManagedEditAndContinueCapability.AddStaticFieldToExistingType |
-                                                                                          ManagedEditAndContinueCapability.AddMethodToExistingType |
-                                                                                          ManagedEditAndContinueCapability.NewTypeDefinition;
+        public static readonly EditAndContinueCapabilities BaselineCapabilities = EditAndContinueCapabilities.Baseline;
+        public static readonly EditAndContinueCapabilities Net5RuntimeCapabilities = EditAndContinueCapabilities.Baseline |
+                                                                                     EditAndContinueCapabilities.AddInstanceFieldToExistingType |
+                                                                                     EditAndContinueCapabilities.AddStaticFieldToExistingType |
+                                                                                     EditAndContinueCapabilities.AddMethodToExistingType |
+                                                                                     EditAndContinueCapabilities.NewTypeDefinition;
 
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
         public abstract SyntaxNode FindNode(SyntaxNode root, TextSpan span);
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             AssertEx.Equal(expectedNodeUpdates, actualNodeUpdates, itemSeparator: ",\r\n");
         }
 
-        internal void VerifySemantics(EditScript<SyntaxNode>[] editScripts, TargetFramework targetFramework, DocumentAnalysisResultsDescription[] expectedResults, ManagedEditAndContinueCapability? capabilities = null)
+        internal void VerifySemantics(EditScript<SyntaxNode>[] editScripts, TargetFramework targetFramework, DocumentAnalysisResultsDescription[] expectedResults, EditAndContinueCapabilities? capabilities = null)
         {
             Assert.True(editScripts.Length == expectedResults.Length);
             var documentCount = expectedResults.Length;

@@ -10516,7 +10516,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities | ManagedEditAndContinueCapability.AddStaticFieldToExistingType,
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities | EditAndContinueCapabilities.AddStaticFieldToExistingType,
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a = 1", FeaturesResources.field));
         }
 
@@ -10529,7 +10529,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities | ManagedEditAndContinueCapability.AddInstanceFieldToExistingType,
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a = 1", FeaturesResources.field));
         }
 
