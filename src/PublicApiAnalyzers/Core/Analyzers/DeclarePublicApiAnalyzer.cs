@@ -390,13 +390,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 string fileName = Path.GetFileName(additionalText.Path);
 
                 bool isShippedFile = comparer.Equals(fileName, ShippedFileName);
-                bool isUnhippedFile = comparer.Equals(fileName, UnshippedFileName);
+                bool isUnshippedFile = comparer.Equals(fileName, UnshippedFileName);
 
-                if (isShippedFile || isUnhippedFile)
+                if (isShippedFile || isUnshippedFile)
                 {
                     SourceText text = additionalText.GetText(cancellationToken);
 
-                    if (text.Lines == null)
+                    if (text == null)
                     {
                         continue;
                     }
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         shippedText = data;
                     }
 
-                    if (isUnhippedFile)
+                    if (isUnshippedFile)
                     {
                         unshippedText = data;
                     }
