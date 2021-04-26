@@ -4,8 +4,10 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Roslyn.Utilities;
 
@@ -17,19 +19,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private const string PersistentStorageFileName = "storage.ide";
 
         private readonly SQLiteConnectionPoolService _connectionPoolService;
+        private readonly OptionSet _options;
         private readonly IPersistentStorageFaultInjector? _faultInjector;
 
-        public SQLitePersistentStorageService(SQLiteConnectionPoolService connectionPoolService, IPersistentStorageLocationService locationService)
+        public SQLitePersistentStorageService(
+            OptionSet options,
+            SQLiteConnectionPoolService connectionPoolService,
+            IPersistentStorageLocationService locationService)
             : base(locationService)
         {
+            _options = options;
             _connectionPoolService = connectionPoolService;
         }
 
         public SQLitePersistentStorageService(
+            OptionSet options,
             SQLiteConnectionPoolService connectionPoolService,
             IPersistentStorageLocationService locationService,
             IPersistentStorageFaultInjector? faultInjector)
-            : this(connectionPoolService, locationService)
+            : this(options, connectionPoolService, locationService)
         {
             _faultInjector = faultInjector;
         }
@@ -41,7 +49,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         }
 
         protected override ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
-            SolutionKey solutionKey, string workingFolderPath, string databaseFilePath)
+            SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
         {
             if (!TryInitializeLibraries())
             {
@@ -49,7 +57,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return new((IChecksummedPersistentStorage?)null);
             }
 
-            Contract.ThrowIfNull(solutionKey.FilePath);
+            if (solutionKey.FilePath == null)
+                return new(NoOpPersistentStorage.GetOrThrow(_options));
+
             return new(SQLitePersistentStorage.TryCreate(
                 _connectionPoolService,
                 workingFolderPath,

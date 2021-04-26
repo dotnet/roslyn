@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             throw new NotImplementedException();
         }
 
+        public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+            => Task.FromResult(ImmutableArray<string>.Empty);
+
         public Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
             => Task.CompletedTask;
     }

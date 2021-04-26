@@ -67,6 +67,11 @@
         <target state="translated">Recapito delle notifiche globali</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="new">Inheritance margin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
         <source>Missing import discovery</source>
         <target state="translated">Individuazione delle importazioni mancanti</target>
