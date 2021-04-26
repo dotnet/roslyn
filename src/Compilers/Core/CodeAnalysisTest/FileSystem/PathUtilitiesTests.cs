@@ -385,10 +385,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         }
 
         [ConditionalFact(typeof(WindowsOnly)), WorkItem(51602, @"https://github.com/dotnet/roslyn/issues/51602")]
-        public void GetRelativePath_IndexOutOfRangeException()
+        public void GetRelativePath_EnsureNo_IndexOutOfRangeException_Windows()
         {
             var expected = "";
             var result = PathUtilities.GetRelativePath(@"C:\A\B\", @"C:\A\B");
+            Assert.Equal(expected, result);
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly)), WorkItem(51602, @"https://github.com/dotnet/roslyn/issues/51602")]
+        public void GetRelativePath_EnsureNo_IndexOutOfRangeException_Unix()
+        {
+            var expected = "";
+            var result = PathUtilities.GetRelativePath(@"/A/B/", @"/A/B");
             Assert.Equal(expected, result);
         }
     }
