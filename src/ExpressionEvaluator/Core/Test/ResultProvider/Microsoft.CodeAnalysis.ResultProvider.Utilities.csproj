@@ -15,9 +15,6 @@
   <ItemGroup Label="File References">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
-  </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
