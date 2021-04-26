@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An array of child operations for this operation. Deprecated: please use <see cref="ChildOperations"/>.
         /// </summary>
-        [Obsolete("This API has performance penalties, please use ChildOperations instead.", error: false)]
+        [Obsolete($"This API has performance penalties, please use {nameof(ChildOperations)} instead.", error: false)]
         IEnumerable<IOperation> Children { get; }
 
         /// <summary>
         /// An enumerable of child operations for this operation.
         /// </summary>
-        Enumerable ChildOperations { get; }
+        IOperationEnumerable ChildOperations { get; }
 
         /// <summary>
         /// The source language of the IOperation. Possible values are <see cref="LanguageNames.CSharp"/> and <see cref="LanguageNames.VisualBasic"/>.

@@ -13,15 +13,15 @@ Microsoft.CodeAnalysis.GeneratorSyntaxContext.GeneratorSyntaxContext() -> void
 Microsoft.CodeAnalysis.GeneratorSyntaxContext.Node.get -> Microsoft.CodeAnalysis.SyntaxNode!
 Microsoft.CodeAnalysis.GeneratorSyntaxContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel!
 Microsoft.CodeAnalysis.IMethodSymbol.IsPartialDefinition.get -> bool
-Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.Enumerable
-Microsoft.CodeAnalysis.IOperation.Enumerable
-Microsoft.CodeAnalysis.IOperation.Enumerable.Enumerable() -> void
-Microsoft.CodeAnalysis.IOperation.Enumerable.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.Enumerator
-Microsoft.CodeAnalysis.IOperation.Enumerable.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
-Microsoft.CodeAnalysis.IOperation.Enumerator
-Microsoft.CodeAnalysis.IOperation.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
-Microsoft.CodeAnalysis.IOperation.Enumerator.Enumerator() -> void
-Microsoft.CodeAnalysis.IOperation.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperationEnumerable
+Microsoft.CodeAnalysis.IOperationEnumerable
+Microsoft.CodeAnalysis.IOperationEnumerable.IOperationEnumerable() -> void
+Microsoft.CodeAnalysis.IOperationEnumerable.GetEnumerator() -> Microsoft.CodeAnalysis.IOperationEnumerator
+Microsoft.CodeAnalysis.IOperationEnumerable.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+Microsoft.CodeAnalysis.IOperationEnumerator
+Microsoft.CodeAnalysis.IOperationEnumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperationEnumerator.IOperationEnumerator() -> void
+Microsoft.CodeAnalysis.IOperationEnumerator.MoveNext() -> bool
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
 Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void
 Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void

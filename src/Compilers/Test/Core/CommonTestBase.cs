@@ -521,8 +521,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static void CollectParentOperations(IOperation operation, Dictionary<IOperation, IOperation> map)
         {
             // walk down to collect all parent operation map for this tree
-            foreach (var child in operation.ChildOperations.WhereNotNull())
+            foreach (var child in operation.ChildOperations)
             {
+                if (child is null) continue;
                 map.Add(child, operation);
 
                 CollectParentOperations(child, map);
