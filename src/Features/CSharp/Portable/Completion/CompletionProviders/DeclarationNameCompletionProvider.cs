@@ -248,7 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // Suggest names from existing overloads.
                 if (symbolKind == SymbolKind.Parameter)
                 {
-                    AddNamesFromExistingOverloads(context, result, cancellationToken);
+                    var partialSemanticModel = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    if (partialSemanticModel is not null)
+                        AddNamesFromExistingOverloads(context, partialSemanticModel, result, cancellationToken);
                 }
 
                 var modifiers = declarationInfo.Modifiers;
@@ -284,36 +286,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return result.ToImmutable();
         }
 
-        private static void AddNamesFromExistingOverloads(CSharpSyntaxContext context, ArrayBuilder<(string name, SymbolKind kind)> result, CancellationToken cancellationToken)
+        private static void AddNamesFromExistingOverloads(CSharpSyntaxContext context, SemanticModel semanticModel, ArrayBuilder<(string name, SymbolKind kind)> result, CancellationToken cancellationToken)
         {
+            var namedType = semanticModel.GetEnclosingNamedType(context.Position, cancellationToken);
+            if (namedType is null)
+                return;
+
             var parameterSyntax = context.LeftToken.GetAncestor(n => n.IsKind(SyntaxKind.Parameter)) as ParameterSyntax;
             if (parameterSyntax is not { Type: { } parameterType, Parent: { Parent: MethodDeclarationSyntax method } })
+                return;
+
+            var overloads = namedType.GetMembers(method.Identifier.ValueText).WhereAsArray(m => m.Kind == SymbolKind.Method);
+            if (overloads.IsDefaultOrEmpty)
             {
                 return;
             }
 
-            if (method.Parent is null)
-                return;
-
-            var methodParameterType = context.SemanticModel.GetTypeInfo(parameterType, cancellationToken).Type;
+            var methodParameterType = semanticModel.GetTypeInfo(parameterType, cancellationToken).Type;
             if (methodParameterType is null)
                 return;
 
-            var siblingMethods = method.Parent.ChildNodes().OfType<MethodDeclarationSyntax>().Where(m => m != method && m.Identifier.Text == method.Identifier.Text);
-            if (!siblingMethods.Any())
-                return;
-
-            foreach (var sibling in siblingMethods)
+            foreach (var overload in overloads)
             {
-                foreach (var siblingParameter in sibling.ParameterList.Parameters)
+                var methodSymbol = (IMethodSymbol)overload;
+                foreach (var overloadParameter in methodSymbol.Parameters)
                 {
-                    if (siblingParameter.Type is null)
-                        continue;
-
-                    var siblingParameterType = context.SemanticModel.GetTypeInfo(siblingParameter.Type, cancellationToken).Type;
-                    if (methodParameterType.Equals(siblingParameterType, SymbolEqualityComparer.Default))
+                    if (methodParameterType.Equals(overloadParameter.Type, SymbolEqualityComparer.Default))
                     {
-                        result.Add((siblingParameter.Identifier.Text, SymbolKind.Parameter));
+                        result.Add((overloadParameter.Name, SymbolKind.Parameter));
                     }
                 }
             }
