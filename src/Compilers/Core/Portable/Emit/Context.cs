@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal struct EmitContext
+    internal readonly struct EmitContext
     {
         public readonly CommonPEModuleBuilder Module;
-        public readonly SyntaxNode SyntaxNodeOpt;
+        public readonly SyntaxNode? SyntaxNodeOpt;
+        public readonly RebuildData? RebuildDataOpt;
         public readonly DiagnosticBag Diagnostics;
         private readonly Flags _flags;
 
@@ -20,14 +19,16 @@ namespace Microsoft.CodeAnalysis.Emit
         public bool MetadataOnly => (_flags & Flags.MetadataOnly) != 0;
         public bool IsRefAssembly => MetadataOnly && !IncludePrivateMembers;
 
-        public EmitContext(CommonPEModuleBuilder module, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool metadataOnly, bool includePrivateMembers)
+        public EmitContext(CommonPEModuleBuilder module, SyntaxNode? syntaxNodeOpt, RebuildData? rebuildDataOpt, DiagnosticBag diagnostics, bool metadataOnly, bool includePrivateMembers)
         {
             Debug.Assert(module != null);
             Debug.Assert(diagnostics != null);
             Debug.Assert(includePrivateMembers || metadataOnly);
+            Debug.Assert(rebuildDataOpt is null || !metadataOnly);
 
             Module = module;
             SyntaxNodeOpt = syntaxNodeOpt;
+            RebuildDataOpt = rebuildDataOpt;
             Diagnostics = diagnostics;
 
             Flags flags = Flags.None;

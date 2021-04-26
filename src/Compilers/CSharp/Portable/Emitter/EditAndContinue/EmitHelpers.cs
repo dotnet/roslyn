@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
             var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
-            var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, syntaxNodeOpt: null, rebuildDataOpt: null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var otherContext = new EmitContext(moduleBeingBuilt, syntaxNodeOpt: null, rebuildDataOpt: null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var matcher = new CSharpSymbolMatcher(
                 anonymousTypeMap,

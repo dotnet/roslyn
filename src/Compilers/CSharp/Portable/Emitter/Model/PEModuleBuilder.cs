@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ThreadSafeFlagOperations.Set(ref _needsGeneratedAttributes, (int)attributes);
         }
 
+#nullable enable
         internal PEModuleBuilder(
             SourceModuleSymbol sourceModule,
             EmitOptions emitOptions,
@@ -96,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 _embeddedTypesManagerOpt = new NoPia.EmbeddedTypesManager(this);
             }
         }
+#nullable disable
 
         public override string Name
         {

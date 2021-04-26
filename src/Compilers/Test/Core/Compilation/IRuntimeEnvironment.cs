@@ -263,7 +263,7 @@ namespace Roslyn.Test.Utilities
                     debugEntryPoint: null,
                     sourceLinkStream: null,
                     embeddedTexts,
-                    pdbOptionsBlobReader: null,
+                    rebuildData: null,
                     testData: testData,
                     cancellationToken: default);
             }

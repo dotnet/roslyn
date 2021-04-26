@@ -425,6 +425,7 @@ namespace Microsoft.Cci
 
         // progress:
         private bool _tableIndicesAreComplete;
+        private bool _sourceDebugDocumentsAdded;
 
         private EntityHandle[] _pseudoSymbolTokenToTokenMap;
         private object[] _pseudoSymbolTokenToReferenceMap;
@@ -1697,7 +1698,7 @@ namespace Microsoft.Cci
             };
         }
 
-        public void WriteMetadataAndIL(PdbWriter nativePdbWriterOpt, Stream metadataStream, Stream ilStream, Stream portablePdbStreamOpt, BlobReader? pdbOptionsBlobReader, out MetadataSizes metadataSizes)
+        public void WriteMetadataAndIL(PdbWriter nativePdbWriterOpt, Stream metadataStream, Stream ilStream, Stream portablePdbStreamOpt, out MetadataSizes metadataSizes)
         {
             Debug.Assert(nativePdbWriterOpt == null ^ portablePdbStreamOpt == null);
 
@@ -1724,7 +1725,6 @@ namespace Microsoft.Cci
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceDataBuilder,
-                pdbOptionsBlobReader,
                 out Blob mvidFixup,
                 out Blob mvidStringFixup);
 
@@ -1780,7 +1780,6 @@ namespace Microsoft.Cci
             BlobBuilder ilBuilder,
             BlobBuilder mappedFieldDataBuilder,
             BlobBuilder managedResourceDataBuilder,
-            BlobReader? pdbOptionsBlobReader,
             out Blob mvidFixup,
             out Blob mvidStringFixup)
         {
@@ -1800,6 +1799,8 @@ namespace Microsoft.Cci
                     }
                 }
 
+                _sourceDebugDocumentsAdded = true;
+
                 DefineModuleImportScope();
 
                 if (module.SourceLinkStreamOpt != null)
@@ -1807,7 +1808,7 @@ namespace Microsoft.Cci
                     EmbedSourceLink(module.SourceLinkStreamOpt);
                 }
 
-                EmbedCompilationOptions(pdbOptionsBlobReader, module);
+                EmbedCompilationOptions(module);
                 EmbedMetadataReferenceInformation(module);
             }
 

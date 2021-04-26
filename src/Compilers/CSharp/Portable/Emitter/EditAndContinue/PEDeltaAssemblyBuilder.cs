@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
         {
             var initialBaseline = previousGeneration.InitialBaseline;
-            var context = new EmitContext(this, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+            var context = new EmitContext(this, null, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             // in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
 
                 var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
-                var previousContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+                var previousContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
                 matchToPrevious = new CSharpSymbolMatcher(
                     previousGeneration.AnonymousTypeMap,

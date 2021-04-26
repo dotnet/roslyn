@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 deterministic: true,
 
                 xmlReferenceResolver: null,
-                sourceReferenceResolver: null,
+                sourceReferenceResolver: new RebuildSourceReferenceResolver(),
                 metadataReferenceResolver: null,
 
                 assemblyIdentityComparer: null,

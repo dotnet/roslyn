@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                     subsystemVersion: SubsystemVersion.Create(peHeader.MajorSubsystemVersion, peHeader.MinorSubsystemVersion)),
                 debugEntryPoint: debugEntryPoint,
                 metadataPEStream: null,
-                pdbOptionsBlobReader: OptionsReader.GetMetadataCompilationOptionsBlobReader(),
+                rebuildData: new RebuildData(OptionsReader.GetMetadataCompilationOptionsBlobReader(), OptionsReader.PdbReader, OptionsReader.GetSourceFileCount()),
                 sourceLinkStream: sourceLink != null ? new MemoryStream(sourceLink) : null,
                 embeddedTexts: embeddedTexts,
                 cancellationToken: cancellationToken);

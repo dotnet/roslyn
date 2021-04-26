@@ -1273,7 +1273,7 @@ namespace Microsoft.CodeAnalysis
                             peStreamProvider,
                             refPeStreamProviderOpt,
                             pdbStreamProviderOpt,
-                            pdbOptionsBlobReader: null,
+                            rebuildData: null,
                             testSymWriterFactory: null,
                             diagnostics: diagnostics,
                             emitOptions: emitOptions,
