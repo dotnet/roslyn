@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         None = 0,
 
         /// <summary>
-        /// Edit and continue is generally with the set of capabilities that Mono 6, .NET Framework and .NET 5 have in common.
+        /// Edit and continue is generally available with the set of capabilities that Mono 6, .NET Framework and .NET 5 have in common.
         /// </summary>
         Baseline = 1 << 0,
 
