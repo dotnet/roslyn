@@ -2896,7 +2896,7 @@ class Program : {|CS0535:System.IEquatable<Program>|}
 {
     int i;
 
-    public override System.Boolean Equals(System.Object obj)
+    public override bool Equals(object obj)
     {
         Class1 @class = obj as Class1;
         return @class != null &&
@@ -2907,9 +2907,9 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     {
     }
 
-    public override System.Int32 GetHashCode()
+    public override int GetHashCode()
     {
-        return 165851236 + EqualityComparer<System.Int32>.Default.GetHashCode(i);
+        return 165851236 + EqualityComparer<int>.Default.GetHashCode(i);
     }
 }",
                     },
@@ -2921,14 +2921,10 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     DiagnosticResult.CompilerError("CS1729").WithSpan(1, 14, 1, 20).WithArguments("object", "0"),
     // /0/Test0.cs(3,5): error CS0518: Predefined type 'System.Int32' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(3, 5, 3, 8).WithArguments("System.Int32"),
-    // /0/Test0.cs(5,21): error CS0518: Predefined type 'System.Object' is not defined or imported
-    DiagnosticResult.CompilerError("CS0518").WithSpan(5, 21, 5, 27).WithArguments("System.Object"),
-    // /0/Test0.cs(5,28): error CS1069: The type name 'Boolean' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
-    DiagnosticResult.CompilerError("CS1069").WithSpan(5, 28, 5, 35).WithArguments("Boolean", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-    // /0/Test0.cs(5,43): error CS0518: Predefined type 'System.Object' is not defined or imported
-    DiagnosticResult.CompilerError("CS0518").WithSpan(5, 43, 5, 49).WithArguments("System.Object"),
-    // /0/Test0.cs(5,50): error CS1069: The type name 'Object' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
-    DiagnosticResult.CompilerError("CS1069").WithSpan(5, 50, 5, 56).WithArguments("Object", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+    // /0/Test0.cs(5,21): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(5, 21, 5, 25).WithArguments("System.Boolean"),
+    // /0/Test0.cs(5,33): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(5, 33, 5, 39).WithArguments("System.Object"),
     // /0/Test0.cs(7,9): error CS0518: Predefined type 'System.Object' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(7, 9, 7, 15).WithArguments("System.Object"),
     // /0/Test0.cs(7,32): error CS0518: Predefined type 'System.Object' is not defined or imported
@@ -2939,22 +2935,18 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     DiagnosticResult.CompilerError("CS0518").WithSpan(9, 16, 9, 29).WithArguments("System.Boolean"),
     // /0/Test0.cs(12,12): error CS0518: Predefined type 'System.Void' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(12, 12, 12, 16).WithArguments("System.Void"),
-    // /0/Test0.cs(16,21): error CS0518: Predefined type 'System.Object' is not defined or imported
-    DiagnosticResult.CompilerError("CS0518").WithSpan(16, 21, 16, 27).WithArguments("System.Object"),
-    // /0/Test0.cs(16,28): error CS1069: The type name 'Int32' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
-    DiagnosticResult.CompilerError("CS1069").WithSpan(16, 28, 16, 33).WithArguments("Int32", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-    // /0/Test0.cs(16,34): error CS0115: 'Class1.GetHashCode()': no suitable method found to override
-    DiagnosticResult.CompilerError("CS0115").WithSpan(16, 34, 16, 45).WithArguments("Class1.GetHashCode()"),
+    // /0/Test0.cs(16,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(16, 21, 16, 24).WithArguments("System.Int32"),
+    // /0/Test0.cs(16,25): error CS0115: 'Class1.GetHashCode()': no suitable method found to override
+    DiagnosticResult.CompilerError("CS0115").WithSpan(16, 25, 16, 36).WithArguments("Class1.GetHashCode()"),
     // /0/Test0.cs(18,16): error CS0518: Predefined type 'System.Int32' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(18, 16, 18, 25).WithArguments("System.Int32"),
     // /0/Test0.cs(18,28): error CS0103: The name 'EqualityComparer' does not exist in the current context
-    DiagnosticResult.CompilerError("CS0103").WithSpan(18, 28, 18, 58).WithArguments("EqualityComparer"),
+    DiagnosticResult.CompilerError("CS0103").WithSpan(18, 28, 18, 49).WithArguments("EqualityComparer"),
     // /0/Test0.cs(18,28): error CS0518: Predefined type 'System.Object' is not defined or imported
-    DiagnosticResult.CompilerError("CS0518").WithSpan(18, 28, 18, 58).WithArguments("System.Object"),
-    // /0/Test0.cs(18,45): error CS0518: Predefined type 'System.Object' is not defined or imported
-    DiagnosticResult.CompilerError("CS0518").WithSpan(18, 45, 18, 51).WithArguments("System.Object"),
-    // /0/Test0.cs(18,52): error CS1069: The type name 'Int32' could not be found in the namespace 'System'. This type has been forwarded to assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' Consider adding a reference to that assembly.
-    DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments("Int32", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+    DiagnosticResult.CompilerError("CS0518").WithSpan(18, 28, 18, 49).WithArguments("System.Object"),
+    // /0/Test0.cs(18,45): error CS0518: Predefined type 'System.Int32' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(18, 45, 18, 48).WithArguments("System.Int32"),
                     },
                 },
                 ReferenceAssemblies = ReferenceAssemblies.Default.WithAssemblies(ImmutableArray<string>.Empty),
