@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
+        public bool SupportsDocumentTracking => false;
+
         public event EventHandler<DocumentId?> ActiveDocumentChanged { add { } remove { } }
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 

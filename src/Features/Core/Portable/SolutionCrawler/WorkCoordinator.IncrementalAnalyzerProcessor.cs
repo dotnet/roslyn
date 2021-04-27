@@ -318,9 +318,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return service.IsMethodLevelMember(memberNode) ? memberNode : null;
                 }
 
-                internal ProjectId? GetActiveProjectId()
-                    => _documentTracker.TryGetActiveDocument()?.ProjectId;
-
                 private static string EnqueueLogger(int tick, object documentOrProjectId, bool replaced)
                 {
                     if (documentOrProjectId is DocumentId documentId)
