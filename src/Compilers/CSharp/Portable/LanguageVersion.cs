@@ -119,6 +119,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// C# language version 7.3
         /// </summary>
+        /// <remarks>
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Indexing fixed fields does not require pinning</description></item>
+        /// <item><description>ref local variables may be reassigned</description></item>
+        /// <item><description>stackalloc arrays support initializers</description></item>
+        /// <item><description>More types support the fixed statement</description></item>
+        /// <item><description>Enhanced generic constraints</description></item>
+        /// <item><description>Tuples support == and !=</description></item>
+        /// <item><description>Attach attributes to the backing fields for auto-implemented properties</description></item>
+        /// <item><description>in method overload resolution tiebreaker</description></item>
+        /// <item><description>Extend expression variables in initializers</description></item>
+        /// <item><description>Improved overload candidates</description></item>
+        /// <item><description>New compiler options (-publicsign and -pathmap)</description></item>
+        /// </list>
+        /// </remarks>
         CSharp7_3 = 703,
 
         /// <summary>
