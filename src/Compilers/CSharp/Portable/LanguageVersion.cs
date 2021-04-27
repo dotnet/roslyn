@@ -124,14 +124,51 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// C# language version 8.0
         /// </summary>
+        /// <remarks>
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Readonly members</description></item>
+        /// <item><description>Default interface methods</description></item>
+        /// <item><description>Pattern matching enhancements (Switch expressions, property patterns, tuple patterns, and positional patterns)</description></item>
+        /// <item><description>Using declarations</description></item>
+        /// <item><description>Static local functions</description></item>
+        /// <item><description>Disposable ref structs</description></item>
+        /// <item><description>Nullable reference types</description></item>
+        /// <item><description>Asynchronous streams</description></item>
+        /// <item><description>Asynchronous disposable</description></item>
+        /// <item><description>Indices and ranges</description></item>
+        /// <item><description>Null-coalescing assignment</description></item>
+        /// <item><description>Unmanaged constructed types</description></item>
+        /// <item><description>Stackalloc in nested expressions</description></item>
+        /// <item><description>Enhancement of interpolated verbatim strings</description></item>
+        /// </list>
+        /// </remarks>
         CSharp8 = 800,
 
-        // When this value is available in the released NuGet package, update LanguageVersionExtensions in the IDE layer to point to it.
-        // https://github.com/dotnet/roslyn/issues/43348
-        //
         /// <summary>
         /// C# language version 9.0
         /// </summary>
+        /// <remarks>
+        /// <para>Features:</para>
+        /// <list type="bullet">
+        /// <item><description>Records</description></item>
+        /// <item><description>Init only setters</description></item>
+        /// <item><description>Top-level statements</description></item>
+        /// <item><description>Pattern matching enhancements</description></item>
+        /// <item><description>Native sized integers</description></item>
+        /// <item><description>Function pointers</description></item>
+        /// <item><description>Suppress emitting localsinit flag</description></item>
+        /// <item><description>Target-typed new expressions</description></item>
+        /// <item><description>static anonymous functions</description></item>
+        /// <item><description>Target-typed conditional expressions</description></item>
+        /// <item><description>Covariant return types</description></item>
+        /// <item><description>Extension GetEnumerator support for foreach loops</description></item>
+        /// <item><description>Lambda discard parameters</description></item>
+        /// <item><description>Attributes on local functions</description></item>
+        /// <item><description>Module initializers</description></item>
+        /// <item><description>New features for partial methods</description></item>
+        /// </list>
+        /// </remarks>
         CSharp9 = 900,
 
         /// <summary>
