@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </remarks>
         private readonly string _metadataName;
 
-#nullable enable
         public PEAssemblyBuilderBase(
             SourceAssemblySymbol sourceAssembly,
             EmitOptions emitOptions,
@@ -78,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }
-#nullable disable
 
         public sealed override ISourceAssemblySymbolInternal SourceAssemblyOpt
             => _sourceAssembly;
@@ -494,7 +492,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
     }
 
-#nullable enable
     internal sealed class PEAssemblyBuilder : PEAssemblyBuilderBase
     {
         public PEAssemblyBuilder(
@@ -509,5 +506,4 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override int CurrentGenerationOrdinal => 0;
     }
-#nullable disable
 }
