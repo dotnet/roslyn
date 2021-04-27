@@ -2290,7 +2290,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     if (!capabilities.HasFlag(EditAndContinueCapabilities.UpdateCustomAttributes))
                                     {
                                         diagnostics.Add(new RudeEditDiagnostic(
-                                            RudeEditKind.Delete,
+                                            RudeEditKind.DeleteNotSupportedByRuntime,
                                             GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, edit.OldNode),
                                             edit.OldNode,
                                             new[] { GetDisplayName(edit.OldNode, EditKind.Delete) }));
@@ -2726,7 +2726,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     if (!capabilities.HasFlag(EditAndContinueCapabilities.UpdateCustomAttributes))
                                     {
                                         diagnostics.Add(new RudeEditDiagnostic(
-                                            RudeEditKind.Update,
+                                            RudeEditKind.UpdateNotSupportedByRuntime,
                                             GetDiagnosticSpan(edit.NewNode, EditKind.Update),
                                             edit.NewNode,
                                             arguments: new[] { GetDisplayName(edit.NewNode, EditKind.Update) }));
