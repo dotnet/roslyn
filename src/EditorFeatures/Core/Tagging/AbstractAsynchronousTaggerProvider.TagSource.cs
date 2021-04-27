@@ -158,7 +158,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
-                _eventWorkQueue = Task.Run(() => ProcessEventsAsync(initialTags: true, _disposalTokenSource.Token), _disposalTokenSource.Token);
+                _eventWorkQueue =
+                    Task.Run(() => ProcessEventsAsync(initialTags: true, _disposalTokenSource.Token), _disposalTokenSource.Token)
+                        .CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(TagSource)));
 
                 return;
 
