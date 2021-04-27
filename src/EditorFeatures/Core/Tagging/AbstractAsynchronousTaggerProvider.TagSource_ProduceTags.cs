@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,7 +23,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
@@ -30,22 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         private partial class TagSource
         {
-            private void OnEventSourceChanged(object sender, TaggerEventArgs _)
-            {
-                // cancel the last piece of computation work and enqueue the next
-                var cancellationToken = _cancellationSeries.CreateNext();
-                lock (_cancellationSeries)
-                {
-                    var nextTask = _eventWorkQueue.ContinueWith(async _ =>
-                    {
-                        await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
-                        await ProcessEventsAsync(initialTags: false, cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
-
-                    _eventWorkQueue = nextTask.Unwrap().CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(OnEventSourceChanged)));
-                }
-            }
-
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
             {
                 this.AssertIsForeground();
@@ -179,6 +163,35 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return tagTrees.TryGetValue(snapshot.TextBuffer, out var tagTree)
                     ? tagTree
                     : new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
+            }
+
+            private void OnEventSourceChanged(object sender, TaggerEventArgs _)
+            {
+                // cancel the last piece of computation work and enqueue the next
+                var cancellationToken = _cancellationSeries.CreateNext();
+                lock (_cancellationSeries)
+                {
+                    _eventWorkQueue = OnEventSourceChangedAsync(_eventWorkQueue, cancellationToken);
+                }
+            }
+
+            private async Task OnEventSourceChangedAsync(Task eventWorkQueue, CancellationToken cancellationToken)
+            {
+                using var _ = _asyncListener.BeginAsyncOperation(nameof(OnEventSourceChangedAsync));
+
+                try
+                {
+                    await eventWorkQueue.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                }
+
+                await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
+                await ProcessEventsAsync(initialTags: false, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task ProcessEventsAsync(bool initialTags, CancellationToken cancellationToken)
