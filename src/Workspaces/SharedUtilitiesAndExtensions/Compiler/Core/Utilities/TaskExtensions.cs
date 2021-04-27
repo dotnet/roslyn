@@ -102,17 +102,6 @@ namespace Roslyn.Utilities
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
             CancellationToken cancellationToken,
-            TaskScheduler scheduler)
-        {
-            return SafeContinueWith<TInput, TResult>(
-                task, continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
-        }
-
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<TResult> SafeContinueWith<TInput, TResult>(
-            this Task<TInput> task,
-            Func<Task<TInput>, TResult> continuationFunction,
-            CancellationToken cancellationToken,
             TaskContinuationOptions continuationOptions,
             TaskScheduler scheduler)
         {
