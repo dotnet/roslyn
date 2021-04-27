@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -176,11 +177,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     // cancel the last piece of computation work and enqueue the next
                     var cancellationToken = initialTags ? _disposalTokenSource.Token : _cancellationSeries.CreateNext();
-                    _eventWorkQueue = _eventWorkQueue.ContinueWithAfterDelayFromAsync(
-                        () => ProcessEventsAsync(initialTags, cancellationToken),
-                        cancellationToken,
-                        (int)_dataSource.EventChangeDelay.ComputeTimeDelay().TotalMilliseconds,
-                        TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
+                    var nextTask = _eventWorkQueue.ContinueWith(
+                        async _ =>
+                        {
+                            await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
+                            await ProcessEventsAsync(initialTags, cancellationToken).ConfigureAwait(false);
+                        }, cancellationToken, TaskContinuationOptions.LazyCancellation | TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
+                    _eventWorkQueue = nextTask.Unwrap().CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(EnqueueWork)));
                 }
             }
 
