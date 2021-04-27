@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
     public class ConvertTupleToStructTests : AbstractCSharpCodeActionTest
     {
         private readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
-        private readonly ParseOptions CSharp10 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+        private readonly ParseOptions Preview = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertTupleToStructCodeRefactoringProvider();
@@ -194,7 +194,7 @@ internal record struct NewStruct(int a, int b)
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestAsync(text, expected, parseOptions: CSharp10, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: Preview, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -245,7 +245,7 @@ internal record struct NewStruct
         return new NewStruct(value.A, value.B);
     }
 }";
-            await TestAsync(text, expected, parseOptions: CSharp10, options: this.PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(text, expected, parseOptions: Preview, options: this.PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")]
