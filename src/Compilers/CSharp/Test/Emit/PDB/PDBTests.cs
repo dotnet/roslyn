@@ -9625,9 +9625,9 @@ public class C
               <namespace usingCount=""1"" />
             </using>
             <encLocalSlotMap>
-              <slot kind=""30"" offset=""238"" />
+              <slot kind=""30"" offset=""11"" />
               <slot kind=""temp"" />
-              <slot kind=""30"" offset=""238"" ordinal=""1"" />
+              <slot kind=""30"" offset=""22"" />
               <slot kind=""temp"" />
               <slot kind=""35"" offset=""22"" />
               <slot kind=""35"" offset=""22"" ordinal=""1"" />
@@ -9641,7 +9641,7 @@ public class C
               <slot kind=""35"" offset=""63"" ordinal=""3"" />
               <slot kind=""35"" offset=""63"" ordinal=""4"" />
               <slot kind=""35"" offset=""63"" ordinal=""5"" />
-              <slot kind=""30"" offset=""238"" ordinal=""2"" />
+              <slot kind=""30"" offset=""238"" />
               <slot kind=""35"" offset=""238"" />
               <slot kind=""35"" offset=""238"" ordinal=""1"" />
               <slot kind=""35"" offset=""238"" ordinal=""2"" />
@@ -9649,8 +9649,8 @@ public class C
             </encLocalSlotMap>
             <encLambdaMap>
               <methodOrdinal>0</methodOrdinal>
-              <closure offset=""238"" />
-              <closure offset=""238"" />
+              <closure offset=""11"" />
+              <closure offset=""22"" />
               <closure offset=""63"" />
               <closure offset=""238"" />
               <lambda offset=""511"" closure=""0"" />
@@ -9729,6 +9729,249 @@ public class C
       </methods>
     </symbols>
 ");
+        }
+
+        [WorkItem(50321, "https://github.com/dotnet/roslyn/issues/50321")]
+        [Fact]
+        public void NestedSwitchExpressions_Closures_01()
+        {
+            string source = WithWindowsLineBreaks(
+@"using System;
+class C
+{
+    static int F(object o)
+    {
+        return o switch
+        {
+            int i => new Func<int>(() => i + i switch
+            {
+                1 => 2,
+                _ => 3
+            })(),
+            _ => 4
+        };
+    }
+}");
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyIL("C.F", sequencePoints: "C.F", source: source, expectedIL:
+@"{
+  // Code size       69 (0x45)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                int V_1,
+                int V_2)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: <hidden>
+  IL_0001:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  brtrue.s   IL_000b
+  // sequence point: switch ...         }
+  IL_000a:  nop
+  // sequence point: <hidden>
+  IL_000b:  ldarg.0
+  IL_000c:  isinst     ""int""
+  IL_0011:  brfalse.s  IL_0037
+  IL_0013:  ldloc.0
+  IL_0014:  ldarg.0
+  IL_0015:  unbox.any  ""int""
+  IL_001a:  stfld      ""int C.<>c__DisplayClass0_0.<i>5__2""
+  // sequence point: <hidden>
+  IL_001f:  br.s       IL_0021
+  // sequence point: <hidden>
+  IL_0021:  br.s       IL_0023
+  // sequence point: new Func<int ...          })(
+  IL_0023:  ldloc.0
+  IL_0024:  ldftn      ""int C.<>c__DisplayClass0_0.<F>b__0()""
+  IL_002a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_002f:  callvirt   ""int System.Func<int>.Invoke()""
+  IL_0034:  stloc.1
+  IL_0035:  br.s       IL_003b
+  // sequence point: 4
+  IL_0037:  ldc.i4.4
+  IL_0038:  stloc.1
+  IL_0039:  br.s       IL_003b
+  // sequence point: <hidden>
+  IL_003b:  ldc.i4.1
+  IL_003c:  brtrue.s   IL_003f
+  // sequence point: return o swi ...         };
+  IL_003e:  nop
+  // sequence point: <hidden>
+  IL_003f:  ldloc.1
+  IL_0040:  stloc.2
+  IL_0041:  br.s       IL_0043
+  // sequence point: }
+  IL_0043:  ldloc.2
+  IL_0044:  ret
+}");
+            verifier.VerifyPdb("C.F",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""11"" />
+          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""11"" />
+          <lambda offset=""80"" closure=""0"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa"" startLine=""6"" startColumn=""18"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" hidden=""true"" document=""1"" />
+        <entry offset=""0x23"" startLine=""8"" startColumn=""22"" endLine=""12"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x37"" startLine=""13"" startColumn=""18"" endLine=""13"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x3b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3e"" startLine=""6"" startColumn=""9"" endLine=""14"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x3f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x43"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x45"">
+        <namespace name=""System"" />
+        <scope startOffset=""0x1"" endOffset=""0x43"">
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x43"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [WorkItem(50321, "https://github.com/dotnet/roslyn/issues/50321")]
+        [Fact]
+        public void NestedSwitchExpressions_Closures_02()
+        {
+            string source = WithWindowsLineBreaks(
+@"using System;
+class C
+{
+    static string F(object o)
+    {
+        return o switch
+        {
+            int i => new Func<string>(() => ""1"" + i switch
+            {
+                1 => new Func<string>(() => ""2"" + i)(),
+                _ => ""3""
+            })(),
+            _ => ""4""
+        };
+    }
+}");
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyIL("C.F", sequencePoints: "C.F", source: source, expectedIL:
+@"{
+  // Code size       73 (0x49)
+  .maxstack  2
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                string V_1,
+                string V_2)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: <hidden>
+  IL_0001:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  brtrue.s   IL_000b
+  // sequence point: switch ...         }
+  IL_000a:  nop
+  // sequence point: <hidden>
+  IL_000b:  ldarg.0
+  IL_000c:  isinst     ""int""
+  IL_0011:  brfalse.s  IL_0037
+  IL_0013:  ldloc.0
+  IL_0014:  ldarg.0
+  IL_0015:  unbox.any  ""int""
+  IL_001a:  stfld      ""int C.<>c__DisplayClass0_0.<i>5__2""
+  // sequence point: <hidden>
+  IL_001f:  br.s       IL_0021
+  // sequence point: <hidden>
+  IL_0021:  br.s       IL_0023
+  // sequence point: new Func<str ...          })(
+  IL_0023:  ldloc.0
+  IL_0024:  ldftn      ""string C.<>c__DisplayClass0_0.<F>b__0()""
+  IL_002a:  newobj     ""System.Func<string>..ctor(object, System.IntPtr)""
+  IL_002f:  callvirt   ""string System.Func<string>.Invoke()""
+  IL_0034:  stloc.1
+  IL_0035:  br.s       IL_003f
+  // sequence point: ""4""
+  IL_0037:  ldstr      ""4""
+  IL_003c:  stloc.1
+  IL_003d:  br.s       IL_003f
+  // sequence point: <hidden>
+  IL_003f:  ldc.i4.1
+  IL_0040:  brtrue.s   IL_0043
+  // sequence point: return o swi ...         };
+  IL_0042:  nop
+  // sequence point: <hidden>
+  IL_0043:  ldloc.1
+  IL_0044:  stloc.2
+  IL_0045:  br.s       IL_0047
+  // sequence point: }
+  IL_0047:  ldloc.2
+  IL_0048:  ret
+}");
+            verifier.VerifyPdb("C.F",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""11"" />
+          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""11"" />
+          <lambda offset=""83"" closure=""0"" />
+          <lambda offset=""158"" closure=""0"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa"" startLine=""6"" startColumn=""18"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" hidden=""true"" document=""1"" />
+        <entry offset=""0x23"" startLine=""8"" startColumn=""22"" endLine=""12"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x37"" startLine=""13"" startColumn=""18"" endLine=""13"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x3f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x42"" startLine=""6"" startColumn=""9"" endLine=""14"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x43"" hidden=""true"" document=""1"" />
+        <entry offset=""0x47"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x49"">
+        <namespace name=""System"" />
+        <scope startOffset=""0x1"" endOffset=""0x47"">
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x47"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
         }
 
         [WorkItem(37261, "https://github.com/dotnet/roslyn/issues/37261")]
