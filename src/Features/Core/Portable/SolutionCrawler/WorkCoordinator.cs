@@ -475,17 +475,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var currentMember = GetSyntaxPath(changedMember);
 
                 // call to this method is serialized. and only this method does the writing.
-                await _documentAndProjectWorkerProcessor
-                    .EnqueueAsync(
-                        new WorkItem(
-                            document.Id,
-                            document.Project.Language,
-                            invocationReasons,
-                            isLowPriority,
-                            currentMember,
-                            _listener.BeginAsyncOperation("WorkItem")),
-                        _shutdownToken)
-                    .ConfigureAwait(false);
+                _documentAndProjectWorkerProcessor.Enqueue(
+                    new WorkItem(document.Id, document.Project.Language, invocationReasons, isLowPriority, currentMember, _listener.BeginAsyncOperation("WorkItem")));
 
                 // enqueue semantic work planner
                 if (invocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged))
@@ -533,11 +524,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
                 var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, _shutdownToken).ConfigureAwait(false);
 
-                await _documentAndProjectWorkerProcessor.EnqueueAsync(
+                _documentAndProjectWorkerProcessor.Enqueue(
                     new WorkItem(document.Id, document.Project.Language, invocationReasons,
-                    isLowPriority, analyzer, _listener.BeginAsyncOperation("WorkItem")),
-                    _shutdownToken)
-                    .ConfigureAwait(false);
+                    isLowPriority, analyzer, _listener.BeginAsyncOperation("WorkItem")));
             }
 
             private async Task EnqueueWorkItemAsync(Solution oldSolution, Solution newSolution)

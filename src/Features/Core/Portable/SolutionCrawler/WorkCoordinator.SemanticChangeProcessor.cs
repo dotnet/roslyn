@@ -403,11 +403,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
                         var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, CancellationToken).ConfigureAwait(false);
 
-                        await _processor.EnqueueAsync(
+                        _processor.Enqueue(
                             new WorkItem(document.Id, document.Project.Language, InvocationReasons.SemanticChanged,
-                                isLowPriority, activeMember: null, Listener.BeginAsyncOperation(nameof(EnqueueWorkItemAsync), tag: EnqueueItem)),
-                            CancellationToken)
-                            .ConfigureAwait(false);
+                                isLowPriority, activeMember: null, Listener.BeginAsyncOperation(nameof(EnqueueWorkItemAsync), tag: EnqueueItem)));
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
