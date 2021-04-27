@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        protected void EnterRegionIfNeeded(BoundNode node)
+        private void EnterRegionIfNeeded(BoundNode node)
         {
             if (TrackingRegions && node == this.firstInRegion && this.regionPlace == RegionPlace.Before)
             {
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.regionPlace = RegionPlace.Inside;
         }
 
-        protected void LeaveRegionIfNeeded(BoundNode node)
+        private void LeaveRegionIfNeeded(BoundNode node)
         {
             if (TrackingRegions && node == this.lastInRegion && this.regionPlace == RegionPlace.Inside)
             {

@@ -4281,7 +4281,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            EnterRegionIfNeeded(access);
             Unsplit();
             VisitConditionalAccess(access, out stateWhenNotNull);
             if (node is BoundConversion boundConversion)
@@ -4303,7 +4302,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetResultType(boundConversion, result);
             }
             Debug.Assert(!IsConditionalState);
-            LeaveRegionIfNeeded(access);
             return true;
 
             // "State when not null" cannot propagate out of a conditional access if its conversion can return non-null when the input is null.
@@ -4392,7 +4390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var receiverState = this.State.Clone();
+                var savedState = this.State.Clone();
                 if (IsConstantNull(receiver))
                 {
                     SetUnreachable();
@@ -4402,7 +4400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // In the when-null branch, the receiver is known to be maybe-null.
                     // In the other branch, the receiver is known to be non-null.
-                    LearnFromNullTest(receiver, ref receiverState);
+                    LearnFromNullTest(receiver, ref savedState);
                     makeAndAdjustReceiverSlot(receiver);
                 }
 
@@ -4419,9 +4417,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _currentConditionalReceiverVisitResult = _visitResult;
                     makeAndAdjustReceiverSlot(innerCondAccess.Receiver);
 
-                    // The receiverState here represents the scenario where 0 or more of the access expressions could have been evaluated.
+                    // The savedState here represents the scenario where 0 or more of the access expressions could have been evaluated.
                     // e.g. after visiting `a?.b(x = null)?.c(x = new object())`, the "state when not null" of `x` is NotNull, but the "state when maybe null" of `x` is MaybeNull.
-                    Join(ref receiverState, ref State);
+                    Join(ref savedState, ref State);
 
                     expr = innerCondAccess.AccessExpression;
                 }
@@ -4453,7 +4451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 stateWhenNotNull = PossiblyConditionalState.Create(this);
                 Unsplit();
-                Join(ref this.State, ref receiverState);
+                Join(ref this.State, ref savedState);
             }
 
             var accessTypeWithAnnotations = LvalueResultType;
