@@ -213,6 +213,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }
 
+            if (previousToken.IsOpenParenInParameterList() || previousToken.IsCommaInParameterList())
+            {
+                return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
+            }
+
             return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
