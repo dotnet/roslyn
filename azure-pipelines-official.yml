@@ -49,6 +49,8 @@ stages:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         CreatePr: false
+        LclSource: lclFilesfromPackage
+        LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
 #   - job: OfficialBuild
 #     displayName: Official Build
