@@ -305,22 +305,6 @@ namespace Roslyn.Utilities
             return nextTask;
         }
 
-        public static Task<TNResult> ContinueWithAfterDelayFromAsync<TNResult>(
-            this Task task,
-            Func<Task, Task<TNResult>> continuationFunction,
-            CancellationToken cancellationToken,
-            int millisecondsDelay,
-            TaskContinuationOptions taskContinuationOptions,
-            TaskScheduler scheduler)
-        {
-            Contract.ThrowIfNull(continuationFunction, nameof(continuationFunction));
-
-            return task.SafeContinueWith(t =>
-                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
-                    _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
-                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
-        }
-
         public static Task ContinueWithAfterDelayFromAsync(
             this Task task,
             Func<Task> continuationFunction,
