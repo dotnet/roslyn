@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -186,22 +183,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
                         // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
                         // is completely done.
-                        _eventWorkQueue = _eventWorkQueue.ContinueWith(_ => RecomputeTagsAfterDelay(cancellationToken), cancellationToken, TaskContinuationOptions.LazyCancellation | TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default)
-                                                         .Unwrap().CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(EnqueueWork)));
+                        _eventWorkQueue = _eventWorkQueue.ContinueWithAfterDelayFromAsync(
+                            async _ =>
+                            {
+                                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                                await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
+                            },
+                            cancellationToken,
+                            (int)_dataSource.EventChangeDelay.ComputeTimeDelay().TotalMilliseconds,
+                            TaskContinuationOptions.None,
+                            TaskScheduler.Default).CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(EnqueueWork)));
                     }
                     catch (ObjectDisposedException)
                     {
                         // can happen if our type was disposed and we try to get a new token from _cancellationSeries.
                     }
-                }
-
-                return;
-
-                async Task RecomputeTagsAfterDelay(CancellationToken cancellationToken)
-                {
-                    await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
-                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -268,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // TODO: Update to tag spans from all related documents.
 
-                var snapshotToDocumentMap = new Dictionary<ITextSnapshot, Document>();
+                using var _ = PooledDictionary<ITextSnapshot, Document?>.GetInstance(out var snapshotToDocumentMap);
                 var spansToTag = _dataSource.GetSpansToTag(_textViewOpt, _subjectBuffer);
 
                 var spansAndDocumentsToTag = spansToTag.SelectAsArray(span =>
@@ -331,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return newTagTrees;
             }
 
-            private TagSpanIntervalTree<TTag> ComputeNewTagTree(
+            private TagSpanIntervalTree<TTag>? ComputeNewTagTree(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ITextBuffer textBuffer,
                 IEnumerable<ITagSpan<TTag>> newTags,
@@ -512,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 return new DiffResult(new(added), new(removed));
 
-                static ITagSpan<TTag> NextOrNull(IEnumerator<ITagSpan<TTag>> enumerator)
+                static ITagSpan<TTag>? NextOrNull(IEnumerator<ITagSpan<TTag>> enumerator)
                     => enumerator.MoveNext() ? enumerator.Current : null;
             }
 
@@ -520,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// Returns the TagSpanIntervalTree containing the tags for the given buffer. If no tags
             /// exist for the buffer at all, null is returned.
             /// </summary>
-            private TagSpanIntervalTree<TTag> TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
+            private TagSpanIntervalTree<TTag>? TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
                 this.AssertIsForeground();
 
