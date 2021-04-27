@@ -13,15 +13,15 @@ Microsoft.CodeAnalysis.GeneratorSyntaxContext.GeneratorSyntaxContext() -> void
 Microsoft.CodeAnalysis.GeneratorSyntaxContext.Node.get -> Microsoft.CodeAnalysis.SyntaxNode!
 Microsoft.CodeAnalysis.GeneratorSyntaxContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel!
 Microsoft.CodeAnalysis.IMethodSymbol.IsPartialDefinition.get -> bool
-Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.ChildOperationList
-Microsoft.CodeAnalysis.ChildOperationList
-Microsoft.CodeAnalysis.ChildOperationList.ChildOperationList() -> void
-Microsoft.CodeAnalysis.ChildOperationList.GetEnumerator() -> Microsoft.CodeAnalysis.ChildOperationList.Enumerator
-Microsoft.CodeAnalysis.ChildOperationList.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
-Microsoft.CodeAnalysis.ChildOperationList.Enumerator
-Microsoft.CodeAnalysis.ChildOperationList.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
-Microsoft.CodeAnalysis.ChildOperationList.Enumerator.Enumerator() -> void
-Microsoft.CodeAnalysis.ChildOperationList.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.ChildOperationEnumerable
+Microsoft.CodeAnalysis.ChildOperationEnumerable
+Microsoft.CodeAnalysis.ChildOperationEnumerable.ChildOperationEnumerable() -> void
+Microsoft.CodeAnalysis.ChildOperationEnumerable.GetEnumerator() -> Microsoft.CodeAnalysis.ChildOperationEnumerable.Enumerator
+Microsoft.CodeAnalysis.ChildOperationEnumerable.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+Microsoft.CodeAnalysis.ChildOperationEnumerable.Enumerator
+Microsoft.CodeAnalysis.ChildOperationEnumerable.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.ChildOperationEnumerable.Enumerator.Enumerator() -> void
+Microsoft.CodeAnalysis.ChildOperationEnumerable.Enumerator.MoveNext() -> bool
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
 Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void
 Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void

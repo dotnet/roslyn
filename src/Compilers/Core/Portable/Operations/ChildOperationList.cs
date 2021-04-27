@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis
     /// to <code>default(Enumerable)</code>, and will null reference in these cases.
     /// </summary>
     [NonDefaultable]
-    public readonly struct ChildOperationList : IEnumerable<IOperation>
+    public readonly struct ChildOperationEnumerable : IEnumerable<IOperation>
     {
         private readonly Operation _operation;
 
-        internal ChildOperationList(Operation operation)
+        internal ChildOperationEnumerable(Operation operation)
         {
             _operation = operation;
         }
