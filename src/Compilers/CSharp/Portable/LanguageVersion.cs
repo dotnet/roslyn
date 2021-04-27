@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>Enhanced generic constraints</description></item>
         /// <item><description>Tuples support == and !=</description></item>
         /// <item><description>Attach attributes to the backing fields for auto-implemented properties</description></item>
-        /// <item><description>in method overload resolution tiebreaker</description></item>
+        /// <item><description>Method overload resolution improvements when arguments differ by 'in'</description></item>
         /// <item><description>Extend expression variables in initializers</description></item>
         /// <item><description>Improved overload candidates</description></item>
         /// <item><description>New compiler options (-publicsign and -pathmap)</description></item>
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <list type="bullet">
         /// <item><description>Readonly members</description></item>
         /// <item><description>Default interface methods</description></item>
-        /// <item><description>Pattern matching enhancements (Switch expressions, property patterns, tuple patterns, and positional patterns)</description></item>
+        /// <item><description>Pattern matching enhancements (switch expressions, property patterns, tuple patterns, and positional patterns)</description></item>
         /// <item><description>Using declarations</description></item>
         /// <item><description>Static local functions</description></item>
         /// <item><description>Disposable ref structs</description></item>
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <item><description>Function pointers</description></item>
         /// <item><description>Suppress emitting localsinit flag</description></item>
         /// <item><description>Target-typed new expressions</description></item>
-        /// <item><description>static anonymous functions</description></item>
+        /// <item><description>Static anonymous functions</description></item>
         /// <item><description>Target-typed conditional expressions</description></item>
         /// <item><description>Covariant return types</description></item>
         /// <item><description>Extension GetEnumerator support for foreach loops</description></item>
