@@ -279,23 +279,6 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task ContinueWithAfterDelay(
-            this Task task,
-            Action continuationAction,
-            CancellationToken cancellationToken,
-            int millisecondsDelay,
-            TaskContinuationOptions taskContinuationOptions,
-            TaskScheduler scheduler)
-        {
-            Contract.ThrowIfNull(continuationAction, nameof(continuationAction));
-
-            return task.SafeContinueWith(t =>
-                Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWith(
-                    _ => continuationAction(), cancellationToken, TaskContinuationOptions.None, scheduler),
-                cancellationToken, taskContinuationOptions, scheduler).Unwrap();
-        }
-
         public static Task<TResult> SafeContinueWithFromAsync<TInput, TResult>(
             this Task<TInput> task,
             Func<Task<TInput>, Task<TResult>> continuationFunction,
