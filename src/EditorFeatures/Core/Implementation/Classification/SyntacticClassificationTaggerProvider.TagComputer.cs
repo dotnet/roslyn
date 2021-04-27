@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 else
                 {
                     using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var tempList);
-                    AddSyntacticClassificationsForDocument(classificationService, span, lastProcessedDocument, lastProcessedRoot, tempList);
+                    AddSyntacticClassificationsForDocument(classificationService, translatedSpan, lastProcessedDocument, lastProcessedRoot, tempList);
 
                     var currentSnapshot = span.Snapshot;
                     var currentText = currentSnapshot.AsText();
