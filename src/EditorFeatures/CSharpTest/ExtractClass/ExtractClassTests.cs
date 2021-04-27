@@ -559,7 +559,7 @@ class Test : MyBase
         </Document>
         <Document FilePath=""MyBase.cs"">internal abstract class MyBase
 {
-    private abstract global::System.Int32 Method();
+    private abstract int Method();
 }</Document>
     </Project>
 </Workspace>";
@@ -608,9 +608,9 @@ class Test : MyBase
         </Document>
         <Document FilePath=""MyBase.cs"">internal abstract class MyBase
 {
-    private abstract global::System.Int32 Method();
-    private abstract global::System.Int32 Method2();
-    private abstract global::System.Int32 Method3();
+    private abstract int Method();
+    private abstract int Method2();
+    private abstract int Method3();
 }</Document>
     </Project>
 </Workspace>";
