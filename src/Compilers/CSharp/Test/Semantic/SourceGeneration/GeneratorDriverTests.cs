@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -824,7 +825,7 @@ class C
             driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
             Assert.Equal(2, passedIn.Length);
-            AssertEx.SetEqual(texts, passedIn);
+            Assert.Equal((IEnumerable<AdditionalText>)texts, (IEnumerable<AdditionalText>)passedIn);
         }
 
         [Fact]

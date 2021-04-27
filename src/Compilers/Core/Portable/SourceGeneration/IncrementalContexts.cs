@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputBuilder;
 
-        public ValueSources Sources { get; }
+        public IncrementalValueSources Sources { get; }
 
-        internal IncrementalGeneratorPipelineContext(GeneratorValueSources.Builder sourcesBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputBuilder)
+        internal IncrementalGeneratorPipelineContext(PerGeneratorInputNodes.Builder sourcesBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputBuilder)
         {
-            Sources = new ValueSources(sourcesBuilder);
+            Sources = new IncrementalValueSources(sourcesBuilder);
             _outputBuilder = outputBuilder;
         }
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
     }
 
     // PROTOTYPE(source-generators): right now we only support generating source + diagnostics, but actively want to support generation of other things
-    internal struct IncrementalExecutionContext
+    internal readonly struct IncrementalExecutionContext
     {
         internal readonly DiagnosticBag Diagnostics;
 

@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
         {
-            var builder = _state.StateTable.GetStateTable(CommonValueSources.AdditionalTexts).ToBuilder();
+            var builder = _state.StateTable.GetStateTable(SharedInputNodes.AdditionalTexts).ToBuilder(extraCapacity: additionalTexts.Length);
             foreach (var text in additionalTexts)
             {
                 builder.AddEntries(ImmutableArray.Create(text), EntryState.Added);
             }
 
-            var stateTable = _state.StateTable.SetStateTable(CommonValueSources.AdditionalTexts, builder.ToImmutableAndFree());
+            var stateTable = _state.StateTable.SetStateTable(SharedInputNodes.AdditionalTexts, builder.ToImmutableAndFree());
 
             var newState = _state.With(additionalTexts: _state.AdditionalTexts.AddRange(additionalTexts), stateTable: stateTable);
             return FromState(newState);
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis
                     if (ex is null && generatorState.Info.PipelineCallback is object)
                     {
                         var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
-                        var sourcesBuilder = new GeneratorValueSources.Builder();
+                        var sourcesBuilder = new PerGeneratorInputNodes.Builder();
                         var pipelineContext = new IncrementalGeneratorPipelineContext(sourcesBuilder, outputBuilder);
                         try
                         {
@@ -304,16 +304,16 @@ namespace Microsoft.CodeAnalysis
 
             // PROTOTYPE(source-generators): we don't need to run at all if none of the inputs have changes.
             var driverStateBuilder = new DriverStateTable.Builder(_state.StateTable, cancellationToken);
-            driverStateBuilder.SetInputState(CommonValueSources.Compilation, NodeStateTable<Compilation>.WithSingleItem(compilation, EntryState.Added));
-            driverStateBuilder.SetInputState(CommonValueSources.AnalzerConfigOptions, NodeStateTable<AnalyzerConfigOptionsProvider>.WithSingleItem(_state.OptionsProvider, EntryState.Added));
-            driverStateBuilder.SetInputState(CommonValueSources.ParseOptions, NodeStateTable<ParseOptions>.WithSingleItem(_state.ParseOptions, EntryState.Added));
+            driverStateBuilder.SetInputState(SharedInputNodes.Compilation, NodeStateTable<Compilation>.WithSingleItem(compilation, EntryState.Added));
+            driverStateBuilder.SetInputState(SharedInputNodes.AnalzerConfigOptions, NodeStateTable<AnalyzerConfigOptionsProvider>.WithSingleItem(_state.OptionsProvider, EntryState.Added));
+            driverStateBuilder.SetInputState(SharedInputNodes.ParseOptions, NodeStateTable<ParseOptions>.WithSingleItem(_state.ParseOptions, EntryState.Added));
 
-            var additionalBuiilder = new NodeStateTable<AdditionalText>.Builder();
+            var additionalBuilder = new NodeStateTable<AdditionalText>.Builder(_state.AdditionalTexts.Length);
             foreach (var text in _state.AdditionalTexts)
             {
-                additionalBuiilder.AddEntries(ImmutableArray.Create(text), EntryState.Added);
+                additionalBuilder.AddEntries(ImmutableArray.Create(text), EntryState.Added);
             }
-            driverStateBuilder.SetInputState(CommonValueSources.AdditionalTexts, additionalBuiilder.ToImmutableAndFree());
+            driverStateBuilder.SetInputState(SharedInputNodes.AdditionalTexts, additionalBuilder.ToImmutableAndFree());
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {

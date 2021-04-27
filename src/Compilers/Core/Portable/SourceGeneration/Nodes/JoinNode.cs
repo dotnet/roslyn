@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class JoinNode<TInput1, TInput2> : IIncrementalGeneratorNode<(TInput1, IEnumerable<TInput2>)>
+    internal sealed class JoinNode<TInput1, TInput2> : IIncrementalGeneratorNode<(TInput1, IEnumerable<TInput2>)>
     {
         private readonly IIncrementalGeneratorNode<TInput1> _input1;
 

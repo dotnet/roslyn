@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         internal readonly ImmutableArray<ISourceGenerator> Generators;
 
         /// <summary>
-        /// Set set of <see cref="IIncrementalGenerator"/>s associated with this state.
+        /// The set of <see cref="IIncrementalGenerator"/>s associated with this state.
         /// </summary>
         /// <remarks>
         /// This is the 'internal' representation of the <see cref="Generators"/> collection. There is a 1-to-1 mapping
@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis
         internal readonly ParseOptions ParseOptions;
 
         internal readonly DriverStateTable StateTable;
-
 
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,

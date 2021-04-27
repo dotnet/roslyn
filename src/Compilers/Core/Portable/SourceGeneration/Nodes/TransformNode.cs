@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class TransformNode<TInput, TOutput> : IIncrementalGeneratorNode<TOutput>
+    internal sealed class TransformNode<TInput, TOutput> : IIncrementalGeneratorNode<TOutput>
     {
         private readonly Func<TInput, IEnumerable<TOutput>> _func;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;

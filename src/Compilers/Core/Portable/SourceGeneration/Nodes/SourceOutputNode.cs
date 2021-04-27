@@ -13,7 +13,7 @@ using TOutput = System.ValueTuple<System.Collections.Generic.IEnumerable<Microso
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class SourceOutputNode<TInput> : IIncrementalGeneratorOutputNode, IIncrementalGeneratorNode<TOutput>
+    internal sealed class SourceOutputNode<TInput> : IIncrementalGeneratorOutputNode, IIncrementalGeneratorNode<TOutput>
     {
         private readonly IIncrementalGeneratorNode<TInput> _source;
 

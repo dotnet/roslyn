@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis
                                          .Join(ctx.Sources.SyntaxReceiver).Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() })
                                          .Join(ctx.Sources.AdditionalTexts).Transform(p => p.Item1 with { AdditionalTexts = p.Item2.ToImmutableArray() });
 
-
                 var output = context.GenerateSource((context, contextBuilder) =>
                 {
                     var oldContext = contextBuilder.ToExecutionContext(context.CancellationToken);

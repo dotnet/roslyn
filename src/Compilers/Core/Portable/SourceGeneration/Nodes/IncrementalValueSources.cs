@@ -7,32 +7,31 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public struct ValueSources
+    public readonly struct IncrementalValueSources
     {
-        private readonly GeneratorValueSources.Builder _generatorSourceBuilder;
+        private readonly PerGeneratorInputNodes.Builder _generatorSourceBuilder;
 
-        internal ValueSources(GeneratorValueSources.Builder generatorSourceBuilder)
+        internal IncrementalValueSources(PerGeneratorInputNodes.Builder generatorSourceBuilder)
         {
             _generatorSourceBuilder = generatorSourceBuilder;
         }
 
-        public IncrementalValueSource<Compilation> Compilation => new IncrementalValueSource<Compilation>(CommonValueSources.Compilation);
+        public IncrementalValueSource<Compilation> Compilation => new IncrementalValueSource<Compilation>(SharedInputNodes.Compilation);
 
-        public IncrementalValueSource<ParseOptions> ParseOptions => new IncrementalValueSource<ParseOptions>(CommonValueSources.ParseOptions);
+        public IncrementalValueSource<ParseOptions> ParseOptions => new IncrementalValueSource<ParseOptions>(SharedInputNodes.ParseOptions);
 
-        public IncrementalValueSource<AdditionalText> AdditionalTexts => new IncrementalValueSource<AdditionalText>(CommonValueSources.AdditionalTexts);
+        public IncrementalValueSource<AdditionalText> AdditionalTexts => new IncrementalValueSource<AdditionalText>(SharedInputNodes.AdditionalTexts);
 
-        public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(CommonValueSources.AnalzerConfigOptions);
+        public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalzerConfigOptions);
 
         //only used for back compat in the adaptor
         internal IncrementalValueSource<ISyntaxContextReceiver> SyntaxReceiver => new IncrementalValueSource<ISyntaxContextReceiver>(_generatorSourceBuilder.ReceiverNode);
     }
 
-    // PROTOTYPE(source-generators):should this be called commonInputNodes?
     /// <summary>
-    /// Holds value sources that are shared between generators and always exist
+    /// Holds input nodes that are shared between generators and always exist
     /// </summary>
-    internal static class CommonValueSources
+    internal static class SharedInputNodes
     {
         public static readonly InputNode<Compilation> Compilation = new InputNode<Compilation>();
 
@@ -44,24 +43,24 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
-    /// Holds value sources that are created per-generator
+    /// Holds input nodes that are created per-generator
     /// </summary>
-    internal sealed class GeneratorValueSources
+    internal sealed class PerGeneratorInputNodes
     {
-        public static GeneratorValueSources Empty = new GeneratorValueSources();
+        public static PerGeneratorInputNodes Empty = new PerGeneratorInputNodes();
 
-        private GeneratorValueSources() { }
+        private PerGeneratorInputNodes() { }
 
-        private GeneratorValueSources(InputNode<ISyntaxContextReceiver>? receiverNode)
+        private PerGeneratorInputNodes(InputNode<ISyntaxContextReceiver>? receiverNode)
         {
             this.ReceiverNode = receiverNode;
         }
 
         public InputNode<ISyntaxContextReceiver>? ReceiverNode { get; }
 
-        public class Builder
+        public sealed class Builder
         {
-            InputNode<ISyntaxContextReceiver>? _receiverNode;
+            private InputNode<ISyntaxContextReceiver>? _receiverNode;
 
             public Builder()
             {
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis
 
             public InputNode<ISyntaxContextReceiver> ReceiverNode => InterlockedOperations.Initialize(ref _receiverNode, new InputNode<ISyntaxContextReceiver>());
 
-            public GeneratorValueSources ToImmutable() => new GeneratorValueSources(_receiverNode);
+            public PerGeneratorInputNodes ToImmutable() => new PerGeneratorInputNodes(_receiverNode);
 
         }
     }

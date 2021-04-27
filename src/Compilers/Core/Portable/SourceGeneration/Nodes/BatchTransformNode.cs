@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class BatchTransformNode<TInput, TOutput> : IIncrementalGeneratorNode<TOutput>
+    internal sealed class BatchTransformNode<TInput, TOutput> : IIncrementalGeneratorNode<TOutput>
     {
         private readonly Func<IEnumerable<TInput>, IEnumerable<TOutput>> _func;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             // Semantics of a batch transform:
             // Batches will always exist (a batch of the empty table is still [])
             // There is only ever one input, the batch of the upstream table
-            // - Output is cached when upsteam is all cached
+            // - Output is cached when upstream is all cached
             // - Added when the previous table was empty
             // - Modified otherwise
 

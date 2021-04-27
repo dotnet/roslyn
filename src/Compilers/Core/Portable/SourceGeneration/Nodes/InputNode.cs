@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// Input nodes don't actually do anything. They are just placeholders for the value sources
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class InputNode<T> : IIncrementalGeneratorNode<T>
+    internal sealed class InputNode<T> : IIncrementalGeneratorNode<T>
     {
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
@@ -26,6 +26,5 @@ namespace Microsoft.CodeAnalysis
         // PROTOTYPE(source-generators): how does this work? we definitly want to be able to add custom comparers to the input nodes
         // I guess its just a 'compare only' node with this as the input?
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => this;
-
     }
 }

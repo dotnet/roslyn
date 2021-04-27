@@ -55,9 +55,12 @@ namespace Microsoft.CodeAnalysis
     {
         internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, isCompacted: true, exception: null);
 
-        //PROTOTYPE: there is no need to store the state per item
+        // PROTOTYPE(source-generators): there is no need to store the state per item
         //           we can instead store one state per input, with
         //           an optional set for modified states.
+
+        // PROTOTYPE(source-generators): It seems common that we'll have a lot of immutable arrays of length 1
+        //           we should make it a discriminated union that has either 1 or more items instead.
         private readonly ImmutableArray<ImmutableArray<(T item, EntryState state)>> _states;
 
         private readonly bool _isCompacted;
@@ -118,10 +121,11 @@ namespace Microsoft.CodeAnalysis
             return sourceBuilder.ToImmutableAndFree();
         }
 
-        public Builder ToBuilder()
+        public Builder ToBuilder(int? extraCapacity = null)
         {
             Debug.Assert(!this.IsFaulted);
-            return new Builder(this);
+            int? capacity = extraCapacity.HasValue ? this._states.Length + extraCapacity.Value : null;
+            return new Builder(this, capacity);
         }
 
         // PROTOTYPE: this will be called to allow exceptions to flow through the graph
@@ -138,13 +142,19 @@ namespace Microsoft.CodeAnalysis
 
         public sealed class Builder
         {
-            private readonly ArrayBuilder<ImmutableArray<(T, EntryState)>> _states = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
+            private readonly ArrayBuilder<ImmutableArray<(T, EntryState)>> _states;
 
             private Exception? _exception = null;
 
-            public Builder() { }
+            public Builder(int? capacity = null)
+            {
+                _states = capacity.HasValue
+                          ? ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance(capacity.Value)
+                          : ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
+            }
 
-            public Builder(NodeStateTable<T> previous)
+            public Builder(NodeStateTable<T> previous, int? capacity = null)
+                : this(capacity)
             {
                 _states.AddRange(previous._states);
             }
@@ -156,7 +166,7 @@ namespace Microsoft.CodeAnalysis
 
             public void AddEntriesFromPreviousTable(NodeStateTable<T> previousTable, EntryState newState)
             {
-                // PROTOTYPE(source-generators): this doens't hold true if the node is added after an initial run. That 
+                // PROTOTYPE(source-generators): this doesn't hold true if the node is added after an initial run. That 
                 //                               will occur in the IDE, so we'll need to make sure we support empty tables
                 //                               that see cached/removed entries upstream.
                 Debug.Assert(previousTable._states.Length > _states.Count);
@@ -166,12 +176,19 @@ namespace Microsoft.CodeAnalysis
 
             public void ModifyEntriesFromPreviousTable(NodeStateTable<T> previousTable, ImmutableArray<T> outputs)
             {
+
                 // Semantics:
                 // For every slot in the previous table, we compare the new value.
                 // - Cached when the same
                 // - Modified when different
                 // - Removed when i > outputs.length
                 // - Added when i < previousTable.length
+
+
+                // PROTOTYPE(source-generators): this doesn't hold true if the node is added after an initial run. That 
+                //                               will occur in the IDE, so we'll need to make sure we support empty tables
+                //                               that see cached/removed entries upstream.
+                Debug.Assert(previousTable._states.Length > _states.Count);
 
                 var previousEntries = previousTable._states[_states.Count];
                 var modifiedEntries = ArrayBuilder<(T item, EntryState state)>.GetInstance();
