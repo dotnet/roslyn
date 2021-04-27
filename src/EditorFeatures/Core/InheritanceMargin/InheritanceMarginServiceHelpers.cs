@@ -90,9 +90,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // class Bar2 : Bar, IBar { public override void Foo() { } }
             // For 'class Bar2', the 'interface IBar' should only be shown once.
             var allBaseSymbols = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol)
-                .Select(symbol => symbol.OriginalDefinition)
-                .Distinct()
-                .ToImmutableArray();
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct();
 
             // Filter out
             // 1. System.Object. (otherwise margin would be shown for all classes)
