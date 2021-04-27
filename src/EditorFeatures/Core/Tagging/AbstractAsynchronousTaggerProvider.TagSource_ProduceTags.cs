@@ -167,10 +167,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnEventSourceChanged(object sender, TaggerEventArgs _)
             {
-                // cancel the last piece of computation work and enqueue the next
-                var cancellationToken = _cancellationSeries.CreateNext();
                 lock (_cancellationSeries)
                 {
+                    // cancel the last piece of computation work and enqueue the next
+                    var cancellationToken = _cancellationSeries.CreateNext();
                     _eventWorkQueue = OnEventSourceChangedAsync(_eventWorkQueue, cancellationToken);
                 }
             }
