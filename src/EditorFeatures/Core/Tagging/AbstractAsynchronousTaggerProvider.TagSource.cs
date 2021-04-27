@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
@@ -61,9 +62,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             /// <summary>
             /// Work queue that collects event notifications and kicks off the work to process them.
-            /// The value that is passed here tells us if this is the initial tag computation or not.
             /// </summary>
-            private readonly AsyncBatchingWorkQueue<bool> _eventWorkQueue;
+            private Task _eventWorkQueue;
+            private readonly CancellationSeries _cancellationSeries;
 
             /// <summary>
             /// Work queue that collects high priority requests to call TagsChanged with.
@@ -120,12 +121,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
-                _eventWorkQueue = new AsyncBatchingWorkQueue<bool>(
-                    _dataSource.EventChangeDelay.ComputeTimeDelay(),
-                    ProcessEventsAsync,
-                    EqualityComparer<bool>.Default,
-                    asyncListener,
-                    _disposalTokenSource.Token);
+                _cancellationSeries = new CancellationSeries(_disposalTokenSource.Token);
+                //_eventWorkQueue = new AsyncBatchingWorkQueue<bool>(
+                //    _dataSource.EventChangeDelay.ComputeTimeDelay(),
+                //    ProcessEventsAsync,
+                //    equalityComparer: null,
+                //    asyncListener,
+                //    _disposalTokenSource.Token);
 
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
-                _eventWorkQueue.AddWork(/*initialTags*/ true);
+                _eventWorkQueue = Task.Run(() => ProcessEventsAsync(initialTags: true, _disposalTokenSource.Token), _disposalTokenSource.Token);
 
                 return;
 

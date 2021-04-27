@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -29,7 +30,34 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private partial class TagSource
         {
             private void OnEventSourceChanged(object sender, TaggerEventArgs _)
-                => _eventWorkQueue.AddWork(/*initialTags*/ false);
+            {
+                // cancel the last piece of computation work and enqueue the next
+                var nextToken = _cancellationSeries.CreateNext();
+                lock (_disposalTokenSource)
+                {
+                    _eventWorkQueue = OnEventSourceChangedAsync(_eventWorkQueue, nextToken);
+                }
+            }
+
+            private async Task OnEventSourceChangedAsync(Task eventWorkQueue, CancellationToken cancellationToken)
+            {
+                using var token = _asyncListener.BeginAsyncOperation(nameof(OnEventSourceChangedAsync));
+
+                // wait for the previous work to be done.
+                try
+                {
+                    await eventWorkQueue.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+
+                // then wait the desired delay.
+                await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
+
+                // then go and produce the tags for this event.
+                await ProcessEventsAsync(initialTags: false, cancellationToken).ConfigureAwait(false);
+            }
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
             {
@@ -166,11 +194,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     : new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
             }
 
-            private async Task ProcessEventsAsync(ImmutableArray<bool> events, CancellationToken cancellationToken)
+            private async Task ProcessEventsAsync(bool initialTags, CancellationToken cancellationToken)
             {
-                // Can only have at most a single `true` and `false` value in this as we are deduping these notification values.
-                Contract.ThrowIfTrue(events.Length > 2);
-                var initialTags = events.Contains(true);
+                // Don't bother doing anything if our tagger has been disposed.
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
             }
@@ -187,6 +216,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private async Task RecomputeTagsForegroundAsync(bool initialTags, CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
+                if (cancellationToken.IsCancellationRequested)
+                    return;
 
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, cancellationToken))
                 {
@@ -210,6 +241,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
                     await ProduceTagsAsync(context).ConfigureAwait(false);
 
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     // Process the result to determine what changed.
                     var newTagTrees = ComputeNewTagTrees(oldTagTrees, context);
                     var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
@@ -217,8 +250,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
                     await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+                    // Once we assign our state, we're uncancellable.  We must report the changed information
+                    // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
                     this.CachedTagTrees = newTagTrees;
                     this.State = context.State;
+
                     OnTagsChangedForBuffer(bufferToChanges, initialTags);
                 }
             }
