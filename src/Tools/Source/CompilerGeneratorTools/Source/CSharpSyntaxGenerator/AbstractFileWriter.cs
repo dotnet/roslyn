@@ -374,34 +374,18 @@ namespace CSharpSyntaxGenerator
 
         protected List<Kind> GetKindsOfFieldOrNearestParent(TreeType nd, Field field)
         {
-            if (!IsOverride(field) || field.Kinds.Count > 0)
-            {
-                return field.Kinds;
-            }
-
-            while (IsOverride(field))
+            while ((field.Kinds is null || field.Kinds.Count == 0) && IsOverride(field))
             {
                 nd = GetTreeType(nd.Base);
-                if (nd is Node node)
+                field = (nd switch
                 {
-                    field = node.Fields.Single(f => f.Name == field.Name);
-                }
-                else if (nd is AbstractNode abstractNode)
-                {
-                    field = abstractNode.Fields.Single(f => f.Name == field.Name);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Unexpected node type.");
-                }
-
-                if (field.Kinds.Count > 0)
-                {
-                    return field.Kinds;
-                }
+                    Node node => node.Fields,
+                    AbstractNode abstractNode => abstractNode.Fields,
+                    _ => throw new InvalidOperationException("Unexpected node type.")
+                }).Single(f => f.Name == field.Name);
             }
 
-            return null;
+            return field.Kinds;
         }
 
         #endregion Node helpers
