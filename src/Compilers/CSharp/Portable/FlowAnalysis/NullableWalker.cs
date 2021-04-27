@@ -4161,7 +4161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (IsConstantNull(leftOperand))
             {
-                SetResultType(leftOperand, TypeWithState.Create(leftOperand.Type, NullableFlowState.MaybeDefault));
+                VisitRvalue(leftOperand);
                 Visit(rightOperand);
                 var rightUnconditionalResult = ResultType;
                 // Should be able to use rightResult for the result of the operator but
