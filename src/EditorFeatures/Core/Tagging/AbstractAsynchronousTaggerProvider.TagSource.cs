@@ -199,6 +199,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Stop computing any initial tags if we've been asked for them.
                 _disposalTokenSource.Cancel();
+                _cancellationSeries.Dispose();
+
                 _disposed = true;
                 _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
                 GC.SuppressFinalize(this);

@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -176,8 +175,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 lock (_cancellationSeries)
                 {
                     // cancel the last piece of computation work and enqueue the next
-                    var cancellationToken = initialTags ? _disposalTokenSource.Token : _cancellationSeries.CreateNext();
-                    _eventWorkQueue = EnqueueWorkAsync(_eventWorkQueue, initialTags, cancellationToken);
+                    try
+                    {
+                        var cancellationToken = initialTags ? _disposalTokenSource.Token : _cancellationSeries.CreateNext();
+                        _eventWorkQueue = EnqueueWorkAsync(_eventWorkQueue, initialTags, cancellationToken);
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // can happen if our type was disposed and we try to get a new token from _cancellationSeries.
+                        return;
+                    }
                 }
             }
 
