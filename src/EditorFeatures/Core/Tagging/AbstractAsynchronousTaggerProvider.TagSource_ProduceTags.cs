@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         private partial class TagSource
         {
-            private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
+            private void OnCaretPositionChanged(object? _, CaretPositionChangedEventArgs e)
             {
                 this.AssertIsForeground();
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: new(oldTagTree.GetSpans(snapshot).Select(s => s.Span))));
             }
 
-            private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
+            private void OnSubjectBufferChanged(object? _, TextContentChangedEventArgs e)
             {
                 this.AssertIsForeground();
                 UpdateTagsForTextChange(e);
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     : new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
             }
 
-            private void OnEventSourceChanged(object sender, TaggerEventArgs _)
+            private void OnEventSourceChanged(object? _1, TaggerEventArgs _2)
             {
                 EnqueueWork(initialTags: false);
             }
