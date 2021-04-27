@@ -1214,6 +1214,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Dim variableDeclarator = CType(node, VariableDeclaratorSyntax)
                     isAmbiguous = variableDeclarator.Names.Count > 1
                     node = variableDeclarator.Names.First
+
+                Case SyntaxKind.Attribute
+                    Return model.GetTypeInfo(node, cancellationToken).Type
+
             End Select
 
             Dim symbol = model.GetDeclaredSymbol(node, cancellationToken)

@@ -1179,6 +1179,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return null;
             }
 
+            if (node.IsKind(SyntaxKind.Attribute))
+            {
+                return model.GetTypeInfo(node, cancellationToken).Type;
+            }
+
             if (editKind == EditKind.Update)
             {
                 if (node.IsKind(SyntaxKind.EnumDeclaration))
@@ -2251,9 +2256,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.TypeParameter:
                     case SyntaxKind.TypeParameterConstraintClause:
                     case SyntaxKind.TypeParameterList:
+                        ReportError(RudeEditKind.Insert);
+                        return;
+
                     case SyntaxKind.Attribute:
                     case SyntaxKind.AttributeList:
-                        ReportError(RudeEditKind.Insert);
+                        // To allow inserting of attributes we would need to check if the inserted attribute
+                        // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
+                        // that affects the generated IL, so we defer those checks until semantic analysis.
                         return;
                 }
 
@@ -2328,8 +2338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.Attribute:
                         // To allow removal of attributes we would need to check if the removed attribute
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
-                        // that affects the generated IL.
-                        ReportError(RudeEditKind.Delete);
+                        // that affects the generated IL, so we defer those checks until semantic analysis.
                         return;
 
                     case SyntaxKind.TypeParameter:
@@ -2475,9 +2484,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case SyntaxKind.Attribute:
-                        // Dev12 reports "Rename" if the attribute type name is changed. 
-                        // But such update is actually not renaming the attribute, it's changing what attribute is applied.
-                        ReportError(RudeEditKind.Update);
+                        // To allow update of attributes we would need to check if the updated attribute
+                        // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
+                        // that affects the generated IL, so we defer those checks until semantic analysis.
                         return;
 
                     case SyntaxKind.TypeParameterList:
