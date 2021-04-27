@@ -86,18 +86,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             return false;
         }
 
-        private static (Document, IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document, IFindUsagesService) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacyService = document?.GetLanguageService<IFindUsagesService>();
-#pragma warning restore CS0618 // Type or member is obsolete
-            return legacyService == null
-                ? (document, document?.GetLanguageService<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess>())
-                : (document, new FindUsagesServiceWrapper(legacyService));
+            return (document, document?.GetLanguageService<IFindUsagesService>());
         }
 
-        private bool TryExecuteCommand(int caretPosition, Document document, IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess findUsagesService)
+        private bool TryExecuteCommand(int caretPosition, Document document, IFindUsagesService findUsagesService)
         {
             // See if we're running on a host that can provide streaming results.
             // We'll both need a FAR service that can stream results to us, and 
@@ -113,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
         private async Task StreamingFindReferencesAsync(
             Document document, int caretPosition,
-            IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess findUsagesService,
+            IFindUsagesService findUsagesService,
             IStreamingFindUsagesPresenter presenter)
         {
             try

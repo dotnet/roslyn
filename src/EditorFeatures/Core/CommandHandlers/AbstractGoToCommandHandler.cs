@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public abstract string DisplayName { get; }
         protected abstract string ScopeDescription { get; }
         protected abstract FunctionId FunctionId { get; }
-        protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken);
+        protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken);
 
         public CommandState GetCommandState(TCommandArgs args)
         {

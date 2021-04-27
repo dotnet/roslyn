@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
         protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToBase;
 
-        protected override Task FindActionAsync(IGoToBaseService service, Document document, int caretPosition, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
+        protected override Task FindActionAsync(IGoToBaseService service, Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken)
             => service.FindBasesAsync(document, caretPosition, context, cancellationToken);
     }
 }

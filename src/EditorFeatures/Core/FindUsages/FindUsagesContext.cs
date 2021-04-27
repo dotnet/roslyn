@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
-    internal abstract class FindUsagesContext : IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess
+    internal abstract class FindUsagesContext : IFindUsagesContext
     {
         public IStreamingProgressTracker ProgressTracker { get; }
 

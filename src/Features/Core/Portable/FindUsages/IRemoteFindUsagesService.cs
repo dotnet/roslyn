@@ -77,10 +77,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal sealed class FindUsagesServerCallback
     {
         private readonly Solution _solution;
-        private readonly IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess _context;
+        private readonly IFindUsagesContext _context;
         private readonly Dictionary<int, DefinitionItem> _idToDefinition = new();
 
-        public FindUsagesServerCallback(Solution solution, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context)
+        public FindUsagesServerCallback(Solution solution, IFindUsagesContext context)
         {
             _solution = solution;
             _context = context;

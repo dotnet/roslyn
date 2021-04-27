@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor.FindUsage
 {
     internal class FSharpFindUsagesContext : IFSharpFindUsagesContext
     {
-        private readonly IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess _context;
+        private readonly IFindUsagesContext _context;
         private readonly CancellationToken _cancellationToken;
 
-        public FSharpFindUsagesContext(IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
+        public FSharpFindUsagesContext(IFindUsagesContext context, CancellationToken cancellationToken)
         {
             _context = context;
             _cancellationToken = cancellationToken;

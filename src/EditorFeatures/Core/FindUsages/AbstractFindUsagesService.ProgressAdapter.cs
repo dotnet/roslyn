@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// </summary>
         private class FindLiteralsProgressAdapter : IStreamingFindLiteralReferencesProgress
         {
-            private readonly IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess _context;
+            private readonly IFindUsagesContext _context;
             private readonly DefinitionItem _definition;
 
             public IStreamingProgressTracker ProgressTracker
                 => _context.ProgressTracker;
 
             public FindLiteralsProgressAdapter(
-                IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, DefinitionItem definition)
+                IFindUsagesContext context, DefinitionItem definition)
             {
                 _context = context;
                 _definition = definition;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private class FindReferencesProgressAdapter : IStreamingFindReferencesProgress
         {
             private readonly Solution _solution;
-            private readonly IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess _context;
+            private readonly IFindUsagesContext _context;
             private readonly FindReferencesSearchOptions _options;
 
             /// <summary>
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 => _context.ProgressTracker;
 
             public FindReferencesProgressAdapter(
-                Solution solution, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, FindReferencesSearchOptions options)
+                Solution solution, IFindUsagesContext context, FindReferencesSearchOptions options)
             {
                 _solution = solution;
                 _context = context;

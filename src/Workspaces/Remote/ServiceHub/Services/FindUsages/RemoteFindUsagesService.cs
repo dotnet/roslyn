@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private sealed class RemoteFindUsageContext : IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess, IStreamingProgressTracker
+        private sealed class RemoteFindUsageContext : IFindUsagesContext, IStreamingProgressTracker
         {
             private readonly RemoteCallback<IRemoteFindUsagesService.ICallback> _callback;
             private readonly RemoteServiceCallbackId _callbackId;

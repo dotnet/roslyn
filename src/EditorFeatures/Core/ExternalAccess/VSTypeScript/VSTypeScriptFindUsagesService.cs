@@ -15,8 +15,8 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
 {
-    [ExportLanguageService(typeof(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess), InternalLanguageNames.TypeScript), Shared]
-    internal class VSTypeScriptFindUsagesService : IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess
+    [ExportLanguageService(typeof(IFindUsagesService), InternalLanguageNames.TypeScript), Shared]
+    internal class VSTypeScriptFindUsagesService : IFindUsagesService
     {
         private readonly IVSTypeScriptFindUsagesService _underlyingService;
 
@@ -27,18 +27,18 @@ namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
             _underlyingService = underlyingService;
         }
 
-        public Task FindReferencesAsync(Document document, int position, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
+        public Task FindReferencesAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
             => _underlyingService.FindReferencesAsync(document, position, new VSTypeScriptFindUsagesContext(context), cancellationToken);
 
-        public Task FindImplementationsAsync(Document document, int position, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
+        public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
             => _underlyingService.FindImplementationsAsync(document, position, new VSTypeScriptFindUsagesContext(context), cancellationToken);
 
         private class VSTypeScriptFindUsagesContext : IVSTypeScriptFindUsagesContext
         {
-            private readonly IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess _context;
+            private readonly IFindUsagesContext _context;
             private readonly Dictionary<VSTypeScriptDefinitionItem, DefinitionItem> _definitionItemMap = new();
 
-            public VSTypeScriptFindUsagesContext(IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context)
+            public VSTypeScriptFindUsagesContext(IFindUsagesContext context)
             {
                 _context = context;
             }

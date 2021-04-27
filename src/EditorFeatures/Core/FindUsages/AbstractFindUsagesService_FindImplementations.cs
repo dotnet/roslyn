@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     internal abstract partial class AbstractFindUsagesService
     {
         public async Task FindImplementationsAsync(
-            Document document, int position, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
+            Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
         {
             // If this is a symbol from a metadata-as-source project, then map that symbol back to a symbol in the primary workspace.
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         public static async Task FindImplementationsAsync(
-            ISymbol symbol, Project project, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
+            ISymbol symbol, Project project, IFindUsagesContext context, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         }
 
         private static async Task FindImplementationsInCurrentProcessAsync(
-            ISymbol symbol, Project project, IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess context, CancellationToken cancellationToken)
+            ISymbol symbol, Project project, IFindUsagesContext context, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             var (implementations, message) = await FindSourceImplementationsAsync(

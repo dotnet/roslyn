@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -24,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// definitions found to third parties in case they want to add any additional definitions
         /// to the results we present.
         /// </summary>
-        private class DefinitionTrackingContext : IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess
+        private class DefinitionTrackingContext : IFindUsagesContext
         {
-            private readonly IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess _underlyingContext;
+            private readonly IFindUsagesContext _underlyingContext;
             private readonly object _gate = new();
             private readonly List<DefinitionItem> _definitions = new();
 
-            public DefinitionTrackingContext(IFindUsagesContextRenameOnceTypeScriptMovesToExternalAccess underlyingContext)
+            public DefinitionTrackingContext(IFindUsagesContext underlyingContext)
                 => _underlyingContext = underlyingContext;
 
             public IStreamingProgressTracker ProgressTracker
