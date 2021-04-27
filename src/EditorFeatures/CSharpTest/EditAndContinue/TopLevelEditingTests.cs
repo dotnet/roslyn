@@ -3656,6 +3656,7 @@ class C
 
             // Adding P/Invoke is not supported by the CLR.
             edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.NetStandard20 },
                 Diagnostic(RudeEditKind.InsertExtern, "public extern D()", FeaturesResources.constructor),
                 Diagnostic(RudeEditKind.InsertExtern, "public static extern int P", FeaturesResources.property_),
                 Diagnostic(RudeEditKind.InsertExtern, "public static extern int puts(string c)", FeaturesResources.method),
@@ -5149,6 +5150,7 @@ class C
                  "Delete [string c]@135");
 
             edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.NetStandard20 },
                 Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "puts(string)")),
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "class C", "attribute"));
         }
@@ -5363,6 +5365,7 @@ class C
 
             // CLR doesn't support methods without a body
             edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.NetStandard20 },
                 Diagnostic(RudeEditKind.InsertExtern, "private static extern int puts(string c)", FeaturesResources.method),
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(\"msvcrt.dll\")", "attribute"));
         }
