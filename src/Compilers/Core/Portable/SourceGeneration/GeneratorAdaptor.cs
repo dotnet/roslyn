@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var oldContext = contextBuilder.ToExecutionContext(context.CancellationToken);
 
-                    // PROTOTYPE(source-generators):If this throws, we'll wrap it in a user func as expected. We probably *should* do that for the rest of this code though
+                    // PROTOTYPE(source-generators):If this throws, we'll wrap it in a user func as expected. We probably *shouldn't* do that for the rest of this code though
                     // So we probably need an internal version that doesn't wrap it? Maybe we can just construct the nodes manually.
                     SourceGenerator.Execute(oldContext);
 
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             });
         }
 
-        record GeneratorContextBuilder(Compilation Compilation)
+        internal record GeneratorContextBuilder(Compilation Compilation)
         {
             public ParseOptions? ParseOptions;
 
@@ -81,9 +81,7 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(ParseOptions is object && ConfigOptions is object);
                 return new GeneratorExecutionContext(Compilation, ParseOptions, AdditionalTexts, ConfigOptions, Receiver, cancellationToken);
-
             }
-
         }
     }
 }
