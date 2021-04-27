@@ -235,7 +235,9 @@ namespace Microsoft.CodeAnalysis
                 _exception = e;
             }
 
-            public NodeStateTable<T> ToImmutableAndFree() => new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: false, exception: _exception);
+            public NodeStateTable<T> ToImmutableAndFree() => _states.Count == 0
+                                                             ? NodeStateTable<T>.Empty
+                                                             : new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: false, exception: _exception);
         }
     }
 }

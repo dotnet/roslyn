@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis
 {
     public readonly struct IncrementalValueSources
     {
-        private readonly PerGeneratorInputNodes.Builder _generatorSourceBuilder;
+        private readonly PerGeneratorInputNodes.Builder _perGeneratorBuilder;
 
-        internal IncrementalValueSources(PerGeneratorInputNodes.Builder generatorSourceBuilder)
+        internal IncrementalValueSources(PerGeneratorInputNodes.Builder perGeneratorBuilder)
         {
-            _generatorSourceBuilder = generatorSourceBuilder;
+            _perGeneratorBuilder = perGeneratorBuilder;
         }
 
         public IncrementalValueSource<Compilation> Compilation => new IncrementalValueSource<Compilation>(SharedInputNodes.Compilation);
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalzerConfigOptions);
 
         //only used for back compat in the adaptor
-        internal IncrementalValueSource<ISyntaxContextReceiver> SyntaxReceiver => new IncrementalValueSource<ISyntaxContextReceiver>(_generatorSourceBuilder.ReceiverNode);
+        internal IncrementalValueSource<ISyntaxContextReceiver> CreateSyntaxReceiver() => new IncrementalValueSource<ISyntaxContextReceiver>(_perGeneratorBuilder.GetOrCreateReceiverNode());
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public InputNode<ISyntaxContextReceiver> ReceiverNode => InterlockedOperations.Initialize(ref _receiverNode, new InputNode<ISyntaxContextReceiver>());
+            public InputNode<ISyntaxContextReceiver> GetOrCreateReceiverNode() => InterlockedOperations.Initialize(ref _receiverNode, new InputNode<ISyntaxContextReceiver>());
 
             public PerGeneratorInputNodes ToImmutable() => new PerGeneratorInputNodes(_receiverNode);
 

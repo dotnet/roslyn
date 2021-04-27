@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                                          .Transform(c => new GeneratorContextBuilder(c))
                                          .Join(ctx.Sources.ParseOptions).Transform(p => p.Item1 with { ParseOptions = p.Item2.FirstOrDefault() })
                                          .Join(ctx.Sources.AnalyzerConfigOptions).Transform(p => p.Item1 with { ConfigOptions = p.Item2.FirstOrDefault() })
-                                         .Join(ctx.Sources.SyntaxReceiver).Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() })
+                                         .Join(ctx.Sources.CreateSyntaxReceiver()).Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() })
                                          .Join(ctx.Sources.AdditionalTexts).Transform(p => p.Item1 with { AdditionalTexts = p.Item2.ToImmutableArray() });
 
                 var output = context.GenerateSource((context, contextBuilder) =>
