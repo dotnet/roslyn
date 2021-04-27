@@ -1571,7 +1571,7 @@ class C
     sbyte Goo = sbyte.[|MinValue|];
 }";
 
-            var expected = "public const SByte MinValue = -128;";
+            var expected = "public const sbyte MinValue = -128;";
 
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
@@ -1600,7 +1600,7 @@ class C
     short Goo = short.[|MinValue|];
 }";
 
-            var expected = $"public const Int16 MinValue = -32768;";
+            var expected = $"public const short MinValue = -32768;";
 
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
@@ -1629,7 +1629,7 @@ class C
     int Goo = int.[|MinValue|];
 }";
 
-            var expected = $"public const Int32 MinValue = -2147483648;";
+            var expected = $"public const int MinValue = -2147483648;";
 
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
@@ -1658,7 +1658,7 @@ class C
     long Goo = long.[|MinValue|];
 }";
 
-            var expected = $"public const Int64 MinValue = -9223372036854775808;";
+            var expected = $"public const long MinValue = -9223372036854775808;";
 
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.CSharp, expected);
         }
