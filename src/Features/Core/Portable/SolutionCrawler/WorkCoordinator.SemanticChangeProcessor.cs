@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         using (data.AsyncToken)
                         {
-                            var project = _registration.CurrentSolution.GetProject(data.ProjectId);
+                            var project = _registration.GetSolutionToAnalyze().GetProject(data.ProjectId);
                             if (project == null)
                             {
                                 return;
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             }
 
                             // do dependency tracking here with current solution
-                            var solution = _registration.CurrentSolution;
+                            var solution = _registration.GetSolutionToAnalyze();
                             foreach (var projectId in GetProjectsToAnalyze(solution, data.ProjectId))
                             {
                                 project = solution.GetProject(projectId);

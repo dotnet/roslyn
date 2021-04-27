@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                if (!AnalysisEnabled(document))
+                if (!await AnalysisEnabledAsync(document, _documentTrackingService, AnalysisScopeService, cancellationToken).ConfigureAwait(false))
                 {
                     // to reduce allocations, here, we don't clear existing diagnostics since it is dealt by other entry point such as
                     // DocumentReset or DocumentClosed.
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return Task.CompletedTask;
         }
 
-        private static bool AnalysisEnabled(TextDocument document)
+        private static async ValueTask<bool> AnalysisEnabledAsync(TextDocument document, IDocumentTrackingService documentTrackingService, IAnalysisScopeService analysisScopeService, CancellationToken cancellationToken)
         {
             if (document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null)
             {
@@ -340,9 +340,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
+            if (!document.SupportsDiagnostics())
+            {
+                return false;
+            }
+
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
-            return document.IsOpen() && document.SupportsDiagnostics();
+            var analysisScope = await analysisScopeService.GetAnalysisScopeAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (analysisScope == BackgroundAnalysisScope.ActiveFile)
+            {
+                return documentTrackingService.TryGetActiveDocument() == document.Id;
+            }
+            else
+            {
+                return document.IsOpen();
+            }
         }
 
         /// <summary>

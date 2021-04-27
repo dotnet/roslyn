@@ -307,6 +307,11 @@
         <target state="translated">Habilitar diagnósticos "pull" de Razor (experimental, requiere reiniciar)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
+        <source>Enable all features in opened files from source generators (experimental)</source>
+        <target state="new">Enable all features in opened files from source generators (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="translated">Habilitar diagnósticos "pull" (experimental, requiere reiniciar)</target>

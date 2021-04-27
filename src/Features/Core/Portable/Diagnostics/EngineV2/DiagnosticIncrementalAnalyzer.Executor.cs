@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 return null;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // we only care about local diagnostics
                     return new DocumentAnalysisData(version, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     return new ProjectAnalysisData(project.Id, version, existingData.Result, result);
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // check whether there is IDE specific project diagnostic analyzer
                 return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, ideAnalyzers, compilationWithAnalyzers?.Compilation, result, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // we couldn't reduce the set.
                 return await ComputeDiagnosticsAsync(compilationWithAnalyzers, project, ideAnalyzers, forcedAnalysis, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 return result;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

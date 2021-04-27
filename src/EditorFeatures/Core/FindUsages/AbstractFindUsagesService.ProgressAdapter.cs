@@ -66,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             /// This dictionary allows us to make that mapping once and then keep it around for
             /// all future callbacks.
             /// </summary>
-            private readonly Dictionary<ISymbol, DefinitionItem> _definitionToItem =
-                new(MetadataUnifyingEquivalenceComparer.Instance);
+            private readonly Dictionary<SymbolGroup, DefinitionItem> _definitionToItem = new();
 
             private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
@@ -93,44 +92,42 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
             // feature.
 
-            private async ValueTask<DefinitionItem> GetDefinitionItemAsync(ISymbol definition)
+            private async ValueTask<DefinitionItem> GetDefinitionItemAsync(SymbolGroup group)
             {
                 var cancellationToken = _context.CancellationToken;
                 using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (!_definitionToItem.TryGetValue(definition, out var definitionItem))
+                    if (!_definitionToItem.TryGetValue(group, out var definitionItem))
                     {
-                        definitionItem = await definition.ToClassifiedDefinitionItemAsync(
+                        definitionItem = await group.ToClassifiedDefinitionItemAsync(
                             _solution,
                             isPrimary: _definitionToItem.Count == 0,
                             includeHiddenLocations: false,
                             _options,
                             _context.CancellationToken).ConfigureAwait(false);
 
-                        _definitionToItem[definition] = definitionItem;
+                        _definitionToItem[group] = definitionItem;
                     }
 
                     return definitionItem;
                 }
             }
 
-            public async ValueTask OnDefinitionFoundAsync(ISymbol definition)
+            public async ValueTask OnDefinitionFoundAsync(SymbolGroup group)
             {
-                var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
+                var definitionItem = await GetDefinitionItemAsync(group).ConfigureAwait(false);
                 await _context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
 
-            public async ValueTask OnReferenceFoundAsync(ISymbol definition, ReferenceLocation location)
+            public async ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol definition, ReferenceLocation location)
             {
-                var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
+                var definitionItem = await GetDefinitionItemAsync(group).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(
                     definitionItem, includeHiddenLocations: false,
                     cancellationToken: _context.CancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
-                {
                     await _context.OnReferenceFoundAsync(referenceItem).ConfigureAwait(false);
-                }
             }
         }
     }

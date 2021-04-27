@@ -61,13 +61,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             var cscDllPath = Path.Combine(
                 Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
                 Path.Combine("dependency", "csc.dll"));
-            var dotnetExe = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+            var dotnetExe = DotNetCoreSdk.ExePath;
             var netStandardDllPath = AppDomain.CurrentDomain.GetAssemblies()
                 .FirstOrDefault(assembly => !assembly.IsDynamic && assembly.Location.EndsWith("netstandard.dll")).Location;
             var netStandardDllDir = Path.GetDirectoryName(netStandardDllPath);
+            // Since we are using references based on the UnitTest's runtime, we need to use
+            // its runtime config when executing out program.
+            var runtimeConfigPath = Path.ChangeExtension(Assembly.GetExecutingAssembly().Location, "runtimeconfig.json");
 
             s_CSharpCompilerExecutable = $@"""{dotnetExe}"" ""{cscDllPath}"" /r:""{netStandardDllPath}"" /r:""{netStandardDllDir}/System.Private.CoreLib.dll"" /r:""{netStandardDllDir}/System.Console.dll"" /r:""{netStandardDllDir}/System.Runtime.dll""";
-            s_DotnetCscRun = $@"""{dotnetExe}"" exec --runtimeconfig ""{Path.Combine(Path.GetDirectoryName(cscDllPath), "csc.runtimeconfig.json")}""";
+            s_DotnetCscRun = $@"""{dotnetExe}"" exec --runtimeconfig ""{runtimeConfigPath}""";
             s_CSharpScriptExecutable = s_CSharpCompilerExecutable.Replace("csc.dll", Path.Combine("csi", "csi.dll"));
 #else
             s_CSharpScriptExecutable = s_CSharpCompilerExecutable.Replace("csc.exe", Path.Combine("csi", "csi.exe"));
@@ -11816,10 +11819,32 @@ dotnet_diagnostic.{diagnosticId}.severity = warning
 dotnet_analyzer_diagnostic.category-{category}.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
 
+            // Verify global config based configuration before diagnostic ID configuration is not respected.
+            analyzerConfigText = $@"
+is_global = true
+dotnet_analyzer_diagnostic.category-{category}.severity = error
+dotnet_diagnostic.{diagnosticId}.severity = warning";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+
+            // Verify global config based configuration after diagnostic ID configuration is not respected.
+            analyzerConfigText = $@"
+is_global = true
+dotnet_diagnostic.{diagnosticId}.severity = warning
+dotnet_analyzer_diagnostic.category-{category}.severity = error";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+
+
             // Verify disabled by default analyzer is not enabled by category based configuration.
             analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
             analyzerConfigText = $@"
 [*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = error";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+            // Verify disabled by default analyzer is not enabled by category based configuration in global config
+            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
+            analyzerConfigText = $@"
+is_global=true
 dotnet_analyzer_diagnostic.category-{category}.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
 
@@ -11831,6 +11856,12 @@ dotnet_analyzer_diagnostic.category-{category}.severity = error";
                 TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText: string.Empty, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
 
                 // Verify that bulk configuration 'none' entry does not enable this analyzer.
+                analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = none";
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+                // Verify that bulk configuration 'none' entry does not enable this analyzer via global config
                 analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.category-{category}.severity = none";

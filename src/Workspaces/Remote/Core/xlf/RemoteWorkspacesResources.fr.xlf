@@ -38,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
-        <source>Document higlights</source>
-        <target state="translated">Colorations de documents</target>
+        <source>Document highlights</source>
+        <target state="needs-review-translation">Colorations de documents</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EditAndContinue">
