@@ -167,15 +167,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnEventSourceChanged(object sender, TaggerEventArgs _)
             {
+                EnqueueWork(initialTags: false);
+            }
+
+            private void EnqueueWork(bool initialTags)
+            {
                 lock (_cancellationSeries)
                 {
                     // cancel the last piece of computation work and enqueue the next
-                    var cancellationToken = _cancellationSeries.CreateNext();
-                    _eventWorkQueue = OnEventSourceChangedAsync(_eventWorkQueue, cancellationToken);
+                    var cancellationToken = initialTags ? _disposalTokenSource.Token : _cancellationSeries.CreateNext();
+                    _eventWorkQueue = OnEventSourceChangedAsync(_eventWorkQueue, initialTags, cancellationToken);
                 }
             }
 
-            private async Task OnEventSourceChangedAsync(Task eventWorkQueue, CancellationToken cancellationToken)
+            private async Task OnEventSourceChangedAsync(Task eventWorkQueue, bool initialTags, CancellationToken cancellationToken)
             {
                 using var _ = _asyncListener.BeginAsyncOperation(nameof(OnEventSourceChangedAsync));
 
@@ -191,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
-                await ProcessEventsAsync(initialTags: false, cancellationToken).ConfigureAwait(false);
+                await ProcessEventsAsync(initialTags, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task ProcessEventsAsync(bool initialTags, CancellationToken cancellationToken)
