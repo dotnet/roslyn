@@ -177,14 +177,27 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     // cancel the last piece of computation work and enqueue the next
                     var cancellationToken = initialTags ? _disposalTokenSource.Token : _cancellationSeries.CreateNext();
-                    var nextTask = _eventWorkQueue.ContinueWith(
-                        async _ =>
-                        {
-                            await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
-                            await ProcessEventsAsync(initialTags, cancellationToken).ConfigureAwait(false);
-                        }, cancellationToken, TaskContinuationOptions.LazyCancellation | TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
-                    _eventWorkQueue = nextTask.Unwrap().CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(EnqueueWork)));
+                    _eventWorkQueue = EnqueueWorkAsync(_eventWorkQueue, initialTags, cancellationToken);
                 }
+            }
+
+            private async Task EnqueueWorkAsync(Task eventWorkQueue, bool initialTags, CancellationToken cancellationToken)
+            {
+                using var _ = _asyncListener.BeginAsyncOperation(nameof(EnqueueWorkAsync));
+
+                try
+                {
+                    await eventWorkQueue.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                }
+
+                await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
+                await ProcessEventsAsync(initialTags, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task ProcessEventsAsync(bool initialTags, CancellationToken cancellationToken)
