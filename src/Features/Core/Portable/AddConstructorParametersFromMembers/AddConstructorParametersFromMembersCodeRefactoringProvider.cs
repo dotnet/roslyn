@@ -166,18 +166,15 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
 
             var actions = addConstructorParametersResult.Value.RequiredParameterActions.Concat(addConstructorParametersResult.Value.OptionalParameterActions);
-
             if (actions.IsEmpty)
             {
                 return ImmutableArray<IntentProcessorResult>.Empty;
             }
 
             using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
-
             foreach (var action in actions)
             {
                 var changedSolution = await action.GetChangedSolutionInternalAsync(postProcessChanges: true, cancellationToken).ConfigureAwait(false);
-
                 var intent = new IntentProcessorResult(changedSolution, action.Title, action.ActionName);
                 results.Add(intent);
             }
