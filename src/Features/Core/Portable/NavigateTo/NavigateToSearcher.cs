@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    internal partial class NavigateToSearcher
+    internal class NavigateToSearcher
     {
         private readonly INavigateToSearcherHost _host;
         private readonly Solution _solution;
@@ -55,14 +55,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return new ValueTask();
             });
 
-            if (_searchCurrentDocument)
-            {
-                var documentService = _solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                var activeId = documentService.TryGetActiveDocument();
-                _currentDocument = activeId != null ? _solution.GetDocument(activeId) : null;
-            }
-
-            var docTrackingService = _solution.Workspace.Services.GetService<IDocumentTrackingService>() ?? NoOpDocumentTrackingService.Instance;
+            var docTrackingService = _solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
             // If the workspace is tracking documents, use that to prioritize our search
             // order.  That way we provide results for the documents the user is working
@@ -70,6 +63,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _activeDocument = docTrackingService.GetActiveDocument(_solution);
             _visibleDocuments = docTrackingService.GetVisibleDocuments(_solution)
                                                   .WhereAsArray(d => d != _activeDocument);
+
+            if (_searchCurrentDocument)
+            {
+                _currentDocument = _activeDocument;
+            }
         }
 
         public static NavigateToSearcher Create(

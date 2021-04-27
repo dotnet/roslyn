@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         ImmutableArray<DocumentId> GetVisibleDocuments();
 
-        event EventHandler<DocumentId> ActiveDocumentChanged;
+        event EventHandler<DocumentId?> ActiveDocumentChanged;
 
         /// <summary>
         /// Raised when a text buffer that's not part of a workspace is changed.
