@@ -2420,6 +2420,29 @@ static class C
         }
 
         [Fact]
+        public void NullCoalescing_NonNullConstantLeft()
+        {
+            var source = @"
+#nullable enable
+
+static class C
+{
+    static void M1()
+    {
+        object x;
+        _ = """" ?? $""{x.ToString()}""; // unreachable
+        _ = """".ToString() ?? $""{x.ToString()}""; // 1
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,33): error CS0165: Use of unassigned local variable 'x'
+                //         _ = "".ToString() ?? $"{x.ToString()}"; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(10, 33)
+                );
+        }
+
+        [Fact]
         public void NullCoalescing_ConditionalLeft()
         {
             var source = @"

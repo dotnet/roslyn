@@ -4159,12 +4159,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression leftOperand = node.LeftOperand;
             BoundExpression rightOperand = node.RightOperand;
 
-            // PROTOTYPE(improved-definite-assignment):
-            // Definite assignment has another special case for when the LHS is a non-null constant (a literal string for example).
-            // Should we replicate that here?
             if (IsConstantNull(leftOperand))
             {
-                VisitRvalue(leftOperand);
+                SetResultType(leftOperand, TypeWithState.Create(leftOperand.Type, NullableFlowState.MaybeDefault));
                 Visit(rightOperand);
                 var rightUnconditionalResult = ResultType;
                 // Should be able to use rightResult for the result of the operator but
