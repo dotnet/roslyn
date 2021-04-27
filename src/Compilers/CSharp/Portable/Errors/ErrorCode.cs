@@ -1934,7 +1934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics introduced for C# 10.0
 
-        // PROTOTYPE(extended-property-patterns)
+        // PROTOTYPE(extended-property-patterns) Temp values
         ERR_InvalidNameInSubpattern = 9000,
         ERR_ConditionalAccessInSubpattern,
 

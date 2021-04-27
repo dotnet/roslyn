@@ -133,13 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ExtendedPropertySubpattern_03()
         {
-            UsingExpression(@"e is { name<T>: p }",
-                // (1,15): error CS1003: Syntax error, ',' expected
-                // e is { name<T>: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 15),
-                // (1,17): error CS1003: Syntax error, ',' expected
-                // e is { name<T>: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 17));
+            UsingExpression(@"e is { name<T>: p }");
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -155,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
                         {
-                            N(SyntaxKind.TypePattern);
+                            N(SyntaxKind.ExpressionColon);
                             {
                                 N(SyntaxKind.GenericName);
                                 {
@@ -170,11 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                         N(SyntaxKind.GreaterThanToken);
                                     }
                                 }
+                                N(SyntaxKind.ColonToken);
                             }
-                        }
-                        M(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Subpattern);
-                        {
                             N(SyntaxKind.ConstantPattern);
                             {
                                 N(SyntaxKind.IdentifierName);
@@ -193,14 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ExtendedPropertySubpattern_04()
         {
-            UsingExpression(@"e is { name[0]: p }",
-                // (1,15): error CS1003: Syntax error, ',' expected
-                // e is { name[0]: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 15),
-                // (1,17): error CS1003: Syntax error, ',' expected
-                // e is { name[0]: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 17));
-
+            UsingExpression(@"e is { name[0]: p }");
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -216,29 +200,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
                         {
-                            N(SyntaxKind.TypePattern);
+                            N(SyntaxKind.ExpressionColon);
                             {
-                                N(SyntaxKind.ArrayType);
+                                N(SyntaxKind.ElementAccessExpression);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "name");
                                     }
-                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    N(SyntaxKind.BracketedArgumentList);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.NumericLiteralExpression);
+                                        N(SyntaxKind.Argument);
                                         {
-                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
                                         }
                                         N(SyntaxKind.CloseBracketToken);
                                     }
                                 }
+                                N(SyntaxKind.ColonToken);
                             }
-                        }
-                        M(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Subpattern);
-                        {
                             N(SyntaxKind.ConstantPattern);
                             {
                                 N(SyntaxKind.IdentifierName);
@@ -293,6 +277,321 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 }
                                 N(SyntaxKind.ColonToken);
                             }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "p");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ExtendedPropertySubpattern_06()
+        {
+            UsingExpression(@"e is { a->c: p }");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ExpressionColon);
+                            {
+                                N(SyntaxKind.PointerMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                    N(SyntaxKind.MinusGreaterThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "c");
+                                    }
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "p");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ExtendedPropertySubpattern_07()
+        {
+            UsingExpression(@"e is { [0]: p }",
+                    // (1,8): error CS1001: Identifier expected
+                    // e is { [0]: p }
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "[").WithLocation(1, 8),
+                    // (1,10): error CS1003: Syntax error, ',' expected
+                    // e is { [0]: p }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",", "]").WithLocation(1, 10),
+                    // (1,13): error CS1003: Syntax error, ',' expected
+                    // e is { [0]: p }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 13));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "p");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ExtendedPropertySubpattern_08()
+        {
+            UsingExpression(@"e is { not a: p }",
+                    // (1,13): error CS1003: Syntax error, ',' expected
+                    // e is { not a: p }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 13),
+                    // (1,15): error CS1003: Syntax error, ',' expected
+                    // e is { not a: p }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 15));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.NotPattern);
+                            {
+                                N(SyntaxKind.NotKeyword);
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "p");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ExtendedPropertySubpattern_09()
+        {
+            UsingExpression(@"e is { x or y: p }",
+                    // (1,14): error CS1003: Syntax error, ',' expected
+                    // e is { x or y: p }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 14),
+                    // (1,16): error CS1003: Syntax error, ',' expected
+                    // e is { x or y: p }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 16));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.OrPattern);
+                            {
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                N(SyntaxKind.OrKeyword);
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "p");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ExtendedPropertySubpattern_10()
+        {
+            UsingExpression(@"e is { 1: p }");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ExpressionColon);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "p");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ExtendedPropertySubpattern_11()
+        {
+            UsingExpression(@"e is { >1: p }",
+                    // (1,10): error CS1003: Syntax error, ',' expected
+                    // e is { >1: p }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 10),
+                    // (1,12): error CS1003: Syntax error, ',' expected
+                    // e is { >1: p }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 12));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.RelationalPattern);
+                            {
+                                N(SyntaxKind.GreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
                             N(SyntaxKind.ConstantPattern);
                             {
                                 N(SyntaxKind.IdentifierName);

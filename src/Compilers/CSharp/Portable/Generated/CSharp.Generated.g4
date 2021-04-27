@@ -602,7 +602,7 @@ positional_pattern_clause
   ;
 
 subpattern
-  : base_expression_colon pattern
+  : base_expression_colon? pattern
   ;
 
 base_expression_colon

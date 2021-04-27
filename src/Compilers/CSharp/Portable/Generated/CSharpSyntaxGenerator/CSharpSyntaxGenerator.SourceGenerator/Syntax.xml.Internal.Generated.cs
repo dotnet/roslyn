@@ -11004,41 +11004,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal sealed partial class SubpatternSyntax : CSharpSyntaxNode
     {
-        internal readonly BaseExpressionColonSyntax expressionColon;
+        internal readonly BaseExpressionColonSyntax? expressionColon;
         internal readonly PatternSyntax pattern;
 
-        internal SubpatternSyntax(SyntaxKind kind, BaseExpressionColonSyntax expressionColon, PatternSyntax pattern, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal SubpatternSyntax(SyntaxKind kind, BaseExpressionColonSyntax? expressionColon, PatternSyntax pattern, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(expressionColon);
-            this.expressionColon = expressionColon;
+            if (expressionColon != null)
+            {
+                this.AdjustFlagsAndWidth(expressionColon);
+                this.expressionColon = expressionColon;
+            }
             this.AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
         }
 
-        internal SubpatternSyntax(SyntaxKind kind, BaseExpressionColonSyntax expressionColon, PatternSyntax pattern, SyntaxFactoryContext context)
+        internal SubpatternSyntax(SyntaxKind kind, BaseExpressionColonSyntax? expressionColon, PatternSyntax pattern, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(expressionColon);
-            this.expressionColon = expressionColon;
+            if (expressionColon != null)
+            {
+                this.AdjustFlagsAndWidth(expressionColon);
+                this.expressionColon = expressionColon;
+            }
             this.AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
         }
 
-        internal SubpatternSyntax(SyntaxKind kind, BaseExpressionColonSyntax expressionColon, PatternSyntax pattern)
+        internal SubpatternSyntax(SyntaxKind kind, BaseExpressionColonSyntax? expressionColon, PatternSyntax pattern)
           : base(kind)
         {
             this.SlotCount = 2;
-            this.AdjustFlagsAndWidth(expressionColon);
-            this.expressionColon = expressionColon;
+            if (expressionColon != null)
+            {
+                this.AdjustFlagsAndWidth(expressionColon);
+                this.expressionColon = expressionColon;
+            }
             this.AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
         }
 
-        public BaseExpressionColonSyntax ExpressionColon => this.expressionColon;
+        public BaseExpressionColonSyntax? ExpressionColon => this.expressionColon;
         public PatternSyntax Pattern => this.pattern;
 
         internal override GreenNode? GetSlot(int index)
@@ -11081,9 +11090,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
           : base(reader)
         {
             this.SlotCount = 2;
-            var expressionColon = (BaseExpressionColonSyntax)reader.ReadValue();
-            AdjustFlagsAndWidth(expressionColon);
-            this.expressionColon = expressionColon;
+            var expressionColon = (BaseExpressionColonSyntax?)reader.ReadValue();
+            if (expressionColon != null)
+            {
+                AdjustFlagsAndWidth(expressionColon);
+                this.expressionColon = expressionColon;
+            }
             var pattern = (PatternSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(pattern);
             this.pattern = pattern;
@@ -36202,10 +36214,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public SubpatternSyntax Subpattern(BaseExpressionColonSyntax expressionColon, PatternSyntax pattern)
+        public SubpatternSyntax Subpattern(BaseExpressionColonSyntax? expressionColon, PatternSyntax pattern)
         {
 #if DEBUG
-            if (expressionColon == null) throw new ArgumentNullException(nameof(expressionColon));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
 #endif
 
@@ -41091,10 +41102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static SubpatternSyntax Subpattern(BaseExpressionColonSyntax expressionColon, PatternSyntax pattern)
+        public static SubpatternSyntax Subpattern(BaseExpressionColonSyntax? expressionColon, PatternSyntax pattern)
         {
 #if DEBUG
-            if (expressionColon == null) throw new ArgumentNullException(nameof(expressionColon));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
 #endif
 

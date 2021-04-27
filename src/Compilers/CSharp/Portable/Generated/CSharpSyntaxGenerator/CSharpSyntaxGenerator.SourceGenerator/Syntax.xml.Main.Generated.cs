@@ -1681,7 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Subpatterns), VisitToken(node.CloseBraceToken));
 
         public override SyntaxNode? VisitSubpattern(SubpatternSyntax node)
-            => node.Update((BaseExpressionColonSyntax?)Visit(node.ExpressionColon) ?? throw new ArgumentNullException("expressionColon"), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
+            => node.Update((BaseExpressionColonSyntax?)Visit(node.ExpressionColon), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
 
         public override SyntaxNode? VisitConstantPattern(ConstantPatternSyntax node)
             => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
@@ -3593,12 +3593,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.PropertyPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         /// <summary>Creates a new SubpatternSyntax instance.</summary>
-        public static SubpatternSyntax Subpattern(BaseExpressionColonSyntax expressionColon, PatternSyntax pattern)
+        public static SubpatternSyntax Subpattern(BaseExpressionColonSyntax? expressionColon, PatternSyntax pattern)
         {
-            if (expressionColon == null) throw new ArgumentNullException(nameof(expressionColon));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
-            return (SubpatternSyntax)Syntax.InternalSyntax.SyntaxFactory.Subpattern((Syntax.InternalSyntax.BaseExpressionColonSyntax)expressionColon.Green, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
+            return (SubpatternSyntax)Syntax.InternalSyntax.SyntaxFactory.Subpattern(expressionColon == null ? null : (Syntax.InternalSyntax.BaseExpressionColonSyntax)expressionColon.Green, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
+
+        /// <summary>Creates a new SubpatternSyntax instance.</summary>
+        public static SubpatternSyntax Subpattern(PatternSyntax pattern)
+            => SyntaxFactory.Subpattern(default, pattern);
 
         /// <summary>Creates a new ConstantPatternSyntax instance.</summary>
         public static ConstantPatternSyntax ConstantPattern(ExpressionSyntax expression)

@@ -2040,7 +2040,7 @@
   </Node>
   <Node Name="SubpatternSyntax" Base="CSharpSyntaxNode">
     <Kind Name="Subpattern"/>
-    <Field Name="ExpressionColon" Type="BaseExpressionColonSyntax"/>
+    <Field Name="ExpressionColon" Type="BaseExpressionColonSyntax" Optional="true"/>
     <Field Name="Pattern" Type="PatternSyntax" />
   </Node>
   <Node Name="ConstantPatternSyntax" Base="PatternSyntax">

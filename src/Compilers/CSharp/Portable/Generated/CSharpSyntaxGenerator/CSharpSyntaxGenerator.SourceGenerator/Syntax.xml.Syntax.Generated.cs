@@ -5268,14 +5268,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public BaseExpressionColonSyntax ExpressionColon => GetRedAtZero(ref this.expressionColon)!;
+        public BaseExpressionColonSyntax? ExpressionColon => GetRedAtZero(ref this.expressionColon);
 
         public PatternSyntax Pattern => GetRed(ref this.pattern, 1)!;
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.expressionColon)!,
+                0 => GetRedAtZero(ref this.expressionColon),
                 1 => GetRed(ref this.pattern, 1)!,
                 _ => null,
             };
@@ -5291,7 +5291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSubpattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSubpattern(this);
 
-        public SubpatternSyntax Update(BaseExpressionColonSyntax expressionColon, PatternSyntax pattern)
+        public SubpatternSyntax Update(BaseExpressionColonSyntax? expressionColon, PatternSyntax pattern)
         {
             if (expressionColon != this.ExpressionColon || pattern != this.Pattern)
             {
@@ -5303,7 +5303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public SubpatternSyntax WithExpressionColon(BaseExpressionColonSyntax expressionColon) => Update(expressionColon, this.Pattern);
+        public SubpatternSyntax WithExpressionColon(BaseExpressionColonSyntax? expressionColon) => Update(expressionColon, this.Pattern);
         public SubpatternSyntax WithPattern(PatternSyntax pattern) => Update(this.ExpressionColon, pattern);
     }
 

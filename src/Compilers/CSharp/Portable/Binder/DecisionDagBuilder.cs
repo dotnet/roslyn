@@ -533,14 +533,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagTemp currentInput = input;
                     if (subpattern.Symbols.IsEmpty)
                     {
-                        RoslynDebug.Assert(recursive.HasAnyErrors);
-                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
+                        addErrorTest();
                         goto done;
                     }
 
-                    Symbol last = subpattern.Symbols.Last();
-                    foreach (Symbol symbol in subpattern.Symbols)
+                    for (int index = 0, count = subpattern.Symbols.Length; ;)
                     {
+                        Symbol symbol = subpattern.Symbols[index];
                         BoundDagEvaluation evaluation;
                         switch (symbol)
                         {
@@ -551,8 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, OriginalInput(currentInput, field));
                                 break;
                             default:
-                                RoslynDebug.Assert(recursive.HasAnyErrors);
-                                tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), currentInput, hasErrors: true)));
+                                addErrorTest();
                                 goto done;
                         }
 
@@ -560,10 +558,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbol type = symbol.GetTypeOrReturnType().Type;
                         currentInput = new BoundDagTemp(pattern.Syntax, type, evaluation);
 
-                        if (!ReferenceEquals(symbol, last))
-                        {
-                            currentInput = MakeConvertToType(currentInput, pattern.Syntax, type.StrippedType(), isExplicitTest: false, tests);
-                        }
+                        if (++index == count)
+                            break;
+
+                        // If this is not the last member, add null test, unwrap nullables, and continue.
+                        currentInput = MakeConvertToType(currentInput, pattern.Syntax, type.StrippedType(), isExplicitTest: false, tests);
                     }
 
 done:
@@ -578,6 +577,12 @@ done:
             }
 
             return Tests.AndSequence.Create(tests);
+
+            void addErrorTest()
+            {
+                Debug.Assert(recursive.HasAnyErrors);
+                tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
+            }
         }
 
         private Tests MakeTestsAndBindingsForNegatedPattern(BoundDagTemp input, BoundNegatedPattern neg, ArrayBuilder<BoundPatternBinding> bindings)

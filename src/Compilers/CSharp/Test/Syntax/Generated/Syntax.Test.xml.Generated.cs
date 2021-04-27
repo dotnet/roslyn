@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.ExpressionColon(GenerateIdentifierName(), InternalSyntaxFactory.Identifier("ColonToken"));
 
         private static Syntax.InternalSyntax.NameColonSyntax GenerateNameColon()
-            => InternalSyntaxFactory.NameColon(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.ColonToken));
+            => InternalSyntaxFactory.NameColon(GenerateIdentifierName(), InternalSyntaxFactory.Identifier("ColonToken"));
 
         private static Syntax.InternalSyntax.DeclarationExpressionSyntax GenerateDeclarationExpression()
             => InternalSyntaxFactory.DeclarationExpression(GenerateIdentifierName(), GenerateSingleVariableDesignation());
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.PropertyPatternClause(InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.SubpatternSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static Syntax.InternalSyntax.SubpatternSyntax GenerateSubpattern()
-            => InternalSyntaxFactory.Subpattern(GenerateExpressionColon(), GenerateDiscardPattern());
+            => InternalSyntaxFactory.Subpattern(null, GenerateDiscardPattern());
 
         private static Syntax.InternalSyntax.ConstantPatternSyntax GenerateConstantPattern()
             => InternalSyntaxFactory.ConstantPattern(GenerateIdentifierName());
@@ -1283,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateNameColon();
 
             Assert.NotNull(node.Name);
-            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind);
+            Assert.Equal(SyntaxKind.IdentifierToken, node.ColonToken.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -1768,7 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateSubpattern();
 
-            Assert.NotNull(node.ExpressionColon);
+            Assert.Null(node.ExpressionColon);
             Assert.NotNull(node.Pattern);
 
             AttachAndCheckDiagnostics(node);
@@ -9861,7 +9861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.ExpressionColon(GenerateIdentifierName(), SyntaxFactory.Identifier("ColonToken"));
 
         private static NameColonSyntax GenerateNameColon()
-            => SyntaxFactory.NameColon(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.ColonToken));
+            => SyntaxFactory.NameColon(GenerateIdentifierName(), SyntaxFactory.Identifier("ColonToken"));
 
         private static DeclarationExpressionSyntax GenerateDeclarationExpression()
             => SyntaxFactory.DeclarationExpression(GenerateIdentifierName(), GenerateSingleVariableDesignation());
@@ -9981,7 +9981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.PropertyPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<SubpatternSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static SubpatternSyntax GenerateSubpattern()
-            => SyntaxFactory.Subpattern(GenerateExpressionColon(), GenerateDiscardPattern());
+            => SyntaxFactory.Subpattern(default(BaseExpressionColonSyntax), GenerateDiscardPattern());
 
         private static ConstantPatternSyntax GenerateConstantPattern()
             => SyntaxFactory.ConstantPattern(GenerateIdentifierName());
@@ -10986,7 +10986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateNameColon();
 
             Assert.NotNull(node.Name);
-            Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, node.ColonToken.Kind());
             var newNode = node.WithName(node.Name).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
         }
@@ -11471,7 +11471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var node = GenerateSubpattern();
 
-            Assert.NotNull(node.ExpressionColon);
+            Assert.Null(node.ExpressionColon);
             Assert.NotNull(node.Pattern);
             var newNode = node.WithExpressionColon(node.ExpressionColon).WithPattern(node.Pattern);
             Assert.Equal(node, newNode);

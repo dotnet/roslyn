@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureDiscards = MessageBase + 12688,
 
-        // PROTOTYPE(extended-property-patterns)
+        // PROTOTYPE(extended-property-patterns) Move
         IDS_FeatureExtendedPropertyPatterns = MessageBase + 12800,
 
         IDS_FeatureDefaultTypeParameterConstraint = MessageBase + 12689,
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureSwitchOnBool: // Checked in the binder.
                     return LanguageVersion.CSharp2;
 
-                // PROTOTYPE(extended-property-patterns)
+                // PROTOTYPE(extended-property-patterns) Move
                 case MessageID.IDS_FeatureExtendedPropertyPatterns:
                     return LanguageVersion.Preview;
 
