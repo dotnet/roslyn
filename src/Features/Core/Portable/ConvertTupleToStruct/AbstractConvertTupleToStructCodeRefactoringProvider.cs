@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             members.AddRange(fields);
             members.Add(constructor);
 
-            // Not need to generate Equals/GetHashCode in a record.  The compiler already synthesizes those for us.
+            // No need to generate Equals/GetHashCode in a record.  The compiler already synthesizes those for us.
             if (!isRecord)
             {
                 members.Add(equalsMethod);
