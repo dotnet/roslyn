@@ -2386,6 +2386,40 @@ class C
         }
 
         [Fact]
+        public void NullCoalescing_CondAccess_NonNullConstantLeft()
+        {
+            var source = @"
+#nullable enable
+
+static class C
+{
+    static string M0(this string s, object x) => s;
+
+    static void M1()
+    {
+        object x, y;
+        _ = """"?.Equals(x = y = new object()) ?? false
+            ? x.ToString()
+            : y.ToString();
+    }
+
+    static void M2()
+    {
+        object w, x, y, z;
+        _ = """"?.M0(w = x = new object())?.Equals(y = z = new object()) ?? false
+            ? w.ToString() + y.ToString()
+            : x.ToString() + z.ToString(); // 1
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (21,30): error CS0165: Use of unassigned local variable 'z'
+                //             : x.ToString() + z.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(21, 30)
+                );
+        }
+
+        [Fact]
         public void NullCoalescing_ConditionalLeft()
         {
             var source = @"

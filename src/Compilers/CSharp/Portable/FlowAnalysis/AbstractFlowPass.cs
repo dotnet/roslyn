@@ -2760,8 +2760,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Receiver.ConstantValue != null && !IsConstantNull(node.Receiver))
             {
-                VisitRvalue(node.AccessExpression);
-                stateWhenNotNull = this.State.Clone();
+                // Consider a scenario like `"a"?.M0(x = 1)?.M0(y = 1)`.
+                // We can "know" that `.M0(x = 1)` was evaluated unconditionally but not `M0(y = 1)`.
+                // Therefore we do a VisitPossibleConditionalAccess here which unconditionally includes the "after receiver" state in State
+                // and includes the "after subsequent conditional accesses" in stateWhenNotNull
+                if (VisitPossibleConditionalAccess(node.AccessExpression, out var innerStateWhenNotNull))
+                {
+                    stateWhenNotNull = innerStateWhenNotNull;
+                }
+                else
+                {
+                    Unsplit();
+                    stateWhenNotNull = this.State.Clone();
+                }
             }
             else
             {

@@ -4382,68 +4382,79 @@ namespace Microsoft.CodeAnalysis.CSharp
             _currentConditionalReceiverVisitResult = _visitResult;
             var previousConditionalAccessSlot = _lastConditionalAccessSlot;
 
-            var receiverState = this.State.Clone();
-            if (IsConstantNull(node.Receiver))
+            if (receiver.ConstantValue is { IsNull: false })
             {
-                SetUnreachable();
-                _lastConditionalAccessSlot = -1;
+                // Consider a scenario like `"a"?.M0(x = 1)?.M0(y = 1)`.
+                // We can "know" that `.M0(x = 1)` was evaluated unconditionally but not `M0(y = 1)`.
+                // Therefore we do a VisitPossibleConditionalAccess here which unconditionally includes the "after receiver" state in State
+                // and includes the "after subsequent conditional accesses" in stateWhenNotNull
+                VisitPossibleConditionalAccess(node.AccessExpression, out stateWhenNotNull);
             }
             else
             {
-                // In the when-null branch, the receiver is known to be maybe-null.
-                // In the other branch, the receiver is known to be non-null.
-                LearnFromNullTest(receiver, ref receiverState);
-                makeAndAdjustReceiverSlot(receiver);
-            }
-
-            // We want to preserve stateWhenNotNull from accesses in the same "chain":
-            // a?.b(out x)?.c(out y); // expected to preserve stateWhenNotNull from both ?.b(out x) and ?.c(out y)
-            // but not accesses in nested expressions:
-            // a?.b(out x, c?.d(out y)); // expected to preserve stateWhenNotNull from a?.b(out x, ...) but not from c?.d(out y)
-            BoundExpression expr = node.AccessExpression;
-            while (expr is BoundConditionalAccess innerCondAccess)
-            {
-                // we assume that non-conditional accesses can never contain conditional accesses from the same "chain".
-                // that is, we never have to dig through non-conditional accesses to find and handle conditional accesses.
-                VisitRvalue(innerCondAccess.Receiver);
-                _currentConditionalReceiverVisitResult = _visitResult;
-                makeAndAdjustReceiverSlot(innerCondAccess.Receiver);
-
-                // The receiverState here represents the scenario where 0 or more of the access expressions could have been evaluated.
-                // e.g. after visiting `a?.b(x = null)?.c(x = new object())`, the "state when not null" of `x` is NotNull, but the "state when maybe null" of `x` is MaybeNull.
-                Join(ref receiverState, ref State);
-
-                expr = innerCondAccess.AccessExpression;
-            }
-
-            Debug.Assert(expr is BoundExpression);
-            Visit(expr);
-
-            expr = node.AccessExpression;
-            while (expr is BoundConditionalAccess innerCondAccess)
-            {
-                // The resulting nullability of each nested conditional access is the same as the resulting nullability of the rightmost access.
-                SetAnalyzedNullability(innerCondAccess, _visitResult);
-                expr = innerCondAccess.AccessExpression;
-            }
-            Debug.Assert(expr is BoundExpression);
-            var slot = MakeSlot(expr);
-            if (slot > -1)
-            {
-                if (IsConditionalState)
+                var receiverState = this.State.Clone();
+                if (IsConstantNull(receiver))
                 {
-                    LearnFromNonNullTest(slot, ref StateWhenTrue);
-                    LearnFromNonNullTest(slot, ref StateWhenFalse);
+                    SetUnreachable();
+                    _lastConditionalAccessSlot = -1;
                 }
                 else
                 {
-                    LearnFromNonNullTest(slot, ref State);
+                    // In the when-null branch, the receiver is known to be maybe-null.
+                    // In the other branch, the receiver is known to be non-null.
+                    LearnFromNullTest(receiver, ref receiverState);
+                    makeAndAdjustReceiverSlot(receiver);
                 }
-            }
 
-            stateWhenNotNull = PossiblyConditionalState.Create(this);
-            Unsplit();
-            Join(ref this.State, ref receiverState);
+                // We want to preserve stateWhenNotNull from accesses in the same "chain":
+                // a?.b(out x)?.c(out y); // expected to preserve stateWhenNotNull from both ?.b(out x) and ?.c(out y)
+                // but not accesses in nested expressions:
+                // a?.b(out x, c?.d(out y)); // expected to preserve stateWhenNotNull from a?.b(out x, ...) but not from c?.d(out y)
+                BoundExpression expr = node.AccessExpression;
+                while (expr is BoundConditionalAccess innerCondAccess)
+                {
+                    // we assume that non-conditional accesses can never contain conditional accesses from the same "chain".
+                    // that is, we never have to dig through non-conditional accesses to find and handle conditional accesses.
+                    VisitRvalue(innerCondAccess.Receiver);
+                    _currentConditionalReceiverVisitResult = _visitResult;
+                    makeAndAdjustReceiverSlot(innerCondAccess.Receiver);
+
+                    // The receiverState here represents the scenario where 0 or more of the access expressions could have been evaluated.
+                    // e.g. after visiting `a?.b(x = null)?.c(x = new object())`, the "state when not null" of `x` is NotNull, but the "state when maybe null" of `x` is MaybeNull.
+                    Join(ref receiverState, ref State);
+
+                    expr = innerCondAccess.AccessExpression;
+                }
+
+                Debug.Assert(expr is BoundExpression);
+                Visit(expr);
+
+                expr = node.AccessExpression;
+                while (expr is BoundConditionalAccess innerCondAccess)
+                {
+                    // The resulting nullability of each nested conditional access is the same as the resulting nullability of the rightmost access.
+                    SetAnalyzedNullability(innerCondAccess, _visitResult);
+                    expr = innerCondAccess.AccessExpression;
+                }
+                Debug.Assert(expr is BoundExpression);
+                var slot = MakeSlot(expr);
+                if (slot > -1)
+                {
+                    if (IsConditionalState)
+                    {
+                        LearnFromNonNullTest(slot, ref StateWhenTrue);
+                        LearnFromNonNullTest(slot, ref StateWhenFalse);
+                    }
+                    else
+                    {
+                        LearnFromNonNullTest(slot, ref State);
+                    }
+                }
+
+                stateWhenNotNull = PossiblyConditionalState.Create(this);
+                Unsplit();
+                Join(ref this.State, ref receiverState);
+            }
 
             var accessTypeWithAnnotations = LvalueResultType;
             TypeSymbol accessType = accessTypeWithAnnotations.Type;
