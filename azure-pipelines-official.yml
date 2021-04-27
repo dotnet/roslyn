@@ -45,6 +45,13 @@ stages:
   displayName: Build and Test
 
   jobs:
+  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - template: /eng/common/templates/job/onelocbuild.yml
+      parameters:
+        CreatePr: false
+        LclSource: lclFilesfromPackage
+        LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
+
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
