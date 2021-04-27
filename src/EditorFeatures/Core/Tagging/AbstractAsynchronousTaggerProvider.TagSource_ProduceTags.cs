@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -174,47 +175,34 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 lock (_cancellationSeries)
                 {
-                    // cancel the last piece of computation work and enqueue the next
                     try
                     {
+                        // cancel the last piece of computation work and enqueue the next.  This doesn't apply for the very
+                        // first tag request we make.  We don't want that to be cancellable as we want that result to be 
+                        // shown as soon as possible.
                         var cancellationToken = initialTags ? _disposalTokenSource.Token : _cancellationSeries.CreateNext();
-                        _eventWorkQueue = EnqueueWorkAsync(_eventWorkQueue, initialTags, cancellationToken);
+
+                        // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
+                        // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
+                        // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
+                        // is completely done.
+                        _eventWorkQueue = _eventWorkQueue.ContinueWith(_ => RecomputeTagsAfterDelay(cancellationToken), cancellationToken, TaskContinuationOptions.LazyCancellation | TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default)
+                                                         .Unwrap().CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(EnqueueWork)));
                     }
                     catch (ObjectDisposedException)
                     {
                         // can happen if our type was disposed and we try to get a new token from _cancellationSeries.
-                        return;
                     }
                 }
-            }
 
-            private async Task EnqueueWorkAsync(Task eventWorkQueue, bool initialTags, CancellationToken cancellationToken)
-            {
-                using var _ = _asyncListener.BeginAsyncOperation(nameof(EnqueueWorkAsync));
+                return;
 
-                try
+                async Task RecomputeTagsAfterDelay(CancellationToken cancellationToken)
                 {
-                    await eventWorkQueue.ConfigureAwait(false);
+                    await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
+                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
                 }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-                {
-                }
-
-                await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
-                await ProcessEventsAsync(initialTags, cancellationToken).ConfigureAwait(false);
-            }
-
-            private async Task ProcessEventsAsync(bool initialTags, CancellationToken cancellationToken)
-            {
-                // Don't bother doing anything if our tagger has been disposed.
-                if (cancellationToken.IsCancellationRequested)
-                    return;
-
-                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
             }
 
             /// <summary>
