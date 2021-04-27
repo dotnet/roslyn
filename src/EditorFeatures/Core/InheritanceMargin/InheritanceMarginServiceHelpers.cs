@@ -83,15 +83,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ArrayBuilder<SerializableInheritanceMarginItem> builder,
             CancellationToken cancellationToken)
         {
-            // Make sure all the base symbol are unique.
-            // For example:
-            // interface IBar { void Foo(); }
-            // class Bar : IBar { public virtual void Foo() { } }
-            // class Bar2 : Bar, IBar { public override void Foo() { } }
-            // For 'class Bar2', the 'interface IBar' should only be shown once.
-            var allBaseSymbols = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol)
-                .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .Distinct();
+            // Get all base types.
+            var allBaseSymbols = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol);
 
             // Filter out
             // 1. System.Object. (otherwise margin would be shown for all classes)
@@ -149,7 +142,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var overridingSymbols = GetOverridingSymbols(memberSymbol);
 
             // Go up the inheritance chain to find all the implemented targets.
-            var allImplementingSymbols = GetImplementingSymbolsForTypeMember(memberSymbol, overridingSymbols);
+            var implementingSymbols = GetImplementingSymbolsForTypeMember(memberSymbol, overridingSymbols);
 
             // Go down the inheritance chain to find all the implementing targets.
             var allImplementedSymbols = await GetImplementedSymbolsForTypeMemberAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
@@ -158,23 +151,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // For example, if the user is viewing System.Threading.SynchronizationContext from metadata,
             // then don't show the derived overriden & implemented method in the default implementation for System.Threading.SynchronizationContext in metadata
             var overriddenSymbols = allOverriddenSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
-
-            // Make sure all implemented symbols are unique.
-            // For example:
-            // interface IBar { void Foo(); }
-            // class Bar : IBar { public virtual void Foo() { } }
-            // class Bar2 : Bar, IBar { public override void Foo() { } }
-            // Here Bar2.Foo() would be added twice as an implemented members.
-            var implementedSymbols = allImplementedSymbols.Distinct().WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
-
-            // Make sure the symbols are unique for implementing symbols
-            // For example:
-            // interface IBar { void Foo(); }
-            // class Bar : IBar { public virtual void Foo() { } }
-            // class Bar2 : Bar, IBar { public override void Foo() { } }
-            // Here IBar.Foo() would be added twice as an implementing members.
-            // The order is not important, because UI would sort it based on display name.
-            var implementingSymbols = allImplementingSymbols.SelectAsArray(symbol => symbol.OriginalDefinition).Distinct();
+            var implementedSymbols = allImplementedSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
 
             if (overriddenSymbols.Any() || overridingSymbols.Any() || implementingSymbols.Any() || implementedSymbols.Any())
             {
@@ -201,10 +178,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             var baseSymbolItems = await baseSymbols
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implementing, cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
             var derivedTypeItems = await derivedTypesSymbols
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
@@ -254,12 +235,23 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             var implementingMemberItems = await implementingMembers
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implementing, cancellationToken), cancellationToken).ConfigureAwait(false);
+
             var implementedMemberItems = await implementedMembers
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken), cancellationToken).ConfigureAwait(false);
+
             var overridenMemberItems = await overridenMembers
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overridden, cancellationToken), cancellationToken).ConfigureAwait(false);
+
             var overridingMemberItems = await overridingMembers
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overriding, cancellationToken), cancellationToken).ConfigureAwait(false);
 
             return new SerializableInheritanceMarginItem(
