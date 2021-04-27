@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\DiaSymReaderNative.targets" />
 </Project>
