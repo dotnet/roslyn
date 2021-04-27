@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class RebuildData
     {
-        private Queue<string> NonSourceFileDocumentNames { get; } = new();
+        private Queue<string> NonSourceFileDocumentNames { get; }
         internal BlobReader OptionsBlobReader { get; }
 
         internal RebuildData(
@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis
             int sourceFileCount)
         {
             OptionsBlobReader = optionsBlobReader;
+
+            var count = pdbReader.Documents.Count - sourceFileCount;
+            NonSourceFileDocumentNames = new Queue<string>(capacity: count);
             foreach (var documentHandle in pdbReader.Documents.Skip(sourceFileCount))
             {
                 var document = pdbReader.GetDocument(documentHandle);
