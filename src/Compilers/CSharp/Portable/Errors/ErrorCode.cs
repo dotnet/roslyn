@@ -1930,7 +1930,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 9.0
 
-<<<<<<< HEAD
         #region diagnostics introduced for C# 10.0
 
         ERR_InheritingFromRecordWithSealedToString = 8912,
@@ -1939,13 +1938,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_GlobalUsingOutOfOrder = 8915,
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
         ERR_CannotInferDelegateType = 8917,
-=======
-        #region diagnostics introduced for latest
 
-        ERR_MultipleSingleLineNamespace = 8912,
-        ERR_SingleLineAndNormalNamespace = 8913,
-        ERR_SingleLineNamespaceNotBeforeAllMembers = 8914,
->>>>>>> singleLineNamespaces
+        ERR_MultipleSingleLineNamespace = 8918,
+        ERR_SingleLineAndNormalNamespace = 8919,
+        ERR_SingleLineNamespaceNotBeforeAllMembers = 8920,
 
         #endregion
 

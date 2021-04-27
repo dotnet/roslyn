@@ -501,8 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
                             else
                             {
-<<<<<<< HEAD
-                                parseUsingDirective(ref openBrace, ref body, ref initialBadNodes, ref seen, ref pendingIncompleteMembers);
+                                parseUsingDirective(ref openBraceOrSemicolon, ref body, ref initialBadNodes, ref seen, ref pendingIncompleteMembers);
                             }
 
                             reportUnexpectedToken = true;
@@ -515,23 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
                             else
                             {
-                                parseUsingDirective(ref openBrace, ref body, ref initialBadNodes, ref seen, ref pendingIncompleteMembers);
-=======
-                                // incomplete members must be processed before we add any nodes to the body:
-                                ReduceIncompleteMembers(ref pendingIncompleteMembers, ref openBraceOrSemicolon, ref body, ref initialBadNodes);
-
-                                var @using = this.ParseUsingDirective();
-                                if (seen > NamespaceParts.Usings)
-                                {
-                                    @using = this.AddError(@using, ErrorCode.ERR_UsingAfterElements);
-                                    this.AddSkippedNamespaceText(ref openBraceOrSemicolon, ref body, ref initialBadNodes, @using);
-                                }
-                                else
-                                {
-                                    body.Usings.Add(@using);
-                                    seen = NamespaceParts.Usings;
-                                }
->>>>>>> singleLineNamespaces
+                                parseUsingDirective(ref openBraceOrSemicolon, ref body, ref initialBadNodes, ref seen, ref pendingIncompleteMembers);
                             }
 
                             reportUnexpectedToken = true;

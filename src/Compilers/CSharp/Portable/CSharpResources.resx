@@ -6634,7 +6634,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
     <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
   </data>
-<<<<<<< HEAD
   <data name="IDS_FeatureSealedToStringInRecord" xml:space="preserve">
     <value>sealed ToString in record</value>
   </data>
@@ -6654,6 +6653,3 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A global using directive must precede all non-global using directives.</value>
   </data>
 </root>
-=======
-</root>
->>>>>>> singleLineNamespaces

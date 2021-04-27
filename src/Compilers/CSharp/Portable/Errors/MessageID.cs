@@ -216,7 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
         IDS_FeatureConstantInterpolatedStrings = MessageBase + 12792,
         IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction = MessageBase + 12793,
-<<<<<<< HEAD
         IDS_FeatureSealedToStringInRecord = MessageBase + 12794,
         IDS_FeatureRecordStructs = MessageBase + 12795,
         IDS_FeatureWithOnStructs = MessageBase + 12796,
@@ -224,9 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureGlobalUsing = MessageBase + 12798,
         IDS_FeatureInferredDelegateType = MessageBase + 12799,
         IDS_FeatureLambdaAttributes = MessageBase + 12800,
-=======
-        IDS_SingleLineNamespace = MessageBase + 12794,
->>>>>>> singleLineNamespaces
+        IDS_SingleLineNamespace = MessageBase + 12801,
     }
 
     // Message IDs may refer to strings that need to be localized.
