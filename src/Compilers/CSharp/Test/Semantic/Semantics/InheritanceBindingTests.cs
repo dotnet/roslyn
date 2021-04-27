@@ -99,15 +99,21 @@ abstract partial class AbstractGoo : IGoo
                 // (34,23): error CS0106: The modifier 'private' is not valid for this item
                 //     private void IGoo.Method10() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method10").WithArguments("private").WithLocation(34, 23),
-                // (37,22): error CS0106: The modifier 'static' is not valid for this item
+                // (37,22): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     static void IGoo.Method12() { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method12").WithArguments("static").WithLocation(37, 22),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "Method12").WithArguments("static", "9.0", "preview").WithLocation(37, 22),
                 // (40,33): error CS0106: The modifier 'private protected' is not valid for this item
                 //     private protected void IGoo.Method14() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method14").WithArguments("private protected").WithLocation(40, 33),
+                // (37,22): error CS0539: 'AbstractGoo.Method12()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static void IGoo.Method12() { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method12").WithArguments("AbstractGoo.Method12()").WithLocation(37, 22),
                 // (38,23): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void IGoo.Method13();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "Method13").WithLocation(38, 23),
+                // (20,38): error CS0535: 'AbstractGoo' does not implement interface member 'IGoo.Method12()'
+                // abstract partial class AbstractGoo : IGoo
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IGoo").WithArguments("AbstractGoo", "IGoo.Method12()").WithLocation(20, 38),
                 // (36,22): warning CS0626: Method, operator, or accessor 'AbstractGoo.IGoo.Method11()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern void IGoo.Method11(); //not an error (in dev10 or roslyn)
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Method11").WithArguments("AbstractGoo.IGoo.Method11()").WithLocation(36, 22)

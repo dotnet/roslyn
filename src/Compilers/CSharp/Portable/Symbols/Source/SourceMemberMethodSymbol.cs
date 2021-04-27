@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // in NamedTypeSymbolAdapter.cs).
             return this.IsOverride ?
                 this.RequiresExplicitOverride(out _) :
-                this.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
+                !this.IsStatic && this.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
         }
 
         // TODO (tomat): sealed?
@@ -447,6 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void EnsureMetadataVirtual()
         {
+            Debug.Assert(!this.IsStatic);
             this.flags.EnsureMetadataVirtual();
         }
 

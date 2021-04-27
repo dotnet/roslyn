@@ -1947,6 +1947,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAbstractShiftOperatorSignature = 9106,
         ERR_BadAbstractStaticMemberAccess = 9107,
         ERR_ExpressionTreeContainsAbstractStaticMemberAccess = 9108,
+        ERR_CloseUnimplementedInterfaceMemberNotStatic = 9109,
+        ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember = 9110,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

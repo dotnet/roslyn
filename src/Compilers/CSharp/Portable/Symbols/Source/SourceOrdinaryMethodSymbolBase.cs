@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers declarationModifiers;
             (declarationModifiers, HasExplicitAccessModifier) = this.MakeModifiers(methodKind, isPartial, hasBody, location, diagnostics);
 
-            var isMetadataVirtualIgnoringModifiers = methodKind == MethodKind.ExplicitInterfaceImplementation; //explicit impls must be marked metadata virtual
+            var isMetadataVirtualIgnoringModifiers = methodKind == MethodKind.ExplicitInterfaceImplementation && (declarationModifiers & DeclarationModifiers.Static) == 0; //explicit impls must be marked metadata virtual unless static
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod: isExtensionMethod, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isMetadataVirtualIgnoringModifiers: isMetadataVirtualIgnoringModifiers);
 
@@ -432,10 +432,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                DeclarationModifiers.AccessibilityMask;
                 }
             }
-            else if (isInterface)
+            else
             {
                 Debug.Assert(isExplicitInterfaceImplementation);
-                allowedModifiers |= DeclarationModifiers.Abstract;
+
+                if (isInterface)
+                {
+                    allowedModifiers |= DeclarationModifiers.Abstract;
+                }
+                else
+                {
+                    allowedModifiers |= DeclarationModifiers.Static;
+                }
             }
 
             allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
@@ -457,6 +465,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 hasExplicitAccessMod = true;
+            }
+
+            if (isExplicitInterfaceImplementation && (mods & DeclarationModifiers.Static) != 0)
+            {
+                LanguageVersion availableVersion = ((CSharpParseOptions)location.SourceTree.Options).LanguageVersion;
+                LanguageVersion requiredVersion = MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.RequiredVersion();
+                if (availableVersion < requiredVersion)
+                {
+                    ModifierUtils.ReportUnsupportedModifiersForLanguageVersion(mods, DeclarationModifiers.Static, location, diagnostics, availableVersion, requiredVersion);
+                }
             }
 
             this.CheckUnsafeModifier(mods, diagnostics);

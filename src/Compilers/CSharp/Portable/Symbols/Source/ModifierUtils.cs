@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     requiredVersion = MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.RequiredVersion();
                     if (availableVersion < requiredVersion)
                     {
-                        report(modifiers, reportModifiers, errorLocation, diagnostics, availableVersion, requiredVersion);
+                        ReportUnsupportedModifiersForLanguageVersion(modifiers, reportModifiers, errorLocation, diagnostics, availableVersion, requiredVersion);
                     }
 
                     return; // below we will either ask for an earlier version of the language, or will not report anything
@@ -148,26 +148,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     requiredVersion = MessageID.IDS_DefaultInterfaceImplementation.RequiredVersion();
                     if (availableVersion < requiredVersion)
                     {
-                        report(modifiers, defaultInterfaceImplementationModifiers, errorLocation, diagnostics, availableVersion, requiredVersion);
+                        ReportUnsupportedModifiersForLanguageVersion(modifiers, defaultInterfaceImplementationModifiers, errorLocation, diagnostics, availableVersion, requiredVersion);
                     }
                 }
             }
+        }
 
-            static void report(DeclarationModifiers modifiers, DeclarationModifiers unsupportedModifiers, Location errorLocation, BindingDiagnosticBag diagnostics, LanguageVersion availableVersion, LanguageVersion requiredVersion)
+        internal static void ReportUnsupportedModifiersForLanguageVersion(DeclarationModifiers modifiers, DeclarationModifiers unsupportedModifiers, Location errorLocation, BindingDiagnosticBag diagnostics, LanguageVersion availableVersion, LanguageVersion requiredVersion)
+        {
+            DeclarationModifiers errorModifiers = modifiers & unsupportedModifiers;
+            var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
+            var availableVersionArgument = availableVersion.ToDisplayString();
+            while (errorModifiers != DeclarationModifiers.None)
             {
-                DeclarationModifiers errorModifiers = modifiers & unsupportedModifiers;
-                var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
-                var availableVersionArgument = availableVersion.ToDisplayString();
-                while (errorModifiers != DeclarationModifiers.None)
-                {
-                    DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
-                    Debug.Assert(oneError != DeclarationModifiers.None);
-                    errorModifiers = errorModifiers & ~oneError;
-                    diagnostics.Add(ErrorCode.ERR_InvalidModifierForLanguageVersion, errorLocation,
-                                    ConvertSingleModifierToSyntaxText(oneError),
-                                    availableVersionArgument,
-                                    requiredVersionArgument);
-                }
+                DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
+                Debug.Assert(oneError != DeclarationModifiers.None);
+                errorModifiers = errorModifiers & ~oneError;
+                diagnostics.Add(ErrorCode.ERR_InvalidModifierForLanguageVersion, errorLocation,
+                                ConvertSingleModifierToSyntaxText(oneError),
+                                availableVersionArgument,
+                                requiredVersionArgument);
             }
         }
 

@@ -361,5 +361,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 Debug.Assert(typeParameter.Ordinal == i);
             }
         }
+
+        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
     }
 }

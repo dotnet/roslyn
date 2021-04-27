@@ -232,6 +232,11 @@
         <target state="translated">记录中不允许使用名为 "Clone" 的成员。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotStatic">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is not static.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is not static.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</source>
         <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法实现“{1}”。</target>
@@ -870,6 +875,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
         <source>Target runtime doesn't support static abstract members in interfaces.</source>
         <target state="new">Target runtime doesn't support static abstract members in interfaces.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
