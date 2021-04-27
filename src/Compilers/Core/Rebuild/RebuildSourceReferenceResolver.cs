@@ -34,7 +34,9 @@ namespace Microsoft.CodeAnalysis.Rebuild
     /// </summary>
     internal sealed class RebuildSourceReferenceResolver : SourceReferenceResolver
     {
-        internal RebuildSourceReferenceResolver()
+        internal static RebuildSourceReferenceResolver Instance { get; } = new RebuildSourceReferenceResolver();
+
+        private RebuildSourceReferenceResolver()
         {
         }
 

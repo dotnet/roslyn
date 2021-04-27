@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 concurrentBuild: true,
                 deterministic: true,
                 xmlReferenceResolver: null,
-                sourceReferenceResolver: new RebuildSourceReferenceResolver(),
+                sourceReferenceResolver: RebuildSourceReferenceResolver.Instance,
                 metadataReferenceResolver: null,
                 assemblyIdentityComparer: null,
                 strongNameProvider: null,
