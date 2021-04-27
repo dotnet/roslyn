@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsEmpty { get => _states.Length == 0; }
 
+        public int Count { get => _states.Length; }
+
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
         {
             return _states.SelectMany(s => s).GetEnumerator();
@@ -103,6 +105,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         IStateTable IStateTable.Compact() => Compact();
+
         public ImmutableArray<T> Batch(out bool allCached)
         {
             allCached = true;

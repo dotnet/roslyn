@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
+                Debug.Assert(previousTable.Count == 1);
                 newTable.ModifyEntriesFromPreviousTable(previousTable, transformed);
             }
             return newTable.ToImmutableAndFree();
