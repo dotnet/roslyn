@@ -171,4 +171,7 @@
   <data name="Unresolved_metadata_reference_removed_from_project_0" xml:space="preserve">
     <value>Unresolved metadata reference removed from project: {0}</value>
   </data>
+  <data name="Path_for_additional_document_0_was_null" xml:space="preserve">
+    <value>Path for additional document '{0}' was null}</value>
+  </data>
 </root>
