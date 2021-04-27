@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
@@ -32,31 +33,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private void OnEventSourceChanged(object sender, TaggerEventArgs _)
             {
                 // cancel the last piece of computation work and enqueue the next
-                var nextToken = _cancellationSeries.CreateNext();
-                lock (_disposalTokenSource)
+                var cancellationToken = _cancellationSeries.CreateNext();
+                lock (_cancellationSeries)
                 {
-                    _eventWorkQueue = OnEventSourceChangedAsync(_eventWorkQueue, nextToken);
+                    var nextTask = _eventWorkQueue.ContinueWith(async _ =>
+                    {
+                        await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
+                        await ProcessEventsAsync(initialTags: false, cancellationToken).ConfigureAwait(false);
+                    }, cancellationToken, TaskContinuationOptions.RunContinuationsAsynchronously, TaskScheduler.Default);
+
+                    _eventWorkQueue = nextTask.Unwrap().CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(OnEventSourceChanged)));
                 }
-            }
-
-            private async Task OnEventSourceChangedAsync(Task eventWorkQueue, CancellationToken cancellationToken)
-            {
-                using var token = _asyncListener.BeginAsyncOperation(nameof(OnEventSourceChangedAsync));
-
-                // wait for the previous work to be done.
-                try
-                {
-                    await eventWorkQueue.ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-
-                // then wait the desired delay.
-                await Task.Delay(_dataSource.EventChangeDelay.ComputeTimeDelay(), cancellationToken).ConfigureAwait(false);
-
-                // then go and produce the tags for this event.
-                await ProcessEventsAsync(initialTags: false, cancellationToken).ConfigureAwait(false);
             }
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)

@@ -66,7 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private Task _eventWorkQueue;
 
             /// <summary>
-            /// Series of tokens used to cancel previous outstanding work when new work comes in.
+            /// Series of tokens used to cancel previous outstanding work when new work comes in. Also used as the lock
+            /// to ensure threadsafe writing of _eventWorkQueue.
             /// </summary>
             private readonly CancellationSeries _cancellationSeries;
 
@@ -152,15 +153,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 DebugRecordInitialStackTrace();
 
-                _eventSource = CreateEventSource();
-
-                Connect();
-
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
                 _eventWorkQueue =
                     Task.Run(() => ProcessEventsAsync(initialTags: true, _disposalTokenSource.Token), _disposalTokenSource.Token)
                         .CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(TagSource)));
+
+                _eventSource = CreateEventSource();
+                Connect();
 
                 return;
 
