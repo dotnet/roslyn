@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // class Bar2 : Bar, IBar { public override void Foo() { } }
             // Here IBar.Foo() would be added twice as an implementing members.
             // The order is not important, because UI would sort it based on display name.
-            var implementingSymbols = allImplementingSymbols.Distinct();
+            var implementingSymbols = allImplementingSymbols.SelectAsArray(symbol => symbol.OriginalDefinition).Distinct();
 
             if (overriddenSymbols.Any() || overridingSymbols.Any() || implementingSymbols.Any() || implementedSymbols.Any())
             {
@@ -282,6 +282,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                 // 1. Get the direct implementing symbols in interfaces.
                 var directImplementingSymbols = memberSymbol.ExplicitOrImplicitInterfaceImplementations();
+                builder.AddRange(directImplementingSymbols);
 
                 // 2. Also add the direct implementing symbols for the overriding symbols.
                 // For example:
@@ -291,11 +292,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // For 'Bar2.Foo()',  we need to find 'IBar.Foo()'
                 foreach (var symbol in overridingSymbols)
                 {
-                    builder.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations()
-                        .Select(symbol => symbol.OriginalDefinition));
+                    builder.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
                 }
 
-                builder.AddRange(directImplementingSymbols.Select(symbol => symbol.OriginalDefinition));
                 return builder.ToImmutableArray();
             }
 
