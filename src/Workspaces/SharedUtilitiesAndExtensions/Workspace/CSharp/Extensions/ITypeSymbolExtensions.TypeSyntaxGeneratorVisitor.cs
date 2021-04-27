@@ -218,10 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             private static TypeSyntax? TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
             {
-                if (symbol.SpecialType == SpecialType.System_Void)
-                {
-                    return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
-                }
+                if (TryCreateTypeExpression(symbol.SpecialType, out var predefinedType))
+                    return predefinedType;
 
                 if (symbol.IsTupleType && symbol.TupleElements.Length >= 2)
                 {

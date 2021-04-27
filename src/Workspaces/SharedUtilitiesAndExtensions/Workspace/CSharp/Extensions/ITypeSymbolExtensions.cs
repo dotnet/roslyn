@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -94,6 +95,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var refKeyword = SyntaxFactory.Token(SyntaxKind.RefKeyword);
             var readOnlyKeyword = SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword);
             return SyntaxFactory.RefType(refKeyword, readOnlyKeyword, underlyingType);
+        }
+
+        public static bool TryCreateTypeExpression(SpecialType specialType, [NotNullWhen(true)] out SyntaxNode? node)
+        {
+            var keyword = specialType switch
+            {
+                SpecialType.System_Boolean => SyntaxKind.BoolKeyword,
+                SpecialType.System_Byte => SyntaxKind.ByteKeyword,
+                SpecialType.System_Char => SyntaxKind.CharKeyword,
+                SpecialType.System_Decimal => SyntaxKind.DecimalKeyword,
+                SpecialType.System_Double => SyntaxKind.DoubleKeyword,
+                SpecialType.System_Int16 => SyntaxKind.ShortKeyword,
+                SpecialType.System_Int32 => SyntaxKind.IntKeyword,
+                SpecialType.System_Int64 => SyntaxKind.LongKeyword,
+                SpecialType.System_Object => SyntaxKind.ObjectKeyword,
+                SpecialType.System_SByte => SyntaxKind.SByteKeyword,
+                SpecialType.System_Single => SyntaxKind.FloatKeyword,
+                SpecialType.System_String => SyntaxKind.StringKeyword,
+                SpecialType.System_UInt16 => SyntaxKind.UShortKeyword,
+                SpecialType.System_UInt32 => SyntaxKind.UIntKeyword,
+                SpecialType.System_UInt64 => SyntaxKind.ULongKeyword,
+                SpecialType.System_Void => SyntaxKind.VoidKeyword,
+                _ => SyntaxKind.None,
+            };
+
+            if (keyword == SyntaxKind.None)
+            {
+                node = null;
+                return false;
+            }
+
+            node = SyntaxFactory.PredefinedType(SyntaxFactory.Token(keyword));
+            return true;
         }
 
         public static bool ContainingTypesOrSelfHasUnsafeKeyword(this ITypeSymbol containingType)
