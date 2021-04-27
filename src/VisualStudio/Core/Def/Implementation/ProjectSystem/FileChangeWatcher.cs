@@ -28,13 +28,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly object _taskQueueGate = new();
 
         /// <summary>
-        /// We create a queue of tasks against the IVsFileChangeEx service for two reasons. First, we are obtaining the service asynchronously, and don't want to
-        /// block on it being available, so anybody who wants to do anything must wait for it. Secondly, the service itself is single-threaded; the entry points
-        /// are asynchronous so we avoid starving the thread pool, but there's still no reason to create a lot more work blocked than needed. Finally, since this
-        /// is all happening async, we generally need to ensure that an operation that happens for an earlier call to this is done before we do later calls. For example,
-        /// if we started a subscription for a file, we need to make sure that's done before we try to unsubscribe from it.
-        /// For performance and correctness reasons, NOTHING should ever do a block on this; figure out how to do your work without a block and add any work to
-        /// the end of the queue.
+        /// We create a queue of tasks against the IVsFileChangeEx service for two reasons. First, we are obtaining the
+        /// service asynchronously, and don't want to block on it being available, so anybody who wants to do anything
+        /// must wait for it. Secondly, the service itself is single-threaded; the entry points are asynchronous so we
+        /// avoid starving the thread pool, but there's still no reason to create a lot more work blocked than needed.
+        /// Finally, since this is all happening async, we generally need to ensure that an operation that happens for
+        /// an earlier call to this is done before we do later calls. For example, if we started a subscription for a
+        /// file, we need to make sure that's done before we try to unsubscribe from it.  For performance and
+        /// correctness reasons, NOTHING should ever do a block on this; figure out how to do your work without a block
+        /// and add any work to the end of the queue.
         /// </summary>
         private Task<IVsAsyncFileChangeEx> _taskQueue;
         private static readonly Func<Task<IVsAsyncFileChangeEx>, object, Task<IVsAsyncFileChangeEx>> _executeActionDelegate =

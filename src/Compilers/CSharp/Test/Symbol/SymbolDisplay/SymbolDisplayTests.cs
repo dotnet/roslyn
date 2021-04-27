@@ -2524,6 +2524,33 @@ namespace N1 {
         }
 
         [Fact]
+        public void TestAlias3SingleLineNamespace()
+        {
+            var text = @"
+using Goo = N1.C1;
+
+namespace N1;
+class Goo { }
+class C1 { }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetNestedNamespace("N1").
+                GetTypeMembers("C1").Single();
+
+            var format = SymbolDisplayFormat.MinimallyQualifiedFormat;
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "C1",
+                text.IndexOf("class Goo", StringComparison.Ordinal),
+                true,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
         public void TestMinimalNamespace1()
         {
             var text = @"
@@ -4384,6 +4411,99 @@ namespace N
     {
         event System.Action E;
     }
+}
+";
+            var memberFormat = new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
+                kindOptions: SymbolDisplayKindOptions.IncludeMemberKeyword);
+            var typeFormat = new SymbolDisplayFormat(
+                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
+            var namespaceFormat = new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
+                kindOptions: SymbolDisplayKindOptions.IncludeNamespaceKeyword);
+
+            var comp = CreateCompilation(source);
+            var namespaceSymbol = comp.GlobalNamespace.GetMember<NamespaceSymbol>("N");
+            var typeSymbol = namespaceSymbol.GetMember<NamedTypeSymbol>("C");
+            var eventSymbol = typeSymbol.GetMember<EventSymbol>("E");
+
+            Verify(
+                namespaceSymbol.ToDisplayParts(memberFormat),
+                "N",
+                SymbolDisplayPartKind.NamespaceName);
+            Verify(
+                namespaceSymbol.ToDisplayParts(typeFormat),
+                "N",
+                SymbolDisplayPartKind.NamespaceName);
+            Verify(
+                namespaceSymbol.ToDisplayParts(namespaceFormat),
+                "namespace N",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName);
+
+            Verify(
+                typeSymbol.ToDisplayParts(memberFormat),
+                "N.C",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+            Verify(
+                typeSymbol.ToDisplayParts(typeFormat),
+                "class N.C",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+            Verify(
+                typeSymbol.ToDisplayParts(namespaceFormat),
+                "N.C",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+
+            Verify(
+                eventSymbol.ToDisplayParts(memberFormat),
+                "event N.C.E",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.EventName);
+            Verify(
+                eventSymbol.ToDisplayParts(typeFormat),
+                "N.C.E",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.EventName);
+            Verify(
+                eventSymbol.ToDisplayParts(namespaceFormat),
+                "N.C.E",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.EventName);
+        }
+
+        [WorkItem(791756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/791756")]
+        [Fact]
+        public void KindOptionsSingleLineNamespace()
+        {
+            var source = @"
+namespace N;
+class C
+{
+    event System.Action E;
 }
 ";
             var memberFormat = new SymbolDisplayFormat(
@@ -6454,7 +6574,6 @@ enum E : long
                 SymbolDisplayPartKind.NumericLiteral);
         }
 
-
         [Fact]
         public void TestRefStructs()
         {
@@ -7088,6 +7207,41 @@ namespace Nested
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
             var comp = CreateCompilation(source).VerifyDiagnostics();
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+
+            var declaration = (BaseTypeDeclarationSyntax)semanticModel.SyntaxTree.GetRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.StructDeclaration);
+            var members = semanticModel.GetDeclaredSymbol(declaration).GetMembers();
+
+            Verify(members[0].ToDisplayParts(format),
+                "readonly void Nested.X.M()",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation);
+        }
+
+        [Fact]
+        public void TestReadOnlyStruct_Nested_SingleLineNamespace()
+        {
+            var source = @"
+namespace Nested;
+struct X
+{
+    readonly void M() { }
+}
+";
+            var format = SymbolDisplayFormat.TestFormat
+                .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            var comp = CreateCompilation(source, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics();
             var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
 
             var declaration = (BaseTypeDeclarationSyntax)semanticModel.SyntaxTree.GetRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.StructDeclaration);
