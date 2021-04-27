@@ -224,12 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     using var stream = new MemoryStream();
 
                     Cci.PeWriter.WritePeToStream(
-                        new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
+                        new EmitContext(moduleBuilder, null, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                         context.MessageProvider,
                         () => stream,
                         getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
-                        pdbOptionsBlobReader: null,
                         pdbPathOpt: null,
                         metadataOnly: false,
                         isDeterministic: false,
@@ -287,12 +286,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using var stream = new MemoryStream();
 
             Cci.PeWriter.WritePeToStream(
-                new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
+                new EmitContext(moduleBuilder, null, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                 context.MessageProvider,
                 () => stream,
                 getPortablePdbStreamOpt: null,
                 nativePdbWriterOpt: null,
-                pdbOptionsBlobReader: null,
                 pdbPathOpt: null,
                 metadataOnly: false,
                 isDeterministic: false,
@@ -372,12 +370,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using var stream = new MemoryStream();
 
             Cci.PeWriter.WritePeToStream(
-                new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
+                new EmitContext(moduleBuilder, null, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                 context.MessageProvider,
                 () => stream,
                 getPortablePdbStreamOpt: null,
                 nativePdbWriterOpt: null,
-                pdbOptionsBlobReader: null,
                 pdbPathOpt: null,
                 metadataOnly: false,
                 isDeterministic: false,
@@ -421,12 +418,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 using var stream = new MemoryStream();
 
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
+                    new EmitContext(moduleBuilder, null, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
-                    pdbOptionsBlobReader: null,
                     pdbPathOpt: null,
                     metadataOnly: false,
                     isDeterministic: false,
