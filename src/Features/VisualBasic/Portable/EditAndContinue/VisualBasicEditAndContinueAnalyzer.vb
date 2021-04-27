@@ -2150,11 +2150,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                          SyntaxKind.TypeConstraint,
                          SyntaxKind.TypeParameterList,
                          SyntaxKind.Parameter,
-                         SyntaxKind.Attribute,
-                         SyntaxKind.AttributeList,
-                         SyntaxKind.AttributesStatement,
-                         SyntaxKind.SimpleAsClause
+                         SyntaxKind.SimpleAsClause,
+                         SyntaxKind.AttributesStatement
                         ReportError(RudeEditKind.Insert)
+                        Return
+
+                    Case SyntaxKind.Attribute,
+                         SyntaxKind.AttributeList
+                        'These are handled in semantics
                         Return
 
                     Case SyntaxKind.ParameterList
@@ -2230,7 +2233,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ' To allow removal of attributes we would need to check if the removed attribute
                         ' is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         ' that affects the generated IL.
-                        ReportError(RudeEditKind.Delete)
                         Return
 
                     Case SyntaxKind.TypeParameter,
@@ -2418,7 +2420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case SyntaxKind.Attribute
-                        ReportError(RudeEditKind.Update)
+                        'Handled in semantics
                         Return
 
                     Case SyntaxKind.TypeParameterList,
