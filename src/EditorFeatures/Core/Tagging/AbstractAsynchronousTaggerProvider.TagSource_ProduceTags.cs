@@ -265,6 +265,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // Once we assign our state, we're uncancellable.  We must report the changed information
                     // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
+                    cancellationToken = CancellationToken.None;
+
                     this.CachedTagTrees = newTagTrees;
                     this.State = context.State;
 
