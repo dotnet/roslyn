@@ -189,12 +189,12 @@
       </trans-unit>
       <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
         <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
-        <target state="new">Symbol '{0}' is marked as removed but it isn't deleted in source code</target>
+        <target state="translated">Das Symbol ‚{0}‘ ist als entfernt markiert, wird jedoch im Quellcode nicht gelöscht.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
         <source>Public API is marked as removed but it exists in source code</source>
-        <target state="new">Public API is marked as removed but it exists in source code</target>
+        <target state="translated">Die öffentliche API ist als entfernt markiert, ist jedoch im Quellcode noch vorhanden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">

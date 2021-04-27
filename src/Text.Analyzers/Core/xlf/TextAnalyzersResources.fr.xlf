@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageAssemblyMoreMeaningfulName">
         <source>Consider providing a more meaningful name than assembly name '{0}'</source>
-        <target state="translated">Envisagez de fournir un nom plus significatif que le nom d'assembly '{0}'</target>
+        <target state="translated">Si possible, indiquez un nom plus significatif que le nom d'assembly '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IdentifiersShouldBeSpelledCorrectlyMessageNamespaceMoreMeaningfulName">
