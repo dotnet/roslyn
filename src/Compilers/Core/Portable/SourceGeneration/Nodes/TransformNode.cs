@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class TransformNode<TInput, TOutput> : IIncrementalGeneratorNode<TOutput>
     {
-        private readonly Func<TInput, IEnumerable<TOutput>> _func;
+        private readonly Func<TInput, ImmutableArray<TOutput>> _func;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
 
         public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, TOutput> userFunc)
-            : this(sourceNode, userFunc: (i) => ImmutableArray.Create(userFunc(i)))
+            : this(sourceNode, userFunc: i => ImmutableArray.Create(userFunc(i)))
         {
         }
 
-        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, IEnumerable<TOutput>> userFunc)
+        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, ImmutableArray<TOutput>> userFunc)
         {
             _sourceNode = sourceNode;
             _func = userFunc;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
                 else
                 {
                     // generate the new entries
-                    var newOutputs = _func(entry.item).ToImmutableArray();
+                    var newOutputs = _func(entry.item);
 
                     if (entry.state == EntryState.Added)
                     {

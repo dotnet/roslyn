@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class BatchTransformNode<TInput, TOutput> : IIncrementalGeneratorNode<TOutput>
     {
-        private readonly Func<IEnumerable<TInput>, IEnumerable<TOutput>> _func;
+        private readonly Func<ImmutableArray<TInput>, ImmutableArray<TOutput>> _func;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
 
-        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<IEnumerable<TInput>, TOutput> userFunc)
-            : this(sourceNode, userFunc: (i) => ImmutableArray.Create(userFunc(i)))
+        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<ImmutableArray<TInput>, TOutput> userFunc)
+            : this(sourceNode, userFunc: i => ImmutableArray.Create(userFunc(i)))
         {
         }
 
-        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<IEnumerable<TInput>, IEnumerable<TOutput>> userFunc)
+        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<ImmutableArray<TInput>, ImmutableArray<TOutput>> userFunc)
         {
             _sourceNode = sourceNode;
             _func = userFunc;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
                 return previousTable;
 
             // apply the transform
-            var transformed = _func(source).ToImmutableArray();
+            var transformed = _func(source);
 
             // update the table 
             var newTable = new NodeStateTable<TOutput>.Builder();
