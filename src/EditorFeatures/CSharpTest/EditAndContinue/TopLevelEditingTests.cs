@@ -5851,6 +5851,8 @@ class C
         public void MethodUpdate_AddAttribute()
         {
             var src1 = @"
+using System;
+
 class Test
 {
     static void Main(string[] args)
@@ -5859,6 +5861,8 @@ class Test
     }
 }";
             var src2 = @"
+using System;
+
 class Test
 {
     [Obsolete]
@@ -5869,16 +5873,18 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Insert [[Obsolete]]@21", "Insert [Obsolete]@22");
+            edits.VerifyEdits("Insert [[Obsolete]]@38", "Insert [Obsolete]@39");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[Obsolete]", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Obsolete", FeaturesResources.attribute));
         }
 
         [Fact]
         public void MethodUpdate_AddAttribute2()
         {
             var src1 = @"
+using System;
+
 class Test
 {
     [Obsolete]
@@ -5888,6 +5894,8 @@ class Test
     }
 }";
             var src2 = @"
+using System;
+
 class Test
 {
     [Obsolete, Serializable]
@@ -5898,17 +5906,19 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Update [[Obsolete]]@21 -> [[Obsolete, Serializable]]@21",
-                               "Insert [Serializable]@32");
+            edits.VerifyEdits("Update [[Obsolete]]@38 -> [[Obsolete, Serializable]]@38",
+                               "Insert [Serializable]@49");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Serializable", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
         }
 
         [Fact]
         public void MethodUpdate_AddAttribute3()
         {
             var src1 = @"
+using System;
+
 class Test
 {
     [Obsolete]
@@ -5918,6 +5928,8 @@ class Test
     }
 }";
             var src2 = @"
+using System;
+
 class Test
 {
     [Obsolete]
@@ -5929,17 +5941,19 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Insert [[Serializable]]@37",
-                              "Insert [Serializable]@38");
+            edits.VerifyEdits("Insert [[Serializable]]@54",
+                              "Insert [Serializable]@55");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[Serializable]", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
         }
 
         [Fact]
         public void MethodUpdate_AddAttribute4()
         {
             var src1 = @"
+using System;
+
 class Test
 {
     static void Main(string[] args)
@@ -5948,6 +5962,8 @@ class Test
     }
 }";
             var src2 = @"
+using System;
+
 class Test
 {
     [Obsolete, Serializable]
@@ -5959,18 +5975,21 @@ class Test
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[Obsolete, Serializable]]@21",
-                "Insert [Obsolete]@22",
-                "Insert [Serializable]@32");
+                "Insert [[Obsolete, Serializable]]@38",
+                "Insert [Obsolete]@39",
+                "Insert [Serializable]@49");
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.Insert, "[Obsolete, Serializable]", FeaturesResources.attribute));
+                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Obsolete", FeaturesResources.attribute),
+                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
         }
 
         [Fact]
         public void MethodUpdate_UpdateAttribute()
         {
             var src1 = @"
+using System;
+
 class Test
 {
     [Obsolete]
@@ -5980,6 +5999,8 @@ class Test
     }
 }";
             var src2 = @"
+using System;
+
 class Test
 {
     [Obsolete("""")]
@@ -5990,7 +6011,7 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits(@"Update [Obsolete]@22 -> [Obsolete("""")]@22");
+            edits.VerifyEdits(@"Update [Obsolete]@39 -> [Obsolete("""")]@39");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Update, @"Obsolete("""")", FeaturesResources.attribute));
@@ -6001,6 +6022,8 @@ class Test
         public void MethodUpdate_DeleteAttribute()
         {
             var src1 = @"
+using System;
+
 class Test
 {
     [Obsolete]
@@ -6010,6 +6033,8 @@ class Test
     }
 }";
             var src2 = @"
+using System;
+
 class Test
 {
     static void Main(string[] args)
@@ -6020,8 +6045,8 @@ class Test
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Delete [[Obsolete]]@21",
-                "Delete [Obsolete]@22");
+                "Delete [[Obsolete]]@38",
+                "Delete [Obsolete]@39");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "static void Main(string[] args)", FeaturesResources.attribute));
@@ -6031,6 +6056,8 @@ class Test
         public void MethodUpdate_DeleteAttribute2()
         {
             var src1 = @"
+using System;
+
 class Test
 {
     [Obsolete, Serializable]
@@ -6040,6 +6067,8 @@ class Test
     }
 }";
             var src2 = @"
+using System;
+
 class Test
 {
     [Obsolete]
@@ -6050,8 +6079,8 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Update [[Obsolete, Serializable]]@21 -> [[Obsolete]]@21",
-                              "Delete [Serializable]@32");
+            edits.VerifyEdits("Update [[Obsolete, Serializable]]@38 -> [[Obsolete]]@38",
+                              "Delete [Serializable]@49");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "[Obsolete]", FeaturesResources.attribute));
@@ -6061,6 +6090,8 @@ class Test
         public void MethodUpdate_DeleteAttribute3()
         {
             var src1 = @"
+using System;
+
 class Test
 {
     [Obsolete]
@@ -6071,6 +6102,8 @@ class Test
     }
 }";
             var src2 = @"
+using System;
+
 class Test
 {
     [Obsolete]
@@ -6081,8 +6114,8 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Delete [[Serializable]]@37",
-                              "Delete [Serializable]@38");
+            edits.VerifyEdits("Delete [[Serializable]]@54",
+                              "Delete [Serializable]@55");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "static void Main(string[] args)", FeaturesResources.attribute));
