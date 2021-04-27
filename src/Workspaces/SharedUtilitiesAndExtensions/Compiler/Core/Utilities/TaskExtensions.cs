@@ -170,16 +170,6 @@ namespace Roslyn.Utilities
         }
 
         [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
-        public static Task<TResult> SafeContinueWith<TResult>(
-            this Task task,
-            Func<Task, TResult> continuationFunction,
-            CancellationToken cancellationToken,
-            TaskScheduler scheduler)
-        {
-            return task.SafeContinueWith(continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
-        }
-
-        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
         public static Task SafeContinueWith(
             this Task task,
             Action<Task> continuationAction,
