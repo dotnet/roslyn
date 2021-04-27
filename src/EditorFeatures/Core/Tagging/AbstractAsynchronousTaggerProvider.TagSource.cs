@@ -64,6 +64,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// Work queue that collects event notifications and kicks off the work to process them.
             /// </summary>
             private Task _eventWorkQueue;
+
+            /// <summary>
+            /// Series of tokens used to cancel previous outstanding work when new work comes in.
+            /// </summary>
             private readonly CancellationSeries _cancellationSeries;
 
             /// <summary>
@@ -122,12 +126,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _asyncListener = asyncListener;
 
                 _cancellationSeries = new CancellationSeries(_disposalTokenSource.Token);
-                //_eventWorkQueue = new AsyncBatchingWorkQueue<bool>(
-                //    _dataSource.EventChangeDelay.ComputeTimeDelay(),
-                //    ProcessEventsAsync,
-                //    equalityComparer: null,
-                //    asyncListener,
-                //    _disposalTokenSource.Token);
 
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
