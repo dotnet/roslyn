@@ -2264,6 +2264,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // To allow inserting of attributes we would need to check if the inserted attribute
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
+
+                        // For now, since we don't do semantic analysis of statement syntax, we'll leave a rude edit for that scenario.
+                        if (_classifyStatementSyntax)
+                        {
+                            ReportError(RudeEditKind.Insert);
+                        }
                         return;
                 }
 
@@ -2339,6 +2345,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // To allow removal of attributes we would need to check if the removed attribute
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
+
+                        // For now, since we don't do semantic analysis of statement syntax, we'll leave a rude edit for that scenario.
+                        if (_classifyStatementSyntax)
+                        {
+                            ReportError(RudeEditKind.Delete);
+                        }
                         return;
 
                     case SyntaxKind.TypeParameter:
@@ -2487,6 +2499,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // To allow update of attributes we would need to check if the updated attribute
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
+
+                        // For now, since we don't do semantic analysis of statement syntax, we'll leave a rude edit for that scenario.
+                        if (_classifyStatementSyntax)
+                        {
+                            ReportError(RudeEditKind.Update);
+                        }
                         return;
 
                     case SyntaxKind.TypeParameterList:
