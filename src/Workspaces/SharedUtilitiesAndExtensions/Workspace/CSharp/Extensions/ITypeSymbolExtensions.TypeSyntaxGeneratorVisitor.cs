@@ -259,42 +259,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return typeSyntax;
 
                 typeSyntax = CreateSimpleTypeSyntax(symbol);
-                if (!(typeSyntax is SimpleNameSyntax))
-                    return typeSyntax;
-
-                var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;
-                if (symbol.ContainingType != null)
+                if (typeSyntax is SimpleNameSyntax simpleNameSyntax)
                 {
-                    if (symbol.ContainingType.TypeKind != TypeKind.Submission)
+                    if (symbol.ContainingType != null)
                     {
-                        var containingTypeSyntax = symbol.ContainingType.Accept(this);
-                        if (containingTypeSyntax is NameSyntax name)
+                        if (symbol.ContainingType.TypeKind != TypeKind.Submission)
                         {
-                            typeSyntax = AddInformationTo(
-                                SyntaxFactory.QualifiedName(name, simpleNameSyntax),
-                                symbol);
+                            var containingTypeSyntax = symbol.ContainingType.Accept(this);
+                            if (containingTypeSyntax is NameSyntax name)
+                            {
+                                typeSyntax = AddInformationTo(
+                                    SyntaxFactory.QualifiedName(name, simpleNameSyntax),
+                                    symbol);
+                            }
+                            else
+                            {
+                                typeSyntax = AddInformationTo(simpleNameSyntax, symbol);
+                            }
+                        }
+                    }
+                    else if (symbol.ContainingNamespace != null)
+                    {
+                        if (symbol.ContainingNamespace.IsGlobalNamespace)
+                        {
+                            if (symbol.TypeKind != TypeKind.Error)
+                            {
+                                typeSyntax = AddGlobalAlias(symbol, simpleNameSyntax);
+                            }
                         }
                         else
                         {
-                            typeSyntax = AddInformationTo(simpleNameSyntax, symbol);
+                            var container = symbol.ContainingNamespace.Accept(this)!;
+                            typeSyntax = AddInformationTo(SyntaxFactory.QualifiedName(
+                                (NameSyntax)container,
+                                simpleNameSyntax), symbol);
                         }
-                    }
-                }
-                else if (symbol.ContainingNamespace != null)
-                {
-                    if (symbol.ContainingNamespace.IsGlobalNamespace)
-                    {
-                        if (symbol.TypeKind != TypeKind.Error)
-                        {
-                            typeSyntax = AddGlobalAlias(symbol, simpleNameSyntax);
-                        }
-                    }
-                    else
-                    {
-                        var container = symbol.ContainingNamespace.Accept(this)!;
-                        typeSyntax = AddInformationTo(SyntaxFactory.QualifiedName(
-                            (NameSyntax)container,
-                            simpleNameSyntax), symbol);
                     }
                 }
 
