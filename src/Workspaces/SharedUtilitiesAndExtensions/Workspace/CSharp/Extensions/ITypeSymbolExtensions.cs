@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return SyntaxFactory.RefType(refKeyword, readOnlyKeyword, underlyingType);
         }
 
-        public static bool TryCreateTypeExpression(SpecialType specialType, [NotNullWhen(true)] out SyntaxNode? node)
+        public static bool TryCreateTypeExpression(SpecialType specialType, [NotNullWhen(true)] out PredefinedTypeSyntax? node)
         {
             var keyword = specialType switch
             {
