@@ -276,15 +276,6 @@ namespace Roslyn.Utilities
         }
 
         public static Task SafeContinueWithFromAsync<TInput>(
-           this Task<TInput> task,
-           Func<Task<TInput>, Task> continuationFunction,
-           CancellationToken cancellationToken,
-           TaskScheduler scheduler)
-        {
-            return task.SafeContinueWithFromAsync(continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
-        }
-
-        public static Task SafeContinueWithFromAsync<TInput>(
             this Task<TInput> task,
             Func<Task<TInput>, Task> continuationFunction,
             CancellationToken cancellationToken,
