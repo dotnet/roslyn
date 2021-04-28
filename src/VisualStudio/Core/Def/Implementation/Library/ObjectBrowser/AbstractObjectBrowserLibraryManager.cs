@@ -512,8 +512,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             {
                 // Let the presented know we're starting a search.  It will give us back the context object that the FAR
                 // service will push results into.
-                var (context, combinedCancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
-                cancellationToken = combinedCancellationToken;
+                (var context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
 
                 try
                 {

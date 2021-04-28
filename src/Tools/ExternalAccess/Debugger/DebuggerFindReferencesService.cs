@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
 
             // Let the presenter know we're starting a search.  It will give us back
             // the context object that the FAR service will push results into.
-            var (context, combinedCancellationToken) = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
-            cancellationToken = combinedCancellationToken;
+            (var context, cancellationToken) = streamingPresenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
 
             try
             {

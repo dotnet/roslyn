@@ -103,8 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // We have multiple definitions, or we have definitions with multiple locations. Present this to the
                 // user so they can decide where they want to go to.  If we cancel this will trigger the context to
                 // cancel as well.
-                var (context, combinedCancellationToken) = presenter.StartSearch(title, supportsReferences: false, cancellationToken);
-                cancellationToken = combinedCancellationToken;
+                (var context, cancellationToken) = presenter.StartSearch(title, supportsReferences: false, cancellationToken);
                 try
                 {
                     foreach (var definition in nonExternalItems)
