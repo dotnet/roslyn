@@ -1693,6 +1693,17 @@ partial record C { }";
                 Diagnostic(RudeEditKind.Renamed, "record D", CSharpFeaturesResources.record_));
         }
 
+                [Fact]
+        public void RecordStruct_NoModifiers_Insert()
+        {
+            var src1 = "";
+            var src2 = "record struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
         [Fact]
         public void Record_NoModifiers_Insert()
         {
@@ -1839,6 +1850,27 @@ record C
         }
 
         [Fact]
+        public void RecordStruct_ImplementSynthesized_PrintMembers()
+        {
+            var src1 = "record struct C { }";
+            var src2 = @"
+record struct C
+{
+    protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+    {
+        return true;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
         public void Record_ImplementSynthesized_WrongParameterName()
         {
             // TODO: Remove this requirement with https://github.com/dotnet/roslyn/issues/52563
@@ -1930,6 +1962,29 @@ record C
             var src1 = "record C(int X);";
             var src2 = @"
 record C(int X)
+{
+    public int Y { get; set; }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void RecordStruct_AddProperty_NotPrimary()
+        {
+            var src1 = "record struct C(int X);";
+            var src2 = @"
+record struct C(int X)
 {
     public int Y { get; set; }
 }";
