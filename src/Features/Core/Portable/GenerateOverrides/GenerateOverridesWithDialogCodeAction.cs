@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
             {
                 var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IPickMembersService>();
                 return service.PickMembers(
-                    FeaturesResources.Pick_members_to_override, _viableMembers,
+                    FeaturesResources.Pick_members_to_override,
+                    _viableMembers,
                     selectAll: _document.Project.Solution.Options.GetOption(GenerateOverridesOptions.SelectAll));
             }
 
@@ -102,9 +103,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                 private readonly bool _selectedAll;
 
                 public ChangeOptionValueOperation(bool selectedAll)
-                {
-                    _selectedAll = selectedAll;
-                }
+                    => _selectedAll = selectedAll;
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
                 {
