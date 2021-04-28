@@ -177,7 +177,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var window = vsFindAllReferencesService.StartSearch(title);
 
             // Wrap the passed in CT with our own CTS that we can control cancellation over.  This way either our
-            // caller can cancel our work or we can cancel the work.
+            // caller can cancel our work or we can cancel the work.  The CTS is passed into the context object which 
+            // takes ownership of it.  It will cancel when necessary, and will dispose it once done with it.
             var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             // Keep track of the users preference for grouping by definition if we don't already know it.
