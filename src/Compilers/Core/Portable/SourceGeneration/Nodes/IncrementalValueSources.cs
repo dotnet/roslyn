@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
@@ -62,14 +63,24 @@ namespace Microsoft.CodeAnalysis
         {
             private InputNode<ISyntaxContextReceiver>? _receiverNode;
 
+            bool disposed = false;
+
             public Builder()
             {
             }
 
-            public InputNode<ISyntaxContextReceiver> GetOrCreateReceiverNode() => InterlockedOperations.Initialize(ref _receiverNode, new InputNode<ISyntaxContextReceiver>());
+            public InputNode<ISyntaxContextReceiver> GetOrCreateReceiverNode()
+            {
+                Debug.Assert(!disposed);
+                return InterlockedOperations.Initialize(ref _receiverNode, new InputNode<ISyntaxContextReceiver>());
+            }
 
-            public PerGeneratorInputNodes ToImmutable() => new PerGeneratorInputNodes(_receiverNode);
-
+            public PerGeneratorInputNodes ToImmutable()
+            {
+                Debug.Assert(!disposed);
+                disposed = true;
+                return _receiverNode is null ? Empty : new PerGeneratorInputNodes(_receiverNode);
+            }
         }
     }
 }

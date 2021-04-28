@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
         {
+            // PROTOTYPE(source-generators): Should be possible to factor out and share this with the regular input code
             var builder = _state.StateTable.GetStateTable(SharedInputNodes.AdditionalTexts).ToBuilder(extraCapacity: additionalTexts.Length);
             foreach (var text in additionalTexts)
             {
