@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.UnconvertedSwitchExpression:
                     throw ExceptionUtilities.Unreachable;
                 case BoundKind.ConvertedSwitchExpression:
-                    return CreateBoundSwitchExpressionOperation((BoundSwitchExpression)boundNode);
+                    return CreateBoundSwitchExpressionOperation((BoundConvertedSwitchExpression)boundNode);
                 case BoundKind.SwitchExpressionArm:
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
@@ -2150,7 +2150,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new SwitchCaseOperation(clauses, body, locals, condition: null, _semanticModel, boundSwitchSection.Syntax, isImplicit: boundSwitchSection.WasCompilerGenerated);
         }
 
-        private ISwitchExpressionOperation CreateBoundSwitchExpressionOperation(BoundSwitchExpression boundSwitchExpression)
+        private ISwitchExpressionOperation CreateBoundSwitchExpressionOperation(BoundConvertedSwitchExpression boundSwitchExpression)
         {
             IOperation value = Create(boundSwitchExpression.Expression);
             ImmutableArray<ISwitchExpressionArmOperation> arms = CreateFromArray<BoundSwitchExpressionArm, ISwitchExpressionArmOperation>(boundSwitchExpression.SwitchArms);
