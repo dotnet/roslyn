@@ -2156,14 +2156,10 @@ namespace Microsoft.CodeAnalysis.Operations
             ImmutableArray<ISwitchExpressionArmOperation> arms = CreateFromArray<BoundSwitchExpressionArm, ISwitchExpressionArmOperation>(boundSwitchExpression.SwitchArms);
 
             bool isExhaustive = !boundSwitchExpression.ReportedNotExhaustive;
-            if (isExhaustive && !boundSwitchExpression.HasAnyErrors)
+            if (boundSwitchExpression.DefaultLabel != null)
             {
-                var reachableLabelsCount = boundSwitchExpression.DecisionDag.ReachableLabels.Count;
-                var armsCount = arms.Length;
-                if (reachableLabelsCount == armsCount + 1)
-                {
-                    isExhaustive = false;
-                }
+                Debug.Assert(boundSwitchExpression.DefaultLabel is GeneratedLabelSymbol);
+                isExhaustive = false;
             }
 
             return new SwitchExpressionOperation(
