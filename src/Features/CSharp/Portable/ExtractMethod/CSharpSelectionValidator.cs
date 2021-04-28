@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var doc = SemanticDocument;
 
             // go through pipe line and calculate information about the user selection
-            var selectionInfo = GetInitialSelectionInfo(root, text, cancellationToken);
+            var selectionInfo = GetInitialSelectionInfo(root, text);
             selectionInfo = AssignInitialFinalTokens(selectionInfo, root, cancellationToken);
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
             selectionInfo = AssignFinalSpan(selectionInfo, text);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 .With(s => s.LastTokenInFinalSpan = firstValidNode.GetLastToken(includeZeroWidth: true));
         }
 
-        private SelectionInfo GetInitialSelectionInfo(SyntaxNode root, SourceText text, CancellationToken cancellationToken)
+        private SelectionInfo GetInitialSelectionInfo(SyntaxNode root, SourceText text)
         {
             var adjustedSpan = GetAdjustedSpan(text, OriginalSpan);
 
