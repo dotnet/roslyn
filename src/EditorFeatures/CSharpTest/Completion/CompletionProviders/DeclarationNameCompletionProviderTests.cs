@@ -707,6 +707,24 @@ public class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task SuggestParameterNamesFromExistingOverloads_Constructor()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    public C(string firstName, string middleName, string lastName) { }
+
+    public C(string firstName, string $$)
+}
+";
+            await VerifyItemExistsAsync(markup, "middleName", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "lastName", glyph: (int)Glyph.Parameter);
+            await VerifyItemIsAbsentAsync(markup, "firstName");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
         public async Task DoNotSuggestParameterNamesFromTheSameOverload()
         {
             var markup = @"
