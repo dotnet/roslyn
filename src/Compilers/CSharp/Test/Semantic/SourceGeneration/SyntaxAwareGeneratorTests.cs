@@ -841,6 +841,35 @@ class C
             Assert.Null(syntaxRx);
         }
 
+        [Fact]
+        public void IncrementalGenerator_With_Syntax_Filter()
+        {
+            var source = @"
+class C { string fieldA = null; }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            //compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.Sources.Syntax.TransformMany(c => c.Node is FieldDeclarationSyntax fds ? ImmutableArray.Create(fds) : ImmutableArray<FieldDeclarationSyntax>.Empty);
+                context.RegisterOutput(source.GenerateSource((spc, fds) =>
+                {
+                    int a = 4;
+                }));
+
+               // context.Sources.Syntax.Filter(c => c.Node is FieldDeclarationSyntax);
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+
+            //Assert.NotNull(receiver);
+            //Assert.IsType<TestSyntaxReceiver>(receiver);
+        }
+
         private class TestReceiverBase<T>
         {
             private readonly Action<T>? _callback;

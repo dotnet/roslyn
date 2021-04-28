@@ -216,23 +216,36 @@ namespace Microsoft.CodeAnalysis
                         sourcesCollection.Free();
                     }
 
-                    // create the execution pipline
+                    // create the execution pipeline
                     if (ex is null && generatorState.Info.PipelineCallback is object)
                     {
                         var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
                         var sourcesBuilder = new PerGeneratorInputNodes.Builder();
                         var pipelineContext = new IncrementalGeneratorPipelineContext(sourcesBuilder, outputBuilder);
+                        var info = generatorState.Info;
                         try
                         {
-                            generatorState.Info.PipelineCallback(pipelineContext);
+                            info.PipelineCallback(pipelineContext);
                         }
                         catch (Exception e)
                         {
                             ex = e;
                         }
 
+                        // PROTOTYPE(source-generators): why do we have the builder at all, do we actually need to keep the sources around after this??
+                        // oh its used to set the syntax receiver later on. hmm.
+
+                        // if the pipeline registered any syntax callbacks, create a receiver to handle them
+                        if (sourcesBuilder.SyntaxTransformNodes.Count > 0)
+                        {
+                            // it isn't possible for an incremental generator to directly create a walker as part of init
+                            Debug.Assert(info.SyntaxContextReceiverCreator is null);
+                            var nodes = sourcesBuilder.SyntaxTransformNodes.ToImmutable();
+                            info = new GeneratorInfo(() => new IncrementalSyntaxReceiver(nodes), info.PostInitCallback, info.PipelineCallback);
+                        }
+
                         generatorState = ex is null
-                                         ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, sourcesBuilder.ToImmutable(), outputBuilder.ToImmutable())
+                                         ? new GeneratorState(info, generatorState.PostInitTrees, sourcesBuilder.ToImmutable(), outputBuilder.ToImmutable())
                                          : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
 
                         outputBuilder.Free();
@@ -328,10 +341,18 @@ namespace Microsoft.CodeAnalysis
 
                 if (generatorState.SyntaxReceiver is object)
                 {
-                    Debug.Assert(generatorState.Sources.ReceiverNode is object);
+                    // PROTOTYPE(source-generators): I wonder if we can just make an adaptor for the individual syntax recevier too and it do it all in the same place?
+                    if (generatorState.SyntaxReceiver is IncrementalSyntaxReceiver isr)
+                    {
+                        isr.SetInputStates(driverStateBuilder);
+                    }
+                    else
+                    {
+                        Debug.Assert(generatorState.Sources.ReceiverNode is object);
 
-                    // PROTOTYPE(source-generators): if we can somehow compare the syntax walkers (maybe just enough to overload equals?) then this can be made to be incremental
-                    driverStateBuilder.SetInputState(generatorState.Sources.ReceiverNode, NodeStateTable<ISyntaxContextReceiver>.WithSingleItem(generatorState.SyntaxReceiver, EntryState.Added));
+                        // PROTOTYPE(source-generators): if we can somehow compare the syntax walkers (maybe just enough to overload equals?) then this can be made to be incremental
+                        driverStateBuilder.SetInputState(generatorState.Sources.ReceiverNode, NodeStateTable<ISyntaxContextReceiver>.WithSingleItem(generatorState.SyntaxReceiver, EntryState.Added));
+                    }
                 }
 
                 IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());

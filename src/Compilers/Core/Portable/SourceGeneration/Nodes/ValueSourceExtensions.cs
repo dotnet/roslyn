@@ -15,16 +15,16 @@ namespace Microsoft.CodeAnalysis
         public static IncrementalValueSource<U> Transform<T, U>(this IncrementalValueSource<T> source, Func<T, U> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.Node, func.WrapUserFunction()));
 
         // 1 => many (or none) transform
-        internal static IncrementalValueSource<U> TransformMany<T, U>(this IncrementalValueSource<T> source, Func<T, ImmutableArray<U>> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.Node, func.WrapUserFunction()));
+        public static IncrementalValueSource<U> TransformMany<T, U>(this IncrementalValueSource<T> source, Func<T, ImmutableArray<U>> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.Node, func.WrapUserFunction()));
 
         // collection => collection
-        internal static IncrementalValueSource<U> BatchTransform<T, U>(this IncrementalValueSource<T> source, Func<ImmutableArray<T>, U> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()));
+        public static IncrementalValueSource<U> BatchTransform<T, U>(this IncrementalValueSource<T> source, Func<ImmutableArray<T>, U> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()));
 
         // single
-        internal static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<ImmutableArray<T>, IEnumerable<U>> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()));
+        public static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<ImmutableArray<T>, ImmutableArray<U>> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()));
 
         // join many => many ((source1[0], source2), (source1[0], source2) ...)
-        public static IncrementalValueSource<(T, IEnumerable<U>)> Join<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => new IncrementalValueSource<(T, IEnumerable<U>)>(new JoinNode<T, U>(source1.Node, source2.Node));
+        public static IncrementalValueSource<(T, ImmutableArray<U>)> Join<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => new IncrementalValueSource<(T, ImmutableArray<U>)>(new JoinNode<T, U>(source1.Node, source2.Node));
 
         // helper for filtering
         public static IncrementalValueSource<T> Filter<T>(this IncrementalValueSource<T> source, Func<T, bool> filter)

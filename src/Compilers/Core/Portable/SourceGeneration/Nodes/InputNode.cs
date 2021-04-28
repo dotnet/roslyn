@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// Input nodes don't actually do anything. They are just placeholders for the value sources
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal sealed class InputNode<T> : IIncrementalGeneratorNode<T>
+    internal class InputNode<T> : IIncrementalGeneratorNode<T>
     {
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {

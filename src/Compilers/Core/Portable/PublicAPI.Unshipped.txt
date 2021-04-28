@@ -31,6 +31,7 @@ Microsoft.CodeAnalysis.IncrementalValueSources.AnalyzerConfigOptions.get -> Micr
 Microsoft.CodeAnalysis.IncrementalValueSources.Compilation.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.Compilation!>
 Microsoft.CodeAnalysis.IncrementalValueSources.IncrementalValueSources() -> void
 Microsoft.CodeAnalysis.IncrementalValueSources.ParseOptions.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.ParseOptions!>
+Microsoft.CodeAnalysis.IncrementalValueSourceExtensions
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
 Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void
 Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void
@@ -56,6 +57,11 @@ Microsoft.CodeAnalysis.SyntaxNode.IsEquivalentTo(Microsoft.CodeAnalysis.SyntaxNo
 Microsoft.CodeAnalysis.SyntaxNode.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNode? other) -> bool
 Microsoft.CodeAnalysis.SyntaxNodeOrToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNodeOrToken other) -> bool
 Microsoft.CodeAnalysis.SyntaxToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxToken token) -> bool
+Microsoft.CodeAnalysis.SyntaxValueSources
+Microsoft.CodeAnalysis.SyntaxValueSources.CreateTransform<T>(System.Func<Microsoft.CodeAnalysis.GeneratorSyntaxContext, System.Collections.Generic.IEnumerable<T>!>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<T>
+Microsoft.CodeAnalysis.SyntaxValueSources.SyntaxValueSources() -> void
+Microsoft.CodeAnalysis.ValueSources.ParseOptions.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.ParseOptions!>
+Microsoft.CodeAnalysis.ValueSources.Syntax.get -> Microsoft.CodeAnalysis.SyntaxValueSources
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool
@@ -64,6 +70,14 @@ override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGeneratorsF
 override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.DefaultVisit(Microsoft.CodeAnalysis.IOperation! operation, TArgument argument) -> object?
 override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.Visit(Microsoft.CodeAnalysis.IOperation? operation, TArgument argument) -> object?
 static Microsoft.CodeAnalysis.GeneratorDriver.GetGeneratorType(Microsoft.CodeAnalysis.ISourceGenerator! generator) -> System.Type!
+static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.BatchTransform<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<System.Collections.Immutable.ImmutableArray<T>, U>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
+static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.BatchTransformMany<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<System.Collections.Immutable.ImmutableArray<T>, System.Collections.Immutable.ImmutableArray<U>>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
+static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.Filter<T>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<T, bool>! filter) -> Microsoft.CodeAnalysis.IncrementalValueSource<T>
+static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.GenerateSource<T>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, T>! action) -> Microsoft.CodeAnalysis.IncrementalGeneratorOutput
+static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.Join<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source1, Microsoft.CodeAnalysis.IncrementalValueSource<U> source2) -> Microsoft.CodeAnalysis.IncrementalValueSource<(T, System.Collections.Immutable.ImmutableArray<U>)>
+static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.Transform<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<T, U>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
+static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.TransformMany<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<T, System.Collections.Immutable.ImmutableArray<U>>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
+static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.WithComparer<T>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Collections.Generic.IEqualityComparer<T>! comparer) -> Microsoft.CodeAnalysis.IncrementalValueSource<T>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 abstract Microsoft.CodeAnalysis.Compilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference!>
