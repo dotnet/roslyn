@@ -37,6 +37,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Creating a new type definition.
         /// </summary>
-        NewTypeDefinition = 1 << 2
+        NewTypeDefinition = 1 << 4
     }
 }
