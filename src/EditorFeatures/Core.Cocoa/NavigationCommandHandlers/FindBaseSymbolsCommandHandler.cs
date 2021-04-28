@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -49,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             var streamingPresenter = base.GetStreamingPresenter();
             if (streamingPresenter != null)
             {
-                // Fire and forget.  So no need for cancellation.
-                _ = StreamingFindBaseSymbolsAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
+                _ = StreamingFindBaseSymbolsAsync(document, caretPosition, streamingPresenter);
                 return true;
             }
 
@@ -59,14 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
         private async Task StreamingFindBaseSymbolsAsync(
             Document document, int caretPosition,
-            IStreamingFindUsagesPresenter presenter,
-            CancellationToken cancellationToken)
+            IStreamingFindUsagesPresenter presenter)
         {
             try
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindBaseSymbolsAsync));
 
-                (var context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,

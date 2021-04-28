@@ -51,8 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             var streamingPresenter = base.GetStreamingPresenter();
             if (streamingPresenter != null)
             {
-                // Fire and forget.  So no need for cancellation.
-                _ = FindImplementingMembersAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
+                _ = FindImplementingMembersAsync(document, caretPosition, streamingPresenter);
                 return true;
             }
 
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         }
 
         private async Task FindImplementingMembersAsync(
-            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter, CancellationToken cancellationToken)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter)
         {
             try
             {
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                 // Let the presented know we're starting a search.  We pass in no cancellation token here as this
                 // operation itself is fire-and-forget and the user won't cancel the operation through us (though
                 // the window itself can cancel the operation if it is taken over for another find operation.
-                (var context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,

@@ -5,14 +5,15 @@
 #nullable disable
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -21,8 +22,6 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands.Navigation;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
-using Microsoft.CodeAnalysis.Host.Mef;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 {
@@ -53,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             var streamingPresenter = base.GetStreamingPresenter();
             if (streamingPresenter != null)
             {
-                // Fire and forget.  So no need for cancellation.
-                _ = FindExtensionMethodsAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
+                _ = FindExtensionMethodsAsync(document, caretPosition, streamingPresenter);
                 return true;
             }
 
@@ -62,13 +60,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         }
 
         private async Task FindExtensionMethodsAsync(
-            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter, CancellationToken cancellationToken)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter)
         {
             try
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(FindExtensionMethodsAsync));
 
-                (var context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,

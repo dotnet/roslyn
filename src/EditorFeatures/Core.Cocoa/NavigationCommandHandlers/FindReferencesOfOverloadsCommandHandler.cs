@@ -64,8 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             // a presenter that can accept streamed results.
             if (streamingService != null && streamingPresenter != null)
             {
-                // Fire and forget.  So no need for cancellation.
-                _ = StreamingFindReferencesAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
+                _ = StreamingFindReferencesAsync(document, caretPosition, streamingPresenter);
                 return true;
             }
 
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         }
 
         private async Task StreamingFindReferencesAsync(
-            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter, CancellationToken cancellationToken)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter)
         {
             try
             {
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
 
-                (var context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,

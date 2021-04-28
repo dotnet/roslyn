@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             var streamingPresenter = base.GetStreamingPresenter();
             if (streamingPresenter != null)
             {
-                // Fire and forget.  So no need for cancellation.
-                _ = FindDerivedSymbolsAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
+                _ = FindDerivedSymbolsAsync(document, caretPosition, streamingPresenter);
                 return true;
             }
 
@@ -85,13 +84,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         }
 
         private async Task FindDerivedSymbolsAsync(
-            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter, CancellationToken cancellationToken)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter)
         {
             try
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(FindDerivedSymbolsAsync));
 
-                (var context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true);
                 try
                 {
                     using (Logger.LogBlock(

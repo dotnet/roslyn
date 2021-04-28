@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             var streamingPresenter = base.GetStreamingPresenter();
             if (streamingPresenter != null)
             {
-                // Fire and forget.  So no need for cancellation.
-                _ = FindMemberOverloadsAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
+                _ = FindMemberOverloadsAsync(document, caretPosition, streamingPresenter);
                 return true;
             }
 
@@ -58,13 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         }
 
         private async Task FindMemberOverloadsAsync(
-            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter, CancellationToken cancellationToken)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter)
         {
             try
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(FindMemberOverloadsAsync));
 
-                (var context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,
