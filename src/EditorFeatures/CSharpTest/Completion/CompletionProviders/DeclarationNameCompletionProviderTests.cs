@@ -707,6 +707,19 @@ public class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestParameterNamesFromTheSameOverload()
+        {
+            var markup = @"
+public class C
+{
+    void M(string name, string $$) { }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "name");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
         public async Task DoNotSuggestParameterNamesFromNonOverloads()
         {
             var markup = @"

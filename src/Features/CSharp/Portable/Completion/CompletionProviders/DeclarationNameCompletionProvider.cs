@@ -64,13 +64,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var nameInfo = await NameDeclarationInfo.GetDeclarationInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-                var baseNames = GetBaseNames(semanticModel, nameInfo);
-                if (baseNames == default)
+                using var _ = ArrayBuilder<(string name, SymbolKind kind)>.GetInstance(out var result);
+
+                // Suggest names from existing overloads.
+                if (nameInfo.PossibleSymbolKinds.Any(k => k.SymbolKind.HasValue && k.SymbolKind.Value == SymbolKind.Parameter))
                 {
-                    return;
+                    var partialSemanticModel = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    if (partialSemanticModel is not null)
+                        AddNamesFromExistingOverloads(context, partialSemanticModel, result, cancellationToken);
                 }
 
-                var recommendedNames = await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, cancellationToken).ConfigureAwait(false);
+                var baseNames = GetBaseNames(semanticModel, nameInfo);
+                if (baseNames != default)
+                {
+                    await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, result, cancellationToken).ConfigureAwait(false);
+                }
+
+                var recommendedNames = result.ToImmutable();
+
                 var sortValue = 0;
                 foreach (var (name, kind) in recommendedNames)
                 {
@@ -222,11 +233,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (type, wasPlural);
         }
 
-        private static async Task<ImmutableArray<(string name, SymbolKind kind)>> GetRecommendedNamesAsync(
+        private static async Task GetRecommendedNamesAsync(
             ImmutableArray<ImmutableArray<string>> baseNames,
             NameDeclarationInfo declarationInfo,
             CSharpSyntaxContext context,
             Document document,
+            ArrayBuilder<(string name, SymbolKind kind)> result,
             CancellationToken cancellationToken)
         {
             var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionOfferingRules, cancellationToken).ConfigureAwait(false);
@@ -234,7 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             using var _1 = PooledHashSet<string>.GetInstance(out var seenBaseNames);
             using var _2 = PooledHashSet<string>.GetInstance(out var seenUniqueNames);
-            using var _3 = ArrayBuilder<(string name, SymbolKind kind)>.GetInstance(out var result);
 
             foreach (var kind in declarationInfo.PossibleSymbolKinds)
             {
@@ -244,14 +255,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     kind.SymbolKind.HasValue ? kind.SymbolKind.Value :
                     kind.MethodKind.HasValue ? SymbolKind.Method :
                     throw ExceptionUtilities.Unreachable;
-
-                // Suggest names from existing overloads.
-                if (symbolKind == SymbolKind.Parameter)
-                {
-                    var partialSemanticModel = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    if (partialSemanticModel is not null)
-                        AddNamesFromExistingOverloads(context, partialSemanticModel, result, cancellationToken);
-                }
 
                 var modifiers = declarationInfo.Modifiers;
                 foreach (var rule in rules)
@@ -282,8 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
                 }
             }
-
-            return result.ToImmutable();
         }
 
         private static void AddNamesFromExistingOverloads(CSharpSyntaxContext context, SemanticModel semanticModel, ArrayBuilder<(string name, SymbolKind kind)> result, CancellationToken cancellationToken)
@@ -293,25 +294,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
 
             var parameterSyntax = context.LeftToken.GetAncestor(n => n.IsKind(SyntaxKind.Parameter)) as ParameterSyntax;
-            if (parameterSyntax is not { Type: { } parameterType, Parent: { Parent: MethodDeclarationSyntax method } })
+            if (parameterSyntax is not { Type: { } parameterType, Parent: { Parent: BaseMethodDeclarationSyntax baseMethod } })
                 return;
 
-            var overloads = namedType.GetMembers(method.Identifier.ValueText).WhereAsArray(m => m.Kind == SymbolKind.Method);
-            if (overloads.IsDefaultOrEmpty)
+            var overloads = GetOverloads(baseMethod, namedType);
+
+            if (!overloads.Any())
                 return;
 
             var methodParameterType = semanticModel.GetTypeInfo(parameterType, cancellationToken).Type;
             if (methodParameterType is null)
                 return;
 
+            var currentParameterNames = baseMethod.ParameterList.Parameters.Select(p => p.Identifier.ValueText).ToImmutableHashSet();
+
             foreach (var overload in overloads)
             {
-                var methodSymbol = (IMethodSymbol)overload;
-                foreach (var overloadParameter in methodSymbol.Parameters)
+                foreach (var overloadParameter in overload.Parameters)
                 {
-                    if (methodParameterType.Equals(overloadParameter.Type, SymbolEqualityComparer.Default))
+                    if (!currentParameterNames.Contains(overloadParameter.Name) &&
+                        methodParameterType.Equals(overloadParameter.Type, SymbolEqualityComparer.Default))
+                    {
                         result.Add((overloadParameter.Name, SymbolKind.Parameter));
+                    }
                 }
+            }
+
+            return;
+
+            // Local functions
+            static IEnumerable<IMethodSymbol> GetOverloads(BaseMethodDeclarationSyntax baseMethod, INamedTypeSymbol namedType)
+            {
+                return baseMethod switch
+                {
+                    MethodDeclarationSyntax method => namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>(),
+                    ConstructorDeclarationSyntax constructor => namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>(),
+                    _ => Enumerable.Empty<IMethodSymbol>()
+                };
             }
         }
 
