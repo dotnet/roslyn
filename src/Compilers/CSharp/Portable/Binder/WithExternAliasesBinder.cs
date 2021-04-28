@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal FromSyntax(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next)
                 : base(next)
             {
-                Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
+                Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration) || declarationSyntax.IsKind(SyntaxKind.SingleLineNamespaceDeclaration));
                 _declaringSymbol = declaringSymbol;
                 _declarationSyntax = declarationSyntax;
             }

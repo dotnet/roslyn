@@ -579,6 +579,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSingleLineNamespace()
+        {
+            var text = "namespace a;";
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.SingleLineNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (SingleLineNamespaceDeclarationSyntax)file.Members[0];
+            Assert.NotEqual(default, ns.NamespaceKeyword);
+            Assert.NotNull(ns.Name);
+            Assert.Equal("a", ns.Name.ToString());
+            Assert.NotEqual(default, ns.SemicolonToken);
+            Assert.Equal(0, ns.Usings.Count);
+            Assert.Equal(0, ns.Members.Count);
+        }
+
+        [Fact]
         public void TestNamespaceWithDottedName()
         {
             var text = "namespace a.b.c { }";
@@ -624,6 +645,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSingleLineNamespaceWithUsing()
+        {
+            var text = "namespace a; using b.c;";
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.SingleLineNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (SingleLineNamespaceDeclarationSyntax)file.Members[0];
+            Assert.NotEqual(default, ns.NamespaceKeyword);
+            Assert.NotNull(ns.Name);
+            Assert.Equal("a", ns.Name.ToString());
+            Assert.NotEqual(default, ns.SemicolonToken);
+            Assert.Equal(1, ns.Usings.Count);
+            Assert.Equal("using b.c;", ns.Usings[0].ToString());
+            Assert.Equal(0, ns.Members.Count);
+        }
+
+        [Fact]
         public void TestNamespaceWithExternAlias()
         {
             var text = "namespace a { extern alias b; }";
@@ -644,6 +687,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("extern alias b;", ns.Externs[0].ToString());
             Assert.Equal(0, ns.Members.Count);
             Assert.NotEqual(default, ns.CloseBraceToken);
+        }
+
+        [Fact]
+        public void TestSingleLineNamespaceWithExternAlias()
+        {
+            var text = "namespace a; extern alias b;";
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.SingleLineNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (SingleLineNamespaceDeclarationSyntax)file.Members[0];
+            Assert.NotEqual(default, ns.NamespaceKeyword);
+            Assert.NotNull(ns.Name);
+            Assert.Equal("a", ns.Name.ToString());
+            Assert.NotEqual(default, ns.SemicolonToken);
+            Assert.Equal(1, ns.Externs.Count);
+            Assert.Equal("extern alias b;", ns.Externs[0].ToString());
+            Assert.Equal(0, ns.Members.Count);
         }
 
         [Fact]

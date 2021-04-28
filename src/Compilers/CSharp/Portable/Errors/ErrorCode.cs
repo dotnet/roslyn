@@ -1939,6 +1939,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
         ERR_CannotInferDelegateType = 8917,
 
+        ERR_MultipleSingleLineNamespace = 8918,
+        ERR_SingleLineAndNormalNamespace = 8919,
+        ERR_SingleLineNamespaceNotBeforeAllMembers = 8920,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

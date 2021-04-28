@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node = node.Parent;
             }
 
-            Debug.Assert(node is CompilationUnitSyntax || node is NamespaceDeclarationSyntax);
+            Debug.Assert(node is CompilationUnitSyntax || node is NamespaceDeclarationSyntax || node is SingleLineNamespaceDeclarationSyntax);
 
             return node;
         }

@@ -212,6 +212,49 @@ namespace N1 {
         }
 
         [Fact]
+        public void SourceNamedTypeDeclaringSyntaxSingleLineNamespace()
+        {
+            var text =
+@"
+namespace N1;
+class C1<T> {
+    class Nested<U> {}
+    delegate int NestedDel(string s);
+}
+public struct S1 {
+    C1<int> f;
+}
+internal interface I1 {}
+enum E1 { Red }
+delegate void D1(int i);
+";
+            var comp = (Compilation)CreateCompilation(text);
+            var global = comp.GlobalNamespace;
+            var n1 = global.GetMembers("N1").Single() as INamespaceSymbol;
+
+            Assert.False(n1.IsImplicitlyDeclared);
+            Assert.True(comp.SourceModule.GlobalNamespace.IsImplicitlyDeclared);
+
+            var types = n1.GetTypeMembers();
+            foreach (ISymbol s in types)
+            {
+                CheckDeclaringSyntaxNodes(comp, s, 1);
+            }
+
+            var c1 = n1.GetTypeMembers("C1").Single() as INamedTypeSymbol;
+            var s1 = n1.GetTypeMembers("S1").Single() as INamedTypeSymbol;
+            var f = s1.GetMembers("f").Single() as IFieldSymbol;
+
+            CheckDeclaringSyntaxNodes(comp, f.Type, 1);  // constructed type C1<int>.
+
+            // Nested types.
+            foreach (ISymbol s in c1.GetTypeMembers())
+            {
+                CheckDeclaringSyntaxNodes(comp, s, 1);
+            }
+        }
+
+        [Fact]
         public void NonSourceTypeDeclaringSyntax()
         {
             var text =
@@ -421,27 +464,26 @@ namespace System {}
         }
 
         [Fact]
-        public void TypeParameterDeclaringSyntax()
+        public void TypeParameterDeclaringSyntaxSingleLineNamespace()
         {
             var text =
 @"
 using System;
 using System.Collections.Generic;
 
-namespace N1 {
-    class C1<T, U> {
-        class C2<W> {
-            public C1<int, string>.C2<W> f1;
-            public void m<R, S>();
-        }
-        class C3<W> {
-            IEnumerable<U> f2;
-            Goo<Bar> f3;
-        }
+namespace N1;
+class C1<T, U> {
+    class C2<W> {
+        public C1<int, string>.C2<W> f1;
+        public void m<R, S>();
     }
+    class C3<W> {
+        IEnumerable<U> f2;
+        Goo<Bar> f3;
+    }
+}
 
-    class M {
-    }
+class M {
 }
 ";
             var comp = (Compilation)CreateCompilation(text);

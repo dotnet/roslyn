@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxList<MemberDeclarationSyntax> members,
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
         {
-            Debug.Assert(node.Kind() == SyntaxKind.NamespaceDeclaration || (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
+            Debug.Assert(
+                node.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.SingleLineNamespaceDeclaration ||
+                (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
             if (members.Count == 0)
             {
@@ -294,9 +296,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
+        public override SingleNamespaceOrTypeDeclaration VisitSingleLineNamespaceDeclaration(SingleLineNamespaceDeclarationSyntax node)
+            => this.VisitBaseNamespaceDeclaration(node);
+
         public override SingleNamespaceOrTypeDeclaration VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
+            => this.VisitBaseNamespaceDeclaration(node);
+
+        private SingleNamespaceDeclaration VisitBaseNamespaceDeclaration(BaseNamespaceDeclarationSyntax node)
         {
-            var children = VisitNamespaceChildren(node, node.Members, node.Green.Members);
+            var children = VisitNamespaceChildren(node, node.Members, ((Syntax.InternalSyntax.BaseNamespaceDeclarationSyntax)node.Green).Members);
 
             bool hasUsings = node.Usings.Any();
             bool hasExterns = node.Externs.Any();
@@ -322,6 +330,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
+
+            if (node is SingleLineNamespaceDeclarationSyntax)
+            {
+                if (node.Parent is SingleLineNamespaceDeclarationSyntax)
+                {
+                    // Happens when user writes:
+                    //      namespace A.B;
+                    //      namespace X.Y;
+                    diagnostics.Add(ErrorCode.ERR_MultipleSingleLineNamespace, node.Name.GetLocation());
+                }
+                else if (node.Parent is NamespaceDeclarationSyntax)
+                {
+                    // Happens with:
+                    //
+                    //      namespace A.B
+                    //      {
+                    //          namespace X.Y;
+                    diagnostics.Add(ErrorCode.ERR_SingleLineAndNormalNamespace, node.Name.GetLocation());
+                }
+                else
+                {
+                    // Happens with cases like:
+                    //
+                    //      namespace A.B { }
+                    //      namespace X.Y;
+                    //
+                    // or even
+                    //
+                    //      class C { }
+                    //      namespace X.Y;
+
+                    Debug.Assert(node.Parent is CompilationUnitSyntax);
+                    var compilationUnit = (CompilationUnitSyntax)node.Parent;
+                    if (node != compilationUnit.Members[0])
+                    {
+                        diagnostics.Add(ErrorCode.ERR_SingleLineNamespaceNotBeforeAllMembers, node.Name.GetLocation());
+                    }
+                }
+            }
+            else
+            {
+                Debug.Assert(node is NamespaceDeclarationSyntax);
+
+                //      namespace X.Y;
+                //      namespace A.B { }
+                if (node.Parent is SingleLineNamespaceDeclarationSyntax)
+                {
+                    diagnostics.Add(ErrorCode.ERR_SingleLineAndNormalNamespace, node.Name.GetLocation());
+                }
+            }
+
             if (ContainsGeneric(node.Name))
             {
                 // We're not allowed to have generics.

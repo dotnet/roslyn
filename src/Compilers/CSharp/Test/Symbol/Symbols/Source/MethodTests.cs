@@ -538,6 +538,91 @@ namespace NS.NS1
         }
 
         [Fact]
+        public void InterfaceImplementsCrossTreesSingleLineNamespace()
+        {
+            var text1 =
+@"using System;
+using System.Collections.Generic;
+
+namespace NS;
+public class Abc {}
+
+public interface IGoo<T>
+{
+    void M(ref T t);
+}
+
+public interface I1
+{
+    void M(ref string p);
+    int M1(short p1, params object[] ary);
+}
+  
+public interface I2 : I1 
+{
+    void M21(); 
+    Abc M22(ref Abc p);
+}
+";
+
+            var text2 =
+@"using System;
+using System.Collections.Generic;
+
+namespace NS.NS1;
+public class Impl : I2, IGoo<string>, I1
+{
+    void IGoo<string>.M(ref string p) { }
+    void I1.M(ref string p) { }
+    public int M1(short p1, params object[] ary) { return p1; }
+    public void M21() {}
+    public Abc M22(ref Abc p) { return p; }
+}
+
+struct S<T>: IGoo<T>
+{
+    void IGoo<T>.M(ref T t) {}
+}
+";
+
+            var comp = CreateCompilation(new[] { text1, text2 });
+            Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
+            var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
+            var ns1 = ns.GetMembers("NS1").Single() as NamespaceSymbol;
+
+            var classImpl = ns1.GetTypeMembers("Impl", 0).Single() as NamedTypeSymbol;
+            Assert.Equal(3, classImpl.Interfaces().Length);
+            // 
+            var itfc = classImpl.Interfaces().First() as NamedTypeSymbol;
+            Assert.Equal(1, itfc.Interfaces().Length);
+            itfc = itfc.Interfaces().First() as NamedTypeSymbol;
+            Assert.Equal("I1", itfc.Name);
+
+            // explicit interface member names include the explicit interface
+            var mems = classImpl.GetMembers("M");
+            Assert.Equal(0, mems.Length);
+            //var mem1 = mems.First() as MethodSymbol;
+            // not impl
+            // Assert.Equal(MethodKind.ExplicitInterfaceImplementation, mem1.MethodKind);
+            // Assert.Equal(1, mem1.ExplicitInterfaceImplementation.Count());
+
+            var mem1 = classImpl.GetMembers("M22").Single() as MethodSymbol;
+            // not impl
+            // Assert.Equal(0, mem1.ExplicitInterfaceImplementation.Count());
+            var param = mem1.Parameters.First() as ParameterSymbol;
+            Assert.Equal(RefKind.Ref, param.RefKind);
+            Assert.Equal("ref NS.Abc p", param.ToTestDisplayString());
+
+            var structImpl = ns1.GetTypeMembers("S").Single() as NamedTypeSymbol;
+            Assert.Equal(1, structImpl.Interfaces().Length);
+            itfc = structImpl.Interfaces().First() as NamedTypeSymbol;
+            Assert.Equal("NS.IGoo<T>", itfc.ToTestDisplayString());
+            //var mem2 = structImpl.GetMembers("M").Single() as MethodSymbol;
+            // not impl
+            // Assert.Equal(1, mem2.ExplicitInterfaceImplementation.Count());
+        }
+
+        [Fact]
         public void AbstractVirtualMethodsCrossTrees()
         {
             var text = @"
