@@ -105,8 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
 
-                var (context, combinedCancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
-                cancellationToken = combinedCancellationToken;
+                (var context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,

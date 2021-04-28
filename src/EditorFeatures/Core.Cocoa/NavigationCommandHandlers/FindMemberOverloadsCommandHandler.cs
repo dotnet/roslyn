@@ -64,9 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(FindMemberOverloadsAsync));
 
-                var (context, combinedCancellationToken) = presenter.StartSearch(
-                    EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
-                cancellationToken = combinedCancellationToken;
+                (var context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,

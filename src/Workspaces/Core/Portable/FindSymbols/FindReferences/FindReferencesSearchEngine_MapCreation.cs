@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var (symbol, cascadeDirection) in symbols)
                 {
                     Contract.ThrowIfNull(symbol);
-                    cancellationToken.ThrowIfCancellationRequested();
 
                     // If we're cascading unidirectionally, then keep going in the direction this symbol was found in.
                     // Otherwise, if we're not unidirectional, then continue to cascade in both directions with this

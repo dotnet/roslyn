@@ -91,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(FindDerivedSymbolsAsync));
 
-                var (context, combinedCancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
-                cancellationToken = combinedCancellationToken;
+                (var context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
                 try
                 {
                     using (Logger.LogBlock(

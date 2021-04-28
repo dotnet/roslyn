@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
@@ -67,12 +68,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             ISymbol symbol, Project project, IFindUsagesContext context, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var (implementations, message) = await FindSourceImplementationsAsync(
-                solution, symbol, cancellationToken).ConfigureAwait(false);
+            var implementations = await FindSourceImplementationsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
 
-            if (message != null)
+            if (implementations.IsEmpty)
             {
-                await context.ReportMessageAsync(message, cancellationToken).ConfigureAwait(false);
+                await context.ReportMessageAsync(EditorFeaturesResources.The_symbol_has_no_implementations, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        private static async Task<(ImmutableArray<ISymbol> implementations, string? message)> FindSourceImplementationsAsync(
+        private static async Task<ImmutableArray<ISymbol>> FindSourceImplementationsAsync(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var builder = new HashSet<ISymbol>(SymbolEquivalenceComparer.Instance);
@@ -100,23 +100,60 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(
                 symbol, solution, cancellationToken).ConfigureAwait(false);
 
+            // Because we're searching linked files, we may get many symbols that are conceptually 
+            // 'duplicates' to the user.  Specifically, any symbols that would navigate to the same
+            // location do not provide value to the user as selecting any from that set of items 
+            // would navigate them to the exact same location.  For this, we use file-paths and spans
+            // as those will be the same regardless of how a file is linked or used in shared project
+            // scenarios.
+            var seenLocations = new HashSet<(string filePath, TextSpan span)>();
+
             foreach (var linkedSymbol in linkedSymbols)
             {
-                builder.AddRange(await FindSourceImplementationsWorkerAsync(
-                    solution, linkedSymbol, cancellationToken).ConfigureAwait((bool)false));
+                var implementations = await FindSourceImplementationsWorkerAsync(
+                    solution, linkedSymbol, cancellationToken).ConfigureAwait(false);
+                foreach (var implementation in implementations)
+                {
+                    if (AddedAllLocations(implementation, seenLocations))
+                        builder.Add(implementation);
+                }
             }
 
-            var result = builder.ToImmutableArray();
-            var message = result.IsEmpty ? EditorFeaturesResources.The_symbol_has_no_implementations : null;
+            return builder.ToImmutableArray();
 
-            return (result, message);
+            static bool AddedAllLocations(ISymbol implementation, HashSet<(string filePath, TextSpan span)> seenLocations)
+            {
+                foreach (var location in implementation.Locations)
+                {
+                    Contract.ThrowIfFalse(location.IsInSource);
+                    if (!seenLocations.Add((location.SourceTree.FilePath, location.SourceSpan)))
+                        return false;
+                }
+
+                return true;
+            }
         }
 
         private static async Task<ImmutableArray<ISymbol>> FindSourceImplementationsWorkerAsync(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var implementations = await FindSourceAndMetadataImplementationsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-            return implementations.WhereAsArray(s => s.Locations.Any(l => l.IsInSource));
+            var sourceImplementations = new HashSet<ISymbol>(implementations.Where(s => s.IsFromSource()).Select(s => s.OriginalDefinition));
+
+            // For members, if we've found overrides of the original symbol, then filter out any abstract
+            // members these inherit from.  The user has asked for literal implementations, and in the case
+            // of an override, including the abstract as well isn't helpful.
+            var overrides = sourceImplementations.Where(s => s.IsOverride).ToImmutableArray();
+            foreach (var ov in overrides)
+            {
+                for (var overridden = ov.GetOverriddenMember(); overridden != null; overridden = overridden.GetOverriddenMember())
+                {
+                    if (overridden.IsAbstract)
+                        sourceImplementations.Remove(overridden.OriginalDefinition);
+                }
+            }
+
+            return sourceImplementations.ToImmutableArray();
         }
 
         private static async Task<ImmutableArray<ISymbol>> FindSourceAndMetadataImplementationsAsync(
