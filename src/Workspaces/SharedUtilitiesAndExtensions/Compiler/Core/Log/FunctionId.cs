@@ -515,6 +515,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         LSP_CompletionListCacheMiss = 486,
 
-        VS_ErrorReportingService_ShowGlobalErrorInfo = 487,
+        VS_ErrorReportingService_ShowGlobalErrorInfo = 489,
     }
 }

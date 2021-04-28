@@ -8468,8 +8468,8 @@ Permettez au compilateur de différencier les méthodes. Par exemple, vous pouve
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">Les paramètres ou variables locales de type '{0}' ne peuvent pas être déclarés dans des méthodes async ou des expressions lambda.</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="needs-review-translation">Les paramètres ou variables locales de type '{0}' ne peuvent pas être déclarés dans des méthodes async ou des expressions lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">

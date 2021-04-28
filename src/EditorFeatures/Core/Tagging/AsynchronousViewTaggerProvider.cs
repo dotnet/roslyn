@@ -13,39 +13,30 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
-    internal abstract class AsynchronousViewTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>,
-        IViewTaggerProvider
+    internal abstract class AsynchronousViewTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>, IViewTaggerProvider
         where TTag : ITag
     {
-        protected AsynchronousViewTaggerProvider(
-            IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
-                : base(threadingContext, asyncListener, notificationService)
+        protected AsynchronousViewTaggerProvider(IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, asyncListener)
         {
         }
 
-        // TypeScript still is moving to calling the new constructor that takes an IThreadingContext. Until then, we can fetch one from another service of ours that
-        // already does. When TypeScript moves calling the new constructor, this should be deleted.
+        // TypeScript still is moving to calling the new constructor that does not take a IForegroundNotificationService.
+        // Until then, we can fetch one from another service of ours that already does. When TypeScript moves calling the
+        // new constructor, this should be deleted.
         [Obsolete("This overload exists for TypeScript compatibility only and should not be used in new code.")]
-        protected AsynchronousViewTaggerProvider(
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
-                : this(((Implementation.ForegroundNotification.ForegroundNotificationService)notificationService).ThreadingContext, asyncListener, notificationService)
+        protected AsynchronousViewTaggerProvider(IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener, IForegroundNotificationService _)
+            : base(threadingContext, asyncListener)
         {
         }
 
-        public IAccurateTagger<T> CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
         {
             if (textView == null)
-            {
                 throw new ArgumentNullException(nameof(subjectBuffer));
-            }
 
             if (subjectBuffer == null)
-            {
                 throw new ArgumentNullException(nameof(subjectBuffer));
-            }
 
             return this.CreateTaggerWorker<T>(textView, subjectBuffer);
         }
