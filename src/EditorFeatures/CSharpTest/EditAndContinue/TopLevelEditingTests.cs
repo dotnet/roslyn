@@ -1693,7 +1693,7 @@ partial record C { }";
                 Diagnostic(RudeEditKind.Renamed, "record D", CSharpFeaturesResources.record_));
         }
 
-                [Fact]
+        [Fact]
         public void RecordStruct_NoModifiers_Insert()
         {
             var src1 = "";
