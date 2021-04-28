@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            private CancellationTokenSource? _cancellationTokenSource;
+            public CancellationTokenSource? CancellationTokenSource { get; private set; }
 
             private ITableDataSink _tableDataSink;
 
@@ -88,14 +88,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected AbstractTableDataSourceFindUsagesContext(
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
-                 CancellationTokenSource cancellationTokenSource,
                  ImmutableArray<ITableColumnDefinition> customColumns,
                  bool includeContainingTypeAndMemberColumns,
                  bool includeKindColumn)
             {
                 presenter.AssertIsForeground();
 
-                _cancellationTokenSource = cancellationTokenSource;
+                CancellationTokenSource = new CancellationTokenSource();
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
@@ -129,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
                     TimeSpan.FromMilliseconds(250),
                     this.UpdateTableProgressAsync,
-                    _cancellationTokenSource.Token);
+                    CancellationTokenSource.Token);
             }
 
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
@@ -223,11 +222,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Presenter.AssertIsForeground();
 
                 // Cancel any in flight find work that is going on.
-                if (_cancellationTokenSource != null)
+                if (CancellationTokenSource != null)
                 {
-                    _cancellationTokenSource.Cancel();
-                    _cancellationTokenSource.Dispose();
-                    _cancellationTokenSource = null;
+                    CancellationTokenSource.Cancel();
+                    CancellationTokenSource.Dispose();
+                    CancellationTokenSource = null;
                 }
             }
 
@@ -396,7 +395,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return default;
             }
 
-            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken cancellationToken)
+            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken _)
             {
                 if (!nextBatch.IsEmpty)
                 {

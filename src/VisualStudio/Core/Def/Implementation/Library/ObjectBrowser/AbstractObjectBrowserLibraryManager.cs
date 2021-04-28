@@ -493,7 +493,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                                 // asynchronously added to the FindReferences window as they are computed.  The user
                                 // also knows something is happening as the window, with the progress-banner will pop up
                                 // immediately.
-                                _ = FindReferencesAsync(_streamingPresenter, symbolListItem, project, CancellationToken.None);
+                                _ = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
                                 return true;
                             }
                         }
@@ -506,24 +506,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         private async Task FindReferencesAsync(
-            IStreamingFindUsagesPresenter presenter, SymbolListItem symbolListItem, Project project, CancellationToken cancellationToken)
+            IStreamingFindUsagesPresenter presenter, SymbolListItem symbolListItem, Project project)
         {
             try
             {
                 // Let the presented know we're starting a search.  It will give us back the context object that the FAR
-                // service will push results into.
-                var (context, combinedCancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
-                cancellationToken = combinedCancellationToken;
+                // service will push results into.  Because we kicked off this work in a fire and forget fashion,
+                // the presenter owns canceling this work (i.e. if it's closed or if another FAR request is made).
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true);
 
                 try
                 {
                     // Kick off the work to do the actual finding on a BG thread.  That way we don'
                     // t block the calling (UI) thread too long if we happen to do our work on this
                     // thread.
-                    await Task.Run(async () =>
-                    {
-                        await FindReferencesAsync(symbolListItem, project, context, cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken).ConfigureAwait(false);
+                    await Task.Run(
+                        () => FindReferencesAsync(symbolListItem, project, context, cancellationToken), cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {

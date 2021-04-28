@@ -22,13 +22,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             Throw New NotImplementedException()
         End Sub
 
-        Public Function StartSearch(title As String, alwaysShowDeclarations As Boolean, cancellationToken As CancellationToken) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearch
+        Public Function StartSearch(title As String, alwaysShowDeclarations As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearch
             _action()
-            Return (Context, cancellationToken)
+            Return (Context, CancellationToken.None)
         End Function
 
-        Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean, cancellationToken As CancellationToken) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
-            Return (Context, cancellationToken)
+        Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
+            Return (Context, CancellationToken.None)
         End Function
     End Class
 End Namespace

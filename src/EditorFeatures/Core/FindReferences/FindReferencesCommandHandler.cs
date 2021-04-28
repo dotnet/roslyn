@@ -7,13 +7,11 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -99,6 +97,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             // a presenter that can accept streamed results.
             if (findUsagesService != null && _streamingPresenter != null)
             {
+                // kick this work off in a fire and forget fashion.  Importantly, this means we do
+                // not pass in any ambient cancellation information as the execution of this command
+                // will complete and will have no bearing on the computation of the references we compute.
                 _ = StreamingFindReferencesAsync(document, caretPosition, findUsagesService, _streamingPresenter);
                 return true;
             }
@@ -107,7 +108,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         }
 
         private async Task StreamingFindReferencesAsync(
-            Document document, int caretPosition,
+            Document document,
+            int caretPosition,
             IFindUsagesService findUsagesService,
             IStreamingFindUsagesPresenter presenter)
         {
@@ -122,8 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                     EditorFeaturesResources.Find_References,
                     supportsReferences: true,
                     includeContainingTypeAndMemberColumns: document.Project.SupportsCompilation,
-                    includeKindColumn: document.Project.Language != LanguageNames.FSharp,
-                    CancellationToken.None);
+                    includeKindColumn: document.Project.Language != LanguageNames.FSharp);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,

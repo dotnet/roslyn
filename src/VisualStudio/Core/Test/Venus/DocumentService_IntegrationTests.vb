@@ -67,7 +67,7 @@ class {|Definition:C1|}
             Using workspace = TestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim presenter = New StreamingFindUsagesPresenter(workspace, workspace.ExportProvider.AsExportProvider())
-                Dim tuple = presenter.StartSearch("test", supportsReferences:=True, CancellationToken.None)
+                Dim tuple = presenter.StartSearch("test", supportsReferences:=True)
                 Dim context = tuple.context
 
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)

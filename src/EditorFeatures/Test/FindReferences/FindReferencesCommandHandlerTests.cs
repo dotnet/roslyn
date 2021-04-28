@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             public MockStreamingFindUsagesPresenter(FindUsagesContext context)
                 => _context = context;
 
-            public (FindUsagesContext, CancellationToken) StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken)
-                => (_context, cancellationToken);
+            public (FindUsagesContext, CancellationToken) StartSearch(string title, bool supportsReferences)
+                => (_context, CancellationToken.None);
 
             public void ClearAll()
             {
             }
 
-            public (FindUsagesContext, CancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
-                => (_context, cancellationToken);
+            public (FindUsagesContext, CancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+                => (_context, CancellationToken.None);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
