@@ -22,15 +22,18 @@ namespace Caravela.Compiler.UnitTests
             return mlc.LoadFromAssemblyPath(path);
         }
 
+        /// <summary>
+        /// Tests that transformers are even called.
+        /// </summary>
         [Fact]
-        public void TransformerWorks()
+        public void TransformerIsCalled()
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText("class C { }");
 
             var args = new[] { "/t:library", src.Path };
 
-            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new TestTransformer() }).ToImmutableArray());
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new TrivialTransformer() }).ToImmutableArray());
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
@@ -46,8 +49,9 @@ namespace Caravela.Compiler.UnitTests
 
             CleanupAllGeneratedFiles(src.Path);
         }
+      
 
-        class TestTransformer : ISourceTransformer
+        class TrivialTransformer : ISourceTransformer
         {
             public Compilation Execute(TransformerContext context)
             {
@@ -56,7 +60,85 @@ namespace Caravela.Compiler.UnitTests
                 return context.Compilation.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree("class Generated {}"));
             }
         }
+        
+          
+        /// <summary>
+        /// Tests that source code can reference declarations that will be introduced by transformers.
+        /// </summary>
+        [Fact]
+        public void ReferenceToIntroductionCompiles()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C { public Generated g; }");
 
+            var args = new[] { "/t:library", src.Path };
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new IntroductionTransformer("class Generated {}") }).ToImmutableArray());
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+
+            Assert.Equal(0, exitCode);
+
+            var assembly = LoadCompiledAssembly(Path.Combine(dir.Path, "temp.dll"));
+
+            Assert.NotNull(assembly.GetType("Generated"));
+            Assert.NotNull(assembly.GetType("C"));
+
+            CleanupAllGeneratedFiles(src.Path);
+        }
+        
+        /// <summary>
+        /// Tests that warnings that may appear in source code without transformed code are absent with absent code.
+        /// </summary>
+        [Fact]
+        public void SourceCodeWarningResolvedByTransformedCode()
+        {
+            const string sourceCode = "partial class C { int f = 1; }";
+            const string introducedCode = "partial class C { public int P => f; }";
+            
+            var dir = Temp.CreateDirectory();
+            
+            var src = dir.CreateFile("temp.cs").WriteAllText(sourceCode);
+
+            var args = new[] { "/t:library", src.Path };
+
+            
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: (new ISourceTransformer[] { new IntroductionTransformer(introducedCode) }).ToImmutableArray());
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+            
+            Assert.Equal(0, exitCode);
+            Assert.DoesNotContain("warning", output);
+
+            var assembly = LoadCompiledAssembly(Path.Combine(dir.Path, "temp.dll"));
+
+            Assert.NotNull(assembly.GetType("C"));
+
+            CleanupAllGeneratedFiles(src.Path);
+        }
+        
+        class IntroductionTransformer : ISourceTransformer
+        {
+            private readonly string _introducedText;
+
+            public IntroductionTransformer(string introducedText)
+            {
+                this._introducedText = introducedText;
+            }
+            public Compilation Execute(TransformerContext context)
+            {
+                return context.Compilation.AddSyntaxTrees( SyntaxFactory.ParseSyntaxTree(this._introducedText));
+            }
+        }
+
+
+        /// <summary>
+        /// Tests that .editorconfig is properly passed to transformers.
+        /// </summary>
         [Fact]
         public void Config()
         {
@@ -92,6 +174,9 @@ config_transformer_class_name = ConfigTestClass
             }
         }
 
+        /// <summary>
+        /// Tests ordering of transformers from custom attributes.
+        /// </summary>
         [Fact]
         public void TransformerOrderFromAssembly()
         {
@@ -128,6 +213,9 @@ error RE0001: Transformer 'TransformerOrderTransformer1' failed: System.Exceptio
             CleanupAllGeneratedFiles(src.Path);
         }
 
+        /// <summary>
+        /// Tests that the transformed source files are properly written to disk.
+        /// </summary>
         [Fact]
         public void WriteTransformedSources()
         {
