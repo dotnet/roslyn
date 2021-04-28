@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         Class,
 
+        /// <summary>
+        /// Represents a struct declaration, including record struct declarations in C#.
+        /// </summary>
         Struct,
         Interface,
         Enum,
@@ -59,6 +62,5 @@ namespace Microsoft.CodeAnalysis.Editing
         [Obsolete($"This value is not used. Use {nameof(Class)} instead.")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         RecordClass,
-        RecordStruct,
     }
 }
