@@ -490,7 +490,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 string? tempDir = BuildServerConnection.GetTempPath(workingDir);
 
                 if (!UseSharedCompilation ||
-                    HasToolBeenOverridden ||
+// <Caravela> -- We always override the ToolPath, but we still want to run the build server.               
+//                    HasToolBeenOverridden ||
+// </Caravela>                    
                     !BuildServerConnection.IsCompilerServerSupported)
                 {
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
