@@ -825,7 +825,7 @@ class C
             driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
             Assert.Equal(2, passedIn.Length);
-            Assert.Equal((IEnumerable<AdditionalText>)texts, (IEnumerable<AdditionalText>)passedIn);
+            Assert.Equal<AdditionalText>(texts, passedIn);
         }
 
         [Fact]
