@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
         private void AddSourceFile(string filePath, string content)
         {
+            filePath = filePath.Replace('\\', System.IO.Path.DirectorySeparatorChar);
             FilePathToStreamMap.Add(Path.Combine(WorkingDirectory, filePath), new TestableFile(content));
         }
 
@@ -228,8 +229,6 @@ namespace Nested
                 PermutateOptimizations, PermutateDllKinds, PermutatePdbFormat, PermutatePathMap);
             Permutate(new CommandInfo("lib2.cs /target:library /r:SystemRuntime=System.Runtime.dll /debug:embedded", "test.dll", null),
                 PermutateOptimizations);
-            Permutate(new CommandInfo("lib3.cs /target:library", "test.dll", null),
-                PermutateOptimizations, PermutateExternAlias, PermutatePdbFormat);
             Permutate(new CommandInfo("lib3.cs /target:library", "test.dll", null),
                 PermutateOptimizations, PermutateExternAlias, PermutatePdbFormat);
             Permutate(new CommandInfo("lib4.cs /target:library", "test.dll", null),
@@ -425,7 +424,7 @@ End Namespace
             // This uses a #ExternalSource directive with the same file name but in different source directories.
             // Need to make sure that we map the same file name but different base paths correctly
             Permutate(
-                new CommandInfo(@"lib2.vb dir1\lib1.vb /target:library /debug:embedded", "test.dll", null),
+                new CommandInfo(@"lib2.vb dir1/lib1.vb /target:library /debug:embedded", "test.dll", null),
                 PermutatePathMap, PermutateRuntime);
 
             return list;
