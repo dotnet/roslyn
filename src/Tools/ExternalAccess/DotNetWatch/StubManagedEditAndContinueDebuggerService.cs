@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
 
         public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
         {
-            return Task.FromResult(ImmutableArray<string>.Empty);
+            return Task.FromResult(ImmutableArray.Create("Baseline", "AddInstanceFieldToExistingType", "AddStaticFieldToExistingType", "AddMethodToExistingType", "NewTypeDefinition"));
         }
 
         public Task PrepareModuleForUpdateAsync(Guid moduleVersionId, CancellationToken cancellationToken)
