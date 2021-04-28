@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
         private void AddSourceFile(string filePath, string content)
         {
-            filePath = filePath.Replace('\\', System.IO.Path.DirectorySeparatorChar);
             FilePathToStreamMap.Add(Path.Combine(WorkingDirectory, filePath), new TestableFile(content));
         }
 
@@ -202,7 +201,7 @@ class Library5
 }
 ");
 
-            AddSourceFile("dir1/lib1.cs", @"
+            AddSourceFile(Path.Combine("dir1", "lib1.cs"), @"
 using System;
 
 namespace Nested
@@ -236,7 +235,7 @@ namespace Nested
 
             // This uses a #line directive with the same file name but in different source directories.
             // Need to make sure that we map the same file name but different base paths correctly
-            Permutate(new CommandInfo("lib4.cs dir1/lib1.cs /target:library", "test.dll", null),
+            Permutate(new CommandInfo($"lib4.cs {Path.Combine("dir1", "lib1.cs")} /target:library", "test.dll", null),
                 PermutatePdbFormat, PermutatePathMap);
 
             Permutate(new CommandInfo("lib4.cs lib5.cs /target:library", "test.dll", null),
@@ -390,7 +389,7 @@ Public Module Lib2
 End Module
 ");
 
-            AddSourceFile(@"dir1\lib1.vb", @"
+            AddSourceFile(Path.Combine("dir1", "lib1.vb"), @"
 Imports System
 Namespace Nested
     Public Module Lib1
@@ -424,7 +423,7 @@ End Namespace
             // This uses a #ExternalSource directive with the same file name but in different source directories.
             // Need to make sure that we map the same file name but different base paths correctly
             Permutate(
-                new CommandInfo(@"lib2.vb dir1/lib1.vb /target:library /debug:embedded", "test.dll", null),
+                new CommandInfo(@$"lib2.vb {Path.Combine("dir1", "lib1.vb")} /target:library /debug:embedded", "test.dll", null),
                 PermutatePathMap, PermutateRuntime);
 
             return list;
