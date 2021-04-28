@@ -185,14 +185,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var realTimeout = timeout != null
                     ? (int)timeout.Value.TotalMilliseconds
                     : Timeout.Infinite;
-                var request = BuildRequest.CreateShutdown();
-                var response = await BuildServerConnection.RunServerBuildRequestAsync(
-                    BuildRequest.CreateShutdown(),
+                var response = await BuildServerConnection.RunServerShutdownRequestAsync(
                     pipeName,
-                    clientDirectory: AppDomain.CurrentDomain.BaseDirectory!,
-                    _logger,
                     timeoutOverride: realTimeout,
-                    createServerIfNotRunning: false,
+                    _logger,
                     cancellationToken).ConfigureAwait(false);
 
                 if (response is ShutdownBuildResponse shutdownBuildResponse && waitForProcess)

@@ -38,6 +38,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             utf8output: false,
             output: string.Empty);
 
+        internal static BuildRequest CreateEmptyCSharp(string workingDirectory, string tempDirectory = null) => BuildRequest.Create(
+            RequestLanguage.CSharpCompile,
+            Array.Empty<string>(),
+            workingDirectory,
+            tempDirectory ?? Path.GetTempPath(),
+            compilerHash: BuildProtocolConstants.GetCommitHash());
+
         internal static BuildRequest CreateEmptyCSharpWithKeepAlive(TimeSpan keepAlive, string workingDirectory, string tempDirectory = null) => BuildRequest.Create(
             RequestLanguage.CSharpCompile,
             Array.Empty<string>(),
@@ -55,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal string PipeName { get; }
         internal ICompilerServerLogger Logger { get; }
 
-        internal ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, ICompilerServerLogger logger, Task<TestableDiagnosticListener> serverTask)
+        private ServerData(CancellationTokenSource cancellationTokenSource, string pipeName, ICompilerServerLogger logger, Task<TestableDiagnosticListener> serverTask)
         {
             CancellationTokenSource = cancellationTokenSource;
             PipeName = pipeName;
@@ -63,14 +70,64 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             ServerTask = serverTask;
         }
 
+        /// <summary>
+        /// Create a new server at the specified pipe name. This function will return immediately 
+        /// after creating the server and does _not_ wait for it to begin listening
+        /// </summary>
+        internal static ServerData Create(
+            ICompilerServerLogger logger,
+            string pipeName = null,
+            ICompilerServerHost compilerServerHost = null,
+            IClientConnectionHost clientConnectionHost = null,
+            TimeSpan? keepAlive = null)
+        {
+            // The total pipe path must be < 92 characters on Unix, so trim this down to 10 chars
+            pipeName ??= ServerUtil.GetPipeName();
+            compilerServerHost ??= BuildServerController.CreateCompilerServerHost(logger);
+            clientConnectionHost ??= BuildServerController.CreateClientConnectionHost(pipeName, logger);
+            keepAlive ??= TimeSpan.FromMilliseconds(-1);
+
+            var listener = new TestableDiagnosticListener();
+            var serverListenSource = new TaskCompletionSource<bool>();
+            var cts = new CancellationTokenSource();
+            var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
+            var task = Task.Run(() =>
+            {
+                BuildServerController.CreateAndRunServer(
+                    pipeName,
+                    compilerServerHost,
+                    clientConnectionHost,
+                    listener,
+                    keepAlive: keepAlive,
+                    cancellationToken: cts.Token);
+                return listener;
+            });
+
+            return new ServerData(cts, pipeName, logger, task);
+        }
+
+        /// <summary>
+        /// This function will wait until the server is either listening on the named pipe or 
+        /// if it has exited.
+        /// </summary>
+        internal async Task WaitForServerAsync()
+        {
+            // The contract of this function is that it will return once the server has started.  Spin here until
+            // we can verify the server has started or simply failed to start.
+            var mutexName = BuildServerConnection.GetServerMutexName(PipeName);
+            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && !ServerTask.IsCompleted)
+            {
+                await Task.Yield();
+            }
+        }
+
         internal Task<BuildResponse> SendAsync(BuildRequest request, CancellationToken cancellationToken = default) =>
             BuildServerConnection.RunServerBuildRequestAsync(
                 request,
                 PipeName,
-                clientDirectory: null,
-                Logger,
                 timeoutOverride: Timeout.Infinite,
-                createServerIfNotRunning: false,
+                tryCreateServerFunc: (_, _) => false,
+                Logger,
                 cancellationToken);
 
         internal async Task<int> SendShutdownAsync(CancellationToken cancellationToken = default)
@@ -112,7 +169,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         internal static string GetPipeName() => Guid.NewGuid().ToString().Substring(0, 10);
-
         internal static async Task<ServerData> CreateServer(
             ICompilerServerLogger logger,
             string pipeName = null,
@@ -120,36 +176,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             IClientConnectionHost clientConnectionHost = null,
             TimeSpan? keepAlive = null)
         {
-            // The total pipe path must be < 92 characters on Unix, so trim this down to 10 chars
-            pipeName ??= GetPipeName();
-            compilerServerHost ??= BuildServerController.CreateCompilerServerHost(logger);
-            clientConnectionHost ??= BuildServerController.CreateClientConnectionHost(pipeName, logger);
-            keepAlive ??= TimeSpan.FromMilliseconds(-1);
-
-            var listener = new TestableDiagnosticListener();
-            var serverListenSource = new TaskCompletionSource<bool>();
-            var cts = new CancellationTokenSource();
-            var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
-            var task = Task.Run(() =>
-            {
-                BuildServerController.CreateAndRunServer(
-                    pipeName,
-                    compilerServerHost,
-                    clientConnectionHost,
-                    listener,
-                    keepAlive: keepAlive,
-                    cancellationToken: cts.Token);
-                return listener;
-            });
-
-            // The contract of this function is that it will return once the server has started.  Spin here until
-            // we can verify the server has started or simply failed to start.
-            while (BuildServerConnection.WasServerMutexOpen(mutexName) != true && !task.IsCompleted)
-            {
-                await Task.Yield();
-            }
-
-            return new ServerData(cts, pipeName, logger, task);
+            var serverData = ServerData.Create(logger, pipeName, compilerServerHost, clientConnectionHost, keepAlive);
+            await serverData.WaitForServerAsync();
+            return serverData;
         }
 
         internal static BuildClient CreateBuildClient(
@@ -164,10 +193,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 BuildServerConnection.RunServerBuildRequestAsync(
                     request,
                     pipeName,
-                    clientDirectory: null,
-                    logger,
                     timeoutOverride: Timeout.Infinite,
-                    createServerIfNotRunning: false,
+                    tryCreateServerFunc: (_, _) => false,
+                    logger,
                     cancellationToken);
 
             var compileFunc = GetCompileFunc(language);

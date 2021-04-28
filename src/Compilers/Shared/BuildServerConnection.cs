@@ -59,38 +59,50 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 libDirectory: libDirectory);
         }
 
-        internal static Task<BuildResponse> RunServerCompilationAsync(
+        internal static Task<BuildResponse> RunServerShutdownRequestAsync(
+            string? pipeName,
+            int? timeoutOverride,
+            ICompilerServerLogger logger,
+            CancellationToken cancellationToken)
+        {
+            var request = BuildRequest.CreateShutdown();
+
+            // Don't create the server when sending a shutdown request. That would defeat the 
+            // purpose a bit.
+            return RunServerBuildRequestAsync(
+                request,
+                pipeName,
+                timeoutOverride,
+                tryCreateServerFunc: (_, _) => false,
+                logger,
+                cancellationToken);
+        }
+
+        internal static Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
             string? pipeName,
             string clientDirectory,
             ICompilerServerLogger logger,
-            CancellationToken cancellationToken = default) =>
+            CancellationToken cancellationToken) =>
             RunServerBuildRequestAsync(
                 buildRequest,
                 pipeName,
-                clientDirectory,
-                logger,
                 timeoutOverride: null,
-                createServerIfNotRunning: true,
+                tryCreateServerFunc: (pipeName, logger) => TryCreateServer(clientDirectory, pipeName, logger),
+                logger,
                 cancellationToken);
 
         internal static async Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
             string? pipeName,
-            string? clientDirectory,
+            int? timeoutOverride,
+            Func<string, ICompilerServerLogger, bool> tryCreateServerFunc,
             ICompilerServerLogger logger,
-            int? timeoutOverride = null,
-            bool createServerIfNotRunning = true,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             if (pipeName is null)
             {
                 throw new ArgumentException(nameof(pipeName));
-            }
-
-            if (createServerIfNotRunning && clientDirectory is null)
-            {
-                throw new InvalidOperationException("Server creation requires the client directory");
             }
 
             // early check for the build hash. If we can't find it something is wrong; no point even trying to go to the server
@@ -99,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return new IncorrectHashBuildResponse();
             }
 
-            var pipeTask = tryConnectToServer(pipeName, clientDirectory, timeoutOverride, logger, createServerIfNotRunning, cancellationToken);
+            var pipeTask = tryConnectToServer(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken);
             if (pipeTask is null)
             {
                 return new RejectedBuildResponse("Failed to connect to server");
@@ -122,10 +134,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // invariant doesn't get invalidated in the future by an `await` being inserted. 
             static Task<NamedPipeClientStream?>? tryConnectToServer(
                 string pipeName,
-                string? clientDirectory,
                 int? timeoutOverride,
                 ICompilerServerLogger logger,
-                bool createServerIfNotRunning,
+                Func<string, ICompilerServerLogger, bool> tryCreateServerFunc,
                 CancellationToken cancellationToken)
             {
                 var originalThreadId = Environment.CurrentManagedThreadId;
@@ -177,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     bool wasServerRunning = WasServerMutexOpen(serverMutexName);
                     var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
-                    if (wasServerRunning || (createServerIfNotRunning && tryCreateServer(clientDirectory!, pipeName, logger)))
+                    if (wasServerRunning || tryCreateServerFunc(pipeName, logger))
                     {
                         pipeTask = TryConnectToServerAsync(pipeName, timeout, logger, cancellationToken);
                     }
@@ -195,85 +206,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         var releaseThreadId = Environment.CurrentManagedThreadId;
                         var message = $"ReleaseMutex failed. WaitOne Id: {originalThreadId} Release Id: {releaseThreadId}";
                         throw new Exception(message, e);
-                    }
-                }
-            }
-
-            static bool tryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger)
-            {
-                var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
-
-                if (!File.Exists(serverInfo.toolFilePath))
-                {
-                    return false;
-                }
-
-                if (PlatformInformation.IsWindows)
-                {
-                    // As far as I can tell, there isn't a way to use the Process class to
-                    // create a process with no stdin/stdout/stderr, so we use P/Invoke.
-                    // This code was taken from MSBuild task starting code.
-
-                    STARTUPINFO startInfo = new STARTUPINFO();
-                    startInfo.cb = Marshal.SizeOf(startInfo);
-                    startInfo.hStdError = InvalidIntPtr;
-                    startInfo.hStdInput = InvalidIntPtr;
-                    startInfo.hStdOutput = InvalidIntPtr;
-                    startInfo.dwFlags = STARTF_USESTDHANDLES;
-                    uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
-
-                    PROCESS_INFORMATION processInfo;
-
-                    logger.Log("Attempting to create process '{0}'", serverInfo.processFilePath);
-
-                    var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
-
-                    bool success = CreateProcess(
-                        lpApplicationName: null,
-                        lpCommandLine: builder,
-                        lpProcessAttributes: NullPtr,
-                        lpThreadAttributes: NullPtr,
-                        bInheritHandles: false,
-                        dwCreationFlags: dwCreationFlags,
-                        lpEnvironment: NullPtr, // Inherit environment
-                        lpCurrentDirectory: clientDirectory,
-                        lpStartupInfo: ref startInfo,
-                        lpProcessInformation: out processInfo);
-
-                    if (success)
-                    {
-                        logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
-                        CloseHandle(processInfo.hProcess);
-                        CloseHandle(processInfo.hThread);
-                    }
-                    else
-                    {
-                        logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
-                    }
-                    return success;
-                }
-                else
-                {
-                    try
-                    {
-                        var startInfo = new ProcessStartInfo()
-                        {
-                            FileName = serverInfo.processFilePath,
-                            Arguments = serverInfo.commandLineArguments,
-                            UseShellExecute = false,
-                            WorkingDirectory = clientDirectory,
-                            RedirectStandardInput = true,
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
-                            CreateNoWindow = true
-                        };
-
-                        Process.Start(startInfo);
-                        return true;
-                    }
-                    catch
-                    {
-                        return false;
                     }
                 }
             }
@@ -336,6 +268,85 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     serverCts.Cancel();
                     RoslynDebug.Assert(response != null);
                     return response;
+                }
+            }
+        }
+
+        public static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger)
+        {
+            var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
+
+            if (!File.Exists(serverInfo.toolFilePath))
+            {
+                return false;
+            }
+
+            if (PlatformInformation.IsWindows)
+            {
+                // As far as I can tell, there isn't a way to use the Process class to
+                // create a process with no stdin/stdout/stderr, so we use P/Invoke.
+                // This code was taken from MSBuild task starting code.
+
+                STARTUPINFO startInfo = new STARTUPINFO();
+                startInfo.cb = Marshal.SizeOf(startInfo);
+                startInfo.hStdError = InvalidIntPtr;
+                startInfo.hStdInput = InvalidIntPtr;
+                startInfo.hStdOutput = InvalidIntPtr;
+                startInfo.dwFlags = STARTF_USESTDHANDLES;
+                uint dwCreationFlags = NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW;
+
+                PROCESS_INFORMATION processInfo;
+
+                logger.Log("Attempting to create process '{0}'", serverInfo.processFilePath);
+
+                var builder = new StringBuilder($@"""{serverInfo.processFilePath}"" {serverInfo.commandLineArguments}");
+
+                bool success = CreateProcess(
+                    lpApplicationName: null,
+                    lpCommandLine: builder,
+                    lpProcessAttributes: NullPtr,
+                    lpThreadAttributes: NullPtr,
+                    bInheritHandles: false,
+                    dwCreationFlags: dwCreationFlags,
+                    lpEnvironment: NullPtr, // Inherit environment
+                    lpCurrentDirectory: clientDirectory,
+                    lpStartupInfo: ref startInfo,
+                    lpProcessInformation: out processInfo);
+
+                if (success)
+                {
+                    logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
+                    CloseHandle(processInfo.hProcess);
+                    CloseHandle(processInfo.hThread);
+                }
+                else
+                {
+                    logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                }
+                return success;
+            }
+            else
+            {
+                try
+                {
+                    var startInfo = new ProcessStartInfo()
+                    {
+                        FileName = serverInfo.processFilePath,
+                        Arguments = serverInfo.commandLineArguments,
+                        UseShellExecute = false,
+                        WorkingDirectory = clientDirectory,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    Process.Start(startInfo);
+                    return true;
+                }
+                catch
+                {
+                    return false;
                 }
             }
         }

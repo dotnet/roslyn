@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         public static CompileOnServerFunc GetCompileOnServerFunc(ICompilerServerLogger logger) => (buildRequest, pipeName, cancellationToken) =>
-            BuildServerConnection.RunServerCompilationAsync(
+            BuildServerConnection.RunServerBuildRequestAsync(
                 buildRequest,
                 pipeName,
                 GetClientDirectory(),

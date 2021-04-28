@@ -552,7 +552,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     buildRequest,
                     pipeName,
                     clientDirectory,
-                    timeoutOverride: null,
                     logger: logger,
                     cancellationToken: _sharedCompileCts.Token);
 
