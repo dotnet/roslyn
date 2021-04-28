@@ -483,6 +483,25 @@ namespace N
         }
 
         [Fact]
+        public void InsertAttributes_SupportedByRuntime()
+        {
+            var attribute = "public class AAttribute : System.Attribute { }\n\n" +
+                            "public class BAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + "[A]class C { }";
+            var src2 = attribute + "[A, B]class C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[A]]@96 -> [[A, B]]@96",
+                "Insert [B]@100");
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+        }
+
+        [Fact]
         public void InsertAttributes1()
         {
             var attribute = "public class AAttribute : System.Attribute { }\n\n" +
