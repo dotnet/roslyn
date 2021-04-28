@@ -11,11 +11,10 @@ diff --git a/src/NuGet/Microsoft.CodeAnalysis.Package.csproj b/src/NuGet/Microso
 index ac7d9993db0..a25843f0e1c 100644
 --- a/src/NuGet/Microsoft.CodeAnalysis.Package.csproj
 +++ b/src/NuGet/Microsoft.CodeAnalysis.Package.csproj
-@@ -2,11 +2,13 @@
+@@ -2,11 +2,12 @@
  <Project Sdk="Microsoft.NET.Sdk">
    <PropertyGroup>
      <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
-+    <TargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">netstandard2.0</TargetFrameworks>
  
      <!-- NuGet -->
      <IsPackable>true</IsPackable>

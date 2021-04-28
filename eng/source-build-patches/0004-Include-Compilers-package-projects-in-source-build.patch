@@ -33,7 +33,7 @@ index 5f8c77e6e2..2178f6f5ee 100644
 --- a/src/NuGet/Microsoft.Net.Compilers.Toolset/Microsoft.Net.Compilers.Toolset.Package.csproj
 +++ b/src/NuGet/Microsoft.Net.Compilers.Toolset/Microsoft.Net.Compilers.Toolset.Package.csproj
 @@ -5,6 +5,7 @@
-     <TargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">netcoreapp3.1</TargetFrameworks>
+     <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
  
      <IsPackable>true</IsPackable>
 +    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
