@@ -459,7 +459,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
         {
             // We splice on the last occurrence of '.' to account for filenames containing periods.
             var nameExtensionSplitIndex = mostRecentHeaderText.LastIndexOf('.');
-            var fileName = mostRecentHeaderText.Substring(0, nameExtensionSplitIndex);
+            var fileName = string.Empty;
+            if (nameExtensionSplitIndex == -1)
+            {
+                var fileName = mostRecentHeaderText.Substring(0, nameExtensionSplitIndex);
+            }
             var splicedFileExtensions = mostRecentHeaderText[(nameExtensionSplitIndex + 1)..].Split(',', ' ', '{', '}');
 
             // Replacing characters in the header with the regex equivalent.
