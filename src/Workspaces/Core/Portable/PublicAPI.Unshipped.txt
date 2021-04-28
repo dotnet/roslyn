@@ -5,7 +5,6 @@ Microsoft.CodeAnalysis.CodeActions.CodeAction.CustomTags.get -> System.Collectio
 Microsoft.CodeAnalysis.CodeActions.CodeAction.CustomTags.set -> void
 Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider
 Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider() -> void
-Microsoft.CodeAnalysis.Editing.DeclarationKind.RecordStruct = 30 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
 Microsoft.CodeAnalysis.CommandLineProject
 Microsoft.CodeAnalysis.Host.IPersistentStorageService.GetStorageAsync(Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.Host.IPersistentStorage>
 Microsoft.CodeAnalysis.Project.GetSourceGeneratedDocumentAsync(Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.SourceGeneratedDocument>
