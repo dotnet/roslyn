@@ -2782,7 +2782,7 @@
     </Property>
     <Property Name="IsExhaustive" Type="bool">
         <Comments>
-            <summary>Can be used to determine if the compiler had to generate an artificial switch-expression arm.</summary>
+            <summary>True if the switch expressions arms cover every possible input value.</summary>
         </Comments>
     </Property>
   </Node>
