@@ -46,9 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public HighlighterViewTaggerProvider(
             IThreadingContext threadingContext,
             IHighlightingService highlightingService,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
         {
             _highlightingService = highlightingService;
         }

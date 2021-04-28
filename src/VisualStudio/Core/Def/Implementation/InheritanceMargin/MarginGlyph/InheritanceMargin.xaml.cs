@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -101,14 +102,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
         {
-            // If this context menu just has one member, then if the context menu open, it means all inheritance targets are shown.
-            if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginViewModel { HasMultipleMembers: false } })
+            if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginViewModel inheritanceMarginViewModel }
+                && inheritanceMarginViewModel.MenuItemViewModels.Any(vm => vm is TargetMenuItemViewModel))
             {
+                // We have two kinds of context menu. e.g.
+                // 1. [margin] -> Target1
+                //                Target2
+                //                Target3
+                //
+                // 2. [margin] -> method Bar -> Target1
+                //                           -> Target2
+                //             -> method Foo -> Target3
+                //                           -> Target4
+                // If the first level of the context menu contains a TargetMenuItemViewModel, it means here it is case 1,
+                // user is viewing the targets menu.
                 Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
             }
         }
 
-        private void TargetsMenu_OnOpen(object sender, RoutedEventArgs e)
+        private void TargetsSubmenu_OnOpen(object sender, RoutedEventArgs e)
         {
             Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
         }
@@ -120,4 +132,3 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
     }
 }
-

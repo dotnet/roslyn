@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> : ForegroundThreadAffinitizedObject where TTag : ITag
     {
         private readonly object _uniqueKey = new();
-        private readonly IForegroundNotificationService _notificationService;
 
         protected readonly IAsynchronousOperationListener AsyncListener;
 
@@ -83,12 +82,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected AbstractAsynchronousTaggerProvider(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
+            IAsynchronousOperationListener asyncListener)
             : base(threadingContext)
         {
             AsyncListener = asyncListener;
-            _notificationService = notificationService;
 
 #if DEBUG
             StackTrace = new StackTrace().ToString();
@@ -119,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out var tagSource))
             {
-                tagSource = new TagSource(textViewOpt, subjectBuffer, this, AsyncListener, _notificationService);
+                tagSource = new TagSource(textViewOpt, subjectBuffer, this, AsyncListener);
                 this.StoreTagSource(textViewOpt, subjectBuffer, tagSource);
             }
 
@@ -213,20 +210,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         internal TestAccessor GetTestAccessor()
             => new(this);
 
-        private struct DiffResult
+        private readonly struct DiffResult
         {
-            public NormalizedSnapshotSpanCollection Added { get; }
-            public NormalizedSnapshotSpanCollection Removed { get; }
+            public readonly NormalizedSnapshotSpanCollection Added;
+            public readonly NormalizedSnapshotSpanCollection Removed;
 
-            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed)
-                : this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>?)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>?)removed)
+            public DiffResult(NormalizedSnapshotSpanCollection? added, NormalizedSnapshotSpanCollection? removed)
             {
-            }
-
-            public DiffResult(IEnumerable<SnapshotSpan>? added, IEnumerable<SnapshotSpan>? removed)
-            {
-                Added = added != null ? new NormalizedSnapshotSpanCollection(added) : NormalizedSnapshotSpanCollection.Empty;
-                Removed = removed != null ? new NormalizedSnapshotSpanCollection(removed) : NormalizedSnapshotSpanCollection.Empty;
+                Added = added ?? NormalizedSnapshotSpanCollection.Empty;
+                Removed = removed ?? NormalizedSnapshotSpanCollection.Empty;
             }
 
             public int Count => Added.Count + Removed.Count;

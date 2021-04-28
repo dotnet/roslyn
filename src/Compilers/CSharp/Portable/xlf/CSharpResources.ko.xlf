@@ -8417,8 +8417,8 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">'{0}' 형식의 매개 변수 또는 로컬은 비동기 메서드나 람다 식에서 선언할 수 없습니다.</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="needs-review-translation">'{0}' 형식의 매개 변수 또는 로컬은 비동기 메서드나 람다 식에서 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
