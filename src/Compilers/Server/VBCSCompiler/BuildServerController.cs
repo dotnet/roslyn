@@ -191,21 +191,26 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     _logger,
                     cancellationToken).ConfigureAwait(false);
 
-                if (response is ShutdownBuildResponse shutdownBuildResponse && waitForProcess)
+                if (response is ShutdownBuildResponse shutdownBuildResponse)
                 {
-                    try
+                    if (waitForProcess)
                     {
-                        var process = Process.GetProcessById(shutdownBuildResponse.ServerProcessId);
-                        process.WaitForExit();
+                        try
+                        {
+                            var process = Process.GetProcessById(shutdownBuildResponse.ServerProcessId);
+                            process.WaitForExit();
+                        }
+                        catch (Exception)
+                        {
+                            // There is an inherent race here with the server process.  If it has already shutdown
+                            // by the time we try to access it then the operation has succeed.
+                        }
                     }
-                    catch (Exception)
-                    {
-                        // There is an inherent race here with the server process.  If it has already shutdown
-                        // by the time we try to access it then the operation has succeed.
-                    }
+
+                    return CommonCompiler.Succeeded;
                 }
 
-                return CommonCompiler.Succeeded;
+                return CommonCompiler.Failed;
             }
             catch (Exception)
             {
