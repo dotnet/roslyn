@@ -2020,7 +2020,7 @@ End Class"
                     Diagnostic(RudeEditKind.InsertDllImport, "Public Shared Function puts(c As String)", FeaturesResources.method),
                     Diagnostic(RudeEditKind.InsertDllImport, "Public Shared Operator +(d As D, g As D)", FeaturesResources.operator_),
                     Diagnostic(RudeEditKind.InsertDllImport, "Public Shared Narrowing Operator CType(d As D)", FeaturesResources.operator_),
-                    Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(""msvcrt.dll"")", "attribute")
+                    Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(""msvcrt.dll"")", FeaturesResources.attribute)
                 },
                 targetFrameworks:={TargetFramework.NetStandard20})
         End Sub
@@ -2050,7 +2050,7 @@ End Class"
                 diagnostics:=
                 {
                     Diagnostic(RudeEditKind.InsertDllImport, "Private Shared Function puts(c As String)", FeaturesResources.method),
-                    Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(""msvcrt.dll"")", "attribute")
+                    Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(""msvcrt.dll"")", FeaturesResources.attribute)
                 },
                 targetFrameworks:={TargetFramework.NetStandard20})
         End Sub
@@ -5810,7 +5810,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b As Integer", FeaturesResources.field, FeaturesResources.class_),
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c As Integer", FeaturesResources.field, FeaturesResources.class_),
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "FieldOffset(0)", "attribute"))
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "FieldOffset(0)", FeaturesResources.attribute))
         End Sub
 
         <Fact>
