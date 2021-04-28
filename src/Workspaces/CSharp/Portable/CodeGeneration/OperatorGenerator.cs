@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var methodDeclaration = GenerateOperatorDeclaration(
-                method, options, destination?.SyntaxTree.Options ?? options.ParseOptions);
+                method, options, options.ParseOptions);
 
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
 

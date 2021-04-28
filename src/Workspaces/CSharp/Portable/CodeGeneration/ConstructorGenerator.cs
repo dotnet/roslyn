@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var constructorDeclaration = GenerateConstructorDeclaration(
-                constructor, options, destination?.SyntaxTree.Options ?? options.ParseOptions);
+                constructor, options, options.ParseOptions);
 
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.

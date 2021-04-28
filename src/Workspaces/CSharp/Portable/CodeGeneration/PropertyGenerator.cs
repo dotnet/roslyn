@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IList<bool> availableIndices)
         {
             var declaration = GeneratePropertyOrIndexer(property, GetDestination(destination),
-                options, destination?.SyntaxTree.Options ?? options.ParseOptions);
+                options, options.ParseOptions);
 
             // Create a clone of the original type with the new method inserted. 
             var members = Insert(destination.Members, declaration, options,
