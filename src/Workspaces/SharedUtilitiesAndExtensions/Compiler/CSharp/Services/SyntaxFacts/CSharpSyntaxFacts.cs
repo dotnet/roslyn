@@ -1919,9 +1919,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.RecordDeclaration:
                     return DeclarationKind.Class;
                 case SyntaxKind.StructDeclaration:
-                    return DeclarationKind.Struct;
                 case SyntaxKind.RecordStructDeclaration:
-                    return DeclarationKind.RecordStruct;
+                    return DeclarationKind.Struct;
                 case SyntaxKind.InterfaceDeclaration:
                     return DeclarationKind.Interface;
                 case SyntaxKind.EnumDeclaration:

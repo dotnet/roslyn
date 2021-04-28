@@ -1968,7 +1968,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case DeclarationKind.Class:
                 case DeclarationKind.Interface:
                 case DeclarationKind.Struct:
-                case DeclarationKind.RecordStruct:
                 case DeclarationKind.Enum:
                 case DeclarationKind.Namespace:
                 case DeclarationKind.CompilationUnit:
