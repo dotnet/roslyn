@@ -3000,7 +3000,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ImmutableArray<ISwitchExpressionArmOperation> Arms { get; }
         /// <summary>
-        /// Can be used to determine if the compiler had to generate an artificial switch-expression arm.
+        /// True if the switch expressions arms cover every possible input value.
         /// </summary>
         bool IsExhaustive { get; }
     }
