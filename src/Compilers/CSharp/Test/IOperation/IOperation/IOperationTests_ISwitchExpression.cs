@@ -73,7 +73,7 @@ namespace Tests
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')";
             var expectedDiagnostics = DiagnosticDescription.None;
-            
+
             VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
