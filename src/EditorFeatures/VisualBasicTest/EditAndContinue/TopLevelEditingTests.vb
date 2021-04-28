@@ -3148,7 +3148,7 @@ End Class"
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F"))})
         End Sub
 
-        <Fact>
+        <Fact(Skip:="TODO: davidw")>
         Public Sub MethodInsert_PrivateWithAttribute()
             Dim src1 = "Class C : End Class"
             Dim src2 = "Class C : " & vbLf & "<System.Obsolete>Private Sub F : End Sub : End Class"
@@ -3197,7 +3197,7 @@ End Class"
                 Diagnostic(RudeEditKind.InsertVirtual, "Overrides Sub F", FeaturesResources.method))
         End Sub
 
-        <Fact>
+        <Fact(Skip:="TODO: davidw")>
         Public Sub ExternMethodDeleteInsert()
             Dim srcA1 = "
 Imports System

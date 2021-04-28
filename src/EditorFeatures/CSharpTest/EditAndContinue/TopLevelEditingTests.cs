@@ -5239,7 +5239,7 @@ class C
         }
 
         [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
-        [Fact]
+        [Fact(Skip = "TODO: davidw")]
         public void PrivateMethodInsert_WithAttribute()
         {
             var src1 = @"
@@ -5253,7 +5253,7 @@ class C
             var src2 = @"
 class C
 {
-    [Obsolete]
+    [System.Obsolete]
     void goo(int a) { }
 
     static void Main(string[] args)
@@ -5265,11 +5265,11 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                @"Insert [[Obsolete]
+                @"Insert [[System.Obsolete]
     void goo(int a) { }]@18",
-                "Insert [[Obsolete]]@18",
+                "Insert [[System.Obsolete]]@18",
                 "Insert [(int a)]@42",
-                "Insert [Obsolete]@19",
+                "Insert [System.Obsolete]@19",
                 "Insert [int a]@43");
 
             edits.VerifyRudeDiagnostics();
@@ -5371,7 +5371,7 @@ class C
         }
 
         [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
-        [Fact]
+        [Fact(Skip = "TODO: davidw")]
         public void ExternMethodDeleteInsert()
         {
             var srcA1 = @"
