@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         {
         }
 
-        protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.Medium;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
