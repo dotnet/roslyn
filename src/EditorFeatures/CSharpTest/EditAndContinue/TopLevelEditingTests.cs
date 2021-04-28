@@ -3681,7 +3681,7 @@ class C
                 Diagnostic(RudeEditKind.InsertExtern, "public static extern int puts(string c)", FeaturesResources.method),
                 Diagnostic(RudeEditKind.InsertExtern, "public static extern int operator +(D d, D g)", FeaturesResources.operator_),
                 Diagnostic(RudeEditKind.InsertExtern, "public static extern explicit operator int (D d)", CSharpFeaturesResources.conversion_operator),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(\"msvcrt.dll\")", "attribute"));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(\"msvcrt.dll\")", FeaturesResources.attribute));
         }
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
@@ -5171,7 +5171,7 @@ class C
             edits.VerifySemanticDiagnostics(
                 targetFrameworks: new[] { TargetFramework.NetStandard20 },
                 Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "puts(string)")),
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "class C", "attribute"));
+                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "class C", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -5386,7 +5386,7 @@ class C
             edits.VerifySemanticDiagnostics(
                 targetFrameworks: new[] { TargetFramework.NetStandard20 },
                 Diagnostic(RudeEditKind.InsertExtern, "private static extern int puts(string c)", FeaturesResources.method),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(\"msvcrt.dll\")", "attribute"));
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(\"msvcrt.dll\")", FeaturesResources.attribute));
         }
 
         [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
@@ -10337,7 +10337,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "FieldOffset(0)", "attribute"),
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "FieldOffset(0)", FeaturesResources.attribute),
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.field, FeaturesResources.class_),
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.field, FeaturesResources.class_),
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.field, FeaturesResources.class_));
