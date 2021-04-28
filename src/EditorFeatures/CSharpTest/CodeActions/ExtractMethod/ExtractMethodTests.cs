@@ -4291,5 +4291,15 @@ record Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestMethodInNamespace()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+namespace TestNamespace
+{
+    private bool TestMethod() => [|false|];
+}");
+        }
     }
 }

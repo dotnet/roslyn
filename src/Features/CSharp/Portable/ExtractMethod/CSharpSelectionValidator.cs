@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var doc = SemanticDocument;
 
             // go through pipe line and calculate information about the user selection
-            var selectionInfo = GetInitialSelectionInfo(root, text);
+            var selectionInfo = GetInitialSelectionInfo(root, text, cancellationToken);
             selectionInfo = AssignInitialFinalTokens(selectionInfo, root, cancellationToken);
             selectionInfo = AdjustFinalTokensBasedOnContext(selectionInfo, model, cancellationToken);
             selectionInfo = AssignFinalSpan(selectionInfo, text);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 .With(s => s.LastTokenInFinalSpan = firstValidNode.GetLastToken(includeZeroWidth: true));
         }
 
-        private SelectionInfo GetInitialSelectionInfo(SyntaxNode root, SourceText text)
+        private SelectionInfo GetInitialSelectionInfo(SyntaxNode root, SourceText text, CancellationToken cancellationToken)
         {
             var adjustedSpan = GetAdjustedSpan(text, OriginalSpan);
 
@@ -199,6 +199,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return new SelectionInfo
                 {
                     Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.No_common_root_node_for_extraction),
+                    OriginalSpan = adjustedSpan,
+                    FirstTokenInOriginalSpan = firstTokenInSelection,
+                    LastTokenInOriginalSpan = lastTokenInSelection
+                };
+            }
+
+            var commonRootClass = commonRoot.FirstAncestorOrSelf<SyntaxNode>(node => node is ClassDeclarationSyntax);
+            if (commonRootClass is null)
+            {
+                return new SelectionInfo
+                {
+                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.No_valid_selection_to_perform_extraction),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
