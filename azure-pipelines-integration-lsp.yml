@@ -8,14 +8,6 @@ trigger:
 - features/*
 - demos/*
 
-# Branches that trigger builds on PR
-pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
-
 jobs:
 - job: VS_Integration_LSP
   pool:
