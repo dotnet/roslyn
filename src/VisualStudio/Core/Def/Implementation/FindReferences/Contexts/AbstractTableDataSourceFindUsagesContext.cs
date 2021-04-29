@@ -45,11 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             /// Importantly, no code in this context or the presenter should actually examine this token
             /// to see if their work is cancelled.  Instead, any cancellable work should have a cancellation
             /// token passed in from the caller that should be used instead.
-            /// <para/>
-            /// Also, calling <see cref="CancellationTokenSource.CancelAfter(int)"/> is not allowed on this
-            /// instance.  We do not dispose this value, and that will incur a leak as this will be registered
-            /// with a timer that is never released.  Because of this, we do not have to <see cref="CancellationTokenSource.Dispose()"/>
-            /// this instance, which makes managing its lifetime easier.
             /// </remarks>
             public readonly CancellationTokenSource CancellationTokenSource = new();
 
@@ -499,10 +494,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 _findReferencesWindow.Manager.RemoveSource(this);
 
-                CancelSearch();
-
                 // Remove ourselves from the list of contexts that are currently active.
                 Presenter._currentContexts.Remove(this);
+
+                CancelSearch();
+                CancellationTokenSource.Dispose();
             }
 
             #endregion
