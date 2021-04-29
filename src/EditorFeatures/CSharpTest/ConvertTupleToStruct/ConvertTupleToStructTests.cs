@@ -845,7 +845,7 @@ class Test
 {
     void Method()
     {
-        var t1 = [||](a: Goo(), b: Bar());
+        var t1 = [||](a: {|CS0103:Goo|}(), b: {|CS0103:Bar|}());
     }
 }
 ";
@@ -855,7 +855,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new NewStruct(Goo(), Bar());
+        var t1 = new NewStruct({|CS0103:Goo|}(), {|CS0103:Bar|}());
     }
 }
 
@@ -901,32 +901,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            var test = new VerifyCS.Test
-            {
-                TestCode = text,
-                FixedCode = expected,
-                TestHost = host,
-                ExpectedDiagnostics =
-                {
-    // /0/Test0.cs(6,22): error CS0103: The name 'Goo' does not exist in the current context
-    DiagnosticResult.CompilerError("CS0103").WithSpan(7, 22, 7, 25).WithArguments("Goo"),
-    // /0/Test0.cs(6,32): error CS0103: The name 'Bar' does not exist in the current context
-    DiagnosticResult.CompilerError("CS0103").WithSpan(7, 32, 7, 35).WithArguments("Bar"),
-                },
-                FixedState =
-                {
-                    ExpectedDiagnostics =
-                    {
-    // /0/Test0.cs(6,32): error CS0103: The name 'Goo' does not exist in the current context
-    DiagnosticResult.CompilerError("CS0103").WithSpan(7, 32, 7, 35).WithArguments("Goo"),
-    // /0/Test0.cs(6,39): error CS0103: The name 'Bar' does not exist in the current context
-    DiagnosticResult.CompilerError("CS0103").WithSpan(7, 39, 7, 42).WithArguments("Bar"),
-                    }
-                }
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+            await Test(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
