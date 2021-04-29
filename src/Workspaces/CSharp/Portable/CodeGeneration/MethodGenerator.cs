@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var declaration = GenerateMethodDeclaration(
                 method, CodeGenerationDestination.Namespace, options,
-                options.ParseOptions);
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
             var members = Insert(destination.Members, declaration, options, availableIndices, after: LastMethod);
             return destination.WithMembers(members.ToSyntaxList());
         }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var declaration = GenerateMethodDeclaration(
                 method, CodeGenerationDestination.CompilationUnit, options,
-                options.ParseOptions);
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
             var members = Insert(destination.Members, declaration, options, availableIndices, after: LastMethod);
             return destination.WithMembers(members.ToSyntaxList());
         }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var methodDeclaration = GenerateMethodDeclaration(
                 method, GetDestination(destination), options,
-                options.ParseOptions);
+                destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             // Create a clone of the original type with the new method inserted. 
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastMethod);
