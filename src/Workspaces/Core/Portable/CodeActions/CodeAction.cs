@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// Gets custom tags for the CodeAction.
         /// </summary>
-        public ImmutableArray<string> CustomTags { get; protected set; } = ImmutableArray<string>.Empty;
+        internal ImmutableArray<string> CustomTags { get; set; } = ImmutableArray<string>.Empty;
 
         /// <summary>
         /// Used by the CodeFixService and CodeRefactoringService to add the Provider Name as a CustomTag.
