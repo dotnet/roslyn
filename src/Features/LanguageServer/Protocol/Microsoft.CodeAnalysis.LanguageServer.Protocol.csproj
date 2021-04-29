@@ -9,6 +9,7 @@
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for Language Server Protocol.
     </PackageDescription>
+    <IsShippingPackage>false</IsShippingPackage>
   </PropertyGroup>
 
   <ItemGroup Label="Project References">

@@ -8,6 +8,7 @@
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for Cocoa-dependent editor features inside the Visual Studio for Mac editor.
     </PackageDescription>
+    <IsShippingPackage>false</IsShippingPackage>
   </PropertyGroup>
 
   <ItemGroup>

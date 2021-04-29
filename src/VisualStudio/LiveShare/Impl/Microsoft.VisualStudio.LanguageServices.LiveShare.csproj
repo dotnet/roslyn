@@ -10,6 +10,7 @@
     <PackageDescription>
       A private package for the liveshare team to grant access to LSP implementations.
     </PackageDescription>
+    <IsShippingPackage>false</IsShippingPackage>
     <CreateVsixContainer>false</CreateVsixContainer>
   </PropertyGroup>
   <ItemGroup Label="Project References">
