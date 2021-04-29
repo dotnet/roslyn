@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _searchPattern = searchPattern;
             _searchCurrentDocument = searchCurrentDocument;
             _kinds = kinds;
-            _progress = new StreamingProgressTracker((current, maximum) =>
+            _progress = new StreamingProgressTracker((current, maximum, ct) =>
             {
                 callback.ReportProgress(current, maximum);
                 return new ValueTask();
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private async Task<(int itemsReported, ImmutableArray<(Project project, NavigateToSearchLocation location)>)> ProcessProjectsAsync(
             ImmutableArray<ImmutableArray<Project>> orderedProjects, bool isFullyLoaded, CancellationToken cancellationToken)
         {
-            await _progress.AddItemsAsync(orderedProjects.Sum(p => p.Length)).ConfigureAwait(false);
+            await _progress.AddItemsAsync(orderedProjects.Sum(p => p.Length), cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<(Project project, NavigateToSearchLocation location)>.GetInstance(out var result);
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
             finally
             {
-                await _progress.ItemCompletedAsync().ConfigureAwait(false);
+                await _progress.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
