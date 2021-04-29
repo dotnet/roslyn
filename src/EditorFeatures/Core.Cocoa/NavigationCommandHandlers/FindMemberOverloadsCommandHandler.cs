@@ -72,9 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                 {
                     try
                     {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
 
                         // we need to get the containing type (i.e. class)
                         var symbol = candidateSymbolProjectPair?.symbol;
@@ -87,9 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                                                         .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
                         {
                             var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                         }
                     }
                     finally
