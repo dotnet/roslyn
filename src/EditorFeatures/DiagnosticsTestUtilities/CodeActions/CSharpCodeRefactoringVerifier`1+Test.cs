@@ -91,17 +91,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public string? EditorConfig { get; set; }
 
-#if !CODE_STYLE
-            private readonly List<AdhocWorkspace> _workspaces = new();
-
-            protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
-
-            /// <summary>
-            /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.InProcess"/> if unspecified.
-            /// </summary>
-            public TestHost TestHost { get; set; } = TestHost.InProcess;
-
             /// <summary>
             /// The set of code action <see cref="CodeAction.Title"/>s offered the user in this exact order.
             /// Set this to ensure that a very specific set of actions is offered (or not).
@@ -115,12 +104,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 if (ExactActionSetOffered != null)
                 {
                     Verify.Equal(ExactActionSetOffered.Length, result.Length, "Different number of code actions provided");
-                    for (var i = 0; i < result.Length; i++)
-                        Verify.Equal(ExactActionSetOffered[i], result[i].Title);
+                    Verify.SequenceEqual(ExactActionSetOffered, result.SelectAsArray(a => a.Title));
                 }
 
                 return result;
             }
+
+#if !CODE_STYLE
+            private readonly List<AdhocWorkspace> _workspaces = new();
+
+            protected override AnalyzerOptions GetAnalyzerOptions(Project project)
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
+
+            /// <summary>
+            /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.InProcess"/> if unspecified.
+            /// </summary>
+            public TestHost TestHost { get; set; } = TestHost.InProcess;
 
             private static readonly TestComposition s_editorFeaturesOOPComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
