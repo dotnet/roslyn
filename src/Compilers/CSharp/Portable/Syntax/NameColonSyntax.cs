@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal override BaseExpressionColonSyntax WithExpressionCore(ExpressionSyntax expression)
         {
-            return WithName((IdentifierNameSyntax)expression);
+            if (expression is IdentifierNameSyntax identifierName)
+                return WithName(identifierName);
+            return SyntaxFactory.ExpressionColon(expression, this.ColonToken);
         }
     }
 }
