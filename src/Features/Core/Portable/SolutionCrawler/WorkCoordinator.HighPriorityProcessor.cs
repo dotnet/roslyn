@@ -93,8 +93,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         // check whether given item is for active document, otherwise, nothing to do here
-                        if (_processor._documentTracker == null ||
-                            _processor._documentTracker.TryGetActiveDocument() != item.DocumentId)
+                        if (_processor._documentTracker.TryGetActiveDocument() != item.DocumentId)
                         {
                             return;
                         }
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // see whether we have work item for the document
                             Contract.ThrowIfFalse(GetNextWorkItem(out var workItem, out var documentCancellation));
 
-                            var solution = _processor.CurrentSolution;
+                            var solution = _processor._registration.GetSolutionToAnalyze();
 
                             // okay now we have work to do
                             await ProcessDocumentAsync(solution, Analyzers, workItem, documentCancellation).ConfigureAwait(false);
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private bool GetNextWorkItem(out WorkItem workItem, out CancellationToken cancellationToken)
                     {
                         // GetNextWorkItem since it can't fail. we still return bool to confirm that this never fail.
-                        var documentId = _processor._documentTracker?.TryGetActiveDocument();
+                        var documentId = _processor._documentTracker.TryGetActiveDocument();
                         if (documentId != null)
                         {
                             if (_workItemQueue.TryTake(documentId, out workItem, out cancellationToken))
@@ -199,7 +198,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }

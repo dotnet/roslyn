@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
             => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                parseOptions: TestOptions.Regular9);
+                parseOptions: TestOptions.RegularPreview);
 
         private CompilationVerifier CompileAndVerify(
             CSharpTestSource src,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             => base.CompileAndVerify(
                 new[] { src, IsExternalInitTypeDefinition },
                 expectedOutput: expectedOutput,
-                parseOptions: TestOptions.Regular9,
+                parseOptions: TestOptions.RegularPreview,
                 references: references,
                 // init-only is unverifiable
                 verify: Verification.Skipped);
@@ -275,7 +275,7 @@ class C
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
-            Assert.Equal("System.Boolean RecordB.op_Equality(RecordB? r1, RecordB? r2)",
+            Assert.Equal("System.Boolean RecordB.op_Equality(RecordB? left, RecordB? right)",
                 model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
@@ -287,7 +287,7 @@ public record RecordB();
 ";
             var comp = CreateCompilation(src);
             var b = comp.GlobalNamespace.GetTypeMember("RecordB");
-            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB? r1, RecordB? r2)" },
+            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB? left, RecordB? right)" },
                 b.GetSimpleNonTypeMembers("op_Equality").ToTestDisplayStrings());
         }
 
@@ -478,11 +478,11 @@ public record A(int i,) { }
             AssertEx.Equal(expectedMembers,
                 comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
 
-            AssertEx.Equal(new[] { "A..ctor(System.Int32 i, ? )", "A..ctor(A original)" },
+            AssertEx.Equal(new[] { "A..ctor(System.Int32 i, ?)", "A..ctor(A original)" },
                 comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
 
             var primaryCtor = comp.GetMember<NamedTypeSymbol>("A").Constructors.First();
-            Assert.Equal("A..ctor(System.Int32 i, ? )", primaryCtor.ToTestDisplayString());
+            Assert.Equal("A..ctor(System.Int32 i, ?)", primaryCtor.ToTestDisplayString());
             Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
         }
 
@@ -514,7 +514,7 @@ public record A(int i, // A
                 );
 
             var primaryCtor = comp.GetMember<NamedTypeSymbol>("A").Constructors.First();
-            Assert.Equal("A..ctor(System.Int32 i, ? , ? )", primaryCtor.ToTestDisplayString());
+            Assert.Equal("A..ctor(System.Int32 i, ?, ?)", primaryCtor.ToTestDisplayString());
             Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[0].DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[2].DeclaringSyntaxReferences.Single().GetSyntax());
@@ -540,7 +540,7 @@ public class C
                 );
 
             var ctor = comp.GetMember<NamedTypeSymbol>("C").Constructors.Single();
-            Assert.Equal("C..ctor(System.Int32 i, ? )", ctor.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 i, ?)", ctor.ToTestDisplayString());
             Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
         }
@@ -568,7 +568,7 @@ public record A(int i, int ) { }
                 comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
 
             var ctor = comp.GetMember<NamedTypeSymbol>("A").Constructors[0];
-            Assert.Equal("A..ctor(System.Int32 i, System.Int32 )", ctor.ToTestDisplayString());
+            Assert.Equal("A..ctor(System.Int32 i, System.Int32)", ctor.ToTestDisplayString());
             Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
         }
@@ -601,7 +601,7 @@ public record A(int, string ) { }
             AssertEx.Equal(expectedMembers,
                 comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
 
-            AssertEx.Equal(new[] { "A..ctor(System.Int32 , System.String )", "A..ctor(A original)" },
+            AssertEx.Equal(new[] { "A..ctor(System.Int32, System.String)", "A..ctor(A original)" },
                 comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
 
             Assert.IsType<ParameterSyntax>(comp.GetMember<NamedTypeSymbol>("A").Constructors[0].Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
@@ -635,7 +635,7 @@ public record A(int, int ) { }
             AssertEx.Equal(expectedMembers,
                 comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
 
-            AssertEx.Equal(new[] { "A..ctor(System.Int32 , System.Int32 )", "A..ctor(A original)" },
+            AssertEx.Equal(new[] { "A..ctor(System.Int32, System.Int32)", "A..ctor(A original)" },
                 comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
 
             Assert.IsType<ParameterSyntax>(comp.GetMember<NamedTypeSymbol>("A").Constructors[0].Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
@@ -1023,8 +1023,8 @@ record C(int X, int Y)
                 "System.Int32 C.set_Y(System.Int32 value)",
                 "System.String C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean C.op_Inequality(C? r1, C? r2)",
-                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Boolean C.op_Inequality(C? left, C? right)",
+                "System.Boolean C.op_Equality(C? left, C? right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -1468,8 +1468,8 @@ class Program
                 "System.Type C.EqualityContract { get; }",
                 "System.String C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean C.op_Inequality(C? r1, C? r2)",
-                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Boolean C.op_Inequality(C? left, C? right)",
+                "System.Boolean C.op_Equality(C? left, C? right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -5883,26 +5883,248 @@ abstract sealed record C2 : C1;
             Assert.True(toString.IsImplicitlyDeclared);
         }
 
-        [Fact]
-        public void ToString_DerivedRecord_BaseHasSealedToString()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ToString_DerivedRecord_BaseHasSealedToString(bool usePreview)
         {
             var src = @"
+var c = new C2();
+System.Console.Write(c.ToString());
+
 record C1
 {
-    public sealed override string ToString() => throw null;
+    public sealed override string ToString() => ""C1"";
 }
 record C2 : C1;
 ";
 
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(src, parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9, options: TestOptions.DebugExe);
+            if (usePreview)
+            {
+                comp.VerifyEmitDiagnostics();
+                CompileAndVerify(comp, expectedOutput: "C1");
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,35): error CS8652: The feature 'sealed ToString in record' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public sealed override string ToString() => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(7, 35)
+                    );
+            }
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString()
+        {
+            var src = @"
+var c = new C3();
+System.Console.Write(c.ToString());
+
+record C1
+{
+    public sealed override string ToString() => ""C1"";
+}
+record C2 : C1;
+record C3 : C2;
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1");
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString_And_BaseTriesToOverride()
+        {
+            var src = @"
+var c = new C3();
+System.Console.Write(c.ToString());
+
+record C1
+{
+    public sealed override string ToString() => ""C1"";
+}
+record C2 : C1
+{
+    public override string ToString() => ""C2"";
+}
+record C3 : C2;
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (4,35): error CS8870: 'C1.ToString()' cannot be sealed because containing record is not sealed.
-                //     public sealed override string ToString() => throw null;
-                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("C1.ToString()").WithLocation(4, 35),
-                // (6,8): error CS0239: 'C2.ToString()': cannot override inherited member 'C1.ToString()' because it is sealed
-                // record C2 : C1;
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C2").WithArguments("C2.ToString()", "C1.ToString()").WithLocation(6, 8)
-                );
+                    // (11,28): error CS0239: 'C2.ToString()': cannot override inherited member 'C1.ToString()' because it is sealed
+                    //     public override string ToString() => "C2";
+                    Diagnostic(ErrorCode.ERR_CantOverrideSealed, "ToString").WithArguments("C2.ToString()", "C1.ToString()").WithLocation(11, 28)
+                    );
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString_And_BaseShadowsToStringPrivate()
+        {
+            var src = @"
+var c = new C3();
+System.Console.Write(c.ToString());
+
+record C1
+{
+    public sealed override string ToString() => ""C1"";
+}
+record C2 : C1
+{
+    private new string ToString() => ""C2"";
+}
+record C3 : C2;
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1");
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C3").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type C3.EqualityContract.get",
+                "System.Type C3.EqualityContract { get; }",
+                "System.Boolean C3." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C3.op_Inequality(C3? left, C3? right)",
+                "System.Boolean C3.op_Equality(C3? left, C3? right)",
+                "System.Int32 C3.GetHashCode()",
+                "System.Boolean C3.Equals(System.Object? obj)",
+                "System.Boolean C3.Equals(C2? other)",
+                "System.Boolean C3.Equals(C3? other)",
+                "C1 C3." + WellKnownMemberNames.CloneMethodName + "()",
+                "C3..ctor(C3 original)",
+                "C3..ctor()"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString_And_BaseShadowsToStringNonSealed()
+        {
+            var src = @"
+C3 c3 = new C3();
+System.Console.Write(c3.ToString());
+C1 c1 = c3;
+System.Console.Write(c1.ToString());
+
+record C1
+{
+    public sealed override string ToString() => ""C1"";
+}
+record C2 : C1
+{
+    public new virtual string ToString() => ""C2"";
+}
+record C3 : C2;
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C2C1");
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C3").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type C3.EqualityContract.get",
+                "System.Type C3.EqualityContract { get; }",
+                "System.Boolean C3." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C3.op_Inequality(C3? left, C3? right)",
+                "System.Boolean C3.op_Equality(C3? left, C3? right)",
+                "System.Int32 C3.GetHashCode()",
+                "System.Boolean C3.Equals(System.Object? obj)",
+                "System.Boolean C3.Equals(C2? other)",
+                "System.Boolean C3.Equals(C3? other)",
+                "C1 C3." + WellKnownMemberNames.CloneMethodName + "()",
+                "C3..ctor(C3 original)",
+                "C3..ctor()"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString_And_BaseHasToStringWithDifferentSignature()
+        {
+            var src = @"
+var c = new C3();
+System.Console.Write(c.ToString());
+
+record C1
+{
+    public sealed override string ToString() => ""C1"";
+}
+record C2 : C1
+{
+    public string ToString(int n) => throw null;
+}
+record C3 : C2;
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1");
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C3").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type C3.EqualityContract.get",
+                "System.Type C3.EqualityContract { get; }",
+                "System.Boolean C3." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C3.op_Inequality(C3? left, C3? right)",
+                "System.Boolean C3.op_Equality(C3? left, C3? right)",
+                "System.Int32 C3.GetHashCode()",
+                "System.Boolean C3.Equals(System.Object? obj)",
+                "System.Boolean C3.Equals(C2? other)",
+                "System.Boolean C3.Equals(C3? other)",
+                "C1 C3." + WellKnownMemberNames.CloneMethodName + "()",
+                "C3..ctor(C3 original)",
+                "C3..ctor()"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString_And_BaseHasToStringWithDifferentReturnType()
+        {
+            var src = @"
+C1 c = new C3();
+System.Console.Write(c.ToString());
+
+record C1
+{
+    public sealed override string ToString() => ""C1"";
+}
+record C2 : C1
+{
+    public new int ToString() => throw null;
+}
+record C3 : C2;
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1");
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C3").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type C3.EqualityContract.get",
+                "System.Type C3.EqualityContract { get; }",
+                "System.Boolean C3." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C3.op_Inequality(C3? left, C3? right)",
+                "System.Boolean C3.op_Equality(C3? left, C3? right)",
+                "System.Int32 C3.GetHashCode()",
+                "System.Boolean C3.Equals(System.Object? obj)",
+                "System.Boolean C3.Equals(C2? other)",
+                "System.Boolean C3.Equals(C3? other)",
+                "C1 C3." + WellKnownMemberNames.CloneMethodName + "()",
+                "C3..ctor(C3 original)",
+                "C3..ctor()"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -6904,7 +7126,33 @@ public record B : A {
         }
 
         [Fact]
-        public void ToString_BadBase_SealedToString()
+        public void ToString_NewToString_SealedBaseToString()
+        {
+            var source = @"
+B b = new B();
+System.Console.Write(b.ToString());
+A a = b;
+System.Console.Write(a.ToString());
+
+public record A
+{
+    public sealed override string ToString() => ""A"";
+}
+
+public record B : A
+{
+    public new string ToString() => ""B"";
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "BA");
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ToString_BadBase_SealedToString(bool usePreview)
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -6942,8 +7190,9 @@ public record B : A {
 
     .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
     {
-        IL_0000: ldnull
-        IL_0001: throw
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
     }
 
     .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
@@ -6965,20 +7214,34 @@ public record B : A {
 
     .method public final hidebysig virtual instance string ToString () cil managed
     {
-        IL_0000: ldnull
-        IL_0001: throw
+        IL_0000: ldstr ""A""
+        IL_0001: ret
     }
 }
 ";
             var source = @"
+var b = new B();
+System.Console.Write(b.ToString());
+
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
-            comp.VerifyEmitDiagnostics(
-                // (2,15): error CS0239: 'B.ToString()': cannot override inherited member 'A.ToString()' because it is sealed
-                // public record B : A {
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.ToString()", "A.ToString()").WithLocation(2, 15)
-                );
+            var comp = CreateCompilationWithIL(
+                new[] { source, IsExternalInitTypeDefinition },
+                ilSource: ilSource,
+                parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9);
+            if (usePreview)
+            {
+                comp.VerifyEmitDiagnostics();
+                CompileAndVerify(comp, expectedOutput: "A");
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (2,1): error CS8912: Inheriting from a record with a sealed 'Object.ToString' is not supported in C# 9.0. Please use language version 'preview' or greater.
+                    // record B : A
+                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "B").WithArguments("9.0", "preview").WithLocation(5, 15)
+                    );
+            }
         }
 
         [Fact]
@@ -7002,8 +7265,10 @@ record C1
             Assert.Equal("System.Boolean C1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)", print.ToTestDisplayString());
         }
 
-        [Fact]
-        public void ToString_TopLevelRecord_UserDefinedToString_Sealed()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ToString_TopLevelRecord_UserDefinedToString_Sealed(bool usePreview)
         {
             var src = @"
 record C1
@@ -7012,12 +7277,19 @@ record C1
 }
 ";
 
-            var comp = CreateCompilation(src);
-            comp.VerifyEmitDiagnostics(
-                // (4,35): error CS8870: 'C1.ToString()' cannot be sealed because containing record is not sealed.
-                //     public sealed override string ToString() => throw null;
-                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("C1.ToString()").WithLocation(4, 35)
-                );
+            var comp = CreateCompilation(src, parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9);
+            if (usePreview)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,35): error CS8652: The feature 'sealed ToString in record' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public sealed override string ToString() => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(4, 35)
+                    );
+            }
         }
 
         [Fact]
@@ -9706,8 +9978,8 @@ record C(int X, int Y, int Z) : B
                 "System.Int32 C.Y.get",
                 "System.String C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean C.op_Inequality(C? r1, C? r2)",
-                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Boolean C.op_Inequality(C? left, C? right)",
+                "System.Boolean C.op_Equality(C? left, C? right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -10391,8 +10663,8 @@ record C(object P)
                 "System.Object B.Q { get; init; }",
                 "System.String B.ToString()",
                 "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean B.op_Inequality(B? r1, B? r2)",
-                "System.Boolean B.op_Equality(B? r1, B? r2)",
+                "System.Boolean B.op_Inequality(B? left, B? right)",
+                "System.Boolean B.op_Equality(B? left, B? right)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -10416,8 +10688,8 @@ record C(object P)
                 "System.Object C.set_Q()",
                 "System.String C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean C.op_Inequality(C? r1, C? r2)",
-                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Boolean C.op_Inequality(C? left, C? right)",
+                "System.Boolean C.op_Equality(C? left, C? right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -15332,8 +15604,10 @@ record B(int X, int Y)
                 comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
-        [Fact]
-        public void Overrides_01()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Overrides_01(bool usePreview)
         {
             var source =
 @"record A
@@ -15345,24 +15619,38 @@ record B(int X, int Y)
 record B(int X, int Y) : A
 {
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
-                //     public sealed override bool Equals(object other) => false;
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
-                // (5,35): error CS8870: 'A.ToString()' cannot be sealed because containing record is not sealed.
-                //     public sealed override string ToString() => null;
-                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("A.ToString()").WithLocation(5, 35),
-                // (7,8): error CS0239: 'B.ToString()': cannot override inherited member 'A.ToString()' because it is sealed
-                // record B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.ToString()", "A.ToString()").WithLocation(7, 8),
-                // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
-                //     public sealed override int GetHashCode() => 0;
-                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
-                // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
-                // record B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
-                );
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9);
+            if (usePreview)
+            {
+                comp.VerifyDiagnostics(
+                    // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
+                    //     public sealed override bool Equals(object other) => false;
+                    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
+                    // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
+                    //     public sealed override int GetHashCode() => 0;
+                    Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
+                    // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
+                    // record B(int X, int Y) : A
+                    Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
+                    //     public sealed override bool Equals(object other) => false;
+                    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
+                    // (5,35): error CS8652: The feature 'sealed ToString in record' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public sealed override string ToString() => null;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(5, 35),
+                    // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
+                    //     public sealed override int GetHashCode() => 0;
+                    Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
+                    // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
+                    // record B(int X, int Y) : A
+                    Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
+                    );
+            }
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -15378,10 +15666,9 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
-                "System.String B.ToString()",
                 "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean B.op_Inequality(B? r1, B? r2)",
-                "System.Boolean B.op_Equality(B? r1, B? r2)",
+                "System.Boolean B.op_Inequality(B? left, B? right)",
+                "System.Boolean B.op_Equality(B? left, B? right)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -15432,8 +15719,8 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y { get; init; }",
                 "System.String B.ToString()",
                 "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean B.op_Inequality(B? r1, B? r2)",
-                "System.Boolean B.op_Equality(B? r1, B? r2)",
+                "System.Boolean B.op_Inequality(B? left, B? right)",
+                "System.Boolean B.op_Equality(B? left, B? right)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -19937,7 +20224,7 @@ True True False False
 
             var comp = (CSharpCompilation)verifier.Compilation;
             MethodSymbol op = comp.GetMembers("A." + WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single();
-            Assert.Equal("System.Boolean A.op_Equality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.op_Equality(A? left, A? right)", op.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
             Assert.True(op.IsStatic);
             Assert.False(op.IsAbstract);
@@ -19947,7 +20234,7 @@ True True False False
             Assert.True(op.IsImplicitlyDeclared);
 
             op = comp.GetMembers("A." + WellKnownMemberNames.InequalityOperatorName).OfType<SynthesizedRecordInequalityOperator>().Single();
-            Assert.Equal("System.Boolean A.op_Inequality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.op_Inequality(A? left, A? right)", op.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
             Assert.True(op.IsStatic);
             Assert.False(op.IsAbstract);
@@ -20056,7 +20343,7 @@ False False True True
 
             var comp = (CSharpCompilation)verifier.Compilation;
             MethodSymbol op = comp.GetMembers("A." + WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single();
-            Assert.Equal("System.Boolean A.op_Equality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.op_Equality(A? left, A? right)", op.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
             Assert.True(op.IsStatic);
             Assert.False(op.IsAbstract);
@@ -20066,7 +20353,7 @@ False False True True
             Assert.True(op.IsImplicitlyDeclared);
 
             op = comp.GetMembers("A." + WellKnownMemberNames.InequalityOperatorName).OfType<SynthesizedRecordInequalityOperator>().Single();
-            Assert.Equal("System.Boolean A.op_Inequality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.op_Inequality(A? left, A? right)", op.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
             Assert.True(op.IsStatic);
             Assert.False(op.IsAbstract);
@@ -23145,8 +23432,8 @@ record C : B;
                 "System.Type B.EqualityContract.get",
                 "System.String B.ToString()",
                 "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean B.op_Inequality(B? r1, B? r2)",
-                "System.Boolean B.op_Equality(B? r1, B? r2)",
+                "System.Boolean B.op_Inequality(B? left, B? right)",
+                "System.Boolean B.op_Equality(B? left, B? right)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -23293,8 +23580,8 @@ False").VerifyDiagnostics();
                 "System.Int32 B1.P { get; init; }",
                 "System.String B1.ToString()",
                 "System.Boolean B1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean B1.op_Inequality(B1? r1, B1? r2)",
-                "System.Boolean B1.op_Equality(B1? r1, B1? r2)",
+                "System.Boolean B1.op_Inequality(B1? left, B1? right)",
+                "System.Boolean B1.op_Equality(B1? left, B1? right)",
                 "System.Int32 B1.GetHashCode()",
                 "System.Boolean B1.Equals(System.Object? obj)",
                 "System.Boolean B1.Equals(A? other)",
@@ -28391,6 +28678,354 @@ public sealed record(";
                 // (2,22): error CS1513: } expected
                 // public sealed record(
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 22)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithZeroArityMethod()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I() { }
+}
+";
+            var expected = new[]
+            {
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
+                // (9,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public void I() { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(9, 17)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(expected);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithZeroArityMethod_DeconstructInSource()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I() { }
+    public void Deconstruct(out int i) { i = 0; }
+}
+";
+            var expected = new[]
+            {
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
+                // (9,17): warning CS0108: 'C.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public void I() { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "Base.I").WithLocation(9, 17)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(expected);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithZeroArityMethod_WithNew()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I) // 1
+{
+    public new void I() { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I) // 1
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithGenericMethod()
+        {
+            var source = @"
+var c = new C(0);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I<T>() { }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (11,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(11, 21),
+                // (13,17): warning CS0108: 'C.I<T>()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public void I<T>() { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I<T>()", "Base.I").WithLocation(13, 17)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_FromGrandBase()
+        {
+            var source = @"
+public record GrandBase
+{
+    public int I { get; set; } = 42;
+}
+public record Base : GrandBase
+{
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public void I() { }
+}
+";
+            var expected = new[]
+            {
+                // (10,21): error CS8913: The positional member 'GrandBase.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("GrandBase.I").WithLocation(10, 21),
+                // (12,17): warning CS0108: 'C.I()' hides inherited member 'GrandBase.I'. Use the new keyword if hiding was intended.
+                //     public void I() { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I()", "GrandBase.I").WithLocation(12, 17)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_NotHiddenByIndexer()
+        {
+            var source = @"
+var c = new C(0);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int Item { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int Item) : Base(Item)
+{
+    public int this[int x] { get => throw null; }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Base.Item.get""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_NotHiddenByIndexer_WithIndexerName()
+        {
+            var source = @"
+var c = new C(0);
+c.Deconstruct(out int i);
+System.Console.Write(i);
+
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    [System.Runtime.CompilerServices.IndexerName(""I"")]
+    public int this[int x] { get => throw null; }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""int Base.I.get""
+  IL_0007:  stind.i4
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithType()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public class I { }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
+                // (9,18): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public class I { }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(9, 18)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithEvent()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public event System.Action I;
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
+                // (9,32): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public event System.Action I;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(9, 32),
+                // (9,32): warning CS0067: The event 'C.I' is never used
+                //     public event System.Action I;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "I").WithArguments("C.I").WithLocation(9, 32)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_HiddenWithConstant()
+        {
+            var source = @"
+public record Base
+{
+    public int I { get; set; } = 42;
+    public Base(int ignored) { }
+}
+public record C(int I) : Base(I)
+{
+    public const string I = null;
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (7,21): error CS8913: The positional member 'Base.I' found corresponding to this parameter is hidden.
+                // public record C(int I) : Base(I)
+                Diagnostic(ErrorCode.ERR_HiddenPositionalMember, "I").WithArguments("Base.I").WithLocation(7, 21),
+                // (9,25): warning CS0108: 'C.I' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public const string I = null;
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("C.I", "Base.I").WithLocation(9, 25)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_AbstractInBase()
+        {
+            var source = @"
+abstract record Base
+{
+    public abstract int I { get; init; }
+}
+record Derived(int I) : Base
+{
+    public int I() { return 0; }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (8,16): warning CS0108: 'Derived.I()' hides inherited member 'Base.I'. Use the new keyword if hiding was intended.
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "I").WithArguments("Derived.I()", "Base.I").WithLocation(8, 16),
+                // (8,16): error CS0102: The type 'Derived' already contains a definition for 'I'
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "I").WithArguments("Derived", "I").WithLocation(8, 16)
+                );
+        }
+
+        [Fact, WorkItem(52630, "https://github.com/dotnet/roslyn/issues/52630")]
+        public void HiddenPositionalMember_Property_AbstractInBase_AbstractInDerived()
+        {
+            var source = @"
+abstract record Base
+{
+    public abstract int I { get; init; }
+}
+abstract record Derived(int I) : Base
+{
+    public int I() { return 0; }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (8,16): error CS0533: 'Derived.I()' hides inherited abstract member 'Base.I'
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "I").WithArguments("Derived.I()", "Base.I").WithLocation(8, 16),
+                // (8,16): error CS0102: The type 'Derived' already contains a definition for 'I'
+                //     public int I() { return 0; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "I").WithArguments("Derived", "I").WithLocation(8, 16)
                 );
         }
     }

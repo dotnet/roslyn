@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -66,38 +67,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        public ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                GetService().StartDebuggingSession(solution);
+                var debuggerService = new ManagedEditAndContinueDebuggerService(_callback, callbackId);
+                await GetService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> StartEditSessionAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync((Func<CancellationToken, ValueTask<ImmutableArray<DocumentId>>>)(cancellationToken =>
-            {
-                GetService().StartEditSession(
-                    debuggerService: new ManagedEditAndContinueDebuggerService(_callback, callbackId),
-                    out var documentsToReanalyze);
-
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
-            }), cancellationToken);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> EndEditSessionAsync(CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<DocumentId>> BreakStateEnteredAsync(CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().EndEditSession(out var documentsToReanalyze);
+                GetService().BreakStateEntered(out var documentsToReanalyze);
                 return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
             }, cancellationToken);
         }
@@ -145,7 +132,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics)> EmitSolutionUpdateAsync(
+        public ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
             PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -155,15 +142,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 try
                 {
-                    return await service.EmitSolutionUpdateAsync(solution, CreateSolutionActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    var results = await service.EmitSolutionUpdateAsync(solution, CreateSolutionActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    return results.Dehydrate(solution);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
+                    var updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
                     var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
                     var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
                     var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, solution.Options));
 
-                    return (new(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty), diagnostics);
+                    return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty);
                 }
             }, cancellationToken);
         }
@@ -171,12 +160,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask CommitSolutionUpdateAsync(CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<DocumentId>> CommitSolutionUpdateAsync(CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().CommitSolutionUpdate();
-                return default;
+                GetService().CommitSolutionUpdate(out var documentsToReanalyze);
+                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
             }, cancellationToken);
         }
 

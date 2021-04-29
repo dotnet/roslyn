@@ -51,12 +51,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// </summary>
         public override string Name => "XAML Language Server Client for LiveShare and Codespaces";
 
-        protected internal override VSServerCapabilities GetCapabilities()
+        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
             var isLspExperimentEnabled = experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);
 
-            return isLspExperimentEnabled ? XamlCapabilities.None : XamlCapabilities.Current;
+            var capabilities = isLspExperimentEnabled ? XamlCapabilities.None : XamlCapabilities.Current;
+
+            // Only turn on CodeAction support for client scenarios. Hosts will get non-LSP lightbulbs automatically.
+            capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor } };
+            capabilities.CodeActionsResolveProvider = true;
+
+            return capabilities;
         }
     }
 }

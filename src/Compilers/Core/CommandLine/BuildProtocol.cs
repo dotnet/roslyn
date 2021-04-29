@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
     ///  Field Name         Type                Size (bytes)
     /// ----------------------------------------------------
     ///  Length             Integer             4
-    ///  ProtocolVersion    Integer             4
+    ///  RequestId          Guid                16
     ///  Language           RequestLanguage     4
     ///  CompilerHash       String              Variable
     ///  Argument Count     UInteger            4
@@ -45,17 +45,25 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// </summary>
     internal class BuildRequest
     {
-        public readonly uint ProtocolVersion;
+        /// <summary>
+        /// The maximum size of a request supported by the compiler server.
+        /// </summary>
+        /// <remarks>
+        /// Currently this limit is 5MB.
+        /// </remarks>
+        private const int MaximumRequestSize = 0x500000;
+
+        public readonly Guid RequestId;
         public readonly RequestLanguage Language;
         public readonly ReadOnlyCollection<Argument> Arguments;
         public readonly string CompilerHash;
 
-        public BuildRequest(uint protocolVersion,
-                            RequestLanguage language,
+        public BuildRequest(RequestLanguage language,
                             string compilerHash,
-                            IEnumerable<Argument> arguments)
+                            IEnumerable<Argument> arguments,
+                            Guid? requestId = null)
         {
-            ProtocolVersion = protocolVersion;
+            RequestId = requestId ?? Guid.Empty;
             Language = language;
             Arguments = new ReadOnlyCollection<Argument>(arguments.ToList());
             CompilerHash = compilerHash;
@@ -75,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                           string workingDirectory,
                                           string tempDirectory,
                                           string compilerHash,
+                                          Guid? requestId = null,
                                           string? keepAlive = null,
                                           string? libDirectory = null)
         {
@@ -102,19 +111,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 requestArgs.Add(new Argument(ArgumentId.CommandLineArgument, i, arg));
             }
 
-            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, language, compilerHash, requestArgs);
+            return new BuildRequest(language, compilerHash, requestArgs, requestId);
         }
 
         public static BuildRequest CreateShutdown()
         {
             var requestArgs = new[] { new Argument(ArgumentId.Shutdown, argumentIndex: 0, value: "") };
-            return new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, GetCommitHash() ?? "", requestArgs);
+            return new BuildRequest(RequestLanguage.CSharpCompile, GetCommitHash() ?? "", requestArgs);
         }
 
         /// <summary>
         /// Read a Request from the given stream.
         /// 
-        /// The total request size must be less than 1MB.
+        /// The total request size must be less than <see cref="MaximumRequestSize"/>.
         /// </summary>
         /// <returns>null if the Request was too large, the Request otherwise.</returns>
         public static async Task<BuildRequest> ReadAsync(Stream inStream, CancellationToken cancellationToken)
@@ -124,10 +133,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             await ReadAllAsync(inStream, lengthBuffer, 4, cancellationToken).ConfigureAwait(false);
             var length = BitConverter.ToInt32(lengthBuffer, 0);
 
-            // Back out if the request is > 1MB
-            if (length > 0x100000)
+            // Back out if the request is too large
+            if (length > MaximumRequestSize)
             {
-                throw new ArgumentException("Request is over 1MB in length");
+                throw new ArgumentException($"Request is over {MaximumRequestSize >> 20}MB in length");
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -139,25 +148,34 @@ namespace Microsoft.CodeAnalysis.CommandLine
             cancellationToken.ThrowIfCancellationRequested();
 
             // Parse the request into the Request data structure.
-            using (var reader = new BinaryReader(new MemoryStream(requestBuffer), Encoding.Unicode))
+            using var reader = new BinaryReader(new MemoryStream(requestBuffer), Encoding.Unicode);
+            var requestId = readGuid(reader);
+            var language = (RequestLanguage)reader.ReadUInt32();
+            var compilerHash = reader.ReadString();
+            uint argumentCount = reader.ReadUInt32();
+            var argumentsBuilder = new List<Argument>((int)argumentCount);
+
+            for (int i = 0; i < argumentCount; i++)
             {
-                var protocolVersion = reader.ReadUInt32();
-                var language = (RequestLanguage)reader.ReadUInt32();
-                var compilerHash = reader.ReadString();
-                uint argumentCount = reader.ReadUInt32();
+                cancellationToken.ThrowIfCancellationRequested();
+                argumentsBuilder.Add(BuildRequest.Argument.ReadFromBinaryReader(reader));
+            }
 
-                var argumentsBuilder = new List<Argument>((int)argumentCount);
+            return new BuildRequest(language,
+                                    compilerHash,
+                                    argumentsBuilder,
+                                    requestId);
 
-                for (int i = 0; i < argumentCount; i++)
+            static Guid readGuid(BinaryReader reader)
+            {
+                const int size = 16;
+                var bytes = new byte[size];
+                if (size != reader.Read(bytes, 0, size))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    argumentsBuilder.Add(BuildRequest.Argument.ReadFromBinaryReader(reader));
+                    throw new InvalidOperationException();
                 }
 
-                return new BuildRequest(protocolVersion,
-                                        language,
-                                        compilerHash,
-                                        argumentsBuilder);
+                return new Guid(bytes);
             }
         }
 
@@ -166,37 +184,35 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         public async Task WriteAsync(Stream outStream, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var memoryStream = new MemoryStream())
-            using (var writer = new BinaryWriter(memoryStream, Encoding.Unicode))
+            using var memoryStream = new MemoryStream();
+            using var writer = new BinaryWriter(memoryStream, Encoding.Unicode);
+            writer.Write(RequestId.ToByteArray());
+            writer.Write((uint)Language);
+            writer.Write(CompilerHash);
+            writer.Write(Arguments.Count);
+            foreach (Argument arg in Arguments)
             {
-                writer.Write(ProtocolVersion);
-                writer.Write((uint)Language);
-                writer.Write(CompilerHash);
-                writer.Write(Arguments.Count);
-                foreach (Argument arg in Arguments)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    arg.WriteToBinaryWriter(writer);
-                }
-                writer.Flush();
-
                 cancellationToken.ThrowIfCancellationRequested();
-
-                // Write the length of the request
-                int length = checked((int)memoryStream.Length);
-
-                // Back out if the request is > 1 MB
-                if (memoryStream.Length > 0x100000)
-                {
-                    throw new ArgumentOutOfRangeException("Request is over 1MB in length");
-                }
-
-                await outStream.WriteAsync(BitConverter.GetBytes(length), 0, 4,
-                                           cancellationToken).ConfigureAwait(false);
-
-                memoryStream.Position = 0;
-                await memoryStream.CopyToAsync(outStream, bufferSize: length, cancellationToken: cancellationToken).ConfigureAwait(false);
+                arg.WriteToBinaryWriter(writer);
             }
+            writer.Flush();
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Write the length of the request
+            int length = checked((int)memoryStream.Length);
+
+            // Back out if the request is too large
+            if (memoryStream.Length > MaximumRequestSize)
+            {
+                throw new ArgumentOutOfRangeException($"Request is over {MaximumRequestSize >> 20}MB in length");
+            }
+
+            await outStream.WriteAsync(BitConverter.GetBytes(length), 0, 4,
+                                       cancellationToken).ConfigureAwait(false);
+
+            memoryStream.Position = 0;
+            await memoryStream.CopyToAsync(outStream, bufferSize: length, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -521,11 +537,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// </summary>
     internal static class BuildProtocolConstants
     {
-        /// <summary>
-        /// The version number for this protocol.
-        /// </summary>
-        public const uint ProtocolVersion = 3;
-
         // Arguments for CSharp and VB Compiler
         public enum ArgumentId
         {

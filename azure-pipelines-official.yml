@@ -48,11 +48,11 @@ stages:
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
-    # Conditionally set build pool so we can share this YAML when building with different pipeline (devdiv vs dnceng) 
-    pool:      
+    # Conditionally set build pool so we can share this YAML when building with different pipeline (devdiv vs dnceng)
+    pool:
       ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
         name: VSEngSS-MicroBuild2017
-        demands: 
+        demands:
         - msbuild
         - visualstudio
         - DotNetFramework
@@ -60,7 +60,7 @@ stages:
         name: NetCoreInternal-Pool
         queue: BuildPool.Windows.10.Amd64.VS2019.Pre
 
-    steps:        
+    steps:
     # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
     # i.e. DevDiv builds will have even rev# whereas dnceng builds will be odd.
     - task: PowerShell@2
@@ -82,7 +82,7 @@ stages:
         type: 'Build'
         tags: 'OfficialBuild'
       condition: and(succeeded(), endsWith(variables['SourceBranchName'], '-vs-deps'), eq(variables['PRNumber'], 'default'))
-          
+
     - task: tagBuildOrRelease@0
       displayName: Tag PR validation build
       inputs:
@@ -130,6 +130,17 @@ stages:
         ${{ if eq(variables['System.TeamProject'], 'internal') }}:
           nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
 
+    # Needed because the dnceng image we build on fails the next task without it
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk'
+      inputs:
+        packageType: sdk
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
+        installationPath: '$(Build.SourcesDirectory)/.dotnet'
+      condition: eq(variables['System.TeamProject'], 'internal')
+
+    # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
     - task: NuGetCommand@2
       displayName: Restore internal tools
       inputs:
@@ -152,13 +163,13 @@ stages:
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci 
+        arguments: -ci
                    -restore
                    -build
                    -pack
                    -sign
                    -publish
-                   -binaryLog 
+                   -binaryLog
                    -configuration $(BuildConfiguration)
                    -officialBuildId $(Build.BuildNumber)
                    -officialSkipTests $(SkipTests)
@@ -183,7 +194,7 @@ stages:
       displayName: Publish Assets
       inputs:
         filePath: 'eng\publish-assets.ps1'
-        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(AccessToken-dotnet-build-bot-public-repo) -gitHubEmail $(Roslyn.GitHubEmail)'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
       condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
     # Publish OptProf configuration files
@@ -249,7 +260,7 @@ stages:
 
     # Publish insertion packages to CoreXT store.
     - task: NuGetCommand@2
-      displayName: Publish CoreXT Packages 
+      displayName: Publish CoreXT Packages
       inputs:
         command: push
         packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
@@ -270,7 +281,7 @@ stages:
         ArtifactName: 'VSSetup'
       condition: succeeded()
 
-    # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the 
+    # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the
     # arcade templates depend on the name.
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact Packages
@@ -295,7 +306,7 @@ stages:
   - template: /eng/common/templates/job/publish-build-assets.yml
     parameters:
       publishUsingPipelines: true
-      dependsOn:	
+      dependsOn:
         - OfficialBuild
       ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
         queue:
@@ -304,7 +315,7 @@ stages:
         pool:
           vmImage: vs2017-win2016
 
-# We need to skip post-build stages for PR validation build, but it can only be identified by 
+# We need to skip post-build stages for PR validation build, but it can only be identified by
 # the runtime variable 'PRNumber', thus this dummy stage. Also the dummy job is required
 # otherwise AzDO would just repeat jobs from previous stage.
 - stage: SetValidateDependency
@@ -324,8 +335,8 @@ stages:
       # https://github.com/dotnet/arcade/issues/2871 is resolved.
       enableSymbolValidation: false
       enableSourceLinkValidation: false
-      # It's important that post-build stages are depends on 'SetValidateDependency' stage instead of 'build', 
-      # since we don't want to publish validation build. 
+      # It's important that post-build stages are depends on 'SetValidateDependency' stage instead of 'build',
+      # since we don't want to publish validation build.
       validateDependsOn:
         - SetValidateDependency
       dependsOn:

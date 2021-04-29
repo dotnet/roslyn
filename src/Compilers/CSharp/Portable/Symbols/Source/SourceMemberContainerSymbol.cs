@@ -1350,14 +1350,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (m.Kind)
                 {
                     case SymbolKind.Field:
-                        var field = (FieldSymbol)m;
-                        yield return field.TupleUnderlyingField ?? field;
+                        if (m is TupleErrorFieldSymbol)
+                        {
+                            break;
+                        }
+
+                        yield return (FieldSymbol)m;
                         break;
                     case SymbolKind.Event:
                         FieldSymbol? associatedField = ((EventSymbol)m).AssociatedField;
                         if ((object?)associatedField != null)
                         {
-                            yield return associatedField.TupleUnderlyingField ?? associatedField;
+                            yield return associatedField;
                         }
                         break;
                 }
@@ -1460,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The purpose of this function is to assert that the <paramref name="member"/> symbol
         /// is actually among the symbols cached by this type symbol in a way that ensures
         /// that any consumer of standard APIs to get to type's members is going to get the same 
-        /// symbol (same instance) for the member rather than an equvalent, but different instance.
+        /// symbol (same instance) for the member rather than an equivalent, but different instance.
         /// </summary>
         [Conditional("DEBUG")]
         internal void AssertMemberExposure(Symbol member, bool forDiagnostics = false)
@@ -1474,24 +1478,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (member is NamedTypeSymbol type)
             {
-                Debug.Assert(forDiagnostics);
-                Debug.Assert(Volatile.Read(ref _lazyTypeMembers)?.Values.Any(types => types.Contains(t => t == (object)type)) == true);
+                RoslynDebug.AssertOrFailFast(forDiagnostics);
+                RoslynDebug.AssertOrFailFast(Volatile.Read(ref _lazyTypeMembers)?.Values.Any(types => types.Contains(t => t == (object)type)) == true);
                 return;
             }
             else if (member is TypeParameterSymbol || member is SynthesizedMethodBaseSymbol)
             {
-                Debug.Assert(forDiagnostics);
+                RoslynDebug.AssertOrFailFast(forDiagnostics);
                 return;
             }
             else if (member is FieldSymbol field && field.AssociatedSymbol is EventSymbol e)
             {
-                Debug.Assert(forDiagnostics);
+                RoslynDebug.AssertOrFailFast(forDiagnostics);
                 // Backing fields for field-like events are not added to the members list.
                 member = e;
             }
 
             var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
-            Debug.Assert(declared != DeclaredMembersAndInitializers.UninitializedSentinel);
+            RoslynDebug.AssertOrFailFast(declared != DeclaredMembersAndInitializers.UninitializedSentinel);
 
             if ((declared is object && (declared.NonTypeMembers.Contains(m => m == (object)member) || declared.RecordPrimaryConstructor == (object)member)) ||
                 Volatile.Read(ref _lazyMembersAndInitializers)?.NonTypeMembers.Contains(m => m == (object)member) == true)
@@ -1499,14 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (member is FieldSymbol && this.IsTupleType)
-            {
-                Debug.Assert(forDiagnostics);
-                return; // There are dangling tuple elements, probably related to https://github.com/dotnet/roslyn/issues/43597
-                        // and will be addressed by a pending PR https://github.com/dotnet/roslyn/pull/44231.
-            }
-
-            Debug.Assert(false, "Premature symbol exposure.");
+            RoslynDebug.AssertOrFailFast(false, "Premature symbol exposure.");
         }
 
         protected Dictionary<string, ImmutableArray<Symbol>> GetMembersByName()
@@ -3413,8 +3410,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
             var membersSoFar = builder.GetNonTypeMembers(declaredMembersAndInitializers);
             var members = ArrayBuilder<Symbol>.GetInstance(membersSoFar.Count + 1);
+            var memberNames = PooledHashSet<string>.GetInstance();
             foreach (var member in membersSoFar)
             {
+                memberNames.Add(member.Name);
+
                 switch (member)
                 {
                     case FieldSymbol:
@@ -3470,6 +3470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addToStringMethod(printMembers);
 
             memberSignatures.Free();
+            memberNames.Free();
 
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
@@ -3642,18 +3643,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                     explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
 
-                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
+                var baseToStringMethod = getBaseToStringMethod();
+
+                if (baseToStringMethod is { IsSealed: true })
                 {
-                    var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
-                    members.Add(toStringMethod);
+                    if (baseToStringMethod.ContainingModule != this.ContainingModule && !this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord))
+                    {
+                        var languageVersion = ((CSharpParseOptions)this.Locations[0].SourceTree!.Options).LanguageVersion;
+                        var requiredVersion = MessageID.IDS_FeatureSealedToStringInRecord.RequiredVersion();
+                        diagnostics.Add(
+                            ErrorCode.ERR_InheritingFromRecordWithSealedToString,
+                            this.Locations[0],
+                            languageVersion.ToDisplayString(),
+                            new CSharpRequiredLanguageVersion(requiredVersion));
+                    }
                 }
                 else
                 {
-                    var toStringMethod = (MethodSymbol)existingToStringMethod;
-                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialType.System_String, diagnostics) && toStringMethod.IsSealed && !IsSealed)
+                    if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
                     {
-                        diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, toStringMethod.Locations[0], toStringMethod);
+                        var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
+                        members.Add(toStringMethod);
                     }
+                    else
+                    {
+                        var toStringMethod = (MethodSymbol)existingToStringMethod;
+                        if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialMember.System_Object__ToString, diagnostics) && toStringMethod.IsSealed && !IsSealed)
+                        {
+                            MessageID.IDS_FeatureSealedToStringInRecord.CheckFeatureAvailability(
+                                diagnostics,
+                                this.DeclaringCompilation,
+                                toStringMethod.Locations[0]);
+                        }
+                    }
+                }
+
+                MethodSymbol? getBaseToStringMethod()
+                {
+                    var objectToString = this.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Object__ToString);
+                    var currentBaseType = this.BaseTypeNoUseSiteDiagnostics;
+                    while (currentBaseType is not null)
+                    {
+                        foreach (var member in currentBaseType.GetSimpleNonTypeMembers(WellKnownMemberNames.ObjectToString))
+                        {
+                            if (member is not MethodSymbol method)
+                                continue;
+
+                            if (method.GetLeastOverriddenMethod(null) == objectToString)
+                                return method;
+                        }
+
+                        currentBaseType = currentBaseType.BaseTypeNoUseSiteDiagnostics;
+                    }
+
+                    return null;
                 }
             }
 
@@ -3692,7 +3735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             addProperty(new SynthesizedRecordPropertySymbol(this, syntax, param, isOverride: true, diagnostics));
                         }
-                        else
+                        else if (!isInherited || checkMemberNotHidden(prop, param))
                         {
                             // Deconstruct() is specified to simply assign from this property to the corresponding out parameter.
                             existingOrAddedMembers.Add(prop);
@@ -3723,6 +3766,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return existingOrAddedMembers.ToImmutableAndFree();
+
+                bool checkMemberNotHidden(Symbol symbol, ParameterSymbol param)
+                {
+                    if (memberNames.Contains(symbol.Name) || this.GetTypeMembersDictionary().ContainsKey(symbol.Name))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_HiddenPositionalMember, param.Locations[0], symbol);
+                        return false;
+                    }
+                    return true;
+                }
             }
 
             void addObjectEquals(MethodSymbol thisEquals)
@@ -3755,7 +3808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     getHashCode = (MethodSymbol)existingHashCodeMethod;
-                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(getHashCode, SpecialType.System_Int32, diagnostics) && getHashCode.IsSealed && !IsSealed)
+                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(getHashCode, SpecialMember.System_Object__GetHashCode, diagnostics) && getHashCode.IsSealed && !IsSealed)
                     {
                         diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, getHashCode.Locations[0], getHashCode);
                     }
