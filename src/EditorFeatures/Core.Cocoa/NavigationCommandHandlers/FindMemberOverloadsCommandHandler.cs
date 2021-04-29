@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             var streamingPresenter = base.GetStreamingPresenter();
             if (streamingPresenter != null)
             {
-                // Fire and forget.  So no need for cancellation.
-                _ = FindMemberOverloadsAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
+                _ = FindMemberOverloadsAsync(document, caretPosition, streamingPresenter);
                 return true;
             }
 
@@ -58,24 +57,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         }
 
         private async Task FindMemberOverloadsAsync(
-            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter, CancellationToken cancellationToken)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter)
         {
             try
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(FindMemberOverloadsAsync));
 
-                var context = presenter.StartSearch(
-                    EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true);
 
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                    context.CancellationToken))
+                    cancellationToken))
                 {
                     try
                     {
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
+                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                         // we need to get the containing type (i.e. class)
@@ -90,13 +88,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         {
                             var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            await context.OnDefinitionFoundAsync(definitionItem);
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                         }
                     }
                     finally
                     {
-                        await context.OnCompletedAsync().ConfigureAwait(false);
+                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
