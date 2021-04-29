@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     partial class SubpatternSyntax
     {
-        // PROTOTYPE(extended-proeprty-patterns) Remove. We should always use ExpressionColon internally
+        // PROTOTYPE(extended-property-patterns) Remove. We should always use ExpressionColon internally
         public NameColonSyntax NameColon => ExpressionColon as NameColonSyntax;
     }
 }

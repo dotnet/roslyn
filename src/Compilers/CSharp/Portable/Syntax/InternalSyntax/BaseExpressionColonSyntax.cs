@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     partial class BaseExpressionColonSyntax
     {
-        // PROTOTYPE(extended-proeprty-patterns) Remove. We should always use Expression internally
+        // PROTOTYPE(extended-property-patterns) Remove. We should always use Expression internally
         public IdentifierNameSyntax Name => Expression as IdentifierNameSyntax;
     }
 }
