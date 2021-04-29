@@ -125,9 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                     }
 
                     var openBraceTrailingTrivia = blockSyntax.OpenBraceToken.TrailingTrivia;
-                    var usingHasNotEndOfLineTrivia = !usingStatement.CloseParenToken.TrailingTrivia
-                        .Any(SyntaxKind.EndOfLineTrivia); ;
-                    if (usingHasNotEndOfLineTrivia)
+                    var usingHasNoEndOfLineTrivia = !usingStatement.CloseParenToken.TrailingTrivia
+                        .Any(SyntaxKind.EndOfLineTrivia);
+                    if (usingHasNoEndOfLineTrivia)
                     {
                         var newFirstStatement = statements.First()
                             .WithPrependedLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
