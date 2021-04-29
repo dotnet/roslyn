@@ -24,6 +24,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseMemberDeclaration(text, offset, options);
         }
 
+        private SyntaxTree UsingTree(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
+        {
+            var tree = base.UsingTree(text, options);
+
+            var actualErrors = tree.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+
+            return tree;
+        }
+
         [Fact]
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
         public void ParsePrivate()
@@ -891,6 +901,1510 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                         N(SyntaxKind.CloseBraceToken);
                     }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_01()
+        {
+            var error =
+                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // public int N.I.operator +(int x, int y) => x + y;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12);
+
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
+                {
+                    UsingDeclaration("public int N.I.operator +(int x, int y) => x + y;", options: options.WithLanguageVersion(version),
+                        version == LanguageVersion.CSharp9 ? new[] { error } : new DiagnosticDescription[] { });
+
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "N");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "I");
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.AddExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.PlusToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_02()
+        {
+            var errors = new[] {
+                // (1,8): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // public int N.I.implicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
+                // (1,16): error CS1003: Syntax error, 'operator' expected
+                // public int N.I.implicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(1, 16),
+                // (1,16): error CS1019: Overloadable unary operator expected
+                // public int N.I.implicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 16)
+                };
+
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
+                {
+                    UsingDeclaration("public int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
+                        version == LanguageVersion.CSharp9 ?
+                            errors.Append(
+                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // public int N.I.implicit (int x) => x;
+                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                ).ToArray() :
+                            errors);
+
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "N");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "I");
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        M(SyntaxKind.OperatorKeyword);
+                        M(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_03()
+        {
+            var errors = new[] {
+                // (1,8): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // public int N.I.explicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
+                // (1,16): error CS1003: Syntax error, 'operator' expected
+                // public int N.I.explicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(1, 16),
+                // (1,16): error CS1019: Overloadable unary operator expected
+                // public int N.I.explicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 16)
+                };
+
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
+                {
+                    UsingDeclaration("public int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
+                        version == LanguageVersion.CSharp9 ?
+                            errors.Append(
+                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // public int N.I.explicit (int x) => x;
+                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                ).ToArray() :
+                            errors);
+
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "N");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "I");
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        M(SyntaxKind.OperatorKeyword);
+                        M(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_04()
+        {
+            var errors = new[] {
+                // (1,16): error CS1003: Syntax error, '(' expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(1, 16),
+                // (1,16): error CS1041: Identifier expected; 'operator' is a keyword
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(1, 16),
+                // (1,32): error CS8124: Tuple must contain at least two elements.
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 32),
+                // (1,34): error CS1001: Identifier expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 34),
+                // (1,34): error CS1003: Syntax error, ',' expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 34),
+                // (1,37): error CS1003: Syntax error, ',' expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 37),
+                // (1,38): error CS1001: Identifier expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 38),
+                // (1,38): error CS1026: ) expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 38)
+                };
+
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
+                {
+                    UsingDeclaration("public int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version), errors);
+
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "N");
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.IdentifierToken, "I");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            M(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.TupleType);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.TupleElement);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    M(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.TupleElement);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_05()
+        {
+            var errors = new[] {
+                // (1,14): error CS1003: Syntax error, ',' expected
+                // public int I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(",", "operator").WithLocation(1, 14)
+                };
+
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
+                {
+                    UsingDeclaration("public int I operator +(int x) => x;", options: options.WithLanguageVersion(version), errors);
+
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_06()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("public int N::I::operator +(int x, int y) => x + y;", options: options.WithLanguageVersion(LanguageVersion.Preview),
+                    // (1,16): error CS7000: Unexpected use of an aliased name
+                    // public int N::I::operator +(int x, int y) => x + y;
+                    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.AliasQualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "N");
+                            }
+                            N(SyntaxKind.ColonColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                            }
+                        }
+                        M(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.AddExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.PlusToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_07()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("public int I::operator +(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
+                    // (1,13): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                    // public int I::operator +(int x) => x;
+                    Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(1, 13)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "I");
+                        }
+                        M(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_08()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("public int I.operator +(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview));
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "I");
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_09()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("public int I<T>.operator +(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview));
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "I");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "T");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_10()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("public int N1::N2::I.operator +(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
+                    // (1,18): error CS7000: Unexpected use of an aliased name
+                    // public int N1::N2::I.operator +(int x) => x;
+                    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(1, 18)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.AliasQualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "N1");
+                                }
+                                N(SyntaxKind.ColonColonToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "N2");
+                                }
+                            }
+                            M(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_11()
+        {
+            var error =
+                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // public int N.I.operator +(int x, int y) => x + y;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12);
+
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
+                {
+                    UsingTree("public int N.I.operator +(int x, int y) => x + y;", options: options.WithLanguageVersion(version),
+                        version == LanguageVersion.CSharp9 ? new[] { error } : new DiagnosticDescription[] { });
+
+                    N(SyntaxKind.CompilationUnit);
+                    {
+                        N(SyntaxKind.OperatorDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ExplicitInterfaceSpecifier);
+                            {
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "N");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "I");
+                                    }
+                                }
+                                N(SyntaxKind.DotToken);
+                            }
+                            N(SyntaxKind.OperatorKeyword);
+                            N(SyntaxKind.PlusToken);
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.AddExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.PlusToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.EndOfFileToken);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_12()
+        {
+            var errors = new[] {
+                // (1,8): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // public int N.I.implicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
+                // (1,16): error CS1003: Syntax error, 'operator' expected
+                // public int N.I.implicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(1, 16),
+                // (1,16): error CS1019: Overloadable unary operator expected
+                // public int N.I.implicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 16)
+                };
+
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
+                {
+                    UsingTree("public int N.I.implicit (int x) => x;", options: options.WithLanguageVersion(version),
+                        version == LanguageVersion.CSharp9 ?
+                            errors.Append(
+                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // public int N.I.implicit (int x) => x;
+                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                ).ToArray() :
+                            errors);
+
+                    N(SyntaxKind.CompilationUnit);
+                    {
+                        N(SyntaxKind.OperatorDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ExplicitInterfaceSpecifier);
+                            {
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "N");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "I");
+                                    }
+                                }
+                                N(SyntaxKind.DotToken);
+                            }
+                            M(SyntaxKind.OperatorKeyword);
+                            M(SyntaxKind.PlusToken);
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.EndOfFileToken);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_13()
+        {
+            var errors = new[] {
+                // (1,8): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // public int N.I.explicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
+                // (1,16): error CS1003: Syntax error, 'operator' expected
+                // public int N.I.explicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(1, 16),
+                // (1,16): error CS1019: Overloadable unary operator expected
+                // public int N.I.explicit (int x) => x;
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 16)
+                };
+
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
+                {
+                    UsingTree("public int N.I.explicit (int x) => x;", options: options.WithLanguageVersion(version),
+                        version == LanguageVersion.CSharp9 ?
+                            errors.Append(
+                                // (1,12): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // public int N.I.explicit (int x) => x;
+                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "N.I.").WithArguments("static abstract members in interfaces").WithLocation(1, 12)
+                                ).ToArray() :
+                            errors);
+
+                    N(SyntaxKind.CompilationUnit);
+                    {
+                        N(SyntaxKind.OperatorDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ExplicitInterfaceSpecifier);
+                            {
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "N");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "I");
+                                    }
+                                }
+                                N(SyntaxKind.DotToken);
+                            }
+                            M(SyntaxKind.OperatorKeyword);
+                            M(SyntaxKind.PlusToken);
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.EndOfFileToken);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_14()
+        {
+            var errors = new[] {
+                // (1,16): error CS1003: Syntax error, '(' expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(1, 16),
+                // (1,16): error CS1041: Identifier expected; 'operator' is a keyword
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(1, 16),
+                // (1,32): error CS8124: Tuple must contain at least two elements.
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 32),
+                // (1,34): error CS1001: Identifier expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 34),
+                // (1,34): error CS1003: Syntax error, ',' expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 34),
+                // (1,37): error CS1003: Syntax error, ',' expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 37),
+                // (1,38): error CS1001: Identifier expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 38),
+                // (1,38): error CS1026: ) expected
+                // public int N.I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 38)
+                };
+
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
+                {
+                    UsingTree("public int N.I operator +(int x) => x;", options: options.WithLanguageVersion(version), errors);
+
+                    N(SyntaxKind.CompilationUnit);
+                    {
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ExplicitInterfaceSpecifier);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "N");
+                                }
+                                N(SyntaxKind.DotToken);
+                            }
+                            N(SyntaxKind.IdentifierToken, "I");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                M(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.TupleType);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.TupleElement);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                        M(SyntaxKind.CommaToken);
+                                        M(SyntaxKind.TupleElement);
+                                        {
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.EndOfFileToken);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_15()
+        {
+            {
+                var errors = new[] {
+                // (1,14): error CS1003: Syntax error, ',' expected
+                // public int I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(",", "operator").WithLocation(1, 14)
+                };
+
+                foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
+                {
+                    UsingTree("public int I operator +(int x) => x;", options: TestOptions.Script.WithLanguageVersion(version), errors);
+
+                    N(SyntaxKind.CompilationUnit);
+                    {
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "I");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.EndOfFileToken);
+                    }
+                    EOF();
+                }
+            }
+
+            {
+                var errors = new[] {
+                // (1,14): error CS1002: ; expected
+                // public int I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(1, 14),
+                // (1,14): error CS1031: Type expected
+                // public int I operator +(int x) => x;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "operator").WithLocation(1, 14)
+                };
+
+                foreach (var version in new[] { LanguageVersion.CSharp9, LanguageVersion.Preview })
+                {
+                    UsingTree("public int I operator +(int x) => x;", options: TestOptions.Regular.WithLanguageVersion(version), errors);
+
+                    N(SyntaxKind.CompilationUnit);
+                    {
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "I");
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.OperatorDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.OperatorKeyword);
+                            N(SyntaxKind.PlusToken);
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.EndOfFileToken);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_16()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingTree("public int N::I::operator +(int x, int y) => x + y;", options: options.WithLanguageVersion(LanguageVersion.Preview),
+                    // (1,16): error CS7000: Unexpected use of an aliased name
+                    // public int N::I::operator +(int x, int y) => x + y;
+                    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(1, 16)
+                    );
+
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.AliasQualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "N");
+                                }
+                                N(SyntaxKind.ColonColonToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "I");
+                                }
+                            }
+                            M(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.AddExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.PlusToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_17()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingTree("public int I::operator +(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
+                    // (1,13): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                    // public int I::operator +(int x) => x;
+                    Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(1, 13)
+                    );
+
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                            }
+                            M(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_18()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingTree("public int I.operator +(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview));
+
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_19()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingTree("public int I<T>.operator +(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview));
+
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.GenericName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                                N(SyntaxKind.TypeArgumentList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "T");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void OperatorDeclaration_ExplicitImplementation_20()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingTree("public int N1::N2::I.operator +(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
+                    // (1,18): error CS7000: Unexpected use of an aliased name
+                    // public int N1::N2::I.operator +(int x) => x;
+                    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(1, 18)
+                    );
+
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.OperatorDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.AliasQualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "N1");
+                                    }
+                                    N(SyntaxKind.ColonColonToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "N2");
+                                    }
+                                }
+                                M(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "I");
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.OperatorKeyword);
+                        N(SyntaxKind.PlusToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
                 }
                 EOF();
             }

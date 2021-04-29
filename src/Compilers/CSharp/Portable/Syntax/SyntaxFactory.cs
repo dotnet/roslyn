@@ -2468,6 +2468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: semicolonToken);
         }
 
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
         public static OperatorDeclarationSyntax OperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
@@ -2488,6 +2489,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 body: body,
                 expressionBody: null,
                 semicolonToken: semicolonToken);
+        }
+
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
+        public static OperatorDeclarationSyntax OperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            SyntaxToken operatorKeyword,
+            SyntaxToken operatorToken,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.OperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                returnType: returnType,
+                explicitInterfaceSpecifier: null,
+                operatorKeyword: operatorKeyword,
+                operatorToken: operatorToken,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody,
+                semicolonToken: semicolonToken);
+        }
+
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
+        public static OperatorDeclarationSyntax OperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            SyntaxToken operatorToken,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody)
+        {
+            return SyntaxFactory.OperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                returnType: returnType,
+                explicitInterfaceSpecifier: null,
+                operatorToken: operatorToken,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody);
         }
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
