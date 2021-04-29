@@ -184,7 +184,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ExtendedPropertySubpattern_04()
         {
-            UsingExpression(@"e is { name[0]: p }");
+            UsingExpression(@"e is { name[0]: p }",
+                    // (1,15): error CS1003: Syntax error, ',' expected
+                    // e is { name[0]: p }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 15),
+                    // (1,17): error CS1003: Syntax error, ',' expected
+                    // e is { name[0]: p }
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 17));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -200,29 +206,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
                         {
-                            N(SyntaxKind.ExpressionColon);
+                            N(SyntaxKind.TypePattern);
                             {
-                                N(SyntaxKind.ElementAccessExpression);
+                                N(SyntaxKind.ArrayType);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "name");
                                     }
-                                    N(SyntaxKind.BracketedArgumentList);
+                                    N(SyntaxKind.ArrayRankSpecifier);
                                     {
                                         N(SyntaxKind.OpenBracketToken);
-                                        N(SyntaxKind.Argument);
+                                        N(SyntaxKind.NumericLiteralExpression);
                                         {
-                                            N(SyntaxKind.NumericLiteralExpression);
-                                            {
-                                                N(SyntaxKind.NumericLiteralToken, "0");
-                                            }
+                                            N(SyntaxKind.NumericLiteralToken, "0");
                                         }
                                         N(SyntaxKind.CloseBracketToken);
                                     }
                                 }
-                                N(SyntaxKind.ColonToken);
                             }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Subpattern);
+                        {
                             N(SyntaxKind.ConstantPattern);
                             {
                                 N(SyntaxKind.IdentifierName);

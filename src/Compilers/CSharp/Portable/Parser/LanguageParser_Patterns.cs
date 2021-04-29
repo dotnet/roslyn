@@ -458,18 +458,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ConvertPatternToExpressionIfPossible(pattern);
         }
 
-        private CSharpSyntaxNode ConvertPatternToExpressionIfPossible(PatternSyntax pattern, bool permitTypeArgumentsOrElementAccess = false)
+        private CSharpSyntaxNode ConvertPatternToExpressionIfPossible(PatternSyntax pattern, bool permitTypeArguments = false)
         {
             return pattern switch
             {
                 ConstantPatternSyntax cp => cp.Expression,
-                TypePatternSyntax tp when ConvertTypeToExpression(tp.Type, out ExpressionSyntax expr, permitTypeArgumentsOrElementAccess, permitTypeArgumentsOrElementAccess) => expr,
+                TypePatternSyntax tp when ConvertTypeToExpression(tp.Type, out ExpressionSyntax expr, permitTypeArguments) => expr,
                 DiscardPatternSyntax dp => _syntaxFactory.IdentifierName(ConvertToIdentifier(dp.UnderscoreToken)),
                 var p => p,
             };
         }
 
-        private bool ConvertTypeToExpression(TypeSyntax type, out ExpressionSyntax expr, bool permitTypeArguments = false, bool permitElementAccess = false)
+        private bool ConvertTypeToExpression(TypeSyntax type, out ExpressionSyntax expr, bool permitTypeArguments = false)
         {
             expr = null;
             switch (type)
@@ -479,24 +479,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return permitTypeArguments;
                 case SimpleNameSyntax s:
                     expr = s;
-                    return true;
-                case ArrayTypeSyntax array when permitElementAccess:
-                    ExpressionSyntax result = array.ElementType;
-                    foreach (var rank in array.RankSpecifiers)
-                    {
-                        var args = _pool.AllocateSeparated<ArgumentSyntax>();
-                        foreach (GreenNode node in rank.Sizes.GetWithSeparators())
-                        {
-                            if (node.IsToken)
-                                args.AddSeparator(node);
-                            else
-                                args.Add(_syntaxFactory.Argument(null, null, (ExpressionSyntax)node));
-                        }
-                        result = _syntaxFactory.ElementAccessExpression(result,
-                            _syntaxFactory.BracketedArgumentList(rank.OpenBracketToken, args.ToList(), rank.CloseBracketToken));
-                        _pool.Free(args);
-                    }
-                    expr = result;
                     return true;
                 case QualifiedNameSyntax { Left: var left, dotToken: var dotToken, Right: var right }
                             when (permitTypeArguments || !(right is GenericNameSyntax)):
@@ -607,7 +589,7 @@ tryAgain:
 
             PatternSyntax pattern = ParsePattern(Precedence.Conditional);
             // If there is a colon but it's not preceeded by a valid expression, leave it out to parse it as a missing comma, preserving C# 9.0 behavior.
-            if (this.CurrentToken.Kind == SyntaxKind.ColonToken && ConvertPatternToExpressionIfPossible(pattern, permitTypeArgumentsOrElementAccess: true) is ExpressionSyntax expr)
+            if (this.CurrentToken.Kind == SyntaxKind.ColonToken && ConvertPatternToExpressionIfPossible(pattern, permitTypeArguments: true) is ExpressionSyntax expr)
             {
                 var colon = EatToken();
                 exprColon = expr is IdentifierNameSyntax identifierName
