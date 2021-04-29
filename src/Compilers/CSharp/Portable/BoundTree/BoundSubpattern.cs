@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 if (this.Symbols.Length == 1)
                     return this.Symbols[0];
-                throw ExceptionUtilities.Unreachable;
+                return null;
             }
         }
     }
