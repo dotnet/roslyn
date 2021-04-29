@@ -77,9 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                 {
                     try
                     {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                        var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
 
                         var interfaceSymbol = relevantSymbol?.symbol as INamedTypeSymbol;
 
@@ -91,13 +89,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                         // we now need to find the class that implements this particular interface, at the
                         // caret position, or somewhere around it
-                        SyntaxNode nodeRoot;
-                        if (!document.TryGetSyntaxRoot(out nodeRoot))
+                        if (!document.TryGetSyntaxRoot(out var nodeRoot))
                             return;
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                        var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                         var documentToken = nodeRoot.FindToken(caretPosition);
 
                         if (!documentToken.Span.IntersectsWith(caretPosition))
@@ -105,9 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                         // the parents should bring us to the class definition
                         var parentTypeNode = documentToken.Parent?.Parent?.Parent?.Parent;
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var compilation = await document.Project.GetCompilationAsync(cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                        var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                         // let's finally get our implementing type
                         var namedTypeSymbol = compilation.GetSemanticModel(syntaxTree).GetDeclaredSymbol(parentTypeNode, cancellationToken: cancellationToken) as INamedTypeSymbol;
@@ -116,16 +109,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                             return;
 
                         // we can search for implementations of the interface, within this type
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        await InspectInterfaceAsync(context, interfaceSymbol, namedTypeSymbol, document.Project, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                        await InspectInterfaceAsync(context, interfaceSymbol, namedTypeSymbol, document.Project, cancellationToken).ConfigureAwait(false);
 
                         // now, we iterate on interfaces of our interfaces
                         foreach (var iFace in interfaceSymbol.AllInterfaces)
                         {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            await InspectInterfaceAsync(context, iFace, namedTypeSymbol, document.Project, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                            await InspectInterfaceAsync(context, iFace, namedTypeSymbol, document.Project, cancellationToken).ConfigureAwait(false);
                         }
                     }
                     finally
@@ -155,9 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     continue;
 
                 var definitionItem = impl.ToNonClassifiedDefinitionItem(project.Solution, true);
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                await context.OnDefinitionFoundAsync(definitionItem, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
             }
         }
     }

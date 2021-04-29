@@ -63,23 +63,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             // we can use the FindInterfaceImplementationAsync call
             if (symbol.ContainingType is INamedTypeSymbol namedTypeSymbol && symbol.ContainingType.TypeKind == TypeKind.Interface)
             {
-                return (await SymbolFinder.FindImplementationsAsync(namedTypeSymbol, solution, null, cancellationToken).ConfigureAwait(false)).OfType<ISymbol>();
+                return await SymbolFinder.FindImplementationsAsync(namedTypeSymbol, solution, null, cancellationToken).ConfigureAwait(false);
             }
             else if (symbol is INamedTypeSymbol namedTypeSymbol2 && namedTypeSymbol2.TypeKind == TypeKind.Interface)
             {
-                return (await SymbolFinder.FindImplementationsAsync(namedTypeSymbol2, solution, null, cancellationToken).ConfigureAwait(false)).OfType<ISymbol>();
+                return await SymbolFinder.FindImplementationsAsync(namedTypeSymbol2, solution, null, cancellationToken).ConfigureAwait(false);
             }
             // if it's not, but is instead a class, we can use FindDerivedClassesAsync
             else if (symbol is INamedTypeSymbol namedTypeSymbol3)
             {
-                return (await SymbolFinder.FindDerivedClassesAsync(namedTypeSymbol3, solution, null, cancellationToken).ConfigureAwait(false)).OfType<ISymbol>();
+                return await SymbolFinder.FindDerivedClassesAsync(namedTypeSymbol3, solution, null, cancellationToken).ConfigureAwait(false);
             }
             // and lastly, if it's a method, we can use FindOverridesAsync
             else
             {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                return await SymbolFinder.FindOverridesAsync(symbol, solution, null, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                return await SymbolFinder.FindOverridesAsync(symbol, solution, null, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -98,23 +96,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                         cancellationToken))
                     {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
                         if (candidateSymbolProjectPair?.symbol == null)
                             return;
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
                         var candidates = await GatherSymbolsAsync(candidateSymbolProjectPair.Value.symbol,
-                            document.Project.Solution, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                            document.Project.Solution, cancellationToken).ConfigureAwait(false);
 
                         foreach (var candidate in candidates)
                         {
                             var definitionItem = candidate.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
