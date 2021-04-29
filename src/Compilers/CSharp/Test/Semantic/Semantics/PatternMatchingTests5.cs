@@ -42,7 +42,7 @@ struct B
     public int? Prop3;
 }
 ";
-            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPattern, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var verifier = CompileAndVerify(compilation, expectedOutput: "TrueTrue");
             verifier.VerifyIL("C.Test1", @"
@@ -121,7 +121,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPattern, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (9,13): error CS8518: An expression of type 'C' can never match the provided pattern.
                 //         _ = new C() is { Prop1: null } and { Prop1.Prop2: null };
@@ -173,7 +173,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPattern, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"
 Test
@@ -239,7 +239,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPattern, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                     // (6,26): error CS9000: Identifier or a simple member access expected.
                     //         _ = new C() is { Prop1<int>.Prop2: {} };
