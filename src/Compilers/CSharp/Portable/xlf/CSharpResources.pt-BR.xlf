@@ -212,11 +212,6 @@
         <target state="translated">O parâmetro de tipo '{1}' tem a restrição 'unmanaged' e, por isso, '{1}' não pode ser usado como uma restrição de '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ConditionalAccessInSubpattern">
-        <source>Conditional access may not be used in property subpatterns. Use a simple member access instead.</source>
-        <target state="new">Conditional access may not be used in property subpatterns. Use a simple member access instead.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">A função local '{0}' deve ser 'static' para usar o atributo condicional</target>

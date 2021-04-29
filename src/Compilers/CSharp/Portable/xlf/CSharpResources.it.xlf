@@ -212,11 +212,6 @@
         <target state="translated">Il parametro di tipo '{1}' ha il vincolo 'managed'. Non è quindi possibile usare '{1}' come vincolo per '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ConditionalAccessInSubpattern">
-        <source>Conditional access may not be used in property subpatterns. Use a simple member access instead.</source>
-        <target state="new">Conditional access may not be used in property subpatterns. Use a simple member access instead.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">Per usare l'attributo Conditional, la funzione locale '{0}' deve essere 'static'</target>

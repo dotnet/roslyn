@@ -1936,7 +1936,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PROTOTYPE(extended-property-patterns) Temp values
         ERR_InvalidNameInSubpattern = 9000,
-        ERR_ConditionalAccessInSubpattern,
 
         ERR_InheritingFromRecordWithSealedToString = 8912,
         ERR_HiddenPositionalMember = 8913,

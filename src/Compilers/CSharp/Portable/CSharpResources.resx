@@ -6612,9 +6612,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidNameInSubpattern" xml:space="preserve">
     <value>Identifier or a simple member access expected.</value>
   </data>
-  <data name="ERR_ConditionalAccessInSubpattern" xml:space="preserve">
-    <value>Conditional access may not be used in property subpatterns. Use a simple member access instead.</value>
-  </data>
   <data name="IDS_FeatureExtendedPropertyPatterns" xml:space="preserve">
     <value>extended property patterns</value>
   </data>

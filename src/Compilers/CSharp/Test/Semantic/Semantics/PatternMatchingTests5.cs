@@ -246,9 +246,9 @@ class C
                     // (7,26): error CS9000: Identifier or a simple member access expected.
                     //         _ = new C() is { Prop1->Prop2: {} };
                     Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1->Prop2").WithLocation(7, 26),
-                    // (8,26): error CS9001: Conditional access may not be used in property subpatterns. Use a simple member access instead.
+                    // (8,26): error CS9000: Identifier or a simple member access expected.
                     //         _ = new C() is { Prop1?.Prop2: {} };
-                    Diagnostic(ErrorCode.ERR_ConditionalAccessInSubpattern, "Prop1?.Prop2").WithLocation(8, 26),
+                    Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1?.Prop2").WithLocation(8, 26),
                     // (9,26): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Prop1[0] }'
                     //         _ = new C() is { Prop1[0]: {} };
                     Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "Prop1[0]").WithArguments("Prop1[0]").WithLocation(9, 26),

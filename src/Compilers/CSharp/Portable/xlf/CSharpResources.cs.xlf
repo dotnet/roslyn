@@ -212,11 +212,6 @@
         <target state="translated">Parametr typu {1} má omezení unmanaged, takže není možné používat {1} jako omezení pro {0}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ConditionalAccessInSubpattern">
-        <source>Conditional access may not be used in property subpatterns. Use a simple member access instead.</source>
-        <target state="new">Conditional access may not be used in property subpatterns. Use a simple member access instead.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">Aby bylo možné používat atribut Conditional, musí být místní funkce {0} static.</target>

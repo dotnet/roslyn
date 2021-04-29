@@ -212,11 +212,6 @@
         <target state="translated">型パラメーター '{1}' は 'unmanaged' 制約を含むので、'{0}' の制約として '{1}' を使用することはできません</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ConditionalAccessInSubpattern">
-        <source>Conditional access may not be used in property subpatterns. Use a simple member access instead.</source>
-        <target state="new">Conditional access may not be used in property subpatterns. Use a simple member access instead.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ConditionalOnLocalFunction">
         <source>Local function '{0}' must be 'static' in order to use the Conditional attribute</source>
         <target state="translated">ローカル関数 '{0}' は、条件付き属性を使用するには、'static' である必要があります</target>

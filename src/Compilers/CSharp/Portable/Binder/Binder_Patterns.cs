@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     symbol = BindPropertyPatternMember(memberType.StrippedType(), name, ref hasErrors, diagnostics);
                     break;
                 default:
-                    Error(diagnostics, expr is ConditionalAccessExpressionSyntax ? ErrorCode.ERR_ConditionalAccessInSubpattern : ErrorCode.ERR_InvalidNameInSubpattern, expr);
+                    Error(diagnostics, ErrorCode.ERR_InvalidNameInSubpattern, expr);
                     symbol = null;
                     hasErrors = true;
                     break;
