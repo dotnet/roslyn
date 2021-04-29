@@ -2891,10 +2891,7 @@ partial class Other
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace(TestHost host)
         {
-            var text = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            var text1 = @"
 using System;
 
 namespace N
@@ -2914,9 +2911,8 @@ namespace N
             var t1 = (a: 1, b: 2);
         }
     }
-}
-        </Document>
-        <Document>
+}";
+            var text2 = @"
 using System;
 
 partial class Test
@@ -2924,6 +2920,7 @@ partial class Test
     (int a, int b) Goo()
     {
         var t2 = (a: 3, b: 4);
+        return default;
     }
 }
 
@@ -2933,15 +2930,9 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            var expected1 = @"
 using System;
 
 namespace N
@@ -3004,9 +2995,8 @@ namespace N
             return new NewStruct(value.a, value.b);
         }
     }
-}
-        </Document>
-        <Document>
+}";
+            var expected2 = @"
 using System;
 
 partial class Test
@@ -3014,6 +3004,7 @@ partial class Test
     N.NewStruct Goo()
     {
         var t2 = new N.NewStruct(a: 3, b: 4);
+        return default;
     }
 }
 
@@ -3023,11 +3014,24 @@ partial class Other
     {
         var t1 = new N.NewStruct(a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await Test(text, expected, index: 2, options: PreferImplicitTypeWithInfo(), testHost: host);
+}";
+
+            var test = new VerifyCS.Test
+            {
+                CodeActionIndex = 2,
+                TestHost = host,
+                TestState =
+                {
+                    Sources = { text1, text2, },
+                },
+                FixedState =
+                {
+                    Sources = { expected1, expected2 },
+                },
+            };
+
+            test.Options.AddRange(PreferImplicitTypeWithInfo());
+            await test.RunAsync();
         }
 
         #endregion
@@ -3142,21 +3146,31 @@ partial class Other
             {
                 CodeActionIndex = 3,
                 TestHost = host,
-                TestCode = text1,
-                FixedCode = expected1,
+                TestState =
+                {
+                    Sources = { text1 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] =
+                        {
+                            Sources = { text2 },
+                            AdditionalProjectReferences = { "TestProject" },
+                        }
+                    },
+                },
+                FixedState =
+                {
+                    Sources = { expected1 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] =
+                        {
+                            Sources = { expected2 },
+                            AdditionalProjectReferences = { "TestProject" },
+                        }
+                    },
+                },
             };
-
-            test.TestState.AdditionalProjects.Add("DependencyProject", new Testing.ProjectState("Initial", LanguageNames.CSharp, "", ".cs")
-            {
-                Sources = { text2 },
-                AdditionalProjectReferences = { test.TestState.Name },
-            });
-
-            test.FixedState.AdditionalProjects.Add("DependencyProject", new Testing.ProjectState("Initial", LanguageNames.CSharp, "", ".cs")
-            {
-                Sources = { expected2 },
-                AdditionalProjectReferences = { test.TestState.Name },
-            });
 
             test.Options.AddRange(PreferImplicitTypeWithInfo());
             await test.RunAsync();
@@ -3165,10 +3179,7 @@ partial class Other
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task UpdateDependentProjects_NoDependency(TestHost host)
         {
-            var text = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            var text1 = @"
 using System;
 
 partial class Test
@@ -3185,11 +3196,8 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
+}";
+            var text2 = @"
 using System;
 
 partial class Other
@@ -3198,14 +3206,8 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+}";
+            var expected1 = @"
 using System;
 
 partial class Test
@@ -3265,10 +3267,9 @@ public struct NewStruct
     {
         return new NewStruct(value.a, value.b);
     }
-}</Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
+}";
+
+            var expected2 = @"
 using System;
 
 partial class Other
@@ -3277,11 +3278,32 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await Test(text, expected, index: 3, options: PreferImplicitTypeWithInfo(), testHost: host);
+}";
+
+            var test = new VerifyCS.Test
+            {
+                CodeActionIndex = 3,
+                TestHost = host,
+                TestState =
+                {
+                    Sources = { text1 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] = { Sources = { text2 } }
+                    },
+                },
+                FixedState =
+                {
+                    Sources = { expected1 },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] = { Sources = { expected2 } }
+                    },
+                },
+            };
+
+            test.Options.AddRange(PreferImplicitTypeWithInfo());
+            await test.RunAsync();
         }
 
         #endregion
