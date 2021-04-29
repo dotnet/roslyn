@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
                 => Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
 
             public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-                => Task.FromResult(ImmutableArray.Create("Baseline", "AddInstanceFieldToExistingType", "AddStaticFieldToExistingType", "AddMethodToExistingType", "NewTypeDefinition"));
+                => Task.FromResult(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
 
             public Task PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
                 => Task.CompletedTask;

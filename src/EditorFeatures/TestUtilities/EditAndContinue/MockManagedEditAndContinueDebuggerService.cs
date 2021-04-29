@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray.Create("Baseline", "AddInstanceFieldToExistingType", "AddStaticFieldToExistingType", "AddMethodToExistingType", "NewTypeDefinition"));
+            => Task.FromResult(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
 
         public Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
             => Task.CompletedTask;
