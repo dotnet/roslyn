@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             //
             // Passing along the classified information is valuable for OOP scenarios where we want
             // all that expensive computation done on the OOP side and not in the VS side.
-            // 
+            //
             // However, Go To Definition is all in-process, and is also synchronous.  So we do not
-            // want to fetch the classifications here.  It slows down the command and leads to a 
+            // want to fetch the classifications here.  It slows down the command and leads to a
             // measurable delay in our perf tests.
-            // 
+            //
             // So, if we only have a single location to go to, this does no unnecessary work.  And,
             // if we do have multiple locations to show, it will just be done in the BG, unblocking
             // this command thread so it can return the user faster.
@@ -128,6 +128,22 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return threadingContext.JoinableTaskFactory.Run(() =>
                 streamingPresenter.TryNavigateToOrPresentItemsAsync(
                     threadingContext, solution.Workspace, title, definitions, cancellationToken));
+        }
+
+        public static bool TryGoToDefinition(
+            ImmutableArray<DefinitionItem> definitions,
+            Workspace workspace,
+            string title,
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter,
+            CancellationToken cancellationToken)
+        {
+            if (definitions.IsDefaultOrEmpty)
+                return false;
+
+            return threadingContext.JoinableTaskFactory.Run(() =>
+                streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                    threadingContext, workspace, title, definitions, cancellationToken));
         }
     }
 }

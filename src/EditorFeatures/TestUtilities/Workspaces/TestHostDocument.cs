@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private TestHostProject? _project;
 
         /// <summary>
-        /// The <see cref="ITextBuffer"/> for this document. Null if not yet created.
+        /// The <see cref="ITextBuffer2"/> for this document. Null if not yet created.
         /// </summary>
-        private ITextBuffer? _textBuffer;
+        private ITextBuffer2? _textBuffer;
 
         /// <summary>
         /// The <see cref="ITextSnapshot"/> when the buffer was first created, which can be used for tracking changes to the current buffer.
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool isLinkFile = false,
             IDocumentServiceProvider? documentServiceProvider = null,
             ImmutableArray<string> roles = default,
-            ITextBuffer? textBuffer = null,
+            ITextBuffer2? textBuffer = null,
             bool isSourceGenerated = false)
         {
             Contract.ThrowIfNull(filePath);
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return _textView;
         }
 
-        public ITextBuffer GetTextBuffer()
+        public ITextBuffer2 GetTextBuffer()
         {
             var workspace = (TestWorkspace?)_languageServiceProvider?.WorkspaceServices.Workspace;
 

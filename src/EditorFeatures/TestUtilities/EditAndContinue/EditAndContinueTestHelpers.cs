@@ -29,6 +29,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal abstract class EditAndContinueTestHelpers
     {
+        public static readonly EditAndContinueCapabilities BaselineCapabilities = EditAndContinueCapabilities.Baseline;
+        public static readonly EditAndContinueCapabilities Net5RuntimeCapabilities = EditAndContinueCapabilities.Baseline |
+                                                                                     EditAndContinueCapabilities.AddInstanceFieldToExistingType |
+                                                                                     EditAndContinueCapabilities.AddStaticFieldToExistingType |
+                                                                                     EditAndContinueCapabilities.AddMethodToExistingType |
+                                                                                     EditAndContinueCapabilities.NewTypeDefinition;
+
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
         public abstract SyntaxNode FindNode(SyntaxNode root, TextSpan span);
         public abstract SyntaxTree ParseText(string source);
@@ -143,7 +150,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             AssertEx.Equal(expectedNodeUpdates, actualNodeUpdates, itemSeparator: ",\r\n");
         }
 
-        internal void VerifySemantics(EditScript<SyntaxNode>[] editScripts, TargetFramework targetFramework, DocumentAnalysisResultsDescription[] expectedResults)
+        internal void VerifySemantics(EditScript<SyntaxNode>[] editScripts, TargetFramework targetFramework, DocumentAnalysisResultsDescription[] expectedResults, EditAndContinueCapabilities? capabilities = null)
         {
             Assert.True(editScripts.Length == expectedResults.Length);
             var documentCount = expectedResults.Length;
@@ -185,7 +192,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Contract.ThrowIfNull(oldModel);
                 Contract.ThrowIfNull(newModel);
 
-                var result = Analyzer.AnalyzeDocumentAsync(oldProject, oldActiveStatements, newDocument, newActiveStatementSpans, CancellationToken.None).Result;
+                var result = Analyzer.AnalyzeDocumentAsync(oldProject, oldActiveStatements, newDocument, newActiveStatementSpans, capabilities ?? Net5RuntimeCapabilities, CancellationToken.None).Result;
                 var oldText = oldDocument.GetTextSynchronously(default);
                 var newText = newDocument.GetTextSynchronously(default);
 

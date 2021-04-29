@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             HighlightSpans = highlightSpans;
         }
 
-        public DocumentHighlights Rehydrate(Solution solution)
-            => new(solution.GetDocument(DocumentId), HighlightSpans);
+        public async ValueTask<DocumentHighlights> RehydrateAsync(Solution solution)
+            => new(await solution.GetDocumentAsync(DocumentId, includeSourceGenerated: true).ConfigureAwait(false), HighlightSpans);
 
         public static SerializableDocumentHighlights Dehydrate(DocumentHighlights highlights)
             => new(highlights.Document.Id, highlights.HighlightSpans);

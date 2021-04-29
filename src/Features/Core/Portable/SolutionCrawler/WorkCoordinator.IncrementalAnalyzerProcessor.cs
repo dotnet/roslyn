@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
-                private readonly IDocumentTrackingService? _documentTracker;
+                private readonly IDocumentTrackingService _documentTracker;
                 private readonly IProjectCacheService? _cacheService;
 
                 private readonly HighPriorityProcessor _highPriorityProcessor;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     // event and worker queues
-                    _documentTracker = _registration.Workspace.Services.GetService<IDocumentTrackingService>();
+                    _documentTracker = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
                     var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
@@ -105,83 +105,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     Contract.ThrowIfNull(item.DocumentId);
 
-                    var options = _registration.Workspace.Options;
-                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(options, item.Language);
-
-                    if (ShouldEnqueueForAllQueues(item, analysisScope))
-                    {
-                        _highPriorityProcessor.Enqueue(item);
-                        _normalPriorityProcessor.Enqueue(item);
-                        _lowPriorityProcessor.Enqueue(item);
-                    }
-                    else
-                    {
-                        if (TryGetItemWithOverriddenAnalysisScope(item, _highPriorityProcessor.Analyzers, options, analysisScope, _listener, out var newWorkItem))
-                        {
-                            _highPriorityProcessor.Enqueue(newWorkItem.Value);
-                        }
-
-                        if (TryGetItemWithOverriddenAnalysisScope(item, _normalPriorityProcessor.Analyzers, options, analysisScope, _listener, out newWorkItem))
-                        {
-                            _normalPriorityProcessor.Enqueue(newWorkItem.Value);
-                        }
-
-                        if (TryGetItemWithOverriddenAnalysisScope(item, _lowPriorityProcessor.Analyzers, options, analysisScope, _listener, out newWorkItem))
-                        {
-                            _lowPriorityProcessor.Enqueue(newWorkItem.Value);
-                        }
-
-                        item.AsyncToken.Dispose();
-                    }
+                    _highPriorityProcessor.Enqueue(item);
+                    _normalPriorityProcessor.Enqueue(item);
+                    _lowPriorityProcessor.Enqueue(item);
 
                     ReportPendingWorkItemCount();
-
-                    return;
-
-                    bool ShouldEnqueueForAllQueues(WorkItem item, BackgroundAnalysisScope analysisScope)
-                    {
-                        var reasons = item.InvocationReasons;
-
-                        // For active file analysis scope we only process following:
-                        //   1. Active documents
-                        //   2. Closed and removed documents to ensure that data for removed and closed documents
-                        //      is no longer held in memory and removed from any user visible components.
-                        //      For example, this ensures that diagnostics for closed/removed documents are removed from error list.
-                        // Note that we don't need to specially handle "Project removed" or "Project closed" case, as the solution crawler
-                        // enqueues individual "DocumentRemoved" work items for each document in the removed project.
-                        if (analysisScope == BackgroundAnalysisScope.ActiveFile &&
-                            !reasons.Contains(PredefinedInvocationReasons.DocumentClosed) &&
-                            !reasons.Contains(PredefinedInvocationReasons.DocumentRemoved))
-                        {
-                            return item.DocumentId == _documentTracker?.TryGetActiveDocument();
-                        }
-
-                        return true;
-                    }
-                }
-
-                private static bool TryGetItemWithOverriddenAnalysisScope(
-                    WorkItem item,
-                    ImmutableArray<IIncrementalAnalyzer> allAnalyzers,
-                    OptionSet options,
-                    BackgroundAnalysisScope analysisScope,
-                    IAsynchronousOperationListener listener,
-                    [NotNullWhen(returnValue: true)] out WorkItem? newWorkItem)
-                {
-                    var analyzersToExecute = item.GetApplicableAnalyzers(allAnalyzers);
-
-                    var analyzersWithOverriddenAnalysisScope = analyzersToExecute
-                        .Where(a => a.GetOverriddenBackgroundAnalysisScope(options, analysisScope) != analysisScope)
-                        .ToImmutableHashSet();
-
-                    if (!analyzersWithOverriddenAnalysisScope.IsEmpty)
-                    {
-                        newWorkItem = item.With(analyzersWithOverriddenAnalysisScope, listener.BeginAsyncOperation("WorkItem"));
-                        return true;
-                    }
-
-                    newWorkItem = null;
-                    return false;
                 }
 
                 public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
@@ -204,8 +132,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public ImmutableArray<IIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
 
-                private Solution CurrentSolution => _registration.CurrentSolution;
-                private ProjectDependencyGraph DependencyGraph => CurrentSolution.GetProjectDependencyGraph();
+                private ProjectDependencyGraph DependencyGraph => _registration.GetSolutionToAnalyze().GetProjectDependencyGraph();
                 private IDiagnosticAnalyzerService? DiagnosticAnalyzerService => _lazyDiagnosticAnalyzerService?.Value;
 
                 public Task AsyncProcessorTask
@@ -337,7 +264,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // re-run just the body
                         await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, activeMember, reasons, c), cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -392,7 +319,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 internal ProjectId? GetActiveProjectId()
-                    => _documentTracker?.TryGetActiveDocument()?.ProjectId;
+                    => _documentTracker.TryGetActiveDocument()?.ProjectId;
 
                 private static string EnqueueLogger(int tick, object documentOrProjectId, bool replaced)
                 {

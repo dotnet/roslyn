@@ -807,42 +807,38 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenProject_WithInvalidFileExtension()
+        public async Task TestOpenProject_WithInvalidFileExtensionAsync()
         {
             // make sure the file does in fact exist, but with an unrecognized extension
             const string ProjFileName = @"CSharpProject\CSharpProject.csproj.nyi";
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(ProjFileName, Resources.ProjectFiles.CSharp.CSharpProject));
 
-            AssertEx.Throws<InvalidOperationException>(delegate
+            var e = await Assert.ThrowsAsync<InvalidOperationException>(async delegate
             {
-                MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(ProjFileName)).Wait();
-            },
-            (e) =>
-            {
-                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, GetSolutionFileName(ProjFileName), ".nyi");
-                Assert.Equal(expected, e.Message);
+                await MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(ProjFileName));
             });
+
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, GetSolutionFileName(ProjFileName), ".nyi");
+            Assert.Equal(expected, e.Message);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenProject_ProjectFileExtensionAssociatedWithUnknownLanguage()
+        public async Task TestOpenProject_ProjectFileExtensionAssociatedWithUnknownLanguageAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             var language = "lingo";
-            AssertEx.Throws<InvalidOperationException>(delegate
+            var e = await Assert.ThrowsAsync<InvalidOperationException>(async delegate
             {
                 var ws = MSBuildWorkspace.Create();
                 ws.AssociateFileExtensionWithLanguage("csproj", language); // non-existent language
-                ws.OpenProjectAsync(projFileName).Wait();
-            },
-            (e) =>
-            {
-                // the exception should tell us something about the language being unrecognized.
-                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, language);
-                Assert.Equal(expected, e.Message);
+                await ws.OpenProjectAsync(projFileName);
             });
+
+            // the exception should tell us something about the language being unrecognized.
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projFileName, language);
+            Assert.Equal(expected, e.Message);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -883,28 +879,28 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenSolution_WithNonExistentSolutionFile_Fails()
+        public async Task TestOpenSolution_WithNonExistentSolutionFile_FailsAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName("NonExistentSolution.sln");
 
-            AssertEx.Throws<FileNotFoundException>(() =>
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
             {
                 using var workspace = CreateMSBuildWorkspace();
-                workspace.OpenSolutionAsync(solutionFilePath).Wait();
+                await workspace.OpenSolutionAsync(solutionFilePath);
             });
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenSolution_WithInvalidSolutionFile_Fails()
+        public async Task TestOpenSolution_WithInvalidSolutionFile_FailsAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName(@"http://localhost/Invalid/InvalidSolution.sln");
 
-            AssertEx.Throws<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
                 using var workspace = CreateMSBuildWorkspace();
-                workspace.OpenSolutionAsync(solutionFilePath).Wait();
+                await workspace.OpenSolutionAsync(solutionFilePath);
             });
         }
 
@@ -999,7 +995,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenSolution_WithInvalidProjectPath_SkipFalse_Fails()
+        public async Task TestOpenSolution_WithInvalidProjectPath_SkipFalse_Fails()
         {
             // when not skipped we should get an exception for the invalid project
 
@@ -1010,7 +1006,7 @@ class C1
             using var workspace = CreateMSBuildWorkspace();
             workspace.SkipUnrecognizedProjects = false;
 
-            AssertEx.Throws<InvalidOperationException>(() => workspace.OpenSolutionAsync(solutionFilePath).Wait());
+            await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenSolutionAsync(solutionFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -1029,7 +1025,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenSolution_WithNonExistentProject_SkipFalse_Fails()
+        public async Task TestOpenSolution_WithNonExistentProject_SkipFalse_Fails()
         {
             // when skipped we should see an exception for the non-existent project
 
@@ -1040,7 +1036,7 @@ class C1
             using var workspace = CreateMSBuildWorkspace();
             workspace.SkipUnrecognizedProjects = false;
 
-            AssertEx.Throws<FileNotFoundException>(() => workspace.OpenSolutionAsync(solutionFilePath).Wait());
+            await Assert.ThrowsAsync<FileNotFoundException>(() => workspace.OpenSolutionAsync(solutionFilePath));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -1088,7 +1084,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenSolution_WithUnrecognizedProjectTypeGuidAndUnrecognizedExtension_WithSkipFalse_Fails()
+        public async Task TestOpenSolution_WithUnrecognizedProjectTypeGuidAndUnrecognizedExtension_WithSkipFalse_FailsAsync()
         {
             // proves that if both project type guid and file extension are unrecognized, then open project fails.
             const string NoProjFileName = @"CSharpProject\CSharpProject.noproj";
@@ -1098,42 +1094,38 @@ class C1
 
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            AssertEx.Throws<InvalidOperationException>(() =>
+            var e = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
                 using var workspace = CreateMSBuildWorkspace();
                 workspace.SkipUnrecognizedProjects = false;
-                workspace.OpenSolutionAsync(solutionFilePath).Wait();
-            },
-            e =>
-            {
-                var noProjFullFileName = GetSolutionFileName(NoProjFileName);
-                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, noProjFullFileName, ".noproj");
-                Assert.Equal(expected, e.Message);
+                await workspace.OpenSolutionAsync(solutionFilePath);
             });
+
+            var noProjFullFileName = GetSolutionFileName(NoProjFileName);
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, noProjFullFileName, ".noproj");
+            Assert.Equal(expected, e.Message);
         }
 
         private readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
-        public void TestOpenSolution_WithMissingLanguageLibraries_WithSkipFalse_Throws()
+        public async Task TestOpenSolution_WithMissingLanguageLibraries_WithSkipFalse_ThrowsAsync()
         {
             // proves that if the language libraries are missing then the appropriate error occurs
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            AssertEx.Throws<InvalidOperationException>(() =>
+            var e = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
                 using var workspace = CreateMSBuildWorkspace(MefHostServices.Create(_defaultAssembliesWithoutCSharp));
                 workspace.SkipUnrecognizedProjects = false;
-                workspace.OpenSolutionAsync(solutionFilePath).Wait();
-            },
-            e =>
-            {
-                var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
-                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
-                Assert.Equal(expected, e.Message);
+                await workspace.OpenSolutionAsync(solutionFilePath);
             });
+
+            var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
+            Assert.Equal(expected, e.Message);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
@@ -1156,47 +1148,42 @@ class C1
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
-        public void TestOpenProject_WithMissingLanguageLibraries_Throws()
+        public async Task TestOpenProject_WithMissingLanguageLibraries_Throws()
         {
             // proves that if the language libraries are missing then the appropriate error occurs
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var projectName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
             using var workspace = MSBuildWorkspace.Create(MefHostServices.Create(_defaultAssembliesWithoutCSharp));
-            AssertEx.Throws<InvalidOperationException>(() =>
-            {
-                var project = workspace.OpenProjectAsync(projectName).Result;
-            },
-            e =>
-            {
-                var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectName, ".csproj");
-                Assert.Equal(expected, e.Message);
-            });
+            var e = await Assert.ThrowsAsync<InvalidOperationException>(() => workspace.OpenProjectAsync(projectName));
+
+            var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectName, ".csproj");
+            Assert.Equal(expected, e.Message);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenProject_WithInvalidFilePath_Fails()
+        public async Task TestOpenProject_WithInvalidFilePath_Fails()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var projectFilePath = GetSolutionFileName(@"http://localhost/Invalid/InvalidProject.csproj");
 
-            AssertEx.Throws<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
                 using var workspace = CreateMSBuildWorkspace();
-                workspace.OpenProjectAsync(projectFilePath).Wait();
+                await workspace.OpenProjectAsync(projectFilePath);
             });
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenProject_WithNonExistentProjectFile_Fails()
+        public async Task TestOpenProject_WithNonExistentProjectFile_FailsAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var projectFilePath = GetSolutionFileName(@"CSharpProject\NonExistentProject.csproj");
 
-            AssertEx.Throws<FileNotFoundException>(() =>
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
             {
                 using var workspace = CreateMSBuildWorkspace();
-                workspace.OpenProjectAsync(projectFilePath).Wait();
+                await workspace.OpenProjectAsync(projectFilePath);
             });
         }
 
@@ -1218,17 +1205,17 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenProject_WithInvalidProjectReference_SkipFalse_Fails()
+        public async Task TestOpenProject_WithInvalidProjectReference_SkipFalse_Fails()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.InvalidProjectReference));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            AssertEx.Throws<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
                 using var workspace = CreateMSBuildWorkspace();
                 workspace.SkipUnrecognizedProjects = false;
-                workspace.OpenProjectAsync(projectFilePath).Wait();
+                await workspace.OpenProjectAsync(projectFilePath);
             });
         }
 
@@ -1250,17 +1237,17 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenProject_WithNonExistentProjectReference_SkipFalse_Fails()
+        public async Task TestOpenProject_WithNonExistentProjectReference_SkipFalse_FailsAsync()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.NonExistentProjectReference));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            AssertEx.Throws<FileNotFoundException>(() =>
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
             {
                 using var workspace = CreateMSBuildWorkspace();
                 workspace.SkipUnrecognizedProjects = false;
-                workspace.OpenProjectAsync(projectFilePath).Wait();
+                await workspace.OpenProjectAsync(projectFilePath);
             });
         }
 
@@ -1283,18 +1270,18 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_SkipFalse_Fails()
+        public async Task TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_SkipFalse_Fails()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.UnknownProjectExtension)
                 .WithFile(@"CSharpProject\CSharpProject.noproj", Resources.ProjectFiles.CSharp.CSharpProject));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            AssertEx.Throws<InvalidOperationException>(() =>
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             {
                 using var workspace = CreateMSBuildWorkspace();
                 workspace.SkipUnrecognizedProjects = false;
-                workspace.OpenProjectAsync(projectFilePath).Wait();
+                await workspace.OpenProjectAsync(projectFilePath);
             });
         }
 
@@ -2122,6 +2109,33 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestApplyChanges_UpdateAdditionalDocumentText()
+        {
+            CreateFiles(GetSimpleCSharpSolutionWithAdditionaFile());
+            var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+            using var workspace = CreateMSBuildWorkspace();
+            var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+
+            var documents = solution.GetProjectsByName("CSharpProject").FirstOrDefault().AdditionalDocuments.ToList();
+            var document = documents.Single(d => d.Name.Contains("ValidAdditionalFile"));
+            var text = await document.GetTextAsync();
+            var newText = SourceText.From("New Text In Additional File.\r\n" + text.ToString());
+            var newSolution = solution.WithAdditionalDocumentText(document.Id, newText);
+
+            workspace.TryApplyChanges(newSolution);
+
+            // check workspace current solution
+            var solution2 = workspace.CurrentSolution;
+            var document2 = solution2.GetAdditionalDocument(document.Id);
+            var text2 = await document2.GetTextAsync();
+            Assert.Equal(newText.ToString(), text2.ToString());
+
+            // check actual file on disk...
+            var textOnDisk = File.ReadAllText(document.FilePath);
+            Assert.Equal(newText.ToString(), textOnDisk);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestApplyChanges_AddDocument()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
@@ -2541,8 +2555,8 @@ class C1
             Assert.Equal(cscomment, vbcomment);
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenProject_WithProjectFileLocked()
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestOpenProject_WithProjectFileLockedAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
@@ -2550,39 +2564,38 @@ class C1
             var projectFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             using (File.Open(projectFile, FileMode.Open, FileAccess.ReadWrite))
             {
-                AssertEx.Throws<IOException>(() =>
-                    {
-                        using var workspace = CreateMSBuildWorkspace();
-                        workspace.OpenProjectAsync(projectFile).Wait();
-                    });
+                using var workspace = CreateMSBuildWorkspace();
+                await workspace.OpenProjectAsync(projectFile);
+                var diagnostic = Assert.Single(workspace.Diagnostics);
+                Assert.Contains("The process cannot access the file", diagnostic.Message);
             }
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenProject_WithNonExistentProjectFile()
+        public async Task TestOpenProject_WithNonExistentProjectFileAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             // open for read-write so no-one else can read
             var projectFile = GetSolutionFileName(@"CSharpProject\NoProject.csproj");
-            AssertEx.Throws<FileNotFoundException>(() =>
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
                 {
                     using var workspace = CreateMSBuildWorkspace();
-                    workspace.OpenProjectAsync(projectFile).Wait();
+                    await workspace.OpenProjectAsync(projectFile);
                 });
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenSolution_WithNonExistentSolutionFile()
+        public async Task TestOpenSolution_WithNonExistentSolutionFileAsync()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             // open for read-write so no-one else can read
             var solutionFile = GetSolutionFileName(@"NoSolution.sln");
-            AssertEx.Throws<FileNotFoundException>(() =>
+            await Assert.ThrowsAsync<FileNotFoundException>(async () =>
                 {
                     using var workspace = CreateMSBuildWorkspace();
-                    workspace.OpenSolutionAsync(solutionFile).Wait();
+                    await workspace.OpenSolutionAsync(solutionFile);
                 });
         }
 
