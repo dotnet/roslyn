@@ -494,9 +494,9 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
                        }
             End If
 
-            Dim commonRootContainer = commonRoot.FirstAncestorOrSelf(Of SyntaxNode)(Function(node) node.Kind = SyntaxKind.ClassBlock Or node.Kind = SyntaxKind.StructureBlock Or node.Kind = SyntaxKind.ModuleBlock)
+            Dim commonRootContainer = commonRoot.FirstAncestorOrSelf(Of SyntaxNode)(Function(node) node.IsKind(SyntaxKind.ClassBlock) Or node.IsKind(SyntaxKind.StructureBlock) Or node.IsKind(SyntaxKind.ModuleBlock))
 
-            If (commonRootContainer Is Nothing) Then
+            If commonRootContainer Is Nothing Then
                 Return New SelectionInfo With
                     {
                         .Status = New OperationStatus(OperationStatusFlag.None, VBFeaturesResources.No_valid_selection_to_perform_extraction),
