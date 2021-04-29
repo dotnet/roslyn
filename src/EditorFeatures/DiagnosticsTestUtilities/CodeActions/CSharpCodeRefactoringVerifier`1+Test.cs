@@ -97,25 +97,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
                 => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
 
+            /// <summary>
+            /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.InProcess"/> if unspecified.
+            /// </summary>
             public TestHost TestHost { get; set; } = TestHost.InProcess;
 
+            /// <summary>
+            /// The set of code action <see cref="CodeAction.Title"/>s offered the user in this exact order.
+            /// Set this to ensure that a very specific set of actions is offered (or not).
+            /// </summary>
             public string[]? ExactActionSetOffered { get; set; }
 
             protected override ImmutableArray<CodeAction> FilterCodeActions(ImmutableArray<CodeAction> actions)
             {
                 var result = base.FilterCodeActions(actions);
-                CheckCodeActions(result);
+
+                if (ExactActionSetOffered != null)
+                {
+                    Verify.Equal(ExactActionSetOffered.Length, result.Length, "Different number of code actions provided");
+                    for (var i = 0; i < result.Length; i++)
+                        Verify.Equal(ExactActionSetOffered[i], result[i].Title);
+                }
+
                 return result;
-            }
-
-            private void CheckCodeActions(ImmutableArray<CodeAction> result)
-            {
-                if (ExactActionSetOffered == null)
-                    return;
-
-                Verify.Equal(ExactActionSetOffered.Length, result.Length, "Different number of code actions provided");
-                for (var i = 0; i < result.Length; i++)
-                    Verify.Equal(ExactActionSetOffered[i], result[i].Title);
             }
 
             private static readonly TestComposition s_editorFeaturesOOPComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
