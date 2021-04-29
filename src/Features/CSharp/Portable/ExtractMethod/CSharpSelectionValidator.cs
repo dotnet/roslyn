@@ -205,8 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 };
             }
 
-            var commonRootClass = commonRoot.FirstAncestorOrSelf<SyntaxNode>(node => node is ClassDeclarationSyntax);
-            if (commonRootClass is null)
+            var commonRootContainer = commonRoot.FirstAncestorOrSelf<SyntaxNode>(node => node is ClassDeclarationSyntax or RecordDeclarationSyntax or StructDeclarationSyntax);
+            if (commonRootContainer is null)
             {
                 return new SelectionInfo
                 {
