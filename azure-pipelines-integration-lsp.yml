@@ -8,6 +8,8 @@ trigger:
 - features/*
 - demos/*
 
+pr: none
+
 jobs:
 - job: VS_Integration_LSP
   pool:
