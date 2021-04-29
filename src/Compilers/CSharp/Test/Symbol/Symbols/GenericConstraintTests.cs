@@ -7123,5 +7123,50 @@ static class Program
                 Diagnostic(ErrorCode.ERR_BadArity, "GetServiceC<>").WithArguments("Program.GetServiceC<T1, T2>()", "method", "2").WithLocation(14, 9)
             );
         }
+
+        [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
+        public void RecursiveConstraintsFromUnifiedAssemblies()
+        {
+            var code = @"
+public abstract class A<T1, T2>
+    where T1 : A<T1, T2>
+    where T2 : A<T1, T2>.B<T1, T2>
+{
+    public abstract class B<T3, T4>
+        where T3 : A<T3, T4>
+        where T4 : A<T3, T4>.B<T3, T4>
+    { }
+}
+public class C : A<C, C.D>
+{
+    public class D : A<C, C.D>.B<C, D>
+    {
+    }
+}
+";
+            var metadataComp = CreateEmptyCompilation(code, new[] { MscorlibRef_v20 }, assemblyName: "assembly1");
+            metadataComp.VerifyDiagnostics();
+            var comp = CreateCompilation(@"System.Console.WriteLine(typeof(C.D).FullName);",
+                new[] { metadataComp.EmitToImageReference() },
+                targetFramework: TargetFramework.Mscorlib45);
+
+            // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+            DiagnosticDescription expectedDiagnostic = Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1);
+
+            // These are unification use-site diagnostics. The original stackoverflow bug here came from checking constraints as part of
+            // unification diagnostic calcluation, so we want to verify that these are present to make sure we're testing the correct scenario.
+            comp.VerifyDiagnostics(
+                    expectedDiagnostic,
+                    // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                    expectedDiagnostic
+                );
+
+            CompileAndVerify(
+                comp.WithOptions(comp.Options.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)),
+                expectedOutput: "C+D");
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.Equal(expectedDiagnostic.Code, c.GetUseSiteDiagnostic().Code);
+        }
     }
 }
