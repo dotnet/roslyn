@@ -152,7 +152,7 @@ jobs:
 
 - job: Correctness_Determinism
   pool:
-    name: NetCorePublic-Pool
+    name: NetCorePublic-Int-Pool
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
@@ -168,7 +168,7 @@ jobs:
 
 - job: Correctness_Build
   pool:
-    name: NetCorePublic-Pool
+    name: NetCorePublic-Int-Pool
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
@@ -200,7 +200,7 @@ jobs:
 
 - job: Correctness_SourceBuild
   pool:
-   name: NetCorePublic-Pool
+   name: NetCorePublic-Int-Pool
    queue: BuildPool.Ubuntu.1604.amd64.Open
   timeoutInMinutes: 90
   steps:
