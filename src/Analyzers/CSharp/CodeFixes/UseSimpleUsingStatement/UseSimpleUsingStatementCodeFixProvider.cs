@@ -119,18 +119,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             {
                 case BlockSyntax blockSyntax:
                     var statements = blockSyntax.Statements;
-                    if (statements.Count() == 0)
+                    if (!statements.Any())
                     {
                         return blockSyntax.CloseBraceToken.LeadingTrivia;
                     }
 
                     var openBraceTrailingTrivia = blockSyntax.OpenBraceToken.TrailingTrivia;
-                    var usingHasNotEndOfLineTrivia = usingStatement.CloseParenToken.TrailingTrivia
-                        .Count(t => t.IsKind(SyntaxKind.EndOfLineTrivia)) == 0;
+                    var usingHasNotEndOfLineTrivia = !usingStatement.CloseParenToken.TrailingTrivia
+                        .Any(SyntaxKind.EndOfLineTrivia); ;
                     if (usingHasNotEndOfLineTrivia)
                     {
                         var newFirstStatement = statements.First()
-                            .WithPrependedLeadingTrivia(CSharpSyntaxFacts.Instance.ElasticCarriageReturnLineFeed);
+                            .WithPrependedLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
                         statements = statements.Replace(statements.First(), newFirstStatement);
                     }
 

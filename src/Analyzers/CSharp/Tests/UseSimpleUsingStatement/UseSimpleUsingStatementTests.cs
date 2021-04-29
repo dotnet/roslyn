@@ -1585,5 +1585,61 @@ class C
 }",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestWithBlockBodyWithOpeningBracketOnSameLineWithNoStatements()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        [||]using (var a = b) {
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using var a = b;
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestWithBlockBodyWithOpeningBracketOnSameLineAndCommentInBlock()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        [||]using (var a = b) {
+            // intentionally empty
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using var a = b;
+        // intentionally empty
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }
