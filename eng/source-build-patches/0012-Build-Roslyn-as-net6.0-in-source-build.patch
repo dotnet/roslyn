@@ -130,18 +130,6 @@ index 74da0c2bdd3..b6af0715406 100644
              {
                  var uri = new Uri(codebase);
                  return uri.IsFile ? uri.LocalPath : assembly.Location;
-diff --git a/src/Compilers/Server/VBCSCompiler/ClientConnectionHandler.cs b/src/Compilers/Server/VBCSCompiler/ClientConnectionHandler.cs
-index 6bda91e310b..ce7b044b208 100644
---- a/src/Compilers/Server/VBCSCompiler/ClientConnectionHandler.cs
-+++ b/src/Compilers/Server/VBCSCompiler/ClientConnectionHandler.cs
-@@ -8,7 +8,6 @@
- using System.IO;
- using System.IO.Pipes;
- using System.Net.Sockets;
--using System.Runtime.InteropServices.WindowsRuntime;
- using System.Text;
- using System.Threading;
- using System.Threading.Tasks;
 diff --git a/src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj b/src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj
 index ec4dd26af5c..f43748ae3da 100644
 --- a/src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj
