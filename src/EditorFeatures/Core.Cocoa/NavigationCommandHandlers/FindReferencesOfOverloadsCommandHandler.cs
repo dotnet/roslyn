@@ -73,9 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
         private static async Task<ISymbol[]> GatherSymbolsAsync(ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, CancellationToken token)
         {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-            var implementations = await SymbolFinder.FindImplementationsAsync(symbol, solution, null, token);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+            var implementations = await SymbolFinder.FindImplementationsAsync(symbol, solution, null, token).ConfigureAwait(false);
             var result = new ISymbol[implementations.Count() + 1];
             result[0] = symbol;
             var i = 1;
@@ -92,9 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             try
             {
                 // first, let's see if we even have a comment, otherwise there's no use in starting a search
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, new CancellationToken());
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                var relevantSymbol = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, new CancellationToken()).ConfigureAwait(false);
                 var symbol = relevantSymbol?.symbol;
                 if (symbol == null)
                     return; // would be useful if we could notify the user why we didn't do anything
@@ -116,8 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     foreach (var curSymbol in symbol.ContainingType.GetMembers()
                                                     .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
                     {
-                        Compilation compilation;
-                        if (!document.Project.TryGetCompilation(out compilation))
+                        if (!document.Project.TryGetCompilation(out var compilation))
                         {
                             // TODO: should we do anything more here?
                             continue;
@@ -126,18 +121,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         foreach (var sym in SymbolFinder.FindSimilarSymbols(curSymbol, compilation, cancellationToken))
                         {
                             // assumption here is, that FindSimilarSymbols returns symbols inside same project
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            var symbolsToAdd = await GatherSymbolsAsync(sym, document.Project.Solution, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                            var symbolsToAdd = await GatherSymbolsAsync(sym, document.Project.Solution, cancellationToken).ConfigureAwait(false);
                             symbolsToLookup.AddRange(symbolsToAdd);
                         }
                     }
 
                     foreach (var candidate in symbolsToLookup)
                     {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        await AbstractFindUsagesService.FindSymbolReferencesAsync(context, candidate, document.Project, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                        await AbstractFindUsagesService.FindSymbolReferencesAsync(context, candidate, document.Project, cancellationToken).ConfigureAwait(false);
                     }
 
                     // Note: we don't need to put this in a finally.  The only time we might not hit
