@@ -236,11 +236,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 Presenter.AssertIsForeground();
 
-                // Cancel any in flight find work that is going on.  Note: we do not need to Dispose
-                // this CTS as we own it's lifetime and never use the Timer/WaitHandle portion of it.
-                // As such, there are no underlying resources we need to return back to the system.
-                // No disposing avoids us having to worry about logic about double disposing or observing
-                // ObjectDisposedExceptions on this type when used.
+                // Cancel any in flight find work that is going on. Note: disposal happens in our own
+                // implementation of IDisposable.Dispose.
                 CancellationTokenSource.Cancel();
             }
 
