@@ -13,6 +13,7 @@
   
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests" />
     <!--
       ⚠ ONLY OMNISHARP ASSEMBLIES MAY BE ADDED HERE ⚠
     -->

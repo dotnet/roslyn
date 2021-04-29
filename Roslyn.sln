@@ -493,6 +493,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp", "src\Tools\ExternalAccess\OmniSharp.CSharp\Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.csproj", "{AE976DE9-811D-4C86-AEBB-DCDC1226D754}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests", "src\Tools\ExternalAccess\OmniSharpTest\Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests.csproj", "{3829F774-33F2-41E9-B568-AE555004FC62}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -1284,6 +1286,10 @@ Global
 		{AE976DE9-811D-4C86-AEBB-DCDC1226D754}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE976DE9-811D-4C86-AEBB-DCDC1226D754}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE976DE9-811D-4C86-AEBB-DCDC1226D754}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3829F774-33F2-41E9-B568-AE555004FC62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3829F774-33F2-41E9-B568-AE555004FC62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3829F774-33F2-41E9-B568-AE555004FC62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3829F774-33F2-41E9-B568-AE555004FC62}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1509,6 +1515,7 @@ Global
 		{BB987FFC-B758-4F73-96A3-923DE8DCFF1A} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{1B73FB08-9A17-497E-97C5-FA312867D51B} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{AE976DE9-811D-4C86-AEBB-DCDC1226D754} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{3829F774-33F2-41E9-B568-AE555004FC62} = {8977A560-45C2-4EC2-A849-97335B382C74}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
