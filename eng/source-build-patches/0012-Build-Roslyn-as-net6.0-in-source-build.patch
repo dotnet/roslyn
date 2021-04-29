@@ -182,7 +182,7 @@ index dcb5df09f24..0f3093bdc54 100644
 +    <TargetFramework>$(TargetFrameworkForNETSDK)</TargetFramework>
  
      <IsPackable>true</IsPackable>
-     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+     <NuspecPackageId>Microsoft.NETCore.Compilers</NuspecPackageId>
 diff --git a/src/NuGet/Microsoft.Net.Compilers.Toolset/CoreClrCompilerArtifacts.targets b/src/NuGet/Microsoft.Net.Compilers.Toolset/CoreClrCompilerArtifacts.targets
 index 45590df74bb..f34eea8d105 100644
 --- a/src/NuGet/Microsoft.Net.Compilers.Toolset/CoreClrCompilerArtifacts.targets
