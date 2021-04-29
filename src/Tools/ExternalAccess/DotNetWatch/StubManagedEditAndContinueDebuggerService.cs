@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
             return Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
         }
 
+        public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
+        }
+
         public Task PrepareModuleForUpdateAsync(Guid moduleVersionId, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;

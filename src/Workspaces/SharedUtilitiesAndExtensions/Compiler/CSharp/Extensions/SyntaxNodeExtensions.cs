@@ -136,6 +136,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5 || csharpKind == kind6 || csharpKind == kind7 || csharpKind == kind8;
         }
 
+        public static bool IsKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5, SyntaxKind kind6, SyntaxKind kind7, SyntaxKind kind8, SyntaxKind kind9, SyntaxKind kind10)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            var csharpKind = node.Kind();
+            return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5 || csharpKind == kind6 || csharpKind == kind7 || csharpKind == kind8 || csharpKind == kind9 || csharpKind == kind10;
+        }
+
         public static bool IsKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5, SyntaxKind kind6, SyntaxKind kind7, SyntaxKind kind8, SyntaxKind kind9, SyntaxKind kind10, SyntaxKind kind11)
         {
             if (node == null)
@@ -890,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             throw new ArgumentOutOfRangeException(nameof(position));
         }
 
-        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetParentheses(this SyntaxNode node)
+        public static (SyntaxToken openParen, SyntaxToken closeParen) GetParentheses(this SyntaxNode node)
         {
             switch (node)
             {
@@ -922,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBrackets(this SyntaxNode node)
+        public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBrackets(this SyntaxNode node)
         {
             switch (node)
             {
@@ -941,6 +952,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
                 case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
+                case LocalFunctionStatementSyntax localFunction: return localFunction.Modifiers;
+                case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.Modifiers;
             }
 
             return default;
@@ -952,6 +965,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
                 case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
+                case LocalFunctionStatementSyntax localFunction: return localFunction.WithModifiers(modifiers);
+                case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.WithModifiers(modifiers);
             }
 
             return null;

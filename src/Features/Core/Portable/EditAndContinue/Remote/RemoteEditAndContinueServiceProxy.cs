@@ -48,6 +48,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public ValueTask<ManagedEditAndContinueAvailability> GetAvailabilityAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
                 => ((EditSessionCallback)GetCallback(callbackId)).GetAvailabilityAsync(mvid, cancellationToken);
 
+            public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+                => ((EditSessionCallback)GetCallback(callbackId)).GetCapabilitiesAsync(cancellationToken);
+
             public ValueTask PrepareModuleForUpdateAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
                 => ((EditSessionCallback)GetCallback(callbackId)).PrepareModuleForUpdateAsync(mvid, cancellationToken);
         }
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _documentProvider(cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return ImmutableArray<TextSpan>.Empty;
                 }
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _solutionProvider(documentId, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return ImmutableArray<TextSpan>.Empty;
                 }
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _debuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
                 }
@@ -122,7 +125,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _debuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.InternalError, e.Message);
                 }
@@ -134,9 +137,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     await _debuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     // nop
+                }
+            }
+
+            public async ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+            {
+                try
+                {
+                    return await _debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                {
+                    return ImmutableArray<string>.Empty;
                 }
             }
         }
@@ -273,7 +288,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return result.HasValue ? result.Value : true;
         }
 
-        public async ValueTask<ManagedModuleUpdates> EmitSolutionUpdateAsync(
+        public async ValueTask<(
+                ManagedModuleUpdates updates,
+                ImmutableArray<DiagnosticData> diagnostics,
+                ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>)> EmitSolutionUpdateAsync(
             Solution solution,
             SolutionActiveStatementSpanProvider activeStatementSpanProvider,
             IDiagnosticAnalyzerService diagnosticService,
@@ -282,7 +300,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             ManagedModuleUpdates moduleUpdates;
             ImmutableArray<DiagnosticData> diagnosticData;
-            IEnumerable<DocumentId> documentsWithRudeEdits;
+            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits;
 
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -290,11 +308,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var results = await GetLocalService().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                 moduleUpdates = results.ModuleUpdates;
                 diagnosticData = results.GetDiagnosticData(solution);
-                documentsWithRudeEdits = results.DocumentsWithRudeEdits.Select(d => d.DocumentId);
+                rudeEdits = results.RudeEdits;
             }
             else
             {
-                var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, (ManagedModuleUpdates, ImmutableArray<DiagnosticData>, ImmutableArray<DocumentId>)>(
+                var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, EmitSolutionUpdateResults.Data>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) => service.EmitSolutionUpdateAsync(solutionInfo, callbackId, cancellationToken),
                     callbackTarget: new SolutionActiveStatementSpanProviderCallback(activeStatementSpanProvider),
@@ -302,13 +320,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (result.HasValue)
                 {
-                    (moduleUpdates, diagnosticData, documentsWithRudeEdits) = result.Value;
+                    moduleUpdates = result.Value.ModuleUpdates;
+                    diagnosticData = result.Value.Diagnostics;
+                    rudeEdits = result.Value.RudeEdits;
                 }
                 else
                 {
                     moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
                     diagnosticData = ImmutableArray<DiagnosticData>.Empty;
-                    documentsWithRudeEdits = SpecializedCollections.EmptyEnumerable<DocumentId>();
+                    rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
                 }
             }
 
@@ -316,12 +336,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticUpdateSource.ClearDiagnostics();
 
             // clear all reported rude edits:
-            diagnosticService.Reanalyze(Workspace, documentIds: documentsWithRudeEdits);
+            diagnosticService.Reanalyze(Workspace, documentIds: rudeEdits.Select(d => d.DocumentId));
 
             // report emit/apply diagnostics:
             diagnosticUpdateSource.ReportDiagnostics(Workspace, solution, diagnosticData);
 
-            return moduleUpdates;
+            return (moduleUpdates, diagnosticData, rudeEdits);
         }
 
         public async ValueTask CommitSolutionUpdateAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)

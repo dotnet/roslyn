@@ -46,6 +46,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
             Contract.ThrowIfNull(context.Solution);
 
+            if (completionItem is not VSCompletionItem vsCompletionItem)
+            {
+                return completionItem;
+            }
+
             CompletionResolveData data;
             if (completionItem.Data is JToken token)
             {
@@ -63,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return completionItem;
             }
 
-            int offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
+            var offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
             var completionService = document.Project.LanguageServices.GetRequiredService<IXamlCompletionService>();
             var symbol = await completionService.GetSymbolAsync(new XamlCompletionContext(document, offset), completionItem.Label, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol == null)
@@ -73,29 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             var description = await symbol.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var vsCompletionItem = CloneVSCompletionItem(completionItem);
             vsCompletionItem.Description = new ClassifiedTextElement(description.Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
             return vsCompletionItem;
-        }
-
-        private static LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
-        {
-            return new LSP.VSCompletionItem
-            {
-                AdditionalTextEdits = completionItem.AdditionalTextEdits,
-                Command = completionItem.Command,
-                CommitCharacters = completionItem.CommitCharacters,
-                Data = completionItem.Data,
-                Detail = completionItem.Detail,
-                Documentation = completionItem.Documentation,
-                FilterText = completionItem.FilterText,
-                InsertText = completionItem.InsertText,
-                InsertTextFormat = completionItem.InsertTextFormat,
-                Kind = completionItem.Kind,
-                Label = completionItem.Label,
-                SortText = completionItem.SortText,
-                TextEdit = completionItem.TextEdit
-            };
         }
     }
 }
