@@ -1498,5 +1498,92 @@ class C
 }",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestWithBlockBodyWithOpeningBracketOnSameLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        [||]using (var a = b){
+            Console.WriteLine(a);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using var a = b;
+        Console.WriteLine(a);
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestWithBlockBodyWithOpeningBracketOnSameLine2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        [||]using (var a = b) {
+            Console.WriteLine(a);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using var a = b;
+        Console.WriteLine(a);
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
+
+        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestWithBlockBodyWithOpeningBracketAndCommentOnSameLine()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        [||]using (var a = b) { //comment
+            Console.WriteLine(a);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using var a = b;  //comment
+        Console.WriteLine(a);
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }
