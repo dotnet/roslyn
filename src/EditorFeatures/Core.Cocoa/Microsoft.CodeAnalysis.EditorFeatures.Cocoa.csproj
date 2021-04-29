@@ -44,11 +44,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Manual exclusions for unwanted interop assemblies -->
-    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" ExcludeAssets="all" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!--
       Mono doesn't support embedded interop types, and this package has a targets file that turns it on for all VS SDK librarys, and
       the package ends up being transitively brought in. To combat this for Mac, we can explictly include the package and exclude
