@@ -20,11 +20,4 @@ namespace Microsoft.CodeAnalysis
             this.node = node;
         }
     }
-
-    /// <summary>
-    /// Internal representation of an incremental output
-    /// </summary>
-    internal interface IIncrementalGeneratorOutputNode
-    {
-    }
 }

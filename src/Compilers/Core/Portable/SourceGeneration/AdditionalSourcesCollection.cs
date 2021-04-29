@@ -71,10 +71,6 @@ namespace Microsoft.CodeAnalysis
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
         }
 
-        public void AddRange(ImmutableArray<GeneratedSourceText> texts) => _sourcesAdded.AddRange(texts);
-
-        public void AddRange(ImmutableArray<GeneratedSyntaxTree> trees) => _sourcesAdded.AddRange(trees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)));
-
         public void RemoveSource(string hintName)
         {
             hintName = AppendExtensionIfRequired(hintName);
@@ -102,6 +98,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree() => _sourcesAdded.ToImmutableAndFree();
+
+        internal ImmutableArray<GeneratedSourceText> ToImmutable() => _sourcesAdded.ToImmutable();
+
+        internal void Free() => _sourcesAdded.Free();
 
         private string AppendExtensionIfRequired(string hintName)
         {

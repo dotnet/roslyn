@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -27,15 +28,27 @@ namespace Microsoft.CodeAnalysis
             _tables = tables;
         }
 
+        internal NodeStateTable<T> GetStateTable<T>(IIncrementalGeneratorNode<T> input) => _tables.ContainsKey(input) ? (NodeStateTable<T>)_tables[input] : NodeStateTable<T>.Empty;
+
+        internal DriverStateTable SetStateTable<T>(IIncrementalGeneratorNode<T> input, NodeStateTable<T> table) => new DriverStateTable(_tables.SetItem(input, table));
+
         public sealed class Builder
         {
             private readonly ImmutableDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableDictionary.CreateBuilder<object, IStateTable>();
 
             private readonly DriverStateTable _previousTable;
 
-            public Builder(DriverStateTable previousTable)
+            private readonly CancellationToken _cancellationToken;
+
+            public Builder(DriverStateTable previousTable, CancellationToken cancellationToken = default)
             {
                 _previousTable = previousTable;
+                _cancellationToken = cancellationToken;
+            }
+
+            public void SetInputState<T>(InputNode<T> source, NodeStateTable<T> state)
+            {
+                _tableBuilder[source] = state;
             }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
@@ -47,12 +60,10 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // get the previous table, if there was one for this node
-                NodeStateTable<T> previousTable = _previousTable._tables.ContainsKey(source)
-                                                  ? (NodeStateTable<T>)_previousTable._tables[source]
-                                                  : NodeStateTable<T>.Empty;
+                NodeStateTable<T> previousTable = _previousTable.GetStateTable(source);
 
                 // request the node update its state based on the current driver table and store the new result
-                var newTable = source.UpdateStateTable(this, previousTable);
+                var newTable = source.UpdateStateTable(this, previousTable, _cancellationToken);
                 _tableBuilder[source] = newTable;
                 return newTable;
             }

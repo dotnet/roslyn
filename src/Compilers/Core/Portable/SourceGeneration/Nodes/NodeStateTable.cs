@@ -55,9 +55,12 @@ namespace Microsoft.CodeAnalysis
     {
         internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, isCompacted: true, exception: null);
 
-        //PROTOTYPE: there is no need to store the state per item
+        // PROTOTYPE(source-generators): there is no need to store the state per item
         //           we can instead store one state per input, with
         //           an optional set for modified states.
+
+        // PROTOTYPE(source-generators): It seems common that we'll have a lot of immutable arrays of length 1
+        //           we should make it a discriminated union that has either 1 or more items instead.
         private readonly ImmutableArray<ImmutableArray<(T item, EntryState state)>> _states;
 
         private readonly bool _isCompacted;
@@ -72,6 +75,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public bool IsFaulted { get => _exception is not null; }
+
+        public bool IsEmpty { get => _states.Length == 0; }
+
+        public int Count { get => _states.Length; }
 
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
         {
@@ -99,6 +106,31 @@ namespace Microsoft.CodeAnalysis
 
         IStateTable IStateTable.Compact() => Compact();
 
+        public ImmutableArray<T> Batch(out bool allCached)
+        {
+            allCached = true;
+            var sourceBuilder = ArrayBuilder<T>.GetInstance();
+            foreach (var entry in this)
+            {
+                allCached &= entry.state == EntryState.Cached;
+
+                // we don't return removed entries to the downstream node.
+                // we're creating a new state table as part of this call, so they're no longer needed
+                if (entry.state != EntryState.Removed)
+                {
+                    sourceBuilder.Add(entry.item);
+                }
+            }
+            return sourceBuilder.ToImmutableAndFree();
+        }
+
+        public Builder ToBuilder(int? extraCapacity = null)
+        {
+            Debug.Assert(!this.IsFaulted);
+            int? capacity = extraCapacity.HasValue ? this._states.Length + extraCapacity.Value : null;
+            return new Builder(this, capacity);
+        }
+
         // PROTOTYPE: this will be called to allow exceptions to flow through the graph
         public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
         {
@@ -106,11 +138,29 @@ namespace Microsoft.CodeAnalysis
             return new NodeStateTable<T>(Empty._states, isCompacted: true, table._exception);
         }
 
+        public static NodeStateTable<T> WithSingleItem(T item, EntryState state)
+        {
+            return new NodeStateTable<T>(ImmutableArray.Create(ImmutableArray.Create((item, state))), isCompacted: false, exception: null);
+        }
+
         public sealed class Builder
         {
-            private readonly ArrayBuilder<ImmutableArray<(T, EntryState)>> _states = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
+            private readonly ArrayBuilder<ImmutableArray<(T, EntryState)>> _states;
 
             private Exception? _exception = null;
+
+            public Builder(int? capacity = null)
+            {
+                _states = capacity.HasValue
+                          ? ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance(capacity.Value)
+                          : ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
+            }
+
+            public Builder(NodeStateTable<T> previous, int? capacity = null)
+                : this(capacity)
+            {
+                _states.AddRange(previous._states);
+            }
 
             public void AddEntries(ImmutableArray<T> values, EntryState state)
             {
@@ -119,7 +169,7 @@ namespace Microsoft.CodeAnalysis
 
             public void AddEntriesFromPreviousTable(NodeStateTable<T> previousTable, EntryState newState)
             {
-                // PROTOTYPE(source-generators): this doens't hold true if the node is added after an initial run. That 
+                // PROTOTYPE(source-generators): this doesn't hold true if the node is added after an initial run. That 
                 //                               will occur in the IDE, so we'll need to make sure we support empty tables
                 //                               that see cached/removed entries upstream.
                 Debug.Assert(previousTable._states.Length > _states.Count);
@@ -127,12 +177,70 @@ namespace Microsoft.CodeAnalysis
                 _states.Add(previousEntries);
             }
 
+            public void ModifyEntriesFromPreviousTable(NodeStateTable<T> previousTable, ImmutableArray<T> outputs)
+            {
+
+                // Semantics:
+                // For every slot in the previous table, we compare the new value.
+                // - Cached when the same
+                // - Modified when different
+                // - Removed when i > outputs.length
+                // - Added when i < previousTable.length
+
+
+                // PROTOTYPE(source-generators): this doesn't hold true if the node is added after an initial run. That 
+                //                               will occur in the IDE, so we'll need to make sure we support empty tables
+                //                               that see cached/removed entries upstream.
+                Debug.Assert(previousTable._states.Length > _states.Count);
+
+                var previousEntries = previousTable._states[_states.Count];
+                var modifiedEntries = ArrayBuilder<(T item, EntryState state)>.GetInstance();
+
+                var previousEnumerator = previousEntries.GetEnumerator();
+                var outputEnumerator = outputs.GetEnumerator();
+
+                bool previousHasItems = previousEnumerator.MoveNext();
+                bool outputHasItems = outputEnumerator.MoveNext();
+
+                // cached or modified items
+                while (previousHasItems && outputHasItems)
+                {
+                    var previous = previousEnumerator.Current;
+                    var replacement = outputEnumerator.Current;
+
+                    // PROTOTYPE(source-generators): support custom IEqualityComparer
+                    var cached = EqualityComparer<T>.Default.Equals(previous.item, replacement);
+                    modifiedEntries.Add((replacement, cached ? EntryState.Cached : EntryState.Modified));
+
+                    previousHasItems = previousEnumerator.MoveNext();
+                    outputHasItems = outputEnumerator.MoveNext();
+                }
+
+                // removed
+                while (previousHasItems)
+                {
+                    modifiedEntries.Add((previousEnumerator.Current.item, EntryState.Removed));
+                    previousHasItems = previousEnumerator.MoveNext();
+                }
+
+                // added
+                while (outputHasItems)
+                {
+                    modifiedEntries.Add((outputEnumerator.Current, EntryState.Added));
+                    outputHasItems = outputEnumerator.MoveNext();
+                }
+
+                _states.Add(modifiedEntries.ToImmutableAndFree());
+            }
+
             public void SetFaulted(Exception e)
             {
                 _exception = e;
             }
 
-            public NodeStateTable<T> ToImmutableAndFree() => new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: false, exception: _exception);
+            public NodeStateTable<T> ToImmutableAndFree() => _states.Count == 0
+                                                             ? NodeStateTable<T>.Empty
+                                                             : new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: false, exception: _exception);
         }
     }
 }

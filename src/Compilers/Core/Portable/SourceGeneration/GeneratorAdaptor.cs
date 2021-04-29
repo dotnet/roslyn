@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 
-namespace Microsoft.CodeAnalysis.SourceGeneration
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Adapts an ISourceGenerator to an incremental generator that
@@ -31,15 +32,56 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             GeneratorInitializationContext oldContext = new GeneratorInitializationContext(context.CancellationToken);
             SourceGenerator.Initialize(oldContext);
 
-            if (oldContext.InfoBuilder.PostInitCallback is object)
-            {
-                context.RegisterForPostInitialization(oldContext.InfoBuilder.PostInitCallback);
-            }
+            context.InfoBuilder.PostInitCallback = oldContext.InfoBuilder.PostInitCallback;
+            context.InfoBuilder.SyntaxContextReceiverCreator = oldContext.InfoBuilder.SyntaxContextReceiverCreator;
 
             context.RegisterExecutionPipeline((ctx) =>
             {
-                // PROTOTYPE(source-generators): this is where we'll build the actual emulation pipeline
+                var context = ctx.Sources.Compilation
+                                         .Transform(c => new GeneratorContextBuilder(c))
+                                         .Join(ctx.Sources.ParseOptions).Transform(p => p.Item1 with { ParseOptions = p.Item2.FirstOrDefault() })
+                                         .Join(ctx.Sources.AnalyzerConfigOptions).Transform(p => p.Item1 with { ConfigOptions = p.Item2.FirstOrDefault() })
+                                         .Join(ctx.Sources.CreateSyntaxReceiver()).Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() })
+                                         .Join(ctx.Sources.AdditionalTexts).Transform(p => p.Item1 with { AdditionalTexts = p.Item2.ToImmutableArray() });
+
+                var output = context.GenerateSource((context, contextBuilder) =>
+                {
+                    var oldContext = contextBuilder.ToExecutionContext(context.CancellationToken);
+
+                    // PROTOTYPE(source-generators):If this throws, we'll wrap it in a user func as expected. We probably *shouldn't* do that for the rest of this code though
+                    // So we probably need an internal version that doesn't wrap it? Maybe we can just construct the nodes manually.
+                    SourceGenerator.Execute(oldContext);
+
+                    // PROTOTYPE(source-generators): we should make the internals visible so we can just add directly here
+                    (var source, var diagnostics) = oldContext.ToImmutableAndFree();
+                    foreach (var s in source)
+                    {
+                        context.AddSource(s.HintName, s.Text);
+                    }
+                    foreach (var d in diagnostics)
+                    {
+                        context.ReportDiagnostic(d);
+                    }
+                });
+                ctx.RegisterOutput(output);
             });
+        }
+
+        internal record GeneratorContextBuilder(Compilation Compilation)
+        {
+            public ParseOptions? ParseOptions;
+
+            public ImmutableArray<AdditionalText> AdditionalTexts;
+
+            public Diagnostics.AnalyzerConfigOptionsProvider? ConfigOptions;
+
+            public ISyntaxContextReceiver? Receiver;
+
+            public GeneratorExecutionContext ToExecutionContext(CancellationToken cancellationToken)
+            {
+                Debug.Assert(ParseOptions is object && ConfigOptions is object);
+                return new GeneratorExecutionContext(Compilation, ParseOptions, AdditionalTexts, ConfigOptions, Receiver, cancellationToken);
+            }
         }
     }
 }

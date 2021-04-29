@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class UserFunctionException : Exception
     {
+        public new Exception InnerException => base.InnerException!;
+
         public UserFunctionException(Exception innerException)
             : base("User provided code threw an exception", innerException)
         {
@@ -25,6 +27,21 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     return userFunction(input);
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                {
+                    throw new UserFunctionException(e);
+                }
+            };
+        }
+
+        internal static Action<TInput1, TInput2> WrapUserAction<TInput1, TInput2>(this Action<TInput1, TInput2> userFunction)
+        {
+            return (input1, input2) =>
+            {
+                try
+                {
+                    userFunction(input1, input2);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
                 {

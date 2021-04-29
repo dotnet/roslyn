@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of value this step operates on</typeparam>
     internal interface IIncrementalGeneratorNode<T>
     {
-        NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable);
+        NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken);
 
         // PROTOTYPE: will allow for custom comparison of values stored in statetables
         IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer);

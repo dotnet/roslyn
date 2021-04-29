@@ -12,17 +12,22 @@ namespace Microsoft.CodeAnalysis
     {
         internal GeneratorDriverState(ParseOptions parseOptions,
                                       AnalyzerConfigOptionsProvider optionsProvider,
-                                      ImmutableArray<ISourceGenerator> generators,
+                                      ImmutableArray<ISourceGenerator> sourceGenerators,
+                                      ImmutableArray<IIncrementalGenerator> incrementalGenerators,
                                       ImmutableArray<AdditionalText> additionalTexts,
-                                      ImmutableArray<GeneratorState> generatorStates)
+                                      ImmutableArray<GeneratorState> generatorStates,
+                                      DriverStateTable stateTable)
         {
-            Generators = generators;
+            Generators = sourceGenerators;
+            IncrementalGenerators = incrementalGenerators;
             GeneratorStates = generatorStates;
             AdditionalTexts = additionalTexts;
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
+            StateTable = stateTable;
 
             Debug.Assert(Generators.Length == GeneratorStates.Length);
+            Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
 
         /// <summary>
@@ -33,6 +38,15 @@ namespace Microsoft.CodeAnalysis
         /// If there are any states present in <see cref="GeneratorStates" />, they were produced by a subset of these generators.
         /// </remarks>
         internal readonly ImmutableArray<ISourceGenerator> Generators;
+
+        /// <summary>
+        /// The set of <see cref="IIncrementalGenerator"/>s associated with this state.
+        /// </summary>
+        /// <remarks>
+        /// This is the 'internal' representation of the <see cref="Generators"/> collection. There is a 1-to-1 mapping
+        /// where each entry is either the unwrapped incremental generator or a wrapped <see cref="ISourceGenerator"/>
+        /// </remarks>
+        internal readonly ImmutableArray<IIncrementalGenerator> IncrementalGenerators;
 
         /// <summary>
         /// The last run state of each generator, by the generator that created it
@@ -58,18 +72,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal readonly ParseOptions ParseOptions;
 
+        internal readonly DriverStateTable StateTable;
+
         internal GeneratorDriverState With(
-            ImmutableArray<ISourceGenerator>? generators = null,
+            ImmutableArray<ISourceGenerator>? sourceGenerators = null,
+            ImmutableArray<IIncrementalGenerator>? incrementalGenerators = null,
             ImmutableArray<GeneratorState>? generatorStates = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
-            bool? editsFailed = null)
+            DriverStateTable? stateTable = null)
         {
             return new GeneratorDriverState(
                 this.ParseOptions,
                 this.OptionsProvider,
-                generators ?? this.Generators,
+                sourceGenerators ?? this.Generators,
+                incrementalGenerators ?? this.IncrementalGenerators,
                 additionalTexts ?? this.AdditionalTexts,
-                generatorStates ?? this.GeneratorStates
+                generatorStates ?? this.GeneratorStates,
+                stateTable ?? this.StateTable
                 );
         }
     }
