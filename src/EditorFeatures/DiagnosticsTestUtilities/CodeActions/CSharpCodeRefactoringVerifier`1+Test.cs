@@ -7,10 +7,18 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Host.Mef;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeActions;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Threading;
 
 #if !CODE_STYLE
 using System;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 #endif
 
@@ -85,8 +93,66 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             public string? EditorConfig { get; set; }
 
 #if !CODE_STYLE
+            private readonly List<AdhocWorkspace> _workspaces = new();
+
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
                 => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
+
+            public TestHost TestHost { get; set; } = TestHost.InProcess;
+
+            public string[]? ExactActionSetOffered { get; set; }
+
+            protected override ImmutableArray<CodeAction> FilterCodeActions(ImmutableArray<CodeAction> actions)
+            {
+                var result = base.FilterCodeActions(actions);
+                CheckCodeActions(result);
+                return result;
+            }
+
+            private void CheckCodeActions(ImmutableArray<CodeAction> result)
+            {
+                if (ExactActionSetOffered == null)
+                    return;
+
+                Verify.Equal(ExactActionSetOffered.Length, result.Length, "Different number of code actions provided");
+                for (var i = 0; i < result.Length; i++)
+                    Verify.Equal(ExactActionSetOffered[i], result[i].Title);
+            }
+
+            private static readonly TestComposition s_editorFeaturesOOPComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
+
+            public override AdhocWorkspace CreateWorkspace()
+            {
+                if (TestHost == TestHost.InProcess)
+                    return base.CreateWorkspace();
+
+                var hostServices = s_editorFeaturesOOPComposition.GetHostServices();
+                var workspace = new AdhocWorkspace(hostServices);
+                lock (_workspaces)
+                    _workspaces.Add(workspace);
+
+                return workspace;
+            }
+
+            public override async Task RunAsync(CancellationToken cancellationToken = default)
+            {
+                try
+                {
+                    await base.RunAsync(cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    var workspaces = new List<AdhocWorkspace>();
+                    lock (_workspaces)
+                    {
+                        workspaces.AddRange(_workspaces);
+                        _workspaces.Clear();
+                    }
+
+                    foreach (var workspace in workspaces)
+                        workspace.Dispose();
+                }
+            }
 #endif
         }
     }
