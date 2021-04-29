@@ -1351,7 +1351,7 @@ class Test
 {
     void Method()
     {
-        var t1 = /*1*/ [||]( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ b /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
+        var t1 = /*1*/ [||]( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ {|CS0103:b|} /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
     }
 }
 ";
@@ -1361,7 +1361,7 @@ class Test
 {
     void Method()
     {
-        var t1 = /*1*/ new NewStruct( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ b /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
+        var t1 = /*1*/ new NewStruct( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ {|CS0103:b|} /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
     }
 }
 
@@ -1407,29 +1407,7 @@ internal struct NewStruct
         return new NewStruct(value.a, value.Item2);
     }
 }";
-            var test = new VerifyCS.Test
-            {
-                TestCode = text,
-                FixedCode = expected,
-                TestHost = host,
-                ExpectedDiagnostics =
-                {
-    // /0/Test0.cs(6,64): error CS0103: The name 'b' does not exist in the current context
-    DiagnosticResult.CompilerError("CS0103").WithSpan(7, 64, 7, 65).WithArguments("b"),
-                },
-                FixedState =
-                {
-                    ExpectedDiagnostics =
-                    {
-                        
-    // /0/Test0.cs(6,77): error CS0103: The name 'b' does not exist in the current context
-    DiagnosticResult.CompilerError("CS0103").WithSpan(7, 77, 7, 78).WithArguments("b"),
-                    }
-                }
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+            await Test(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
