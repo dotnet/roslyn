@@ -2739,10 +2739,7 @@ internal struct NewStruct
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task UpdateAllInType_MultiplePart_MultipleFile(TestHost host)
         {
-            var text = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            var text1 = @"
 using System;
 
 partial class Test
@@ -2759,9 +2756,8 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-        <Document>
+}";
+            var text2 = @"
 using System;
 
 partial class Test
@@ -2769,6 +2765,7 @@ partial class Test
     (int a, int b) Goo()
     {
         var t2 = (a: 3, b: 4);
+        return default;
     }
 }
 
@@ -2778,15 +2775,9 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            var expected1 = @"
 using System;
 
 partial class Test
@@ -2818,8 +2809,8 @@ internal struct NewStruct
 
     public override bool Equals(object obj)
     {
-        return obj is NewStruct other &amp;&amp;
-               a == other.a &amp;&amp;
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -2846,8 +2837,8 @@ internal struct NewStruct
     {
         return new NewStruct(value.a, value.b);
     }
-}</Document>
-        <Document>
+}";
+            var expected2 = @"
 using System;
 
 partial class Test
@@ -2855,6 +2846,7 @@ partial class Test
     NewStruct Goo()
     {
         var t2 = new NewStruct(a: 3, b: 4);
+        return default;
     }
 }
 
@@ -2864,11 +2856,32 @@ partial class Other
     {
         var t1 = (a: 1, b: 2);
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await Test(text, expected, index: 1, options: PreferImplicitTypeWithInfo(), testHost: host);
+}";
+
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        text1,
+                        text2,
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                CodeActionIndex = 1,
+                TestHost = host,
+            };
+
+            test.Options.AddRange(PreferImplicitTypeWithInfo());
+            await test.RunAsync();
         }
 
         #endregion update containing project tests
@@ -2962,8 +2975,8 @@ namespace N
 
         public override bool Equals(object obj)
         {
-            return obj is NewStruct other &amp;&amp;
-                   a == other.a &amp;&amp;
+            return obj is NewStruct other &&
+                   a == other.a &&
                    b == other.b;
         }
 
@@ -3097,8 +3110,8 @@ public struct NewStruct
 
     public override bool Equals(object obj)
     {
-        return obj is NewStruct other &amp;&amp;
-               a == other.a &amp;&amp;
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
@@ -3220,8 +3233,8 @@ public struct NewStruct
 
     public override bool Equals(object obj)
     {
-        return obj is NewStruct other &amp;&amp;
-               a == other.a &amp;&amp;
+        return obj is NewStruct other &&
+               a == other.a &&
                b == other.b;
     }
 
