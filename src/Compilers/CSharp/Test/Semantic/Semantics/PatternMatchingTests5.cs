@@ -235,6 +235,7 @@ class C
         _ = new C() is { Prop1->Prop2: {} };
         _ = new C() is { Prop1?.Prop2: {} };
         _ = new C() is { Prop1[0]: {} };
+        _ = new C() is { 1: {} };
     }
 }
 ";
@@ -263,7 +264,10 @@ class C
                     Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(9, 34),
                     // (9,36): error CS1003: Syntax error, ',' expected
                     //         _ = new C() is { Prop1[0]: {} };
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(9, 36));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(9, 36),
+                    // (10,26): error CS9000: Identifier or a simple member access expected.
+                    //         _ = new C() is { 1: {} };
+                    Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "1").WithLocation(10, 26));
         }
 
         [Fact]
