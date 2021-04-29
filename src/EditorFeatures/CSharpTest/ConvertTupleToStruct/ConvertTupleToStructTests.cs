@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 FixedCode = expected,
                 TestHost = testHost,
                 CodeActionIndex = index,
+                CodeActionEquivalenceKey = null,
                 ExactActionSetOffered = actions,
             };
 
@@ -2877,6 +2878,7 @@ partial class Other
                     }
                 },
                 CodeActionIndex = 1,
+                CodeActionEquivalenceKey = null,
                 TestHost = host,
             };
 
@@ -3019,6 +3021,7 @@ partial class Other
             var test = new VerifyCS.Test
             {
                 CodeActionIndex = 2,
+                CodeActionEquivalenceKey = null,
                 TestHost = host,
                 TestState =
                 {
@@ -3145,6 +3148,7 @@ partial class Other
             var test = new VerifyCS.Test
             {
                 CodeActionIndex = 3,
+                CodeActionEquivalenceKey = null,
                 TestHost = host,
                 TestState =
                 {
@@ -3283,6 +3287,7 @@ partial class Other
             var test = new VerifyCS.Test
             {
                 CodeActionIndex = 3,
+                CodeActionEquivalenceKey = null,
                 TestHost = host,
                 TestState =
                 {
