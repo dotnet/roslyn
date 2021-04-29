@@ -1835,7 +1835,7 @@ public abstract record C<T>
             var src2 = @"
 record C
 {
-    protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+    protected bool PrintMembers(System.Text.StringBuilder builder)
     {
         return true;
     }
@@ -1856,7 +1856,7 @@ record C
             var src2 = @"
 record struct C
 {
-    protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+    private bool PrintMembers(System.Text.StringBuilder builder)
     {
         return true;
     }
@@ -1962,29 +1962,6 @@ record C
             var src1 = "record C(int X);";
             var src2 = @"
 record C(int X)
-{
-    public int Y { get; set; }
-}";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-
-            edits.VerifyRudeDiagnostics();
-        }
-
-        [Fact]
-        public void RecordStruct_AddProperty_NotPrimary()
-        {
-            var src1 = "record struct C(int X);";
-            var src2 = @"
-record struct C(int X)
 {
     public int Y { get; set; }
 }";
