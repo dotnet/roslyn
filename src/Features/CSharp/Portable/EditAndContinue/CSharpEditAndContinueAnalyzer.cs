@@ -1223,6 +1223,27 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return symbol;
         }
 
+        protected override (ISymbol? oldSymbol, ISymbol? newSymbol) GetSymbolsForField(SemanticModel? oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken)
+        {
+            if (newNode is not FieldDeclarationSyntax newField || oldNode is not FieldDeclarationSyntax oldField)
+            {
+                return (null, null);
+            }
+
+            // Since each declaration in a field shares the same attributes, we don't need to worry about them all
+            // and it doesn't matter if the user reorders them, we can just take one from new and old and be done.
+            // This also neatly avoids duplicate diagnostics.
+            var newDeclaration = newField.Declaration.Variables.First();
+            var oldDeclaration = oldField.Declaration.Variables.First();
+
+            var oldSymbol = oldDeclaration is not null ? oldModel?.GetDeclaredSymbol(oldDeclaration, cancellationToken) : null;
+            var newSymbol = newModel.GetDeclaredSymbol(newDeclaration, cancellationToken);
+
+            Contract.ThrowIfNull(newSymbol);
+
+            return (oldSymbol, newSymbol);
+        }
+
         protected override void GetUpdatedDeclarationBodies(SyntaxNode oldDeclaration, SyntaxNode newDeclaration, out SyntaxNode? oldBody, out SyntaxNode? newBody)
         {
             // Detect a transition between a property/indexer with an expression body and with an explicit getter.

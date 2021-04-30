@@ -281,6 +281,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             out bool isAmbiguous,
             CancellationToken cancellationToken);
 
+        protected abstract (ISymbol? oldSymbol, ISymbol? newSymbol) GetSymbolsForField(SemanticModel? oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken);
+
         /// <summary>
         /// Analyzes data flow in the member body represented by the specified node and returns all captured variables and parameters (including "this").
         /// If the body is a field/property initializer analyzes the initializer expression only.
@@ -2689,6 +2691,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 newSymbol = GetSymbolForEdit(newModel, edit.NewNode, edit.Kind, editMap, out var newIsAmbiguous, cancellationToken);
                                 if (newSymbol == null || !processedSymbols.Add(newSymbol))
                                 {
+                                    // Field declarations have attributes applied to them, but wont return symbols from the above, so need special handling.
+                                    TryReportFieldAttributeRudeEdits(editScript, diagnostics, capabilities, oldModel, newModel, edit, semanticEdits, cancellationToken);
 
                                     // node doesn't represent a symbol or the symbol has already been processed
                                     continue;
@@ -2882,6 +2886,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             return semanticEdits.ToImmutable();
+        }
+
+        private void TryReportFieldAttributeRudeEdits(EditScript<SyntaxNode> editScript, ArrayBuilder<RudeEditDiagnostic> diagnostics, EditAndContinueCapabilities capabilities, SemanticModel? oldModel, SemanticModel newModel, Edit<SyntaxNode> edit, ArrayBuilder<SemanticEditInfo> semanticEdits, CancellationToken cancellationToken)
+        {
+            // We have to get symbols for the individual fields declared within them to check for attribute rude edits.
+            // The attributes apply to all fields in the declaration.
+            var (oldFieldSymbol, newFieldSymbol) = GetSymbolsForField(oldModel, edit.OldNode, newModel, edit.NewNode, cancellationToken);
+            if (newFieldSymbol is not null)
+            {
+                ReportAttributeEdits(oldFieldSymbol, newFieldSymbol, editScript.Match.Matches, edit.NewNode, capabilities, diagnostics, semanticEdits, null, cancellationToken);
+            }
         }
 
         private void ReportAttributeEdits(ISymbol? oldSymbol, ISymbol newSymbol, IReadOnlyDictionary<SyntaxNode, SyntaxNode> matches, SyntaxNode targetNode, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, ArrayBuilder<SemanticEditInfo> semanticEdits, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)

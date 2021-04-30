@@ -1232,6 +1232,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return symbol
         End Function
 
+        Protected Overrides Function GetSymbolsForField(oldModel As SemanticModel, oldNode As SyntaxNode, newModel As SemanticModel, newNode As SyntaxNode, cancellationToken As CancellationToken) As (oldSymbol As ISymbol, newSymbol As ISymbol)
+            '
+            Dim newField = TryCast(newNode, FieldDeclarationSyntax)
+            Dim oldField = TryCast(oldNode, FieldDeclarationSyntax)
+            If newField Is Nothing OrElse oldField Is Nothing Then
+                Return (Nothing, Nothing)
+            End If
+
+            ' Since any attribute applied to a field applies to all declarators and names, we only need to grab the first one
+            Dim newDeclaration = newField.Declarators.First()
+            Dim oldDeclaration = oldField.Declarators.First()
+
+            Dim oldSymbol = oldModel?.GetDeclaredSymbol(oldDeclaration, cancellationToken)
+            Dim newSymbol = newModel.GetDeclaredSymbol(newDeclaration, cancellationToken)
+
+            Contract.ThrowIfNull(newSymbol)
+
+            Return (oldSymbol, newSymbol)
+        End Function
+
         Friend Overrides Function ContainsLambda(declaration As SyntaxNode) As Boolean
             Return declaration.DescendantNodes().Any(AddressOf LambdaUtilities.IsLambda)
         End Function
