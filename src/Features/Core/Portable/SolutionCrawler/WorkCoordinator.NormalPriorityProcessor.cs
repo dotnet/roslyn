@@ -251,6 +251,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         try
                         {
+                            if (!Processor._documentTracker.SupportsDocumentTracking)
+                            {
+                                return false;
+                            }
+
                             foreach (var documentId in GetPrioritizedPendingDocuments())
                             {
                                 if (CancellationToken.IsCancellationRequested)

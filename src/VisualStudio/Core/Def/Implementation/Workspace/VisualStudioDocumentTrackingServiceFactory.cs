@@ -39,6 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private int _subscriptions = 0;
             private EventHandler<DocumentId?>? _activeDocumentChangedEventHandler;
 
+            public bool SupportsDocumentTracking => true;
+
             public event EventHandler<DocumentId?> ActiveDocumentChanged
             {
                 add
