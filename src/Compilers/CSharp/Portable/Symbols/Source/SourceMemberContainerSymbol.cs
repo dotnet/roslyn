@@ -1496,7 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var membersAndInitializers = Volatile.Read(ref _lazyMembersAndInitializers);
 
-            if (isMemberInCompleteMemeberList(membersAndInitializers, member))
+            if (isMemberInCompleteMemberList(membersAndInitializers, member))
             {
                 return;
             }
@@ -1519,7 +1519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     membersAndInitializers = Volatile.Read(ref _lazyMembersAndInitializers);
                     RoslynDebug.AssertOrFailFast(membersAndInitializers is object);
 
-                    if (isMemberInCompleteMemeberList(membersAndInitializers, member))
+                    if (isMemberInCompleteMemberList(membersAndInitializers, member))
                     {
                         return;
                     }
@@ -1528,7 +1528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             RoslynDebug.AssertOrFailFast(false, "Premature symbol exposure.");
 
-            static bool isMemberInCompleteMemeberList(MembersAndInitializers? membersAndInitializers, Symbol member)
+            static bool isMemberInCompleteMemberList(MembersAndInitializers? membersAndInitializers, Symbol member)
             {
                 return membersAndInitializers?.NonTypeMembers.Contains(m => m == (object)member) == true;
             }
