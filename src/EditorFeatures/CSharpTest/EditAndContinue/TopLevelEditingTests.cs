@@ -442,7 +442,7 @@ namespace N
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [A1]@99 -> [A2]@99");
+                "Update [[A1]class C { }]@98 -> [[A2]class C { }]@98");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A2", FeaturesResources.attribute));
@@ -457,7 +457,7 @@ namespace N
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [System.Obsolete(\"1\")]@1 -> [System.Obsolete(\"2\")]@1");
+                "Update [[System.Obsolete(\"1\")]class C { }]@0 -> [[System.Obsolete(\"2\")]class C { }]@0");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(\"2\")", FeaturesResources.attribute));
@@ -475,11 +475,10 @@ namespace N
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [[A, B]]@96 -> [[A]]@96",
-                "Delete [B]@100");
+                "Update [[A, B]class C { }]@96 -> [[A]class C { }]@96");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "[A]", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "class C", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -494,10 +493,11 @@ namespace N
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [[A]]@96 -> [[A, B]]@96",
-                "Insert [B]@100");
+                "Update [[A]class C { }]@96 -> [[A, B]class C { }]@96");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")) },
                 capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
         }
 
@@ -513,11 +513,10 @@ namespace N
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [[A]]@96 -> [[A, B]]@96",
-                "Insert [B]@100");
+                "Update [[A]class C { }]@96 -> [[A, B]class C { }]@96");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "B", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "B", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -531,11 +530,10 @@ namespace N
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[A]]@48",
-                "Insert [A]@49");
+                "Update [class C { }]@48 -> [[A]class C { }]@48");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -547,7 +545,7 @@ namespace N
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Reorder [C(3)]@13 -> @1");
+                "Update [[A(1), B(2), C(3)]class C { }]@0 -> [[C(3), A(1), B(2)]class C { }]@0");
 
             edits.VerifyRudeDiagnostics();
         }
@@ -561,7 +559,7 @@ namespace N
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Reorder [A]@1 -> @7");
+                "Update [[A, B, C]class C { }]@0 -> [[B, C, A]class C { }]@0");
 
             edits.VerifyRudeDiagnostics();
         }
@@ -578,8 +576,7 @@ namespace N
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Reorder [System.Obsolete(\"1\")]@97 -> @103",
-                "Update [System.Obsolete(\"1\")]@97 -> [System.Obsolete(\"2\")]@103");
+                "Update [[System.Obsolete(\"1\"), A, B]class C { }]@96 -> [[A, B, System.Obsolete(\"2\")]class C { }]@96");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(\"2\")", FeaturesResources.attribute));
@@ -2695,11 +2692,10 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[A]]@48",
-                "Insert [A]@49");
+                "Update [enum E { }]@48 -> [[A]enum E { }]@48");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -2713,8 +2709,7 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Delete [[A]]@57",
-                "Delete [A]@58");
+                "Update [[A]X]@57 -> [X]@57");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "X", FeaturesResources.attribute));
@@ -2731,11 +2726,10 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[A]]@57",
-                "Insert [A]@58");
+                "Update [X]@57 -> [[A]X]@57");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -2750,7 +2744,7 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [A1]@108 -> [A2]@108");
+                "Update [[A1]X]@107 -> [[A2]X]@107");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A2", FeaturesResources.attribute));
@@ -3286,11 +3280,10 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[A]]@70",
-                "Insert [A]@71");
+                "Update [int a]@70 -> [[A]int a]@70");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -3415,11 +3408,10 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[A]]@70",
-                "Insert [A]@71");
+                "Update [T]@70 -> [[A]T]@70");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -3469,11 +3461,10 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[return:A]]@48",
-                "Insert [A]@56");
+                "Update [public delegate int D(int a);]@48 -> [[return:A]public delegate int D(int a);]@48");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -3749,13 +3740,11 @@ class C
 
             // Adding P/Invoke is not supported by the CLR.
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: new[] { TargetFramework.NetStandard20 },
                 Diagnostic(RudeEditKind.InsertExtern, "public extern D()", FeaturesResources.constructor),
                 Diagnostic(RudeEditKind.InsertExtern, "public static extern int P", FeaturesResources.property_),
                 Diagnostic(RudeEditKind.InsertExtern, "public static extern int puts(string c)", FeaturesResources.method),
                 Diagnostic(RudeEditKind.InsertExtern, "public static extern int operator +(D d, D g)", FeaturesResources.operator_),
-                Diagnostic(RudeEditKind.InsertExtern, "public static extern explicit operator int (D d)", CSharpFeaturesResources.conversion_operator),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(\"msvcrt.dll\")", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.InsertExtern, "public static extern explicit operator int (D d)", CSharpFeaturesResources.conversion_operator));
         }
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
@@ -5201,8 +5190,6 @@ class C
             edits.VerifyEdits(
                 @"Delete [[Obsolete]
     void goo(int a) { }]@18",
-                "Delete [[Obsolete]]@18",
-                "Delete [Obsolete]@19",
                 "Delete [(int a)]@42",
                 "Delete [int a]@43");
 
@@ -5237,15 +5224,11 @@ class C
             edits.VerifyEdits(
                 @"Delete [[DllImport(""msvcrt.dll"")]
     public static extern int puts(string c);]@74",
-                @"Delete [[DllImport(""msvcrt.dll"")]]@74",
-                @"Delete [DllImport(""msvcrt.dll"")]@75",
                  "Delete [(string c)]@134",
                  "Delete [string c]@135");
 
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: new[] { TargetFramework.NetStandard20 },
-                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "puts(string)")),
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "class C", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "puts(string)")));
         }
 
         [Fact]
@@ -5332,7 +5315,7 @@ class C
         }
 
         [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
-        [Fact(Skip = "TODO: davidw")]
+        [Fact]
         public void PrivateMethodInsert_WithAttribute()
         {
             var src1 = @"
@@ -5360,10 +5343,8 @@ class C
             edits.VerifyEdits(
                 @"Insert [[System.Obsolete]
     void goo(int a) { }]@18",
-                "Insert [[System.Obsolete]]@18",
-                "Insert [(int a)]@42",
-                "Insert [System.Obsolete]@19",
-                "Insert [int a]@43");
+                "Insert [(int a)]@49",
+                "Insert [int a]@50");
 
             edits.VerifyRudeDiagnostics();
         }
@@ -5451,20 +5432,16 @@ class C
             edits.VerifyEdits(
                 @"Insert [[DllImport(""msvcrt.dll"")]
     private static extern int puts(string c);]@74",
-                @"Insert [[DllImport(""msvcrt.dll"")]]@74",
                 "Insert [(string c)]@135",
-                @"Insert [DllImport(""msvcrt.dll"")]@75",
-                 "Insert [string c]@136");
+                "Insert [string c]@136");
 
             // CLR doesn't support methods without a body
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: new[] { TargetFramework.NetStandard20 },
-                Diagnostic(RudeEditKind.InsertExtern, "private static extern int puts(string c)", FeaturesResources.method),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(\"msvcrt.dll\")", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.InsertExtern, "private static extern int puts(string c)", FeaturesResources.method));
         }
 
         [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784"), WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
-        [Fact(Skip = "TODO: davidw")]
+        [Fact]
         public void ExternMethodDeleteInsert()
         {
             var srcA1 = @"
@@ -6040,10 +6017,17 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Insert [[Obsolete]]@38", "Insert [Obsolete]@39");
+            edits.VerifyEdits(@"Update [static void Main(string[] args)
+    {
+        System.Console.Write(5);
+    }]@38 -> [[Obsolete]
+    static void Main(string[] args)
+    {
+        System.Console.Write(5);
+    }]@38");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Obsolete", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Obsolete", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -6114,11 +6098,8 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Update [[Obsolete]]@38 -> [[Obsolete, Serializable]]@38",
-                               "Insert [Serializable]@49");
-
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -6149,11 +6130,8 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Insert [[Serializable]]@54",
-                              "Insert [Serializable]@55");
-
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -6182,14 +6160,9 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Insert [[Obsolete, Serializable]]@38",
-                "Insert [Obsolete]@39",
-                "Insert [Serializable]@49");
-
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Obsolete", FeaturesResources.attribute),
-                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
+                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Obsolete", FeaturesResources.attribute),
+                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -6218,8 +6191,6 @@ class Test
     }
 }";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits(@"Update [Obsolete]@39 -> [Obsolete("""")]@39");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, @"Obsolete("""")", FeaturesResources.attribute));
@@ -6252,10 +6223,6 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Delete [[Obsolete]]@38",
-                "Delete [Obsolete]@39");
-
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.attribute));
         }
@@ -6287,11 +6254,8 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Update [[Obsolete, Serializable]]@38 -> [[Obsolete]]@38",
-                              "Delete [Serializable]@49");
-
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "[Obsolete]", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -6321,9 +6285,6 @@ class Test
     }
 }";
             var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits("Delete [[Serializable]]@54",
-                              "Delete [Serializable]@55");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.attribute));
@@ -10491,7 +10452,6 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "FieldOffset(0)", FeaturesResources.attribute),
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.field, FeaturesResources.class_),
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.field, FeaturesResources.class_),
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.field, FeaturesResources.class_));
@@ -13069,49 +13029,69 @@ public class C
         [Fact]
         public void ParameterAttributeInsert1()
         {
-            var src1 = @"class C { public void M(int a) {} }";
-            var src2 = @"class C { public void M([A]int a) {} } ";
+            var attribute = "public class AAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + @"class C { public void M(int a) {} }";
+            var src2 = attribute + @"class C { public void M([A]int a) {} } ";
 
             var edits = GetTopEdits(src1, src2);
+
             edits.VerifyEdits(
-                "Insert [[A]]@24",
-                "Insert [A]@25");
+                "Update [int a]@72 -> [[A]int a]@72");
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
         [Fact]
         public void ParameterAttributeInsert2()
         {
-            var src1 = @"class C { public void M([A]int a) {} }";
-            var src2 = @"class C { public void M([A, B]int a) {} } ";
+            var attribute = "public class AAttribute : System.Attribute { }\n\n" +
+                            "public class BAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + @"class C { public void M([A]int a) {} }";
+            var src2 = attribute + @"class C { public void M([A, B]int a) {} } ";
 
             var edits = GetTopEdits(src1, src2);
+
             edits.VerifyEdits(
-                "Update [[A]]@24 -> [[A, B]]@24",
-                "Insert [B]@28");
+                "Update [[A]int a]@120 -> [[A, B]int a]@120");
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "B", FeaturesResources.attribute));
         }
 
         [Fact]
         public void ParameterAttributeDelete()
         {
-            var src1 = @"class C { public void M([A]int a) {} }";
-            var src2 = @"class C { public void M(int a) {} } ";
+            var attribute = "public class AAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + @"class C { public void M([A]int a) {} }";
+            var src2 = attribute + @"class C { public void M(int a) {} } ";
 
             var edits = GetTopEdits(src1, src2);
+
             edits.VerifyEdits(
-                "Delete [[A]]@24",
-                "Delete [A]@25");
+                "Update [[A]int a]@72 -> [int a]@72");
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "int a", FeaturesResources.attribute));
         }
 
         [Fact]
         public void ParameterAttributeUpdate()
         {
-            var src1 = @"class C { public void M([A(1), C]int a) {} }";
-            var src2 = @"class C { public void M([A(2), B]int a) {} } ";
+            var attribute = "public class AAttribute : System.Attribute { }\n\n" +
+                            "public class BAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + @"class C { public void M([System.Obsolete(""1""), B]int a) {} }";
+            var src2 = attribute + @"class C { public void M([System.Obsolete(""2""), A]int a) {} } ";
 
             var edits = GetTopEdits(src1, src2);
+
             edits.VerifyEdits(
-                "Update [A(1)]@25 -> [A(2)]@25",
-                "Update [C]@31 -> [B]@31");
+                "Update [[System.Obsolete(\"1\"), B]int a]@120 -> [[System.Obsolete(\"2\"), A]int a]@120");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(\"2\")", FeaturesResources.attribute),
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
         #endregion
@@ -13203,49 +13183,75 @@ public class C
         [Fact]
         public void MethodTypeParameterAttributeInsert1()
         {
-            var src1 = @"class C { public void M<T>() {} }";
-            var src2 = @"class C { public void M<[A]T>() {} } ";
+            var attribute = "public class AAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + @"class C { public void M<T>() {} }";
+            var src2 = attribute + @"class C { public void M<[A]T>() {} } ";
 
             var edits = GetTopEdits(src1, src2);
+
             edits.VerifyEdits(
-                "Insert [[A]]@24",
-                "Insert [A]@25");
+                "Update [T]@72 -> [[A]T]@72");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method),
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
         [Fact]
         public void MethodTypeParameterAttributeInsert2()
         {
-            var src1 = @"class C { public void M<[A]T>() {} }";
-            var src2 = @"class C { public void M<[A, B]T>() {} } ";
+            var attribute = "public class AAttribute : System.Attribute { }\n\n" +
+                            "public class BAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + @"class C { public void M<[A]T>() {} }";
+            var src2 = attribute + @"class C { public void M<[A, B]T>() {} } ";
 
             var edits = GetTopEdits(src1, src2);
+
             edits.VerifyEdits(
-                "Update [[A]]@24 -> [[A, B]]@24",
-                "Insert [B]@28");
+                "Update [[A]T]@120 -> [[A, B]T]@120");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method),
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "B", FeaturesResources.attribute));
         }
 
         [Fact]
         public void MethodTypeParameterAttributeDelete()
         {
-            var src1 = @"class C { public void M<[A]T>() {} }";
-            var src2 = @"class C { public void M<T>() {} } ";
+            var attribute = "public class AAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + @"class C { public void M<[A]T>() {} }";
+            var src2 = attribute + @"class C { public void M<T>() {} } ";
 
             var edits = GetTopEdits(src1, src2);
+
             edits.VerifyEdits(
-                "Delete [[A]]@24",
-                "Delete [A]@25");
+                "Update [[A]T]@72 -> [T]@72");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method),
+                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "T", FeaturesResources.attribute));
         }
 
         [Fact]
         public void MethodTypeParameterAttributeUpdate()
         {
-            var src1 = @"class C { public void M<[A(1), C]T>() {} }";
-            var src2 = @"class C { public void M<[A(2), B]T>() {} } ";
+            var attribute = "public class AAttribute : System.Attribute { }\n\n" +
+                            "public class BAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + @"class C { public void M<[System.Obsolete(""1""), B]T>() {} }";
+            var src2 = attribute + @"class C { public void M<[System.Obsolete(""2""), A]T>() {} } ";
 
             var edits = GetTopEdits(src1, src2);
+
             edits.VerifyEdits(
-                "Update [A(1)]@25 -> [A(2)]@25",
-                "Update [C]@31 -> [B]@31");
+                "Update [[System.Obsolete(\"1\"), B]T]@120 -> [[System.Obsolete(\"2\"), A]T]@120");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(\"2\")", FeaturesResources.attribute),
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
         #endregion
@@ -13370,11 +13376,10 @@ public class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[A]]@56",
-                "Insert [A]@57");
+                "Update [T]@56 -> [[A]T]@56");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -13389,11 +13394,10 @@ public class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [[A]]@104 -> [[A, B]]@104",
-                "Insert [B]@108");
+                "Update [[A]T]@104 -> [[A, B]T]@104");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "B", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "B", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -13407,8 +13411,7 @@ public class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Delete [[A]]@56",
-                "Delete [A]@57");
+                "Update [[A]T]@56 -> [T]@56");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "T", FeaturesResources.attribute));
@@ -13420,17 +13423,16 @@ public class C
             var attribute = "public class AAttribute : System.Attribute { }\n\n" +
                             "public class BAttribute : System.Attribute { }\n\n";
 
-            var src1 = attribute + @"class C<[System.Obsolete(1), B]T> {}";
-            var src2 = attribute + @"class C<[System.Obsolete(2), A]T> {} ";
+            var src1 = attribute + @"class C<[System.Obsolete(""1""), B]T> {}";
+            var src2 = attribute + @"class C<[System.Obsolete(""2""), A]T> {} ";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [System.Obsolete(1)]@105 -> [System.Obsolete(2)]@105",
-                "Update [B]@125 -> [A]@125");
+                "Update [[System.Obsolete(\"1\"), B]T]@104 -> [[System.Obsolete(\"2\"), A]T]@104");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(2)", FeaturesResources.attribute),
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(\"2\")", FeaturesResources.attribute),
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
         }
 
