@@ -1174,22 +1174,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             isAmbiguous = false;
 
-            if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter, SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
-            {
-                return null;
-            }
-
-            if (node.IsKind(SyntaxKind.Attribute))
-            {
-                return model.GetTypeInfo(node, cancellationToken).Type;
-            }
-
             if (editKind == EditKind.Update)
             {
-                if (node.IsKind(SyntaxKind.EnumDeclaration))
+                if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter))
                 {
-                    // Enum declaration update that removes/adds a trailing comma.
-                    return null;
+                    // for parameter and type parameter updates, we want to deal with symbol info of the member that contains it
+                    // to process attributes. All other updates would have been reported as syntactic rude edits already.
+                    var containingSymbol = model.GetRequiredDeclaredSymbol(node, cancellationToken).ContainingSymbol;
+
+                    // if this was a parameter of a delegate, the symbol will be the Invoke method, but we need to go back up to the delegate itself
+                    if (containingSymbol is IMethodSymbol { MethodKind: MethodKind.DelegateInvoke })
+                    {
+                        containingSymbol = containingSymbol.ContainingSymbol;
+                    }
+                    return containingSymbol;
                 }
 
                 if (node.IsKind(SyntaxKind.IndexerDeclaration, SyntaxKind.PropertyDeclaration))
@@ -1200,6 +1198,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var propertyOrIndexer = model.GetRequiredDeclaredSymbol(node, cancellationToken);
                     return ((IPropertySymbol)propertyOrIndexer).GetMethod;
                 }
+            }
+
+            if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter, SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
+            {
+                return null;
             }
 
             if (IsGetterToExpressionBodyTransformation(editKind, node, editMap))
