@@ -3294,6 +3294,25 @@ record C(int X)
         }
 
         [Fact]
+        public void Delegates_Parameter_AddAttribute_SupportedByRuntime()
+        {
+            var attribute = "public class AAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + "public delegate int D(int a);";
+            var src2 = attribute + "public delegate int D([A]int a);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int a]@70 -> [[A]int a]@70");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")) },
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+        }
+
+        [Fact]
         public void Delegates_TypeParameter_Insert()
         {
             var src1 = "public delegate int D();";
@@ -3409,6 +3428,42 @@ record C(int X)
             var attribute = "public class AAttribute : System.Attribute { }\n\n";
 
             var src1 = attribute + "public delegate int D(int a);";
+            var src2 = attribute + "[A]public delegate int D(int a);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public delegate int D(int a);]@48 -> [[A]public delegate int D(int a);]@48");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void Delegates_AddAttribute_SupportedByRuntime()
+        {
+            var attribute = "public class AAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + "public delegate int D(int a);";
+            var src2 = attribute + "[A]public delegate int D(int a);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public delegate int D(int a);]@48 -> [[A]public delegate int D(int a);]@48");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")) },
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+        }
+
+        [Fact]
+        public void Delegates_AddReturnAttribute()
+        {
+            var attribute = "public class AAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + "public delegate int D(int a);";
             var src2 = attribute + "[return:A]public delegate int D(int a);";
 
             var edits = GetTopEdits(src1, src2);
@@ -3419,6 +3474,25 @@ record C(int X)
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "A", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void Delegates_AddReturnAttribute_SupportedByRuntime()
+        {
+            var attribute = "public class AAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + "public delegate int D(int a);";
+            var src2 = attribute + "[return:A]public delegate int D(int a);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public delegate int D(int a);]@48 -> [[return:A]public delegate int D(int a);]@48");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")) },
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
         }
 
         [Fact]
@@ -5902,6 +5976,45 @@ class C
         }
 
         [Fact]
+        public void MethodUpdate_AddReturnTypeAttribute()
+        {
+            var src1 = @"
+using System;
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        System.Console.Write(5);
+    }
+}";
+            var src2 = @"
+using System;
+
+class Test
+{
+    [return: Obsolete]
+    static void Main(string[] args)
+    {
+        System.Console.Write(5);
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [static void Main(string[] args)
+    {
+        System.Console.Write(5);
+    }]@38 -> [[return: Obsolete]
+    static void Main(string[] args)
+    {
+        System.Console.Write(5);
+    }]@38");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Obsolete", FeaturesResources.attribute));
+        }
+
+        [Fact]
         public void MethodUpdate_AddAttribute()
         {
             var src1 = @"
@@ -5931,6 +6044,47 @@ class Test
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Obsolete", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void MethodUpdate_AddAttribute_SupportedByRuntime()
+        {
+            var src1 = @"
+using System;
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        System.Console.Write(5);
+    }
+}";
+            var src2 = @"
+using System;
+
+class Test
+{
+    [Obsolete]
+    static void Main(string[] args)
+    {
+        System.Console.Write(5);
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [static void Main(string[] args)
+    {
+        System.Console.Write(5);
+    }]@38 -> [[Obsolete]
+    static void Main(string[] args)
+    {
+        System.Console.Write(5);
+    }]@38");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Test.Main")) },
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
         }
 
         [Fact]
@@ -10622,6 +10776,52 @@ class C
         }
 
         [Fact]
+        public void FieldUpdate_AddAttribute_Multiple()
+        {
+            var src1 = @"
+class C
+{
+    public int a = 1, x = 1;
+}";
+            var src2 = @"
+class C
+{
+    [System.Obsolete]public int a = 1, x = 1;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public int a = 1, x = 1;]@18 -> [[System.Obsolete]public int a = 1, x = 1;]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void FieldUpdate_AddAttribute()
+        {
+            var src1 = @"
+class C
+{
+    public int a = 1;
+}";
+            var src2 = @"
+class C
+{
+    [System.Obsolete]public int a = 1;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [public int a = 1;]@18 -> [[System.Obsolete]public int a = 1;]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute));
+        }
+
+        [Fact]
         public void FieldDelete1()
         {
             var src1 = "class C { int a = 1; }";
@@ -11084,6 +11284,87 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "char P", FeaturesResources.auto_property));
+        }
+
+        [Fact]
+        public void PropertyUpdate_AddAttribute()
+        {
+            var src1 = "class C { int P { get; set; } }";
+            var src2 = "class C { [System.Obsolete]int P { get; set; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void PropertyUpdate_AddAttribute_SupportedByRuntime()
+        {
+            var src1 = "class C { int P { get; set; } }";
+            var src2 = "class C { [System.Obsolete]int P { get; set; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod)
+                },
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+        }
+
+        [Fact]
+        public void PropertyAccessorUpdate_AddAttribute()
+        {
+            var src1 = "class C { int P { get; set; } }";
+            var src2 = "class C { int P { [System.Obsolete]get; set; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void PropertyAccessorUpdate_AddAttribute2()
+        {
+            var src1 = "class C { int P { get; set; } }";
+            var src2 = "class C { int P { get; [System.Obsolete]set; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void PropertyAccessorUpdate_AddAttribute_SupportedByRuntime()
+        {
+            var src1 = "class C { int P { get; set; } }";
+            var src2 = "class C { int P { [System.Obsolete]get; set; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod) },
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+        }
+
+        [Fact]
+        public void PropertyAccessorUpdate_AddAttribute_SupportedByRuntime2()
+        {
+            var src1 = "class C { int P { get; set; } }";
+            var src2 = "class C { int P { get; [System.Obsolete]set; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod) },
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
         }
 
         [Fact]
@@ -12764,6 +13045,25 @@ public class C
             edits.VerifyEdits(
                 "Reorder [int b]@31 -> @24",
                 "Update [int a]@24 -> [int c]@31");
+        }
+
+        [Fact]
+        public void ParameterAttributeInsert_SupportedByRuntime()
+        {
+            var attribute = "public class AAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + @"class C { public void M(int a) {} }";
+            var src2 = attribute + @"class C { public void M([A]int a) {} } ";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int a]@72 -> [[A]int a]@72");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) },
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
         }
 
         [Fact]
