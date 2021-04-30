@@ -124,6 +124,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     symbol = typeSymbol.DelegateInvokeMethod;
                 }
+                else if (typeSymbol.IsRecord)
+                {
+                    // A bit hacky to determine the parameters of primary constructor associated with a given record.
+                    // TODO: record structs.
+                    const int RecordDeclarationRawKind = 9063;
+                    var potentialPrimaryCtor = typeSymbol.InstanceConstructors.FirstOrDefault(
+                        c => c.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax()?.RawKind == RecordDeclarationRawKind);
+
+                    if (potentialPrimaryCtor is not null)
+                    {
+                        symbol = potentialPrimaryCtor;
+                    }
+                }
             }
 
             if (!symbol.MatchesKind(SymbolKind.Method, SymbolKind.Property))
@@ -1001,7 +1014,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     node.GetTrailingTrivia(),
                     lastWhiteSpaceTrivia,
                     document.Project.Solution.Options.GetOption(FormattingOptions.NewLine, document.Project.Language));
-
                 var newTrivia = Generator.Trivia(extraDocComments);
 
                 updatedLeadingTrivia.Add(newTrivia);

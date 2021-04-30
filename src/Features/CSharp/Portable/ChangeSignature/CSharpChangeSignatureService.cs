@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.DelegateDeclaration,
             SyntaxKind.SimpleLambdaExpression,
             SyntaxKind.ParenthesizedLambdaExpression,
-            SyntaxKind.LocalFunctionStatement);
+            SyntaxKind.LocalFunctionStatement,
+            // TODO: Record structs
+            SyntaxKind.RecordDeclaration);
 
         private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
             _declarationKinds.Concat(ImmutableArray.Create(
@@ -85,7 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.NameMemberCref,
             SyntaxKind.AnonymousMethodExpression,
             SyntaxKind.ParenthesizedLambdaExpression,
-            SyntaxKind.SimpleLambdaExpression);
+            SyntaxKind.SimpleLambdaExpression,
+            // TODO: record structs
+            SyntaxKind.RecordDeclaration);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -265,12 +269,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             CancellationToken cancellationToken)
         {
             var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
-
             // Update <param> tags.
+            // TODO: Record structs
             if (updatedNode.IsKind(SyntaxKind.MethodDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.ConstructorDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.IndexerDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.DelegateDeclaration))
+                updatedNode.IsKind(SyntaxKind.DelegateDeclaration) ||
+                updatedNode.IsKind(SyntaxKind.RecordDeclaration))
             {
                 var updatedLeadingTrivia = UpdateParamTagsInLeadingTrivia(document, updatedNode, declarationSymbol, signaturePermutation);
                 if (updatedLeadingTrivia != default && !updatedLeadingTrivia.IsEmpty)
@@ -284,6 +289,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 var updatedParameters = UpdateDeclaration(method.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            }
+
+            // TODO: Record structs
+            if (updatedNode.IsKind(SyntaxKind.RecordDeclaration, out RecordDeclarationSyntax? record))
+            {
+                var updatedParameters = UpdateDeclaration(record.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                return record.WithParameterList(record.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.LocalFunctionStatement, out LocalFunctionStatementSyntax? localFunction))
