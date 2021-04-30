@@ -21,15 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// on any specific kind of syntax node associated with it. Any syntax node is good enough
     /// for it.
     /// </summary>
-    internal abstract class SourceOrdinaryMethodSymbolBase : SourceMemberMethodSymbol
+    internal abstract class SourceOrdinaryMethodSymbolBase : SourceOrdinaryMethodOrUserDefinedOperatorSymbol
     {
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly string _name;
-
-        private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
-        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
-        private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeWithAnnotations _lazyReturnType;
 
         protected SourceOrdinaryMethodSymbolBase(
             NamedTypeSymbol containingType,
@@ -83,133 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract ImmutableArray<TypeParameterSymbol> MakeTypeParameters(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics);
 
-        public override bool ReturnsVoid
-        {
-            get
-            {
-                LazyMethodChecks();
-                return base.ReturnsVoid;
-            }
-        }
-
+#nullable enable
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.MethodKind != MethodKind.UserDefinedOperator, "SourceUserDefinedOperatorSymbolBase overrides this");
 
-            ImmutableArray<TypeParameterConstraintClause> declaredConstraints;
-            bool isVararg;
-            (_lazyReturnType, _lazyParameters, isVararg, declaredConstraints) = MakeParametersAndBindReturnType(diagnostics);
+            var (returnType, parameters, isVararg, declaredConstraints) = MakeParametersAndBindReturnType(diagnostics);
 
-            // set ReturnsVoid flag
-            this.SetReturnsVoid(_lazyReturnType.IsVoidType());
-
-            this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
-
-            var location = locations[0];
-            // Checks taken from MemberDefiner::defineMethod
-            if (this.Name == WellKnownMemberNames.DestructorName && this.ParameterCount == 0 && this.Arity == 0 && this.ReturnsVoid)
-            {
-                diagnostics.Add(ErrorCode.WRN_FinalizeMethod, location);
-            }
-
-            ExtensionMethodChecks(diagnostics);
-
-            if (IsPartial)
-            {
-                if (MethodKind == MethodKind.ExplicitInterfaceImplementation)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodNotExplicit, location);
-                }
-
-                if (!ContainingType.IsPartial())
-                {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyInPartialClass, location);
-                }
-            }
-
-            if (!IsPartial)
-            {
-                LazyAsyncMethodChecks(CancellationToken.None);
-                Debug.Assert(state.HasComplete(CompletionPart.FinishAsyncMethodChecks));
-            }
-
-            // The runtime will not treat this method as an override or implementation of another
-            // method unless both the signatures and the custom modifiers match.  Hence, in the
-            // case of overrides and *explicit* implementations, we need to copy the custom modifiers
-            // that are in the signature of the overridden/implemented method.  (From source, we know
-            // that there can only be one such method, so there are no conflicts.)  This is
-            // unnecessary for implicit implementations because, if the custom modifiers don't match,
-            // we'll insert a bridge method (an explicit implementation that delegates to the implicit
-            // implementation) with the correct custom modifiers 
-            // (see SourceMemberContainerTypeSymbol.SynthesizeInterfaceMemberImplementation).
-
-            // This value may not be correct, but we need something while we compute this.OverriddenMethod.
-            // May be re-assigned below.
-            Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty);
-            _lazyRefCustomModifiers = ImmutableArray<CustomModifier>.Empty;
-
-            MethodSymbol overriddenOrExplicitlyImplementedMethod = null;
-
-            // Note: we're checking if the syntax indicates explicit implementation rather,
-            // than if explicitInterfaceType is null because we don't want to look for an
-            // overridden property if this is supposed to be an explicit implementation.
-            if (MethodKind != MethodKind.ExplicitInterfaceImplementation)
-            {
-                Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
-                _lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
-
-                // If this method is an override, we may need to copy custom modifiers from
-                // the overridden method (so that the runtime will recognize it as an override).
-                // We check for this case here, while we can still modify the parameters and
-                // return type without losing the appearance of immutability.
-                if (this.IsOverride)
-                {
-                    // This computation will necessarily be performed with partially incomplete
-                    // information.  There is no way we can determine the complete signature
-                    // (i.e. including custom modifiers) until we have found the method that
-                    // this method overrides.  To accommodate this, MethodSymbol.OverriddenOrHiddenMembers
-                    // is written to allow relaxed matching of custom modifiers for source methods,
-                    // on the assumption that they will be updated appropriately.
-                    overriddenOrExplicitlyImplementedMethod = this.OverriddenMethod;
-
-                    if ((object)overriddenOrExplicitlyImplementedMethod != null)
-                    {
-                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenOrExplicitlyImplementedMethod, this, out _lazyReturnType,
-                                                                      out _lazyRefCustomModifiers,
-                                                                      out _lazyParameters, alsoCopyParamsModifier: true);
-                    }
-                }
-                else if (RefKind == RefKind.RefReadOnly)
-                {
-                    var modifierType = Binder.GetWellKnownType(DeclaringCompilation, WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, ReturnTypeLocation);
-
-                    _lazyRefCustomModifiers = ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
-                }
-            }
-            else if ((object)ExplicitInterfaceType != null)
-            {
-                //do this last so that it can assume the method symbol is constructed (except for ExplicitInterfaceImplementation)
-                overriddenOrExplicitlyImplementedMethod = FindExplicitlyImplementedMethod(diagnostics);
-
-                if ((object)overriddenOrExplicitlyImplementedMethod != null)
-                {
-                    Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
-                    _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(overriddenOrExplicitlyImplementedMethod);
-
-                    CustomModifierUtils.CopyMethodCustomModifiers(overriddenOrExplicitlyImplementedMethod, this, out _lazyReturnType,
-                                                                  out _lazyRefCustomModifiers,
-                                                                  out _lazyParameters, alsoCopyParamsModifier: false);
-                    this.FindExplicitlyImplementedMemberVerification(overriddenOrExplicitlyImplementedMethod, diagnostics);
-                    TypeSymbol.CheckNullableReferenceTypeMismatchOnImplementingMember(this.ContainingType, this, overriddenOrExplicitlyImplementedMethod, isExplicit: true, diagnostics);
-                }
-                else
-                {
-                    Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
-                    _lazyExplicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
-
-                    Debug.Assert(_lazyReturnType.CustomModifiers.IsEmpty);
-                }
-            }
+            MethodSymbol? overriddenOrExplicitlyImplementedMethod = MethodChecks(returnType, parameters, diagnostics);
 
             if (!declaredConstraints.IsDefault && overriddenOrExplicitlyImplementedMethod is object)
             {
@@ -250,18 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, isVararg, HasAnyBody, location, diagnostics);
+            CheckModifiers(MethodKind == MethodKind.ExplicitInterfaceImplementation, isVararg, HasAnyBody, locations[0], diagnostics);
         }
+#nullable disable
 
         protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics);
-
-        protected abstract void ExtensionMethodChecks(BindingDiagnosticBag diagnostics);
-
-        protected abstract MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics);
-
-        protected abstract Location ReturnTypeLocation { get; }
-
-        protected abstract TypeSymbol ExplicitInterfaceType { get; }
 
         protected abstract bool HasAnyBody { get; }
 
@@ -317,68 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override int ParameterCount
-        {
-            get
-            {
-                if (!_lazyParameters.IsDefault)
-                {
-                    int result = _lazyParameters.Length;
-                    Debug.Assert(result == GetParameterCountFromSyntax());
-                    return result;
-                }
-
-                return GetParameterCountFromSyntax();
-            }
-        }
-
-        protected abstract int GetParameterCountFromSyntax();
-
-        public sealed override ImmutableArray<ParameterSymbol> Parameters
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyParameters;
-            }
-        }
-
-        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyReturnType;
-            }
-        }
-
         public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
-
-        internal override bool IsExplicitInterfaceImplementation
-        {
-            get
-            {
-                return MethodKind == MethodKind.ExplicitInterfaceImplementation;
-            }
-        }
-
-        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyExplicitInterfaceImplementations;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyRefCustomModifiers;
-            }
-        }
 
         public override string Name
         {
@@ -566,10 +374,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // The modifier '{0}' is not valid for this item
                 diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.SealedKeyword));
             }
-            else if (_lazyReturnType.IsStatic)
+            else if (ReturnType.IsStatic)
             {
                 // '{0}': static types cannot be used as return types
-                diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(ContainingType.IsInterfaceType()), location, _lazyReturnType.Type);
+                diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(ContainingType.IsInterfaceType()), location, ReturnType);
             }
             else if (IsAbstract && IsExtern)
             {
@@ -624,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, location, Name);
             }
-            else if (isVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
+            else if (isVararg && (IsGenericMethod || ContainingType.IsGenericType || Parameters.Length > 0 && Parameters[Parameters.Length - 1].IsParams))
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
             }

@@ -11,13 +11,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceUserDefinedOperatorSymbolBase : SourceMemberMethodSymbol
+    internal abstract class SourceUserDefinedOperatorSymbolBase : SourceOrdinaryMethodOrUserDefinedOperatorSymbol
     {
         private const TypeCompareKind ComparisonForUserDefinedOperators = TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
         private readonly string _name;
         private readonly bool _isExpressionBodied;
-        private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeWithAnnotations _lazyReturnType;
 
         protected SourceUserDefinedOperatorSymbolBase(
             MethodKind methodKind,
@@ -168,8 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract Location ReturnTypeLocation { get; }
-
         protected (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BaseMethodDeclarationSyntax declarationSyntax, TypeSyntax returnTypeSyntax, BindingDiagnosticBag diagnostics)
         {
             TypeWithAnnotations returnType;
@@ -226,9 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
-            (_lazyReturnType, _lazyParameters) = MakeParametersAndBindReturnType(diagnostics);
+            var (returnType, parameters) = MakeParametersAndBindReturnType(diagnostics);
 
-            this.SetReturnsVoid(_lazyReturnType.IsVoidType());
+            MethodChecks(returnType, parameters, diagnostics);
 
             // If we have a conversion/equality/inequality operator in an interface or static class then we already 
             // have reported that fact as an error. No need to cascade the error further.
@@ -239,15 +235,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // SPEC: All types referenced in an operator declaration must be at least as accessible 
-            // SPEC: as the operator itself.
-
-            CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
             CheckValueParameters(diagnostics);
             CheckOperatorSignatures(diagnostics);
         }
 
         protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics);
+
+        protected sealed override void ExtensionMethodChecks(BindingDiagnosticBag diagnostics)
+        {
+        }
+
+        protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
+        {
+            return null;
+        }
+
+        protected sealed override TypeSymbol ExplicitInterfaceType => null;
 
         private void CheckValueParameters(BindingDiagnosticBag diagnostics)
         {
@@ -663,15 +666,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool ReturnsVoid
-        {
-            get
-            {
-                LazyMethodChecks();
-                return base.ReturnsVoid;
-            }
-        }
-
         public sealed override bool IsVararg
         {
             get
@@ -696,32 +690,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override int ParameterCount
-        {
-            get
-            {
-                if (!_lazyParameters.IsDefault)
-                {
-                    int result = _lazyParameters.Length;
-                    Debug.Assert(result == GetParameterCountFromSyntax());
-                    return result;
-                }
-
-                return GetParameterCountFromSyntax();
-            }
-        }
-
-        protected abstract int GetParameterCountFromSyntax();
-
-        public sealed override ImmutableArray<ParameterSymbol> Parameters
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyParameters;
-            }
-        }
-
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
@@ -736,15 +704,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override RefKind RefKind
         {
             get { return RefKind.None; }
-        }
-
-        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
-        {
-            get
-            {
-                LazyMethodChecks();
-                return _lazyReturnType;
-            }
         }
 
         internal sealed override bool IsExpressionBodied
