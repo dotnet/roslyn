@@ -109,32 +109,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (idx > 0) ? fullName.Substring(idx + 1) : fullName; //don't consider leading dots
         }
 
+#nullable enable
         public static ImmutableArray<T> SubstituteExplicitInterfaceImplementations<T>(ImmutableArray<T> unsubstitutedExplicitInterfaceImplementations, TypeMap map) where T : Symbol
         {
             var builder = ArrayBuilder<T>.GetInstance();
             foreach (var unsubstitutedPropertyImplemented in unsubstitutedExplicitInterfaceImplementations)
             {
-                var unsubstitutedInterfaceType = unsubstitutedPropertyImplemented.ContainingType;
-                Debug.Assert((object)unsubstitutedInterfaceType != null);
-                var explicitInterfaceType = map.SubstituteNamedType(unsubstitutedInterfaceType);
-                Debug.Assert((object)explicitInterfaceType != null);
-                var name = unsubstitutedPropertyImplemented.Name; //should already be unqualified
-
-                T substitutedMemberImplemented = null;
-                foreach (var candidateMember in explicitInterfaceType.GetMembers(name))
-                {
-                    if (candidateMember.OriginalDefinition == unsubstitutedPropertyImplemented.OriginalDefinition)
-                    {
-                        substitutedMemberImplemented = (T)candidateMember;
-                        break;
-                    }
-                }
-                Debug.Assert((object)substitutedMemberImplemented != null); //if it was an explicit implementation before the substitution, it should still be after
-                builder.Add(substitutedMemberImplemented);
+                builder.Add(SubstituteExplicitInterfaceImplementation(unsubstitutedPropertyImplemented, map));
             }
 
             return builder.ToImmutableAndFree();
         }
+
+        public static T SubstituteExplicitInterfaceImplementation<T>(T unsubstitutedPropertyImplemented, TypeMap map) where T : Symbol
+        {
+            var unsubstitutedInterfaceType = unsubstitutedPropertyImplemented.ContainingType;
+            Debug.Assert((object)unsubstitutedInterfaceType != null);
+            var explicitInterfaceType = map.SubstituteNamedType(unsubstitutedInterfaceType);
+            Debug.Assert((object)explicitInterfaceType != null);
+            var name = unsubstitutedPropertyImplemented.Name; //should already be unqualified
+
+            foreach (var candidateMember in explicitInterfaceType.GetMembers(name))
+            {
+                if (candidateMember.OriginalDefinition == unsubstitutedPropertyImplemented.OriginalDefinition)
+                {
+                    return (T)candidateMember;
+                }
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+#nullable disable
 
         internal static MethodSymbol FindExplicitlyImplementedMethod(
             this MethodSymbol implementingMethod,
@@ -351,6 +356,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // tried to implement the ambiguous interface implicitly, we would separately raise an error about
             // the implicit implementation methods differing by only ref/out.
             FindExplicitImplementationCollisions(implementingMember, implementedMember, diagnostics);
+
+            if (implementedMember.IsStatic && !implementingMember.ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+            {
+                diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, implementingMember.Locations[0]);
+            }
         }
 
         /// <summary>

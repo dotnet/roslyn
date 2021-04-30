@@ -310,5 +310,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsRecord => false;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
     }
 }

@@ -232,6 +232,11 @@
         <target state="translated">Les membres nommés 'Clone' ne sont pas autorisés dans les enregistrements.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotStatic">
+        <source>'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</source>
+        <target state="new">'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
         <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}'.</source>
         <target state="translated">'{0}' n'implémente pas le membre d'interface '{1}'. '{2}' ne peut pas implémenter '{1}'.</target>
@@ -870,6 +875,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
         <source>Target runtime doesn't support static abstract members in interfaces.</source>
         <target state="new">Target runtime doesn't support static abstract members in interfaces.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
@@ -5826,8 +5836,8 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberStatic">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is static.</source>
-        <target state="translated">'{0}' n'implémente pas le membre d'interface '{1}'. '{2}' ne peut pas implémenter un membre d'interface, car il est static.</target>
+        <source>'{0}' does not implement instance interface member '{1}'. '{2}' cannot implement the interface member because it is static.</source>
+        <target state="needs-review-translation">'{0}' n'implémente pas le membre d'interface '{1}'. '{2}' ne peut pas implémenter un membre d'interface, car il est static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotPublic">

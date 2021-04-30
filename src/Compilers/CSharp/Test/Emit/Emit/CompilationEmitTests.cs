@@ -2419,7 +2419,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
 
             var class1TypeDef = (Cci.ITypeDefinition)class1.GetCciAdapter();
 
-            var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None);
+            var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods;
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var cciExplicit = class1TypeDef.GetExplicitImplementationOverrides(context);
             var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m.GetInternalSymbol()).MethodKind != MethodKind.Constructor);

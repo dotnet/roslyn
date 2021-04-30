@@ -7026,7 +7026,13 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M2").WithArguments("Test1.M2()").WithLocation(23, 13),
                 // (24,13): error CS0539: 'Test1.M3()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I1.M3() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M3").WithArguments("Test1.M3()").WithLocation(24, 13)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M3").WithArguments("Test1.M3()").WithLocation(24, 13),
+                // (19,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(19, 15),
+                // (27,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M1()").WithLocation(27, 15)
                 );
 
             var test1 = compilation1.GetTypeByMetadataName("Test1");
@@ -8610,6 +8616,9 @@ class Test2 : I1
                 // (11,15): error CS0535: 'Test1' does not implement interface member 'I1.M2()'
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M2()").WithLocation(11, 15),
+                // (11,15): error CS0535: 'Test1' does not implement interface member 'I1.M3()'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M3()").WithLocation(11, 15),
                 // (11,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(11, 15),
@@ -8624,7 +8633,10 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("Test2.M4()").WithLocation(20, 13),
                 // (21,13): error CS0539: 'Test2.M5()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I1.M5() {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M5").WithArguments("Test2.M5()").WithLocation(21, 13)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M5").WithArguments("Test2.M5()").WithLocation(21, 13),
+                // (15,15): error CS0535: 'Test2' does not implement interface member 'I1.M3()'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M3()").WithLocation(15, 15)
                 );
 
             var test1 = compilation1.GetTypeByMetadataName("Test1");
@@ -12067,6 +12079,9 @@ class Test2 : I1
                 // (8,23): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static int P3 => 0; 
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P3").WithArguments("sealed", "9.0", "preview").WithLocation(8, 23),
+                // (13,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(13, 15),
                 // (15,12): error CS0539: 'Test1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.P1 => 0;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("Test1.P1").WithLocation(15, 12),
@@ -12078,7 +12093,10 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P3").WithArguments("Test1.P3").WithLocation(17, 12),
                 // (18,12): error CS0539: 'Test1.P4' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.P4 {set {}}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P4").WithArguments("Test1.P4").WithLocation(18, 12)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P4").WithArguments("Test1.P4").WithLocation(18, 12),
+                // (21,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(21, 15)
                 );
 
             var test1 = compilation1.GetTypeByMetadataName("Test1");
@@ -14744,7 +14762,13 @@ class Test2 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I3.P3.get").WithLocation(12, 27),
                 // (12,32): warning CS0626: Method, operator, or accessor 'I3.P3.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern int P3 {get; set;} 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I3.P3.set").WithLocation(12, 32)
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I3.P3.set").WithLocation(12, 32),
+                // (23,27): error CS0535: 'Test1' does not implement interface member 'I4.P4'
+                // class Test1 : I1, I2, I3, I4, I5
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test1", "I4.P4").WithLocation(23, 27),
+                // (27,27): error CS0535: 'Test2' does not implement interface member 'I4.P4'
+                // class Test2 : I1, I2, I3, I4, I5
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I4.P4").WithLocation(27, 27)
                 );
         }
 
@@ -24909,7 +24933,13 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P2").WithArguments("Test1.P2").WithLocation(14, 28),
                 // (15,28): error CS0539: 'Test1.P3' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I1.P3 {add {} remove{}} 
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P3").WithArguments("Test1.P3").WithLocation(15, 28)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P3").WithArguments("Test1.P3").WithLocation(15, 28),
+                // (18,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(18, 15),
+                // (11,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(11, 15)
                 );
 
             var test1 = compilation1.GetTypeByMetadataName("Test1");
@@ -27394,6 +27424,12 @@ class Test2 : I1, I2, I3, I4, I5
                 // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     static extern event System.Action P3;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
+                // (23,27): error CS0535: 'Test1' does not implement interface member 'I4.P4'
+                // class Test1 : I1, I2, I3, I4, I5
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test1", "I4.P4").WithLocation(23, 27),
+                // (27,27): error CS0535: 'Test2' does not implement interface member 'I4.P4'
+                // class Test2 : I1, I2, I3, I4, I5
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I4.P4").WithLocation(27, 27),
                 // (8,42): warning CS0067: The event 'I2.P2' is never used
                 //     abstract private event System.Action P2 = null; 
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P2").WithArguments("I2.P2").WithLocation(8, 42)
