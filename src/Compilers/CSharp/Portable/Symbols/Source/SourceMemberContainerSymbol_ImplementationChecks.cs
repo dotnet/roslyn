@@ -1670,7 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return (new SynthesizedExplicitImplementationForwardingMethod(interfaceMethod, implementingMethod, this), default);
+            return (new SynthesizedExplicitImplementationForwardingMethod(interfaceMethod, implementingMethod, this), null);
         }
 
 #nullable disable
