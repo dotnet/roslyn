@@ -37,10 +37,10 @@ steps:
     ${{ coalesce(parameters.platform.buildScript, './build.sh') }} --ci \
       --configuration $buildConfig \
       --restore --build --pack --publish -bl \
+      --sourceBuild \
       $officialBuildArgs \
       $targetRidArgs \
-      /p:SourceBuildNonPortable=${{ parameters.platform.nonPortable }} \
-      /p:ArcadeBuildFromSource=true
+      /p:SourceBuildNonPortable=${{ parameters.platform.nonPortable }}
   displayName: Build
 
 # Upload build logs for diagnosis.
