@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyReturnType;
             }
         }
+
         internal sealed override bool IsExplicitInterfaceImplementation
         {
             get
