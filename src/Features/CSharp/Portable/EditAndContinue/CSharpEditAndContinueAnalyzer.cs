@@ -1353,11 +1353,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
+            EditAndContinueCapabilities capabilities,
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             out bool hasErrors,
             CancellationToken cancellationToken)
         {
-            base.ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, diagnostics, out hasErrors, cancellationToken);
+            base.ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, capabilities, diagnostics, out hasErrors, cancellationToken);
 
             if (IsLocalFunctionBody(oldLambdaBody) != IsLocalFunctionBody(newLambdaBody))
             {
@@ -2285,15 +2286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.Attribute:
                     case SyntaxKind.AttributeList:
-                        // To allow inserting of attributes we would need to check if the inserted attribute
+                        // To allow inserting of attributes we need to check if the inserted attribute
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
-
-                        // For now, since we don't do semantic analysis of statement syntax, we'll leave a rude edit for that scenario.
-                        if (_classifyStatementSyntax)
-                        {
-                            ReportError(RudeEditKind.Insert);
-                        }
                         return;
                 }
 
@@ -2366,15 +2361,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.AttributeList:
                     case SyntaxKind.Attribute:
-                        // To allow removal of attributes we would need to check if the removed attribute
+                        // To allow removal of attributes we need to check if the removed attribute
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
-
-                        // For now, since we don't do semantic analysis of statement syntax, we'll leave a rude edit for that scenario.
-                        if (_classifyStatementSyntax)
-                        {
-                            ReportError(RudeEditKind.Delete);
-                        }
                         return;
 
                     case SyntaxKind.TypeParameter:
@@ -2520,15 +2509,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case SyntaxKind.Attribute:
-                        // To allow update of attributes we would need to check if the updated attribute
+                        // To allow update of attributes we need to check if the updated attribute
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
-
-                        // For now, since we don't do semantic analysis of statement syntax, we'll leave a rude edit for that scenario.
-                        if (_classifyStatementSyntax)
-                        {
-                            ReportError(RudeEditKind.Update);
-                        }
                         return;
 
                     case SyntaxKind.TypeParameterList:

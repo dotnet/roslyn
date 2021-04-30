@@ -2764,7 +2764,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (editKind == SemanticEditKind.Update)
                     {
-                        ReportAttributeEdits(oldSymbol, newSymbol, editScript.Match.Matches, edit.NewNode, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+                        ReportAttributeEdits(oldSymbol, newSymbol, editScript.Match.Matches, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
 
                         // The only update to the type itself that's supported is an addition or removal of the partial modifier,
                         // which does not have impact on the emitted type metadata.
@@ -2895,11 +2895,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var (oldFieldSymbol, newFieldSymbol) = GetSymbolsForField(oldModel, edit.OldNode, newModel, edit.NewNode, cancellationToken);
             if (newFieldSymbol is not null)
             {
-                ReportAttributeEdits(oldFieldSymbol, newFieldSymbol, editScript.Match.Matches, edit.NewNode, capabilities, diagnostics, semanticEdits, null, cancellationToken);
+                ReportAttributeEdits(oldFieldSymbol, newFieldSymbol, editScript.Match.Matches, capabilities, diagnostics, semanticEdits, null, cancellationToken);
             }
         }
 
-        private void ReportAttributeEdits(ISymbol? oldSymbol, ISymbol newSymbol, IReadOnlyDictionary<SyntaxNode, SyntaxNode> matches, SyntaxNode targetNode, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, ArrayBuilder<SemanticEditInfo> semanticEdits, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        private void ReportAttributeEdits(ISymbol? oldSymbol, ISymbol newSymbol, IReadOnlyDictionary<SyntaxNode, SyntaxNode>? matches, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, ArrayBuilder<SemanticEditInfo>? semanticEdits, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
         {
             var needsEdit = false;
             var attributesHaveChanged = false;
@@ -2908,14 +2908,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var oldMethod = oldSymbol as IMethodSymbol;
 
-                ReportAttributeRudeEdits(oldMethod?.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), matches, capabilities, diagnostics, out attributesHaveChanged);
+                ReportAttributeRudeEdits(oldMethod?.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), newMethod, matches, capabilities, diagnostics, out attributesHaveChanged);
                 needsEdit |= attributesHaveChanged;
 
                 // For properties, we only get called for the get methods, but we want to check the property itself for attribute changes
                 if (newMethod.AssociatedSymbol is not null)
                 {
-                    ReportAttributeRudeEdits(oldMethod?.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), matches, capabilities, diagnostics, out var propertyAttributesChanged);
-                    if (propertyAttributesChanged)
+                    ReportAttributeRudeEdits(oldMethod?.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), newMethod.AssociatedSymbol, matches, capabilities, diagnostics, out var propertyAttributesChanged);
+                    if (propertyAttributesChanged && semanticEdits is not null)
                     {
                         var symbolKey = SymbolKey.Create(newMethod.AssociatedSymbol, cancellationToken);
                         semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
@@ -2928,31 +2928,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (newType.DelegateInvokeMethod is not null)
                 {
                     // If this is a delegate with attributes on its return type for example, they are found on the DelegateInvokeMethod
-                    ReportAttributeEdits(oldType?.DelegateInvokeMethod, newType.DelegateInvokeMethod, matches, targetNode, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+                    ReportAttributeEdits(oldType?.DelegateInvokeMethod, newType.DelegateInvokeMethod, matches, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
                 }
             }
 
             foreach (var parameter in newSymbol.GetParameters())
             {
                 var oldParameter = oldSymbol?.GetParameters().SingleOrDefault(p => p.Name.Equals(parameter.Name));
-                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), parameter.GetAttributes(), matches, capabilities, diagnostics, out attributesHaveChanged);
+                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), parameter.GetAttributes(), parameter, matches, capabilities, diagnostics, out attributesHaveChanged);
                 needsEdit |= attributesHaveChanged;
             }
 
             foreach (var typeParam in newSymbol.GetTypeParameters())
             {
                 var oldParameter = oldSymbol?.GetTypeParameters().SingleOrDefault(p => p.Name.Equals(typeParam.Name));
-                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), typeParam.GetAttributes(), matches, capabilities, diagnostics, out attributesHaveChanged);
+                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), typeParam.GetAttributes(), typeParam, matches, capabilities, diagnostics, out attributesHaveChanged);
                 needsEdit |= attributesHaveChanged;
             }
 
             // This is the only case we care about whether to issue an edit or not, because this is the only case where types have their attributes checked
             // and types are the only things that would otherwise not have edits reported.
-            ReportAttributeRudeEdits(oldSymbol?.GetAttributes(), newSymbol.GetAttributes(), matches, capabilities, diagnostics, out attributesHaveChanged);
+            ReportAttributeRudeEdits(oldSymbol?.GetAttributes(), newSymbol.GetAttributes(), newSymbol, matches, capabilities, diagnostics, out attributesHaveChanged);
             needsEdit |= attributesHaveChanged;
 
             // If we don't need to add an edit, then we're done
-            if (!needsEdit)
+            if (!needsEdit || semanticEdits is null)
             {
                 return;
             }
@@ -2968,11 +2968,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var symbolKey = SymbolKey.Create(newSymbol.ContainingSymbol, cancellationToken);
                 semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
             }
-
-            needsEdit |= attributesHaveChanged;
         }
 
-        private void ReportAttributeRudeEdits(ImmutableArray<AttributeData>? oldAttributes, ImmutableArray<AttributeData> newAttributes, IReadOnlyDictionary<SyntaxNode, SyntaxNode> matches, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, out bool needsEdit)
+        private void ReportAttributeRudeEdits(ImmutableArray<AttributeData>? oldAttributes, ImmutableArray<AttributeData> newAttributes, ISymbol newSymbol, IReadOnlyDictionary<SyntaxNode, SyntaxNode>? matches, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, out bool needsEdit)
         {
             needsEdit = false;
             // First we'll go through the new attributes and try to find matches for everything
@@ -3009,7 +3007,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (newAttribute == null)
                     {
-                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.DeleteNotSupportedByRuntime, GetDeletedNodeDiagnosticSpan(matches, oldNode), oldNode, new[] { GetDisplayName(oldNode, EditKind.Delete) }));
+                        var span = matches == null ?
+                            GetDiagnosticSpan(newSymbol.DeclaringSyntaxReferences.First().GetSyntax(), EditKind.Update) :
+                            GetDeletedNodeDiagnosticSpan(matches, oldNode);
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.DeleteNotSupportedByRuntime, span, oldNode, new[] { GetDisplayName(oldNode, EditKind.Delete) }));
                     }
                     else
                     {
@@ -3607,7 +3608,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         return;
                     }
 
-                    ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, diagnostics, out var hasErrors, cancellationToken);
+                    ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, capabilities, diagnostics, out var hasErrors, cancellationToken);
                     anySignatureErrors |= hasErrors;
                 }
 
@@ -4276,6 +4277,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
+            EditAndContinueCapabilities capabilities,
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             out bool hasErrors,
             CancellationToken cancellationToken)
@@ -4294,6 +4296,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
             var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
+
+            ReportAttributeEdits(oldLambdaSymbol, newLambdaSymbol, null, capabilities, diagnostics, null, null, cancellationToken);
 
             RudeEditKind rudeEdit;
 
