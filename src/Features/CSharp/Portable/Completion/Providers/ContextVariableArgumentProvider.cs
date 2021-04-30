@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -18,6 +19,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ContextVariableArgumentProvider()
         {
+        }
+
+        public override async Task ProvideArgumentAsync(ArgumentContext context)
+        {
+            await base.ProvideArgumentAsync(context).ConfigureAwait(false);
+            if (context.DefaultValue is not null)
+            {
+                switch (context.Parameter.RefKind)
+                {
+                    case RefKind.Ref:
+                        context.DefaultValue = "ref " + context.DefaultValue;
+                        break;
+
+                    case RefKind.Out:
+                        context.DefaultValue = "out " + context.DefaultValue;
+                        break;
+
+                    case RefKind.In:
+                    case RefKind.None:
+                    default:
+                        break;
+                }
+            }
         }
     }
 }
