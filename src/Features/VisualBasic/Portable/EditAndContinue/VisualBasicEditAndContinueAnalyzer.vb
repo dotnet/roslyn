@@ -1195,9 +1195,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return Nothing
                     End If
 
-                Case SyntaxKind.Parameter,
-                     SyntaxKind.TypeParameter,
-                     SyntaxKind.ImportsStatement,
+                Case SyntaxKind.TypeParameter,
+                     SyntaxKind.Parameter
+                    ' Return containing symbol for parameters when updated, to check attributes
+                    If editKind = EditKind.Update Then
+                        Dim containingSymbol = model.GetDeclaredSymbol(node, cancellationToken).ContainingSymbol
+
+                        ' for delegate invoke methods we need to go one step higher, to the delegate itself
+                        Dim containingDelegate = TryCast(containingSymbol, IMethodSymbol)
+                        If containingDelegate IsNot Nothing AndAlso containingDelegate.MethodKind = MethodKind.DelegateInvoke Then
+                            containingSymbol = containingDelegate.ContainingSymbol
+                        End If
+
+                        Return containingSymbol
+                    End If
+                    Return Nothing
+
+                Case SyntaxKind.ImportsStatement,
                      SyntaxKind.NamespaceBlock
                     Return Nothing
 
@@ -1214,9 +1228,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Dim variableDeclarator = CType(node, VariableDeclaratorSyntax)
                     isAmbiguous = variableDeclarator.Names.Count > 1
                     node = variableDeclarator.Names.First
-
-                Case SyntaxKind.Attribute
-                    Return model.GetTypeInfo(node, cancellationToken).Type
 
             End Select
 
@@ -1241,13 +1252,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             ' Since any attribute applied to a field applies to all declarators and names, we only need to grab the first one
-            Dim newDeclaration = newField.Declarators.First()
-            Dim oldDeclaration = oldField.Declarators.First()
+            Dim newDeclaration = newField.Declarators.First().Names.First()
+            Dim oldDeclaration = oldField.Declarators.First().Names.First()
 
             Dim oldSymbol = oldModel?.GetDeclaredSymbol(oldDeclaration, cancellationToken)
             Dim newSymbol = newModel.GetDeclaredSymbol(newDeclaration, cancellationToken)
-
-            Contract.ThrowIfNull(newSymbol)
 
             Return (oldSymbol, newSymbol)
         End Function
@@ -2445,7 +2454,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                     Case SyntaxKind.TypeParameterList,
                          SyntaxKind.ParameterList,
-                         SyntaxKind.AttributeList
+                         SyntaxKind.AttributeList,
+                         SyntaxKind.AttributesStatement
                         Return
 
                     Case Else
