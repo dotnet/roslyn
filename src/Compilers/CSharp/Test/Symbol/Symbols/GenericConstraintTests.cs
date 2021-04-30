@@ -7166,6 +7166,7 @@ public class C : A<C, C.D>
                 expectedOutput: "C+D");
 
             var c = comp.GetTypeByMetadataName("C");
+            Assert.True(c.ContainingModule.HasUnifiedReferences);
             Assert.Equal(expectedDiagnostic.Code, c.GetUseSiteDiagnostic().Code);
         }
 
@@ -7223,6 +7224,7 @@ System.Console.WriteLine(typeof(G).FullName);
 
             var c = comp.GetTypeByMetadataName("C");
             Assert.Null(c.GetUseSiteDiagnostic());
+            Assert.True(c.ContainingModule.HasUnifiedReferences);
         }
     }
 }
