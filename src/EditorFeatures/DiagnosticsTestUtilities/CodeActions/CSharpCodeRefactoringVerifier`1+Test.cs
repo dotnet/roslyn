@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             /// <summary>
             /// The set of code action <see cref="CodeAction.Title"/>s offered the user in this exact order.
-            /// Set this to ensure that a very specific set of actions is offered (or not).
+            /// Set this to ensure that a very specific set of actions is offered.
             /// </summary>
             public string[]? ExactActionSetOffered { get; set; }
 
