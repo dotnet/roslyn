@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
 
         internal abstract Type GetArgumentProviderType();
 
-        protected abstract IParameterSymbol GetParameterSymbolInfo(SemanticModel semanticModel, SyntaxNode root, int position, CancellationToken cancellationToken);
+        protected abstract (SyntaxNode argumentList, ImmutableArray<SyntaxNode> arguments) GetArgumentList(SyntaxToken token);
 
         protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
 
@@ -64,13 +65,57 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
 
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
             var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
-            var parameter = GetParameterSymbolInfo(semanticModel, root, position, CancellationToken.None);
+            var parameter = GetParameterSymbolInfo(workspace, semanticModel, root, position, CancellationToken.None);
             Contract.ThrowIfNull(parameter);
 
             var context = new ArgumentContext(provider, semanticModel, position, parameter, previousDefaultValue, CancellationToken.None);
             await provider.ProvideArgumentAsync(context);
 
             Assert.Equal(expectedDefaultValue, context.DefaultValue);
+        }
+
+        private IParameterSymbol GetParameterSymbolInfo(Workspace workspace, SemanticModel semanticModel, SyntaxNode root, int position, CancellationToken cancellationToken)
+        {
+            var token = root.FindToken(position);
+            var (argumentList, arguments) = GetArgumentList(token);
+            var symbols = semanticModel.GetSymbolInfo(argumentList.GetRequiredParent(), cancellationToken).GetAllSymbols();
+
+            // if more than one symbol is found, filter to only include symbols with a matching number of arguments
+            if (symbols.Length > 1)
+            {
+                symbols = symbols.WhereAsArray(
+                    symbol =>
+                    {
+                        var parameters = symbol.GetParameters();
+                        if (arguments.Length < GetMinimumArgumentCount(parameters))
+                            return false;
+
+                        if (arguments.Length > GetMaximumArgumentCount(parameters))
+                            return false;
+
+                        return true;
+                    });
+            }
+
+            var symbol = symbols.Single();
+            var parameters = symbol.GetParameters();
+
+            var syntaxFacts = workspace.Services.GetLanguageServices(root.Language).GetRequiredService<ISyntaxFactsService>();
+            Contract.ThrowIfTrue(arguments.Any(argument => syntaxFacts.IsNamedArgument(argument)), "Named arguments are not currently supported by this test.");
+            Contract.ThrowIfTrue(parameters.Any(parameter => parameter.IsParams), "'params' parameters are not currently supported by this test.");
+
+            var index = arguments.Any()
+                ? arguments.IndexOf(arguments.Single(argument => argument.FullSpan.Start <= position && argument.FullSpan.End >= position))
+                : 0;
+
+            return parameters[index];
+
+            // Local functions
+            static int GetMinimumArgumentCount(ImmutableArray<IParameterSymbol> parameters)
+                => parameters.Count(parameter => !parameter.IsOptional && !parameter.IsParams);
+
+            static int GetMaximumArgumentCount(ImmutableArray<IParameterSymbol> parameters)
+                => parameters.Any(parameter => parameter.IsParams) ? int.MaxValue : parameters.Length;
         }
     }
 }
