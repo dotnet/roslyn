@@ -269,13 +269,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.Parameter:
                     return Label.Parameter;
 
-                case SyntaxKind.AttributeList:
-                    return Label.AttributeList;
-
-                case SyntaxKind.Attribute:
-                    isLeaf = true;
-                    return Label.Attribute;
-
                 case SyntaxKind.ConstructorDeclaration:
                     // Root when matching constructor bodies.
                     return Label.ConstructorDeclaration;
