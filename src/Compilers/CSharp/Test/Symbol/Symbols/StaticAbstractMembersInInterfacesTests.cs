@@ -11023,7 +11023,7 @@ public interface I1
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01()'
                 //     C1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01()").WithLocation(8, 10),
-                // (12,10): error CS9109: 'C2' does not implement interface member 'I1.M01()'. 'C2.M01()' cannot implement an interface member because it is not static.
+                // (12,10): error CS9109: 'C2' does not implement static interface member 'I1.M01()'. 'C2.M01()' cannot implement the interface member because it is not static.
                 //     C2 : I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1").WithArguments("C2", "I1.M01()", "C2.M01()").WithLocation(12, 10),
                 // (18,10): error CS0737: 'C3' does not implement interface member 'I1.M01()'. 'C3.M01()' cannot implement an interface member because it is not public.
@@ -11103,7 +11103,7 @@ public interface I1
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01()'
                 //     C1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01()").WithLocation(8, 10),
-                // (12,10): error CS0736: 'C2' does not implement interface member 'I1.M01()'. 'C2.M01()' cannot implement an interface member because it is static.
+                // (12,10): error CS0736: 'C2' does not implement instance interface member 'I1.M01()'. 'C2.M01()' cannot implement the interface member because it is static.
                 //     C2 : I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I1").WithArguments("C2", "I1.M01()", "C2.M01()").WithLocation(12, 10),
                 // (18,10): error CS0737: 'C3' does not implement interface member 'I1.M01()'. 'C3.M01()' cannot implement an interface member because it is not public.
@@ -11855,6 +11855,7 @@ class C1 : I1
                     Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
 
                     c1M01 = module.GlobalNamespace.GetMember<MethodSymbol>("C1.M01");
+                    Assert.Equal("void C1.M01()", c1M01.ToTestDisplayString());
 
                     Assert.True(c1M01.IsStatic);
                     Assert.False(c1M01.IsAbstract);

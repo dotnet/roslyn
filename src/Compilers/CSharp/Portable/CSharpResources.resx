@@ -2151,7 +2151,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Invalid type specified as an argument for TypeForwardedTo attribute</value>
   </data>
   <data name="ERR_CloseUnimplementedInterfaceMemberStatic" xml:space="preserve">
-    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is static.</value>
+    <value>'{0}' does not implement instance interface member '{1}'. '{2}' cannot implement the interface member because it is static.</value>
   </data>
   <data name="ERR_CloseUnimplementedInterfaceMemberNotPublic" xml:space="preserve">
     <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is not public.</value>
@@ -6637,7 +6637,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain an access of static abstract interface member</value>
   </data>
   <data name="ERR_CloseUnimplementedInterfaceMemberNotStatic" xml:space="preserve">
-    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is not static.</value>
+    <value>'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</value>
   </data>
   <data name="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember" xml:space="preserve">
     <value>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</value>

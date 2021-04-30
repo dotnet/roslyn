@@ -194,9 +194,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
 
-                    if (synthesizedImplementation.MethodImpl.Body is object)
+                    if (synthesizedImplementation.MethodImpl is { } methodImpl)
                     {
-                        methodImpls.Add(synthesizedImplementation.MethodImpl);
+                        Debug.Assert(methodImpl is { Body: not null, Implemented: not null });
+                        methodImpls.Add(methodImpl);
                     }
 
                     if (wasImplementingMemberFound && interfaceMemberKind == SymbolKind.Event)
@@ -1561,8 +1562,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#nullable disable
-
         /// <summary>
         /// Though there is a method that C# considers to be an implementation of the interface method, that
         /// method may not be considered an implementation by the CLR.  In particular, implicit implementation
@@ -1573,8 +1572,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="implementingMemberAndDiagnostics">Returned from FindImplementationForInterfaceMemberWithDiagnostics.</param>
         /// <param name="interfaceMember">The interface method or property that is being implemented.</param>
-        /// <returns>Synthesized implementation or null if not needed.</returns>
-        private (SynthesizedExplicitImplementationForwardingMethod ForwardingMethod, (MethodSymbol Body, MethodSymbol Implemented) MethodImpl)
+        /// <returns>
+        /// A synthesized forwarding method for the implementation, or information about MethodImpl entry that should be emitted,
+        /// or default if neither needed.
+        /// </returns>
+        private (SynthesizedExplicitImplementationForwardingMethod? ForwardingMethod, (MethodSymbol Body, MethodSymbol Implemented)? MethodImpl)
             SynthesizeInterfaceMemberImplementation(SymbolAndDiagnostics implementingMemberAndDiagnostics, Symbol interfaceMember)
         {
             if (interfaceMember.DeclaredAccessibility != Accessibility.Public)
@@ -1635,8 +1637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (ReferenceEquals(this.ContainingModule, implementingMethodOriginalDefinition.ContainingModule))
                     {
-                        SourceMemberMethodSymbol sourceImplementMethodOriginalDefinition = implementingMethodOriginalDefinition as SourceMemberMethodSymbol;
-                        if ((object)sourceImplementMethodOriginalDefinition != null)
+                        if (implementingMethodOriginalDefinition is SourceMemberMethodSymbol sourceImplementMethodOriginalDefinition)
                         {
                             sourceImplementMethodOriginalDefinition.EnsureMetadataVirtual();
                             needSynthesizedImplementation = false;
@@ -1671,6 +1672,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (new SynthesizedExplicitImplementationForwardingMethod(interfaceMethod, implementingMethod, this), default);
         }
+
+#nullable disable
 
         /// <summary>
         /// The CLR will only look for an implementation of an interface method in a type that

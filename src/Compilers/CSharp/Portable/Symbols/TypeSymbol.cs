@@ -2134,6 +2134,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
+        /// <summary>
+        /// If implementation of an interface method <paramref name="interfaceMethod"/> will be accompanied with 
+        /// a MethodImpl entry in metadata, information about which isn't already exposed through
+        /// <see cref="MethodSymbol.ExplicitInterfaceImplementations"/> API, this method returns the "Body" part
+        /// of the MethodImpl entry, i.e. the method that implements the <paramref name="interfaceMethod"/>.
+        /// Some of the MethodImpl entries could require synthetic forwarding methods. In such cases,
+        /// the result is the method that the language considers to implement the <paramref name="interfaceMethod"/>,
+        /// rather than the forwarding method. In other words, it is the method that the forwarding method forwards to.
+        /// </summary>
+        /// <param name="interfaceMethod">The interface method that is going to be implemented by using synthesized MethodImpl entry.</param>
+        /// <returns></returns>
         protected MethodSymbol? GetBodyOfSynthesizedInterfaceMethodImpl(MethodSymbol interfaceMethod)
         {
             var info = this.GetInterfaceInfo();
@@ -2166,6 +2177,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Returns information about interface method implementations that will be accompanied with 
+        /// MethodImpl entries in metadata, information about which isn't already exposed through
+        /// <see cref="MethodSymbol.ExplicitInterfaceImplementations"/> API. The "Body" is the method that
+        /// implements the interface method "Implemented". 
+        /// Some of the MethodImpl entries could require synthetic forwarding methods. In such cases,
+        /// the "Body" is the method that the language considers to implement the interface method,
+        /// the "Implemented", rather than the forwarding method. In other words, it is the method that 
+        /// the forwarding method forwards to.
+        /// </summary>
         internal abstract IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls();
 #nullable disable
 

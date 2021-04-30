@@ -3694,7 +3694,7 @@ partial class Base : Interface
                 // (13,22): error CS0737: 'Base' does not implement interface member 'Interface.Method6()'. 'Base.Method6()' cannot implement an interface member because it is not public.
                 // partial class Base : Interface
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "Interface").WithArguments("Base", "Interface.Method6()", "Base.Method6()").WithLocation(13, 22),
-                // (13,22): error CS0736: 'Base' does not implement interface member 'Interface.Method1()'. 'Base.Method1()' cannot implement an interface member because it is static.
+                // (13,22): error CS0736: 'Base' does not implement instance interface member 'Interface.Method1()'. 'Base.Method1()' cannot implement the interface member because it is static.
                 // partial class Base : Interface
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "Interface").WithArguments("Base", "Interface.Method1()", "Base.Method1()").WithLocation(13, 22));
         }
