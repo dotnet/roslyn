@@ -866,14 +866,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = False
                     Return Label.Parameter
 
-                Case SyntaxKind.AttributeList
-                    isLeaf = False
-                    Return Label.AttributeList
-
-                Case SyntaxKind.Attribute
-                    isLeaf = True
-                    Return Label.Attribute
-
                 Case Else
                     isLeaf = True
                     Return Label.Ignored
