@@ -5,21 +5,6 @@
     <SourceBuildManagedOnly>true</SourceBuildManagedOnly>
   </PropertyGroup>
 
-  <Target Name="ApplySourceBuildPatchFiles"
-          Condition="
-            '$(ArcadeBuildFromSource)' == 'true' and
-            '$(ArcadeInnerBuildFromSource)' == 'true'"
-          BeforeTargets="Execute">
-    <ItemGroup>
-      <SourceBuildPatchFile Include="$(RepositoryEngineeringDir)source-build-patches\*.patch" />
-    </ItemGroup>
-
-    <Exec
-      Command="git apply --ignore-whitespace --whitespace=nowarn &quot;%(SourceBuildPatchFile.FullPath)&quot;"
-      WorkingDirectory="$(RepoRoot)"
-      Condition="'@(SourceBuildPatchFile)' != ''" />
-  </Target>
-
   <!--
     The build script passes in the full path of the sln to build.  This must be overridden in order to build
     the cloned source in the inner build.
