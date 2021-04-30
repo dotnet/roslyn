@@ -2504,8 +2504,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.UnderlyingType, newNode.UnderlyingType))
-                ReportError(RudeEditKind.EnumUnderlyingTypeUpdate)
+                If Not SyntaxFactory.AreEquivalent(oldNode.UnderlyingType, newNode.UnderlyingType) Then
+                    ReportError(RudeEditKind.EnumUnderlyingTypeUpdate)
+                    Return
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As DelegateStatementSyntax, newNode As DelegateStatementSyntax)
@@ -2525,8 +2527,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
-                ReportError(RudeEditKind.Renamed)
+                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
+                    ReportError(RudeEditKind.Renamed)
+                    Return
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As FieldDeclarationSyntax, newNode As FieldDeclarationSyntax)
@@ -2553,7 +2557,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.ArrayBounds, newNode.ArrayBounds))
+                If Not SyntaxFactory.AreEquivalent(oldNode.ArrayBounds, newNode.ArrayBounds) Then
+                    ReportError(RudeEditKind.TypeUpdate)
+                    Return
+                End If
 
                 If oldNode.ArrayBounds Is Nothing OrElse
                     newNode.ArrayBounds Is Nothing OrElse
@@ -2824,8 +2831,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.VarianceKeyword, newNode.VarianceKeyword))
-                ReportError(RudeEditKind.VarianceUpdate)
+                If Not SyntaxFactory.AreEquivalent(oldNode.VarianceKeyword, newNode.VarianceKeyword) Then
+                    ReportError(RudeEditKind.VarianceUpdate)
+                    Return
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As ParameterSyntax, newNode As ParameterSyntax)
