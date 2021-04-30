@@ -291,7 +291,7 @@ Option Strict Off
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Update [A1]@133 -> [A2]@133")
+                "Update [<A1>Class C]@132 -> [<A2>Class C]@132")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A2", FeaturesResources.attribute))
@@ -304,7 +304,7 @@ Option Strict Off
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [System.Obsolete(1)]@1 -> [System.Obsolete(2)]@1")
+                "Update [<System.Obsolete(1)>Class C]@0 -> [<System.Obsolete(2)>Class C]@0")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(2)", FeaturesResources.attribute))
@@ -317,7 +317,7 @@ Option Strict Off
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Assembly: System.Obsolete(1)]@1 -> [Assembly: System.Obsolete(2)]@1")
+                "Update [<Assembly: System.Obsolete(1)>]@0 -> [<Assembly: System.Obsolete(2)>]@0")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Assembly: System.Obsolete(2)", FeaturesResources.attribute))
@@ -330,7 +330,7 @@ Option Strict Off
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Assembly: System.Obsolete(1)]@1 -> [Module: System.Obsolete(1)]@1")
+                "Update [<Assembly: System.Obsolete(1)>]@0 -> [<Module: System.Obsolete(1)>]@0")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Module: System.Obsolete(1)", FeaturesResources.attribute))
@@ -346,8 +346,7 @@ Option Strict Off
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A, B>]@130 -> [<A>]@130",
-                "Delete [B]@134")
+                "Update [<A, B>Class C]@130 -> [<A>Class C]@130")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Class C", FeaturesResources.attribute))
@@ -360,9 +359,7 @@ Option Strict Off
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Delete [<Assembly: A1>]@0",
-                "Delete [<Assembly: A1>]@0",
-                "Delete [Assembly: A1]@1")
+                "Delete [<Assembly: A1>]@0")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, Nothing, VBFeaturesResources.attributes))
@@ -375,8 +372,7 @@ Option Strict Off
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A>]@0 -> [<A, System.Obsolete>]@0",
-                "Insert [System.Obsolete]@4")
+                "Update [<A>Class C]@0 -> [<A, System.Obsolete>Class C]@0")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -389,8 +385,7 @@ Option Strict Off
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<System.Obsolete>]@0",
-                "Insert [System.Obsolete]@1")
+                "Update [Class C]@0 -> [<System.Obsolete>Class C]@0")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -403,9 +398,7 @@ Option Strict Off
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [<Assembly: A1>]@0",
-                "Insert [<Assembly: A1>]@0",
-                "Insert [Assembly: A1]@1")
+                "Insert [<Assembly: A1>]@0")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "<Assembly: A1>", VBFeaturesResources.attributes))
@@ -417,7 +410,7 @@ Option Strict Off
             Dim src2 = "<C(3), A(1), B(2)>Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyEdits("Reorder [C(3)]@13 -> @1")
+            edits.VerifyEdits("Update [<A(1), B(2), C(3)>Class C]@0 -> [<C(3), A(1), B(2)>Class C]@0")
             edits.VerifyRudeDiagnostics()
         End Sub
 
@@ -427,7 +420,7 @@ Option Strict Off
             Dim src2 = "<B, C, A>Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyEdits("Reorder [A]@1 -> @7")
+            edits.VerifyEdits("Update [<A, B, C>Class C]@0 -> [<B, C, A>Class C]@0")
             edits.VerifyRudeDiagnostics()
         End Sub
 
@@ -437,7 +430,7 @@ Option Strict Off
             Dim src2 = "<Assembly: A2><Assembly: A1>"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyEdits("Reorder [<Assembly: A2>]@14 -> @0")
+            edits.VerifyEdits("Update [<Assembly: A1><Assembly: A2>]@0 -> [<Assembly: A2><Assembly: A1>]@0")
 
             edits.VerifyRudeDiagnostics()
         End Sub
@@ -449,8 +442,7 @@ Option Strict Off
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [System.Obsolete(1)]@1 -> @7",
-                "Update [System.Obsolete(1)]@1 -> [System.Obsolete(2)]@7")
+                "Update [<System.Obsolete(1), B, C>Class C]@0 -> [<B, C, System.Obsolete(2)>Class C]@0")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(2)", FeaturesResources.attribute))
@@ -1357,7 +1349,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<System.Obsolete>]@0", "Insert [System.Obsolete]@1")
+                "Update [Enum E]@0 -> [<System.Obsolete>Enum E]@0")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -1370,7 +1362,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [<System.Obsolete>]@9", "Delete [System.Obsolete]@10")
+                "Update [<System.Obsolete>X]@9 -> [X]@9")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "X", FeaturesResources.attribute))
@@ -1383,7 +1375,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<System.Obsolete>]@9", "Insert [System.Obsolete]@10")
+                "Update [X]@9 -> [<System.Obsolete>X]@9")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -1399,7 +1391,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [A1]@142 -> [A2]@142")
+                "Update [<A1>X]@141 -> [<A2>X]@141")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A2", FeaturesResources.attribute))
@@ -1709,8 +1701,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<System.Obsolete>]@27",
-                "Insert [System.Obsolete]@28")
+                "Update [a As Integer]@27 -> [<System.Obsolete> a As Integer]@27")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -1803,11 +1794,10 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [<System.Obsolete>]@0",
-                "Insert [System.Obsolete]@1")
+                "Update [Public Delegate Function D(a As Integer) As Integer]@0 -> [<System.Obsolete>Public Delegate Function D(a As Integer) As Integer]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
         End Sub
 
 #End Region
@@ -2019,8 +2009,7 @@ End Class"
                 {
                     Diagnostic(RudeEditKind.InsertDllImport, "Public Shared Function puts(c As String)", FeaturesResources.method),
                     Diagnostic(RudeEditKind.InsertDllImport, "Public Shared Operator +(d As D, g As D)", FeaturesResources.operator_),
-                    Diagnostic(RudeEditKind.InsertDllImport, "Public Shared Narrowing Operator CType(d As D)", FeaturesResources.operator_),
-                    Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(""msvcrt.dll"")", FeaturesResources.attribute)
+                    Diagnostic(RudeEditKind.InsertDllImport, "Public Shared Narrowing Operator CType(d As D)", FeaturesResources.operator_)
                 },
                 targetFrameworks:={TargetFramework.NetStandard20})
         End Sub
@@ -2049,8 +2038,7 @@ End Class"
             edits.VerifySemantics(
                 diagnostics:=
                 {
-                    Diagnostic(RudeEditKind.InsertDllImport, "Private Shared Function puts(c As String)", FeaturesResources.method),
-                    Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "DllImport(""msvcrt.dll"")", FeaturesResources.attribute)
+                    Diagnostic(RudeEditKind.InsertDllImport, "Private Shared Function puts(c As String)", FeaturesResources.method)
                 },
                 targetFrameworks:={TargetFramework.NetStandard20})
         End Sub
@@ -3087,8 +3075,6 @@ End Class"
             edits.VerifyEdits(
                 "Delete [<Obsolete> Sub goo(a As Integer) : End Sub]@11",
                 "Delete [<Obsolete> Sub goo(a As Integer)]@11",
-                "Delete [<Obsolete>]@11",
-                "Delete [Obsolete]@12",
                 "Delete [(a As Integer)]@29",
                 "Delete [a As Integer]@30",
                 "Delete [a]@30",
@@ -3491,8 +3477,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<System.Obsolete>]@11",
-                "Insert [System.Obsolete]@12")
+                "Update [Sub F()]@11 -> [<System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -3505,8 +3490,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A>]@11 -> [<A, System.Obsolete>]@11",
-                "Insert [System.Obsolete]@15")
+                "Update [<A>Sub F()]@11 -> [<A, System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -3519,8 +3503,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<System.Obsolete>]@14",
-                "Insert [System.Obsolete]@15")
+                "Update [<A>Sub F()]@11 -> [<A><System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -3533,9 +3516,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<A, System.Obsolete>]@11",
-                "Insert [A]@12",
-                "Insert [System.Obsolete]@15")
+                "Update [Sub F()]@11 -> [<A, System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -3548,7 +3529,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [System.Obsolete]@12 -> [System.Obsolete(1)]@12")
+                "Update [<System.Obsolete>Sub F()]@11 -> [<System.Obsolete(1)>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(1)", FeaturesResources.attribute))
@@ -3561,8 +3542,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [<System.Obsolete>]@11",
-                "Delete [System.Obsolete]@12")
+                "Update [<System.Obsolete>Sub F()]@11 -> [Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Sub F()", FeaturesResources.attribute))
@@ -3575,8 +3555,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A, System.Obsolete>]@11 -> [<A>]@11",
-                "Delete [System.Obsolete]@15")
+                "Update [<A, System.Obsolete>Sub F()]@11 -> [<A>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Sub F()", FeaturesResources.attribute))
@@ -3589,8 +3568,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [<System.Obsolete>]@14",
-                "Delete [System.Obsolete]@15")
+                "Update [<A><System.Obsolete>Sub F()]@11 -> [<A>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Sub F()", FeaturesResources.attribute))
@@ -5809,8 +5787,7 @@ End Class
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b As Integer", FeaturesResources.field, FeaturesResources.class_),
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "FieldOffset(0)", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d As Integer", FeaturesResources.field, FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -8800,8 +8777,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<System.Obsolete>]@24",
-                "Insert [System.Obsolete]@25")
+                "Update [a As Integer]@24 -> [<System.Obsolete>a As Integer]@24")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -8814,8 +8790,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A>]@24 -> [<A, System.Obsolete>]@24",
-                "Insert [System.Obsolete]@28")
+                "Update [<A>a As Integer]@24 -> [<A, System.Obsolete>a As Integer]@24")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -8828,8 +8803,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [<System.Obsolete>]@24",
-                "Delete [System.Obsolete]@25")
+                "Update [<System.Obsolete>a As Integer]@24 -> [a As Integer]@24")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "a As Integer", FeaturesResources.attribute))
@@ -8845,8 +8819,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [System.Obsolete(1)]@155 -> [System.Obsolete(2)]@155",
-                "Update [B]@175 -> [A]@175")
+                "Update [<System.Obsolete(1), B>a As Integer]@154 -> [<System.Obsolete(2), A>a As Integer]@154")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(2)", FeaturesResources.attribute),
@@ -8863,7 +8836,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [A]@165 -> [B]@165")
+                "Update [As <A>Integer]@161 -> [As <B>Integer]@161")
 
             edits.VerifyRudeDiagnostics(
                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "B", FeaturesResources.attribute))
@@ -8876,7 +8849,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [System.Obsolete(2)]@45 -> @25")
+                "Update [<System.Obsolete(1), System.Obsolete(2)>a As Integer]@24 -> [<System.Obsolete(2), System.Obsolete(1)>a As Integer]@24")
 
             edits.VerifyRudeDiagnostics()
         End Sub
@@ -8888,8 +8861,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<System.Obsolete>]@34",
-                "Insert [System.Obsolete]@35")
+                "Update [As Integer]@31 -> [As <System.Obsolete>Integer]@31")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
@@ -8902,8 +8874,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [<System.Obsolete>]@34",
-                "Delete [System.Obsolete]@35")
+                "Update [As <System.Obsolete>Integer]@31 -> [As Integer]@31")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Function M()", FeaturesResources.attribute))
@@ -8916,9 +8887,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [As <A>Integer]@31",
-                "Delete [<A>]@34",
-                "Delete [A]@35")
+                "Delete [As <A>Integer]@31")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "Public Function M()", VBFeaturesResources.as_clause))
@@ -8931,9 +8900,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [As <A>Integer]@31",
-                "Insert [<A>]@34",
-                "Insert [A]@35")
+                "Insert [As <A>Integer]@31")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "As <A>Integer", VBFeaturesResources.as_clause))
