@@ -160,8 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
-            => OriginalDefinition.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes)
-               || ContainingType.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes);
+            => OriginalDefinition.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes);
 
         public sealed override IEnumerable<string> MemberNames
         {

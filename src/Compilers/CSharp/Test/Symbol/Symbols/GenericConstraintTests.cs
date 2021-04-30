@@ -7125,7 +7125,7 @@ static class Program
         }
 
         [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
-        public void RecursiveConstraintsFromUnifiedAssemblies()
+        public void RecursiveConstraintsFromUnifiedAssemblies_1()
         {
             var code = @"
 public abstract class A<T1, T2>
@@ -7167,6 +7167,62 @@ public class C : A<C, C.D>
 
             var c = comp.GetTypeByMetadataName("C");
             Assert.Equal(expectedDiagnostic.Code, c.GetUseSiteDiagnostic().Code);
+        }
+
+        [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
+        public void RecursiveConstraintsFromUnifiedAssemblies_2()
+        {
+            var remappedCode = @"public class F {}";
+
+            var remappedComp11 = CreateCompilation(
+                new AssemblyIdentity("remapped", new Version("1.0.0.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                new[] { remappedCode },
+                TargetFrameworkUtil.NetStandard20References.ToArray(),
+                TestOptions.ReleaseDll.WithPublicSign(true));
+
+            var remappedComp12 = CreateCompilation(
+                new AssemblyIdentity("remapped", new Version("2.0.0.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                new[] { remappedCode },
+                TargetFrameworkUtil.NetStandard20References.ToArray(),
+                TestOptions.ReleaseDll.WithPublicSign(true));
+
+            var code = @"
+public abstract class A<T1, T2>
+    where T1 : A<T1, T2>
+    where T2 : A<T1, T2>.B<T1, T2>
+{
+    public abstract class B<T3, T4>
+        where T3 : A<T3, T4>
+        where T4 : A<T3, T4>.B<T3, T4>
+    { }
+}
+public class C : A<C, C.D>
+{
+    public class D : A<C, C.D>.B<C, D>
+    {
+    }
+}
+
+public class G : F {}
+";
+
+            var metadataComp = CreateCompilation(code, new[] { remappedComp11.EmitToImageReference() }, assemblyName: "intermediate", targetFramework: TargetFramework.NetStandard20);
+            metadataComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation(@"
+System.Console.WriteLine(typeof(C.D).FullName);
+System.Console.WriteLine(typeof(G).FullName);
+",
+                new[] { metadataComp.EmitToImageReference(), remappedComp12.EmitToImageReference() },
+                targetFramework: TargetFramework.NetStandard20);
+
+            comp.VerifyDiagnostics(
+                // warning CS1701: Assuming assembly reference 'remapped, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'intermediate' matches identity 'remapped, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'remapped', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("remapped, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "intermediate", "remapped, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "remapped").WithLocation(1, 1)
+            );
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.Null(c.GetUseSiteDiagnostic());
         }
     }
 }
