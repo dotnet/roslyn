@@ -59,9 +59,16 @@ namespace Microsoft.CodeAnalysis
         //    return default;
         //}
 
-        public IncrementalValueSource<T> TransformMany<T>(Func<GeneratorSyntaxContext, IEnumerable<T>> func)
+        public IncrementalValueSource<T> TransformMany<T>(Func<GeneratorSyntaxContext, ImmutableArray<T>> func)
         {
             var node = new SyntaxTransformNode<T>(func);
+            _builder.SyntaxTransformNodes.Add(node);
+            return new IncrementalValueSource<T>(node);
+        }
+
+        public IncrementalValueSource<T> Transform<T>(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
+        {
+            var node = new SyntaxTransformNode<T>(filterFunc, transformFunc);
             _builder.SyntaxTransformNodes.Add(node);
             return new IncrementalValueSource<T>(node);
         }
@@ -143,11 +150,20 @@ namespace Microsoft.CodeAnalysis
 
     internal class SyntaxTransformNode<T> : InputNode<T>, ISyntaxTransformNode
     {
-        private readonly Func<GeneratorSyntaxContext, IEnumerable<T>> _func;
+        private readonly Func<GeneratorSyntaxContext, ImmutableArray<T>> _func;
 
-        internal SyntaxTransformNode(Func<GeneratorSyntaxContext, IEnumerable<T>> func)
+        private readonly Func<SyntaxNode, bool> _filterFunc;
+
+        internal SyntaxTransformNode(Func<GeneratorSyntaxContext, ImmutableArray<T>> func)
         {
+            _filterFunc = (n) => true;
             _func = func;
+        }
+
+        internal SyntaxTransformNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
+        {
+            _func = (t) => ImmutableArray.Create(transformFunc(t));
+            _filterFunc = filterFunc;
         }
 
         public ISyntaxTransformBuilder GetBuilder() => new Builder(this);
@@ -161,15 +177,18 @@ namespace Microsoft.CodeAnalysis
             public Builder(SyntaxTransformNode<T> owner)
             {
                 _owner = owner;
-                //PROTOTYPE(source-generators): presumably actually want to ge the previous one, right?
-                _stateTable = new NodeStateTable<T>.Builder(); 
+                //PROTOTYPE(source-generators): presumably actually want to get the previous one, right?
+                _stateTable = new NodeStateTable<T>.Builder();
             }
 
             public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
             {
-                // run the func from owner, and... compare the result?
-                var result = _owner._func(context).ToImmutableArray();
-                _stateTable.AddEntries(result, EntryState.Added);
+                //PROTOTYPE(source-generators): make this actually be efficient.
+                if (_owner._filterFunc(context.Node))
+                {
+                    var result = _owner._func(context).ToImmutableArray();
+                    _stateTable.AddEntries(result, EntryState.Added);
+                }
             }
 
             public void SetInputState(DriverStateTable.Builder driverStateBuilder)
@@ -198,7 +217,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        
         internal void SetInputStates(DriverStateTable.Builder driverStateBuilder)
         {
             foreach (var node in transformBuilders)
