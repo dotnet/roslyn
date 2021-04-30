@@ -108,9 +108,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly CancellationTokenSource _disposalTokenSource = new();
 
             /// <summary>
-            /// Series of tokens used to cancel previous outstanding work when new work comes in. Also used as the lock
-            /// to ensure threadsafe writing of _eventWorkQueue.  Use <see cref="_gate"/> to access this to ensure we don't
-            /// access a disposed instance.
+            /// Series of tokens used to cancel previous outstanding work when new work comes in.
+            /// Use <see cref="_gate"/> to access this to ensure we don't access a disposed instance.
             /// </summary>
             private readonly CancellationSeries _cancellationSeries;
 
