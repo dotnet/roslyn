@@ -2284,31 +2284,47 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit: boundNode.WasCompilerGenerated);
         }
 
-        internal IPropertySubpatternOperation CreatePropertySubpattern(BoundSubpattern subpattern, ITypeSymbol matchedType)
+        internal IPropertySubpatternOperation CreatePropertySubpattern(BoundPropertySubpattern subpattern, ITypeSymbol matchedType)
         {
             SyntaxNode syntax = subpattern.Syntax;
-            IOperation member = CreatePropertySubpatternMember(subpattern.Symbol, matchedType, syntax);
+            SyntaxNode nameSyntax = (syntax is SubpatternSyntax subpatSyntax ? subpatSyntax.ExpressionColon?.Name : null) ?? syntax;
+            bool isImplicit = nameSyntax == syntax;
+
+            IOperation? receiver = subpattern.Symbols.FirstOrDefault()?.IsStatic == false
+                ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, isImplicit: true)
+                : null;
+
+            if (subpattern.Symbols.IsEmpty)
+            {
+                receiver = CreatePropertySubpatternMember(symbol: null, matchedType, receiver, nameSyntax, isImplicit);
+            }
+            else
+            {
+                foreach (Symbol symbol in subpattern.Symbols)
+                {
+                    receiver = CreatePropertySubpatternMember(symbol, matchedType, receiver, nameSyntax, isImplicit);
+                }
+                Debug.Assert(receiver != null);
+            }
+
             IPatternOperation pattern = (IPatternOperation)Create(subpattern.Pattern);
-            return new PropertySubpatternOperation(member, pattern, _semanticModel, syntax, isImplicit: false);
+            return new PropertySubpatternOperation(receiver, pattern, _semanticModel, syntax, isImplicit: false);
         }
 
-        internal IOperation CreatePropertySubpatternMember(Symbol? symbol, ITypeSymbol matchedType, SyntaxNode syntax)
+        internal IOperation CreatePropertySubpatternMember(Symbol? symbol, ITypeSymbol matchedType, IOperation? receiver, SyntaxNode nameSyntax, bool isImplicit)
         {
-            // PROTOTYPE(extended-property-patterns) ExpressionColon
-            var nameSyntax = (syntax is SubpatternSyntax subpatSyntax ? subpatSyntax.NameColon?.Name : null) ?? syntax;
-            bool isImplicit = nameSyntax == syntax;
             switch (symbol)
             {
                 case FieldSymbol field:
                     {
                         var constantValue = field.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
                         return new FieldReferenceOperation(
-                            field.GetPublicSymbol(), isDeclaration: false, createReceiver(), _semanticModel, nameSyntax, field.Type.GetPublicSymbol(), constantValue, isImplicit: isImplicit);
+                            field.GetPublicSymbol(), isDeclaration: false, receiver, _semanticModel, nameSyntax, field.Type.GetPublicSymbol(), constantValue, isImplicit: isImplicit);
                     }
                 case PropertySymbol property:
                     {
                         return new PropertyReferenceOperation(
-                            property.GetPublicSymbol(), ImmutableArray<IArgumentOperation>.Empty, createReceiver(), _semanticModel, nameSyntax, property.Type.GetPublicSymbol(),
+                            property.GetPublicSymbol(), ImmutableArray<IArgumentOperation>.Empty, receiver, _semanticModel, nameSyntax, property.Type.GetPublicSymbol(),
                             isImplicit: isImplicit);
                     }
                 default:
@@ -2316,9 +2332,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     // https://github.com/dotnet/roslyn/issues/33175
                     return OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit);
             }
-
-            IOperation? createReceiver()
-                => symbol?.IsStatic == false ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, isImplicit: true) : null;
         }
 
         private IInstanceReferenceOperation CreateCollectionValuePlaceholderOperation(BoundObjectOrCollectionValuePlaceholder placeholder)
