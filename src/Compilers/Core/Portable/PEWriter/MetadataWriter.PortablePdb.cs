@@ -836,7 +836,7 @@ namespace Microsoft.Cci
         }
 
         ///<summary>The version of the compilation options schema to be written to the PDB.</summary>
-        public const int CompilationOptionsSchemaVersion = 1;
+        public const int CompilationOptionsSchemaVersion = 2;
 
         /// <summary>
         /// Capture the set of compilation options to allow a compilation 
