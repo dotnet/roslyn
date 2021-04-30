@@ -711,37 +711,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isExpressionBodied; }
         }
 
-        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            // Check constraints on return type and parameters. Note: Dev10 uses the
-            // method name location for any such errors. We'll do the same for return
-            // type errors but for parameter errors, we'll use the parameter location.
+        }
 
-            var compilation = DeclaringCompilation;
-
-            this.ReturnType.CheckAllConstraints(compilation, conversions, this.Locations[0], diagnostics);
-
-            foreach (var parameter in this.Parameters)
-            {
-                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.Locations[0], diagnostics);
-            }
-
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-
-            if (ReturnType.ContainsNativeInteger())
-            {
-                compilation.EnsureNativeIntegerAttributeExists(diagnostics, ReturnTypeLocation, modifyCompilation: true);
-            }
-
-            ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-
-            if (compilation.ShouldEmitNullableAttributes(this) &&
-                ReturnTypeWithAnnotations.NeedsNullableAttribute())
-            {
-                compilation.EnsureNullableAttributeExists(diagnostics, ReturnTypeLocation, modifyCompilation: true);
-            }
-
-            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
+        protected sealed override void PartialMethodChecks(BindingDiagnosticBag diagnostics)
+        {
         }
     }
 }

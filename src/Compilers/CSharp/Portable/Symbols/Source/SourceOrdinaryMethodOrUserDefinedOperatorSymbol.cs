@@ -222,5 +222,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyRefCustomModifiers;
             }
         }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            var location = ReturnTypeLocation;
+            var compilation = DeclaringCompilation;
+
+            Debug.Assert(location != null);
+
+            // Check constraints on return type and parameters. Note: Dev10 uses the
+            // method name location for any such errors. We'll do the same for return
+            // type errors but for parameter errors, we'll use the parameter location.
+            CheckConstraintsForExplicitInterfaceType(conversions, diagnostics);
+
+            this.ReturnType.CheckAllConstraints(compilation, conversions, this.Locations[0], diagnostics);
+
+            foreach (var parameter in this.Parameters)
+            {
+                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.Locations[0], diagnostics);
+            }
+
+            PartialMethodChecks(diagnostics);
+
+            if (RefKind == RefKind.RefReadOnly)
+            {
+                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+
+            if (ReturnType.ContainsNativeInteger())
+            {
+                compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+
+            if (compilation.ShouldEmitNullableAttributes(this) && ReturnTypeWithAnnotations.NeedsNullableAttribute())
+            {
+                compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
+        }
+
+        protected abstract void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics);
+
+        protected abstract void PartialMethodChecks(BindingDiagnosticBag diagnostics);
     }
 }
