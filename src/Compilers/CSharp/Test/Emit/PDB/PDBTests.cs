@@ -9731,7 +9731,6 @@ public class C
 ");
         }
 
-
         [WorkItem(50321, "https://github.com/dotnet/roslyn/issues/50321")]
         [ConditionalFact(typeof(CoreClrOnly))]
         public void NestedSwitchExpressions_Closures_01()
