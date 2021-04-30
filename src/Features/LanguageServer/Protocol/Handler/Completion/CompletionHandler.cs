@@ -120,22 +120,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 defaultRange = ProtocolConversions.TextSpanToRange(defaultSpan.Value, documentText);
             }
 
+            var supportsCompletionListData = context.ClientCapabilities.HasCompletionListDataCapability();
+            var completionResolveData = new CompletionResolveData()
+            {
+                ResultId = resultId,
+            };
             var stringBuilder = new StringBuilder();
             using var _ = ArrayBuilder<LSP.CompletionItem>.GetInstance(out var lspCompletionItems);
             foreach (var item in list.Items)
             {
+                var completionItemResolveData = supportsCompletionListData ? null : completionResolveData;
                 var lspCompletionItem = await CreateLSPCompletionItemAsync(
-                    request, document, item, resultId, lspVSClientCapability, completionTrigger, commitCharactersRuleCache,
+                    request, document, item, completionItemResolveData, lspVSClientCapability, completionTrigger, commitCharactersRuleCache,
                     completionService, context.ClientName, returnTextEdits, snippetsSupported, stringBuilder, documentText,
                     defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                 lspCompletionItems.Add(lspCompletionItem);
             }
-
             var completionList = new LSP.VSCompletionList
             {
                 Items = lspCompletionItems.ToArray(),
                 SuggestionMode = list.SuggestionModeItem != null,
             };
+
+            if (supportsCompletionListData)
+            {
+                completionList.Data = completionResolveData;
+            }
+
             var optimizedCompletionList = new LSP.OptimizedVSCompletionList(completionList);
             return optimizedCompletionList;
 
@@ -160,7 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 LSP.CompletionParams request,
                 Document document,
                 CompletionItem item,
-                long? resultId,
+                CompletionResolveData? completionResolveData,
                 bool useVSCompletionItem,
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
@@ -177,7 +188,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (useVSCompletionItem)
                 {
                     var vsCompletionItem = await CreateCompletionItemAsync<LSP.VSCompletionItem>(
-                        request, document, item, resultId, completionTrigger, commitCharacterRulesCache,
+                        request, document, item, completionResolveData, completionTrigger, commitCharacterRulesCache,
                         completionService, clientName, returnTextEdits, snippetsSupported, stringBuilder,
                         documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                     vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
@@ -186,7 +197,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 else
                 {
                     var roslynCompletionItem = await CreateCompletionItemAsync<LSP.CompletionItem>(
-                        request, document, item, resultId, completionTrigger, commitCharacterRulesCache,
+                        request, document, item, completionResolveData, completionTrigger, commitCharacterRulesCache,
                         completionService, clientName, returnTextEdits, snippetsSupported, stringBuilder,
                         documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                     return roslynCompletionItem;
@@ -197,7 +208,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 LSP.CompletionParams request,
                 Document document,
                 CompletionItem item,
-                long? resultId,
+                CompletionResolveData? completionResolveData,
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
                 CompletionService completionService,
@@ -223,10 +234,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     SortText = item.SortText,
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
-                    Data = new CompletionResolveData
-                    {
-                        ResultId = resultId,
-                    },
+                    Data = completionResolveData,
                     Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
                 };
 
