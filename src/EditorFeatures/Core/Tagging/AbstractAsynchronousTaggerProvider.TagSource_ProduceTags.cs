@@ -528,10 +528,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
                     using var stateRef = _tagSourceState;
-                    var disposalToken = stateRef.Target.DisposalToken;
+                    if (stateRef != null)
+                    {
+                        var disposalToken = stateRef.Target.DisposalToken;
 
-                    this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                        this.RecomputeTagsForegroundAsync(initialTags: true, disposalToken));
+                        this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                            this.RecomputeTagsForegroundAsync(initialTags: true, disposalToken));
+                    }
                 }
 
                 _firstTagsRequest = false;
