@@ -218,8 +218,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         return;
                     }
 
-                    // Stop computing any initial tags if we've been asked for them.  
-                    _disposalTokenSource.Cancel();
+                    // Stop computing any initial tags if we've been asked for them.  Use 'CancelAfter' so
+                    // cancellation happens outside of the lock (that way no continuations run underneath it.
+                    _disposalTokenSource.CancelAfter(0);
                     _disposalTokenSource.Dispose();
                     _cancellationSeries.Dispose();
 
