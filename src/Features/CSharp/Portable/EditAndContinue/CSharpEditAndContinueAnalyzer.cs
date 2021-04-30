@@ -2785,8 +2785,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.EqualsValue, newNode.EqualsValue));
-                ReportError(RudeEditKind.InitializerUpdate);
+                if (!SyntaxFactory.AreEquivalent(oldNode.EqualsValue, newNode.EqualsValue))
+                {
+                    ReportError(RudeEditKind.InitializerUpdate);
+                    return;
+                }
+
+                // Attributes are processed during semantic analysis
             }
 
             private void ClassifyUpdate(ConstructorDeclarationSyntax oldNode, ConstructorDeclarationSyntax newNode)
@@ -2913,8 +2918,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.VarianceKeyword, newNode.VarianceKeyword));
-                ReportError(RudeEditKind.VarianceUpdate);
+                if (!SyntaxFactory.AreEquivalent(oldNode.VarianceKeyword, newNode.VarianceKeyword))
+                {
+                    ReportError(RudeEditKind.VarianceUpdate);
+                    return;
+                }
+
+                // attribute changes are handled by semantics
             }
 
             private void ClassifyUpdate(TypeParameterConstraintClauseSyntax oldNode, TypeParameterConstraintClauseSyntax newNode)
@@ -2949,8 +2959,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.Default, newNode.Default));
-                ReportError(RudeEditKind.InitializerUpdate);
+                if (!SyntaxFactory.AreEquivalent(oldNode.Default, newNode.Default))
+                {
+                    ReportError(RudeEditKind.InitializerUpdate);
+                    return;
+                }
+
+                // Attribute changes handled in semantics
             }
 
             private void ClassifyUpdate(AttributeListSyntax oldNode, AttributeListSyntax newNode)
