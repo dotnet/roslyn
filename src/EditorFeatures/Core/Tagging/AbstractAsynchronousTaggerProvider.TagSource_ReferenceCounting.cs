@@ -37,7 +37,6 @@ StackTrace:
             {
                 // this should be only called from UI thread. 
                 // in unit test, must be called from same thread as OnTaggerDisposed
-                Contract.ThrowIfTrue(_disposed);
                 Contract.ThrowIfFalse(_taggers >= 0);
 
                 _taggers++;

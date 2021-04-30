@@ -97,33 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #endregion
 
-            #region Protected by _gate
-
-            private readonly object _gate = new();
-
-            /// <summary>
-            /// Token that is triggered when we are disposed.  Used to ensure that the initial work we
-            /// kick off still gets stopped if the created tagger is disposed before that finishes.
-            /// </summary>
-            private readonly CancellationTokenSource _disposalTokenSource = new();
-
-            /// <summary>
-            /// Series of tokens used to cancel previous outstanding work when new work comes in.
-            /// Use <see cref="_gate"/> to access this to ensure we don't access a disposed instance.
-            /// </summary>
-            private readonly CancellationSeries _cancellationSeries;
-
-            /// <summary>
-            /// Work queue that collects event notifications and kicks off the work to process them.
-            /// </summary>
-            private Task _eventWorkQueue = Task.CompletedTask;
-
-            /// <summary>
-            /// Whether or not we've been disposed.  Protected with <see cref="_gate"/>.
-            /// </summary>
-            private bool _disposed = false;
-
-            #endregion
+            private readonly ReferenceCountedDisposable<TagSourceState> _tagSourceState;
 
             public TagSource(
                 ITextView textViewOpt,
@@ -141,14 +115,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
-                _cancellationSeries = new CancellationSeries(_disposalTokenSource.Token);
+                _tagSourceState = new ReferenceCountedDisposable<TagSourceState>(new TagSourceState());
 
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
                     ProcessTagsChangedAsync,
                     equalityComparer: null,
                     asyncListener,
-                    _disposalTokenSource.Token);
+                    _tagSourceState.Target.DisposalToken);
 
                 if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
                 {
@@ -163,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         ProcessTagsChangedAsync,
                         equalityComparer: null,
                         asyncListener,
-                        _disposalTokenSource.Token);
+                        _tagSourceState.Target.DisposalToken);
                 }
 
                 DebugRecordInitialStackTrace();
@@ -206,25 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void Dispose()
             {
-                lock (_gate)
-                {
-                    // Perform this all logic related to _disposed while holding _gate so that we get
-                    // a consistent view of the world in EnqueueWork.
-
-                    if (_disposed)
-                    {
-                        Debug.Fail("Tagger already disposed");
-                        return;
-                    }
-
-                    // Stop computing any initial tags if we've been asked for them.  Use 'CancelAfter' so
-                    // cancellation happens outside of the lock (that way no continuations run underneath it.
-                    _disposalTokenSource.CancelAfter(0);
-                    _disposalTokenSource.Dispose();
-                    _cancellationSeries.Dispose();
-
-                    _disposed = true;
-                }
+                _tagSourceState.Dispose();
 
                 _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
                 GC.SuppressFinalize(this);

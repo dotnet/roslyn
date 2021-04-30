@@ -170,32 +170,33 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void EnqueueWork(bool initialTags)
             {
-                lock (_gate)
-                {
-                    // No point proceeding if we've been disposed.
-                    if (_disposed)
-                        return;
+                using var stateRef = _tagSourceState.TryAddReference();
 
-                    // cancel the last piece of computation work and enqueue the next.  This doesn't apply for the very
-                    // first tag request we make.  We don't want that to be cancellable as we want that result to be 
-                    // shown as soon as possible.
-                    var cancellationToken = initialTags ? _disposalTokenSource.Token : _cancellationSeries.CreateNext();
+                // No point proceeding if we've been disposed.
+                if (stateRef is null)
+                    return;
 
-                    // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
-                    // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
-                    // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
-                    // is completely done.
-                    _eventWorkQueue = _eventWorkQueue.ContinueWithAfterDelayFromAsync(
-                        async _ =>
-                        {
-                            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                            await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
-                        },
-                        cancellationToken,
-                        (int)_dataSource.EventChangeDelay.ComputeTimeDelay().TotalMilliseconds,
-                        TaskContinuationOptions.None,
-                        TaskScheduler.Default).CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(EnqueueWork)));
-                }
+                var state = stateRef.Target;
+
+                // cancel the last piece of computation work and enqueue the next.  This doesn't apply for the very
+                // first tag request we make.  We don't want that to be cancellable as we want that result to be 
+                // shown as soon as possible.
+                var cancellationToken = state.GetCancellationToken(initialTags);
+
+                // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
+                // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
+                // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
+                // is completely done.
+                state.EventWorkQueue = state.EventWorkQueue.ContinueWithAfterDelayFromAsync(
+                    async _ =>
+                    {
+                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
+                    },
+                    cancellationToken,
+                    (int)_dataSource.EventChangeDelay.ComputeTimeDelay().TotalMilliseconds,
+                    TaskContinuationOptions.None,
+                    TaskScheduler.Default).CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(EnqueueWork)));
             }
 
             /// <summary>
@@ -526,8 +527,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
+                    using var stateRef = _tagSourceState;
+                    var disposalToken = stateRef.Target.DisposalToken;
+
                     this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalTokenSource.Token));
+                        this.RecomputeTagsForegroundAsync(initialTags: true, disposalToken));
                 }
 
                 _firstTagsRequest = false;
