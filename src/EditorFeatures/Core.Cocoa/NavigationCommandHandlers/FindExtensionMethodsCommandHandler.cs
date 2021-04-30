@@ -73,9 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
                     cancellationToken))
                 {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                    var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                    var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
 
                     var symbol = candidateSymbolProjectPair?.symbol as INamedTypeSymbol;
 
@@ -86,8 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         return;
                     }
 
-                    Compilation compilation;
-                    if (!document.Project.TryGetCompilation(out compilation))
+                    if (!document.Project.TryGetCompilation(out var compilation))
                     {
                         await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                         return;
@@ -119,9 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
 
                                     var definitionItem = reducedMethod.ToNonClassifiedDefinitionItem(solution, true);
 
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                                    await context.OnDefinitionFoundAsync(definitionItem, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                                    await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                                 }
                             }
                         }
