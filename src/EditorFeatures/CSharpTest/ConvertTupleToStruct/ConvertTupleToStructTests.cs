@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -39,10 +40,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             string text,
             string expected,
             int index = 0,
+            string? equivalenceKey = null,
             OptionsCollection? options = null,
             TestHost testHost = TestHost.InProcess,
             string[]? actions = null)
         {
+            if (index != 0)
+                Assert.NotNull(equivalenceKey);
+
             var test = new VerifyCS.Test
             {
                 TestCode = text,
@@ -2483,7 +2488,9 @@ internal struct NewStruct<T>
     }
 }";
 
-            await TestAsync(text, expected, index: 1, options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
+            await TestAsync(
+                text, expected, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
+                options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
                 {
                     FeaturesResources.updating_usages_in_containing_member,
                     FeaturesResources.updating_usages_in_containing_type
@@ -2583,7 +2590,9 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestAsync(text, expected, index: 1, options: PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(
+                text, expected, index: 1, equivalenceKey: Scope.ContainingMember.ToString(),
+                options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -2687,7 +2696,9 @@ internal struct NewStruct
         return new NewStruct(value.a, value.b);
     }
 }";
-            await TestAsync(text, expected, index: 1, options: PreferImplicitTypeWithInfo(), testHost: host);
+            await TestAsync(
+                text, expected, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
+                options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
@@ -2831,7 +2842,7 @@ partial class Other
                     }
                 },
                 CodeActionIndex = 1,
-                CodeActionEquivalenceKey = null,
+                CodeActionEquivalenceKey = Scope.ContainingType.ToString(),
                 TestHost = host,
             };
 
@@ -2974,7 +2985,7 @@ partial class Other
             var test = new VerifyCS.Test
             {
                 CodeActionIndex = 2,
-                CodeActionEquivalenceKey = null,
+                CodeActionEquivalenceKey = Scope.ContainingProject.ToString(),
                 TestHost = host,
                 TestState =
                 {
@@ -3101,7 +3112,7 @@ partial class Other
             var test = new VerifyCS.Test
             {
                 CodeActionIndex = 3,
-                CodeActionEquivalenceKey = null,
+                CodeActionEquivalenceKey = Scope.DependentProjects.ToString(),
                 TestHost = host,
                 TestState =
                 {
@@ -3240,7 +3251,7 @@ partial class Other
             var test = new VerifyCS.Test
             {
                 CodeActionIndex = 3,
-                CodeActionEquivalenceKey = null,
+                CodeActionEquivalenceKey = Scope.DependentProjects.ToString(),
                 TestHost = host,
                 TestState =
                 {
