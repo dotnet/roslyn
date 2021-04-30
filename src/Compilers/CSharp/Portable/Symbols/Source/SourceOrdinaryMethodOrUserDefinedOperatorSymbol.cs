@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, syntaxReferenceOpt, location, isIterator)
         {
         }
-
-
         protected abstract Location ReturnTypeLocation { get; }
 
         public sealed override bool ReturnsVoid
