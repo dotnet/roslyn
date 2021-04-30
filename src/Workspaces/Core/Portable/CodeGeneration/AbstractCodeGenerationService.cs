@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var filteredMembers = membersList.Where(m => !m.IsImplicitlyDeclared || m.IsTupleField());
 
             return options.AutoInsertionLocation
-                ? AddMembersToAppropiateLocationInDestination(destination, filteredMembers, availableIndices, options, cancellationToken)
+                ? AddMembersToAppropriateLocationInDestination(destination, filteredMembers, availableIndices, options, cancellationToken)
                 : AddMembersToEndOfDestination(destination, filteredMembers, options, cancellationToken);
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return this.AddMembers(destination, newMembers);
         }
 
-        private TDeclarationSyntax AddMembersToAppropiateLocationInDestination<TDeclarationSyntax>(
+        private TDeclarationSyntax AddMembersToAppropriateLocationInDestination<TDeclarationSyntax>(
             TDeclarationSyntax destination,
             IEnumerable<ISymbol> members,
             IList<bool>? availableIndices,
