@@ -2760,6 +2760,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (editKind == SemanticEditKind.Update)
                     {
+                        ReportAttributeEdits(oldSymbol, newSymbol, editScript.Match.Matches, edit.NewNode, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+
                         // The only update to the type itself that's supported is an addition or removal of the partial modifier,
                         // which does not have impact on the emitted type metadata.
                         if (newSymbol is INamedTypeSymbol)
@@ -2880,6 +2882,156 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             return semanticEdits.ToImmutable();
+        }
+
+        private void ReportAttributeEdits(ISymbol? oldSymbol, ISymbol newSymbol, IReadOnlyDictionary<SyntaxNode, SyntaxNode> matches, SyntaxNode targetNode, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, ArrayBuilder<SemanticEditInfo> semanticEdits, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        {
+            var needsEdit = false;
+            var attributesHaveChanged = false;
+
+            if (newSymbol is IMethodSymbol newMethod)
+            {
+                var oldMethod = oldSymbol as IMethodSymbol;
+
+                ReportAttributeRudeEdits(oldMethod?.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), matches, capabilities, diagnostics, out attributesHaveChanged);
+                needsEdit |= attributesHaveChanged;
+
+                // For properties, we only get called for the get methods, but we want to check the property itself for attribute changes
+                if (newMethod.AssociatedSymbol is not null)
+                {
+                    ReportAttributeRudeEdits(oldMethod?.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), matches, capabilities, diagnostics, out var propertyAttributesChanged);
+                    if (propertyAttributesChanged)
+                    {
+                        var symbolKey = SymbolKey.Create(newMethod.AssociatedSymbol, cancellationToken);
+                        semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
+                    }
+                }
+            }
+            else if (newSymbol is INamedTypeSymbol newType)
+            {
+                var oldType = oldSymbol as INamedTypeSymbol;
+                if (newType.DelegateInvokeMethod is not null)
+                {
+                    // If this is a delegate with attributes on its return type for example, they are found on the DelegateInvokeMethod
+                    ReportAttributeEdits(oldType?.DelegateInvokeMethod, newType.DelegateInvokeMethod, matches, targetNode, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+                }
+            }
+
+            foreach (var parameter in newSymbol.GetParameters())
+            {
+                var oldParameter = oldSymbol?.GetParameters().SingleOrDefault(p => p.Name.Equals(parameter.Name));
+                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), parameter.GetAttributes(), matches, capabilities, diagnostics, out attributesHaveChanged);
+                needsEdit |= attributesHaveChanged;
+            }
+
+            foreach (var typeParam in newSymbol.GetTypeParameters())
+            {
+                var oldParameter = oldSymbol?.GetTypeParameters().SingleOrDefault(p => p.Name.Equals(typeParam.Name));
+                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), typeParam.GetAttributes(), matches, capabilities, diagnostics, out attributesHaveChanged);
+                needsEdit |= attributesHaveChanged;
+            }
+
+            // This is the only case we care about whether to issue an edit or not, because this is the only case where types have their attributes checked
+            // and types are the only things that would otherwise not have edits reported.
+            ReportAttributeRudeEdits(oldSymbol?.GetAttributes(), newSymbol.GetAttributes(), matches, capabilities, diagnostics, out attributesHaveChanged);
+            needsEdit |= attributesHaveChanged;
+
+            // If we don't need to add an edit, then we're done
+            if (!needsEdit)
+            {
+                return;
+            }
+
+            // Most symbol types will automatically have an edit added, so we just need to handle a few
+            if (newSymbol is INamedTypeSymbol)
+            {
+                var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
+            }
+            else if (newSymbol is IMethodSymbol { MethodKind: MethodKind.DelegateInvoke })
+            {
+                var symbolKey = SymbolKey.Create(newSymbol.ContainingSymbol, cancellationToken);
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
+            }
+
+            needsEdit |= attributesHaveChanged;
+        }
+
+        private void ReportAttributeRudeEdits(ImmutableArray<AttributeData>? oldAttributes, ImmutableArray<AttributeData> newAttributes, IReadOnlyDictionary<SyntaxNode, SyntaxNode> matches, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, out bool needsEdit)
+        {
+            needsEdit = false;
+            // First we'll go through the new attributes and try to find matches for everything
+            for (var i = 0; i < newAttributes.Length; i++)
+            {
+                var newAttribute = newAttributes[i];
+                // We should always have a syntax reference for the new attribute
+                var newNode = newAttribute.ApplicationSyntaxReference!.GetSyntax();
+                var oldAttribute = FindMatch(newAttribute, oldAttributes);
+
+                if (oldAttribute == null)
+                {
+                    if (!capabilities.HasFlag(EditAndContinueCapabilities.UpdateCustomAttributes) ||
+                        IsNonCustomAttribute(newAttribute))
+                    {
+                        // TODO: New rude edit kind, since this represents an update or an insert, and we don't know which?
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.UpdateNotSupportedByRuntime, GetDiagnosticSpan(newNode, EditKind.Update), newNode, new[] { GetDisplayName(newNode, EditKind.Update) }));
+                    }
+                    else
+                    {
+                        needsEdit = true;
+                    }
+                }
+            }
+
+            if (oldAttributes.HasValue)
+            {
+                for (var i = newAttributes.Length; i < oldAttributes.Value.Length; i++)
+                {
+                    var oldAttribute = oldAttributes.Value[i];
+                    // We should always have a syntax reference for the old attribute
+                    var oldNode = oldAttribute.ApplicationSyntaxReference!.GetSyntax();
+                    var newAttribute = FindMatch(oldAttribute, newAttributes);
+
+                    if (newAttribute == null)
+                    {
+                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.DeleteNotSupportedByRuntime, GetDeletedNodeDiagnosticSpan(matches, oldNode), oldNode, new[] { GetDisplayName(oldNode, EditKind.Delete) }));
+                    }
+                    else
+                    {
+                        needsEdit = true;
+                    }
+                }
+            }
+
+            return;
+
+            static AttributeData? FindMatch(AttributeData attribute, ImmutableArray<AttributeData>? oldAttributes)
+            {
+                if (!oldAttributes.HasValue)
+                {
+                    return null;
+                }
+
+                foreach (var match in oldAttributes.Value)
+                {
+                    if (SymbolEquivalenceComparer.Instance.Equals(match.AttributeClass, attribute.AttributeClass))
+                    {
+                        if (SymbolEquivalenceComparer.Instance.Equals(match.AttributeConstructor, attribute.AttributeConstructor) &&
+                            match.ConstructorArguments.SequenceEqual(attribute.ConstructorArguments) &&
+                            match.NamedArguments.SequenceEqual(attribute.NamedArguments))
+                        {
+                            return match;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            static bool IsNonCustomAttribute(AttributeData attribute)
+            {
+                // TODO: Only attributes that are stored in CustomAttributes table can be changed
+                return false;
+            }
         }
 
         private static bool CanAddNewMember(ISymbol newSymbol, EditAndContinueCapabilities capabilities)
