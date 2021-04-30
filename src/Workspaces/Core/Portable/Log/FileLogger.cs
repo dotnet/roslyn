@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.Tracing;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
@@ -23,11 +24,17 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         private readonly StringBuilder _buffer;
         private bool _enabled;
 
+        /// <summary>
+        /// Task queue to serialize all the IO to the log file.
+        /// </summary>
+        private readonly TaskQueue _taskQueue;
+
         public FileLogger(IGlobalOptionService optionService, string logFilePath)
         {
             _logFilePath = logFilePath;
             _gate = new();
             _buffer = new();
+            _taskQueue = new(AsynchronousOperationListenerProvider.NullListener, TaskScheduler.Default);
             _enabled = optionService.GetOption(InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics);
             optionService.OptionChanged += OptionService_OptionChanged;
         }
@@ -69,26 +76,28 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         private void Log(FunctionId functionId, string message)
         {
-            lock (_gate)
+            _taskQueue.ScheduleTask(nameof(FileLogger), () =>
             {
-                _buffer.AppendLine($"{DateTime.Now} ({functionId}) : {message}");
-
-                try
+                lock (_gate)
                 {
-                    if (!File.Exists(_logFilePath))
+                    _buffer.AppendLine($"{DateTime.Now} ({functionId}) : {message}");
+
+                    try
                     {
-                        Directory.CreateDirectory(PathUtilities.GetDirectoryName(_logFilePath));
-                        File.Create(_logFilePath);
-                    }
+                        if (!File.Exists(_logFilePath))
+                        {
+                            Directory.CreateDirectory(PathUtilities.GetDirectoryName(_logFilePath));
+                        }
 
-                    File.AppendAllText(_logFilePath, _buffer.ToString());
-                    _buffer.Clear();
+                        File.AppendAllText(_logFilePath, _buffer.ToString());
+                        _buffer.Clear();
+                    }
+                    catch (IOException)
+                    {
+                        // Ignore IOException, we will log the buffer contents in next Log call.
+                    }
                 }
-                catch (IOException)
-                {
-                    // Ignore IOException, we will log the buffer contents in next Log call.
-                }
-            }
+            }, CancellationToken.None);
         }
 
         public void Log(FunctionId functionId, LogMessage logMessage)
