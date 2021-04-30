@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // A bit hacky to determine the parameters of primary constructor associated with a given record.
                 // TODO: record structs.
                 var primaryConstructor = recordSymbol.InstanceConstructors.FirstOrDefault(
-                    c => c.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax()?.RawKind == RecordDeclarationRawKind);
+                    c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()?.RawKind == RecordDeclarationRawKind);
 
                 if (primaryConstructor is null)
                 {

@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     // TODO: record structs.
                     const int RecordDeclarationRawKind = 9063;
                     var potentialPrimaryCtor = typeSymbol.InstanceConstructors.FirstOrDefault(
-                        c => c.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax()?.RawKind == RecordDeclarationRawKind);
+                        c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()?.RawKind == RecordDeclarationRawKind);
 
                     if (potentialPrimaryCtor is not null)
                     {
