@@ -74,6 +74,8 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode InterpolationFormatClause(string format);
         internal abstract SyntaxNode TypeParameterList(IEnumerable<string> typeParameterNames);
 
+        internal abstract SyntaxNode TypeAsExpression(ITypeSymbol typeSymbol, bool typeContext);
+
         #region Patterns
 
         internal abstract bool SupportsPatterns(ParseOptions options);

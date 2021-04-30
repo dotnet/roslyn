@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
                 string equivalenceKey)
                 : base(title, createChangedSolution, equivalenceKey)
-            { 
+            {
             }
         }
     }

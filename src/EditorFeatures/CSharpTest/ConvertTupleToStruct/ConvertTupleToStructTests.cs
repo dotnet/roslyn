@@ -842,7 +842,7 @@ namespace N
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestNonLiteralNames(TestHost host)
+        public async Task TestNonLiteralNames_WithUsings(TestHost host)
         {
             var text = @"
 using System.Collections.Generic;
@@ -887,6 +887,72 @@ internal struct NewStruct
         var hashCode = 2118541809;
         hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(a);
         hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(b);
+        return hashCode;
+    }
+
+    public void Deconstruct(out object a, out object b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (object a, object b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((object a, object b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestNonLiteralNames_WithoutUsings(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: {|CS0103:Goo|}(), b: {|CS0103:Bar|}());
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct({|CS0103:Goo|}(), {|CS0103:Bar|}());
+    }
+}
+
+internal struct NewStruct
+{
+    public object a;
+    public object b;
+
+    public NewStruct(object a, object b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               System.Collections.Generic.EqualityComparer<object>.Default.Equals(a, other.a) &&
+               System.Collections.Generic.EqualityComparer<object>.Default.Equals(b, other.b);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(a);
+        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(b);
         return hashCode;
     }
 
@@ -1348,7 +1414,7 @@ internal struct NewStruct
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestTrivia(TestHost host)
+        public async Task TestTrivia_WithUsings(TestHost host)
         {
             var text = @"
 using System.Collections.Generic;
@@ -1416,6 +1482,72 @@ internal struct NewStruct
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestTrivia_WithoutUsings(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = /*1*/ [||]( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ {|CS0103:b|} /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = /*1*/ new NewStruct( /*2*/ a /*3*/ : /*4*/ 1 /*5*/ , /*6*/ {|CS0103:b|} /*7*/ = /*8*/ 2 /*9*/ ) /*10*/ ;
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public object Item2;
+
+    public NewStruct(int a, object item2)
+    {
+        this.a = a;
+        Item2 = item2;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               System.Collections.Generic.EqualityComparer<object>.Default.Equals(Item2, other.Item2);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 913311208;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + System.Collections.Generic.EqualityComparer<object>.Default.GetHashCode(Item2);
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out object item2)
+    {
+        a = this.a;
+        item2 = Item2;
+    }
+
+    public static implicit operator (int a, object)(NewStruct value)
+    {
+        return (value.a, value.Item2);
+    }
+
+    public static implicit operator NewStruct((int a, object) value)
+    {
+        return new NewStruct(value.a, value.Item2);
+    }
+}";
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task NotIfReferencesAnonymousTypeInternally(TestHost host)
         {
             var text = @"
@@ -1432,7 +1564,7 @@ class Test
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertMultipleNestedInstancesInSameMethod1(TestHost host)
+        public async Task ConvertMultipleNestedInstancesInSameMethod1_WithUsings(TestHost host)
         {
             var text = @"
 class Test
@@ -1500,7 +1632,143 @@ internal struct NewStruct
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task ConvertMultipleNestedInstancesInSameMethod2(TestHost host)
+        public async Task ConvertMultipleNestedInstancesInSameMethod1_WithoutUsings(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: (object)(a: 1, b: default(object)));
+    }
+}
+";
+            var expected = @"
+using System.Collections.Generic;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, (object)new NewStruct(a: 1, default(object)));
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public object b;
+
+    public NewStruct(int a, object b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               EqualityComparer<object>.Default.Equals(b, other.b);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(b);
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out object b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, object b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, object b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertMultipleNestedInstancesInSameMethod2_WithUsings(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = (a: 1, b: (object)[||](a: 1, b: default(object)));
+    }
+}
+";
+            var expected = @"
+using System.Collections.Generic;
+
+class Test
+{
+    void Method()
+    {
+        var t1 = new NewStruct(a: 1, (object)new NewStruct(a: 1, default(object)));
+    }
+}
+
+internal struct NewStruct
+{
+    public int a;
+    public object b;
+
+    public NewStruct(int a, object b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct other &&
+               a == other.a &&
+               EqualityComparer<object>.Default.Equals(b, other.b);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + a.GetHashCode();
+        hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(b);
+        return hashCode;
+    }
+
+    public void Deconstruct(out int a, out object b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (int a, object b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, object b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertMultipleNestedInstancesInSameMethod2_WithoutUsings(TestHost host)
         {
             var text = @"
 class Test
@@ -1636,13 +1904,13 @@ internal struct NewStruct
         }
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task CapturedMethodTypeParameters(TestHost host)
+        public async Task CapturedMethodTypeParameters_WithUsings(TestHost host)
         {
             var text = @"
 using System.Collections.Generic;
 class Test<X> where X : struct
 {
-    void Method<Y>(List<X> x, Y[] y) where Y : class, new()
+    void Method<Y>(System.Collections.Generic.List<X> x, Y[] y) where Y : class, new()
     {
         var t1 = [||](a: x, b: y);
     }
@@ -1652,7 +1920,81 @@ class Test<X> where X : struct
 using System.Collections.Generic;
 class Test<X> where X : struct
 {
-    void Method<Y>(List<X> x, Y[] y) where Y : class, new()
+    void Method<Y>(System.Collections.Generic.List<X> x, Y[] y) where Y : class, new()
+    {
+        var t1 = new NewStruct<X, Y>(x, y);
+    }
+}
+
+internal struct NewStruct<X, Y>
+    where X : struct
+    where Y : class, new()
+{
+    public List<X> a;
+    public Y[] b;
+
+    public NewStruct(List<X> a, Y[] b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct<X, Y> other &&
+               EqualityComparer<List<X>>.Default.Equals(a, other.a) &&
+               EqualityComparer<Y[]>.Default.Equals(b, other.b);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + EqualityComparer<List<X>>.Default.GetHashCode(a);
+        hashCode = hashCode * -1521134295 + EqualityComparer<Y[]>.Default.GetHashCode(b);
+        return hashCode;
+    }
+
+    public void Deconstruct(out List<X> a, out Y[] b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (List<X> a, Y[] b)(NewStruct<X, Y> value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct<X, Y>((List<X> a, Y[] b) value)
+    {
+        return new NewStruct<X, Y>(value.a, value.b);
+    }
+}";
+
+            await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
+                {
+                    FeaturesResources.updating_usages_in_containing_member
+                });
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task CapturedMethodTypeParameters_WithoutUsings(TestHost host)
+        {
+            var text = @"
+class Test<X> where X : struct
+{
+    void Method<Y>(System.Collections.Generic.List<X> x, Y[] y) where Y : class, new()
+    {
+        var t1 = [||](a: x, b: y);
+    }
+}
+";
+            var expected = @"
+using System.Collections.Generic;
+
+class Test<X> where X : struct
+{
+    void Method<Y>(System.Collections.Generic.List<X> x, Y[] y) where Y : class, new()
     {
         var t1 = new NewStruct<X, Y>(x, y);
     }
@@ -2398,7 +2740,7 @@ internal struct NewStruct
         #region update containing type tests
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-        public async Task TestCapturedTypeParameter_UpdateType(TestHost host)
+        public async Task TestCapturedTypeParameter_UpdateType_WithUsings(TestHost host)
         {
             var text = @"
 using System;
@@ -2424,6 +2766,103 @@ class Test<T>
 ";
             var expected = @"
 using System;
+using System.Collections.Generic;
+
+class Test<T>
+{
+    void Method(T t)
+    {
+        var t1 = new NewStruct<T>(t, b: 2);
+    }
+
+    T t;
+    void Goo()
+    {
+        var t2 = new NewStruct<T>(t, b: 4);
+    }
+
+    void Blah<T>(T t)
+    {
+        var t2 = (a: t, b: 4);
+    }
+}
+
+internal struct NewStruct<T>
+{
+    public T a;
+    public int b;
+
+    public NewStruct(T a, int b)
+    {
+        this.a = a;
+        this.b = b;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is NewStruct<T> other &&
+               EqualityComparer<T>.Default.Equals(a, other.a) &&
+               b == other.b;
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = 2118541809;
+        hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(a);
+        hashCode = hashCode * -1521134295 + b.GetHashCode();
+        return hashCode;
+    }
+
+    public void Deconstruct(out T a, out int b)
+    {
+        a = this.a;
+        b = this.b;
+    }
+
+    public static implicit operator (T a, int b)(NewStruct<T> value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct<T>((T a, int b) value)
+    {
+        return new NewStruct<T>(value.a, value.b);
+    }
+}";
+
+            await TestAsync(
+                text, expected, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
+                options: PreferImplicitTypeWithInfo(), testHost: host, actions: new[]
+                {
+                    FeaturesResources.updating_usages_in_containing_member,
+                    FeaturesResources.updating_usages_in_containing_type
+                });
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task TestCapturedTypeParameter_UpdateType_WithoutUsings(TestHost host)
+        {
+            var text = @"
+class Test<T>
+{
+    void Method(T t)
+    {
+        var t1 = [||](a: t, b: 2);
+    }
+
+    T t;
+    void Goo()
+    {
+        var t2 = (a: t, b: 4);
+    }
+
+    void Blah<T>(T t)
+    {
+        var t2 = (a: t, b: 4);
+    }
+}
+";
+            var expected = @"
 using System.Collections.Generic;
 
 class Test<T>

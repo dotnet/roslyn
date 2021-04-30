@@ -131,6 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 RefKind.RefReadOnly when forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
                 _ => throw ExceptionUtilities.UnexpectedValue(refKind),
             };
+        
+        internal override SyntaxNode TypeAsExpression(ITypeSymbol typeSymbol, bool typeContext)
+            => typeContext ? typeSymbol.GenerateTypeSyntax() : typeSymbol.GenerateExpressionSyntax();
 
         #region Patterns
 
