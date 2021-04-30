@@ -55,19 +55,23 @@ End Class
         End Function
 
         <Theory>
-        <InlineData("String")>
-        <InlineData("Boolean")>
-        <InlineData("Integer?")>
-        Public Async Function TestInstanceVariable(type As String) As Task
+        <InlineData("String", "String")>
+        <InlineData("String", "IEnumerable(Of Char)")>
+        <InlineData("Boolean", "Boolean")>
+        <InlineData("Integer?", "Integer?")>
+        <InlineData("Integer", "Integer?")>
+        Public Async Function TestInstanceVariable(fieldType As String, parameterType As String) As Task
             Dim markup = $"
+Imports System.Collections.Generic
+
 Class C
-    Dim arg As {type}
+    Dim arg As {fieldType}
 
     Sub Method()
         Me.Target($$)
     End Sub
 
-    Sub Target(arg As {type})
+    Sub Target(arg As {parameterType})
     End Sub
 End Class
 "

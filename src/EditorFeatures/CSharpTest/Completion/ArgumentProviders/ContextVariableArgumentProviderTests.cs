@@ -97,22 +97,25 @@ class C
         }
 
         [Theory]
-        [InlineData("string")]
-        [InlineData("bool")]
-        [InlineData("int?")]
-        public async Task TestInstanceVariable(string type)
+        [InlineData("string", "string")]
+        [InlineData("string", "IEnumerable<char>")]
+        [InlineData("bool", "bool")]
+        [InlineData("int?", "int?")]
+        [InlineData("int", "int?")]
+        public async Task TestInstanceVariable(string fieldType, string parameterType)
         {
             var markup = $@"
+using System.Collections.Generic;
 class C
 {{
-    {type} arg;
+    {fieldType} arg;
 
     void Method()
     {{
         this.Target($$);
     }}
 
-    void Target({type} arg)
+    void Target({parameterType} arg)
     {{
     }}
 }}
@@ -122,8 +125,8 @@ class C
             await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
         }
 
-        // Note: The current implementation checks for exact type and name match. If this changes, some of these tests
-        // may need to be updated to account for the new behavior.
+        // Note: The current implementation checks for exact type match for primitive types. If this changes, some of
+        // these tests may need to be updated to account for the new behavior.
         [Theory]
         [InlineData("object", "string")]
         [InlineData("string", "object")]
