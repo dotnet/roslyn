@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 if (ExactActionSetOffered != null)
                 {
-                    Verify.Equal(ExactActionSetOffered.Length, result.Length, "Different number of code actions provided");
                     Verify.SequenceEqual(ExactActionSetOffered, result.SelectAsArray(a => a.Title));
                 }
 
