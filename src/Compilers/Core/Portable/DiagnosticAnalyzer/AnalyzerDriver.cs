@@ -945,16 +945,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 var builder = ArrayBuilder<Diagnostic>.GetInstance(reportedDiagnostics.Length);
+                var reportSuppressedDiagnostics = compilation.Options.ReportSuppressedDiagnostics;
                 ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> programmaticSuppressionsByDiagnostic = createProgrammaticSuppressionsByDiagnosticMap(_programmaticSuppressions);
                 foreach (var diagnostic in reportedDiagnostics)
                 {
                     if (programmaticSuppressionsByDiagnostic.TryGetValue(diagnostic, out var programmaticSuppressionInfo))
                     {
-                        Debug.Assert(suppressableDiagnostics.Contains(diagnostic));
-                        Debug.Assert(!diagnostic.IsSuppressed);
-                        var suppressedDiagnostic = diagnostic.WithProgrammaticSuppression(programmaticSuppressionInfo);
-                        Debug.Assert(suppressedDiagnostic.IsSuppressed);
-                        builder.Add(suppressedDiagnostic);
+                        if (reportSuppressedDiagnostics)
+                        {
+                            Debug.Assert(suppressableDiagnostics.Contains(diagnostic));
+                            Debug.Assert(!diagnostic.IsSuppressed);
+                            var suppressedDiagnostic = diagnostic.WithProgrammaticSuppression(programmaticSuppressionInfo);
+                            Debug.Assert(suppressedDiagnostic.IsSuppressed);
+                            builder.Add(suppressedDiagnostic);
+                        }
                     }
                     else
                     {
