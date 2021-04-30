@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Classification
             using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var syntacticClassifications);
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticClassifications);
 
-            service.AddSyntacticClassifications(semanticModel.SyntaxTree, textSpan, syntacticClassifications, cancellationToken);
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            service.AddSyntacticClassifications(root, textSpan, syntacticClassifications, cancellationToken);
             service.AddSemanticClassifications(semanticModel, textSpan, workspace, getNodeClassifiers, getTokenClassifiers, semanticClassifications, cancellationToken);
 
             var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
