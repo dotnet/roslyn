@@ -70,6 +70,7 @@ override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGeneratorsF
 override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.DefaultVisit(Microsoft.CodeAnalysis.IOperation! operation, TArgument argument) -> object?
 override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.Visit(Microsoft.CodeAnalysis.IOperation? operation, TArgument argument) -> object?
 static Microsoft.CodeAnalysis.GeneratorDriver.GetGeneratorType(Microsoft.CodeAnalysis.ISourceGenerator! generator) -> System.Type!
+static Microsoft.CodeAnalysis.GeneratorDriver.WrapGenerator(Microsoft.CodeAnalysis.IIncrementalGenerator! incrementalGenerator) -> Microsoft.CodeAnalysis.ISourceGenerator!
 static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.BatchTransform<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<System.Collections.Immutable.ImmutableArray<T>, U>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
 static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.BatchTransformMany<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<System.Collections.Immutable.ImmutableArray<T>, System.Collections.Immutable.ImmutableArray<U>>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
 static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.Filter<T>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<T, bool>! filter) -> Microsoft.CodeAnalysis.IncrementalValueSource<T>

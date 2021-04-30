@@ -157,6 +157,13 @@ namespace Microsoft.CodeAnalysis
             return generator.GetType();
         }
 
+        /// <summary>
+        /// Wraps an <see cref="IIncrementalGenerator"/> in an <see cref="ISourceGenerator"/> object that can be used to construct a <see cref="GeneratorDriver"/>
+        /// </summary>
+        /// <param name="incrementalGenerator">The incremental generator to wrap</param>
+        /// <returns>A wrapped generator that can be passed to a generator driver</returns>
+        public static ISourceGenerator WrapGenerator(IIncrementalGenerator incrementalGenerator) => new IncrementalGeneratorWrapper(incrementalGenerator);
+
         internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, CancellationToken cancellationToken = default)
         {
             // with no generators, there is no work to do

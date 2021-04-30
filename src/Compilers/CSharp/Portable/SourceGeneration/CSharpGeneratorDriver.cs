@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -38,6 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A new <see cref="CSharpGeneratorDriver"/> instance.</returns>
         public static CSharpGeneratorDriver Create(params ISourceGenerator[] generators)
             => Create(generators, additionalTexts: null);
+
+        /// <summary>
+        /// Creates a new instance of <see cref="CSharpGeneratorDriver"/> with the specified <see cref="IIncrementalGenerator"/>s and default options
+        /// </summary>
+        /// <param name="incrementalGenerators">The incremental generators to create this driver with</param>
+        /// <returns>A new <see cref="CSharpGeneratorDriver"/> instance.</returns>
+        public static CSharpGeneratorDriver Create(params IIncrementalGenerator[] incrementalGenerators)
+            => Create(incrementalGenerators.Select(WrapGenerator), additionalTexts: null);
 
         /// <summary>
         /// Creates a new instance of <see cref="CSharpGeneratorDriver"/> with the specified <see cref="ISourceGenerator"/>s and the provided options or default.
