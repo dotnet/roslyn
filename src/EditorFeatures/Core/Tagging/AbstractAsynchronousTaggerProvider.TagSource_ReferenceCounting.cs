@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             /// <summary>How many taggers are currently using us.</summary>
             private int _taggers = 0;
-            private bool _disposed = false;
 
             ~TagSource()
             {

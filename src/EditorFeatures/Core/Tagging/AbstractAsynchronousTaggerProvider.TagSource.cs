@@ -58,19 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly IAsynchronousOperationListener _asyncListener;
 
-            private readonly CancellationTokenSource _disposalTokenSource = new();
-
-            /// <summary>
-            /// Work queue that collects event notifications and kicks off the work to process them.
-            /// </summary>
-            private Task _eventWorkQueue = Task.CompletedTask;
-
-            /// <summary>
-            /// Series of tokens used to cancel previous outstanding work when new work comes in. Also used as the lock
-            /// to ensure threadsafe writing of _eventWorkQueue.
-            /// </summary>
-            private readonly CancellationSeries _cancellationSeries;
-
             /// <summary>
             /// Work queue that collects high priority requests to call TagsChanged with.
             /// </summary>
@@ -107,6 +94,35 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// then we'll want to synchronously block then and only then for tags.
             /// </summary>
             private bool _firstTagsRequest = true;
+
+            #endregion
+
+            #region Protected by _gate
+
+            private readonly object _gate = new();
+
+            /// <summary>
+            /// Token that is triggered when we are disposed.  Used to ensure that the initial work we
+            /// kick off still gets stopped if the created tagger is disposed before that finishes.
+            /// </summary>
+            private readonly CancellationTokenSource _disposalTokenSource = new();
+
+            /// <summary>
+            /// Series of tokens used to cancel previous outstanding work when new work comes in. Also used as the lock
+            /// to ensure threadsafe writing of _eventWorkQueue.  Use <see cref="_gate"/> to access this to ensure we don't
+            /// access a disposed instance.
+            /// </summary>
+            private readonly CancellationSeries _cancellationSeries;
+
+            /// <summary>
+            /// Work queue that collects event notifications and kicks off the work to process them.
+            /// </summary>
+            private Task _eventWorkQueue = Task.CompletedTask;
+
+            /// <summary>
+            /// Whether or not we've been disposed.  Protected with <see cref="_gate"/>.
+            /// </summary>
+            private bool _disposed = false;
 
             #endregion
 
@@ -191,17 +207,25 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void Dispose()
             {
-                if (_disposed)
+                lock (_gate)
                 {
-                    Debug.Fail("Tagger already disposed");
-                    return;
+                    // Perform this all logic related to _disposed while holding _gate so that we get
+                    // a consistent view of the world in EnqueueWork.
+
+                    if (_disposed)
+                    {
+                        Debug.Fail("Tagger already disposed");
+                        return;
+                    }
+
+                    // Stop computing any initial tags if we've been asked for them.  
+                    _disposalTokenSource.Cancel();
+                    _disposalTokenSource.Dispose();
+                    _cancellationSeries.Dispose();
+
+                    _disposed = true;
                 }
 
-                // Stop computing any initial tags if we've been asked for them.
-                _disposalTokenSource.Cancel();
-                _cancellationSeries.Dispose();
-
-                _disposed = true;
                 _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
                 GC.SuppressFinalize(this);
 
