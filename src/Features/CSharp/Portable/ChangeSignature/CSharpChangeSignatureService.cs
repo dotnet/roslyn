@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // TODO: Record structs
-            if (updatedNode.IsKind(SyntaxKind.RecordDeclaration, out RecordDeclarationSyntax? record))
+            if (updatedNode.IsKind(SyntaxKind.RecordDeclaration, out RecordDeclarationSyntax? record) && record.ParameterList is not null)
             {
                 var updatedParameters = UpdateDeclaration(record.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return record.WithParameterList(record.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
