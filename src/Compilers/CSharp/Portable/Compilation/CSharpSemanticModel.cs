@@ -1886,8 +1886,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             switch (lowestBoundNode)
             {
-                case BoundSubpattern subpattern:
-                    return GetSymbolInfoForSubpattern(subpattern);
+                case BoundPositionalSubpattern subpattern:
+                    return GetSymbolInfoForSubpattern(subpattern.Symbol);
+                case BoundPropertySubpattern subpattern:
+                    return GetSymbolInfoForSubpattern(subpattern.Symbols.LastOrDefault());
                 case BoundExpression boundExpr2:
                     boundExpr = boundExpr2;
                     break;
@@ -1977,14 +1979,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SymbolInfoFactory.Create(symbols, resultKind, isDynamic);
         }
 
-        private SymbolInfo GetSymbolInfoForSubpattern(BoundSubpattern subpattern)
+        private static SymbolInfo GetSymbolInfoForSubpattern(Symbol subpatternSymbol)
         {
-            if (subpattern.Symbol?.OriginalDefinition is ErrorTypeSymbol originalErrorType)
+            if (subpatternSymbol?.OriginalDefinition is ErrorTypeSymbol originalErrorType)
             {
                 return new SymbolInfo(symbol: null, originalErrorType.CandidateSymbols.GetPublicSymbols(), originalErrorType.ResultKind.ToCandidateReason());
             }
 
-            return new SymbolInfo(subpattern.Symbol.GetPublicSymbol(), CandidateReason.None);
+            return new SymbolInfo(subpatternSymbol.GetPublicSymbol(), CandidateReason.None);
         }
 
         private SymbolInfo GetSymbolInfoForDeconstruction(BoundRecursivePattern pat)
