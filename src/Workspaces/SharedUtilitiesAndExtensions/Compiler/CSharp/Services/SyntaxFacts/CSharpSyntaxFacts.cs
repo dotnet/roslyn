@@ -393,6 +393,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.LessThanLessThanEqualsToken:
                     return PredefinedOperator.LeftShift;
 
+                case SyntaxKind.LessThanToken:
+                    return PredefinedOperator.LessThan;
+
                 case SyntaxKind.LessThanEqualsToken:
                     return PredefinedOperator.LessThanOrEqual;
 
@@ -1268,6 +1271,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode? argumentList)
             => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default;
 
+        public SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode invocationExpression)
+            => ((InvocationExpressionSyntax)invocationExpression).ArgumentList;
+
+        public SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode objectCreationExpression)
+            => ((ObjectCreationExpressionSyntax)objectCreationExpression)!.ArgumentList;
+
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
 
@@ -1401,6 +1410,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Identifier;
+
+        public SyntaxToken GetIdentifierOfParameter(SyntaxNode node)
+            => ((ParameterSyntax)node).Identifier;
+
+        public SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node)
+            => ((IdentifierNameSyntax)node).Identifier;
 
         public bool IsLocalFunctionStatement([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
@@ -1909,9 +1924,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                    return DeclarationKind.Class;
                 case SyntaxKind.RecordDeclaration:
-                    return DeclarationKind.RecordClass;
+                    return DeclarationKind.Class;
                 case SyntaxKind.StructDeclaration:
                     return DeclarationKind.Struct;
                 case SyntaxKind.InterfaceDeclaration:
@@ -2044,6 +2058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.GetAccessorDeclaration:
                     return DeclarationKind.GetAccessor;
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     return DeclarationKind.SetAccessor;
                 case SyntaxKind.AddAccessorDeclaration:
                     return DeclarationKind.AddAccessor;

@@ -492,6 +492,11 @@
         <target state="translated">goto 不可跳到 using 宣告後的位置。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="new">The positional member '{0}' found corresponding to this parameter is hidden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">此內容不允許隱藏項目運算子</target>
@@ -8473,8 +8478,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">類型 '{0}' 的參數或區域變數，不可在非同步方法或 Lambda 運算式中宣告。</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="needs-review-translation">類型 '{0}' 的參數或區域變數，不可在非同步方法或 Lambda 運算式中宣告。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">

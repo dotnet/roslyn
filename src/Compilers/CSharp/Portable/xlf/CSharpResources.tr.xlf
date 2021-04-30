@@ -492,6 +492,11 @@
         <target state="translated">Bir goto, using bildiriminden sonraki bir konuma atlayamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="new">The positional member '{0}' found corresponding to this parameter is hidden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">Gizleme işlecine bu bağlamda izin verilmez</target>
@@ -8473,8 +8478,8 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">Zaman uyumsuz yöntemlerde veya lambda ifadelerinde '{0}' türündeki parametrelerin veya yerel öğelerin bildirimi yapılamaz</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="needs-review-translation">Zaman uyumsuz yöntemlerde veya lambda ifadelerinde '{0}' türündeki parametrelerin veya yerel öğelerin bildirimi yapılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">

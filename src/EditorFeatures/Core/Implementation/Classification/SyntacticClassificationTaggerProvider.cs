@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -24,10 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     [TagType(typeof(IClassificationTag))]
-    internal partial class SyntacticClassificationTaggerProvider : ITaggerProvider
+    internal partial class SyntacticClassificationTaggerProvider : ForegroundThreadAffinitizedObject, ITaggerProvider
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IForegroundNotificationService _notificationService;
         private readonly IAsynchronousOperationListener _listener;
         private readonly ClassificationTypeMap _typeMap;
 
@@ -37,26 +33,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public SyntacticClassificationTaggerProvider(
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, assertIsForeground: false)
         {
-            _threadingContext = threadingContext;
-            _notificationService = notificationService;
             _typeMap = typeMap;
             _listener = listenerProvider.GetListener(FeatureAttribute.Classification);
         }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public ITagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
+            this.AssertIsForeground();
             if (!buffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.SyntacticColorizer))
-            {
                 return null;
-            }
 
             if (!_tagComputers.TryGetValue(buffer, out var tagComputer))
             {
-                tagComputer = new TagComputer(this, buffer, _notificationService, _listener, _typeMap, TaggerDelay.NearImmediate.ComputeTimeDelay());
+                tagComputer = new TagComputer(this, (ITextBuffer2)buffer, _listener, _typeMap, TaggerDelay.NearImmediate.ComputeTimeDelay());
                 _tagComputers.Add(buffer, tagComputer);
             }
 

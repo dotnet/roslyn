@@ -492,6 +492,11 @@
         <target state="translated">Příkaz goto nemůže přejít na místo za deklarací using.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="new">The positional member '{0}' found corresponding to this parameter is hidden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">Operátor potlačení není v tomto kontextu povolený.</target>
@@ -8473,8 +8478,8 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">Parametry nebo lokální proměnné typu {0} nemůžou být deklarované v asynchronních metodách nebo lambda výrazech.</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="needs-review-translation">Parametry nebo lokální proměnné typu {0} nemůžou být deklarované v asynchronních metodách nebo lambda výrazech.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">

@@ -492,6 +492,11 @@
         <target state="translated">Um goto não pode saltar para um local antes de uma declaração using.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="new">The positional member '{0}' found corresponding to this parameter is hidden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">O operador de supressão não é permitido neste contexto</target>
@@ -8473,8 +8478,8 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">Parâmetros ou locais do tipo "{0}" não podem ser declarados em métodos assíncronos ou expressões lambda.</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="needs-review-translation">Parâmetros ou locais do tipo "{0}" não podem ser declarados em métodos assíncronos ou expressões lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -299,8 +300,9 @@ class C
                 SupportsVisualStudioExtensions = true
             };
 
-            return await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.VSReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
+            var results = await testLspServer.ExecuteRequestAsync<LSP.ReferenceParams, LSP.ReferenceItem[]>(LSP.Methods.TextDocumentReferencesName,
                 CreateReferenceParams(caret, progress), vsClientCapabilities, null, CancellationToken.None);
+            return results?.Cast<LSP.VSReferenceItem>()?.ToArray();
         }
 
         private static void AssertValidDefinitionProperties(LSP.VSReferenceItem[] referenceItems, int definitionIndex, Glyph definitionGlyph)

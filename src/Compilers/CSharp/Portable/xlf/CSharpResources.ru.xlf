@@ -492,6 +492,11 @@
         <target state="translated">Оператор goto не может переходить к расположению после объявления using.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="new">The positional member '{0}' found corresponding to this parameter is hidden.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">Оператор подавления недопустим в данном контексте.</target>
@@ -8473,8 +8478,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">Параметры или локальные переменные типа "{0}" не могут объявляться в асинхронных методах или лямбда-выражениях.</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="needs-review-translation">Параметры или локальные переменные типа "{0}" не могут объявляться в асинхронных методах или лямбда-выражениях.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
