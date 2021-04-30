@@ -45,14 +45,12 @@ class C
 {{
     void Method()
     {{
-        TryParse($$)
+        int.TryParse(""x"", $$)
     }}
-
-    bool TryParse(out int value) => throw null;
 }}
 ";
 
-            await VerifyDefaultValueAsync(markup, "out var value");
+            await VerifyDefaultValueAsync(markup, "out var result");
             await VerifyDefaultValueAsync(markup, expectedDefaultValue: null, previousDefaultValue: "prior");
         }
 

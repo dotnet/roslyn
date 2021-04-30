@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
 
         internal abstract Type GetArgumentProviderType();
 
+        protected abstract IParameterSymbol GetParameterSymbolInfo(SemanticModel semanticModel, SyntaxNode root, int position, CancellationToken cancellationToken);
+
         protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
 
         private protected async Task VerifyDefaultValueAsync(
@@ -60,13 +63,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
             Assert.IsType(GetArgumentProviderType(), provider);
 
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
-            var token = root.FindToken(position - 2);
             var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
-            var symbolInfo = semanticModel.GetSymbolInfo(token.GetRequiredParent(), CancellationToken.None);
-            var target = symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
-            Contract.ThrowIfNull(target);
+            var parameter = GetParameterSymbolInfo(semanticModel, root, position, CancellationToken.None);
+            Contract.ThrowIfNull(parameter);
 
-            var parameter = target.GetParameters().Single();
             var context = new ArgumentContext(provider, semanticModel, position, parameter, previousDefaultValue, CancellationToken.None);
             await provider.ProvideArgumentAsync(context);
 
