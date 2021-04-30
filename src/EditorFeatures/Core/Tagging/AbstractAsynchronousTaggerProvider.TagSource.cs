@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _normalPriTagsChangedQueue;
 
+            private readonly ReferenceCountedDisposable<TagSourceState> _tagSourceState = new(new TagSourceState());
+
             #endregion
 
             #region Fields that can only be accessed from the foreground thread
@@ -97,8 +99,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #endregion
 
-            private readonly ReferenceCountedDisposable<TagSourceState> _tagSourceState;
-
             public TagSource(
                 ITextView textViewOpt,
                 ITextBuffer subjectBuffer,
@@ -114,8 +114,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _textViewOpt = textViewOpt;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
-
-                _tagSourceState = new ReferenceCountedDisposable<TagSourceState>(new TagSourceState());
 
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
