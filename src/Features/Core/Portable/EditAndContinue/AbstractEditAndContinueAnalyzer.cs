@@ -2285,20 +2285,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     continue;
                                 }
 
-                                if (oldSymbol is INamedTypeSymbol t && t.IsAttribute())
-                                {
-                                    if (!capabilities.HasFlag(EditAndContinueCapabilities.UpdateCustomAttributes))
-                                    {
-                                        diagnostics.Add(new RudeEditDiagnostic(
-                                            RudeEditKind.DeleteNotSupportedByRuntime,
-                                            GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, edit.OldNode),
-                                            edit.OldNode,
-                                            new[] { GetDisplayName(edit.OldNode, EditKind.Delete) }));
-                                    }
-                                    // Nothing further to do for attributes
-                                    continue;
-                                }
-
                                 var hasActiveStatement = TryGetOverlappingActiveStatements(oldText, edit.OldNode.Span, oldActiveStatements, out var start, out var end);
 
                                 // TODO: if the member isn't a field/property we should return empty span.
@@ -2439,20 +2425,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 {
                                     // Node doesn't represent a symbol or it represents multiple symbols and the semantic insert
                                     // will be issued for node that represents the specific symbol.
-                                    continue;
-                                }
-
-                                if (newSymbol is INamedTypeSymbol t && t.IsAttribute())
-                                {
-                                    if (!capabilities.HasFlag(EditAndContinueCapabilities.UpdateCustomAttributes))
-                                    {
-                                        diagnostics.Add(new RudeEditDiagnostic(
-                                            RudeEditKind.InsertNotSupportedByRuntime,
-                                            GetDiagnosticSpan(edit.NewNode, EditKind.Insert),
-                                            edit.NewNode,
-                                            arguments: new[] { GetDisplayName(edit.NewNode, EditKind.Insert) }));
-                                    }
-                                    // Nothing further to do for attributes
                                     continue;
                                 }
 
@@ -2717,21 +2689,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 newSymbol = GetSymbolForEdit(newModel, edit.NewNode, edit.Kind, editMap, out var newIsAmbiguous, cancellationToken);
                                 if (newSymbol == null || !processedSymbols.Add(newSymbol))
                                 {
-                                    // node doesn't represent a symbol or the symbol has already been processed
-                                    continue;
-                                }
 
-                                if (newSymbol is INamedTypeSymbol t && t.IsAttribute())
-                                {
-                                    if (!capabilities.HasFlag(EditAndContinueCapabilities.UpdateCustomAttributes))
-                                    {
-                                        diagnostics.Add(new RudeEditDiagnostic(
-                                            RudeEditKind.UpdateNotSupportedByRuntime,
-                                            GetDiagnosticSpan(edit.NewNode, EditKind.Update),
-                                            edit.NewNode,
-                                            arguments: new[] { GetDisplayName(edit.NewNode, EditKind.Update) }));
-                                    }
-                                    // Nothing further to do for attributes
+                                    // node doesn't represent a symbol or the symbol has already been processed
                                     continue;
                                 }
 
