@@ -286,5 +286,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Enable_all_features_in_opened_files_from_source_generators_experimental As String =
              ServicesVSResources.Enable_all_features_in_opened_files_from_source_generators_experimental
+
+        Public ReadOnly Property Show_inheritance_margin As String =
+            ServicesVSResources.Show_inheritance_margin
+
+        Public ReadOnly Property Inheritance_Margin_experimental As String =
+            ServicesVSResources.Inheritance_Margin_experimental
     End Module
 End Namespace
