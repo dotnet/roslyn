@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 _ => throw ExceptionUtilities.UnexpectedValue(refKind),
             };
 
-        internal override SyntaxNode TypeAsExpression(ITypeSymbol typeSymbol, bool typeContext)
+        internal override SyntaxNode Type(ITypeSymbol typeSymbol, bool typeContext)
             => typeContext ? typeSymbol.GenerateTypeSyntax() : typeSymbol.GenerateExpressionSyntax();
 
         #region Patterns

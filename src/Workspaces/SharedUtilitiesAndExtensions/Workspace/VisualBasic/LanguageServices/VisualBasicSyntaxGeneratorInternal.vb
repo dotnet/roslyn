@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     typeParameterNames.Select(Function(n) SyntaxFactory.TypeParameter(n))))
         End Function
 
-        Friend Overrides Function TypeAsExpression(typeSymbol As ITypeSymbol, typeContext As Boolean) As SyntaxNode
+        Friend Overrides Function Type(typeSymbol As ITypeSymbol, typeContext As Boolean) As SyntaxNode
             Return If(typeContext, typeSymbol.GenerateTypeSyntax(), typeSymbol.GenerateExpressionSyntax())
         End Function
 
