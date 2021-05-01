@@ -271,6 +271,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Enable_all_features_in_opened_files_from_source_generators_experimental
             => ServicesVSResources.Enable_all_features_in_opened_files_from_source_generators_experimental;
 
+        public static string Option_Enable_file_logging_for_diagnostics
+            => ServicesVSResources.Enable_file_logging_for_diagnostics;
+
         public static string Show_inheritance_margin
             => ServicesVSResources.Show_inheritance_margin;
 
