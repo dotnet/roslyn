@@ -1167,13 +1167,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.AddHandlerAccessorStatement,
                      SyntaxKind.RemoveHandlerAccessorStatement,
                      SyntaxKind.RaiseEventAccessorStatement,
-                     SyntaxKind.ClassStatement,
-                     SyntaxKind.StructureStatement,
-                     SyntaxKind.InterfaceStatement,
-                     SyntaxKind.ModuleStatement,
-                     SyntaxKind.EnumStatement,
                      SyntaxKind.NamespaceStatement
                     Return Nothing
+
+                Case SyntaxKind.SimpleAsClause
+                    If node.Parent.IsKind(SyntaxKind.FunctionStatement) Then
+                        node = node.Parent             ' for attributes on return types of functions
+                    End If
 
                 Case SyntaxKind.EventStatement
                     If node.Parent.IsKind(SyntaxKind.EventBlock) Then
@@ -1182,16 +1182,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.PropertyStatement  ' autoprop or interface property
                     If node.Parent.IsKind(SyntaxKind.PropertyBlock) Then
-                        Return Nothing
-                    End If
-
-                Case SyntaxKind.SubStatement       ' interface method
-                    If node.Parent.IsKind(SyntaxKind.SubBlock) Then
-                        Return Nothing
-                    End If
-
-                Case SyntaxKind.FunctionStatement  ' interface method
-                    If node.Parent.IsKind(SyntaxKind.FunctionBlock) Then
                         Return Nothing
                     End If
 
@@ -1792,7 +1782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return FeaturesResources.operator_
 
                 Case SyntaxKind.ConstructorBlock
-                    Return If(CType(node, ConstructorBlockSyntax).SubNewStatement.Modifiers.Any(SyntaxKind.SharedKeyword), VBFeaturesResources.shared_constructor, FeaturesResources.constructor)
+                    Return If(CType(node, ConstructorBlockSyntax).SubNewStatement.Modifiers.Any(SyntaxKind.SharedKeyword), VBFeaturesResources.Shared_constructor, FeaturesResources.constructor)
 
                 Case SyntaxKind.SubNewStatement
                     Return If(CType(node, SubNewStatementSyntax).Modifiers.Any(SyntaxKind.SharedKeyword), VBFeaturesResources.Shared_constructor, FeaturesResources.constructor)
@@ -2448,14 +2438,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ClassifyUpdate(DirectCast(oldNode, ParameterSyntax), DirectCast(newNode, ParameterSyntax))
                         Return
 
-                    Case SyntaxKind.Attribute
-                        'Handled in semantics
+                    Case SyntaxKind.AttributesStatement
+                        'ReportError(RudeEditKind.Update)
                         Return
 
-                    Case SyntaxKind.TypeParameterList,
-                         SyntaxKind.ParameterList,
-                         SyntaxKind.AttributeList,
-                         SyntaxKind.AttributesStatement
+                    Case SyntaxKind.Attribute,
+                        SyntaxKind.TypeParameterList,
+                        SyntaxKind.ParameterList,
+                        SyntaxKind.AttributeList
                         Return
 
                     Case Else
@@ -2558,15 +2548,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
 
                 If Not SyntaxFactory.AreEquivalent(oldNode.ArrayBounds, newNode.ArrayBounds) Then
-                    ReportError(RudeEditKind.TypeUpdate)
-                    Return
-                End If
-
-                If oldNode.ArrayBounds Is Nothing OrElse
-                    newNode.ArrayBounds Is Nothing OrElse
-                    oldNode.ArrayBounds.Arguments.Count <> newNode.ArrayBounds.Arguments.Count Then
-                    ReportError(RudeEditKind.TypeUpdate)
-                    Return
+                    If oldNode.ArrayBounds Is Nothing OrElse
+                        newNode.ArrayBounds Is Nothing OrElse
+                        oldNode.ArrayBounds.Arguments.Count <> newNode.ArrayBounds.Arguments.Count Then
+                        ReportError(RudeEditKind.TypeUpdate)
+                        Return
+                    End If
                 End If
 
                 ' Otherwise only the size of the array changed, which is a legal initializer update
@@ -2802,8 +2789,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.Initializer, newNode.Initializer))
-                ReportError(RudeEditKind.InitializerUpdate)
+                If Not SyntaxFactory.AreEquivalent(oldNode.Initializer, newNode.Initializer) Then
+                    ReportError(RudeEditKind.InitializerUpdate)
+                    Return
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As ConstructorBlockSyntax, newNode As ConstructorBlockSyntax)
@@ -2821,8 +2810,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As SimpleAsClauseSyntax, newNode As SimpleAsClauseSyntax)
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
-                ReportError(RudeEditKind.TypeUpdate, newNode.Parent, newNode.Parent)
+                If Not SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type) Then
+                    ReportError(RudeEditKind.TypeUpdate, newNode.Parent, newNode.Parent)
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As TypeParameterSyntax, newNode As TypeParameterSyntax)
