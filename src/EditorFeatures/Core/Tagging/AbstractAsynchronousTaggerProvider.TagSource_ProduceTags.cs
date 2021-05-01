@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
-                    using var stateRef = _tagSourceState;
+                    using var stateRef = _tagSourceState.TryAddReference();
                     if (stateRef != null)
                     {
                         var disposalToken = stateRef.Target.DisposalToken;
