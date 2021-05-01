@@ -16,18 +16,18 @@
     <!--
       ⚠ ONLY OMNISHARP ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
-    <InternalsVisibleTo Include="OmniSharp.Roslyn.CSharp" />
-    <InternalsVisibleTo Include="OmniSharp.Roslyn.CSharp.Tests" />
-    <InternalsVisibleTo Include="OmniSharp.DotNetTest" />
-    <InternalsVisibleTo Include="OmniSharp.DotNetTest.Tests" />
-    <InternalsVisibleTo Include="OmniSharp.LanguageServerProtocol" />
-    <InternalsVisibleTo Include="OmniSharp.Lsp.Tests" />
-    <InternalsVisibleTo Include="OmniSharp.MSBuild" />
-    <InternalsVisibleTo Include="OmniSharp.MSBuild.Tests" />
-    <InternalsVisibleTo Include="OmniSharp.Script" />
-    <InternalsVisibleTo Include="OmniSharp.Script.Tests" />
-    <InternalsVisibleTo Include="OmniSharp.Cake" />
-    <InternalsVisibleTo Include="OmniSharp.CakeTests" />
+    <InternalsVisibleTo Include="OmniSharp.Roslyn.CSharp" Key="$(OmniSharpKey)" />
+    <InternalsVisibleTo Include="OmniSharp.Roslyn.CSharp.Tests" Key="$(OmniSharpKey)" />
+    <InternalsVisibleTo Include="OmniSharp.DotNetTest" Key="$(OmniSharpKey)" />
+    <InternalsVisibleTo Include="OmniSharp.DotNetTest.Tests" Key="$(OmniSharpKey)" />
+    <InternalsVisibleTo Include="OmniSharp.LanguageServerProtocol" Key="$(OmniSharpKey)" />
+    <InternalsVisibleTo Include="OmniSharp.Lsp.Tests" Key="$(OmniSharpKey)" />
+    <InternalsVisibleTo Include="OmniSharp.MSBuild" Key="$(OmniSharpKey)" />
+    <InternalsVisibleTo Include="OmniSharp.MSBuild.Tests" Key="$(OmniSharpKey)" />
+    <InternalsVisibleTo Include="OmniSharp.Script" Key="$(OmniSharpKey)" />
+    <InternalsVisibleTo Include="OmniSharp.Script.Tests" Key="$(OmniSharpKey)" />
+    <InternalsVisibleTo Include="OmniSharp.Cake" Key="$(OmniSharpKey)" />
+    <InternalsVisibleTo Include="OmniSharp.CakeTests" Key="$(OmniSharpKey)" />
   </ItemGroup>
 
   <ItemGroup>
