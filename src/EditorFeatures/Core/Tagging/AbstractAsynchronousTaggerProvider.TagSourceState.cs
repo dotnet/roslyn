@@ -5,6 +5,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
@@ -29,13 +31,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 /// <summary>
                 /// Work queue that collects event notifications and kicks off the work to process them.
                 /// </summary>
-                public Task EventWorkQueue;
+                private Task _eventWorkQueue;
 
                 public TagSourceState()
                 {
                     _disposalTokenSource = new();
                     _cancellationSeries = new CancellationSeries(_disposalTokenSource.Token);
-                    EventWorkQueue = Task.CompletedTask;
+                    _eventWorkQueue = Task.CompletedTask;
                 }
 
                 public CancellationToken DisposalToken => _disposalTokenSource.Token;
@@ -51,6 +53,23 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 public CancellationToken GetCancellationToken(bool initialTags)
                     => initialTags ? _disposalTokenSource.Token : _cancellationSeries.CreateNext();
+
+                public void EnqueueWork(
+                    Func<Task> workAsync,
+                    TaggerDelay delay,
+                    IAsyncToken asyncToken,
+                    CancellationToken cancellationToken)
+                {
+                    lock (this)
+                    {
+                        _eventWorkQueue = _eventWorkQueue.ContinueWithAfterDelayFromAsync(
+                            _ => workAsync(),
+                            cancellationToken,
+                            (int)delay.ComputeTimeDelay().TotalMilliseconds,
+                            TaskContinuationOptions.None,
+                            TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
+                    }
+                }
             }
         }
     }

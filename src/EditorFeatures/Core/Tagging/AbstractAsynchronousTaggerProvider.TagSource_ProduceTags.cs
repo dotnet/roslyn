@@ -187,16 +187,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
                 // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
                 // is completely done.
-                state.EventWorkQueue = state.EventWorkQueue.ContinueWithAfterDelayFromAsync(
-                    async _ =>
-                    {
-                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
-                    },
-                    cancellationToken,
-                    (int)_dataSource.EventChangeDelay.ComputeTimeDelay().TotalMilliseconds,
-                    TaskContinuationOptions.None,
-                    TaskScheduler.Default).CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(EnqueueWork)));
+                state.EnqueueWork(async () =>
+                {
+                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
+                }, _dataSource.EventChangeDelay, _asyncListener.BeginAsyncOperation(nameof(EnqueueWork)), cancellationToken);
             }
 
             /// <summary>
