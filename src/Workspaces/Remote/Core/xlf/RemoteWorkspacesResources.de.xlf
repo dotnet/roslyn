@@ -67,6 +67,11 @@
         <target state="translated">Globale Benachrichtigungsübermittlung</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="new">Inheritance margin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
         <source>Missing import discovery</source>
         <target state="translated">Fehlende Importermittlung</target>
