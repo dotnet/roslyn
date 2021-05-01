@@ -2312,10 +2312,6 @@ foundParent:;
             {
                 bindableParent = bindableParent.Parent;
             }
-            else if ((bindableParent.Kind() == SyntaxKind.SimpleMemberAccessExpression) && (bindableParent.Parent.Kind() == SyntaxKind.ExpressionColon))
-            {
-               // bindableParent = SyntaxFactory.GetStandaloneNode(bindableParent);
-            }
             else if (bindableParent.Kind() == SyntaxKind.ArrayType)
             {
                 bindableParent = SyntaxFactory.GetStandaloneExpression((ArrayTypeSyntax)bindableParent);
