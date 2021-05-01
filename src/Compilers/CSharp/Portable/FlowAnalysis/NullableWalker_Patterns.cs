@@ -173,15 +173,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (BoundPropertySubpattern subpattern in rp.Properties)
                             {
-                                if (subpattern.Symbols.IsEmpty)
-                                    continue;
-
-                                // Obtain the last symbol's slot which is actually the one being matched.
-                                Symbol last = subpattern.Symbols.Last();
-                                // PROTOTYPE(extended-property-patterns) For a chain of members, the input type is no longer `inputType`
-                                if (last.ContainingType.Equals(inputType, TypeCompareKind.AllIgnoreOptions))
+                                if (subpattern.Member is { Symbol: Symbol symbol } member &&
+                                    symbol.ContainingType.Equals(member.Receiver?.Type ?? inputType, TypeCompareKind.AllIgnoreOptions))
                                 {
-                                    LearnFromAnyNullPatterns(GetOrCreateSlot(last, inputSlot), last.GetTypeOrReturnType().Type, subpattern.Pattern);
+                                    LearnFromAnyNullPatterns(GetOrCreateSlot(symbol, inputSlot), symbol.GetTypeOrReturnType().Type, subpattern.Pattern);
                                 }
                             }
                         }

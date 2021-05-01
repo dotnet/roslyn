@@ -2099,8 +2099,13 @@
   </Node>
   <!-- A subpattern in a property part of a recursive pattern. -->
   <Node Name="BoundPropertySubpattern" Base="BoundSubpattern">
-    <!-- The chain of property or fields in a property pattern. -->
-    <Field Name="Symbols" Type="ImmutableArray&lt;Symbol&gt;"/>
+    <!-- The property or field access in a property pattern. -->
+    <Field Name="Member" Type="BoundPropertySubpatternMember?"/>
+  </Node>
+  <Node Name="BoundPropertySubpatternMember" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Receiver" Type="BoundPropertySubpatternMember?"/>
+    <Field Name="Symbol" Type="Symbol?"/>
   </Node>
 
   <Node Name="BoundTypePattern" Base="BoundPattern">

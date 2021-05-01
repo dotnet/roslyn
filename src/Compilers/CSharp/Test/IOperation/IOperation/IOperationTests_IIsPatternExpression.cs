@@ -1027,32 +1027,32 @@ class C
     C prop { get; } 
     void M()
     {
-        if (/*<bind>*/this is { prop.field: null } y/*</bind>*/) { }
+        if (/*<bind>*/this is { prop.field: null }/*</bind>*/) { }
     }
 }
 ";
-            string expectedOperationTree = @"  
-IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'this is { p ... d: null } y')
-    Value: 
-      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
-    Pattern: 
-      IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ prop.field: null } y') (InputType: C, NarrowedType: C, DeclaredSymbol: C y, MatchedType: C, DeconstructSymbol: null)
-        DeconstructionSubpatterns (0)
-        PropertySubpatterns (1):
-            IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'prop.field: null')
-              Member: 
-                IFieldReferenceOperation: C C.field (OperationKind.FieldReference, Type: C, IsImplicit) (Syntax: 'prop.field: null')
-                  Instance Receiver: 
-                    IPropertyReferenceOperation: C C.prop { get; } (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'prop.field: null')
-                      Instance Receiver: 
-                        IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'prop.field: null')
-              Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: C, NarrowedType: C)
-                  Value: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, Constant: null, IsImplicit) (Syntax: 'null')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                      Operand: 
-                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+            string expectedOperationTree = @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'this is { p ... eld: null }')
+  Value: 
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ prop.field: null }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'prop.field: null')
+            Member: 
+              IFieldReferenceOperation: C C.field (OperationKind.FieldReference, Type: C) (Syntax: 'prop.field')
+                Instance Receiver: 
+                  IPropertyReferenceOperation: C C.prop { get; } (OperationKind.PropertyReference, Type: C) (Syntax: 'prop')
+                    Instance Receiver: 
+                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'prop')
+            Pattern: 
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: C, NarrowedType: C)
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, Constant: null, IsImplicit) (Syntax: 'null')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                     // file.cs(4,7): warning CS0169: The field 'C.field' is never used
@@ -1100,6 +1100,53 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
                     // file.cs(6,33): error CS0117: 'C' does not contain a definition for 'prop'
                     //         if (/*<bind>*/this is { prop.field: null } y/*</bind>*/) { }
                     Diagnostic(ErrorCode.ERR_NoSuchMember, "prop").WithArguments("C", "prop").WithLocation(6, 33)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void IsPattern_BadRecursivePatternWithNestedPropertyPatterns_EventMember()
+        {
+            string source = @"
+class C
+{
+    C prop { get; }
+    public event System.Action action;
+    void M()
+    {
+        if (/*<bind>*/this is { prop.action: null } y/*</bind>*/) { }
+    }
+}
+";
+            string expectedOperationTree = @"  
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is { p ... n: null } y')
+  Value: 
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+  Pattern: 
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ prop.action: null } y') (InputType: C, NarrowedType: C, DeclaredSymbol: C y, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'prop.action: null')
+            Member: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'prop.action: null')
+                Children(0)
+            Pattern: 
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
+                Value: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsImplicit) (Syntax: 'null')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {              
+                    // file.cs(5,32): warning CS0067: The event 'C.action' is never used
+                    //     public event System.Action action;
+                    Diagnostic(ErrorCode.WRN_UnreferencedEvent, "action").WithArguments("C.action").WithLocation(5, 32),
+                    // file.cs(8,38): error CS0154: The property or indexer 'action' cannot be used in this context because it lacks the get accessor
+                    //         if (/*<bind>*/this is { prop.action: null } y/*</bind>*/) { }
+                    Diagnostic(ErrorCode.ERR_PropertyLacksGet, "action").WithArguments("action").WithLocation(8, 38)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);

@@ -2,13 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternMatchingTests5 : PatternMatchingTestBase
     {
+        private static void AssertEmpty(SymbolInfo info)
+        {
+            Assert.NotEqual(default, info);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
+        }
+
         [Fact]
         public void ExtendedPropertyPatterns_01()
         {
@@ -354,6 +366,235 @@ class C
                     // (9,41): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         _ = new C() is { Missing: null, Prop1.Prop2: {} };
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop1.Prop2").WithArguments("extended property patterns").WithLocation(9, 41));
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_SymbolInfo_01()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        P p = new P();
+        Console.WriteLine(p is { X.Y: {}, Y.X: {} });
+    }
+}
+class P
+{
+    public P X { get; }
+    public P Y;
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (14,14): warning CS0649: Field 'P.Y' is never assigned to, and will always have its default value null
+                    //     public P Y;
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Y").WithArguments("P.Y", "null").WithLocation(14, 14)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var subpatterns = tree.GetRoot().DescendantNodes().OfType<SubpatternSyntax>().ToArray();
+            Assert.Equal(2, subpatterns.Length);
+
+            AssertEmpty(model.GetSymbolInfo(subpatterns[0]));
+            AssertEmpty(model.GetSymbolInfo(subpatterns[0].ExpressionColon));
+            var xy = subpatterns[0].ExpressionColon.Expression;
+            var xySymbol = model.GetSymbolInfo(xy);
+            Assert.Equal(CandidateReason.None, xySymbol.CandidateReason);
+            Assert.Equal("P P.Y", xySymbol.Symbol.ToTestDisplayString());
+
+            var x = ((MemberAccessExpressionSyntax)subpatterns[0].ExpressionColon.Expression).Expression;
+            var xSymbol = model.GetSymbolInfo(x);
+            Assert.Equal(CandidateReason.None, xSymbol.CandidateReason);
+            Assert.Equal("P P.X { get; }", xSymbol.Symbol.ToTestDisplayString());
+
+            var yName = ((MemberAccessExpressionSyntax)subpatterns[0].ExpressionColon.Expression).Name;
+            var yNameSymbol = model.GetSymbolInfo(yName);
+            Assert.Equal(CandidateReason.None, yNameSymbol.CandidateReason);
+            Assert.Equal("P P.Y", yNameSymbol.Symbol.ToTestDisplayString());
+
+            AssertEmpty(model.GetSymbolInfo(subpatterns[1]));
+            AssertEmpty(model.GetSymbolInfo(subpatterns[1].ExpressionColon));
+            var yx = subpatterns[1].ExpressionColon.Expression;
+            var yxSymbol = model.GetSymbolInfo(yx);
+            Assert.NotEqual(default, yxSymbol);
+            Assert.Equal(CandidateReason.None, yxSymbol.CandidateReason);
+            Assert.Equal("P P.X { get; }", yxSymbol.Symbol.ToTestDisplayString());
+
+            var y = ((MemberAccessExpressionSyntax)subpatterns[1].ExpressionColon.Expression).Expression;
+            var ySymbol = model.GetSymbolInfo(y);
+            Assert.Equal(CandidateReason.None, ySymbol.CandidateReason);
+            Assert.Equal("P P.Y", ySymbol.Symbol.ToTestDisplayString());
+
+            var xName = ((MemberAccessExpressionSyntax)subpatterns[1].ExpressionColon.Expression).Name;
+            var xNameSymbol = model.GetSymbolInfo(xName);
+            Assert.Equal(CandidateReason.None, xNameSymbol.CandidateReason);
+            Assert.Equal("P P.X { get; }", xNameSymbol.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_SymbolInfo_02()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        P p = null;
+        Console.WriteLine(p is { X.Y: {}, Y.X: {}, });
+    }
+}
+interface I1
+{
+    P X { get; }
+    P Y { get; }
+}
+interface I2
+{
+    P X { get; }
+    P Y { get; }
+}
+interface P : I1, I2
+{
+    // X and Y inherited ambiguously
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (8,34): error CS0229: Ambiguity between 'I1.X' and 'I2.X'
+                    //         Console.WriteLine(p is { X.Y: {}, Y.X: {}, });
+                    Diagnostic(ErrorCode.ERR_AmbigMember, "X").WithArguments("I1.X", "I2.X").WithLocation(8, 34),
+                    // (8,43): error CS0229: Ambiguity between 'I1.Y' and 'I2.Y'
+                    //         Console.WriteLine(p is { X.Y: {}, Y.X: {}, });
+                    Diagnostic(ErrorCode.ERR_AmbigMember, "Y").WithArguments("I1.Y", "I2.Y").WithLocation(8, 43)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var subpatterns = tree.GetRoot().DescendantNodes().OfType<SubpatternSyntax>().ToArray();
+            Assert.Equal(2, subpatterns.Length);
+
+            AssertEmpty(model.GetSymbolInfo(subpatterns[0]));
+            AssertEmpty(model.GetSymbolInfo(subpatterns[0].ExpressionColon));
+            var x = ((MemberAccessExpressionSyntax)subpatterns[0].ExpressionColon.Expression).Expression;
+            var xSymbol = model.GetSymbolInfo(x);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, xSymbol.CandidateReason);
+            Assert.Null(xSymbol.Symbol);
+            Assert.Equal(2, xSymbol.CandidateSymbols.Length);
+            Assert.Equal("P I1.X { get; }", xSymbol.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("P I2.X { get; }", xSymbol.CandidateSymbols[1].ToTestDisplayString());
+
+            AssertEmpty(model.GetSymbolInfo(subpatterns[1]));
+            AssertEmpty(model.GetSymbolInfo(subpatterns[1].ExpressionColon));
+            var y = ((MemberAccessExpressionSyntax)subpatterns[1].ExpressionColon.Expression).Expression;
+            var ySymbol = model.GetSymbolInfo(y);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, ySymbol.CandidateReason);
+            Assert.Null(ySymbol.Symbol);
+            Assert.Equal(2, ySymbol.CandidateSymbols.Length);
+            Assert.Equal("P I1.Y { get; }", ySymbol.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("P I2.Y { get; }", ySymbol.CandidateSymbols[1].ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_SymbolInfo_03()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        P p = null;
+        Console.WriteLine(p is { X.Y: {}, Y.X: {}, });
+    }
+}
+class P
+{
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,34): error CS0117: 'P' does not contain a definition for 'X'
+                //         Console.WriteLine(p is { X: 3, Y: 4 });
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("P", "X").WithLocation(8, 34)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var subpatterns = tree.GetRoot().DescendantNodes().OfType<SubpatternSyntax>().ToArray();
+            Assert.Equal(2, subpatterns.Length);
+
+            AssertEmpty(model.GetSymbolInfo(subpatterns[0]));
+            AssertEmpty(model.GetSymbolInfo(subpatterns[0].ExpressionColon));
+            var x = subpatterns[0].ExpressionColon.Expression;
+            var xSymbol = model.GetSymbolInfo(x);
+            Assert.Equal(CandidateReason.None, xSymbol.CandidateReason);
+            Assert.Null(xSymbol.Symbol);
+            Assert.Empty(xSymbol.CandidateSymbols);
+
+            AssertEmpty(model.GetSymbolInfo(subpatterns[1]));
+            AssertEmpty(model.GetSymbolInfo(subpatterns[1].ExpressionColon));
+            var y = subpatterns[1].ExpressionColon.Expression;
+            var ySymbol = model.GetSymbolInfo(y);
+            Assert.Equal(CandidateReason.None, ySymbol.CandidateReason);
+            Assert.Null(ySymbol.Symbol);
+            Assert.Empty(ySymbol.CandidateSymbols);
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_Nullability()
+        {
+            var program = @"
+#nullable enable
+class C {
+    C? Prop { get; }
+    public void M() {
+        if (this is { Prop.Prop: null }) 
+        {
+            this.Prop.ToString();
+            this.Prop.Prop.ToString(); // 1
+        }
+        if (this is { Prop.Prop: {} }) 
+        {
+            this.Prop.ToString();
+            this.Prop.Prop.ToString();
+        }
+        if (this is { Prop: null } && 
+            this is { Prop.Prop: null }) 
+        {
+            this.Prop.ToString();
+            this.Prop.Prop.ToString(); // 2
+        }
+        if (this is { Prop: null } || 
+            this is { Prop.Prop: null }) 
+        {
+            this.Prop.ToString();      // 3
+            this.Prop.Prop.ToString(); // 4
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyDiagnostics(
+                    // (9,13): warning CS8602: Dereference of a possibly null reference.
+                    //             this.Prop.Prop.ToString(); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this.Prop.Prop").WithLocation(9, 13),
+                    // (20,13): warning CS8602: Dereference of a possibly null reference.
+                    //             this.Prop.Prop.ToString(); // 2
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this.Prop.Prop").WithLocation(20, 13),
+                    // (25,13): warning CS8602: Dereference of a possibly null reference.
+                    //             this.Prop.ToString();      // 3
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this.Prop").WithLocation(25, 13),
+                    // (26,13): warning CS8602: Dereference of a possibly null reference.
+                    //             this.Prop.Prop.ToString(); // 4
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this.Prop.Prop").WithLocation(26, 13));
         }
     }
 }

@@ -1167,7 +1167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ExpressionSyntax? expr = p.ExpressionColon?.Expression;
                 PatternSyntax pattern = p.Pattern;
-                ImmutableArray<Symbol> members;
+                BoundPropertySubpatternMember? member;
                 TypeSymbol memberType;
                 if (expr == null)
                 {
@@ -1175,51 +1175,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_PropertyPatternNameMissing, pattern.Location, pattern);
 
                     memberType = CreateErrorType();
-                    members = ImmutableArray<Symbol>.Empty;
+                    member = null;
                     hasErrors = true;
                 }
                 else
                 {
-                    var memberBuilder = ArrayBuilder<Symbol>.GetInstance();
-                    LookupMembersForPropertyPattern(inputType, expr, memberBuilder, diagnostics, ref hasErrors, out memberType);
-                    members = memberBuilder.ToImmutableAndFree();
+                    member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref hasErrors);
+                    memberType = member.Type;
                 }
 
                 BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
-                builder.Add(new BoundPropertySubpattern(p, members, boundPattern));
+                builder.Add(new BoundPropertySubpattern(p, member, boundPattern));
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        private void LookupMembersForPropertyPattern(
-            TypeSymbol inputType, ExpressionSyntax expr, ArrayBuilder<Symbol> builder, BindingDiagnosticBag diagnostics, ref bool hasErrors, out TypeSymbol memberType)
+        private BoundPropertySubpatternMember LookupMembersForPropertyPattern(
+            TypeSymbol inputType, ExpressionSyntax expr, BindingDiagnosticBag diagnostics, ref bool hasErrors)
         {
-            Symbol? symbol;
+            BoundPropertySubpatternMember? receiver = null;
+            Symbol? symbol = null;
             switch (expr)
             {
                 case IdentifierNameSyntax name:
                     symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
                     break;
                 case MemberAccessExpressionSyntax { Name: IdentifierNameSyntax name } memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
-                    LookupMembersForPropertyPattern(inputType, memberAccess.Expression, builder, diagnostics, ref hasErrors, out memberType);
-                    symbol = BindPropertyPatternMember(memberType.StrippedType(), name, ref hasErrors, diagnostics);
+                    receiver = LookupMembersForPropertyPattern(inputType, memberAccess.Expression, diagnostics, ref hasErrors);
+                    symbol = BindPropertyPatternMember(receiver.Type.StrippedType(), name, ref hasErrors, diagnostics);
                     break;
                 default:
                     Error(diagnostics, ErrorCode.ERR_InvalidNameInSubpattern, expr);
-                    symbol = null;
                     hasErrors = true;
                     break;
             }
 
-            memberType = symbol switch
+            TypeSymbol memberType = symbol switch
             {
                 FieldSymbol field => field.Type,
                 PropertySymbol property => property.Type,
                 _ => CreateErrorType()
             };
 
-            builder.AddIfNotNull(symbol);
+            return new BoundPropertySubpatternMember(expr, receiver, symbol, type: memberType, hasErrors);
         }
 
         private Symbol? BindPropertyPatternMember(
@@ -1279,14 +1278,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, memberName, name);
                                 break;
                         }
+                        hasErrors = true;
                     }
-
-                    hasErrors = true;
-                    return boundMember.ExpressionSymbol;
+                    break;
             }
 
-            if (hasErrors || !CheckValueKind(node: memberName.Parent, expr: boundMember, valueKind: BindValueKind.RValue,
-                                             checkingReceiver: false, diagnostics: diagnostics))
+            if (!hasErrors && !CheckValueKind(node: memberName.Parent, expr: boundMember, valueKind: BindValueKind.RValue,
+                                              checkingReceiver: false, diagnostics: diagnostics))
             {
                 hasErrors = true;
             }

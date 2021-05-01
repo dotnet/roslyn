@@ -219,7 +219,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly ImmutableArray<BoundKind> s_skippedExpressions = ImmutableArray.Create(BoundKind.ArrayInitialization,
             BoundKind.ObjectInitializerExpression,
             BoundKind.CollectionInitializerExpression,
-            BoundKind.DynamicCollectionElementInitializer);
+            BoundKind.DynamicCollectionElementInitializer,
+            BoundKind.PropertySubpatternMember);
 #endif
 
         /// <summary>
