@@ -40,9 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _eventWorkQueue = Task.CompletedTask;
                 }
 
-                public CancellationToken DisposalToken => _disposalTokenSource.Token;
-
-                public void Dispose()
+                void IDisposable.Dispose()
                 {
                     // Stop computing any initial tags if we've been asked for them.  Use 'CancelAfter' so
                     // cancellation happens outside of the lock (that way no continuations run underneath it.
@@ -50,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _disposalTokenSource.Dispose();
                     _cancellationSeries.Dispose();
                 }
+
+                public CancellationToken DisposalToken => _disposalTokenSource.Token;
 
                 public CancellationToken GetCancellationToken(bool initialTags)
                     => initialTags ? _disposalTokenSource.Token : _cancellationSeries.CreateNext();
