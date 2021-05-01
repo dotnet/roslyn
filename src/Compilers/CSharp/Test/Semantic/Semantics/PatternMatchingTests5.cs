@@ -484,7 +484,7 @@ interface P : I1, I2
             AssertEmpty(model.GetSymbolInfo(subpatterns[0].ExpressionColon));
             var x = ((MemberAccessExpressionSyntax)subpatterns[0].ExpressionColon.Expression).Expression;
             var xSymbol = model.GetSymbolInfo(x);
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, xSymbol.CandidateReason);
+            Assert.Equal(CandidateReason.Ambiguous, xSymbol.CandidateReason);
             Assert.Null(xSymbol.Symbol);
             Assert.Equal(2, xSymbol.CandidateSymbols.Length);
             Assert.Equal("P I1.X { get; }", xSymbol.CandidateSymbols[0].ToTestDisplayString());
@@ -494,7 +494,7 @@ interface P : I1, I2
             AssertEmpty(model.GetSymbolInfo(subpatterns[1].ExpressionColon));
             var y = ((MemberAccessExpressionSyntax)subpatterns[1].ExpressionColon.Expression).Expression;
             var ySymbol = model.GetSymbolInfo(y);
-            Assert.Equal(CandidateReason.OverloadResolutionFailure, ySymbol.CandidateReason);
+            Assert.Equal(CandidateReason.Ambiguous, ySymbol.CandidateReason);
             Assert.Null(ySymbol.Symbol);
             Assert.Equal(2, ySymbol.CandidateSymbols.Length);
             Assert.Equal("P I1.Y { get; }", ySymbol.CandidateSymbols[0].ToTestDisplayString());

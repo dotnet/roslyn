@@ -1890,6 +1890,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetSymbolInfoForSubpattern(subpattern.Symbol);
                 case BoundPropertySubpattern subpattern:
                     return GetSymbolInfoForSubpattern(subpattern.Member?.Symbol);
+                case BoundPropertySubpatternMember subpatternMember:
+                    return GetSymbolInfoForSubpattern(subpatternMember.Symbol);
                 case BoundExpression boundExpr2:
                     boundExpr = boundExpr2;
                     break;
