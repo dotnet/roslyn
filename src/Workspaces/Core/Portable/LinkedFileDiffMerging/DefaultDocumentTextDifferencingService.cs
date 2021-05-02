@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
     internal class DefaultDocumentTextDifferencingService : IDocumentTextDifferencingService
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultDocumentTextDifferencingService()
         {
         }
