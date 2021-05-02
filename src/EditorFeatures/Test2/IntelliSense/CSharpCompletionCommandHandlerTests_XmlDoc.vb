@@ -780,7 +780,7 @@ record R(int I);
                 Await state.AssertNoCompletionSession()
 
                 ' /// <param name="I"$$
-                Await state.AssertLineTextAroundCaret("    /// <param name=""I""", "")
+                Await state.AssertLineTextAroundCaret("/// <param name=""I""", "")
             End Using
         End Function
 
