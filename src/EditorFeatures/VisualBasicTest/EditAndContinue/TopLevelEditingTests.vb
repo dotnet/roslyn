@@ -328,15 +328,16 @@ Option Strict Off
 
         <Fact>
         Public Sub UpdateAttributes_TopLevel1()
-            Dim src1 = "<Assembly: System.Obsolete(""1"")>"
-            Dim src2 = "<Assembly: System.Obsolete(""2"")>"
+            Dim src1 = "<Assembly: A(1)>"
+            Dim src2 = "<Assembly: A(2)>"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<Assembly: System.Obsolete(""1"")>]@0 -> [<Assembly: System.Obsolete(""2"")>]@0")
+                "Update [<Assembly: A(1)>]@0 -> [<Assembly: A(2)>]@0",
+                "Update [Assembly: A(1)]@1 -> [Assembly: A(2)]@1")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Assembly: System.Obsolete(""2"")", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.Update, "Assembly: A(2)", FeaturesResources.attribute))
         End Sub
 
         <Fact>
@@ -346,7 +347,8 @@ Option Strict Off
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<Assembly: System.Obsolete(""1"")>]@0 -> [<Module: System.Obsolete(""1"")>]@0")
+                "Update [<Assembly: System.Obsolete(""1"")>]@0 -> [<Module: System.Obsolete(""1"")>]@0",
+                "Update [Assembly: System.Obsolete(""1"")]@1 -> [Module: System.Obsolete(""1"")]@1")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Update, "Module: System.Obsolete(""1"")", FeaturesResources.attribute))
@@ -375,7 +377,9 @@ Option Strict Off
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Delete [<Assembly: A1>]@0")
+                "Delete [<Assembly: A1>]@0",
+                "Delete [<Assembly: A1>]@0",
+                "Delete [Assembly: A1]@1")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, Nothing, VBFeaturesResources.attributes))
@@ -414,7 +418,9 @@ Option Strict Off
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [<Assembly: A1>]@0")
+                "Insert [<Assembly: A1>]@0",
+                "Insert [<Assembly: A1>]@0",
+                "Insert [Assembly: A1]@1")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "<Assembly: A1>", VBFeaturesResources.attributes))
@@ -446,7 +452,7 @@ Option Strict Off
             Dim src2 = "<Assembly: A2><Assembly: A1>"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyEdits("Update [<Assembly: A1><Assembly: A2>]@0 -> [<Assembly: A2><Assembly: A1>]@0")
+            edits.VerifyEdits("Reorder [<Assembly: A2>]@14 -> @0")
 
             edits.VerifyRudeDiagnostics()
         End Sub

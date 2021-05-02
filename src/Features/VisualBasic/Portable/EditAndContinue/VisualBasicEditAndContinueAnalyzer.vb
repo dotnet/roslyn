@@ -2169,14 +2169,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                          SyntaxKind.TypeConstraint,
                          SyntaxKind.TypeParameterList,
                          SyntaxKind.Parameter,
-                         SyntaxKind.SimpleAsClause,
-                         SyntaxKind.AttributesStatement
+                         SyntaxKind.AttributesStatement,
+                         SyntaxKind.SimpleAsClause
                         ReportError(RudeEditKind.Insert)
                         Return
 
-                    Case SyntaxKind.Attribute,
-                         SyntaxKind.AttributeList
-                        'These are handled in semantics
+                    Case SyntaxKind.Attribute
+                        ' Only top level are rude
+                        If node.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
+                            ReportError(RudeEditKind.Insert)
+                        End If
+                        Return
+
+                    Case SyntaxKind.AttributeList
+                        ' Only top level are rude
+                        If node.IsParentKind(SyntaxKind.AttributesStatement) Then
+                            ReportError(RudeEditKind.Insert)
+                        End If
                         Return
 
                     Case SyntaxKind.ParameterList
@@ -2247,11 +2256,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ' We do not report error here since it will be reported in semantic analysis.
                         Return
 
-                    Case SyntaxKind.AttributeList,
-                         SyntaxKind.Attribute
-                        ' To allow removal of attributes we would need to check if the removed attribute
-                        ' is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
-                        ' that affects the generated IL.
+                    Case SyntaxKind.AttributeList
+                        ' Only top level attributes are rude edits
+                        If oldNode.IsParentKind(SyntaxKind.AttributesStatement) Then
+                            ReportError(RudeEditKind.Insert)
+                        End If
+                        Return
+
+                    Case SyntaxKind.Attribute
+                        ' Only top level attributes are rude edits
+                        If oldNode.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
+                            ReportError(RudeEditKind.Insert)
+                        End If
                         Return
 
                     Case SyntaxKind.TypeParameter,
@@ -2439,13 +2455,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case SyntaxKind.AttributesStatement
-                        'ReportError(RudeEditKind.Update)
+                        ReportError(RudeEditKind.Update)
                         Return
 
-                    Case SyntaxKind.Attribute,
+                    Case SyntaxKind.Attribute
+                        ' Only top level attributes are rude edits
+                        If newNode.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
+                            ReportError(RudeEditKind.Update)
+                        End If
+                        Return
+
+                    Case SyntaxKind.AttributeList,
                         SyntaxKind.TypeParameterList,
-                        SyntaxKind.ParameterList,
-                        SyntaxKind.AttributeList
+                        SyntaxKind.ParameterList
                         Return
 
                     Case Else
