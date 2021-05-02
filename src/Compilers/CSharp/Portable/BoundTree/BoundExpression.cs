@@ -570,11 +570,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundPropertySubpatternMember
-    {
-        public override Symbol? ExpressionSymbol => Symbol;
-    }
-
     internal partial class BoundBaseReference
     {
         public override bool SuppressVirtualCalls

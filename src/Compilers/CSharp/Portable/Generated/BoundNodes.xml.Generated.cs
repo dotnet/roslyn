@@ -7609,24 +7609,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundPropertySubpatternMember : BoundExpression
+    internal sealed partial class BoundPropertySubpatternMember : BoundNode
     {
         public BoundPropertySubpatternMember(SyntaxNode syntax, BoundPropertySubpatternMember? receiver, Symbol? symbol, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.PropertySubpatternMember, syntax, type, hasErrors || receiver.HasErrors())
+            : base(BoundKind.PropertySubpatternMember, syntax, hasErrors || receiver.HasErrors())
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Receiver = receiver;
             this.Symbol = symbol;
+            this.Type = type;
         }
 
-
-        public new TypeSymbol Type => base.Type!;
 
         public BoundPropertySubpatternMember? Receiver { get; }
 
         public Symbol? Symbol { get; }
+
+        public TypeSymbol Type { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitPropertySubpatternMember(this);
 
@@ -13285,18 +13286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Symbol? symbol = GetUpdatedSymbol(node, node.Symbol);
             BoundPropertySubpatternMember? receiver = (BoundPropertySubpatternMember?)this.Visit(node.Receiver);
-            BoundPropertySubpatternMember updatedNode;
-
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
-            {
-                updatedNode = node.Update(receiver, symbol, infoAndType.Type!);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(receiver, symbol, node.Type);
-            }
-            return updatedNode;
+            return node.Update(receiver, symbol, node.Type);
         }
 
         public override BoundNode? VisitTypePattern(BoundTypePattern node)
@@ -15217,7 +15207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiver", null, new TreeDumperNode[] { Visit(node.Receiver, null) }),
             new TreeDumperNode("symbol", node.Symbol, null),
             new TreeDumperNode("type", node.Type, null),
-            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );

@@ -2092,20 +2092,18 @@
   <AbstractNode Name="BoundSubpattern" Base="BoundNode">
     <Field Name="Pattern" Type="BoundPattern"/>
   </AbstractNode>
-  <!-- A subpattern in a positional part of a recursive pattern. -->
   <Node Name="BoundPositionalSubpattern" Base="BoundSubpattern">
     <!-- The tuple element or parameter in a positional pattern. -->
     <Field Name="Symbol" Type="Symbol?"/>
   </Node>
-  <!-- A subpattern in a property part of a recursive pattern. -->
   <Node Name="BoundPropertySubpattern" Base="BoundSubpattern">
     <!-- The property or field access in a property pattern. -->
     <Field Name="Member" Type="BoundPropertySubpatternMember?"/>
   </Node>
-  <Node Name="BoundPropertySubpatternMember" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  <Node Name="BoundPropertySubpatternMember" Base="BoundNode">
     <Field Name="Receiver" Type="BoundPropertySubpatternMember?"/>
     <Field Name="Symbol" Type="Symbol?"/>
+    <Field Name="Type" Type="TypeSymbol"/>
   </Node>
 
   <Node Name="BoundTypePattern" Base="BoundPattern">
