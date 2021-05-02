@@ -431,6 +431,54 @@ namespace N
         #region Attributes
 
         [Fact]
+        public void Insert_TopLevelAttribute()
+        {
+            var src1 = "";
+            var src2 = "[assembly: System.Obsolete(\"2\")]";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [[assembly: System.Obsolete(\"2\")]]@0",
+                "Insert [System.Obsolete(\"2\")]@11");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "[assembly: System.Obsolete(\"2\")]", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void Delete_TopLevelAttribute()
+        {
+            var src1 = "[assembly: System.Obsolete(\"2\")]";
+            var src2 = "";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [[assembly: System.Obsolete(\"2\")]]@0",
+                "Delete [System.Obsolete(\"2\")]@11");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, null, FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void Update_TopLevelAttribute()
+        {
+            var src1 = "[assembly: System.Obsolete(\"1\")]";
+            var src2 = "[assembly: System.Obsolete(\"2\")]";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[assembly: System.Obsolete(\"1\")]]@0 -> [[assembly: System.Obsolete(\"2\")]]@0",
+                "Update [System.Obsolete(\"1\")]@11 -> [System.Obsolete(\"2\")]@11");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Update, "System.Obsolete(\"2\")", FeaturesResources.attribute));
+        }
+
+        [Fact]
         public void UpdateAttributes1()
         {
             var attribute = "public class A1Attribute : System.Attribute { }\n\n" +

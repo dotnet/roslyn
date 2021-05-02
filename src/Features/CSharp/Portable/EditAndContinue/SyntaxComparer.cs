@@ -272,6 +272,22 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ConstructorDeclaration:
                     // Root when matching constructor bodies.
                     return Label.ConstructorDeclaration;
+
+                case SyntaxKind.AttributeList:
+                    // Only top level attributes are labelled
+                    if (node is not null && node.IsParentKind(SyntaxKind.CompilationUnit))
+                    {
+                        return Label.AttributeList;
+                    }
+                    break;
+
+                case SyntaxKind.Attribute:
+                    // Only top level attributes are labelled
+                    if (node is { Parent: { } parent } && parent.IsParentKind(SyntaxKind.CompilationUnit))
+                    {
+                        return Label.Attribute;
+                    }
+                    break;
             }
 
             if (_compareStatementSyntax)

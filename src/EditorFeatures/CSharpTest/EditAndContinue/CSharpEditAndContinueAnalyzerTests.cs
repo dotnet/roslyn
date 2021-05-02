@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         #region Helpers
 
-        private static void TestSpans(string source, Func<SyntaxKind, bool> hasLabel)
+        private static void TestSpans(string source, Func<SyntaxNode, bool> hasLabel)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(source);
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 var expectedText = source.Substring(expected.Start, expected.Length);
                 var token = tree.GetRoot().FindToken(expected.Start);
                 var node = token.Parent;
-                while (!hasLabel(node.Kind()))
+                while (!hasLabel(node))
                 {
                     node = node.Parent;
                 }
@@ -144,8 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
 /*<span>*/delegate C<T> D2()/*</span>*/;
 
-[/*<span>*/Attrib/*</span>*/]
-/*<span>*/[Attrib]/*</span>*/
+[Attrib]
 /*<span>*/public class Z/*</span>*/
 {
     /*<span>*/int f/*</span>*/;
@@ -179,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     
 }
 ";
-            TestSpans(source, kind => SyntaxComparer.TopLevel.HasLabel(kind));
+            TestSpans(source, node => SyntaxComparer.TopLevel.HasLabel(node));
         }
 
         [Fact]

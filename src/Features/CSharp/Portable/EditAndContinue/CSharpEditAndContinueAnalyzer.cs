@@ -2289,6 +2289,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // To allow inserting of attributes we need to check if the inserted attribute
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
+
+                        // Unless the attribute is a top level attribute (ie, assembly attribute)
+                        if (node.IsParentKind(SyntaxKind.CompilationUnit) || node.Parent.IsParentKind(SyntaxKind.CompilationUnit))
+                        {
+                            ReportError(RudeEditKind.Insert);
+                        }
                         return;
                 }
 
@@ -2364,6 +2370,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // To allow removal of attributes we need to check if the removed attribute
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
+
+                        // Unless the attribute is a top level attribute (ie, assembly attribute)
+                        if (oldNode.IsParentKind(SyntaxKind.CompilationUnit) || oldNode.Parent.IsParentKind(SyntaxKind.CompilationUnit))
+                        {
+                            ReportError(RudeEditKind.Delete);
+                        }
                         return;
 
                     case SyntaxKind.TypeParameter:
@@ -2512,6 +2524,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // To allow update of attributes we need to check if the updated attribute
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
+
+                        // Unless the attribute is a top level attribute (ie, assembly attribute)
+                        if (newNode.IsParentKind(SyntaxKind.CompilationUnit) || newNode.Parent.IsParentKind(SyntaxKind.CompilationUnit))
+                        {
+                            ReportError(RudeEditKind.Update);
+                        }
                         return;
 
                     case SyntaxKind.TypeParameterList:
