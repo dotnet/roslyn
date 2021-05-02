@@ -1171,7 +1171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return Nothing
 
                 Case SyntaxKind.SimpleAsClause
-                    If node.Parent.IsKind(SyntaxKind.FunctionStatement) Then
+                    If editKind = EditKind.Update AndAlso node.Parent.IsKind(SyntaxKind.FunctionStatement) Then
                         node = node.Parent             ' for attributes on return types of functions
                     End If
 
