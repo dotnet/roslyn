@@ -479,6 +479,20 @@ namespace N
         }
 
         [Fact]
+        public void Reorder_TopLevelAttribute()
+        {
+            var src1 = "[assembly: System.Obsolete(\"1\")][assembly: System.Obsolete(\"2\")]";
+            var src2 = "[assembly: System.Obsolete(\"2\")][assembly: System.Obsolete(\"1\")]";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [[assembly: System.Obsolete(\"2\")]]@32 -> @0");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
         public void UpdateAttributes1()
         {
             var attribute = "public class A1Attribute : System.Attribute { }\n\n" +
