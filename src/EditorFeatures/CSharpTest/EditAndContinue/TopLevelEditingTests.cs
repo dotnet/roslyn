@@ -1035,6 +1035,37 @@ public abstract class C<T>
         }
 
         [Fact]
+        public void ClassInsert_NotSupportedByRuntime()
+        {
+            var src1 = @"
+public class C
+{
+    void F()
+    {
+    }
+}";
+            var src2 = @"
+public class C
+{
+    void F()
+    {
+    }
+}
+
+public class D
+{
+    void M()
+    {
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "public class D", FeaturesResources.class_));
+        }
+
+        [Fact]
         public void InterfaceInsert()
         {
             var src1 = "";
@@ -5092,6 +5123,19 @@ class C
         }
 
         [Fact]
+        public void MethodInsert_NotSupportedByRuntime()
+        {
+            var src1 = "class C {  }";
+            var src2 = "class C { void goo() { } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "void goo()", FeaturesResources.method));
+        }
+
+        [Fact]
         public void PrivateMethodInsert()
         {
             var src1 = @"
@@ -5603,6 +5647,32 @@ class Test
             edits.VerifyRudeDiagnostics();
 
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: false);
+        }
+
+        [Fact]
+        public void MethodUpdate_Modifier_Async_Add_NotSupported()
+        {
+            var src1 = @"
+class Test
+{
+    public Task<int> WaitAsync()
+    {
+        return 1;
+    }
+}";
+            var src2 = @"
+class Test
+{
+    public async Task<int> WaitAsync()
+    {
+        await Task.Delay(1000);
+        return 1;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.MakeMethodAsync, "public async Task<int> WaitAsync()"));
         }
 
         [Fact]
@@ -6346,6 +6416,19 @@ class C
             edits.VerifyRudeDiagnostics();
 
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: false);
+        }
+
+        [Fact]
+        public void MethodUpdate_AddYieldReturn_NotSupported()
+        {
+            var src1 = "class C { IEnumerable<int> M() { return new[] { 1, 2, 3}; } }";
+            var src2 = "class C { IEnumerable<int> M() { yield return 2; } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.MakeMethodIterator, "IEnumerable<int> M()"));
         }
 
         [Fact]
@@ -10425,6 +10508,32 @@ class C
         }
 
         [Fact]
+        public void FieldInsert_NotSupportedByRuntime()
+        {
+            var src1 = "class C {  }";
+            var src2 = "class C { public int a = 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities | EditAndContinueCapabilities.AddStaticFieldToExistingType,
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a = 1", FeaturesResources.field));
+        }
+
+        [Fact]
+        public void FieldInsert_Static_NotSupportedByRuntime()
+        {
+            var src1 = "class C {  }";
+            var src2 = "class C { public static int a = 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a = 1", FeaturesResources.field));
+        }
+
+        [Fact]
         public void FieldDelete1()
         {
             var src1 = "class C { int a = 1; }";
@@ -10899,6 +11008,19 @@ class C
 
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")));
+        }
+
+        [Fact]
+        public void PropertyInsert_NotSupportedByRuntime()
+        {
+            var src1 = "class C { }";
+            var src2 = "class C { int P { get => 1; set { } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
+                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "int P", FeaturesResources.auto_property));
         }
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
