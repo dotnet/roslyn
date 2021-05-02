@@ -324,8 +324,8 @@ Option Strict Off
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A2", FeaturesResources.attribute))
-
         End Sub
+
         <Fact>
         Public Sub UpdateAttributes_TopLevel1()
             Dim src1 = "<Assembly: System.Obsolete(""1"")>"
@@ -3158,9 +3158,7 @@ End Class"
 
             edits.VerifyEdits(
                 "Insert [<System.Obsolete>Private Sub F : End Sub]@11",
-                "Insert [<System.Obsolete>Private Sub F]@11",
-                "Insert [<System.Obsolete>]@11",
-                "Insert [System.Obsolete]@12")
+                "Insert [<System.Obsolete>Private Sub F]@11")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F"))})
