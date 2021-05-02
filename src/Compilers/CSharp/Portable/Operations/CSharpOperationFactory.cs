@@ -2287,13 +2287,16 @@ namespace Microsoft.CodeAnalysis.Operations
         internal IPropertySubpatternOperation CreatePropertySubpattern(BoundPropertySubpattern subpattern, ITypeSymbol matchedType)
         {
             SyntaxNode syntax = subpattern.Syntax;
-            SyntaxNode nameSyntax = (syntax is SubpatternSyntax subpatSyntax ? subpatSyntax.ExpressionColon?.Name : null) ?? syntax;
-            bool isImplicit = nameSyntax == syntax;
+            IOperation? member = CreatePropertySubpatternMember(subpattern.Member, matchedType);
+            if (member is null)
+            {
+                SyntaxNode nameSyntax = (syntax as SubpatternSyntax)?.ExpressionColon?.Name ?? syntax;
+                bool isImplicit = nameSyntax == syntax;
+                // We should expose the symbol in this case somehow:
+                // https://github.com/dotnet/roslyn/issues/33175
+                member = OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit);
+            }
 
-            IOperation member = CreatePropertySubpatternMember(subpattern.Member, matchedType)
-                  // We should expose the symbol in this case somehow:
-                  // https://github.com/dotnet/roslyn/issues/33175
-                  ?? OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit);
             IPatternOperation pattern = (IPatternOperation)Create(subpattern.Pattern);
             return new PropertySubpatternOperation(member, pattern, _semanticModel, syntax, isImplicit: false);
         }

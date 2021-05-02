@@ -560,9 +560,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     input = MakeConvertToType(input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
                 }
 
-                Symbol? symbol = member.Symbol;
                 BoundDagEvaluation evaluation;
-                switch (symbol)
+                switch (member.Symbol)
                 {
                     case PropertySymbol property:
                         evaluation = new BoundDagPropertyEvaluation(member.Syntax, property, OriginalInput(input, property));
@@ -575,8 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 tests.Add(new Tests.One(evaluation));
-                TypeSymbol type = symbol.GetTypeOrReturnType().Type;
-                input = new BoundDagTemp(member.Syntax, type, evaluation);
+                input = new BoundDagTemp(member.Syntax, member.Type, evaluation);
                 return true;
             }
         }

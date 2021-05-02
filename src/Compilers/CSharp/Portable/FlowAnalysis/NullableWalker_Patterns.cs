@@ -173,10 +173,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (BoundPropertySubpattern subpattern in rp.Properties)
                             {
-                                if (subpattern.Member is { Symbol: Symbol symbol } member &&
-                                    symbol.ContainingType.Equals(member.Receiver?.Type ?? inputType, TypeCompareKind.AllIgnoreOptions))
+                                if (subpattern.Member is { Symbol: Symbol symbol, Receiver: var receiver } member &&
+                                    symbol.ContainingType.Equals(receiver is not null ? receiver.Type : inputType, TypeCompareKind.AllIgnoreOptions))
                                 {
-                                    LearnFromAnyNullPatterns(GetOrCreateSlot(symbol, inputSlot), symbol.GetTypeOrReturnType().Type, subpattern.Pattern);
+                                    LearnFromAnyNullPatterns(GetOrCreateSlot(symbol, inputSlot), member.Type, subpattern.Pattern);
                                 }
                             }
                         }
