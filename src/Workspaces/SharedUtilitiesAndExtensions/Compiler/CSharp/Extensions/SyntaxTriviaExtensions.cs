@@ -87,41 +87,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
             else if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
             {
-                var textBuilder = new StringBuilder();
-
                 if (commentText.EndsWith("*/", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(0, commentText.Length - 2);
+                    commentText = commentText[0..^2];
                 }
 
                 if (commentText.StartsWith("/*", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(2);
+                    commentText = commentText[2..];
                 }
 
                 commentText = commentText.Trim();
 
-                var newLine = Environment.NewLine;
-                var lines = commentText.Split(new[] { newLine }, StringSplitOptions.None);
-                foreach (var line in lines)
-                {
-                    var trimmedLine = line.Trim();
-
-                    // Note: we trim leading '*' characters in multi-line comments.
-                    // If the '*' was intentional, sorry, it's gone.
-                    if (trimmedLine.StartsWith("*", StringComparison.Ordinal))
-                    {
-                        trimmedLine = trimmedLine.TrimStart('*');
-                        trimmedLine = trimmedLine.TrimStart(null);
-                    }
-
-                    textBuilder.AppendLine(trimmedLine);
-                }
-
-                // remove last line break
-                textBuilder.Remove(textBuilder.Length - newLine.Length, newLine.Length);
-
-                return textBuilder.ToString();
+                return commentText;
             }
             else
             {
