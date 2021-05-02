@@ -1261,5 +1261,47 @@ class C
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddParameters_NoLastWhitespaceTrivia()
+        {
+            var markup = @"
+class C
+{
+/// <summary>
+/// </summary>
+/// <param name=""a""></param>
+/// <param name=""b""></param>
+/// <param name=""c""></param>
+public $$C(int a, int b, int c) { }
+
+static C M() => new C(1, 2, 3);
+}
+";
+            var updatedSignature = new AddedParameterOrExistingIndex[]
+            {
+                new(0),
+                new(2),
+                new(1),
+                new(new AddedParameter(null, "int", "d", CallSiteKind.Value, "12345"), "System.Int32")
+            };
+            var updatedCode = @"
+class C
+{
+/// <summary>
+/// </summary>
+/// <param name=""a""></param>
+/// <param name=""c""></param>
+/// <param name=""b""></param>
+/// <param name=""d""></param>
+public C(int a, int c, int b, int d) { }
+
+static C M() => new C(1, 3, 2, 12345);
+}
+";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
     }
 }
