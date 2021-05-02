@@ -86,14 +86,39 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             };
 
             await TestAsync(content, body, testHost, testComposition);
+
+            return;
+
+            async Task TestAsync(
+                string content, Func<TestWorkspace, Task> body, TestHost testHost,
+                TestComposition composition)
+            {
+                using var workspace = CreateWorkspace(content, testHost, composition);
+                await body(workspace);
+            }
         }
 
-        private async Task TestAsync(
-            string content, Func<TestWorkspace, Task> body, TestHost testHost,
-            TestComposition composition)
+        protected async Task TestAsync(TestHost testHost, Composition composition, XElement content, Func<TestWorkspace, Task> body)
         {
-            using var workspace = CreateWorkspace(content, testHost, composition);
-            await body(workspace);
+            var testComposition = composition switch
+            {
+                Composition.Default => DefaultComposition,
+                Composition.FirstVisible => FirstVisibleComposition,
+                Composition.FirstActiveAndVisible => FirstActiveAndVisibleComposition,
+                _ => throw ExceptionUtilities.UnexpectedValue(composition),
+            };
+
+            await TestAsync(content, body, testHost, testComposition);
+
+            return;
+
+            async Task TestAsync(
+                XElement content, Func<TestWorkspace, Task> body, TestHost testHost,
+                TestComposition composition)
+            {
+                using var workspace = CreateWorkspace(content, testHost, composition);
+                await body(workspace);
+            }
         }
 
         private protected TestWorkspace CreateWorkspace(
