@@ -1272,7 +1272,7 @@ class C
 /// <param name=""Third""></param>
 record $$R(int First, int Second, int Third)
 {
-    static R M(this R r) => new R(1, 2, 3);
+    static R M() => new R(1, 2, 3);
 }
 ";
             var updatedSignature = new AddedParameterOrExistingIndex[]
@@ -1289,7 +1289,7 @@ record $$R(int First, int Second, int Third)
 /// <param name=""Forth""></param>
 record R(int First, int Third, int Second, int Forth)
 {
-    static R M(this R r) => new R(1, 3, 2, 12345);
+    static R M() => new R(1, 3, 2, 12345);
 }
 ";
 
