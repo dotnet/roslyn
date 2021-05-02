@@ -272,22 +272,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ConstructorDeclaration:
                     // Root when matching constructor bodies.
                     return Label.ConstructorDeclaration;
-
-                case SyntaxKind.AttributeList:
-                    // Only top level attributes are labelled
-                    if (node is not null && node.IsParentKind(SyntaxKind.CompilationUnit))
-                    {
-                        return Label.AttributeList;
-                    }
-                    break;
-
-                case SyntaxKind.Attribute:
-                    // Only top level attributes are labelled
-                    if (node is { Parent: { } parent } && parent.IsParentKind(SyntaxKind.CompilationUnit))
-                    {
-                        return Label.Attribute;
-                    }
-                    break;
             }
 
             if (_compareStatementSyntax)
@@ -295,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return ClassifyStatementSyntax(kind, node, out isLeaf);
             }
 
-            return ClassifyTopSyntax(kind, out isLeaf);
+            return ClassifyTopSyntax(kind, note, out isLeaf);
         }
 
         private static Label ClassifyStatementSyntax(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
@@ -544,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return Label.Ignored;
         }
 
-        private static Label ClassifyTopSyntax(SyntaxKind kind, out bool isLeaf)
+        private static Label ClassifyTopSyntax(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
         {
             isLeaf = false;
 
@@ -635,6 +619,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // For top syntax, a variable declarator is a leaf node
                     isLeaf = true;
                     return Label.FieldVariableDeclarator;
+
+                case SyntaxKind.AttributeList:
+                    // Only top level attributes are labelled
+                    if (node is not null && node.IsParentKind(SyntaxKind.CompilationUnit))
+                    {
+                        return Label.AttributeList;
+                    }
+                    break;
+
+                case SyntaxKind.Attribute:
+                    // Only top level attributes are labelled
+                    if (node is { Parent: { } parent } && parent.IsParentKind(SyntaxKind.CompilationUnit))
+                    {
+                        isLeaf = true;
+                        return Label.Attribute;
+                    }
+                    break;
             }
 
             // If we got this far, its an unlabelled node. For top
