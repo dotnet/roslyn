@@ -741,21 +741,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isLeaf = False
                     Return Label.Attributes
 
-                Case SyntaxKind.AttributeList
-                    If nodeOpt IsNot Nothing AndAlso nodeOpt.IsParentKind(SyntaxKind.AttributesStatement) Then
-                        isLeaf = False
-                        Return Label.AttributeList
-                    End If
-                    isLeaf = True
-                    Return Label.Ignored
-
-                Case SyntaxKind.Attribute
-                    isLeaf = True
-                    If nodeOpt IsNot Nothing AndAlso nodeOpt.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
-                        Return Label.Attribute
-                    End If
-                    Return Label.Ignored
-
                 Case SyntaxKind.NamespaceBlock
                     isLeaf = False
                     Return Label.NamespaceDeclaration
@@ -880,6 +865,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.Parameter
                     isLeaf = False
                     Return Label.Parameter
+
+                Case SyntaxKind.AttributeList
+                    If nodeOpt IsNot Nothing AndAlso nodeOpt.IsParentKind(SyntaxKind.AttributesStatement) Then
+                        isLeaf = False
+                        Return Label.AttributeList
+                    End If
+                    isLeaf = True
+                    Return Label.Ignored
+
+                Case SyntaxKind.Attribute
+                    isLeaf = True
+                    If nodeOpt IsNot Nothing AndAlso nodeOpt.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
+                        Return Label.Attribute
+                    End If
+                    Return Label.Ignored
 
                 Case Else
                     isLeaf = True
