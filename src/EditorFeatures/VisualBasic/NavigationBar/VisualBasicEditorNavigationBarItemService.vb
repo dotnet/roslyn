@@ -9,14 +9,13 @@ Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.NavigationBar
 Imports Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
-    <ExportLanguageService(GetType(INavigationBarItemService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicEditorNavigationBarItemService
         Inherits AbstractEditorNavigationBarItemService
 
@@ -27,7 +26,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(editorOperationsFactoryService As IEditorOperationsFactoryService, textUndoHistoryRegistry As ITextUndoHistoryRegistry)
+        Public Sub New(
+                threadingContext As IThreadingContext,
+                editorOperationsFactoryService As IEditorOperationsFactoryService,
+                textUndoHistoryRegistry As ITextUndoHistoryRegistry)
+            MyBase.New(threadingContext)
             _editorOperationsFactoryService = editorOperationsFactoryService
             _textUndoHistoryRegistry = textUndoHistoryRegistry
         End Sub
@@ -37,8 +40,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return TypeOf DirectCast(item, WrappedNavigationBarItem).UnderlyingItem Is SymbolItem
         End Function
 
-        Protected Overrides Function GetSymbolNavigationPoint(document As Document, symbol As ISymbol, cancellationToken As CancellationToken) As VirtualTreePoint?
-            Dim location As Location = GetSourceNavigationLocation(document, symbol, cancellationToken)
+        Protected Overrides Async Function GetSymbolNavigationPointAsync(document As Document, symbol As ISymbol, cancellationToken As CancellationToken) As Task(Of VirtualTreePoint?)
+            Dim location As Location = Await GetSourceNavigationLocationAsync(document, symbol, cancellationToken).ConfigureAwait(False)
             If location Is Nothing Then
                 Return Nothing
             End If
@@ -56,11 +59,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return New VirtualTreePoint(location.SourceTree, location.SourceTree.GetText(cancellationToken), location.SourceSpan.Start)
         End Function
 
-        Private Shared Function GetSourceNavigationLocation(document As Document, symbol As ISymbol, cancellationToken As CancellationToken) As Location
+        Private Shared Async Function GetSourceNavigationLocationAsync(document As Document, symbol As ISymbol, cancellationToken As CancellationToken) As Task(Of Location)
             Dim sourceLocations = symbol.Locations.Where(Function(l) l.IsInSource)
 
             ' First figure out the location that we want to grab considering partial types
-            Dim syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken)
+            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim location = sourceLocations.FirstOrDefault(Function(l) l.SourceTree.Equals(syntaxTree))
 
             If location Is Nothing Then
@@ -70,16 +73,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return location
         End Function
 
-        Protected Overrides Sub NavigateToItem(document As Document, item As WrappedNavigationBarItem, textView As ITextView, cancellationToken As CancellationToken)
+        Protected Overrides Async Function NavigateToItemAsync(document As Document, item As WrappedNavigationBarItem, textView As ITextView, cancellationToken As CancellationToken) As Task
             Dim underlying = item.UnderlyingItem
 
             Dim generateCodeItem = TryCast(underlying, AbstractGenerateCodeItem)
             Dim symbolItem = TryCast(underlying, SymbolItem)
             If generateCodeItem IsNot Nothing Then
-                GenerateCodeForItem(document, generateCodeItem, textView, cancellationToken)
+                Await GenerateCodeForItemAsync(document, generateCodeItem, textView, cancellationToken).ConfigureAwait(False)
             ElseIf symbolItem IsNot Nothing Then
-                NavigateToSymbolItem(document, symbolItem, cancellationToken)
+                Await NavigateToSymbolItemAsync(document, symbolItem, cancellationToken).ConfigureAwait(False)
             End If
-        End Sub
+        End Function
     End Class
 End Namespace

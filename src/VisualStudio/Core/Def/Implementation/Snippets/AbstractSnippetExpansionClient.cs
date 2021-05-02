@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -479,7 +480,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var buffer = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer);
-            if (buffer == null || !(buffer is IVsExpansion expansion))
+            if (buffer is not IVsExpansion expansion)
             {
                 return false;
             }
@@ -495,6 +496,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 iEndIndex = endIndex
             };
 
+            if (TryInsertArgumentCompletionSnippet(triggerSpan, dataBufferSpan, expansion, textSpan, cancellationToken))
+            {
+                Debug.Assert(_state.IsFullMethodCallSnippet);
+                return true;
+            }
+
             if (expansion.InsertExpansion(textSpan, textSpan, this, LanguageServiceGuid, out _state._expansionSession) == VSConstants.S_OK)
             {
                 // This expansion is not derived from a symbol, so make sure the state isn't tracking any symbol
@@ -503,6 +510,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return true;
             }
 
+            return false;
+        }
+
+        private bool TryInsertArgumentCompletionSnippet(SnapshotSpan triggerSpan, SnapshotSpan dataBufferSpan, IVsExpansion expansion, VsTextSpan textSpan, CancellationToken cancellationToken)
+        {
             if (!(SubjectBuffer.GetFeatureOnOffOption(CompletionOptions.EnableArgumentCompletionSnippets) ?? false))
             {
                 // Argument completion snippets are not enabled
@@ -521,8 +533,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var methodSymbols = symbols.OfType<IMethodSymbol>().ToImmutableArray();
             if (methodSymbols.Any())
             {
+                // This is the method name as it appears in source text
                 var methodName = dataBufferSpan.GetText();
-                var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty, cancellationToken);
+                var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty);
 
                 var doc = new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
@@ -530,7 +543,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
                     {
                         Debug.Assert(_state._expansionSession != null);
-                        _state._methodNameForInsertFullMethodCall = methodName;
+                        _state._methodNameForInsertFullMethodCall = methodSymbols.First().Name;
                         Debug.Assert(_state._method == null);
 
                         if (_signatureHelpControllerProvider.GetController(TextView, SubjectBuffer) is { } controller)
@@ -600,7 +613,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// <param name="parameters">The parameters to the method. If the specific target of the invocation is not
         /// known, an empty array may be passed to create a template with a placeholder where arguments will eventually
         /// go.</param>
-        private static XDocument CreateMethodCallSnippet(string methodName, bool includeMethod, ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterValues, CancellationToken cancellationToken)
+        private static XDocument CreateMethodCallSnippet(string methodName, bool includeMethod, ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterValues)
         {
             XNamespace snippetNamespace = "http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet";
 
@@ -644,8 +657,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (includeMethod)
             {
-                template.Append(")$end$");
+                template.Append(')');
             }
+
+            template.Append("$end$");
 
             // A snippet is manually constructed. Replacement fields are added for each argument, and the field name
             // matches the parameter name.
@@ -722,7 +737,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var token = await semanticModel.SyntaxTree.GetTouchingTokenAsync(caretPosition.Position, cancellationToken).ConfigureAwait(false);
+
+            var token = await semanticModel.SyntaxTree.GetTouchingWordAsync(caretPosition.Position, document.GetRequiredLanguageService<ISyntaxFactsService>(), cancellationToken).ConfigureAwait(false);
             var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken);
             return semanticInfo.ReferencedSymbols;
         }
@@ -882,7 +898,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 newArguments = newArguments.SetItem(parameter.Name, value);
             }
 
-            var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, newArguments, cancellationToken);
+            var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, newArguments);
             var doc = new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {
@@ -1167,8 +1183,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             public IVsExpansionSession? _expansionSession;
 
             /// <summary>
-            /// The name of the method that we have invoked insert full method call on. Null if the session is
-            /// a regular snippets session.
+            /// The symbol name of the method that we have invoked insert full method call on; or <see langword="null"/>
+            /// if there is no active snippet session or the active session is a regular snippets session.
             /// </summary>
             public string? _methodNameForInsertFullMethodCall;
 

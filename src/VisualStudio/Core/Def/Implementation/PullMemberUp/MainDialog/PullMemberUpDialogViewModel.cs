@@ -27,7 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         private bool? _selectAllCheckBoxState;
         private readonly IWaitIndicator _waitIndicator;
         private readonly ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> _symbolToDependentsMap;
-        private readonly ImmutableDictionary<ISymbol, PullMemberUpSymbolViewModel> _symbolToMemberViewMap;
         private bool _okButtonEnabled;
 
         public PullMemberUpDialogViewModel(
@@ -38,7 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Ma
         {
             _waitIndicator = waitIndicator;
             _symbolToDependentsMap = dependentsMap;
-            _symbolToMemberViewMap = members.ToImmutableDictionary(memberViewModel => memberViewModel.Symbol);
 
             MemberSelectionViewModel = new MemberSelectionViewModel(
                 _waitIndicator,

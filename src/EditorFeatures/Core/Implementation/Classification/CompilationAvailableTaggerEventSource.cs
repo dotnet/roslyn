@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     internal class CompilationAvailableTaggerEventSource : ITaggerEventSource
     {
         private readonly ITextBuffer _subjectBuffer;
-        private readonly TaggerDelay _delay;
         private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>
@@ -32,23 +30,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private readonly ITaggerEventSource _underlyingSource;
 
         /// <summary>
-        /// Queue of work to go compute the compilations.
+        /// Cancellation tokens controlling background computation of the compilation.
         /// </summary>
-        private readonly AsynchronousSerialWorkQueue _workQueue;
+        private readonly CancellationSeries _cancellationSeries = new();
 
         public CompilationAvailableTaggerEventSource(
             ITextBuffer subjectBuffer,
-            TaggerDelay delay,
-            IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             params ITaggerEventSource[] eventSources)
         {
             _subjectBuffer = subjectBuffer;
-            _delay = delay;
             _asyncListener = asyncListener;
             _underlyingSource = TaggerEventSources.Compose(eventSources);
-
-            _workQueue = new AsynchronousSerialWorkQueue(threadingContext, asyncListener);
         }
 
         public event EventHandler<TaggerEventArgs>? Changed;
@@ -64,19 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             _underlyingSource.Changed -= OnEventSourceChanged;
             _underlyingSource.Disconnect();
-            _workQueue.CancelCurrentWork();
-        }
-
-        public event EventHandler UIUpdatesPaused
-        {
-            add { _underlyingSource.UIUpdatesPaused += value; }
-            remove { _underlyingSource.UIUpdatesPaused -= value; }
-        }
-
-        public event EventHandler UIUpdatesResumed
-        {
-            add { _underlyingSource.UIUpdatesResumed += value; }
-            remove { _underlyingSource.UIUpdatesResumed -= value; }
+            _cancellationSeries.Dispose();
         }
 
         private void OnEventSourceChanged(object? sender, TaggerEventArgs args)
@@ -91,18 +72,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (!document.SupportsSemanticModel)
                 return;
 
-            // Now, attempt to cancel any existing work to get the compilation for this project, and kick off a new
-            // piece of work in the future to do so.  Do this after a delay so we can appropriately throttle ourselves
-            // if we hear about a flurry of notifications.
-            _workQueue.CancelCurrentWork();
-            _workQueue.EnqueueBackgroundTask(async c =>
-                {
-                    await document.Project.GetCompilationAsync(c).ConfigureAwait(false);
-                    this.Changed?.Invoke(this, new TaggerEventArgs(_delay));
-                },
-                $"{nameof(CompilationAvailableTaggerEventSource)}.{nameof(OnEventSourceChanged)}",
-                500,
-                _workQueue.CancellationToken);
+            // Cancel any existing tasks that are computing the compilation and spawn a new one to compute
+            // it and notify any listening clients.
+            var cancellationToken = _cancellationSeries.CreateNext();
+
+            var token = _asyncListener.BeginAsyncOperation(nameof(OnEventSourceChanged));
+            var task = Task.Run(async () =>
+            {
+                await Task.Delay(500, cancellationToken).ConfigureAwait(false);
+                await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                this.Changed?.Invoke(this, new TaggerEventArgs());
+            }, cancellationToken);
+            task.CompletesAsyncOperation(token);
         }
     }
 }

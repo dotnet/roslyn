@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.ConvertToInterpolatedString
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ExtractMethod), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString), [Shared]>
     Partial Friend Class VisualBasicConvertPlaceholderToInterpolatedStringRefactoringProvider
         Inherits AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider(Of InvocationExpressionSyntax, ExpressionSyntax, ArgumentSyntax, LiteralExpressionSyntax, ArgumentListSyntax)
 

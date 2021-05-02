@@ -95,10 +95,13 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CodeSense.Roslyn" Key="$(VisualStudioKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35086" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CodeSense.ReferencesProvider" Key="$(VisualStudioKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35086" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CodeSense.TestsProvider" Key="$(VisualStudioKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35086" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(IntelliCodeKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp" Partner="Pythia" Key="$(IntelliCodeKey)" />
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(IntelliCodeCSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
+    <RestrictedInternalsVisibleTo Include="dotnet-watch" Partner="Watch" Key="$(AspNetCoreKey)" />
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\CodeStyle\Core\Analyzers\FormattingAnalyzerHelper.cs" Link="Formatting\FormattingAnalyzerHelper.cs" />

@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -14,12 +13,10 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
-using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -27,7 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// An <see cref="IOptionPersister"/> that syncs core language settings against the settings that exist for all languages
     /// in Visual Studio and whose backing store is provided by the shell. This includes things like default tab size, tabs vs. spaces, etc.
     /// </summary>
-    [Export(typeof(IOptionPersister))]
     internal sealed class LanguageSettingsPersister : ForegroundThreadAffinitizedObject, IVsTextManagerEvents4, IOptionPersister
     {
         private readonly IVsTextManager4 _textManager;
@@ -49,15 +45,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// <remarks>
         /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
         /// </remarks>
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LanguageSettingsPersister(
             IThreadingContext threadingContext,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IVsTextManager4 textManager,
             IGlobalOptionService optionService)
             : base(threadingContext, assertIsForeground: true)
         {
-            _textManager = (IVsTextManager4)serviceProvider.GetService(typeof(SVsTextManager));
+            _textManager = textManager;
             _optionService = optionService;
 
             // TODO: make this configurable
