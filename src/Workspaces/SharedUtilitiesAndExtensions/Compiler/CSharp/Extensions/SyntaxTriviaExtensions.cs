@@ -80,10 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (commentText.StartsWith("//", StringComparison.Ordinal))
                 {
-                    commentText = commentText.Substring(2);
+                    commentText = commentText[2..];
                 }
 
-                return commentText.TrimStart(null);
+                return commentText.TrimStart();
             }
             else if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
             {
@@ -97,6 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     commentText = commentText[2..];
                 }
 
+                var newLine = Environment.NewLine;
+                var lines = commentText.Split(new[] { newLine }, StringSplitOptions.None);
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    lines[i] = lines[i]?.Trim();
+                }
+
+                commentText = string.Join(newLine, lines);
                 commentText = commentText.Trim();
 
                 return commentText;

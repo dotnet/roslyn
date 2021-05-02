@@ -1161,7 +1161,7 @@ class $$C { }
 class $$C { }
 </Code>
 
-            TestComment(code, "This" & vbCrLf & "is" & vbCrLf & "a" & vbCrLf & "multi-line" & vbCrLf & "comment!" & vbCrLf)
+            TestComment(code, "This" & vbCrLf & "* is" & vbCrLf & "* a" & vbCrLf & "* multi-line" & vbCrLf & "* comment!" & vbCrLf)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
