@@ -16,5 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// Computes one or more refactorings for the specified <see cref="CodeRefactoringContext"/>.
         /// </summary>
         public abstract Task ComputeRefactoringsAsync(CodeRefactoringContext context);
+
+        internal virtual bool IsHighPriority => false;
     }
 }
