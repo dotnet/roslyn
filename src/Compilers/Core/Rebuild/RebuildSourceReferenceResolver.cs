@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             // The only invariant we need to maintain here is that for a given external file identified
             // via #line directive across many source files we always return the same name for that 
             // file. What name we return is irrelevant, it just needs to be the same. The actual name 
-            // return here is eventually discarderd and we end up writing the name from the PDB. 
+            // return here is eventually discarded and we end up writing the name from the PDB. 
             var index = baseFilePath.LastIndexOfAny(new[] { '/', '\\' });
             if (index > 0)
             {
