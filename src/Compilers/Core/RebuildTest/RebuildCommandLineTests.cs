@@ -261,6 +261,16 @@ namespace Nested
                 {
                     CommandLine = commandInfo.CommandLine + $" /pathmap:{RootDirectory}=/root/test",
                 };
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + $@" /pathmap:{RootDirectory}=j:\other_root",
+                };
+
+                // Path map doesn't care about path legality, it's a simple substitute 
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + $@" /pathmap:""{RootDirectory}=???""",
+                };
             }
 
             // Permutate the alias before and after the standard references so that we make sure the 

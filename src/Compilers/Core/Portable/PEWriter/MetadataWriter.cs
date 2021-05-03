@@ -425,7 +425,8 @@ namespace Microsoft.Cci
 
         // progress:
         private bool _tableIndicesAreComplete;
-        private bool _sourceDebugDocumentsAdded;
+        private bool _usingNonSourceDocumentNameEnumerator;
+        private ImmutableArray<string>.Enumerator _nonSourceDocumentNameEnumerator;
 
         private EntityHandle[] _pseudoSymbolTokenToTokenMap;
         private object[] _pseudoSymbolTokenToReferenceMap;
@@ -1799,7 +1800,11 @@ namespace Microsoft.Cci
                     }
                 }
 
-                _sourceDebugDocumentsAdded = true;
+                if (Context.RebuildDataOpt is { } rebuildData)
+                {
+                    _usingNonSourceDocumentNameEnumerator = true;
+                    _nonSourceDocumentNameEnumerator = rebuildData.NonSourceFileDocumentNames.GetEnumerator();
+                }
 
                 DefineModuleImportScope();
 

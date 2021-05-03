@@ -746,9 +746,11 @@ namespace Microsoft.Cci
             DebugSourceInfo info = document.GetSourceInfo();
 
             var name = document.Location;
-            if (_sourceDebugDocumentsAdded && this.Context.RebuildDataOpt is { } rebuildData)
+            if (_usingNonSourceDocumentNameEnumerator)
             {
-                name = rebuildData.GetNextNonSourceFileDocumentName();
+                var result = _nonSourceDocumentNameEnumerator.MoveNext();
+                Debug.Assert(result);
+                name = _nonSourceDocumentNameEnumerator.Current;
             }
 
             documentHandle = _debugMetadataOpt.AddDocument(

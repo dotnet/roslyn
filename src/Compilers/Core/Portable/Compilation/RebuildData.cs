@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class RebuildData
     {
-        private Queue<string> NonSourceFileDocumentNames { get; }
+        internal ImmutableArray<string> NonSourceFileDocumentNames { get; }
         internal BlobReader OptionsBlobReader { get; }
 
         internal RebuildData(
@@ -21,15 +22,14 @@ namespace Microsoft.CodeAnalysis
             OptionsBlobReader = optionsBlobReader;
 
             var count = pdbReader.Documents.Count - sourceFileCount;
-            NonSourceFileDocumentNames = new Queue<string>(capacity: count);
+            var builder = ArrayBuilder<string>.GetInstance(count);
             foreach (var documentHandle in pdbReader.Documents.Skip(sourceFileCount))
             {
                 var document = pdbReader.GetDocument(documentHandle);
                 var name = pdbReader.GetString(document.Name);
-                NonSourceFileDocumentNames.Enqueue(name);
+                builder.Add(name);
             }
+            NonSourceFileDocumentNames = builder.ToImmutableAndFree();
         }
-
-        internal string GetNextNonSourceFileDocumentName() => NonSourceFileDocumentNames.Dequeue();
     }
 }
