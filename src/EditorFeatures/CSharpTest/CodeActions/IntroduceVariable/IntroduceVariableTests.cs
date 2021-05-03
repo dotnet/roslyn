@@ -7912,5 +7912,42 @@ class B
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(52833, "https://github.com/dotnet/roslyn/issues/52833")]
+        public async Task UniqueParameterName()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System.IO;
+
+public class SomeClass
+{
+    public void Foo()
+    {
+        var somePath = Path.Combine(""one"", ""two"");
+        Other([|""someParam""|]);
+    }
+
+    public void Other(string path)
+    {
+    }
+}",
+@"
+using System.IO;
+
+public class SomeClass
+{
+    public void Foo()
+    {
+        var somePath = Path.Combine(""one"", ""two"");
+        const string {|Rename:Path1|} = ""someParam"";
+        Other(Path1);
+    }
+
+    public void Other(string path)
+    {
+    }
+}", 2);
+        }
     }
 }
