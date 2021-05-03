@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeQuality
             _generatedCodeAnalysisFlags = generatedCodeAnalysisFlags;
         }
 
+        public virtual bool IsHighPriority => false;
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         public sealed override void Initialize(AnalysisContext context)

@@ -233,10 +233,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan, includeSuppressionFixes: true,
-                isBlocking: false, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
+                highPriority: null, isBlocking: false, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, isBlocking: false,
+                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, highPriority: null, isBlocking: false,
                 addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
             var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(codeFixes, codeRefactorings, textSpan);

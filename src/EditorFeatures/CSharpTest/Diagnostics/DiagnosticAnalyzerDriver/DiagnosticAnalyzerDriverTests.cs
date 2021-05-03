@@ -184,6 +184,8 @@ class C
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
         {
+            public bool IsHighPriority => false;
+
             public bool OpenFileOnly(OptionSet options) => false;
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()

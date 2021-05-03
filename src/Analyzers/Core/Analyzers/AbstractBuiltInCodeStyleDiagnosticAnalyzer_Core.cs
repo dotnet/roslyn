@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableMessageFormat = Descriptor.MessageFormat;
         }
 
+        public virtual bool IsHighPriority => false;
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected static DiagnosticDescriptor CreateDescriptorWithId(

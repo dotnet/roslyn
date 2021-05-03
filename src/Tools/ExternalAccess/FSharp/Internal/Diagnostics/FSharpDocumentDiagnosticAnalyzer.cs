@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             return dummyDescriptors.ToImmutable();
         }
 
+        public bool IsHighPriority => false;
+
         public override int Priority => 10; // Default = 50
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;

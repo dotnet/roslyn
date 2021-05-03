@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             }
         }
 
+        public bool IsHighPriority => false;
         public bool OpenFileOnly(OptionSet options) => false;
 
         public override void Initialize(AnalysisContext context)

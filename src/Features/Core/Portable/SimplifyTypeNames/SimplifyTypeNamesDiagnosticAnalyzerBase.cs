@@ -81,6 +81,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         {
         }
 
+        public bool IsHighPriority => false;
+
         public bool OpenFileOnly(OptionSet options)
         {
             var preferTypeKeywordInDeclarationOption = options.GetOption(

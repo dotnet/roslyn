@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics, diagnosticId: null, includeSuppressedDiagnostics, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
+                return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(
+                    document, range, diagnostics, diagnosticId: null, includeSuppressedDiagnostics, highPriority: null, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.False;

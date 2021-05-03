@@ -1226,6 +1226,8 @@ class A
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
                 => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
+            public bool IsHighPriority => false;
+
             public bool OpenFileOnly(CodeAnalysis.Options.OptionSet options)
                 => true;
         }
