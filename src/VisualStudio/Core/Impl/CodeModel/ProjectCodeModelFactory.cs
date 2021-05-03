@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     // of waiting time, and there's no user input that should take precedence.
                     if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IsInputPending())
                     {
-                        await Task.Delay(DelayBetweenProcessing, cancellationToken).ConfigureAwait(true);
+                        await _listener.Delay(DelayBetweenProcessing, cancellationToken).ConfigureAwait(true);
                         stopwatch = SharedStopwatch.StartNew();
                     }
                 }
