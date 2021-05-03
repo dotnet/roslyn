@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var lspVSClientCapability = context.ClientCapabilities.HasVisualStudioLspCapability() == true;
             var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
-            var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>>();
+            var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]>(CommitCharacterArrayComparer.Instance);
 
             // Cache the completion list so we can avoid recomputation in the resolve handler
             var resultId = _completionListCache.UpdateCache(request.TextDocument, list);
@@ -147,6 +148,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 completionList.Data = completionResolveData;
             }
 
+            if (context.ClientCapabilities.HasCompletionListCommitCharactersCapability())
+            {
+                PromoteCommonCommitCharactersOntoList(completionList);
+            }
+
             var optimizedCompletionList = new LSP.OptimizedVSCompletionList(completionList);
             return optimizedCompletionList;
 
@@ -174,7 +180,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CompletionResolveData? completionResolveData,
                 bool useVSCompletionItem,
                 CompletionTrigger completionTrigger,
-                Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
+                Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> commitCharacterRulesCache,
                 CompletionService completionService,
                 string? clientName,
                 bool returnTextEdits,
@@ -210,7 +216,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CompletionItem item,
                 CompletionResolveData? completionResolveData,
                 CompletionTrigger completionTrigger,
-                Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> commitCharacterRulesCache,
+                Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> commitCharacterRulesCache,
                 CompletionService completionService,
                 string? clientName,
                 bool returnTextEdits,
@@ -299,7 +305,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
-            static string[]? GetCommitCharacters(CompletionItem item, Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> currentRuleCache)
+            static string[]? GetCommitCharacters(CompletionItem item, Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> currentRuleCache)
             {
                 var commitCharacterRules = item.Rules.CommitCharacterRules;
 
@@ -309,9 +315,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     return null;
                 }
 
-                if (currentRuleCache.TryGetValue(commitCharacterRules, out var currentRules))
+                if (currentRuleCache.TryGetValue(commitCharacterRules, out var cachedCommitCharacters))
                 {
-                    return currentRules.ToArray();
+                    return cachedCommitCharacters;
                 }
 
                 using var _ = PooledHashSet<char>.GetInstance(out var commitCharacters);
@@ -333,9 +339,53 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                 }
 
-                var commitCharacterSet = commitCharacters.Select(c => c.ToString()).ToImmutableArray();
-                currentRuleCache.Add(item.Rules.CommitCharacterRules, commitCharacterSet);
-                return commitCharacterSet.ToArray();
+                var lspCommitCharacters = commitCharacters.Select(c => c.ToString()).ToArray();
+                currentRuleCache.Add(item.Rules.CommitCharacterRules, lspCommitCharacters);
+                return lspCommitCharacters;
+            }
+
+            static void PromoteCommonCommitCharactersOntoList(LSP.VSCompletionList completionList)
+            {
+                var commitCharacterReferences = new Dictionary<object, int>();
+                var mostUsedCount = 0;
+                string[]? mostUsedCommitCharacters = null;
+                for (var i = 0; i < completionList.Items.Length; i++)
+                {
+                    var completionItem = completionList.Items[i];
+                    var commitCharacters = completionItem.CommitCharacters;
+                    if (commitCharacters == null)
+                    {
+                        continue;
+                    }
+
+                    commitCharacterReferences.TryGetValue(commitCharacters, out var existingCount);
+                    existingCount++;
+
+                    if (existingCount > mostUsedCount)
+                    {
+                        // Capture the most used commit character counts so we don't need to re-iterate the array later
+                        mostUsedCommitCharacters = commitCharacters;
+                        mostUsedCount = existingCount;
+                    }
+
+                    commitCharacterReferences[commitCharacters] = existingCount;
+                }
+
+                if (mostUsedCommitCharacters == null)
+                {
+                    return;
+                }
+
+                // Promoted the most used commit characters onto the list and then remove these from child items.
+                completionList.CommitCharacters = mostUsedCommitCharacters;
+                for (var i = 0; i < completionList.Items.Length; i++)
+                {
+                    var completionItem = completionList.Items[i];
+                    if (completionItem.CommitCharacters == mostUsedCommitCharacters)
+                    {
+                        completionItem.CommitCharacters = null;
+                    }
+                }
             }
         }
 
@@ -393,6 +443,52 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public CompletionListCache GetCache()
                 => _completionHandler._completionListCache;
+        }
+
+        private class CommitCharacterArrayComparer : IEqualityComparer<ImmutableArray<CharacterSetModificationRule>>
+        {
+            public static readonly CommitCharacterArrayComparer Instance = new();
+
+            private CommitCharacterArrayComparer()
+            {
+            }
+
+            public bool Equals([AllowNull] ImmutableArray<CharacterSetModificationRule> x, [AllowNull] ImmutableArray<CharacterSetModificationRule> y)
+            {
+                for (var i = 0; i < x.Length; i++)
+                {
+                    var xKind = x[i].Kind;
+                    var yKind = y[i].Kind;
+                    if (xKind != yKind)
+                    {
+                        return false;
+                    }
+
+                    var charactersX = x[i].Characters;
+                    var charactersY = y[i].Characters;
+
+                    if (charactersX.Length != charactersY.Length)
+                    {
+                        return false;
+                    }
+
+                    for (var j = 0; j < charactersX.Length; j++)
+                    {
+                        if (charactersX[j] != charactersY[j])
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode([DisallowNull] ImmutableArray<CharacterSetModificationRule> obj)
+            {
+                var combinedHash = Hash.CombineValues(obj);
+                return combinedHash;
+            }
         }
     }
 }
