@@ -55,9 +55,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 rebuildArtifactResolver,
                 cancellationToken);
 
-            File.WriteAllBytes(@"c:\users\jaredpar\temp\repro\original\contents.dll", peStream.ToArray());
-            File.WriteAllBytes(@"c:\users\jaredpar\temp\repro\rebuild\contents.dll", rebuildPeStream.ToArray());
-
             Assert.True(emitResult.Success);
             Assert.Equal(peStream.ToArray(), rebuildPeStream.ToArray());
             Assert.Equal(pdbStream?.ToArray(), rebuildPdbStream?.ToArray());
