@@ -2991,7 +2991,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (!capabilities.HasFlag(EditAndContinueCapabilities.UpdateCustomAttributes) ||
                 changedAttributes.Any(IsNonCustomAttribute))
             {
-                var newNode = newSymbol.DeclaringSyntaxReferences.First().GetSyntax();
+                var newNode = FindSyntaxNode(newSymbol);
                 diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, GetDiagnosticSpan(newNode, EditKind.Update), newNode, new[] { GetDisplayName(newNode, EditKind.Update) }));
             }
             else
@@ -3035,6 +3035,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
                 return null;
+            }
+
+            static SyntaxNode FindSyntaxNode(ISymbol symbol)
+            {
+                // In VB parameters of delegates don't have declaring syntax references so we have to go all the way up to the delegate
+                if (symbol.DeclaringSyntaxReferences.Length == 0)
+                {
+                    return FindSyntaxNode(symbol.ContainingSymbol);
+                }
+
+                return symbol.DeclaringSyntaxReferences.First().GetSyntax();
             }
 
 #pragma warning disable IDE0060 // Remove unused parameter
