@@ -8,6 +8,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     public partial class AutomationObject
     {
+        public int ExtractMethod_AllowBestEffort
+        {
+            get { return GetBooleanOption(ExtractMethodOptions.AllowBestEffort); }
+            set { SetBooleanOption(ExtractMethodOptions.AllowBestEffort, value); }
+        }
+
         public int ExtractMethod_DoNotPutOutOrRefOnStruct
         {
             get { return GetBooleanOption(ExtractMethodOptions.DontPutOutOrRefOnStruct); }

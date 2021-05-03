@@ -27,6 +27,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private T GetOption<T>(PerLanguageOption2<T> key)
             => _workspace.Options.GetOption(key, LanguageNames.CSharp);
 
+        private T GetOption<T>(Option2<T> key)
+            => _workspace.Options.GetOption(key);
+
         private void SetBooleanOption(Option2<bool> key, int value)
         {
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
@@ -45,6 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 .WithChangedOption(key, LanguageNames.CSharp, value)));
         }
 
+        private void SetOption<T>(Option2<T> key, T value)
+        {
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(key, value)));
+        }
+
         private int GetBooleanOption(PerLanguageOption2<bool?> key)
         {
             var option = _workspace.Options.GetOption(key, LanguageNames.CSharp);
@@ -56,14 +65,35 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             return option.Value ? 1 : 0;
         }
 
+        private int GetBooleanOption(Option2<bool?> key)
+        {
+            var option = _workspace.Options.GetOption(key);
+            if (!option.HasValue)
+            {
+                return -1;
+            }
+
+            return option.Value ? 1 : 0;
+        }
+
         private string GetXmlOption<T>(Option2<CodeStyleOption2<T>> option)
             => _workspace.Options.GetOption(option).ToXElement().ToString();
+
+        private string GetXmlOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option)
+            => _workspace.Options.GetOption(option, LanguageNames.CSharp).ToXElement().ToString();
 
         private void SetBooleanOption(PerLanguageOption2<bool?> key, int value)
         {
             var boolValue = (value < 0) ? (bool?)null : (value > 0);
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
                 .WithChangedOption(key, LanguageNames.CSharp, boolValue)));
+        }
+
+        private void SetBooleanOption(Option2<bool?> key, int value)
+        {
+            var boolValue = (value < 0) ? (bool?)null : (value > 0);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(key, boolValue)));
         }
 
         private string GetXmlOption(PerLanguageOption2<CodeStyleOption2<bool>> option)
@@ -74,6 +104,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             var convertedValue = CodeStyleOption2<T>.FromXElement(XElement.Parse(value));
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
                 .WithChangedOption(option, convertedValue)));
+        }
+
+        private void SetXmlOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, string value)
+        {
+            var convertedValue = CodeStyleOption2<T>.FromXElement(XElement.Parse(value));
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(option, LanguageNames.CSharp, convertedValue)));
         }
 
         private void SetXmlOption(PerLanguageOption2<CodeStyleOption2<bool>> option, string value)
