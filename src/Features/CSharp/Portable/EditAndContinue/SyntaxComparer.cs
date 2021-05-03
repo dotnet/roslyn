@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return ClassifyStatementSyntax(kind, node, out isLeaf);
             }
 
-            return ClassifyTopSyntax(kind, note, out isLeaf);
+            return ClassifyTopSyntax(kind, node, out isLeaf);
         }
 
         private static Label ClassifyStatementSyntax(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
