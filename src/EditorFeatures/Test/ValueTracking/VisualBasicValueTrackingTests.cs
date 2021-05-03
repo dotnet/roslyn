@@ -160,17 +160,17 @@ Class Test
 End Class";
 
             //
-            //  |> Dim y = x + 1 [Code.cs:7]
-            //    |> Dim x = GetM() [Code.cs:5]
-            //      |> Return x; [Code.cs:13]
-            //        |> Dim x = 0; [Code.cs:12]
+            //  |> Dim y = x + 1 [Code.vb:7]
+            //    |> Dim x = GetM() [Code.vb:5]
+            //      |> Return x; [Code.vb:13]
+            //        |> Dim x = 0; [Code.vb:12]
             using var workspace = TestWorkspace.CreateVisualBasic(code);
 
             var items = await ValidateItemsAsync(
                 workspace,
                 itemInfo: new[]
                 {
-                    (5, "x") // |> Dim y = [|x|] + 1; [Code.cs:7]
+                    (5, "x") // |> Dim y = [|x|] + 1; [Code.vb:7]
                 });
 
             items = await ValidateChildrenAsync(
@@ -178,7 +178,7 @@ End Class";
                 items.Single(),
                 childInfo: new[]
                 {
-                    (3, "GetM()") // |> Dim x = [|GetM()|] [Code.cs:5]
+                    (3, "GetM()") // |> Dim x = [|GetM()|] [Code.vb:5]
                 });
 
             items = await ValidateChildrenAsync(
@@ -186,7 +186,7 @@ End Class";
                 items.Single(),
                 childInfo: new[]
                 {
-                    (10, "x") // |> return [|x|]; [Code.cs:13]
+                    (10, "x") // |> return [|x|]; [Code.vb:13]
                 });
 
             items = await ValidateChildrenAsync(
@@ -194,7 +194,7 @@ End Class";
                 items.Single(),
                 childInfo: new[]
                 {
-                    (9, "0") // |> var x = [|0|]; [Code.cs:12]
+                    (9, "0") // |> var x = [|0|]; [Code.vb:12]
                 });
 
             await ValidateChildrenEmptyAsync(workspace, items.Single());
@@ -219,17 +219,17 @@ Class Test
 End Class";
 
             //
-            //  |> Dim y = x + 1 [Code.cs:7]
-            //    |> Dim x = GetM() [Code.cs:5]
-            //      |> Return x; [Code.cs:13]
-            //        |> Dim x = 0; [Code.cs:12]
+            //  |> Dim y = x + 1 [Code.vb:7]
+            //    |> Dim x = GetM() [Code.vb:5]
+            //      |> Return x; [Code.vb:13]
+            //        |> Dim x = 0; [Code.vb:12]
             using var workspace = TestWorkspace.CreateVisualBasic(code);
 
             var items = await ValidateItemsAsync(
                 workspace,
                 itemInfo: new[]
                 {
-                    (4, "x") // |> Dim y = [|x|] + 1; [Code.cs:7]
+                    (4, "x") // |> Dim y = [|x|] + 1; [Code.vb:7]
                 });
 
             items = await ValidateChildrenAsync(
@@ -237,7 +237,7 @@ End Class";
                 items.Single(),
                 childInfo: new[]
                 {
-                    (3, "GetM()") // |> Dim x = [|GetM()|] [Code.cs:5]
+                    (3, "GetM()") // |> Dim x = [|GetM()|] [Code.vb:5]
                 });
 
             items = await ValidateChildrenAsync(
@@ -245,7 +245,7 @@ End Class";
                 items.Single(),
                 childInfo: new[]
                 {
-                    (10, "x") // |> return [|x|]; [Code.cs:13]
+                    (10, "x") // |> return [|x|]; [Code.vb:13]
                 });
 
             items = await ValidateChildrenAsync(
@@ -253,7 +253,68 @@ End Class";
                 items.Single(),
                 childInfo: new[]
                 {
-                    (9, "0") // |> var x = [|0|]; [Code.cs:12]
+                    (9, "0") // |> var x = [|0|]; [Code.vb:12]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, items.Single());
+        }
+
+        [Fact]
+        public async Task TestMultipleDeclarators()
+        {
+            var code =
+@"
+Imports System
+
+Class Test
+    Public Sub M()
+        Dim x = GetM(), z = 1, m As Boolean, n As Boolean, o As Boolean
+        Console.Write(x)
+        Dim y = $$x + 1
+    End Sub
+
+    Public Function GetM() As Integer
+        Dim x = 0
+        Return x
+    End Function
+End Class";
+
+            //
+            //  |> Dim y = x + 1 [Code.vb:7]
+            //    |> Dim x = GetM(), z = 1, m As Boolean, n As Boolean, o As Boolean [Code.vb:5]
+            //      |> Return x; [Code.vb:12]
+            //        |> Dim x = 0; [Code.vb:11]
+            using var workspace = TestWorkspace.CreateVisualBasic(code);
+
+            var items = await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (7, "x") // |> Dim y = [|x|] + 1; [Code.vb:7]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (5, "GetM()") // |> Dim x = [|GetM()|], z = 1, m As Boolean, n As Boolean, o As Boolean [Code.vb:5]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (12, "x") // |> return [|x|]; [Code.vb:12]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (11, "0") // |> var x = [|0|]; [Code.vb:11]
                 });
 
             await ValidateChildrenEmptyAsync(workspace, items.Single());
