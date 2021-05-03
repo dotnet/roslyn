@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -72,7 +73,47 @@ testHost, composition, @"record Goo
 
         [Theory]
         [CombinatorialData]
+<<<<<<< HEAD
         public async Task FindVerbatimClass(TestHost testHost, Composition composition)
+=======
+        public async Task FindRecordClass(TestHost testHost)
+        {
+            await TestAsync(
+testHost, @"record class Goo
+{
+}", async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal);
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindRecordStruct(TestHost testHost)
+        {
+            var content = XElement.Parse(@"
+<Workspace>
+    <Project Language=""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+record struct Goo
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+");
+            await TestAsync(testHost, content, async w =>
+            {
+                var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+                VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.StructureInternal);
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindVerbatimClass(TestHost testHost)
+>>>>>>> dotnet/features/compiler
         {
             await TestAsync(
 testHost, composition, @"class @static

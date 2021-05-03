@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis
                 SymbolDisplayPartKind.ExtensionMethodName => TextTags.ExtensionMethod,
                 SymbolDisplayPartKind.ConstantName => TextTags.Constant,
                 SymbolDisplayPartKind.RecordClassName => TextTags.Record,
+                SymbolDisplayPartKind.RecordStructName => TextTags.RecordStruct,
                 _ => string.Empty,
             };
     }

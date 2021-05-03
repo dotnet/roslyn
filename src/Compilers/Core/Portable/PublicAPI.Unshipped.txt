@@ -24,6 +24,7 @@ Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.OperationWalker() -> void
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordClassName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CompilationEnd = "CompilationEnd" -> string!
+Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordStructName = 32 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 Microsoft.CodeAnalysis.SyntaxContextReceiverCreator
 Microsoft.CodeAnalysis.SyntaxNode.IsEquivalentTo(Microsoft.CodeAnalysis.SyntaxNode? other) -> bool
 Microsoft.CodeAnalysis.SyntaxNode.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNode? other) -> bool
