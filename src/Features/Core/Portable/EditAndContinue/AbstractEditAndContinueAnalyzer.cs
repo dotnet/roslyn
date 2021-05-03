@@ -2692,7 +2692,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 if (newSymbol == null || !processedSymbols.Add(newSymbol))
                                 {
                                     // Field declarations have attributes applied to them, but wont return symbols from the above, so need special handling.
-                                    TryReportFieldAttributeRudeEdits(editScript, diagnostics, capabilities, oldModel, newModel, edit, semanticEdits, cancellationToken);
+                                    TryReportFieldAttributeRudeEdits(diagnostics, capabilities, oldModel, newModel, edit, semanticEdits, cancellationToken);
 
                                     // node doesn't represent a symbol or the symbol has already been processed
                                     continue;
@@ -2764,7 +2764,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (editKind == SemanticEditKind.Update)
                     {
-                        ReportAttributeEdits(oldSymbol, newSymbol, editScript.Match.Matches, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+                        ReportAttributeEdits(oldSymbol, newSymbol, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
 
                         // The only update to the type itself that's supported is an addition or removal of the partial modifier,
                         // which does not have impact on the emitted type metadata.
@@ -2888,18 +2888,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return semanticEdits.ToImmutable();
         }
 
-        private void TryReportFieldAttributeRudeEdits(EditScript<SyntaxNode> editScript, ArrayBuilder<RudeEditDiagnostic> diagnostics, EditAndContinueCapabilities capabilities, SemanticModel? oldModel, SemanticModel newModel, Edit<SyntaxNode> edit, ArrayBuilder<SemanticEditInfo> semanticEdits, CancellationToken cancellationToken)
+        private void TryReportFieldAttributeRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditAndContinueCapabilities capabilities, SemanticModel? oldModel, SemanticModel newModel, Edit<SyntaxNode> edit, ArrayBuilder<SemanticEditInfo> semanticEdits, CancellationToken cancellationToken)
         {
             // We have to get symbols for the individual fields declared within them to check for attribute rude edits.
             // The attributes apply to all fields in the declaration.
             var (oldFieldSymbol, newFieldSymbol) = GetSymbolsForField(oldModel, edit.OldNode, newModel, edit.NewNode, cancellationToken);
             if (newFieldSymbol is not null)
             {
-                ReportAttributeEdits(oldFieldSymbol, newFieldSymbol, editScript.Match.Matches, capabilities, diagnostics, semanticEdits, null, cancellationToken);
+                ReportAttributeEdits(oldFieldSymbol, newFieldSymbol, capabilities, diagnostics, semanticEdits, null, cancellationToken);
             }
         }
 
-        private void ReportAttributeEdits(ISymbol? oldSymbol, ISymbol newSymbol, IReadOnlyDictionary<SyntaxNode, SyntaxNode>? matches, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, ArrayBuilder<SemanticEditInfo>? semanticEdits, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        private void ReportAttributeEdits(ISymbol? oldSymbol, ISymbol newSymbol, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, ArrayBuilder<SemanticEditInfo>? semanticEdits, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
         {
             var needsEdit = false;
             var attributesHaveChanged = false;
@@ -2908,13 +2908,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var oldMethod = oldSymbol as IMethodSymbol;
 
-                ReportAttributeRudeEdits(oldMethod?.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), newMethod, matches, capabilities, diagnostics, out attributesHaveChanged);
+                ReportAttributeRudeEdits(oldMethod?.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), newMethod, capabilities, diagnostics, out attributesHaveChanged);
                 needsEdit |= attributesHaveChanged;
 
                 // For properties, we only get called for the get methods, but we want to check the property itself for attribute changes
                 if (newMethod.AssociatedSymbol is not null)
                 {
-                    ReportAttributeRudeEdits(oldMethod?.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), newMethod.AssociatedSymbol, matches, capabilities, diagnostics, out var propertyAttributesChanged);
+                    ReportAttributeRudeEdits(oldMethod?.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), newMethod.AssociatedSymbol, capabilities, diagnostics, out var propertyAttributesChanged);
                     if (propertyAttributesChanged && semanticEdits is not null)
                     {
                         var symbolKey = SymbolKey.Create(newMethod.AssociatedSymbol, cancellationToken);
@@ -2928,27 +2928,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (newType.DelegateInvokeMethod is not null)
                 {
                     // If this is a delegate with attributes on its return type for example, they are found on the DelegateInvokeMethod
-                    ReportAttributeEdits(oldType?.DelegateInvokeMethod, newType.DelegateInvokeMethod, matches, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+                    ReportAttributeEdits(oldType?.DelegateInvokeMethod, newType.DelegateInvokeMethod, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
                 }
             }
 
             foreach (var parameter in newSymbol.GetParameters())
             {
                 var oldParameter = oldSymbol?.GetParameters().SingleOrDefault(p => p.Name.Equals(parameter.Name));
-                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), parameter.GetAttributes(), parameter, matches, capabilities, diagnostics, out attributesHaveChanged);
+                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), parameter.GetAttributes(), parameter, capabilities, diagnostics, out attributesHaveChanged);
                 needsEdit |= attributesHaveChanged;
             }
 
             foreach (var typeParam in newSymbol.GetTypeParameters())
             {
                 var oldParameter = oldSymbol?.GetTypeParameters().SingleOrDefault(p => p.Name.Equals(typeParam.Name));
-                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), typeParam.GetAttributes(), typeParam, matches, capabilities, diagnostics, out attributesHaveChanged);
+                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), typeParam.GetAttributes(), typeParam, capabilities, diagnostics, out attributesHaveChanged);
                 needsEdit |= attributesHaveChanged;
             }
 
             // This is the only case we care about whether to issue an edit or not, because this is the only case where types have their attributes checked
             // and types are the only things that would otherwise not have edits reported.
-            ReportAttributeRudeEdits(oldSymbol?.GetAttributes(), newSymbol.GetAttributes(), newSymbol, matches, capabilities, diagnostics, out attributesHaveChanged);
+            ReportAttributeRudeEdits(oldSymbol?.GetAttributes(), newSymbol.GetAttributes(), newSymbol, capabilities, diagnostics, out attributesHaveChanged);
             needsEdit |= attributesHaveChanged;
 
             // If we don't need to add an edit, then we're done
@@ -2970,56 +2970,50 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void ReportAttributeRudeEdits(ImmutableArray<AttributeData>? oldAttributes, ImmutableArray<AttributeData> newAttributes, ISymbol newSymbol, IReadOnlyDictionary<SyntaxNode, SyntaxNode>? matches, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, out bool needsEdit)
+        private void ReportAttributeRudeEdits(ImmutableArray<AttributeData>? oldAttributes, ImmutableArray<AttributeData> newAttributes, ISymbol newSymbol, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, out bool needsEdit)
         {
-            needsEdit = false;
-            // First we'll go through the new attributes and try to find matches for everything
-            for (var i = 0; i < newAttributes.Length; i++)
-            {
-                var newAttribute = newAttributes[i];
-                // We should always have a syntax reference for the new attribute
-                var newNode = newAttribute.ApplicationSyntaxReference!.GetSyntax();
-                var oldAttribute = FindMatch(newAttribute, oldAttributes);
+            using var _ = ArrayBuilder<AttributeData>.GetInstance(out var changedAttributes);
 
-                if (oldAttribute == null)
-                {
-                    if (!capabilities.HasFlag(EditAndContinueCapabilities.UpdateCustomAttributes) ||
-                        IsNonCustomAttribute(newAttribute))
-                    {
-                        // TODO: New rude edit kind, since this represents an update or an insert, and we don't know which?
-                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.UpdateNotSupportedByRuntime, GetDiagnosticSpan(newNode, EditKind.Update), newNode, new[] { GetDisplayName(newNode, EditKind.Update) }));
-                    }
-                    else
-                    {
-                        needsEdit = true;
-                    }
-                }
-            }
-
+            FindChangedAttributes(oldAttributes, newAttributes, changedAttributes);
             if (oldAttributes.HasValue)
             {
-                for (var i = newAttributes.Length; i < oldAttributes.Value.Length; i++)
-                {
-                    var oldAttribute = oldAttributes.Value[i];
-                    // We should always have a syntax reference for the old attribute
-                    var oldNode = oldAttribute.ApplicationSyntaxReference!.GetSyntax();
-                    var newAttribute = FindMatch(oldAttribute, newAttributes);
+                FindChangedAttributes(newAttributes, oldAttributes.Value, changedAttributes);
+            }
 
-                    if (newAttribute == null)
-                    {
-                        var span = matches == null ?
-                            GetDiagnosticSpan(newSymbol.DeclaringSyntaxReferences.First().GetSyntax(), EditKind.Update) :
-                            GetDeletedNodeDiagnosticSpan(matches, oldNode);
-                        diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.DeleteNotSupportedByRuntime, span, oldNode, new[] { GetDisplayName(oldNode, EditKind.Delete) }));
-                    }
-                    else
-                    {
-                        needsEdit = true;
-                    }
-                }
+            needsEdit = false;
+            if (changedAttributes.Count == 0)
+            {
+                return;
+            }
+
+            // We need diagnostics reported if the runtime doesn't support changing attributes,
+            // but even if it does, only attributes stored in the CustomAttributes table are editable
+            if (!capabilities.HasFlag(EditAndContinueCapabilities.UpdateCustomAttributes) ||
+                changedAttributes.Any(IsNonCustomAttribute))
+            {
+                var newNode = newSymbol.DeclaringSyntaxReferences.First().GetSyntax();
+                diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, GetDiagnosticSpan(newNode, EditKind.Update), newNode, new[] { GetDisplayName(newNode, EditKind.Update) }));
+            }
+            else
+            {
+                needsEdit = true;
             }
 
             return;
+
+            static void FindChangedAttributes(ImmutableArray<AttributeData>? oldAttributes, ImmutableArray<AttributeData> newAttributes, ArrayBuilder<AttributeData> changedAttributes)
+            {
+                for (var i = 0; i < newAttributes.Length; i++)
+                {
+                    var newAttribute = newAttributes[i];
+                    var oldAttribute = FindMatch(newAttribute, oldAttributes);
+
+                    if (oldAttribute is null)
+                    {
+                        changedAttributes.Add(newAttribute);
+                    }
+                }
+            }
 
             static AttributeData? FindMatch(AttributeData attribute, ImmutableArray<AttributeData>? oldAttributes)
             {
@@ -3043,11 +3037,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return null;
             }
 
+#pragma warning disable IDE0060 // Remove unused parameter
             static bool IsNonCustomAttribute(AttributeData attribute)
             {
                 // TODO: Only attributes that are stored in CustomAttributes table can be changed
                 return false;
             }
+
+#pragma warning restore IDE0060 // Remove unused parameter
         }
 
         private static bool CanAddNewMember(ISymbol newSymbol, EditAndContinueCapabilities capabilities)
@@ -4297,7 +4294,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
             var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
 
-            ReportAttributeEdits(oldLambdaSymbol, newLambdaSymbol, null, capabilities, diagnostics, null, null, cancellationToken);
+            ReportAttributeEdits(oldLambdaSymbol, newLambdaSymbol, capabilities, diagnostics, null, null, cancellationToken);
 
             RudeEditKind rudeEdit;
 
