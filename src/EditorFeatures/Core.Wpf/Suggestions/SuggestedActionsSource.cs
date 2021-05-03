@@ -186,6 +186,80 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
+            public async IAsyncEnumerable<SuggestedActionSet>? GetSuggestedActionsAsync(
+                ISuggestedActionCategorySet requestedActionCategories,
+                SnapshotSpan range,
+                IUIThreadOperationContext operationContext)
+            {
+                AssertIsForeground();
+                var cancellationToken = operationContext.UserCancellationToken;
+
+                if (IsDisposed)
+                    yield break;
+
+                if (_workspaceStatusService != null)
+                {
+                    using (operationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
+                    {
+                        await _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(true);
+                    }
+                }
+
+                using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
+                {
+                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document == null)
+                        yield break;
+
+                    var highPriSet = await GetCodeFixesAndRefactoringsAsync(
+                        requestedActionCategories, document, range, AddOperationScope, highPriority: true, cancellationToken).ConfigureAwait(false);
+                    foreach (var set in highPriSet)
+                        yield return set;
+
+                    var lowPriSet = await GetCodeFixesAndRefactoringsAsync(
+                        requestedActionCategories, document, range, AddOperationScope, highPriority: false, cancellationToken).ConfigureAwait(false);
+                    foreach (var set in lowPriSet)
+                        yield return set;
+                }
+
+                IDisposable? AddOperationScope(string description)
+                {
+                    return operationContext.AddScope(allowCancellation: true, string.Format(EditorFeaturesResources.Gathering_Suggestions_0, description));
+                }
+            }
+
+            private async Task<IEnumerable<SuggestedActionSet>> GetCodeFixesAndRefactoringsAsync(
+                ISuggestedActionCategorySet requestedActionCategories,
+                Document document,
+                SnapshotSpan range,
+                Func<string, IDisposable?> addOperationScope,
+                bool highPriority,
+                CancellationToken cancellationToken)
+            {
+                var workspace = document.Project.Solution.Workspace;
+                var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
+
+                var selection = TryGetCodeRefactoringSelection(range);
+
+                var fixesTask = GetCodeFixesAsync(
+                    supportsFeatureService, requestedActionCategories, workspace, document, range,
+                    addOperationScope, isBlocking: false, cancellationToken);
+                var refactoringsTask = GetRefactoringsAsync(
+                    supportsFeatureService, requestedActionCategories, workspace, document, selection,
+                    addOperationScope, isBlocking: false, cancellationToken);
+
+                await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
+
+                var fixes = await fixesTask.ConfigureAwait(false);
+                var refactorings = await refactoringsTask.ConfigureAwait(false);
+
+                var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
+                if (!filteredSets.HasValue)
+                    return SpecializedCollections.EmptyEnumerable<SuggestedActionSet>();
+
+                return filteredSets.Value.Select(s => ConvertToSuggestedActionSet(s)).WhereNotNull();
+            }
+
             [return: NotNullIfNotNull("unifiedSuggestedActionSet")]
             private SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet, SuggestedActionsSourceProvider owner, ITextBuffer subjectBuffer)
             {
@@ -252,8 +326,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 this.AssertIsForeground();
 
-                if (state.Target.Owner._codeFixService == null ||
-                    !supportsFeatureService.SupportsCodeFixes(state.Target.SubjectBuffer) ||
+                return GetCodeFixesAsync(
+                    supportsFeatureService, requestedActionCategories, workspace, document, range,
+                    addOperationScope, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
+            }
+
+            private async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync(
+                ITextBufferSupportsFeatureService supportsFeatureService,
+                ISuggestedActionCategorySet requestedActionCategories,
+                Workspace workspace,
+                Document document,
+                SnapshotSpan range,
+                Func<string, IDisposable?> addOperationScope,
+                bool isBlocking,
+                CancellationToken cancellationToken)
+            {
+                if (_owner._codeFixService == null ||
+                    !supportsFeatureService.SupportsCodeFixes(_subjectBuffer) ||
                     !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
                     return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
@@ -263,9 +352,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // See https://github.com/dotnet/roslyn/issues/29589
                 const bool includeSuppressionFixes = true;
 
-                return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
-                    workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
-                    includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken).WaitAndGetResult(cancellationToken);
+                return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
+                    workspace, _owner._codeFixService, document, range.Span.ToTextSpan(),
+                    includeSuppressionFixes, isBlocking, addOperationScope, cancellationToken).ConfigureAwait(false);
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
@@ -294,13 +383,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
+                return GetRefactoringsAsync(
+                    supportsFeatureService, requestedActionCategories, workspace, document, selection,
+                    addOperationScope, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
+            }
 
+            private async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync(
+                ITextBufferSupportsFeatureService supportsFeatureService,
+                ISuggestedActionCategorySet requestedActionCategories,
+                Workspace workspace,
+                Document document,
+                TextSpan? selection,
+                Func<string, IDisposable?> addOperationScope,
+                bool isBlocking,
+                CancellationToken cancellationToken)
+            {
                 if (!selection.HasValue)
-                {
-                    // this is here to fail test and see why it is failed.
-                    Trace.WriteLine("given range is not current");
                     return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
-                }
 
                 if (!workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
                     state.Target.Owner._codeRefactoringService == null ||
@@ -313,9 +412,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // then we want to filter out refactorings outside the selection span.
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
-                return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                    workspace, state.Target.Owner._codeRefactoringService, document, selection.Value, isBlocking: true,
-                    addOperationScope, filterOutsideSelection, cancellationToken).WaitAndGetResult(cancellationToken);
+                return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
+                    workspace, _owner._codeRefactoringService, document, selection.Value, isBlocking,
+                    addOperationScope, filterOutsideSelection, cancellationToken).ConfigureAwait(false);
             }
 
             public Task<bool> HasSuggestedActionsAsync(
