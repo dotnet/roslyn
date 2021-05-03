@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         MakeMethodIterator = 99,
         InsertNotSupportedByRuntime = 100,
         DeleteNotSupportedByRuntime = 101,
-        UpdateNotSupportedByRuntime = 102
+        UpdateNotSupportedByRuntime = 102,
+        ChangingAttributesNotSupportedByRuntime = 103
     }
 }
