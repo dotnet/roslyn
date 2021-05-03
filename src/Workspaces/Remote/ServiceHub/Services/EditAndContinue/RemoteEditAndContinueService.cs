@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var document = solution.GetDocument(documentId);
                 if (document != null)
                 {
-                    await GetService().OnSourceFileUpdatedAsync(document, cancellationToken).ConfigureAwait(false);
+                    GetService().OnSourceFileUpdated(document);
                 }
             }, cancellationToken);
         }
