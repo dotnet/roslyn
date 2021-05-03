@@ -6576,6 +6576,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureWithOnStructs" xml:space="preserve">
     <value>with on structs</value>
   </data>
+  <data name="IDS_FeatureWithOnAnonymousTypes" xml:space="preserve">
+    <value>with on anonymous types</value>
+  </data>
   <data name="IDS_FeaturePositionalFieldsInRecords" xml:space="preserve">
     <value>positional fields in records</value>
   </data>

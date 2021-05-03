@@ -32,9 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol? cloneMethod = null;
-            if (receiverType.IsValueType)
+            if (receiverType.IsValueType && !receiverType.IsPointerOrFunctionPointer())
             {
                 CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnStructs, diagnostics);
+            }
+            else if (receiverType.IsAnonymousType)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnAnonymousTypes, diagnostics);
             }
             else if (!receiverType.IsErrorType())
             {
