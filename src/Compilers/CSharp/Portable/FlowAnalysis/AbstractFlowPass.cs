@@ -2697,7 +2697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var access = node switch
             {
                 BoundConditionalAccess ca => ca,
-                BoundConversion { Conversion: Conversion innerConversion, Operand: BoundConditionalAccess ca } when isAcceptableConversion(ca, innerConversion) => ca,
+                BoundConversion { Conversion: Conversion innerConversion, Operand: BoundConditionalAccess ca } when CanPropagateStateWhenNotNull(ca, innerConversion) => ca,
                 _ => null
             };
 
@@ -2714,26 +2714,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             stateWhenNotNull = default;
             return false;
 
-            // "State when not null" can only propagate out of a conditional access if
-            // it is not subject to a user-defined conversion whose parameter is not of a non-nullable value type.
-            static bool isAcceptableConversion(BoundConditionalAccess operand, Conversion conversion)
+        }
+
+        /// <summary>
+        /// "State when not null" can only propagate out of a conditional access if
+        /// it is not subject to a user-defined conversion whose parameter is not of a non-nullable value type.
+        /// </summary>
+        protected static bool CanPropagateStateWhenNotNull(BoundConditionalAccess operand, Conversion conversion)
+        {
+            if (conversion.Kind is not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined))
             {
-                if (conversion.Kind is not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined))
-                {
-                    return true;
-                }
-
-                var method = conversion.Method;
-                Debug.Assert(method is not null);
-                Debug.Assert(method.ParameterCount is 1);
-                var param = method.Parameters[0];
-                if (operand.Type.IsNullableType() && param.Type.IsNonNullableValueType())
-                {
-                    return true;
-                }
-
-                return false;
+                return true;
             }
+
+            var method = conversion.Method;
+            Debug.Assert(method is not null);
+            Debug.Assert(method.ParameterCount is 1);
+            var param = method.Parameters[0];
+            if (operand.Type.IsNullableType() && param.Type.IsNonNullableValueType())
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>

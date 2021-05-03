@@ -4272,7 +4272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryVisitConditionalAccess(BoundExpression node, out PossiblyConditionalState stateWhenNotNull)
         {
             var (operand, conversion) = RemoveConversion(node, includeExplicitConversions: true);
-            if (operand is not BoundConditionalAccess access || !isAcceptableConversion(access, conversion))
+            if (operand is not BoundConditionalAccess access || !CanPropagateStateWhenNotNull(access, conversion))
             {
                 stateWhenNotNull = default;
                 return false;
@@ -4300,45 +4300,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             Debug.Assert(!IsConditionalState);
             return true;
-
-            // "State when not null" cannot propagate out of a conditional access if its conversion can return non-null when the input is null.
-            bool isAcceptableConversion(BoundConditionalAccess operand, Conversion conversion)
-            {
-                if (conversion.Kind is not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined))
-                {
-                    return true;
-                }
-
-                var method = conversion.Method;
-                Debug.Assert(method is not null);
-                Debug.Assert(method.ParameterCount is 1);
-
-                // if input is not allowed to be null, then assume "state when not null" can propagate out
-                var param = method.Parameters[0];
-                var paramAnnotations = GetParameterAnnotations(param);
-                var paramType = ApplyLValueAnnotations(param.TypeWithAnnotations, paramAnnotations);
-                var paramState = paramType.ToTypeWithState();
-                if (paramState.IsNotNull
-                    || (paramAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0)
-                {
-                    return true;
-                }
-
-                // From here on we know the input is allowed to be `null`.
-                var returnState = ApplyUnconditionalAnnotations(method.ReturnTypeWithAnnotations.ToTypeWithState(), method.ReturnTypeFlowAnalysisAnnotations);
-                if (returnState.IsNotNull)
-                {
-                    // We can't learn from this conversion because the result will be not-null even if the input was `null`.
-                    return false;
-                }
-
-                // Here the parameter may be null, and the return also may be null.
-                // We will only learn from this conversion if it has `[return: NotNullIfNotNull]`,
-                // because we will assume that the conversion always returns a `null` result for a `null` input,
-                // and always returns a non-null result for a non-null input.
-                Debug.Assert(returnState.MayBeNull);
-                return method.ReturnNotNullIfParameterNotNull.Contains(param.Name);
-            }
         }
 
         /// <summary>
