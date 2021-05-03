@@ -81,6 +81,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             // Local functions
             async Task CollectDeadKeysAsync()
             {
+                // This method returns after making a complete pass enumerating the elements of _table without finding
+                // any entries that are not alive. If a pass exceeds the allowed time slice after finding one or more
+                // dead entries, the pass yields before processing the elements found so far and restarting the
+                // enumeration.
+                //
+                // ⚠ This method may interleave with other asynchronous calls to CleanUpDeadObjectsAsync.
                 var cleanUpEnumerator = _table.GetEnumerator();
                 while (cleanUpEnumerator.MoveNext())
                 {
@@ -91,7 +97,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
                         if (timeSlice.IsOver)
                         {
+                            // Yield before processing items found so far.
                             await ResetTimeSliceAsync().ConfigureAwait(true);
+
+                            // Process items found prior to exceeding the time slice. Due to interleaving, it is
+                            // possible for this call to process items found by another asynchronous call to
+                            // CollectDeadKeysAsync, or for another asynchronous call to RemoveDeadKeysAsync to process
+                            // all items prior to this call.
                             await RemoveDeadKeysAsync().ConfigureAwait(true);
 
                             // Obtain a new enumerator since the previous one may be invalidated.
@@ -105,6 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             {
                 while (_deadKeySet.Count > 0)
                 {
+                    // Fully process one item from _deadKeySet before the possibility of yielding
                     var key = _deadKeySet.First();
 
                     _deadKeySet.Remove(key);
