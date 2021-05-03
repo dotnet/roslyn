@@ -345,6 +345,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">在项目“{0}”中所作的更改将阻止调试会话继续: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
+        <source>Edit and continue is not supported by the runtime.</source>
+        <target state="new">Edit and continue is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">读取文件“{0}”时出错: {1}</target>
@@ -598,6 +603,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">反转条件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method an iterator will prevent the debug session from continuing.</source>
+        <target state="new">Making a method an iterator will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_async_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method 'async' will prevent the debug session from continuing.</source>
+        <target state="new">Making a method 'async' will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
