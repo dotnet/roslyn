@@ -7141,7 +7141,7 @@ interface I
 
             // Get top edits so we can validate rude edits
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7157,7 +7157,7 @@ interface I
 
             // Get top edits so we can validate rude edits
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "L", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7213,8 +7213,8 @@ interface I
             edits.VerifyEdits("Update [[return: A]void L() { }]@2 -> [[A]void L() { }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "L", FeaturesResources.attribute),
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function),
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7228,8 +7228,8 @@ interface I
             edits.VerifyEdits("Update [[A]void L() { }]@2 -> [[return: A]void L() { }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute),
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "L", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function),
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7244,7 +7244,7 @@ interface I
                 "Update [int L() { return 1; }]@2 -> [[return: A]int L() { return 1; }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7259,7 +7259,7 @@ interface I
                 "Update [[return: A]int L() { return 1; }]@2 -> [int L() { return 1; }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "L", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7287,7 +7287,7 @@ interface I
                 "Update [int i]@9 -> [[A]int i]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int i", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -7302,7 +7302,7 @@ interface I
                 "Update [[A]int i]@9 -> [int i]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "int i", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int i", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -7330,7 +7330,7 @@ interface I
                 "Update [T]@9 -> [[A] T]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7345,7 +7345,7 @@ interface I
                 "Update [[A] T]@9 -> [T]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "T", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]

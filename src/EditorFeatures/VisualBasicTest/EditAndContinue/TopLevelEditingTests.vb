@@ -294,7 +294,7 @@ Option Strict Off
                 "Update [<A1>Class C]@132 -> [<A2>Class C]@132")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A2", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -307,7 +307,7 @@ Option Strict Off
                 "Update [<System.Obsolete(""1"")>Class C]@0 -> [<System.Obsolete(""2"")>Class C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(""2"")", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -323,7 +323,7 @@ Option Strict Off
                 "Update [<A1>Module C]@132 -> [<A2>Module C]@132")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A2", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Module C", VBFeaturesResources.module_))
         End Sub
 
         <Fact>
@@ -367,7 +367,7 @@ Option Strict Off
                 "Update [<A, B>Class C]@130 -> [<A>Class C]@130")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Class C", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -395,7 +395,7 @@ Option Strict Off
                 "Update [<A>Class C]@0 -> [<A, System.Obsolete>Class C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -408,7 +408,7 @@ Option Strict Off
                 "Update [Class C]@0 -> [<System.Obsolete>Class C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -467,7 +467,7 @@ Option Strict Off
                 "Update [<System.Obsolete(""1""), B, C>Class C]@0 -> [<B, C, System.Obsolete(""2"")>Class C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(""2"")", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_))
         End Sub
 
 #End Region
@@ -1374,7 +1374,7 @@ End Class
                 "Update [Enum E]@0 -> [<System.Obsolete>Enum E]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Enum E", FeaturesResources.enum_))
         End Sub
 
         <Fact>
@@ -1387,7 +1387,7 @@ End Class
                 "Update [<System.Obsolete>X]@9 -> [X]@9")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "X", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "X", FeaturesResources.enum_value))
         End Sub
 
         <Fact>
@@ -1400,7 +1400,7 @@ End Class
                 "Update [X]@9 -> [<System.Obsolete>X]@9")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "<System.Obsolete>X", FeaturesResources.enum_value))
         End Sub
 
         <Fact>
@@ -1416,7 +1416,7 @@ End Class
                 "Update [<A1>X]@141 -> [<A2>X]@141")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A2", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "<A2>X", FeaturesResources.enum_value))
         End Sub
 
         <Fact>
@@ -1726,7 +1726,7 @@ End Class
                 "Update [a As Integer]@27 -> [<System.Obsolete> a As Integer]@27")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Delegate Function D(<System.Obsolete> a As Integer)", FeaturesResources.delegate_))
         End Sub
 
         <Fact>
@@ -1819,7 +1819,7 @@ End Class
                 "Update [Public Delegate Function D(a As Integer) As Integer]@0 -> [<System.Obsolete>Public Delegate Function D(a As Integer) As Integer]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Delegate Function D(a As Integer)", FeaturesResources.delegate_))
         End Sub
 
 #End Region
@@ -3500,7 +3500,7 @@ End Class
                 "Update [Sub F()]@11 -> [<System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3513,7 +3513,7 @@ End Class
                 "Update [<A>Sub F()]@11 -> [<A, System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3526,7 +3526,7 @@ End Class
                 "Update [<A>Sub F()]@11 -> [<A><System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3539,8 +3539,7 @@ End Class
                 "Update [Sub F()]@11 -> [<A, System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute),
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3553,7 +3552,7 @@ End Class
                 "Update [<System.Obsolete>Sub F()]@11 -> [<System.Obsolete(1)>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(1)", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3566,7 +3565,7 @@ End Class
                 "Update [<System.Obsolete>Sub F()]@11 -> [Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Sub F()", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3579,7 +3578,7 @@ End Class
                 "Update [<A, System.Obsolete>Sub F()]@11 -> [<A>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Sub F()", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3592,7 +3591,7 @@ End Class
                 "Update [<A><System.Obsolete>Sub F()]@11 -> [<A>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Sub F()", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -8801,7 +8800,7 @@ End Class
                 "Update [a As Integer]@24 -> [<System.Obsolete>a As Integer]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a As Integer", FeaturesResources.parameter))
         End Sub
 
         <Fact>
@@ -8814,7 +8813,7 @@ End Class
                 "Update [<A>a As Integer]@24 -> [<A, System.Obsolete>a As Integer]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a As Integer", FeaturesResources.parameter))
         End Sub
 
         <Fact>
@@ -8827,7 +8826,7 @@ End Class
                 "Update [<System.Obsolete>a As Integer]@24 -> [a As Integer]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "a As Integer", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a As Integer", FeaturesResources.parameter))
         End Sub
 
         <Fact>
@@ -8843,24 +8842,23 @@ End Class
                 "Update [<System.Obsolete(""1""), B>a As Integer]@154 -> [<System.Obsolete(""2""), A>a As Integer]@154")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(""2"")", FeaturesResources.attribute),
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a As Integer", FeaturesResources.parameter))
         End Sub
 
         <Fact>
         Public Sub ReturnValueAttributeUpdate()
             Dim attribute = "Public Class AAttribute : Inherits System.Attribute : End Class" & vbCrLf &
-                            "Public Class BAttribute : Inherits System.Attribute : End Class" & vbCrLf
+                                "Public Class BAttribute : Inherits System.Attribute : End Class" & vbCrLf
 
             Dim src1 = attribute + "Class C : " & vbLf & "Public Function M() As <A>Integer" & vbLf & "Return 0 : End Function : End Class"
             Dim src2 = attribute + "Class C : " & vbLf & "Public Function M() As <B>Integer" & vbLf & "Return 0 : End Function : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [As <A>Integer]@161 -> [As <B>Integer]@161")
+                    "Update [As <A>Integer]@161 -> [As <B>Integer]@161")
 
             edits.VerifyRudeDiagnostics(
-               Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "B", FeaturesResources.attribute))
+                   Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Function M()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -8885,7 +8883,7 @@ End Class
                 "Update [As Integer]@31 -> [As <System.Obsolete>Integer]@31")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Function M()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -8898,7 +8896,7 @@ End Class
                 "Update [As <System.Obsolete>Integer]@31 -> [As Integer]@31")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "Public Function M()", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Function M()", FeaturesResources.method))
         End Sub
 
         <Fact>
