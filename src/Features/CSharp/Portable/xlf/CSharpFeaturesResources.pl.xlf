@@ -297,21 +297,6 @@
         <target state="translated">Nieprawidłowe zaznaczenie.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">Zaznaczenie nie zawiera prawidłowego tokenu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">Brak prawidłowego zaznaczenia do wyodrębnienia.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">Brak wspólnego węzła głównego do wyodrębnienia.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
         <target state="translated">Zawiera nieprawidłowe zaznaczenie.</target>
