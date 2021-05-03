@@ -544,6 +544,24 @@ namespace N
         }
 
         [Fact]
+        public void DeleteAttributes2()
+        {
+            var attribute = "public class AAttribute : System.Attribute { }\n\n" +
+                            "public class BAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + "[B, A]class C { }";
+            var src2 = attribute + "[A]class C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[B, A]class C { }]@96 -> [[A]class C { }]@96");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
+        }
+
+        [Fact]
         public void InsertAttributes_SupportedByRuntime()
         {
             var attribute = "public class AAttribute : System.Attribute { }\n\n" +
