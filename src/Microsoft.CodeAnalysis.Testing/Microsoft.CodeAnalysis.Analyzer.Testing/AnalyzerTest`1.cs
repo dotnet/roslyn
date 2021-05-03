@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -165,12 +166,34 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         protected TimeSpan MatchDiagnosticsTimeout { get; set; } = TimeSpan.FromSeconds(2);
 
+        private readonly ConcurrentBag<Workspace> _workspaces = new ConcurrentBag<Workspace>();
+
         /// <summary>
         /// Runs the test.
         /// </summary>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public virtual async Task RunAsync(CancellationToken cancellationToken = default)
+        public async Task RunAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await RunImplAsync(cancellationToken);
+            }
+            finally
+            {
+                while (_workspaces.TryTake(out var workspace))
+                {
+                    workspace.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Runs the test.
+        /// </summary>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        protected virtual async Task RunImplAsync(CancellationToken cancellationToken)
         {
             Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
 
@@ -1310,7 +1333,14 @@ namespace Microsoft.CodeAnalysis.Testing
             return solution.GetProject(project.Id);
         }
 
-        public virtual AdhocWorkspace CreateWorkspace()
+        public Workspace CreateWorkspace()
+        {
+            var workspace = CreateWorkspaceImpl();
+            _workspaces.Add(workspace);
+            return workspace;
+        }
+
+        protected virtual Workspace CreateWorkspaceImpl()
         {
             var exportProvider = ExportProviderFactory.Value.CreateExportProvider();
             var host = MefHostServices.Create(exportProvider.AsCompositionContext());
