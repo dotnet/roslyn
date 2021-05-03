@@ -27,17 +27,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private void SetBooleanOption(PerLanguageOption2<bool> key, int value)
             => SetOption(key, value != 0);
-
-        private int GetBooleanOption(PerLanguageOption2<bool?> key)
-            => NullableBooleanToInteger(GetOption(key));
-
-        private int GetBooleanOption(Option2<bool?> key)
-            => NullableBooleanToInteger(GetOption(key));
-
-        private void SetBooleanOption(PerLanguageOption2<bool?> key, int value)
-            => SetOption(key, IntegerToNullableBoolean(value));
-
-        private void SetBooleanOption(Option2<bool?> key, int value)
-            => SetOption(key, IntegerToNullableBoolean(value));
     }
 }

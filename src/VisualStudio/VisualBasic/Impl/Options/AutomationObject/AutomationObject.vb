@@ -16,36 +16,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             MyBase.New(workspace, LanguageNames.VisualBasic)
         End Sub
 
-        Private Function GetBooleanOption(key As PerLanguageOption2(Of Boolean)) As Boolean
+        Private Overloads Function GetBooleanOption(key As PerLanguageOption2(Of Boolean)) As Boolean
             Return GetOption(key)
         End Function
 
-        Private Function GetBooleanOption(key As Option2(Of Boolean)) As Boolean
+        Private Overloads Function GetBooleanOption(key As Option2(Of Boolean)) As Boolean
             Return GetOption(key)
         End Function
 
-        Private Sub SetBooleanOption(key As PerLanguageOption2(Of Boolean), value As Boolean)
+        Private Overloads Sub SetBooleanOption(key As PerLanguageOption2(Of Boolean), value As Boolean)
             SetOption(key, value)
         End Sub
 
-        Private Sub SetBooleanOption(key As Option2(Of Boolean), value As Boolean)
+        Private Overloads Sub SetBooleanOption(key As Option2(Of Boolean), value As Boolean)
             SetOption(key, value)
-        End Sub
-
-        Private Function GetBooleanOption(key As PerLanguageOption2(Of Boolean?)) As Integer
-            Return NullableBooleanToInteger(GetOption(key))
-        End Function
-
-        Private Sub SetBooleanOption(key As PerLanguageOption2(Of Boolean?), value As Integer)
-            SetOption(key, IntegerToNullableBoolean(value))
-        End Sub
-
-        Private Function GetBooleanOption(key As Option2(Of Boolean?)) As Integer
-            Return NullableBooleanToInteger(GetOption(key))
-        End Function
-
-        Private Sub SetBooleanOption(key As Option2(Of Boolean?), value As Integer)
-            SetOption(key, IntegerToNullableBoolean(value))
         End Sub
     End Class
 End Namespace

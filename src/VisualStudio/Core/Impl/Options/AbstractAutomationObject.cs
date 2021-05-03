@@ -31,6 +31,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             => _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
                 .WithChangedOption(key, value)));
 
+        private protected int GetBooleanOption(PerLanguageOption2<bool?> key)
+            => NullableBooleanToInteger(GetOption(key));
+
+        private protected void SetBooleanOption(PerLanguageOption2<bool?> key, int value)
+            => SetOption(key, IntegerToNullableBoolean(value));
+
+        private protected int GetBooleanOption(Option2<bool?> key)
+            => NullableBooleanToInteger(GetOption(key));
+
+        private protected void SetBooleanOption(Option2<bool?> key, int value)
+            => SetOption(key, IntegerToNullableBoolean(value));
+
         private protected string GetXmlOption<T>(Option2<CodeStyleOption2<T>> option)
             => GetOption(option).ToXElement().ToString();
 
@@ -49,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             SetOption(option, convertedValue);
         }
 
-        private protected static int NullableBooleanToInteger(bool? value)
+        private static int NullableBooleanToInteger(bool? value)
         {
             if (!value.HasValue)
             {
@@ -59,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return value.Value ? 1 : 0;
         }
 
-        private protected static bool? IntegerToNullableBoolean(int value)
+        private static bool? IntegerToNullableBoolean(int value)
             => (value < 0) ? null : (value > 0);
     }
 }
