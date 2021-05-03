@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private protected string GetXmlOption<T>(Option2<CodeStyleOption2<T>> option)
             => GetOption(option).ToXElement().ToString();
 
-        private protected string GetXmlOption(PerLanguageOption2<CodeStyleOption2<bool>> option)
+        private protected string GetXmlOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option)
             => GetOption(option).ToXElement().ToString();
 
         private protected void SetXmlOption<T>(Option2<CodeStyleOption2<T>> option, string value)
@@ -55,9 +55,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             SetOption(option, convertedValue);
         }
 
-        private protected void SetXmlOption(PerLanguageOption2<CodeStyleOption2<bool>> option, string value)
+        private protected void SetXmlOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, string value)
         {
-            var convertedValue = CodeStyleOption2<bool>.FromXElement(XElement.Parse(value));
+            var convertedValue = CodeStyleOption2<T>.FromXElement(XElement.Parse(value));
             SetOption(option, convertedValue);
         }
 

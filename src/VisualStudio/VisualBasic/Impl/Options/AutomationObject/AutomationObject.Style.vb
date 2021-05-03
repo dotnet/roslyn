@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Public Class AutomationObject
@@ -159,8 +160,104 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        ' TODO: More options are missing.
-        ' TODO: This has never included any of the VB-specific code style options. Was there a reason?
+        Public Property Style_PreferIsNullCheckOverReferenceEqualityMethod As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferConditionalExpressionOverAssignment As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.PreferConditionalExpressionOverAssignment)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferConditionalExpressionOverReturn As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.PreferConditionalExpressionOverReturn)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.PreferConditionalExpressionOverReturn, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferCompoundAssignment As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.PreferCompoundAssignment)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.PreferCompoundAssignment, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferSimplifiedInterpolation As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.PreferSimplifiedInterpolation)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.PreferSimplifiedInterpolation, value)
+            End Set
+        End Property
+
+        Public Property Style_RequireAccessibilityModifiers As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers, value)
+            End Set
+        End Property
+
+        Public Property Style_RemoveUnnecessarySuppressionExclusions As String
+            Get
+                Return GetOption(CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions)
+            End Get
+            Set(value As String)
+                SetOption(CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferSystemHashCode As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.PreferSystemHashCode)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.PreferSystemHashCode, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferNamespaceAndFolderMatchStructure As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.PreferNamespaceAndFolderMatchStructure)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.PreferNamespaceAndFolderMatchStructure, value)
+            End Set
+        End Property
+
+        Public Property Style_AllowMultipleBlankLines As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.AllowMultipleBlankLines)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.AllowMultipleBlankLines, value)
+            End Set
+        End Property
+
+        Public Property Style_AllowStatementImmediatelyAfterBlock As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, value)
+            End Set
+        End Property
 
         Public Property Style_PreferReadonly As String
             Get
@@ -168,6 +265,51 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
             Set(value As String)
                 SetXmlOption(CodeStyleOptions2.PreferReadonly, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferredModifierOrder As String
+            Get
+                Return GetXmlOption(VisualBasicCodeStyleOptions.PreferredModifierOrder)
+            End Get
+            Set(value As String)
+                SetXmlOption(VisualBasicCodeStyleOptions.PreferredModifierOrder, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferIsNotExpression As String
+            Get
+                Return GetXmlOption(VisualBasicCodeStyleOptions.PreferIsNotExpression)
+            End Get
+            Set(value As String)
+                SetXmlOption(VisualBasicCodeStyleOptions.PreferIsNotExpression, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferSimplifiedObjectCreation As String
+            Get
+                Return GetXmlOption(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation)
+            End Get
+            Set(value As String)
+                SetXmlOption(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation, value)
+            End Set
+        End Property
+
+        Public Property Style_UnusedValueAssignment As String
+            Get
+                Return GetXmlOption(VisualBasicCodeStyleOptions.UnusedValueAssignment)
+            End Get
+            Set(value As String)
+                SetXmlOption(VisualBasicCodeStyleOptions.UnusedValueAssignment, value)
+            End Set
+        End Property
+
+        Public Property Style_UnusedValueExpressionStatement As String
+            Get
+                Return GetXmlOption(VisualBasicCodeStyleOptions.UnusedValueExpressionStatement)
+            End Get
+            Set(value As String)
+                SetXmlOption(VisualBasicCodeStyleOptions.UnusedValueExpressionStatement, value)
             End Set
         End Property
     End Class
