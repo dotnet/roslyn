@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
 {
+    [Shared]
     internal sealed class DotNetWatchEditAndContinueWorkspaceService : IWorkspaceService
     {
         [ExportWorkspaceServiceFactory(typeof(DotNetWatchEditAndContinueWorkspaceService)), Shared]
@@ -40,27 +41,30 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
             _workspaceService = workspaceService;
         }
 
-        public ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
+        public Task OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
             => _workspaceService.OnSourceFileUpdatedAsync(document, cancellationToken);
 
-        public void CommitSolutionUpdate() => _workspaceService.CommitSolutionUpdate(out _);
+        public void CommitSolutionUpdate() => _workspaceService.CommitSolutionUpdate();
 
         public void DiscardSolutionUpdate() => _workspaceService.DiscardSolutionUpdate();
 
         public void EndDebuggingSession() => _workspaceService.EndDebuggingSession(out _);
 
-        public void StartDebuggingSession(Solution solution)
-            => _workspaceService.StartDebuggingSessionAsync(solution, StubManagedEditAndContinueDebuggerService.Instance, captureMatchingDocuments: false, CancellationToken.None).GetAwaiter().GetResult();
+        public void StartDebuggingSession(Solution solution) => _workspaceService.StartDebuggingSession(solution);
 
-        public void StartEditSession() { }
+        public void StartEditSession() => _workspaceService.StartEditSession(StubManagedEditAndContinueDebuggerService.Instance, out _);
 
-        public void EndEditSession() { }
+        public void EndEditSession() => _workspaceService.EndEditSession(out _);
 
-        public async ValueTask<DotNetWatchManagedModuleUpdatesWrapper> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
+        public async ValueTask<DotNetWatchManagedModuleUpdates> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var results = await _workspaceService.EmitSolutionUpdateAsync(solution, _nullSolutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var (updates, _) = await _workspaceService.EmitSolutionUpdateAsync(solution, _nullSolutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-            return new DotNetWatchManagedModuleUpdatesWrapper(in results.ModuleUpdates);
+            var forwardingUpdates = new DotNetWatchManagedModuleUpdates(
+                (DotNetWatchManagedModuleUpdateStatus)updates.Status,
+                ImmutableArray.CreateRange(updates.Updates, u => new DotNetWatchManagedModuleUpdate(u.Module, u.ILDelta, u.MetadataDelta, u.PdbDelta, u.UpdatedMethods)));
+
+            return (forwardingUpdates);
         }
     }
 }
