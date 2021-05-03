@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext)
+            : base(threadingContext, assertIsForeground: false)
         {
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
