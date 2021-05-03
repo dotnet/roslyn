@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                         notificationService,
                         listenerProvider));
 
-                var codeModel = FileCodeModel.Create(state, null, document, new MockTextManagerAdapter()).Handle;
+                var codeModel = FileCodeModel.Create(state, listenerProvider.GetListener(FeatureAttribute.CodeModel), null, document, new MockTextManagerAdapter()).Handle;
 
                 return (workspace, visualStudioWorkspaceMock, codeModel);
             }

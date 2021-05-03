@@ -6,11 +6,10 @@
 
 using System;
 using System.Collections.Generic;
-using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -22,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     {
         private readonly NonReentrantLock _guard = new NonReentrantLock();
         private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly ProjectId _projectId;
         private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
@@ -30,9 +30,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private CodeModelProjectCache _codeModelCache;
 
-        public ProjectCodeModel(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspace visualStudioWorkspace, IServiceProvider serviceProvider, ProjectCodeModelFactory projectCodeModelFactory)
+        public ProjectCodeModel(IThreadingContext threadingContext, IAsynchronousOperationListener listener, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspace visualStudioWorkspace, IServiceProvider serviceProvider, ProjectCodeModelFactory projectCodeModelFactory)
         {
             _threadingContext = threadingContext;
+            _listener = listener;
             _projectId = projectId;
             _codeModelInstanceFactory = codeModelInstanceFactory;
             _visualStudioWorkspace = visualStudioWorkspace;
@@ -59,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                     if (workspaceProject != null)
                     {
-                        _codeModelCache = new CodeModelProjectCache(_threadingContext, _projectId, _codeModelInstanceFactory, _projectCodeModelFactory, _serviceProvider, workspaceProject.LanguageServices, _visualStudioWorkspace);
+                        _codeModelCache = new CodeModelProjectCache(_threadingContext, _listener, _projectId, _codeModelInstanceFactory, _projectCodeModelFactory, _serviceProvider, workspaceProject.LanguageServices, _visualStudioWorkspace);
                     }
                 }
 

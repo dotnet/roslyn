@@ -82,25 +82,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return System.Threading.Tasks.Task.CompletedTask;
 
-            bool FireEventsForDocument(DocumentId documentId)
+            void FireEventsForDocument(DocumentId documentId)
             {
                 // If we've been asked to shutdown, don't bother reporting any more events.
                 if (_threadingContext.DisposalToken.IsCancellationRequested)
-                    return false;
+                    return;
 
                 var projectCodeModel = this.TryGetProjectCodeModel(documentId.ProjectId);
                 if (projectCodeModel == null)
-                    return false;
+                    return;
 
                 var filename = _visualStudioWorkspace.GetFilePath(documentId);
                 if (filename == null)
-                    return false;
+                    return;
 
                 if (!projectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
-                    return false;
+                    return;
 
                 var codeModel = fileCodeModelHandle.Object;
-                return codeModel.FireEvents();
+                codeModel.FireEvents();
+                return;
             }
         }
 
@@ -146,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public IProjectCodeModel CreateProjectCodeModel(ProjectId id, ICodeModelInstanceFactory codeModelInstanceFactory)
         {
-            var projectCodeModel = new ProjectCodeModel(_threadingContext, id, codeModelInstanceFactory, _visualStudioWorkspace, _serviceProvider, this);
+            var projectCodeModel = new ProjectCodeModel(_threadingContext, _listener, id, codeModelInstanceFactory, _visualStudioWorkspace, _serviceProvider, this);
             if (!_projectCodeModels.TryAdd(id, projectCodeModel))
             {
                 throw new InvalidOperationException($"A {nameof(IProjectCodeModel)} has already been created for project with ID {id}");
