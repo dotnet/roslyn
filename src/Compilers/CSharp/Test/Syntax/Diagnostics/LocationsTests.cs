@@ -264,6 +264,29 @@ class X {}
             }, syntaxTree.GetLineMappings(default).Select(mapping => $"[|{text.GetSubText(text.Lines.GetTextSpan(mapping.Span))}|] -> {mapping.MappedSpan}"));
         }
 
+        [Fact]
+        public void TestLineMappingConsecutiveDirectives()
+        {
+            string sampleProgram =
+@"#line hidden
+#line default
+class C {}
+#line 5
+#line 6
+class D {}
+".NormalizeLineEndings();
+
+            var syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "c:\\goo.cs");
+
+            var text = syntaxTree.GetText();
+
+            AssertEx.Equal(new[]
+            {
+                "[|class C {}\r\n|] -> : (2,0)-(2,12)",
+                "[|class D {}\r\n|] -> : (5,0)-(6,0)",
+            }, syntaxTree.GetLineMappings(default).Select(mapping => $"[|{text.GetSubText(text.Lines.GetTextSpan(mapping.Span))}|] -> {mapping.MappedSpan}"));
+        }
+
         [WorkItem(537005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537005")]
         [Fact]
         public void TestMissingTokenAtEndOfLine()
