@@ -69,12 +69,57 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property FormatOnPaste As Boolean
+            Get
+                Return GetBooleanOption(FeatureOnOffOptions.FormatOnPaste)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(FeatureOnOffOptions.FormatOnPaste, value)
+            End Set
+        End Property
+
         Public Property PrettyListing As Boolean
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.PrettyListing)
             End Get
             Set(value As Boolean)
                 SetBooleanOption(FeatureOnOffOptions.PrettyListing, value)
+            End Set
+        End Property
+
+        Public Property NavigateToDecompiledSources As Boolean
+            Get
+                Return GetBooleanOption(FeatureOnOffOptions.NavigateToDecompiledSources)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(FeatureOnOffOptions.NavigateToDecompiledSources, value)
+            End Set
+        End Property
+
+        Public Property UseEnhancedColorsForManagedLanguages As Integer
+            Get
+                Return GetIntegerOption(FeatureOnOffOptions.UseEnhancedColors)
+            End Get
+            Set(value As Integer)
+                SetIntegerOption(FeatureOnOffOptions.UseEnhancedColors, value)
+            End Set
+        End Property
+
+        Public Property AddImportsOnPaste As Integer
+            Get
+                Return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste)
+            End Get
+            Set(value As Integer)
+                SetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste, value)
+            End Set
+        End Property
+
+        Public Property OfferRemoveUnusedReferences As Integer
+            Get
+                Return GetBooleanOption(FeatureOnOffOptions.OfferRemoveUnusedReferences)
+            End Get
+            Set(value As Integer)
+                SetBooleanOption(FeatureOnOffOptions.OfferRemoveUnusedReferences, value)
             End Set
         End Property
     End Class

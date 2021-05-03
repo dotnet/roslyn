@@ -78,6 +78,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property Style_PreferObjectInitializer_FadeOutCode As Boolean
+            Get
+                Return GetBooleanOption(CodeStyleOptions2.PreferObjectInitializer_FadeOutCode)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(CodeStyleOptions2.PreferObjectInitializer_FadeOutCode, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferCollectionInitializer_FadeOutCode As Boolean
+            Get
+                Return GetBooleanOption(CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferSimplifiedBooleanExpressions As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.PreferSimplifiedBooleanExpressions)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, value)
+            End Set
+        End Property
+
         Public Property Style_PreferCoalesceExpression As String
             Get
                 Return GetXmlOption(CodeStyleOptions2.PreferCoalesceExpression)
@@ -93,6 +120,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
             Set(value As String)
                 SetXmlOption(CodeStyleOptions2.PreferNullPropagation, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferAutoProperties As String
+            Get
+                Return GetXmlOption(CodeStyleOptions2.PreferAutoProperties)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions2.PreferAutoProperties, value)
             End Set
         End Property
 
@@ -122,6 +158,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 SetXmlOption(CodeStyleOptions2.PreferExplicitTupleNames, value)
             End Set
         End Property
+
+        ' TODO: More options are missing.
+        ' TODO: This has never included any of the VB-specific code style options. Was there a reason?
 
         Public Property Style_PreferReadonly As String
             Get

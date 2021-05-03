@@ -14,5 +14,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 SetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst, value)
             End Set
         End Property
+
+        Public Property Option_SeparateImportDirectiveGroups As Boolean
+            Get
+                Return GetBooleanOption(GenerationOptions.SeparateImportDirectiveGroups)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(GenerationOptions.SeparateImportDirectiveGroups, value)
+            End Set
+        End Property
     End Class
 End Namespace
