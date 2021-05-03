@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             _symbolSearchService = symbolSearchService;
         }
 
+        internal override bool IsHighPriority => true;
+
         public sealed override FixAllProvider GetFixAllProvider()
         {
             // Currently Fix All is not supported for this provider

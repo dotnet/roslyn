@@ -34,5 +34,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public virtual FixAllProvider? GetFixAllProvider()
             => null;
+
+        /// <summary>
+        /// If this is a high-priority code fix provider that should run and display results in a client
+        /// prior to running the non-high-priority code fix providers.
+        /// </summary>
+        internal virtual bool IsHighPriority => false;
     }
 }

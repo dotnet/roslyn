@@ -17,6 +17,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </summary>
         public abstract Task ComputeRefactoringsAsync(CodeRefactoringContext context);
 
+        /// <summary>
+        /// If this is a high-priority refactoring that should run and display results in a client
+        /// prior to running the non-high-priority refactorings.
+        /// </summary>
         internal virtual bool IsHighPriority => false;
     }
 }

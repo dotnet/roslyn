@@ -40,5 +40,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             return Task.CompletedTask;
         }
+
+        /// <summary>
+        /// This is a high priority refactoring that we want to run first so that the user can quickly
+        /// change the name of something and pop up the lightbulb without having to wait for the rest to
+        /// compute.
+        /// </summary>
+        internal override bool IsHighPriority => true;
     }
 }

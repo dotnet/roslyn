@@ -32,5 +32,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// This indicates whether this built-in analyzer will only run on opened files.
         /// </summary>
         bool OpenFileOnly(OptionSet options);
+
+        /// <summary>
+        /// If this is a high-priority analyzer that should run and display results in a client
+        /// prior to running the non-high-priority analyzer.
+        /// </summary>
+        bool IsHighPriority { get; }
     }
 }
