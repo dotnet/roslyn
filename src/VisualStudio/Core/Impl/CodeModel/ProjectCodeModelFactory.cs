@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // have, we wait 50ms before continuing.  These constants are just what we defined from
             // legacy, and otherwise have no special meaning.
             const int MaxTimeSlice = 15;
-            const int DelayBetweenProcessing = 50;
+            var delayBetweenProcessing = TimeSpan.FromMilliseconds(50);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     // of waiting time, and there's no user input that should take precedence.
                     if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IsInputPending())
                     {
-                        await _listener.Delay(DelayBetweenProcessing, cancellationToken).ConfigureAwait(true);
+                        await _listener.Delay(delayBetweenProcessing, cancellationToken).ConfigureAwait(true);
                         stopwatch = SharedStopwatch.StartNew();
                     }
                 }
