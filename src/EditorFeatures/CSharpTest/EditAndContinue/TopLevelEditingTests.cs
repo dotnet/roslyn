@@ -507,7 +507,7 @@ namespace N
                 "Update [[A1]class C { }]@98 -> [[A2]class C { }]@98");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A2", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -522,7 +522,7 @@ namespace N
                 "Update [[System.Obsolete(\"1\")]class C { }]@0 -> [[System.Obsolete(\"2\")]class C { }]@0");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(\"2\")", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -540,7 +540,7 @@ namespace N
                 "Update [[A, B]class C { }]@96 -> [[A]class C { }]@96");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "class C", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -596,7 +596,7 @@ namespace N
                 "Update [[A]class C { }]@96 -> [[A, B]class C { }]@96");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "B", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -613,7 +613,7 @@ namespace N
                 "Update [class C { }]@48 -> [[A]class C { }]@48");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -659,7 +659,7 @@ namespace N
                 "Update [[System.Obsolete(\"1\"), A, B]class C { }]@96 -> [[A, B, System.Obsolete(\"2\")]class C { }]@96");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(\"2\")", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
         }
 
         #endregion
@@ -2775,7 +2775,7 @@ record C(int X)
                 "Update [enum E { }]@48 -> [[A]enum E { }]@48");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "enum E", FeaturesResources.enum_));
         }
 
         [Fact]
@@ -2792,7 +2792,7 @@ record C(int X)
                 "Update [[A]X]@57 -> [X]@57");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "X", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "X", FeaturesResources.enum_value));
         }
 
         [Fact]
@@ -2809,7 +2809,7 @@ record C(int X)
                 "Update [X]@57 -> [[A]X]@57");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "[A]X", FeaturesResources.enum_value));
         }
 
         [Fact]
@@ -2827,7 +2827,7 @@ record C(int X)
                 "Update [[A1]X]@107 -> [[A2]X]@107");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A2", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "[A2]X", FeaturesResources.enum_value));
         }
 
         [Fact]
@@ -3363,7 +3363,7 @@ record C(int X)
                 "Update [int a]@70 -> [[A]int a]@70");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -3491,7 +3491,7 @@ record C(int X)
                 "Update [T]@70 -> [[A]T]@70");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -3508,7 +3508,7 @@ record C(int X)
                 "Update [public delegate int D(int a);]@48 -> [[A]public delegate int D(int a);]@48");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "public delegate int D(int a)", FeaturesResources.delegate_));
         }
 
         [Fact]
@@ -3544,7 +3544,7 @@ record C(int X)
                 "Update [public delegate int D(int a);]@48 -> [[return:A]public delegate int D(int a);]@48");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "public delegate int D(int a)", FeaturesResources.delegate_));
         }
 
         [Fact]
@@ -6068,7 +6068,7 @@ class Test
     }]@38");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Obsolete", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
         }
 
         [Fact]
@@ -6107,7 +6107,7 @@ class Test
     }]@38");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Obsolete", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
         }
 
         [Fact]
@@ -6179,7 +6179,7 @@ class Test
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
         }
 
         [Fact]
@@ -6211,7 +6211,7 @@ class Test
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
         }
 
         [Fact]
@@ -6241,8 +6241,7 @@ class Test
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Obsolete", FeaturesResources.attribute),
-                 Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "Serializable", FeaturesResources.attribute));
+                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
         }
 
         [Fact]
@@ -6273,7 +6272,7 @@ class Test
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, @"Obsolete("""")", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
         }
 
         [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
@@ -6304,7 +6303,7 @@ class Test
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
         }
 
         [Fact]
@@ -6335,7 +6334,7 @@ class Test
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
         }
 
         [Fact]
@@ -6367,7 +6366,7 @@ class Test
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
         }
 
         [Fact]
@@ -10835,7 +10834,7 @@ class C
                 "Update [public int a = 1, x = 1;]@18 -> [[System.Obsolete]public int a = 1, x = 1;]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a = 1", FeaturesResources.field));
         }
 
         [Fact]
@@ -10858,7 +10857,7 @@ class C
                 "Update [public int a = 1;]@18 -> [[System.Obsolete]public int a = 1;]@18");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a = 1", FeaturesResources.field));
         }
 
         [Fact]
@@ -11335,7 +11334,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int P", FeaturesResources.auto_property));
         }
 
         [Fact]
@@ -11364,7 +11363,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "get", CSharpFeaturesResources.property_getter));
         }
 
         [Fact]
@@ -11376,7 +11375,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "set", CSharpFeaturesResources.property_setter));
         }
 
         [Fact]
@@ -13119,7 +13118,7 @@ public class C
             edits.VerifyEdits(
                 "Update [int a]@72 -> [[A]int a]@72");
 
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -13136,7 +13135,7 @@ public class C
             edits.VerifyEdits(
                 "Update [[A]int a]@120 -> [[A, B]int a]@120");
 
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "B", FeaturesResources.attribute));
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -13152,7 +13151,7 @@ public class C
             edits.VerifyEdits(
                 "Update [[A]int a]@72 -> [int a]@72");
 
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "int a", FeaturesResources.attribute));
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -13170,8 +13169,7 @@ public class C
                 "Update [[System.Obsolete(\"1\"), B]int a]@120 -> [[System.Obsolete(\"2\"), A]int a]@120");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(\"2\")", FeaturesResources.attribute),
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
         }
 
         #endregion
@@ -13275,7 +13273,7 @@ public class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method),
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -13294,7 +13292,7 @@ public class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method),
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "B", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -13312,7 +13310,7 @@ public class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method),
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "T", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -13330,8 +13328,7 @@ public class C
                 "Update [[System.Obsolete(\"1\"), B]T]@120 -> [[System.Obsolete(\"2\"), A]T]@120");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(\"2\")", FeaturesResources.attribute),
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         #endregion
@@ -13459,7 +13456,7 @@ public class C
                 "Update [T]@56 -> [[A]T]@56");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -13477,7 +13474,7 @@ public class C
                 "Update [[A]T]@104 -> [[A, B]T]@104");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "B", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -13494,7 +13491,7 @@ public class C
                 "Update [[A]T]@56 -> [T]@56");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.DeleteNotSupportedByRuntime, "T", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -13512,8 +13509,7 @@ public class C
                 "Update [[System.Obsolete(\"1\"), B]T]@104 -> [[System.Obsolete(\"2\"), A]T]@104");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "System.Obsolete(\"2\")", FeaturesResources.attribute),
-                Diagnostic(RudeEditKind.UpdateNotSupportedByRuntime, "A", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         #endregion
