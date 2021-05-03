@@ -40,10 +40,22 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         IPropertyReferenceOperation => VisitReferenceAsync(operation, cancellationToken),
 
                     IAssignmentOperation assignmentOperation => VisitAssignmentOperationAsync(assignmentOperation, cancellationToken),
+                    IMethodBodyOperation methodBodyOperation => VisitReturnDescendentsAsync(methodBodyOperation, allowImplicit: true, cancellationToken),
+                    IBlockOperation blockOperation => VisitReturnDescendentsAsync(blockOperation, allowImplicit: false, cancellationToken),
 
                     // Default to reporting if there is symbol information available
                     _ => VisitDefaultAsync(operation, cancellationToken)
                 };
+
+            private async Task VisitReturnDescendentsAsync(IOperation operation, bool allowImplicit, CancellationToken cancellationToken)
+            {
+                var returnOperations = operation.Descendants().Where(d => d is IReturnOperation && (allowImplicit || !d.IsImplicit));
+                foreach (var returnOperation in returnOperations)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await VisitAsync(returnOperation, cancellationToken).ConfigureAwait(false);
+                }
+            }
 
             private async Task VisitDefaultAsync(IOperation operation, CancellationToken cancellationToken)
             {
