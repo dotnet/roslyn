@@ -567,11 +567,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// TODO: remove (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1310859)
         /// </summary>
         /// <returns>
-<<<<<<< HEAD
-        /// True if the instruction is located within an exception region, false if it is not, null if the instruction isn't an active statement
-=======
         /// True if the instruction is located within an exception region, false if it is not, null if the instruction isn't an active statement in a changed method 
->>>>>>> 21ccf1e911f (EnC support for line mappings)
         /// or the exception regions can't be determined.
         /// </returns>
         public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
