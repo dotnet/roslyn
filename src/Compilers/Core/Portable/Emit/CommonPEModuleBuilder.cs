@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Emit
         internal DebugInformationFormat DebugInformationFormat => EmitOptions.DebugInformationFormat;
         internal HashAlgorithmName PdbChecksumAlgorithm => EmitOptions.PdbChecksumAlgorithm;
 
-#nullable enable
         public CommonPEModuleBuilder(
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions emitOptions,
@@ -71,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Emit
             _methodBodyMap = new ConcurrentDictionary<IMethodSymbolInternal, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
             EmitOptions = emitOptions;
         }
-#nullable disable
 
         /// <summary>
         /// EnC generation.
@@ -302,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Emit
             uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out bool added);
             if (added)
             {
-                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, rebuildDataOpt: null, diagnostics, metadataOnly: false, includePrivateMembers: true));
+                ReferenceDependencyWalker.VisitReference(symbol, new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true));
             }
             return token;
         }
@@ -312,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Emit
             uint token = _referencesInILMap.GetOrAddTokenFor(symbol, out bool added);
             if (added)
             {
-                ReferenceDependencyWalker.VisitSignature(symbol, new EmitContext(this, syntaxNode, rebuildDataOpt: null, diagnostics, metadataOnly: false, includePrivateMembers: true));
+                ReferenceDependencyWalker.VisitSignature(symbol, new EmitContext(this, syntaxNode, diagnostics, metadataOnly: false, includePrivateMembers: true));
             }
             return token;
         }
@@ -488,7 +486,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
-#nullable enable
         protected PEModuleBuilder(
             TCompilation compilation,
             TSourceModuleSymbol sourceModule,
@@ -506,7 +503,6 @@ namespace Microsoft.CodeAnalysis.Emit
             SourceModule = sourceModule;
             this.CompilationState = compilationState;
         }
-#nullable disable
 
         internal sealed override void CompilationFinished()
         {

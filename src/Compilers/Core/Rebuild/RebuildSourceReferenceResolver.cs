@@ -3,12 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.IO;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection.Metadata;
-using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rebuild
 {
@@ -65,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Rebuild
             return null;
         }
 
-        public override Stream OpenRead(string resolvedPath) => throw new NotImplementedException();
+        public override Stream OpenRead(string resolvedPath) => throw ExceptionUtilities.Unreachable;
 
-        public override string? ResolveReference(string path, string? baseFilePath) => throw new NotImplementedException();
+        public override string? ResolveReference(string path, string? baseFilePath) => throw ExceptionUtilities.Unreachable;
     }
 
 }
