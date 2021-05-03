@@ -266,7 +266,6 @@ class B : A
             var completionList = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName,
                 completionParams, clientCapabilities, null, CancellationToken.None);
 
-
             // Emulate client behavior of promoting "Data" completion list properties onto completion items.
             if (clientCapabilities.HasCompletionListDataCapability() &&
                 completionList is VSCompletionList vsCompletionList &&

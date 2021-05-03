@@ -371,10 +371,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     commitCharacterReferences[commitCharacters] = existingCount;
                 }
 
-                if (mostUsedCommitCharacters == null)
-                {
-                    return;
-                }
+                Contract.ThrowIfNull(mostUsedCommitCharacters);
 
                 // Promoted the most used commit characters onto the list and then remove these from child items.
                 completionList.CommitCharacters = mostUsedCommitCharacters;
@@ -464,17 +461,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         return false;
                     }
 
-                    var charactersX = x[i].Characters;
-                    var charactersY = y[i].Characters;
-
-                    if (charactersX.Length != charactersY.Length)
+                    var xCharacters = x[i].Characters;
+                    var yCharacters = y[i].Characters;
+                    if (xCharacters.Length != yCharacters.Length)
                     {
                         return false;
                     }
 
-                    for (var j = 0; j < charactersX.Length; j++)
+                    for (var j = 0; j < xCharacters.Length; j++)
                     {
-                        if (charactersX[j] != charactersY[j])
+                        if (xCharacters[j] != yCharacters[j])
                         {
                             return false;
                         }

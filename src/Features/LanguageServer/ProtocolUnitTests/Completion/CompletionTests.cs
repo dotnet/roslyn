@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
     {
 
         [Fact]
-        public async Task TestGetCompletionsAsync_PromotesComitCharctersToListAsync()
+        public async Task TestGetCompletionsAsync_PromotesCommitCharactersToListAsync()
         {
             var clientCapabilities = new LSP.VSClientCapabilities
             {
