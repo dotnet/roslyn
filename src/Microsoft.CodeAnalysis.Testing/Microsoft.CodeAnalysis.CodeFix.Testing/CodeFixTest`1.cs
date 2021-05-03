@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public override async Task RunAsync(CancellationToken cancellationToken = default)
+        protected override async Task RunImplAsync(CancellationToken cancellationToken)
         {
             Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
 

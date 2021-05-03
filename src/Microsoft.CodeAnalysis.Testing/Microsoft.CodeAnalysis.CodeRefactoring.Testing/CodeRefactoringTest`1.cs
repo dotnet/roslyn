@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>The <see cref="CodeRefactoringProvider"/> to be used.</returns>
         protected abstract IEnumerable<CodeRefactoringProvider> GetCodeRefactoringProviders();
 
-        public override async Task RunAsync(CancellationToken cancellationToken = default)
+        protected override async Task RunImplAsync(CancellationToken cancellationToken)
         {
             Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
 
