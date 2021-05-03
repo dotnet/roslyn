@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -138,6 +139,124 @@ End Class
             Assert.Equal(2, initialItems.Length);
             ValidateItem(initialItems[0], 3);
             ValidateItem(initialItems[1], 2);
+        }
+
+        [Fact]
+        public async Task TestVariableReferenceStart()
+        {
+            var code =
+@"
+Class Test
+    Public Sub M()
+        Dim x = GetM()
+        Console.Write(x)
+        Dim y = $$x + 1
+    End Sub
+
+    Public Function GetM() As Integer
+        Dim x = 0
+        Return x
+    End Function
+End Class";
+
+            //
+            //  |> Dim y = x + 1 [Code.cs:7]
+            //    |> Dim x = GetM() [Code.cs:5]
+            //      |> Return x; [Code.cs:13]
+            //        |> Dim x = 0; [Code.cs:12]
+            using var workspace = TestWorkspace.CreateVisualBasic(code);
+
+            var items = await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (5, "x") // |> Dim y = [|x|] + 1; [Code.cs:7]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (3, "GetM()") // |> Dim x = [|GetM()|] [Code.cs:5]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (10, "x") // |> return [|x|]; [Code.cs:13]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (9, "0") // |> var x = [|0|]; [Code.cs:12]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, items.Single());
+        }
+
+        [Fact]
+        public async Task TestVariableReferenceStart2()
+        {
+            var code =
+@"
+Class Test
+    Public Sub M()
+        Dim x = GetM()
+        Console.Write($$x)
+        Dim y = x + 1
+    End Sub
+
+    Public Function GetM() As Integer
+        Dim x = 0
+        Return x
+    End Function
+End Class";
+
+            //
+            //  |> Dim y = x + 1 [Code.cs:7]
+            //    |> Dim x = GetM() [Code.cs:5]
+            //      |> Return x; [Code.cs:13]
+            //        |> Dim x = 0; [Code.cs:12]
+            using var workspace = TestWorkspace.CreateVisualBasic(code);
+
+            var items = await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (4, "x") // |> Dim y = [|x|] + 1; [Code.cs:7]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (3, "GetM()") // |> Dim x = [|GetM()|] [Code.cs:5]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (10, "x") // |> return [|x|]; [Code.cs:13]
+                });
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (9, "0") // |> var x = [|0|]; [Code.cs:12]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
     }
 }

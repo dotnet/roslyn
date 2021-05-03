@@ -243,46 +243,23 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     var node = location.FindNode(cancellationToken);
                     var sourceDoc = collector.Solution.GetRequiredDocument(location.SourceTree);
                     var syntaxFacts = sourceDoc.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var returnStatements = node.DescendantNodesAndSelf().Where(n => syntaxFacts.IsReturnStatement(n)).ToImmutableArray();
                     var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                    if (returnStatements.IsDefaultOrEmpty)
+                    var operation = semanticModel.GetOperation(node, cancellationToken);
+
+                    // In VB the parent node contains the operation (IBlockOperation) instead of the one returned
+                    // by the symbol location.
+                    if (operation is null && node.Parent is not null)
                     {
-                        // If there are no return statements and the method has a return type, then the method body is an expression
-                        // and we're interested in parsing that expression
-                        var expression = node.DescendantNodesAndSelf().First(syntaxFacts.IsMethodBody);
-                        if (expression is null)
-                        {
-                            return;
-                        }
-
-                        var operation = semanticModel.GetOperation(expression, cancellationToken);
-                        if (operation is null)
-                        {
-                            continue;
-                        }
-
-                        await collector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
+                        operation = semanticModel.GetOperation(node.Parent, cancellationToken);
                     }
-                    else
+
+                    if (operation is null)
                     {
-                        foreach (var returnStatement in returnStatements)
-                        {
-                            var expression = syntaxFacts.GetExpressionOfReturnStatement(returnStatement);
-                            if (expression is null)
-                            {
-                                continue;
-                            }
-
-                            var operation = semanticModel.GetOperation(expression, cancellationToken);
-                            if (operation is null)
-                            {
-                                continue;
-                            }
-
-                            await collector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
-                        }
+                        continue;
                     }
+
+                    await collector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
                 }
             }
 
