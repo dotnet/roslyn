@@ -417,7 +417,7 @@
         <target state="new">record</target>
         <note />
       </trans-unit>
-      <trans-unit id="recordstruct">
+      <trans-unit id="record_struct">
         <source>record struct</source>
         <target state="new">record struct</target>
         <note />

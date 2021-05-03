@@ -1779,7 +1779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.record_;
 
                 case SyntaxKind.RecordStructDeclaration:
-                    return CSharpFeaturesResources.recordstruct;
+                    return CSharpFeaturesResources.record_struct;
 
                 case SyntaxKind.EnumDeclaration:
                     return FeaturesResources.enum_;
