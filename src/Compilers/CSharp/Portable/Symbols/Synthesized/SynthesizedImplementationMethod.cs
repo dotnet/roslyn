@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _name; }
         }
 
-        internal sealed override bool HasSpecialName
+        internal override bool HasSpecialName
         {
             get { return _interfaceMethod.HasSpecialName; }
         }

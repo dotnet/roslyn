@@ -46,5 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override bool IsStatic => _implementingMethod.IsStatic;
+
+        internal override bool HasSpecialName => false;
+
+        internal sealed override bool HasRuntimeSpecialName => false;
     }
 }

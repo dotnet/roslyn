@@ -742,9 +742,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.OperatorDeclaration:
                     anyNonTypeMembers = true;
+
+                    // Member names are exposed via NamedTypeSymbol.MemberNames and are used primarily
+                    // as an acid test to determine whether a more in-depth search of a type is worthwhile.
+                    // We decided that it was reasonable to exclude explicit interface implementations
+                    // from the list of member names.
                     var opDecl = (Syntax.InternalSyntax.OperatorDeclarationSyntax)member;
-                    var name = OperatorFacts.OperatorNameFromDeclaration(opDecl);
-                    set.Add(name);
+
+                    if (opDecl.ExplicitInterfaceSpecifier == null)
+                    {
+                        var name = OperatorFacts.OperatorNameFromDeclaration(opDecl);
+                        set.Add(name);
+                    }
+
                     break;
 
                 case SyntaxKind.ConversionOperatorDeclaration:

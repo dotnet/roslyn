@@ -16,9 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private const TypeCompareKind ComparisonForUserDefinedOperators = TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
         private readonly string _name;
         private readonly bool _isExpressionBodied;
+#nullable enable
+        private readonly TypeSymbol? _explicitInterfaceType;
+#nullable disable
 
         protected SourceUserDefinedOperatorSymbolBase(
             MethodKind methodKind,
+            TypeSymbol explicitInterfaceType,
             string name,
             SourceMemberContainerTypeSymbol containingType,
             Location location,
@@ -31,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), location, isIterator: isIterator)
         {
+            _explicitInterfaceType = explicitInterfaceType;
             _name = name;
             _isExpressionBodied = isExpressionBodied;
 
@@ -61,7 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // SPEC: An operator declaration must include both a public and a
             // SPEC: static modifier
-            if (this.DeclaredAccessibility != Accessibility.Public || !this.IsStatic)
+            if (this.IsExplicitInterfaceImplementation)
+            {
+                if (!this.IsStatic)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, this.Locations[0], this);
+                }
+            }
+            else if (this.DeclaredAccessibility != Accessibility.Public || !this.IsStatic)
             {
                 // CS0558: User-defined operator '...' must be declared static and public
                 diagnostics.Add(ErrorCode.ERR_OperatorsMustBeStatic, this.Locations[0], this);
@@ -104,18 +116,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected static DeclarationModifiers MakeDeclarationModifiers(bool inInterface, BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
+        protected static DeclarationModifiers MakeDeclarationModifiers(MethodKind methodKind, bool inInterface, BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
         {
-            var defaultAccess = inInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
+            var defaultAccess = inInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
             var allowedModifiers =
-                DeclarationModifiers.AccessibilityMask |
                 DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
 
-            if (inInterface)
+            if (!isExplicitInterfaceImplementation)
             {
-                allowedModifiers |= DeclarationModifiers.Abstract | DeclarationModifiers.Sealed;
+                allowedModifiers |= DeclarationModifiers.AccessibilityMask;
+
+                if (inInterface)
+                {
+                    allowedModifiers |= DeclarationModifiers.Abstract | DeclarationModifiers.Sealed;
+                }
             }
 
             var result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
@@ -247,10 +264,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
         {
+            if (_explicitInterfaceType is object)
+            {
+                var syntax = (OperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+                return this.FindExplicitlyImplementedMethod(isOperator: true, _explicitInterfaceType, OperatorFacts.OperatorNameFromDeclaration(syntax), syntax.ExplicitInterfaceSpecifier, diagnostics);
+            }
+
             return null;
         }
 
-        protected sealed override TypeSymbol ExplicitInterfaceType => null;
+        protected sealed override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
 
         private void CheckValueParameters(BindingDiagnosticBag diagnostics)
         {
@@ -267,6 +290,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckOperatorSignatures(BindingDiagnosticBag diagnostics)
         {
+            if (MethodKind == MethodKind.ExplicitInterfaceImplementation)
+            {
+                // The signature is driven by the interface
+                return;
+            }
+
             // Have we even got the right formal parameter arity? If not then 
             // we are in an error recovery scenario and we should just bail 
             // out immediately.
@@ -713,6 +742,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
+            if ((object)_explicitInterfaceType != null)
+            {
+                var syntax = (OperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+                Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
+                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
+            }
         }
 
         protected sealed override void PartialMethodChecks(BindingDiagnosticBag diagnostics)

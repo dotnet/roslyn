@@ -6645,4 +6645,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember" xml:space="preserve">
     <value>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</value>
   </data>
+  <data name="ERR_ExplicitImplementationOfOperatorsMustBeStatic" xml:space="preserve">
+    <value>Explicit implementation of a user-defined operator '{0}' must be declared static</value>
+  </data>
 </root>
