@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private async System.Threading.Tasks.Task ProcessNextDocumentBatchAsync(
             ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
-            // This logic preserves teh previous behavior we had with IForegroundNotificationService.
+            // This logic preserves the previous behavior we had with IForegroundNotificationService.
             // Specifically, we don't run on the UI thread for more than 15ms at a time.  And once we 
             // have, we wait 50ms before continuing.  These constants are just what we defined from
             // legacy, and otherwise have no special meaning.
