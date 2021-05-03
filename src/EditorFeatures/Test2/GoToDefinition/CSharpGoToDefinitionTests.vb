@@ -2,119 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
-Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
-Imports Microsoft.CodeAnalysis.Navigation
-Imports Microsoft.VisualStudio.Text
-
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <[UseExportProvider]>
-    Public Class GoToDefinitionTests
-        Friend Shared Sub Test(
-                workspaceDefinition As XElement,
-                expectedResult As Boolean,
-                executeOnDocument As Func(Of Document, Integer, IThreadingContext, IStreamingFindUsagesPresenter, Boolean))
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=GoToTestHelpers.Composition)
-                Dim solution = workspace.CurrentSolution
-                Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
-                Dim cursorPosition = cursorDocument.CursorPosition.Value
-
-                ' Set up mocks. The IDocumentNavigationService should be called if there is one,
-                ' location and the INavigableItemsPresenter should be called if there are
-                ' multiple locations.
-
-                ' prepare a notification listener
-                Dim textView = cursorDocument.GetTextView()
-                Dim textBuffer = textView.TextBuffer
-                textView.Caret.MoveTo(New SnapshotPoint(textBuffer.CurrentSnapshot, cursorPosition))
-
-                Dim cursorBuffer = cursorDocument.GetTextBuffer()
-                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
-
-                Dim mockDocumentNavigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
-                Dim mockSymbolNavigationService = DirectCast(workspace.Services.GetService(Of ISymbolNavigationService)(), MockSymbolNavigationService)
-
-                Dim presenterCalled As Boolean = False
-                Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
-                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
-                Dim actualResult = executeOnDocument(document, cursorPosition, threadingContext, presenter)
-
-                Assert.Equal(expectedResult, actualResult)
-
-                Dim expectedLocations As New List(Of FilePathAndSpan)
-
-                For Each testDocument In workspace.Documents
-                    For Each selectedSpan In testDocument.SelectedSpans
-                        expectedLocations.Add(New FilePathAndSpan(testDocument.FilePath, selectedSpan))
-                    Next
-                Next
-
-                expectedLocations.Sort()
-
-                Dim context = presenter.Context
-                If expectedResult Then
-                    If expectedLocations.Count = 0 Then
-                        ' if there is not expected locations, it means symbol navigation is used
-                        Assert.True(mockSymbolNavigationService._triedNavigationToSymbol)
-                        Assert.Null(mockDocumentNavigationService._documentId)
-                        Assert.False(presenterCalled)
-                    Else
-                        Assert.False(mockSymbolNavigationService._triedNavigationToSymbol)
-
-                        If mockDocumentNavigationService._triedNavigationToSpan Then
-                            Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService._documentId)
-                            Assert.Single(definitionDocument.SelectedSpans)
-                            Assert.Equal(definitionDocument.SelectedSpans.Single(), mockDocumentNavigationService._span)
-
-                            ' The INavigableItemsPresenter should not have been called
-                            Assert.False(presenterCalled)
-                        Else
-                            Assert.False(mockDocumentNavigationService._triedNavigationToPosition)
-                            Assert.False(mockDocumentNavigationService._triedNavigationToLineAndOffset)
-                            Assert.True(presenterCalled)
-
-                            Dim actualLocations As New List(Of FilePathAndSpan)
-
-                            Dim items = context.GetDefinitions()
-
-                            For Each location In items
-                                For Each docSpan In location.SourceSpans
-                                    actualLocations.Add(New FilePathAndSpan(docSpan.Document.FilePath, docSpan.SourceSpan))
-                                Next
-                            Next
-
-                            actualLocations.Sort()
-                            Assert.Equal(expectedLocations, actualLocations)
-
-                            ' The IDocumentNavigationService should not have been called
-                            Assert.Null(mockDocumentNavigationService._documentId)
-                        End If
-                    End If
-                Else
-                    Assert.False(mockSymbolNavigationService._triedNavigationToSymbol)
-                    Assert.Null(mockDocumentNavigationService._documentId)
-                    Assert.False(presenterCalled)
-                End If
-
-            End Using
-        End Sub
-
-        Private Shared Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
-            Test(workspaceDefinition, expectedResult,
-                Function(document, cursorPosition, threadingContext, presenter)
-                    Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(threadingContext, presenter), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(threadingContext, presenter))
-
-                    Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
-                End Function)
-        End Sub
-
+    Public Class CSharpGoToDefinitionTests
+        Inherits GoToDefinitionTestsBase
 #Region "P2P Tests"
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
@@ -128,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
         class CSharpClass
         {
-            VBCl$$ass vb
+            VB$$Class vb
         }
         </Document>
     </Project>
@@ -217,30 +108,6 @@ class Program
         };
     }
 }        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(3589, "https://github.com/dotnet/roslyn/issues/3589")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToDefinitionOnAnonymousMember()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-public class MyClass1
-    public property [|Prop1|] as integer
-end class
-class Program
-    sub Main()
-        dim instance = new MyClass1()
-
-        dim x as new With { instance.$$Prop1 }
-    end sub
-end class
-        </Document>
     </Project>
 </Workspace>
 
@@ -1714,554 +1581,6 @@ class D
 
 #End Region
 
-#Region "Normal Visual Basic Tests"
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToDefinition()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class [|SomeClass|]
-            End Class
-            Class OtherClass
-                Dim obj As Some$$Class
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
-        Public Sub TestVisualBasicLiteralGoToDefinition()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Dim x as Integer = 12$$3
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        <WorkItem(23030, "https://github.com/dotnet/roslyn/issues/23030")>
-        Public Sub TestVisualBasicStringLiteralGoToDefinition()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Dim x as String = "wo$$ow"
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(541105, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541105")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicPropertyBackingField()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-Class C
-    Property [|P|] As Integer
-    Sub M()
-          Me.$$_P = 10
-    End Sub
-End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToDefinitionSameClass()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class [|SomeClass|]
-                Dim obj As Some$$Class
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToDefinitionNestedClass()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class Outer
-                Class [|Inner|]
-                End Class
-                Dim obj as In$$ner
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGotoDefinitionDifferentFiles()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class OtherClass
-                Dim obj As SomeClass
-            End Class
-        </Document>
-        <Document>
-            Class OtherClass2
-                Dim obj As Some$$Class
-            End Class
-        </Document>
-        <Document>
-            Class [|SomeClass|]
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGotoDefinitionPartialClasses()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            DummyClass
-            End Class
-        </Document>
-        <Document>
-            Partial Class [|OtherClass|]
-                Dim a As Integer
-            End Class
-        </Document>
-        <Document>
-            Partial Class [|OtherClass|]
-                Dim b As Integer
-            End Class
-        </Document>
-        <Document>
-            Class ConsumingClass
-                Dim obj As Other$$Class
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGotoDefinitionMethod()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class [|SomeClass|]
-                Dim x As Integer
-            End Class
-        </Document>
-        <Document>
-            Class ConsumingClass
-                Sub goo()
-                    Dim obj As Some$$Class
-                End Sub
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(900438, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGotoDefinitionPartialMethod()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Partial Class Customer
-                Private Sub [|OnNameChanged|]()
-
-                End Sub
-            End Class
-        </Document>
-        <Document>
-            Partial Class Customer
-                Sub New()
-                    Dim x As New Customer()
-                    x.OnNameChanged$$()
-                End Sub
-                Partial Private Sub OnNameChanged()
-
-                End Sub
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicTouchLeft()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class [|SomeClass|]
-                Dim x As Integer
-            End Class
-        </Document>
-        <Document>
-            Class ConsumingClass
-                Sub goo()
-                    Dim obj As $$SomeClass
-                End Sub
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicTouchRight()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class [|SomeClass|]
-                Dim x As Integer
-            End Class
-        </Document>
-        <Document>
-            Class ConsumingClass
-                Sub goo()
-                    Dim obj As SomeClass$$
-                End Sub
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicMe()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-Class B
-    Sub New()
-    End Sub
-End Class
-
-Class [|C|]
-    Inherits B
-
-    Sub New()
-        MyBase.New()
-        MyClass.Goo()
-        $$Me.Bar()
-    End Sub
-
-    Private Sub Bar()
-    End Sub
-
-    Private Sub Goo()
-    End Sub
-End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicMyClass()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-Class B
-    Sub New()
-    End Sub
-End Class
-
-Class [|C|]
-    Inherits B
-
-    Sub New()
-        MyBase.New()
-        $$MyClass.Goo()
-        Me.Bar()
-    End Sub
-
-    Private Sub Bar()
-    End Sub
-
-    Private Sub Goo()
-    End Sub
-End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(542872, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542872")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicMyBase()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-Class [|B|]
-    Sub New()
-    End Sub
-End Class
-
-Class C
-    Inherits B
-
-    Sub New()
-        $$MyBase.New()
-        MyClass.Goo()
-        Me.Bar()
-    End Sub
-
-    Private Sub Bar()
-    End Sub
-
-    Private Sub Goo()
-    End Sub
-End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOverridenSubDefinition()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class Base
-                Overridable Sub [|Method|]()
-                End Sub
-            End Class
-            Class Derived
-                Inherits Base
-
-                Overr$$ides Sub Method()
-                End Sub
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOverridenFunctionDefinition()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class Base
-                Overridable Function [|Method|]() As Integer
-                    Return 1
-                End Function
-            End Class
-            Class Derived
-                Inherits Base
-
-                Overr$$ides Function Method() As Integer
-                    Return 1
-                End Function
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToOverridenPropertyDefinition()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class Base
-                Overridable Property [|Number|] As Integer
-            End Class
-            Class Derived
-                Inherits Base
-
-                Overr$$ides Property Number As Integer
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-#End Region
-
-#Region "Venus Visual Basic Tests"
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicVenusGotoDefinition()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            #ExternalSource ("Default.aspx", 1)
-            Class [|Program|]
-                Sub Main(args As String())
-                    Dim f As New Pro$$gram()
-                End Sub
-            End Class
-            #End ExternalSource
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicFilterGotoDefResultsFromHiddenCodeForUIPresenters()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class [|Program|]
-                Sub Main(args As String())
-            #ExternalSource ("Default.aspx", 1)
-                    Dim f As New Pro$$gram()
-                End Sub
-            End Class
-            #End ExternalSource
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(545324, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545324")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicDoNotFilterGotoDefResultsFromHiddenCodeForApis()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class [|Program|]
-                Sub Main(args As String())
-            #ExternalSource ("Default.aspx", 1)
-                    Dim f As New Pro$$gram()
-                End Sub
-            End Class
-            #End ExternalSource
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-#End Region
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicTestThroughExecuteCommand()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class [|SomeClass|]
-                Dim x As Integer
-            End Class
-        </Document>
-        <Document>
-            Class ConsumingClass
-                Sub goo()
-                    Dim obj As SomeClass$$
-                End Sub
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGoToDefinitionOnExtensionMethod()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            <![CDATA[
-Class Program
-    Private Shared Sub Main(args As String())
-        Dim i As String = "1"
-        i.Test$$Ext()
-    End Sub
-End Class
-
-Module Ex
-    <System.Runtime.CompilerServices.Extension()>
-    Public Sub TestExt(Of T)(ex As T)
-    End Sub
-    <System.Runtime.CompilerServices.Extension()>
-    Public Sub [|TestExt|](ex As string)
-    End Sub
-End Module]]>]
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
         <WorkItem(542220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestCSharpTestAliasAndTarget1()
@@ -2378,132 +1697,7 @@ class Program
             Test(workspace)
         End Sub
 
-        <WorkItem(543218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543218")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicQueryRangeVariable()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Program
-    Sub Main(args As String())
-        Dim arr = New Integer() {4, 5}
-        Dim q3 = From [|num|] In arr Select $$num
-    End Sub
-End Module
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(529060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529060")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestVisualBasicGotoConstant()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-Module M
-    Sub Main()
-label1: GoTo $$200
-[|200|]:    GoTo label1
-    End Sub
-End Module
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(10132, "https://github.com/dotnet/roslyn/issues/10132")>
-        <WorkItem(545661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545661")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestCrossLanguageParameterizedPropertyOverride()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj">
-        <Document>
-Public Class A
-    Public Overridable ReadOnly Property X(y As Integer) As Integer
-        [|Get|]
-        End Get
-    End Property
-End Class
-        </Document>
-    </Project>
-    <Project Language="C#" CommonReferences="true">
-        <ProjectReference>VBProj</ProjectReference>
-        <Document>
-class B : A
-{
-    public override int get_X(int y)
-    {
-        return base.$$get_X(y);
-    }
-}
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(866094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/866094")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestCrossLanguageNavigationToVBModuleMember()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj">
-        <Document>
-Public Module A
-    Public Sub [|M|]()
-    End Sub
-End Module
-        </Document>
-    </Project>
-    <Project Language="C#" CommonReferences="true">
-        <ProjectReference>VBProj</ProjectReference>
-        <Document>
-class C
-{
-    static void N()
-    {
-        A.$$M();
-    }
-}
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
 #Region "Show notification tests"
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestShowNotificationVB()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-            Class SomeClass
-            End Class
-            Cl$$ass OtherClass
-                Dim obj As SomeClass
-            End Class
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace, expectedResult:=False)
-        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestShowNotificationCS()
@@ -2539,65 +1733,6 @@ class C
 </Workspace>
 
             Test(workspace, expectedResult:=False)
-        End Sub
-
-        <WorkItem(902119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902119")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestGoToDefinitionOnInferredFieldInitializer()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <Document>
-Public Class Class2
-    Sub Test()
-        Dim var1 = New With {Key .var2 = "Bob", Class2.va$$r3}
-    End Sub
-
-    Shared Property [|var3|]() As Integer
-        Get
-        End Get
-        Set(ByVal value As Integer)
-        End Set
-    End Property
-End Class
-
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
-        End Sub
-
-        <WorkItem(885151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/885151")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestGoToDefinitionGlobalImportAlias()
-            Dim workspace =
-<Workspace>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <ProjectReference>VBAssembly</ProjectReference>
-        <CompilationOptions>
-            <GlobalImport>Goo = Importable.ImportMe</GlobalImport>
-        </CompilationOptions>
-        <Document>
-Public Class Class2
-    Sub Test()
-        Dim x as Go$$o
-    End Sub
-End Class
-
-        </Document>
-    </Project>
-    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBAssembly">
-        <Document>
-Namespace Importable
-    Public Class [|ImportMe|]
-    End Class
-End Namespace
-        </Document>
-    </Project>
-</Workspace>
-
-            Test(workspace)
         End Sub
 #End Region
 
@@ -3485,6 +2620,652 @@ class Test
             Test(workspace)
         End Sub
 #End Region
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnBreakInSwitchStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s:
+                bre$$ak;
+            default:
+                return;
+        }[||]
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnContinueInSwitchStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s:
+                cont$$inue;
+            default:
+                return;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnBreakInDoStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        do
+        {
+            bre$$ak;
+        }
+        while (true)[||]
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnContinueInDoStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        [||]do
+        {
+            cont$$inue;
+        }
+        while (true);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnBreakInForStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        for (int i = 0; ; )
+        {
+            bre$$ak;
+        }[||]
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnContinueInForStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        [||]for (int i = 0; ; )
+        {
+            cont$$inue;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnBreakInForeachStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        foreach (int i in null)
+        {
+            bre$$ak;
+        }[||]
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnContinueInForeachStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        [||]foreach (int i in null)
+        {
+            cont$$inue;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnBreakInForeachVariableStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        foreach (var (i, j) in null)
+        {
+            bre$$ak;
+        }[||]
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnContinueInForeachVariableStatement()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        [||]foreach (var (i, j) in null)
+        {
+            cont$$inue;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnContinueInSwitchInForeach()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        [||]foreach (var (i, j) in null)
+        {
+            switch (1)
+            {
+                default:
+                    cont$$inue;
+            }
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnTopLevelContinue()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+cont$$inue;
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnBreakInParenthesizedLambda()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s:
+                System.Action a = () => { bre$$ak; };
+                break;
+            default:
+                return;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnBreakInSimpleLambda()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s:
+                System.Action a = _ => { bre$$ak; };
+                break;
+            default:
+                return;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnBreakInLocalFunction()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case string s:
+                void local()
+                {
+                    System.Action a = _ => { bre$$ak; };
+                }
+                break;
+            default:
+                return;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnBreakInMethod()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        bre$$ak;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnBreakInAccessor()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    int Property
+    {
+        set { bre$$ak; }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnReturnInVoidMethod()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void [||]M()
+    {
+        for (int i = 0; ; )
+        {
+            return$$;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnReturnInIntMethod()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    [MyAttribute]
+    int [||]M()
+    {
+        for (int i = 0; ; )
+        {
+            return$$ 1;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnReturnInVoidLambda()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    int M()
+    {
+        System.Action a = [||]() =>
+        {
+            for (int i = 0; ; )
+            {
+                return$$;
+            }
+        };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnReturnedExpression()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    int M()
+    {
+        for (int [|i|] = 0; ; )
+        {
+            return $$i;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnReturnedConstantExpression()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    int M()
+    {
+        for (int i = 0; ; )
+        {
+            return $$1;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnYieldReturn_Return()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    IEnumerable [||]M()
+    {
+        yield return$$ 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnYieldReturn_Yield()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    IEnumerable [||]M()
+    {
+        yield$$ return 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnYieldReturn_Yield_Partial()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    partial IEnumerable M();
+
+    partial IEnumerable [||]M()
+    {
+        yield$$ return 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnYieldReturn_Yield_Partial_ReverseOrder()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    partial IEnumerable [||]M()
+    {
+        yield$$ return 1;
+    }
+
+    partial IEnumerable M();
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnYieldBreak_Yield()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    IEnumerable [||]M()
+    {
+        yield$$ break;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToOnYieldBreak_Break()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    IEnumerable [||]M()
+    {
+        yield break$$;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
 
     End Class
 End Namespace
