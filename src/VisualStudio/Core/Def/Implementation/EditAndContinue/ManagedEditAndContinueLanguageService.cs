@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         private Solution GetCurrentCompileTimeSolution()
-            => _proxy.Workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCurrentCompileTimeSolution();
+            => _proxy.Workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(_proxy.Workspace.CurrentSolution);
 
         /// <summary>
         /// Called by the debugger when a debugging session starts and managed debugging is being used.

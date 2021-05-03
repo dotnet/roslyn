@@ -181,34 +181,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 var next = Entries[i];
 
                 int unmappedEndLine = next.UnmappedLine - 2;
+                Debug.Assert(unmappedEndLine >= current.UnmappedLine - 1);
 
-                // If the first #line is on the first line the first entry is zero-width, so skip it:
-                if (unmappedEndLine == -1)
+                // Skip empty spans - two consecutive #line directives or #line on the first line.
+                if (unmappedEndLine >= current.UnmappedLine)
                 {
-                    current = next;
-                    continue;
+                    var endLine = lines[unmappedEndLine];
+                    int lineLength = endLine.EndIncludingLineBreak - endLine.Start;
+
+                    // span ends just at the start of the line containing #line directive
+                    // #line Current "file1"
+                    // [|....\n
+                    // ...........\n|]
+                    // #line Next "file2"
+                    var unmapped = new LinePositionSpan(
+                        new LinePosition(current.UnmappedLine, character: 0),
+                        new LinePosition(unmappedEndLine, lineLength));
+
+                    var mapped = current.IsHidden ? default : new FileLinePositionSpan(
+                        current.MappedPathOpt ?? string.Empty,
+                        new LinePositionSpan(
+                            new LinePosition(current.MappedLine, character: 0),
+                            new LinePosition(current.MappedLine + unmappedEndLine - current.UnmappedLine, lineLength)),
+                        hasMappedPath: current.MappedPathOpt != null);
+
+                    yield return new LineMapping(unmapped, mapped);
                 }
-
-                var endLine = lines[unmappedEndLine];
-                int lineLength = endLine.EndIncludingLineBreak - endLine.Start;
-
-                // span ends just at the start of the line containing #line directive
-                // #line Current "file1"
-                // [|....\n
-                // ...........\n|]
-                // #line Next "file2"
-                var unmapped = new LinePositionSpan(
-                    new LinePosition(current.UnmappedLine, character: 0),
-                    new LinePosition(unmappedEndLine, lineLength));
-
-                var mapped = current.IsHidden ? default : new FileLinePositionSpan(
-                    current.MappedPathOpt ?? string.Empty,
-                    new LinePositionSpan(
-                        new LinePosition(current.MappedLine, character: 0),
-                        new LinePosition(current.MappedLine + unmappedEndLine - current.UnmappedLine, lineLength)),
-                    hasMappedPath: current.MappedPathOpt != null);
-
-                yield return new LineMapping(unmapped, mapped);
 
                 current = next;
             }

@@ -164,12 +164,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private ImmutableArray<UnmappedActiveStatement> CalculateOldActiveStatementsAndExceptionRegions(IEditAndContinueAnalyzer analyzer, SyntaxTree oldTree, SourceText oldText, SyntaxNode oldRoot, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<UnmappedActiveStatement>.GetInstance(out var builder);
+            using var _1 = ArrayBuilder<UnmappedActiveStatement>.GetInstance(out var builder);
+            using var _2 = PooledHashSet<ActiveStatement>.GetInstance(out var mappedStatements);
 
             void AddStatement(LinePositionSpan unmappedLineSpan, ActiveStatement activeStatement)
             {
-                // protect against stale/invalid active statement spans read from the PDB:
-                if (TryGetTextSpan(oldText.Lines, unmappedLineSpan, out var unmappedSpan))
+                // Protect against stale/invalid active statement spans read from the PDB.
+                // Also guard against active statements unmapped to multiple locations in the unmapped file
+                // (when multiple #line map to the same span that overlaps with the active statement).
+                if (TryGetTextSpan(oldText.Lines, unmappedLineSpan, out var unmappedSpan) &&
+                    mappedStatements.Add(activeStatement))
                 {
                     var exceptionRegions = analyzer.GetExceptionRegions(oldRoot, unmappedSpan, activeStatement.IsNonLeaf, cancellationToken);
                     builder.Add(new UnmappedActiveStatement(unmappedSpan, activeStatement, exceptionRegions));
