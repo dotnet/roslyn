@@ -98,10 +98,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property UseEnhancedColorsForManagedLanguages As Integer
             Get
-                Return GetIntegerOption(FeatureOnOffOptions.UseEnhancedColors)
+                Return GetOption(FeatureOnOffOptions.UseEnhancedColors)
             End Get
             Set(value As Integer)
-                SetIntegerOption(FeatureOnOffOptions.UseEnhancedColors, value)
+                SetOption(FeatureOnOffOptions.UseEnhancedColors, value)
             End Set
         End Property
 

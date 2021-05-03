@@ -14,17 +14,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         public string Style_NamingPreferences
         {
-            get
-            {
-                return _workspace.Options.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp).CreateXElement().ToString();
-            }
-
+            get { return GetOption(NamingStyleOptions.NamingPreferences).CreateXElement().ToString(); }
             set
             {
                 try
                 {
-                    _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                        .WithChangedOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp, NamingStylePreferences.FromXElement(XElement.Parse(value)))));
+                    SetOption(NamingStyleOptions.NamingPreferences, NamingStylePreferences.FromXElement(XElement.Parse(value)));
                 }
                 catch (Exception)
                 {

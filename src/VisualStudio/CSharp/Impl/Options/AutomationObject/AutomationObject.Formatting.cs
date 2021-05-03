@@ -40,31 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Indent_FlushLabelsLeft
         {
-            get
-            {
-                var option = _workspace.Options.GetOption(CSharpFormattingOptions2.LabelPositioning);
-                return option == LabelPositionOptions.LeftMost ? 1 : 0;
-            }
-
-            set
-            {
-                _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                    .WithChangedOption(CSharpFormattingOptions2.LabelPositioning, value == 1 ? LabelPositionOptions.LeftMost : LabelPositionOptions.NoIndent)));
-            }
+            get { return GetOption(CSharpFormattingOptions2.LabelPositioning) == LabelPositionOptions.LeftMost ? 1 : 0; }
+            set { SetOption(CSharpFormattingOptions2.LabelPositioning, value == 1 ? LabelPositionOptions.LeftMost : LabelPositionOptions.NoIndent); }
         }
 
         public int Indent_UnindentLabels
         {
-            get
-            {
-                return (int)_workspace.Options.GetOption(CSharpFormattingOptions2.LabelPositioning);
-            }
-
-            set
-            {
-                _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                    .WithChangedOption(CSharpFormattingOptions2.LabelPositioning, value)));
-            }
+            get { return (int)GetOption(CSharpFormattingOptions2.LabelPositioning); }
+            set { SetOption(CSharpFormattingOptions2.LabelPositioning, (LabelPositionOptions)value); }
         }
 
         public int NewLines_AnonymousTypeInitializer_EachMember
@@ -201,18 +184,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Space_AroundBinaryOperator
         {
-            get
-            {
-                var option = _workspace.Options.GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator);
-                return option == BinaryOperatorSpacingOptions.Single ? 1 : 0;
-            }
-
-            set
-            {
-                var option = value == 1 ? BinaryOperatorSpacingOptions.Single : BinaryOperatorSpacingOptions.Ignore;
-                _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                    .WithChangedOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, option)));
-            }
+            get { return GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator) == BinaryOperatorSpacingOptions.Single ? 1 : 0; }
+            set { SetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, value == 1 ? BinaryOperatorSpacingOptions.Single : BinaryOperatorSpacingOptions.Ignore); }
         }
 
         public int Space_BeforeBasesColon
@@ -307,16 +280,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Wrapping_IgnoreSpacesAroundBinaryOperators
         {
-            get
-            {
-                return (int)_workspace.Options.GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator);
-            }
-
-            set
-            {
-                _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                    .WithChangedOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, value)));
-            }
+            get { return (int)GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator); }
+            set { SetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, (BinaryOperatorSpacingOptions)value); }
         }
 
         public int Wrapping_IgnoreSpacesAroundVariableDeclaration
