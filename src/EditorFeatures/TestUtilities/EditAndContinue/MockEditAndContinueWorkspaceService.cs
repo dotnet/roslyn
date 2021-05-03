@@ -82,8 +82,5 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             StartDebuggingSessionImpl?.Invoke(solution, debuggerService, captureMatchingDocuments);
             return default;
         }
-
-        Task IEditAndContinueWorkspaceService.OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
-            => throw new NotSupportedException();
     }
 }
