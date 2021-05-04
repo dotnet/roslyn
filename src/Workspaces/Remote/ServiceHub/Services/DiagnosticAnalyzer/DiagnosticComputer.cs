@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             CancellationToken cancellationToken)
         {
             var documentAnalysisScope = _document != null
-                ? new DocumentAnalysisScope(_document, _span, analyzers, _analysisKind!.Value)
+                ? new DocumentAnalysisScope(_document, _span, analyzers, _analysisKind!.Value, highPriority: null)
                 : null;
 
             var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
