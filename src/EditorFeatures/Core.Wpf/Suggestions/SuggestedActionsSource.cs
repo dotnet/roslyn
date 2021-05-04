@@ -197,12 +197,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (IsDisposed)
                     yield break;
 
-                if (_workspaceStatusService != null)
+                using (operationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
                 {
-                    using (operationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
-                    {
-                        await _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(true);
-                    }
+                    await _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(true);
                 }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
@@ -211,6 +208,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     if (document == null)
                         yield break;
 
+                    // Compute and return the high pri set of fixes and refactorings first so the user
+                    // can act on them immediately without waiting on the regular set.
                     var highPriSet = await GetCodeFixesAndRefactoringsAsync(
                         requestedActionCategories, document, range, AddOperationScope, highPriority: true, cancellationToken).ConfigureAwait(false);
                     foreach (var set in highPriSet)
