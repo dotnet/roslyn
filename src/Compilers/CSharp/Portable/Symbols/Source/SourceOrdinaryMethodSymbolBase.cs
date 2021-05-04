@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract int GetParameterCountFromSyntax();
 
-        public override ImmutableArray<ParameterSymbol> Parameters
+        public sealed override ImmutableArray<ParameterSymbol> Parameters
         {
             get
             {
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeWithAnnotations ReturnTypeWithAnnotations
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {

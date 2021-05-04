@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        private DocumentState DocumentState => (DocumentState)State;
+        internal DocumentState DocumentState => (DocumentState)State;
 
         /// <summary>
         /// The kind of source code this document contains.
@@ -155,9 +155,11 @@ namespace Microsoft.CodeAnalysis
         /// Gets the <see cref="SyntaxTree" /> for this document asynchronously.
         /// </summary>
         /// <returns>
-        /// The returned syntax tree can be <see langword="null"/> if the <see
-        /// cref="SupportsSyntaxTree"/> returns <see langword="false"/>. This function will return
-        /// the same value if called multiple times.
+        /// The returned syntax tree can be <see langword="null"/> if the <see cref="SupportsSyntaxTree"/> returns <see
+        /// langword="false"/>. This function may cause computation to occur the first time it is called, but will return
+        /// a cached result every subsequent time.  <see cref="SyntaxTree"/>'s can hold onto their roots lazily. So calls 
+        /// to <see cref="SyntaxTree.GetRoot"/> or <see cref="SyntaxTree.GetRootAsync"/> may end up causing computation
+        /// to occur at that point.
         /// </returns>
         public Task<SyntaxTree?> GetSyntaxTreeAsync(CancellationToken cancellationToken = default)
         {
@@ -310,7 +312,7 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -414,7 +416,7 @@ namespace Microsoft.CodeAnalysis
                     return text.GetTextChanges(oldText).ToList();
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -440,7 +442,7 @@ namespace Microsoft.CodeAnalysis
         ///
         /// Use this method to gain access to potentially incomplete semantics quickly.
         /// </summary>
-        internal Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+        internal virtual Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
         {
             var solution = this.Project.Solution;
             var workspace = solution.Workspace;

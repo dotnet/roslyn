@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,31 +17,34 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 {
-    [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.CSharp), Shared]
     internal class CSharpEditorNavigationBarItemService : AbstractEditorNavigationBarItemService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpEditorNavigationBarItemService()
+        public CSharpEditorNavigationBarItemService(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
         }
 
-        protected override VirtualTreePoint? GetSymbolNavigationPoint(
+        protected override async Task<VirtualTreePoint?> GetSymbolNavigationPointAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
-            var location = symbol.Locations.FirstOrDefault(l => l.SourceTree!.Equals(syntaxTree));
-
-            if (location == null)
-                location = symbol.Locations.FirstOrDefault();
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var location =
+                symbol.Locations.FirstOrDefault(l => Equals(l.SourceTree, syntaxTree)) ??
+                symbol.Locations.FirstOrDefault(l => l.SourceTree != null);
 
             if (location == null)
                 return null;
 
-            return new VirtualTreePoint(location.SourceTree!, location.SourceTree!.GetText(cancellationToken), location.SourceSpan.Start);
+            var tree = location.SourceTree;
+            Contract.ThrowIfNull(tree);
+
+            return new VirtualTreePoint(tree, tree.GetText(cancellationToken), location.SourceSpan.Start);
         }
 
-        protected override void NavigateToItem(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToSymbolItem(document, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, cancellationToken);
+        protected override Task NavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
+            => NavigateToSymbolItemAsync(document, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, cancellationToken);
     }
 }

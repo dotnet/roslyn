@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
         public DiagnosticComputer(
-            DocumentId? documentId,
+            TextDocument? document,
             Project project,
             TextSpan? span,
             AnalysisKind? analysisKind,
             DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
-            _document = documentId != null ? project.Solution.GetRequiredTextDocument(documentId) : null;
+            _document = document;
             _project = project;
             _span = span;
             _analysisKind = analysisKind;

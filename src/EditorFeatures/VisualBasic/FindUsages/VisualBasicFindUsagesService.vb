@@ -4,7 +4,6 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindUsages

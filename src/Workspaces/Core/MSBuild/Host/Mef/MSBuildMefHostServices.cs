@@ -50,5 +50,17 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return MefHostServices.DefaultAssemblies.Concat(
                 MefHostServicesHelpers.LoadNearbyAssemblies(assemblyNames));
         }
+
+        internal readonly struct TestAccessor
+        {
+            /// <summary>
+            /// Allows tests to clear services between runs.
+            /// </summary>
+            internal static void ClearCachedServices()
+            {
+                // The existing host, if any, is not retained past this call.
+                s_defaultServices = null;
+            }
+        }
     }
 }

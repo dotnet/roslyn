@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Classification
             };
         }
 
-        internal void Rehydrate(List<ClassifiedSpan> classifiedSpans)
+        internal void Rehydrate(ArrayBuilder<ClassifiedSpan> classifiedSpans)
         {
             Contract.ThrowIfNull(ClassificationTypes);
             Contract.ThrowIfNull(ClassificationTriples);
