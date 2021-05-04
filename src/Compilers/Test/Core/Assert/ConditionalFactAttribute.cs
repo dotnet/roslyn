@@ -232,7 +232,7 @@ namespace Roslyn.Test.Utilities
                     return false;
                 }
 
-                return 
+                return
                     !CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase) ||
                     !CultureInfo.CurrentCulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
             }

@@ -19,15 +19,28 @@ namespace Microsoft.CodeAnalysis.Emit
         public bool MetadataOnly => (_flags & Flags.MetadataOnly) != 0;
         public bool IsRefAssembly => MetadataOnly && !IncludePrivateMembers;
 
-        public EmitContext(CommonPEModuleBuilder module, SyntaxNode? syntaxNodeOpt, DiagnosticBag diagnostics, bool metadataOnly, bool includePrivateMembers)
+        public EmitContext(CommonPEModuleBuilder module, SyntaxNode? syntaxNodeOpt, DiagnosticBag diagnostics, bool metadataOnly, bool includePrivateMembers) 
+            : this(module, diagnostics, metadataOnly, includePrivateMembers, syntaxNodeOpt, rebuildDataOpt: null)
         {
+        }
+
+        public EmitContext(
+            CommonPEModuleBuilder module,
+            DiagnosticBag diagnostics,
+            bool metadataOnly,
+            bool includePrivateMembers,
+            SyntaxNode? syntaxNodeOpt = null,
+            RebuildData? rebuildDataOpt = null)
+        {
+            Debug.Assert(rebuildDataOpt is null || !metadataOnly);
+            RebuildDataOpt = rebuildDataOpt;
             Debug.Assert(module != null);
             Debug.Assert(diagnostics != null);
             Debug.Assert(includePrivateMembers || metadataOnly);
 
             Module = module;
             SyntaxNodeOpt = syntaxNodeOpt;
-            RebuildDataOpt = null;
+            RebuildDataOpt = rebuildDataOpt;
             Diagnostics = diagnostics;
 
             Flags flags = Flags.None;
@@ -40,19 +53,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 flags |= Flags.IncludePrivateMembers;
             }
             _flags = flags;
-        }
-
-        public EmitContext(
-            CommonPEModuleBuilder module,
-            SyntaxNode? syntaxNodeOpt = null,
-            RebuildData? rebuildDataOpt = null,
-            DiagnosticBag? diagnostics = null,
-            bool metadataOnly = false,
-            bool includePrivateMembers = true)
-            : this(module, syntaxNodeOpt, diagnostics ?? new DiagnosticBag(), metadataOnly, includePrivateMembers)
-        {
-            Debug.Assert(rebuildDataOpt is null || !metadataOnly);
-            RebuildDataOpt = rebuildDataOpt;
         }
 
         [Flags]
