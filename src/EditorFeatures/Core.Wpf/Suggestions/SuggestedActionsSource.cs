@@ -169,28 +169,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 AssertIsForeground();
 
                 if (IsDisposed)
-                {
                     return null;
-                }
 
-                var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
-                {
-                    // this is here to fail test and see why it is failed.
-                    Trace.WriteLine("given range is not current");
+                if (_workspace == null)
                     return null;
-                }
 
-                var workspace = document.Project.Solution.Workspace;
                 using (operationContext?.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
                 {
                     // This needs to run under threading context otherwise, we can deadlock on VS
                     ThreadingContext.JoinableTaskFactory.Run(() =>
-                        workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken));
+                        _workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken));
                 }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
+                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document == null)
+                    {
+                        // this is here to fail test and see why it is failed.
+                        Trace.WriteLine("given range is not current");
+                        return null;
+                    }
+
+                    var workspace = document.Project.Solution.Workspace;
                     var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
                     var selection = TryGetCodeRefactoringSelection(range);
