@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
     using static SyntaxFactory;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseNotPattern), Shared]
     internal partial class CSharpUseNotPatternCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -61,10 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
         {
-#if CODE_STYLE
-            Contract.Fail("We should have never gotten here as CODE_STYLE doesn't support C# 9 yet.");
-#else
-
             var notExpressionLocation = diagnostic.AdditionalLocations[0];
 
             var notExpression = (PrefixUnaryExpressionSyntax)notExpressionLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
@@ -76,8 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 notExpression,
                 updatedPattern.WithPrependedLeadingTrivia(notExpression.GetLeadingTrivia())
                               .WithAppendedTrailingTrivia(notExpression.GetTrailingTrivia()));
-
-#endif
 
         }
 

@@ -19,55 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
         Cci.IArrayTypeReference
     {
-#if DEBUG
-        internal ArrayTypeSymbolAdapter(ArrayTypeSymbol underlyingArrayTypeSymbol)
-        {
-            AdaptedArrayTypeSymbol = underlyingArrayTypeSymbol;
-        }
-
-        internal sealed override Symbol AdaptedSymbol => AdaptedArrayTypeSymbol;
-        internal ArrayTypeSymbol AdaptedArrayTypeSymbol { get; }
-#else
-        internal ArrayTypeSymbol AdaptedArrayTypeSymbol => this;
-#endif 
-    }
-
-    internal partial class ArrayTypeSymbol
-    {
-#if DEBUG
-        private ArrayTypeSymbolAdapter? _lazyAdapter;
-
-        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
-#endif
-
-        internal new
-#if DEBUG
-            ArrayTypeSymbolAdapter
-#else
-            ArrayTypeSymbol
-#endif
-            GetCciAdapter()
-        {
-#if DEBUG
-            if (_lazyAdapter is null)
-            {
-                return InterlockedOperations.Initialize(ref _lazyAdapter, new ArrayTypeSymbolAdapter(this));
-            }
-
-            return _lazyAdapter;
-#else
-            return this;
-#endif
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        ArrayTypeSymbolAdapter
-#else
-        ArrayTypeSymbol
-#endif
-    {
         Cci.ITypeReference Cci.IArrayTypeReference.GetElementType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
@@ -120,4 +71,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeDefinition? Cci.ITypeReference.AsTypeDefinition(EmitContext context) => null;
         Cci.IDefinition? Cci.IReference.AsDefinition(EmitContext context) => null;
     }
+
+    internal partial class ArrayTypeSymbol
+    {
+#if DEBUG
+        private ArrayTypeSymbolAdapter? _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new ArrayTypeSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new ArrayTypeSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal ArrayTypeSymbol AdaptedArrayTypeSymbol => this;
+
+        internal new ArrayTypeSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif
+    }
+
+#if DEBUG
+    internal partial class ArrayTypeSymbolAdapter
+    {
+        internal ArrayTypeSymbolAdapter(ArrayTypeSymbol underlyingArrayTypeSymbol)
+        {
+            AdaptedArrayTypeSymbol = underlyingArrayTypeSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedArrayTypeSymbol;
+        internal ArrayTypeSymbol AdaptedArrayTypeSymbol { get; }
+    }
+#endif 
 }

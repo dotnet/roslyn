@@ -1197,6 +1197,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         {
                             copy &= ~newOption;
                         }
+
                         break;
                 }
             }

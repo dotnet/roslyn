@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            private readonly CancellationTokenSource _cancellationTokenSource = new();
+            public CancellationTokenSource? CancellationTokenSource { get; private set; }
 
             private ITableDataSink _tableDataSink;
 
@@ -82,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected ImmutableList<Entry> EntriesWhenNotGroupingByDefinition = ImmutableList<Entry>.Empty;
             protected ImmutableList<Entry> EntriesWhenGroupingByDefinition = ImmutableList<Entry>.Empty;
 
-            private TableEntriesSnapshot _lastSnapshot;
+            private TableEntriesSnapshot? _lastSnapshot;
             public int CurrentVersionNumber { get; protected set; }
 
             #endregion
@@ -95,6 +93,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                  bool includeKindColumn)
             {
                 presenter.AssertIsForeground();
+
+                CancellationTokenSource = new CancellationTokenSource();
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 // After adding us as the source, the manager should immediately call into us to
                 // tell us what the data sink is.
-                Debug.Assert(_tableDataSink != null);
+                RoslynDebug.Assert(_tableDataSink != null);
 
                 // https://devdiv.visualstudio.com/web/wi.aspx?pcguid=011b8bdf-6d56-4f87-be0d-0092136884d9&id=359162
                 // VS actually responds to each SetProgess call by queuing a UI task to do the
@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
                     TimeSpan.FromMilliseconds(250),
                     this.UpdateTableProgressAsync,
-                    this.CancellationToken);
+                    CancellationTokenSource.Token);
             }
 
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
@@ -220,10 +220,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private void CancelSearch()
             {
                 Presenter.AssertIsForeground();
-                _cancellationTokenSource.Cancel();
-            }
 
-            public sealed override CancellationToken CancellationToken => _cancellationTokenSource.Token;
+                // Cancel any in flight find work that is going on.
+                if (CancellationTokenSource != null)
+                {
+                    CancellationTokenSource.Cancel();
+                    CancellationTokenSource.Dispose();
+                    CancellationTokenSource = null;
+                }
+            }
 
             public void Clear()
             {
@@ -278,87 +283,78 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             #region FindUsagesContext overrides.
 
-            public sealed override ValueTask SetSearchTitleAsync(string title)
+            public sealed override ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
             {
                 // Note: IFindAllReferenceWindow.Title is safe to set from any thread.
                 _findReferencesWindow.Title = title;
                 return default;
             }
 
-            public sealed override async ValueTask OnCompletedAsync()
+            public sealed override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
             {
-                await OnCompletedAsyncWorkerAsync().ConfigureAwait(false);
+                await OnCompletedAsyncWorkerAsync(cancellationToken).ConfigureAwait(false);
 
                 _tableDataSink.IsStable = true;
             }
 
-            protected abstract Task OnCompletedAsyncWorkerAsync();
+            protected abstract Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken);
 
-            public sealed override ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
+            public sealed override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
                 lock (Gate)
                 {
                     Definitions.Add(definition);
                 }
 
-                return OnDefinitionFoundWorkerAsync(definition);
+                return OnDefinitionFoundWorkerAsync(definition, cancellationToken);
             }
 
-            protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition);
+            protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
 
-            protected async Task<(Guid, string projectName, SourceText)> GetGuidAndProjectNameAndSourceTextAsync(Document document)
-            {
-                // The FAR system needs to know the guid for the project that a def/reference is 
-                // from (to support features like filtering).  Normally that would mean we could
-                // only support this from a VisualStudioWorkspace.  However, we want till work 
-                // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
-                // when we have another type of workspace.  This means we will show results, but
-                // certain features (like filtering) may not work in that context.
-                var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
-
-                var projectName = document.Project.Name;
-                var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
-
-                var sourceText = await document.GetTextAsync(CancellationToken).ConfigureAwait(false);
-                return (guid, projectName, sourceText);
-            }
-
-            protected async Task<Entry> TryCreateDocumentSpanEntryAsync(
+            protected async Task<Entry?> TryCreateDocumentSpanEntryAsync(
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
                 SymbolUsageInfo symbolUsageInfo,
-                ImmutableDictionary<string, string> additionalProperties)
+                ImmutableDictionary<string, string> additionalProperties,
+                CancellationToken cancellationToken)
             {
-                var document = documentSpan.Document;
-                var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(document).ConfigureAwait(false);
-                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan).ConfigureAwait(false);
+                var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, cancellationToken).ConfigureAwait(false);
 
-                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
+                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
                 {
                     // this will be removed from the result
                     return null;
                 }
 
-                return new DocumentSpanEntry(
-                    this, definitionBucket, spanKind, projectName,
-                    guid, mappedDocumentSpan.Value, excerptResult, lineText, symbolUsageInfo, additionalProperties);
+                return DocumentSpanEntry.TryCreate(
+                    this,
+                    definitionBucket,
+                    documentSpan,
+                    spanKind,
+                    mappedDocumentSpan.Value,
+                    excerptResult,
+                    lineText,
+                    symbolUsageInfo,
+                    additionalProperties);
             }
 
-            private async Task<(ExcerptResult, SourceText)> ExcerptAsync(SourceText sourceText, DocumentSpan documentSpan)
+            private async Task<(ExcerptResult, SourceText)> ExcerptAsync(
+                SourceText sourceText, DocumentSpan documentSpan, CancellationToken cancellationToken)
             {
                 var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
                 if (excerptService != null)
                 {
-                    var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, CancellationToken).ConfigureAwait(false);
+                    var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
                     if (result != null)
                     {
                         return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));
                     }
                 }
 
-                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, CancellationToken).ConfigureAwait(false);
+                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, cancellationToken).ConfigureAwait(false);
 
                 // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
                 var excerptResult = new ExcerptResult(
@@ -371,18 +367,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return (excerptResult, AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start));
             }
 
-            public sealed override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
-                => OnReferenceFoundWorkerAsync(reference);
+            public sealed override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+                => OnReferenceFoundWorkerAsync(reference, cancellationToken);
 
-            protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference);
+            protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
 
-            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition)
+            protected RoslynDefinitionBucket GetOrCreateDefinitionBucket(DefinitionItem definition, bool expandedByDefault)
             {
                 lock (Gate)
                 {
                     if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
-                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition);
+                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault);
                         _definitionToBucket.Add(definition, bucket);
                     }
 
@@ -390,16 +386,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public sealed override ValueTask ReportMessageAsync(string message)
+            public sealed override ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
                 => throw new InvalidOperationException("This should never be called in the streaming case.");
 
-            protected sealed override ValueTask ReportProgressAsync(int current, int maximum)
+            protected sealed override ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
             {
                 _progressQueue.AddWork((current, maximum));
                 return default;
             }
 
-            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken cancellationToken)
+            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken _)
             {
                 if (!nextBatch.IsEmpty)
                 {
@@ -451,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            public ITableEntriesSnapshot GetSnapshot(int versionNumber)
+            public ITableEntriesSnapshot? GetSnapshot(int versionNumber)
             {
                 lock (Gate)
                 {

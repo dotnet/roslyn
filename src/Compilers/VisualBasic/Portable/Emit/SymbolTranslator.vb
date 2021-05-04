@@ -130,11 +130,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' Unreported bad types can come through NoPia embedding, for example.
             If namedTypeSymbol.OriginalDefinition.Kind = SymbolKind.ErrorType Then
                 Dim errorType = DirectCast(namedTypeSymbol.OriginalDefinition, ErrorTypeSymbol)
-                Dim diagInfo = If(errorType.GetUseSiteErrorInfo(), errorType.ErrorInfo)
+                Dim diagInfo = If(errorType.GetUseSiteInfo().DiagnosticInfo, errorType.ErrorInfo)
 
                 If diagInfo Is Nothing AndAlso namedTypeSymbol.Kind = SymbolKind.ErrorType Then
                     errorType = DirectCast(namedTypeSymbol, ErrorTypeSymbol)
-                    diagInfo = If(errorType.GetUseSiteErrorInfo(), errorType.ErrorInfo)
+                    diagInfo = If(errorType.GetUseSiteInfo().DiagnosticInfo, errorType.ErrorInfo)
                 End If
 
                 ' Try to decrease noise by not complaining about the same type over and over again.
@@ -199,15 +199,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
             End If
 
-            If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics)
-            End If
-
-            Return namedTypeSymbol
+            Return If(_embeddedTypesManagerOpt?.EmbedTypeIfNeedTo(namedTypeSymbol, fromImplements, syntaxNodeOpt, diagnostics), namedTypeSymbol.GetCciAdapter())
         End Function
 
         Private Function GetCciAdapter(symbol As Symbol) As Object
-            Return _genericInstanceMap.GetOrAdd(symbol, symbol)
+            Return _genericInstanceMap.GetOrAdd(symbol, Function(s) s.GetCciAdapter())
         End Function
 
         Private Sub CheckTupleUnderlyingType(namedTypeSymbol As NamedTypeSymbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag)
@@ -227,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim location = If(syntaxNodeOpt Is Nothing, NoLocation.Singleton, syntaxNodeOpt.GetLocation())
             If declaredBase IsNot Nothing Then
-                Dim diagnosticInfo = declaredBase.GetUseSiteErrorInfo()
+                Dim diagnosticInfo = declaredBase.GetUseSiteInfo().DiagnosticInfo
                 If diagnosticInfo IsNot Nothing Then
                     diagnostics.Add(diagnosticInfo, location)
                     Return
@@ -242,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overloads Function Translate([param] As TypeParameterSymbol) As Microsoft.Cci.IGenericParameterReference
             Debug.Assert(param Is param.OriginalDefinition)
-            Return [param]
+            Return [param].GetCciAdapter()
         End Function
 
         Friend NotOverridable Overrides Function Translate(
@@ -295,10 +291,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedFieldIfNeedTo(fieldSymbol, syntaxNodeOpt, diagnostics)
+                Return _embeddedTypesManagerOpt.EmbedFieldIfNeedTo(fieldSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
             End If
 
-            Return fieldSymbol
+            Return fieldSymbol.GetCciAdapter()
         End Function
 
         Public Shared Function MemberVisibility(symbol As Symbol) As Microsoft.Cci.TypeMemberVisibility
@@ -424,10 +420,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
 
             If _embeddedTypesManagerOpt IsNot Nothing Then
-                Return _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
+                Return _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
             End If
 
-            Return methodSymbol
+            Return methodSymbol.GetCciAdapter()
         End Function
 
         Friend Overloads Function TranslateOverriddenMethodReference(methodSymbol As MethodSymbol, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As Microsoft.Cci.IMethodReference
@@ -451,9 +447,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Debug.Assert(methodSymbol.IsDefinition)
 
                 If _embeddedTypesManagerOpt IsNot Nothing Then
-                    methodRef = _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol, syntaxNodeOpt, diagnostics)
+                    methodRef = _embeddedTypesManagerOpt.EmbedMethodIfNeedTo(methodSymbol.GetCciAdapter(), syntaxNodeOpt, diagnostics)
                 Else
-                    methodRef = methodSymbol
+                    methodRef = methodSymbol.GetCciAdapter()
                 End If
             End If
 
@@ -467,7 +463,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(params.All(Function(p) mustBeTranslated = MustBeWrapped(p)), "either all or no parameters need translating")
 
             If (Not mustBeTranslated) Then
+#If DEBUG Then
+                Return params.SelectAsArray(Of Cci.IParameterTypeInformation)(Function(p) p.GetCciAdapter())
+#Else
                 Return StaticCast(Of Microsoft.Cci.IParameterTypeInformation).From(params)
+#End If
             End If
 
             Return TranslateAll(params)

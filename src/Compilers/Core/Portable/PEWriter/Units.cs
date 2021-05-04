@@ -24,7 +24,7 @@ namespace Microsoft.Cci
     }
 
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal struct DefinitionWithLocation
+    internal struct DefinitionWithLocation : IEquatable<DefinitionWithLocation>
     {
         public readonly IDefinition Definition;
         public readonly int StartLine;

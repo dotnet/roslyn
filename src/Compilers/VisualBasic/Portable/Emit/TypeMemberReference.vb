@@ -39,5 +39,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Function IReferenceGetInternalSymbol() As CodeAnalysis.Symbols.ISymbolInternal Implements Cci.IReference.GetInternalSymbol
             Return UnderlyingSymbol
         End Function
+
+        Public NotOverridable Overrides Function Equals(obj As Object) As Boolean
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+        End Function
+
+        Public NotOverridable Overrides Function GetHashCode() As Integer
+            ' It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+        End Function
     End Class
 End Namespace

@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             debugPlusMode As Boolean,
             xmlReferenceResolver As XmlReferenceResolver,
             sourceReferenceResolver As SourceReferenceResolver,
-            SyntaxTreeOptionsProvider As SyntaxTreeOptionsProvider,
+            syntaxTreeOptionsProvider As SyntaxTreeOptionsProvider,
             metadataReferenceResolver As MetadataReferenceResolver,
             assemblyIdentityComparer As AssemblyIdentityComparer,
             strongNameProvider As StrongNameProvider,
@@ -672,7 +672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            Return New VisualBasicCompilationOptions(Me) With {.CurrentLocalTime_internal_protected_set = value}
+            Return New VisualBasicCompilationOptions(Me) With {.CurrentLocalTime = value}
         End Function
 
         ''' <summary>
@@ -685,7 +685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            Return New VisualBasicCompilationOptions(Me) With {.DebugPlusMode_internal_protected_set = debugPlusMode}
+            Return New VisualBasicCompilationOptions(Me) With {.DebugPlusMode = debugPlusMode}
         End Function
 
         ''' <summary>
@@ -910,7 +910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            Return New VisualBasicCompilationOptions(Me) With {.ReferencesSupersedeLowerVersions_internal_protected_set = value}
+            Return New VisualBasicCompilationOptions(Me) With {.ReferencesSupersedeLowerVersions = value}
         End Function
 
         ''' <summary>

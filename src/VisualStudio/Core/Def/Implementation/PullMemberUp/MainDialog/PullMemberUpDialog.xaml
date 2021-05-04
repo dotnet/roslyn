@@ -10,7 +10,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:self="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog"
-    xmlns:controls="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.CustomControls"
     mc:Ignorable="d"
     WindowStartupLocation="CenterOwner"
     Height="498"
@@ -72,7 +71,7 @@
                 Margin="0, 5, 0, 0"
                 AutomationProperties.Name="{Binding DestinationTreeViewAutomationText}"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                ItemsSource="{Binding Destinations}"
+                ItemsSource="{Binding DestinationTreeNodeViewModel.BaseTypeNodes}"
                 ItemContainerStyle="{StaticResource TreeViewItemStyle}"
                 SelectedItemChanged="Destination_SelectedItemChanged">
                 <TreeView.ItemTemplate>

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private Tuple<CultureInfo, string> _lazyDocComment;
 
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         // There is a bunch of type properties relevant only for enums or types with custom attributes.
         // It is fairly easy to check whether a type s is not "uncommon". So we store uncommon properties in 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (mrEx != null)
             {
-                result._lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result);
+                result._lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result));
             }
 
             return result;
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (mrEx != null || metadataArity < containerMetadataArity)
             {
-                result._lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result);
+                result._lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result));
             }
 
             return result;
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (makeBad)
             {
-                _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
+                _lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this));
             }
         }
 
@@ -560,18 +560,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // First, do a check to see if there are even any members named <Clone>$. If we have to actually find the clone
-                // method, it can be expensive, because we have to load all the members. MemberNames just loads the strings, which
-                // is much cheaper.
-                if (!MemberNames.Contains(WellKnownMemberNames.CloneMethodName))
-                {
-                    return false;
-                }
-
-                // There exists a member named <Clone>$. We still need to check to see if it's actually a valid clone method, but
-                // there's no getting around that now.
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                return SynthesizedRecordClone.FindValidCloneMethod(this, ref useSiteDiagnostics) != null;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return SynthesizedRecordClone.FindValidCloneMethod(this, ref discardedUseSiteInfo) != null;
             }
         }
 
@@ -899,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             else
             {
                 // If there are any non-event fields, they are at the very beginning.
-                IEnumerable<FieldSymbol> nonEventFields = GetMembers<FieldSymbol>(this.GetMembers(), SymbolKind.Field, offset: 0).Select(f => f.TupleUnderlyingField ?? f);
+                IEnumerable<FieldSymbol> nonEventFields = GetMembers<FieldSymbol>(this.GetMembers().WhereAsArray(m => !(m is TupleErrorFieldSymbol)), SymbolKind.Field, offset: 0);
 
                 // Event backing fields are not part of the set returned by GetMembers. Let's add them manually.
                 ArrayBuilder<FieldSymbol> eventFields = null;
@@ -910,9 +900,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if ((object)associatedField != null)
                     {
                         Debug.Assert((object)associatedField.AssociatedSymbol != null);
-
-                        associatedField = associatedField.TupleUnderlyingField ?? associatedField;
-
                         Debug.Assert(!nonEventFields.Contains(associatedField));
 
                         if (eventFields == null)
@@ -1330,7 +1317,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (IsTupleType)
                 {
+                    int originalCount = members.Count;
                     members = AddOrWrapTupleMembers(members.ToImmutableAndFree());
+                    membersCount += (members.Count - originalCount); // account for added tuple error fields
                     Debug.Assert(members is object);
                 }
 
@@ -1428,6 +1417,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return m;
         }
+
+        internal sealed override bool HasPossibleWellKnownCloneMethod()
+            => MemberNames.Contains(WellKnownMemberNames.CloneMethodName);
 
         internal override FieldSymbol FixedElementField
         {
@@ -1967,14 +1959,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                _lazyUseSiteDiagnostic = GetUseSiteDiagnosticImpl();
+                AssemblySymbol primaryDependency = PrimaryDependency;
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, new UseSiteInfo<AssemblySymbol>(primaryDependency).AdjustDiagnosticInfo(GetUseSiteDiagnosticImpl()));
             }
 
-            return _lazyUseSiteDiagnostic;
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
         }
 
         protected virtual DiagnosticInfo GetUseSiteDiagnosticImpl()
@@ -2004,7 +1997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                 case SpecialType.System_MulticastDelegate:
                                 case SpecialType.System_ValueType:
                                     // This might be a structure, an enum, or a delegate
-                                    diagnostic = missingType.GetUseSiteDiagnostic();
+                                    diagnostic = missingType.GetUseSiteInfo().DiagnosticInfo;
                                     break;
                             }
                         }
@@ -2357,11 +2350,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             internal override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
             {
                 return t2 is NativeIntegerTypeSymbol nativeInteger ?
-                    nativeInteger.Equals(this, comparison, isValueTypeOverrideOpt) :
-                    base.Equals(t2, comparison, isValueTypeOverrideOpt);
+                    nativeInteger.Equals(this, comparison) :
+                    base.Equals(t2, comparison);
             }
         }
 

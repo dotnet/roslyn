@@ -293,14 +293,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                     else
                     {
-                        var container = symbol.ContainingNamespace.Accept(this);
+                        var container = symbol.ContainingNamespace.Accept(this)!;
                         typeSyntax = AddInformationTo(SyntaxFactory.QualifiedName(
                             (NameSyntax)container,
                             simpleNameSyntax), symbol);
                     }
                 }
 
-                if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                if (symbol.NullableAnnotation == NullableAnnotation.Annotated &&
+                    !symbol.IsValueType)
                 {
                     typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
                 }
@@ -322,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else
                 {
-                    var container = symbol.ContainingNamespace.Accept(this);
+                    var container = symbol.ContainingNamespace.Accept(this)!;
                     return AddInformationTo(SyntaxFactory.QualifiedName(
                         (NameSyntax)container,
                         syntax), symbol);

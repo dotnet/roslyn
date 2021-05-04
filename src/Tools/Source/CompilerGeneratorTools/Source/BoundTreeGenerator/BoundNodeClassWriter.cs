@@ -91,6 +91,7 @@ namespace BoundTreeGenerator
             _valueTypes.Add("ImmutableArray");
             _valueTypes.Add("PropertyAccessKind");
             _valueTypes.Add("TypeWithAnnotations");
+            _valueTypes.Add("BitVector");
         }
 
         public static void Write(TextWriter writer, Tree tree, TargetLanguage targetLang)
@@ -782,9 +783,9 @@ namespace BoundTreeGenerator
 
             if (f.Null != null)
             {
-                if (_targetLang == TargetLanguage.CSharp && f.Null.ToUpperInvariant() == "ALLOW" && !f.Type.EndsWith('?') && !IsValueType(f.Type))
+                if (_targetLang == TargetLanguage.CSharp && (f.Null.ToUpperInvariant() is ("ALLOW" or "ALWAYS")) && !f.Type.EndsWith('?') && !IsValueType(f.Type))
                 {
-                    throw new ArgumentException($"Field '{fieldName}' on node '{node.Name}' should have a nullable type, since it isn't a value type and it is marked null=allow");
+                    throw new ArgumentException($"Field '{fieldName}' on node '{node.Name}' should have a nullable type, since it isn't a value type and it is marked null=allow or null=always");
                 }
 
                 switch (f.Null.ToUpperInvariant())
@@ -827,7 +828,7 @@ namespace BoundTreeGenerator
                 throw new InvalidOperationException($"Field {fieldName} not found in type {node.Name}");
         }
 
-        private void WriteField(Field field)
+        private void WriteField(TreeType node, Field field)
         {
             switch (_targetLang)
             {
@@ -841,13 +842,14 @@ namespace BoundTreeGenerator
                     else if (field.Override)
                     {
                         // We emit a suppression here because the bound nodes use a pattern which is safe, but can't be tracked.
+                        var suppression = FieldNullHandling(node, field.Name) is (NullHandling.Allow or NullHandling.Always) ? "" : "!";
 
                         // The point of overriding a property is to change its nullability, usually
                         // from nullable to non-nullable. The base is annotated as nullable,
                         // but since the base property is always set via the base call in the
                         // constructor, as long as the parameter to the current class's constructor is not
                         // nullable, the base property is always non-null.
-                        WriteLine($"public new {field.Type} {field.Name} => base.{field.Name}!;");
+                        WriteLine($"public new {field.Type} {field.Name} => base.{field.Name}{suppression};");
                     }
                     else
                     {
@@ -891,7 +893,6 @@ namespace BoundTreeGenerator
                     WriteLine("Return visitor.Visit{0}(Me)", StripBound(name));
                     Outdent();
                     WriteLine("End Function");
-
                     break;
 
                 default:
@@ -921,7 +922,7 @@ namespace BoundTreeGenerator
             // Only C# can express nullable reference types
             foreach (var field in (_targetLang == TargetLanguage.CSharp ? FieldsIncludingOverrides(node) : Fields(node)))
             {
-                WriteField(field);
+                WriteField(node, field);
             }
             if (node is Node)
             {
@@ -2047,7 +2048,7 @@ namespace BoundTreeGenerator
                 case "getxmlnamespace":
                 case "global":
                 case "gosub":
-                case "goTo":
+                case "goto":
                 case "handles":
                 case "if":
                 case "implements":
@@ -2070,6 +2071,7 @@ namespace BoundTreeGenerator
                 case "mustoverride":
                 case "mybase":
                 case "myclass":
+                case "nameof":
                 case "namespace":
                 case "narrowing":
                 case "new":
@@ -2089,7 +2091,7 @@ namespace BoundTreeGenerator
                 case "overloads":
                 case "overridable":
                 case "overrides":
-                case "paramArray":
+                case "paramarray":
                 case "partial":
                 case "private":
                 case "property":

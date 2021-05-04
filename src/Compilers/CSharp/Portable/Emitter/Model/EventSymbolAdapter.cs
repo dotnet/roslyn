@@ -19,55 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
         Cci.IEventDefinition
     {
-#if DEBUG
-        internal EventSymbolAdapter(EventSymbol underlyingEventSymbol)
-        {
-            AdaptedEventSymbol = underlyingEventSymbol;
-        }
-
-        internal sealed override Symbol AdaptedSymbol => AdaptedEventSymbol;
-        internal EventSymbol AdaptedEventSymbol { get; }
-#else
-        internal EventSymbol AdaptedEventSymbol => this;
-#endif 
-    }
-
-    internal partial class EventSymbol
-    {
-#if DEBUG
-        private EventSymbolAdapter? _lazyAdapter;
-
-        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
-#endif
-        internal new
-#if DEBUG
-            EventSymbolAdapter
-#else
-            EventSymbol
-#endif
-            GetCciAdapter()
-        {
-#if DEBUG
-            if (_lazyAdapter is null)
-            {
-                return InterlockedOperations.Initialize(ref _lazyAdapter, new EventSymbolAdapter(this));
-            }
-
-            return _lazyAdapter;
-#else
-            return this;
-#endif
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        EventSymbolAdapter
-#else
-        EventSymbol
-#endif
-    {
-
         #region IEventDefinition Members
 
         IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.GetAccessors(EmitContext context)
@@ -119,27 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedEventSymbol.HasRuntimeSpecialName;
             }
         }
-    }
 
-    internal partial class EventSymbol
-    {
-        internal virtual bool HasRuntimeSpecialName
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return false;
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        EventSymbolAdapter
-#else
-        EventSymbol
-#endif
-    {
         bool Cci.IEventDefinition.IsSpecialName
         {
             get
@@ -226,4 +157,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
     }
+
+    internal partial class EventSymbol
+    {
+#if DEBUG
+        private EventSymbolAdapter? _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new EventSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new EventSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal EventSymbol AdaptedEventSymbol => this;
+
+        internal new EventSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif
+
+        internal virtual bool HasRuntimeSpecialName
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return false;
+            }
+        }
+    }
+
+#if DEBUG
+    internal partial class EventSymbolAdapter
+    {
+        internal EventSymbolAdapter(EventSymbol underlyingEventSymbol)
+        {
+            AdaptedEventSymbol = underlyingEventSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedEventSymbol;
+        internal EventSymbol AdaptedEventSymbol { get; }
+    }
+#endif
 }

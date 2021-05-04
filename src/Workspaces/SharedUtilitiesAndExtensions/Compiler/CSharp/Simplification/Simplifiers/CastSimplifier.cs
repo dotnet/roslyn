@@ -476,8 +476,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (IsIntPtrToNativeIntegerNestedCast(castNode, castType, castedExpressionType, semanticModel, cancellationToken))
                 return true;
 
+            // If we have `~(ulong)uintVal` then we have to preserve the `(ulong)` cast.  Otherwise, the `~` will
+            // operate on the shorter-bit value, before being extended out to the full length, rather than operating on
+            // the full length. 
+            if (IsBitwiseNotOfExtendedUnsignedValue(castNode, conversion, castType, castedExpressionType))
+                return true;
+
             return false;
         }
+
+        private static bool IsBitwiseNotOfExtendedUnsignedValue(ExpressionSyntax castNode, Conversion conversion, ITypeSymbol castType, ITypeSymbol castedExressionType)
+        {
+            if (castNode.WalkUpParentheses().IsParentKind(SyntaxKind.BitwiseNotExpression) &&
+                conversion.IsImplicit &&
+                conversion.IsNumeric)
+            {
+                return IsUnsigned(castType) || IsUnsigned(castedExressionType);
+            }
+
+            return false;
+        }
+
+        private static bool IsUnsigned(ITypeSymbol type)
+            => type.SpecialType.IsUnsignedIntegralType() || IsNuint(type);
+
+        private static bool IsNuint(ITypeSymbol type)
+            => type.SpecialType == SpecialType.System_UIntPtr && type.IsNativeIntegerType;
 
         private static bool IsIntPtrToNativeIntegerNestedCast(ExpressionSyntax castNode, ITypeSymbol castType, ITypeSymbol castedExpressionType, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
@@ -500,16 +524,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return false;
                 }
 
-                var oppositeType = castType.SpecialType == SpecialType.System_IntPtr ? SpecialType.System_UIntPtr : SpecialType.System_IntPtr;
-
                 // Given (nuint)(nint)myIntPtr we would normally suggest removing the (nint) cast as being identity
                 // but it is required as a means to get from IntPtr to nuint, and vice versa from UIntPtr to nint,
-                // so we check for an identity cast from [U]IntPtr to n[u]int, and a parent cast to the opposite.
+                // so we check for an identity cast from [U]IntPtr to n[u]int and then to a number type.
                 if (castedExpressionType.SpecialType == castType.SpecialType &&
                     !castedExpressionType.IsNativeIntegerType &&
                     castType.IsNativeIntegerType &&
-                    parentCastType.IsNativeIntegerType &&
-                    parentCastType.SpecialType == oppositeType)
+                    parentCastType.IsNumericType())
                 {
                     return true;
                 }
@@ -827,6 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (!constantValue.HasValue || constantValue.Value == null)
                 return null;
 
+            RoslynDebug.Assert(operation.Type is not null);
             if (!operation.Type.SpecialType.IsIntegralType())
                 return null;
 

@@ -215,6 +215,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            // Workaround IsPredefinedOperator returning true for '<' in generics.
+            if (token is { RawKind: (int)SyntaxKind.LessThanToken, Parent: not BinaryExpressionSyntax })
+            {
+                text = null;
+                return false;
+            }
+
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsOperator(token) || syntaxFacts.IsPredefinedOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
             {
@@ -325,8 +332,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     text = "protectedinternal_CSharpKeyword";
                     return true;
 
-                case SyntaxKind.UsingKeyword when token.GetNextToken().IsKind(SyntaxKind.StaticKeyword):
-                case SyntaxKind.StaticKeyword when token.GetPreviousToken().IsKind(SyntaxKind.UsingKeyword):
+                case SyntaxKind.UsingKeyword when token.Parent is UsingDirectiveSyntax:
+                    text = token.GetNextToken().IsKind(SyntaxKind.StaticKeyword)
+                        ? "using-static_CSharpKeyword"
+                        : "using_CSharpKeyword";
+                    return true;
+                case SyntaxKind.StaticKeyword when token.Parent is UsingDirectiveSyntax:
                     text = "using-static_CSharpKeyword";
                     return true;
             }
@@ -372,6 +383,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (token.IsKind(SyntaxKind.StructKeyword) && token.Parent is ClassOrStructConstraintSyntax)
             {
                 text = Keyword("structconstraint");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.UsingKeyword) && token.Parent is UsingStatementSyntax or LocalDeclarationStatementSyntax)
+            {
+                text = Keyword("using-statement");
                 return true;
             }
 

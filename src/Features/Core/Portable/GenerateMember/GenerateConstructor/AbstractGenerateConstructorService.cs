@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -57,6 +55,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             if (currentConstructor.Equals(delegatedConstructor))
                 return true;
 
+            // Delegating to a constructor in the base type can't cause a cycle
+            if (!delegatedConstructor.ContainingType.Equals(currentConstructor.ContainingType))
+                return false;
+
             // We need ensure that delegating constructor won't cause circular dependency.
             // The chain of dependency can not exceed the number for constructors
             var constructorsCount = delegatedConstructor.ContainingType.InstanceConstructors.Length;
@@ -82,6 +84,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
+                    Contract.ThrowIfNull(state.TypeToGenerateIn);
+
                     using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
                     // If we have any fields we'd like to generate, offer a code action to do that.
@@ -112,7 +116,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             return ImmutableArray<CodeAction>.Empty;
         }
 
-        protected static bool IsSymbolAccessible(ISymbol symbol, SemanticDocument document)
+        protected static bool IsSymbolAccessible(ISymbol? symbol, SemanticDocument document)
         {
             if (symbol == null)
             {
@@ -152,6 +156,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             // If it named argument then we use the name provided.
             if (argument.IsNamed)
                 return argument.Name;
+
+            if (argument.Expression is null)
+                return ITypeSymbolExtensions.DefaultParameterName;
 
             var name = this.GenerateNameForExpression(semanticModel, argument.Expression, cancellationToken);
             return string.IsNullOrEmpty(name) ? ITypeSymbolExtensions.DefaultParameterName : name;

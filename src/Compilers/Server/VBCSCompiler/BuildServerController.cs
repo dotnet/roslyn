@@ -25,10 +25,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         internal const string KeepAliveSettingName = "keepalive";
 
         private readonly NameValueCollection _appSettings;
+        private readonly ICompilerServerLogger _logger;
 
-        internal BuildServerController(NameValueCollection appSettings)
+        internal BuildServerController(NameValueCollection appSettings, ICompilerServerLogger logger)
         {
             _appSettings = appSettings;
+            _logger = logger;
         }
 
         internal int Run(string[] args)
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception e)
             {
-                CompilerServerLogger.LogException(e, "Could not read AppSettings");
+                _logger.LogException(e, "Could not read AppSettings");
                 return ServerDispatcher.DefaultServerKeepAlive;
             }
         }
@@ -92,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return BuildServerConnection.WasServerMutexOpen(mutexName);
         }
 
-        internal static IClientConnectionHost CreateClientConnectionHost(string pipeName) => new NamedPipeClientConnectionHost(pipeName);
+        internal static IClientConnectionHost CreateClientConnectionHost(string pipeName, ICompilerServerLogger logger) => new NamedPipeClientConnectionHost(pipeName, logger);
 
-        internal static ICompilerServerHost CreateCompilerServerHost()
+        internal static ICompilerServerHost CreateCompilerServerHost(ICompilerServerLogger logger)
         {
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
             // location of the response files.
@@ -104,12 +106,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var clientDirectory = AppDomain.CurrentDomain.BaseDirectory!;
             var sdkDirectory = BuildClient.GetSystemSdkDirectory();
 
-            return new CompilerServerHost(clientDirectory, sdkDirectory);
+            return new CompilerServerHost(clientDirectory, sdkDirectory, logger);
         }
 
         private async Task<Stream?> ConnectForShutdownAsync(string pipeName, int timeout)
         {
-            return await BuildServerConnection.TryConnectToServerAsync(pipeName, timeout, cancellationToken: default).ConfigureAwait(false);
+            return await BuildServerConnection.TryConnectToServerAsync(pipeName, timeout, _logger, cancellationToken: default).ConfigureAwait(false);
         }
 
         private static string? GetDefaultPipeName()
@@ -130,8 +132,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             keepAlive ??= GetKeepAliveTimeout();
             listener ??= new EmptyDiagnosticListener();
-            clientConnectionHost ??= CreateClientConnectionHost(pipeName);
-            compilerServerHost ??= CreateCompilerServerHost();
+            compilerServerHost ??= CreateCompilerServerHost(_logger);
+            clientConnectionHost ??= CreateClientConnectionHost(pipeName, _logger);
 
             // Grab the server mutex to prevent multiple servers from starting with the same
             // pipename and consuming excess resources. If someone else holds the mutex
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return CommonCompiler.Failed;
                 }
 
-                CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive?.TotalMilliseconds ?? 0);
+                compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive?.TotalMilliseconds ?? 0);
                 FatalError.Handler = FailFast.OnFatalException;
 
                 var dispatcher = new ServerDispatcher(compilerServerHost, clientConnectionHost, listener);
@@ -162,10 +164,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             IDiagnosticListener? listener = null,
             TimeSpan? keepAlive = null,
             NameValueCollection? appSettings = null,
+            ICompilerServerLogger? logger = null,
             CancellationToken cancellationToken = default)
         {
             appSettings ??= new NameValueCollection();
-            var controller = new BuildServerController(appSettings);
+            logger ??= EmptyCompilerServerLogger.Instance;
+            var controller = new BuildServerController(appSettings, logger);
             return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken);
         }
 

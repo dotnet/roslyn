@@ -6,23 +6,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
     Public Class DelegateSubFunctionKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SubAndFunctionAfterDelegateTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(<ClassDeclaration>Delegate |</ClassDeclaration>, "Sub", "Function")
-        End Function
+        Public Sub SubAndFunctionAfterDelegateTest()
+            VerifyRecommendationsAreExactly(<ClassDeclaration>Delegate |</ClassDeclaration>, "Sub", "Function")
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsAreExactlyAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsAreExactly(
 <ClassDeclaration>Delegate _
 |</ClassDeclaration>, "Sub", "Function")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsAreExactlyAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsAreExactly(
 <ClassDeclaration>Delegate _ ' Test
 |</ClassDeclaration>, "Sub", "Function")
-        End Function
+        End Sub
     End Class
 End Namespace

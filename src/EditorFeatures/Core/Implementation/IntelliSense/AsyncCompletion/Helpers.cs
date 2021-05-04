@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
@@ -102,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         {
                             return true;
                         }
+
                         continue;
 
                     case CharacterSetModificationKind.Remove:
@@ -109,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         {
                             return false;
                         }
+
                         continue;
 
                     case CharacterSetModificationKind.Replace:

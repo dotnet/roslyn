@@ -126,8 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // new { - Object Initialization
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression))
+            // new { - Object Initialization, or with { - Record with initializer
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+                (currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) || currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression)))
             {
                 if (!_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
@@ -311,9 +312,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // new MyObject { - Object Initialization
             // new List<int> { - Collection Initialization
+            // with { - Record with initializer
             if (currentToken.Kind() == SyntaxKind.OpenBraceToken &&
                 (currentToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.CollectionInitializerExpression))
+                currentToken.Parent.Kind() == SyntaxKind.CollectionInitializerExpression ||
+                currentToken.Parent.Kind() == SyntaxKind.WithInitializerExpression))
             {
                 if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {

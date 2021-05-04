@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis
 
         internal T? DecodeValue<T>(SpecialType specialType)
         {
-            TryDecodeValue(specialType, out T value);
+            TryDecodeValue(specialType, out T? value);
             return value;
         }
 

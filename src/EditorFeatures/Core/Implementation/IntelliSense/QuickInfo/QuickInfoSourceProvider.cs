@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
-            if (textBuffer.IsInCloudEnvironmentClientContext())
+            if (textBuffer.IsInLspEditorContext())
             {
                 return null;
             }

@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -36,9 +36,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             var document = spanToTag.Document;
             if (document == null)
-            {
                 return;
-            }
+
+            // Don't block getting classifications on building the full compilation.  This may take a significant amount
+            // of time and can cause a very latency sensitive operation (copying) to block the user while we wait on this
+            // work to happen.  
+            //
+            // It's also a better experience to get classifications to the user faster versus waiting a potentially
+            // large amount of time waiting for all the compilation information to be built.  For example, we can
+            // classify types that we've parsed in other files, or partially loaded from metadata, even if we're still
+            // parsing/loading.  For cross language projects, this also produces semantic classifications more quickly
+            // as we do not have to wait on skeletons to be built.
+
+            document = document.WithFrozenPartialSemantics(context.CancellationToken);
+            spanToTag = new DocumentSnapshotSpan(document, spanToTag.SnapshotSpan);
 
             var classified = await TryClassifyContainingMemberSpanAsync(
                     context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
@@ -135,13 +146,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var cancellationToken = context.CancellationToken;
                 using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
                 {
-                    var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
                     await AddSemanticClassificationsAsync(
                         document, snapshotSpan.Span.ToTextSpan(), classificationService, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                    ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
-                    ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
+                    foreach (var span in classifiedSpans)
+                        context.AddTag(ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, span));
 
                     var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
@@ -160,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             Document document,
             TextSpan textSpan,
             IClassificationService classificationService,
-            List<ClassifiedSpan> classifiedSpans,
+            ArrayBuilder<ClassifiedSpan> classifiedSpans,
             CancellationToken cancellationToken)
         {
             var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
@@ -185,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private static async Task<bool> TryAddSemanticClassificationsFromCacheAsync(
             Document document,
             TextSpan textSpan,
-            List<ClassifiedSpan> classifiedSpans,
+            ArrayBuilder<ClassifiedSpan> classifiedSpans,
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
@@ -201,7 +212,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             var checksum = checksums.Text;
 
             var result = await semanticCacheService.GetCachedSemanticClassificationsAsync(
-                (DocumentKey)document, textSpan, checksum, cancellationToken).ConfigureAwait(false);
+                SemanticClassificationCacheUtilities.GetDocumentKeyForCaching(document),
+                textSpan, checksum, cancellationToken).ConfigureAwait(false);
             if (result.IsDefault)
                 return false;
 

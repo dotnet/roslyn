@@ -214,6 +214,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_Parameter = MessageBase + 12789,
         IDS_Return = MessageBase + 12790,
         IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
+        IDS_FeatureConstantInterpolatedStrings = MessageBase + 12792,
+        IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction = MessageBase + 12793,
+        IDS_FeatureSealedToStringInRecord = MessageBase + 12794
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -265,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             SyntaxNode syntax,
             Location? location = null)
         {
@@ -280,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             Compilation compilation,
             Location location)
         {
@@ -320,6 +323,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# preview features.
+                case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction:
+                case MessageID.IDS_FeatureSealedToStringInRecord: // semantic check
+                    return LanguageVersion.Preview;
                 // C# 9.0 features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                 case MessageID.IDS_FeatureFunctionPointers:
@@ -348,6 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return LanguageVersion.CSharp9;
 
                 case MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers: //semantic check
+                case MessageID.IDS_FeatureConstantInterpolatedStrings: //semantic check
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

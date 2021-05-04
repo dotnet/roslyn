@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Debug.Assert(checksum != Checksum.Null);
 
-            if (_assetCache.TryGetAsset(checksum, out T asset))
+            if (_assetCache.TryGetAsset<T>(checksum, out var asset))
             {
                 return asset;
             }

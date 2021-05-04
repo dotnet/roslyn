@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
     <[UseExportProvider]>
     Public Class VisualBasicDebuggerIntellisenseTests
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function QueryVariables() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -27,7 +27,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function EnteringMethod() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -44,7 +44,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function ExitingMethod() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -61,7 +61,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function SingleLineLambda() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -78,7 +78,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function MultiLineLambda() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -97,7 +97,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function LocalVariables() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -117,7 +117,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function CompletionAfterReturn() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -139,7 +139,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function TypeALineTenTimes() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -169,7 +169,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function SignatureHelpInParameterizedConstructor() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -189,7 +189,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function SignatureHelpInMethodCall() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -209,7 +209,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function SignatureHelpInGenericMethod() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -233,7 +233,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function CompletionInExpression() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -257,7 +257,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function CompletionShowTypesFromProjectReference() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -287,7 +287,7 @@ End Class
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function CompletionForGenericType() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -311,7 +311,7 @@ End Module</Document>
             End Using
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function LocalsInForBlock() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -336,7 +336,7 @@ End Module</Document>
         End Function
 
         <WorkItem(1044441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function StoppedOnEndSub() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -352,7 +352,7 @@ End Module</Document>
         End Function
 
         <WorkItem(1044441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1044441")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingIntelliSense)>
         Public Async Function StoppedOnEndProperty() As Task
             Dim text = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">

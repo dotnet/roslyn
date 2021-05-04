@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -275,12 +276,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         AddSymbolLocation(result, member);
                                         break;
                                     case SymbolKind.Field:
+                                        if (member is TupleErrorFieldSymbol)
+                                        {
+                                            break;
+                                        }
+
                                         // NOTE: Dev11 does not add synthesized backing fields for properties,
                                         //       but adds backing fields for events, Roslyn adds both
-                                        {
-                                            var field = (FieldSymbol)member;
-                                            AddSymbolLocation(result, field.TupleUnderlyingField ?? field);
-                                        }
+                                        AddSymbolLocation(result, member);
                                         break;
 
                                     case SymbolKind.Event:
@@ -290,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                             FieldSymbol field = ((EventSymbol)member).AssociatedField;
                                             if ((object)field != null)
                                             {
-                                                AddSymbolLocation(result, field.TupleUnderlyingField ?? field);
+                                                AddSymbolLocation(result, field);
                                             }
                                         }
                                         break;
@@ -405,19 +408,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return SpecializedCollections.EmptyEnumerable<Cci.INamespaceTypeDefinition>();
             }
 
+            return Compilation.AnonymousTypeManager.GetAllCreatedTemplates()
 #if DEBUG
-            return iterator();
+                   .Select(type => type.GetCciAdapter())
 
-            IEnumerable<Cci.INamespaceTypeDefinition> iterator()
-            {
-                foreach (NamedTypeSymbol type in Compilation.AnonymousTypeManager.GetAllCreatedTemplates())
-                {
-                    yield return type.GetCciAdapter();
-                }
-            }
-#else
-            return Compilation.AnonymousTypeManager.GetAllCreatedTemplates();
 #endif
+                   ;
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
@@ -680,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             var typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType);
 
-            DiagnosticInfo info = typeSymbol.GetUseSiteDiagnostic();
+            DiagnosticInfo info = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
             if (info != null)
             {
                 Symbol.ReportUseSiteDiagnostic(info,
@@ -697,21 +693,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                              diagnostics: diagnostics,
                              syntaxNodeOpt: syntaxNodeOpt,
                              needDeclaration: true);
-        }
-
-        internal sealed override Cci.INamedTypeReference GetSystemType(SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
-        {
-            NamedTypeSymbol systemTypeSymbol = Compilation.GetWellKnownType(WellKnownType.System_Type);
-
-            DiagnosticInfo info = systemTypeSymbol.GetUseSiteDiagnostic();
-            if (info != null)
-            {
-                Symbol.ReportUseSiteDiagnostic(info,
-                                               diagnostics,
-                                               syntaxOpt != null ? syntaxOpt.Location : NoLocation.Singleton);
-            }
-
-            return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration: true);
         }
 
         public sealed override Cci.IMethodReference GetInitArrayHelper()
@@ -855,12 +836,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (namedTypeSymbol.OriginalDefinition.Kind == SymbolKind.ErrorType)
             {
                 ErrorTypeSymbol errorType = (ErrorTypeSymbol)namedTypeSymbol.OriginalDefinition;
-                DiagnosticInfo diagInfo = errorType.GetUseSiteDiagnostic() ?? errorType.ErrorInfo;
+                DiagnosticInfo diagInfo = errorType.GetUseSiteInfo().DiagnosticInfo ?? errorType.ErrorInfo;
 
                 if (diagInfo == null && namedTypeSymbol.Kind == SymbolKind.ErrorType)
                 {
                     errorType = (ErrorTypeSymbol)namedTypeSymbol;
-                    diagInfo = errorType.GetUseSiteDiagnostic() ?? errorType.ErrorInfo;
+                    diagInfo = errorType.GetUseSiteInfo().DiagnosticInfo ?? errorType.ErrorInfo;
                 }
 
                 // Try to decrease noise by not complaining about the same type over and over again.
@@ -973,7 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var location = syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location;
             if ((object)declaredBase != null)
             {
-                var diagnosticInfo = declaredBase.GetUseSiteDiagnostic();
+                var diagnosticInfo = declaredBase.GetUseSiteInfo().DiagnosticInfo;
                 if (diagnosticInfo != null && diagnosticInfo.Severity == DiagnosticSeverity.Error)
                 {
                     diagnostics.Add(diagnosticInfo, location);
@@ -1049,7 +1030,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             bool needDeclaration = false)
         {
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
-            Debug.Assert(!fieldSymbol.IsVirtualTupleField && (object)(fieldSymbol.TupleUnderlyingField ?? fieldSymbol) == fieldSymbol, "tuple fields should be rewritten to underlying by now");
+            Debug.Assert(!fieldSymbol.IsVirtualTupleField &&
+                (object)(fieldSymbol.TupleUnderlyingField ?? fieldSymbol) == fieldSymbol &&
+                fieldSymbol is not TupleErrorFieldSymbol, "tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {
@@ -1686,28 +1669,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
         {
+            return GetAdditionalTopLevelTypes()
 #if DEBUG
-
-            foreach (NamedTypeSymbol type in GetAdditionalTopLevelTypes(context.Diagnostics))
-            {
-                yield return type.GetCciAdapter();
-            }
-#else
-            return GetAdditionalTopLevelTypes(context.Diagnostics);
+                   .Select(type => type.GetCciAdapter())
 #endif
+                   ;
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetEmbeddedTypeDefinitions(EmitContext context)
         {
+            return GetEmbeddedTypes(context.Diagnostics)
 #if DEBUG
-
-            foreach (NamedTypeSymbol type in GetEmbeddedTypes(context.Diagnostics))
-            {
-                yield return type.GetCciAdapter();
-            }
-#else
-            return GetEmbeddedTypes(context.Diagnostics);
+                   .Select(type => type.GetCciAdapter())
 #endif
+                   ;
+        }
+
+        public sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
+        {
+            return GetEmbeddedTypes(new BindingDiagnosticBag(diagnostics));
+        }
+
+        internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)
+        {
+            return base.GetEmbeddedTypes(diagnostics.DiagnosticBag);
         }
     }
 }

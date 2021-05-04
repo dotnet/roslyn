@@ -12,19 +12,21 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
+#if !DEBUG
+using NamedTypeSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol;
+using FieldSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.FieldSymbol;
+using MethodSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol;
+using EventSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.EventSymbol;
+using PropertySymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.PropertySymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedType : EmbeddedTypesManager.CommonEmbeddedType
     {
         private bool _embeddedAllMembersOfImplementedInterface;
 
-        public EmbeddedType(EmbeddedTypesManager typeManager,
-#if DEBUG
-            NamedTypeSymbolAdapter
-#else
-            NamedTypeSymbol
-#endif
-                underlyingNamedType) :
+        public EmbeddedType(EmbeddedTypesManager typeManager, NamedTypeSymbolAdapter underlyingNamedType) :
             base(typeManager, underlyingNamedType)
         {
             Debug.Assert(underlyingNamedType.AdaptedNamedTypeSymbol.IsDefinition);
@@ -82,13 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return (object)baseType != null ? moduleBuilder.Translate(baseType, syntaxNodeOpt, diagnostics) : null;
         }
 
-        protected override
-#if DEBUG
-            IEnumerable<FieldSymbolAdapter>
-#else
-            IEnumerable<FieldSymbol>
-#endif
-                GetFieldsToEmit()
+        protected override IEnumerable<FieldSymbolAdapter> GetFieldsToEmit()
         {
             return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetFieldsToEmit()
 #if DEBUG
@@ -97,13 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 ;
         }
 
-        protected override
-#if DEBUG
-            IEnumerable<MethodSymbolAdapter>
-#else
-            IEnumerable<MethodSymbol>
-#endif
-                GetMethodsToEmit()
+        protected override IEnumerable<MethodSymbolAdapter> GetMethodsToEmit()
         {
             return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetMethodsToEmit()
 #if DEBUG
@@ -112,13 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 ;
         }
 
-        protected override
-#if DEBUG
-            IEnumerable<EventSymbolAdapter>
-#else
-            IEnumerable<EventSymbol>
-#endif
-                GetEventsToEmit()
+        protected override IEnumerable<EventSymbolAdapter> GetEventsToEmit()
         {
             return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetEventsToEmit()
 #if DEBUG
@@ -127,13 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 ;
         }
 
-        protected override
-#if DEBUG
-            IEnumerable<PropertySymbolAdapter>
-#else
-            IEnumerable<PropertySymbol>
-#endif
-                GetPropertiesToEmit()
+        protected override IEnumerable<PropertySymbolAdapter> GetPropertiesToEmit()
         {
             return UnderlyingNamedType.AdaptedNamedTypeSymbol.GetPropertiesToEmit()
 #if DEBUG

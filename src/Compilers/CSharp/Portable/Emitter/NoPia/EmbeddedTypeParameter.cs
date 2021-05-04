@@ -10,18 +10,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Cci = Microsoft.Cci;
 
+#if !DEBUG
+using TypeParameterSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.TypeParameterSymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedTypeParameter : EmbeddedTypesManager.CommonEmbeddedTypeParameter
     {
-        public EmbeddedTypeParameter(
-            EmbeddedMethod containingMethod,
-#if DEBUG
-            TypeParameterSymbolAdapter
-#else
-            TypeParameterSymbol
-#endif
-                underlyingTypeParameter) :
+        public EmbeddedTypeParameter(EmbeddedMethod containingMethod, TypeParameterSymbolAdapter underlyingTypeParameter) :
             base(containingMethod, underlyingTypeParameter)
         {
             Debug.Assert(underlyingTypeParameter.AdaptedTypeParameterSymbol.IsDefinition);

@@ -34,7 +34,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 Dim tagProducer = New HighlighterViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     highlightingService,
-                    workspace.GetService(Of IForegroundNotificationService),
                     AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim context = New TaggerContext(Of KeywordHighlightTag)(document, snapshot, New SnapshotPoint(snapshot, caretPosition))

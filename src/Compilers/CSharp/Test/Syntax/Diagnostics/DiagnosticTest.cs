@@ -261,6 +261,8 @@ class X
                         case ErrorCode.WRN_RecordNamedDisallowed:
                         case ErrorCode.WRN_ParameterNotNullIfNotNull:
                         case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                        case ErrorCode.WRN_UnreadRecordParameter:
+                        case ErrorCode.WRN_DoNotCompareFunctionPointers:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -415,6 +417,8 @@ class X
                     ErrorCode.WRN_RecordNamedDisallowed,
                     ErrorCode.WRN_RecordEqualsWithoutGetHashCode,
                     ErrorCode.WRN_AnalyzerReferencesFramework,
+                    ErrorCode.WRN_UnreadRecordParameter,
+                    ErrorCode.WRN_DoNotCompareFunctionPointers,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
@@ -2287,6 +2291,7 @@ class Program
         }
 
         [WorkItem(543705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543705")]
+        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
         [Fact]
         public void GetDiagnosticsCalledTwice()
         {

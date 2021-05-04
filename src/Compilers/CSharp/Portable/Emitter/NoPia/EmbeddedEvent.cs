@@ -7,18 +7,15 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Collections.Generic;
 
+#if !DEBUG
+using EventSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.EventSymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedEvent : EmbeddedTypesManager.CommonEmbeddedEvent
     {
-        public EmbeddedEvent(
-#if DEBUG
-            EventSymbolAdapter
-#else
-            EventSymbol
-#endif
-                underlyingEvent,
-            EmbeddedMethod adder, EmbeddedMethod remover) :
+        public EmbeddedEvent(EventSymbolAdapter underlyingEvent, EmbeddedMethod adder, EmbeddedMethod remover) :
             base(underlyingEvent, adder, remover, null)
         {
         }
@@ -112,9 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                         }
                         else
                         {
-                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                            sourceInterface.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
-                            diagnostics.Add(syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location, useSiteDiagnostics);
+                            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
+                            sourceInterface.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                            diagnostics.Add(syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location, useSiteInfo.Diagnostics);
 
                             // ERRID_EventNoPIANoBackingMember/ERR_MissingMethodOnSourceInterface
                             EmbeddedTypesManager.Error(diagnostics, ErrorCode.ERR_MissingMethodOnSourceInterface, syntaxNodeOpt, sourceInterface, UnderlyingEvent.AdaptedEventSymbol.MetadataName, UnderlyingEvent.AdaptedEventSymbol);

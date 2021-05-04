@@ -14,8 +14,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (!_fromDialog)
                 {
                     // Generate the actual type declaration.
-                    var namedType = GenerateNamedType();
+                    var namedType = await GenerateNamedTypeAsync().ConfigureAwait(false);
 
                     if (_intoNamespace)
                     {
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
                 else
                 {
-                    var namedType = GenerateNamedType(_generateTypeOptionsResult);
+                    var namedType = await GenerateNamedTypeAsync(_generateTypeOptionsResult).ConfigureAwait(false);
 
                     // Honor the options from the dialog
                     // Check to see if the type is requested to be generated in cross language Project
@@ -572,7 +574,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 return typeSymbol.RemoveUnnamedErrorTypes(compilation);
             }
 
-            private bool FindExistingOrCreateNewMember(
+            private async Task<bool> FindExistingOrCreateNewMemberAsync(
                 ParameterName parameterName,
                 ITypeSymbol parameterType,
                 ImmutableDictionary<string, ISymbol>.Builder parameterToFieldMap,
@@ -599,7 +601,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                parameterToNewFieldMap[parameterName.BestNameForParameter] = parameterName.NameBasedOnArgument;
+                var fieldNamingRule = await _semanticDocument.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, _cancellationToken).ConfigureAwait(false);
+                var nameToUse = fieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
+                parameterToNewFieldMap[parameterName.BestNameForParameter] = nameToUse;
                 return false;
             }
 

@@ -9,18 +9,15 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Cci = Microsoft.Cci;
 
+#if !DEBUG
+using PropertySymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.PropertySymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedProperty : EmbeddedTypesManager.CommonEmbeddedProperty
     {
-        public EmbeddedProperty(
-#if DEBUG
-            PropertySymbolAdapter
-#else
-            PropertySymbol
-#endif
-                underlyingProperty,
-            EmbeddedMethod getter, EmbeddedMethod setter) :
+        public EmbeddedProperty(PropertySymbolAdapter underlyingProperty, EmbeddedMethod getter, EmbeddedMethod setter) :
             base(underlyingProperty, getter, setter)
         {
         }

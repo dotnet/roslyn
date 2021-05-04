@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                            parent.IsKind(SyntaxKind.FixedStatement);
 
                 case SyntaxKind.ElseKeyword:
-                    return true;
+                    return token.Parent.IsKind(SyntaxKind.ElseClause);
 
                 case SyntaxKind.CloseBracketToken:
                     if (token.Parent.IsKind(SyntaxKind.AttributeList))
@@ -557,12 +557,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   int Goo { set { } |
             //   int Goo { set; |
             //   int Goo { [Bar]|
+            //   int Goo { readonly |
 
             // Consume all preceding access modifiers
             while (targetToken.Kind() == SyntaxKind.InternalKeyword ||
                 targetToken.Kind() == SyntaxKind.PublicKeyword ||
                 targetToken.Kind() == SyntaxKind.ProtectedKeyword ||
-                targetToken.Kind() == SyntaxKind.PrivateKeyword)
+                targetToken.Kind() == SyntaxKind.PrivateKeyword ||
+                targetToken.Kind() == SyntaxKind.ReadOnlyKeyword)
             {
                 targetToken = targetToken.GetPreviousToken(includeSkipped: true);
             }

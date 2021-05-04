@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -377,7 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var containerNodePosition = containerNode.SpanStart;
             var semanticModel = GetSemanticModel();
 
-            var options = GetDocument().GetOptionsAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
+            var options = State.ThreadingContext.JoinableTaskFactory.Run(() => GetDocument().GetOptionsAsync(CancellationToken.None));
             var propertyType = CodeModelService.GetTypeSymbol(type, semanticModel, containerNodePosition);
             var newProperty = CreatePropertyDeclaration(
                 containerNode,

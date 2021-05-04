@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
-            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, _info);
+            var tree = detector?.TryParseRegexPattern(token, semanticModel, cancellationToken);
             if (tree == null)
             {
                 return;

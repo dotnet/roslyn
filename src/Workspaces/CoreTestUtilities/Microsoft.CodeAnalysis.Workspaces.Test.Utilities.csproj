@@ -4,16 +4,14 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
-    <TargetFrameworks>net5.0-windows;netcoreapp3.1;net472</TargetFrameworks>
+    <TargetFrameworks>net5.0-windows7.0;netcoreapp3.1;net472</TargetFrameworks>
     <UseWpf>true</UseWpf>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
-
-    <!-- CSC error AD0001: Analyzer 'Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.CSharpRestrictedInternalsVisibleToAnalyzer' threw an exception of type 'System.NullReferenceException' with message 'Object reference not set to an instance of an object.'. -->
-    <NoWarn>$(NoWarn);RS0035</NoWarn>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />

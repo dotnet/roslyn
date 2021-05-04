@@ -25,55 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeDefinitionMember,
         Cci.ISpecializedFieldReference
     {
-#if DEBUG
-        internal FieldSymbolAdapter(FieldSymbol underlyingFieldSymbol)
-        {
-            AdaptedFieldSymbol = underlyingFieldSymbol;
-        }
-
-        internal sealed override Symbol AdaptedSymbol => AdaptedFieldSymbol;
-        internal FieldSymbol AdaptedFieldSymbol { get; }
-#else
-        internal FieldSymbol AdaptedFieldSymbol => this;
-#endif 
-    }
-
-    internal partial class FieldSymbol
-    {
-#if DEBUG
-        private FieldSymbolAdapter _lazyAdapter;
-
-        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
-#endif
-        internal new
-#if DEBUG
-            FieldSymbolAdapter
-#else
-            FieldSymbol
-#endif
-            GetCciAdapter()
-        {
-#if DEBUG
-            if (_lazyAdapter is null)
-            {
-                return InterlockedOperations.Initialize(ref _lazyAdapter, new FieldSymbolAdapter(this));
-            }
-
-            return _lazyAdapter;
-#else
-            return this;
-#endif
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        FieldSymbolAdapter
-#else
-        FieldSymbol
-#endif
-    {
-
         Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
@@ -281,27 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return AdaptedFieldSymbol.IsMarshalledExplicitly;
             }
         }
-    }
-
-    internal partial class FieldSymbol
-    {
-        internal virtual bool IsMarshalledExplicitly
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return this.MarshallingInformation != null;
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        FieldSymbolAdapter
-#else
-        FieldSymbol
-#endif
-    {
 
         Cci.IMarshallingInformation Cci.IFieldDefinition.MarshallingInformation
         {
@@ -321,27 +251,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-    }
-
-    internal partial class FieldSymbol
-    {
-        internal virtual ImmutableArray<byte> MarshallingDescriptor
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return default(ImmutableArray<byte>);
-            }
-        }
-    }
-
-    internal partial class
-#if DEBUG
-        FieldSymbolAdapter
-#else
-        FieldSymbol
-#endif
-    {
         int Cci.IFieldDefinition.Offset
         {
             get
@@ -378,4 +287,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
     }
+
+    internal partial class FieldSymbol
+    {
+#if DEBUG
+        private FieldSymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new FieldSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new FieldSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal FieldSymbol AdaptedFieldSymbol => this;
+
+        internal new FieldSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif 
+
+        internal virtual bool IsMarshalledExplicitly
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return this.MarshallingInformation != null;
+            }
+        }
+
+        internal virtual ImmutableArray<byte> MarshallingDescriptor
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return default(ImmutableArray<byte>);
+            }
+        }
+    }
+
+#if DEBUG
+    internal partial class FieldSymbolAdapter
+    {
+        internal FieldSymbolAdapter(FieldSymbol underlyingFieldSymbol)
+        {
+            AdaptedFieldSymbol = underlyingFieldSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedFieldSymbol;
+        internal FieldSymbol AdaptedFieldSymbol { get; }
+    }
+#endif
 }

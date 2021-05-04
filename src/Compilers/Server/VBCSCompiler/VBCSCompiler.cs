@@ -13,11 +13,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         public static int Main(string[] args)
         {
+            using var logger = new CompilerServerLogger("VBCSCompiler");
+
             NameValueCollection appSettings;
             try
             {
 #if BOOTSTRAP
-                ExitingTraceListener.Install();
+                ExitingTraceListener.Install(logger);
 #endif
 
 #if NET472
@@ -33,30 +35,21 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // is corrupted.  This should not prevent the server from starting, but instead just revert
                 // to the default configuration.
                 appSettings = new NameValueCollection();
-                CompilerServerLogger.LogException(ex, "Error loading application settings");
+                logger.LogException(ex, "Error loading application settings");
             }
 
             try
             {
-                var controller = new BuildServerController(appSettings);
+                var controller = new BuildServerController(appSettings, logger);
                 return controller.Run(args);
             }
-            catch (FileNotFoundException e)
+            catch (Exception e)
             {
                 // Assume the exception was the result of a missing compiler assembly.
-                LogException(e);
+                logger.LogException(e, "Cannot start server");
             }
-            catch (TypeInitializationException e) when (e.InnerException is FileNotFoundException)
-            {
-                // Assume the exception was the result of a missing compiler assembly.
-                LogException((FileNotFoundException)e.InnerException);
-            }
-            return CommonCompiler.Failed;
-        }
 
-        private static void LogException(FileNotFoundException e)
-        {
-            CompilerServerLogger.LogException(e, "File not found");
+            return CommonCompiler.Failed;
         }
     }
 }

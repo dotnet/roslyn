@@ -1,4 +1,4 @@
-# Publishes our build assets to nuget, myget, dotnet/versions, etc ..
+# Publishes our build assets to nuget, Azure DevOps, dotnet/versions, etc ..
 #
 # The publish operation is best visioned as an optional yet repeatable post build operation. It can be
 # run anytime after build or automatically as a post build step. But it is an operation that focuses on
@@ -15,11 +15,7 @@ Param(
   [switch]$test,
 
   # Credentials
-  [string]$gitHubUserName = "",
-  [string]$gitHubToken = "",
-  [string]$gitHubEmail = "",
-  [string]$nugetApiKey = "",
-  [string]$myGetApiKey = ""
+  [string]$nugetApiKey = ""
 )
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -28,7 +24,6 @@ $ErrorActionPreference="Stop"
 function Get-PublishKey([string]$uploadUrl) {
   $url = New-Object Uri $uploadUrl
   switch ($url.Host) {
-    "dotnet.myget.org" { return $myGetApiKey }
     "api.nuget.org" { return $nugetApiKey }
     # For publishing to azure, the API key can be any non-empty string as authentication is done in the pipeline.
     "pkgs.dev.azure.com" { return "AzureArtifacts"}
@@ -54,7 +49,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       }
 
       # Lookup the feed name from the packages map using the package name without the version or extension.
-      $nupkgWithoutVersion = $nupkg -replace '(\.\d){3}-.*.nupkg', ''
+      $nupkgWithoutVersion = $nupkg -replace '(\.\d+){3}-.*.nupkg', ''
       if (-not (Get-Member -InputObject $packagesData -Name $nupkgWithoutVersion)) {
         throw "$nupkg has no configured feed (looked for $nupkgWithoutVersion)"
       }
@@ -85,15 +80,6 @@ function Publish-Nuget($publishData, [string]$packageDir) {
   }
 }
 
-function Publish-Channel([string]$packageDir, [string]$name) {
-  $publish = GetProjectOutputBinary "RoslynPublish.exe"
-  $args = "-nugetDir `"$packageDir`" -channel $name -gu $gitHubUserName -gt $gitHubToken -ge $githubEmail"
-  Write-Host "Publishing $packageDir to channel $name"
-  if (-not $test) {
-    Exec-Console $publish $args
-  }
-}
-
 # Do basic verification on the values provided in the publish configuration
 function Test-Entry($publishData, [switch]$isBranch) {
   if ($isBranch) {
@@ -112,13 +98,6 @@ function Publish-Entry($publishData, [switch]$isBranch) {
   # First publish the NuGet packages to the specified feeds
   foreach ($nugetKind in $publishData.nugetKind) {
     Publish-NuGet $publishData (Join-Path $PackagesDir $nugetKind)
-  }
-
-  # Finally get our channels uploaded to versions
-  foreach ($channel in $publishData.channels) {
-    foreach ($nugetKind in $publishData.nugetKind) {
-      Publish-Channel (Join-Path $PackagesDir $nugetKind) $channel
-    }
   }
 
   exit 0

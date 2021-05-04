@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tags;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public readonly IWaitIndicator WaitIndicator;
         public readonly ImmutableArray<Lazy<ISuggestedActionCallback>> ActionCallbacks;
 
-        public readonly ImmutableArray<Lazy<IImageMonikerService, OrderableMetadata>> ImageMonikerServices;
+        public readonly ImmutableArray<Lazy<IImageIdService, OrderableMetadata>> ImageIdServices;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IWaitIndicator waitIndicator,
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             IAsynchronousOperationListenerProvider listenerProvider,
-            [ImportMany] IEnumerable<Lazy<IImageMonikerService, OrderableMetadata>> imageMonikerServices,
+            [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices,
             [ImportMany] IEnumerable<Lazy<ISuggestedActionCallback>> actionCallbacks)
         {
             _threadingContext = threadingContext;
@@ -75,13 +74,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             WaitIndicator = waitIndicator;
             OperationListener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
 
-            ImageMonikerServices = ExtensionOrderer.Order(imageMonikerServices).ToImmutableArray();
+            ImageIdServices = ExtensionOrderer.Order(imageIdServices).ToImmutableArray();
         }
 
-        public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
+        public ISuggestedActionsSource? CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
         {
             Contract.ThrowIfNull(textView);
             Contract.ThrowIfNull(textBuffer);
+
+            // Disable lightbulb points when running under the LSP editor.
+            // The LSP client will interface with the editor to display our code actions.
+            if (textBuffer.IsInLspEditorContext())
+            {
+                return null;
+            }
 
             return new SuggestedActionsSource(_threadingContext, this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }

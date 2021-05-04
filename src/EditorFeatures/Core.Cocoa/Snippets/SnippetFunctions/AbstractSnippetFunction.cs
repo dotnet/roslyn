@@ -2,33 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     internal abstract partial class AbstractSnippetFunction
     {
-#pragma warning disable IDE0052 // Remove unread private members
-        private readonly ITextView _textView;
-#pragma warning restore IDE0052 // Remove unread private members
         private readonly ITextBuffer _subjectBuffer;
 
-        protected AbstractSnippetExpansionClient snippetExpansionClient;
+        protected AbstractSnippetExpansionClient _snippetExpansionClient;
 
-        public AbstractSnippetFunction(AbstractSnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer)
+        public AbstractSnippetFunction(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer)
         {
-            this.snippetExpansionClient = snippetExpansionClient;
-            _textView = textView;
+            _snippetExpansionClient = snippetExpansionClient;
             _subjectBuffer = subjectBuffer;
         }
 
-        protected bool TryGetDocument(out Document document)
+        protected bool TryGetDocument([NotNullWhen(returnValue: true)] out Document? document)
         {
             document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             return document != null;

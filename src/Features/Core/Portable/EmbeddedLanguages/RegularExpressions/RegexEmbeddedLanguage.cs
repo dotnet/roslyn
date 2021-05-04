@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return default;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, this.Info);
-            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
+            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, this.Info);
+            var tree = detector?.TryParseRegexPattern(token, semanticModel, cancellationToken);
             return tree == null ? default : (tree, token);
         }
 

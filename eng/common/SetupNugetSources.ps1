@@ -99,8 +99,9 @@ function InsertMaestroPrivateFeedCredentials($Sources, $Creds, $Username, $Passw
 function EnablePrivatePackageSources($DisabledPackageSources) {
     $maestroPrivateSources = $DisabledPackageSources.SelectNodes("add[contains(@key,'darc-int')]")
     ForEach ($DisabledPackageSource in $maestroPrivateSources) {
-        Write-Host "`tEnsuring private source '$($DisabledPackageSource.key)' is enabled"
-        $DisabledPackageSource.SetAttribute("value", "false")
+        Write-Host "`tEnsuring private source '$($DisabledPackageSource.key)' is enabled by deleting it from disabledPackageSource"
+        # Due to https://github.com/NuGet/Home/issues/10291, we must actually remove the disabled entries
+        $DisabledPackageSources.RemoveChild($DisabledPackageSource)
     }
 }
 
@@ -145,16 +146,16 @@ $userName = "dn-bot"
 # Insert credential nodes for Maestro's private feeds
 InsertMaestroPrivateFeedCredentials -Sources $sources -Creds $creds -Username $userName -Password $Password
 
-$dotnet3Source = $sources.SelectSingleNode("add[@key='dotnet3']")
-if ($dotnet3Source -ne $null) {
-    AddPackageSource -Sources $sources -SourceName "dotnet3-internal" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3-internal/nuget/v2" -Creds $creds -Username $userName -Password $Password
-    AddPackageSource -Sources $sources -SourceName "dotnet3-internal-transport" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3-internal-transport/nuget/v2" -Creds $creds -Username $userName -Password $Password
-}
-
 $dotnet31Source = $sources.SelectSingleNode("add[@key='dotnet3.1']")
 if ($dotnet31Source -ne $null) {
     AddPackageSource -Sources $sources -SourceName "dotnet3.1-internal" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3.1-internal/nuget/v2" -Creds $creds -Username $userName -Password $Password
     AddPackageSource -Sources $sources -SourceName "dotnet3.1-internal-transport" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3.1-internal-transport/nuget/v2" -Creds $creds -Username $userName -Password $Password
+}
+
+$dotnet5Source = $sources.SelectSingleNode("add[@key='dotnet5']")
+if ($dotnet5Source -ne $null) {
+    AddPackageSource -Sources $sources -SourceName "dotnet5-internal" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet5-internal/nuget/v2" -Creds $creds -Username $userName -Password $Password
+    AddPackageSource -Sources $sources -SourceName "dotnet5-internal-transport" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet5-internal-transport/nuget/v2" -Creds $creds -Username $userName -Password $Password
 }
 
 $doc.Save($filename)

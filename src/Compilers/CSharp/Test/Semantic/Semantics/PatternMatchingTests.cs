@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -6409,7 +6409,7 @@ class Program
         }
 
         [Fact, WorkItem(20103, "https://github.com/dotnet/roslyn/issues/20103")]
-        public void TestNullInInPattern()
+        public void TestNullInIsPattern()
         {
             var source =
 @"using System;
@@ -7314,6 +7314,52 @@ class C
             comp.VerifyDiagnostics(
                 );
             CompileAndVerify(comp, expectedOutput: "in catch");
+        }
+
+        [Fact, WorkItem(50301, "https://github.com/dotnet/roslyn/issues/50301")]
+        public void SymbolsForSwitchExpressionLocals()
+        {
+            var source = @"
+class C
+{
+    static string M(object o)
+    {
+        return o switch
+        {
+            int i => $""Number: {i}"",
+            _ => ""Don't know""
+        };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyPdb("C.M", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""10"" endColumn=""11"" document=""1"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""22"" endLine=""8"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x22"" startLine=""9"" startColumn=""18"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x28"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2a"">
+        <scope startOffset=""0xf"" endOffset=""0x22"">
+          <local name=""i"" il_index=""0"" il_start=""0xf"" il_end=""0x22"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
         }
     }
 }

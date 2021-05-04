@@ -50,27 +50,23 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly IRemoteServiceCallbackDispatcher? _callbackDispatcher;
 
         public BrokeredServiceConnection(
+            ServiceDescriptor serviceDescriptor,
             object? callbackTarget,
-            RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
+            IRemoteServiceCallbackDispatcher? callbackDispatcher,
             ServiceBrokerClient serviceBrokerClient,
             SolutionAssetStorage solutionAssetStorage,
             IErrorReportingService? errorReportingService,
-            IRemoteHostClientShutdownCancellationService? shutdownCancellationService,
-            bool isRemoteHost64Bit,
-            bool isRemoteHostServerGC)
+            IRemoteHostClientShutdownCancellationService? shutdownCancellationService)
         {
+            Contract.ThrowIfFalse((callbackDispatcher == null) == (serviceDescriptor.ClientInterface == null));
+
+            _serviceDescriptor = serviceDescriptor;
             _serviceBrokerClient = serviceBrokerClient;
             _solutionAssetStorage = solutionAssetStorage;
             _errorReportingService = errorReportingService;
             _shutdownCancellationService = shutdownCancellationService;
-
-            _serviceDescriptor = ServiceDescriptors.GetServiceDescriptor(typeof(TService), isRemoteHost64Bit, isRemoteHostServerGC);
-
-            if (_serviceDescriptor.ClientInterface != null)
-            {
-                _callbackDispatcher = callbackDispatchers.GetDispatcher(typeof(TService));
-                _callbackHandle = _callbackDispatcher.CreateHandle(callbackTarget);
-            }
+            _callbackDispatcher = callbackDispatcher;
+            _callbackHandle = callbackDispatcher?.CreateHandle(callbackTarget) ?? default;
         }
 
         public override void Dispose()
@@ -271,6 +267,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        /// <param name="service">The service instance.</param>
+        /// <param name="invocation">A callback to asynchronously write data. The callback is required to complete the
+        /// <see cref="PipeWriter"/> except in cases where the callback throws an exception.</param>
+        /// <param name="reader">A callback to asynchronously read data. The callback is allowed, but not required, to
+        /// complete the <see cref="PipeReader"/>.</param>
+        /// <param name="cancellationToken">A cancellation token the operation will observe.</param>
         internal static async ValueTask<TResult> InvokeStreamingServiceAsync<TResult>(
             TService service,
             Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
@@ -281,6 +283,21 @@ namespace Microsoft.CodeAnalysis.Remote
             // avoid deadlocks (the exception handler in 'writerTask' ensures progress is made in 'readerTask').
             cancellationToken.ThrowIfCancellationRequested();
             var mustNotCancelToken = CancellationToken.None;
+
+            // After this point, the full cancellation sequence is as follows:
+            //  1. 'cancellationToken' indicates cancellation is requested
+            //  2. 'invocation' has cancellation requested
+            //  3. 'invocation' stops writing to 'pipe.Writer'
+            //  4. 'readerTask' has cancellation requested
+            //  5. 'readerTask' stops reading from 'pipe.Reader'
+            //  6. 'pipe.Writer' is completed
+            //  7. 'pipe.Reader' is completed
+            //  8. OperationCanceledException is thrown back to the caller
+
+            // Create a separate cancellation token for the reader, which we keep open until after the call to invoke
+            // completes. If we close the reader before cancellation is processed by the remote call, it might block
+            // (deadlock) while writing to a stream which is no longer processing data.
+            using var readerCancellationSource = new CancellationTokenSource();
 
             var pipe = new Pipe();
 
@@ -295,6 +312,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (Exception e)
                 {
+                    // Make sure the reader is aware of a cancellation request before completing the writer. Otherwise,
+                    // the reader could attempt to read past the end of a completed stream without realizing that
+                    // cancellation is expected.
+                    readerCancellationSource.Cancel();
+
                     // Ensure that the writer is complete if an exception is thrown
                     // before the writer is passed to the RPC proxy. Once it's passed to the proxy 
                     // the proxy should complete it as soon as the remote side completes it.
@@ -311,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     try
                     {
-                        return await reader(pipe.Reader, cancellationToken).ConfigureAwait(false);
+                        return await reader(pipe.Reader, readerCancellationSource.Token).ConfigureAwait(false);
                     }
                     catch (Exception e) when ((exception = e) == null)
                     {
@@ -321,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         await pipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
                     }
-                }, mustNotCancelToken);
+                }, readerCancellationSource.Token);
 
             await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
 
@@ -347,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // report telemetry event:
-            Logger.Log(FunctionId.FeatureNotAvailable, $"{ServiceDescriptors.GetServiceName(typeof(TService))}: {exception.GetType()}: {exception.Message}");
+            Logger.Log(FunctionId.FeatureNotAvailable, $"{_serviceDescriptor.Moniker}: {exception.GetType()}: {exception.Message}");
 
             return FatalError.ReportAndCatch(exception);
         }
@@ -385,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             string message;
             Exception? internalException = null;
-            var featureName = ServiceDescriptors.GetFeatureName(typeof(TService));
+            var featureName = _serviceDescriptor.GetFeatureDisplayName();
 
             if (IsRemoteIOException(exception))
             {

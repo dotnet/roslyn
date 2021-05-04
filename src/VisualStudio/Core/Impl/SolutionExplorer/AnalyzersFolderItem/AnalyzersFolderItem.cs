@@ -32,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         }
 
         public override ImageMoniker IconMoniker => KnownMonikers.CodeInformation;
-        public override ImageMoniker ExpandedIconMoniker => KnownMonikers.CodeInformation;
 
         public Workspace Workspace { get; }
 

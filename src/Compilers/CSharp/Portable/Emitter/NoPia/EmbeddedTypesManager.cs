@@ -15,21 +15,24 @@ using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 
+#if !DEBUG
+using SymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbol;
+using NamedTypeSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol;
+using FieldSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.FieldSymbol;
+using MethodSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol;
+using EventSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.EventSymbol;
+using PropertySymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.PropertySymbol;
+using ParameterSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol;
+using TypeParameterSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.TypeParameterSymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedTypesManager :
         EmbeddedTypesManager<PEModuleBuilder, ModuleCompilationState, EmbeddedTypesManager, SyntaxNode, CSharpAttributeData,
-#if DEBUG
             SymbolAdapter,
-#else
-            Symbol,
-#endif
             AssemblySymbol,
-#if DEBUG
             NamedTypeSymbolAdapter, FieldSymbolAdapter, MethodSymbolAdapter, EventSymbolAdapter, PropertySymbolAdapter, ParameterSymbolAdapter, TypeParameterSymbolAdapter,
-#else
-            NamedTypeSymbol, FieldSymbol, MethodSymbol, EventSymbol, PropertySymbol, ParameterSymbol, TypeParameterSymbol,
-#endif
             EmbeddedType, EmbeddedField, EmbeddedMethod, EmbeddedEvent, EmbeddedProperty, EmbeddedParameter, EmbeddedTypeParameter>
     {
         private readonly ConcurrentDictionary<AssemblySymbol, string> _assemblyGuidMap = new ConcurrentDictionary<AssemblySymbol, string>(ReferenceEqualityComparer.Instance);
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             {
                 var typeSymbol = ModuleBeingBuilt.Compilation.GetSpecialType(SpecialType.System_String);
 
-                DiagnosticInfo info = typeSymbol.GetUseSiteDiagnostic();
+                UseSiteInfo<AssemblySymbol> info = typeSymbol.GetUseSiteInfo();
 
                 if (typeSymbol.IsErrorType())
                 {
@@ -63,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
                 if (TypeSymbol.Equals(Interlocked.CompareExchange(ref _lazySystemStringType, typeSymbol, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything2))
                 {
-                    if (info != null)
+                    if (info.DiagnosticInfo != null)
                     {
-                        Symbol.ReportUseSiteDiagnostic(info,
+                        Symbol.ReportUseSiteDiagnostic(info.DiagnosticInfo,
                                                        diagnostics,
                                                        syntaxNodeOpt != null ? syntaxNodeOpt.Location : NoLocation.Singleton);
                     }
@@ -87,22 +90,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             if ((object)lazyMethod == (object)ErrorMethodSymbol.UnknownMethod)
             {
-                DiagnosticInfo info;
+                UseSiteInfo<AssemblySymbol> info;
                 var symbol = (MethodSymbol)Binder.GetWellKnownTypeMember(ModuleBeingBuilt.Compilation,
                                                                          member,
                                                                          out info,
                                                                          isOptional: false);
 
-                if (info != null && info.Severity == DiagnosticSeverity.Error)
+                if (info.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
                 {
                     symbol = null;
                 }
 
                 if (Interlocked.CompareExchange(ref lazyMethod, symbol, ErrorMethodSymbol.UnknownMethod) == ErrorMethodSymbol.UnknownMethod)
                 {
-                    if (info != null)
+                    if (info.DiagnosticInfo != null)
                     {
-                        Symbol.ReportUseSiteDiagnostic(info,
+                        Symbol.ReportUseSiteDiagnostic(info.DiagnosticInfo,
                                                        diagnostics,
                                                        syntaxNodeOpt != null ? syntaxNodeOpt.Location : NoLocation.Singleton);
                     }
@@ -112,14 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return lazyMethod;
         }
 
-        internal override int GetTargetAttributeSignatureIndex(
-#if DEBUG
-            SymbolAdapter
-#else
-            Symbol
-#endif
-                underlyingSymbol,
-            CSharpAttributeData attrData, AttributeDescription description)
+        internal override int GetTargetAttributeSignatureIndex(SymbolAdapter underlyingSymbol, CSharpAttributeData attrData, AttributeDescription description)
         {
             return attrData.GetTargetAttributeSignatureIndex(underlyingSymbol.AdaptedSymbol, description);
         }
@@ -417,12 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         internal override EmbeddedField EmbedField(
             EmbeddedType type,
-#if DEBUG
-            FieldSymbolAdapter
-#else
-            FieldSymbol
-#endif
-                field,
+            FieldSymbolAdapter field,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
@@ -458,12 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         internal override EmbeddedMethod EmbedMethod(
             EmbeddedType type,
-#if DEBUG
-            MethodSymbolAdapter
-#else
-            MethodSymbol
-#endif
-                method,
+            MethodSymbolAdapter method,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
@@ -524,12 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         internal override EmbeddedProperty EmbedProperty(
             EmbeddedType type,
-#if DEBUG
-            PropertySymbolAdapter
-#else
-            PropertySymbol
-#endif
-                property,
+            PropertySymbolAdapter property,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
@@ -563,12 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         internal override EmbeddedEvent EmbedEvent(
             EmbeddedType type,
-#if DEBUG
-            EventSymbolAdapter
-#else
-            EventSymbol
-#endif
-                @event,
+            EventSymbolAdapter @event,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
             bool isUsedForComAwareEventBinding)
@@ -608,13 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return embedded;
         }
 
-        protected override EmbeddedType GetEmbeddedTypeForMember(
-#if DEBUG
-            SymbolAdapter
-#else
-            Symbol
-#endif
-                member, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        protected override EmbeddedType GetEmbeddedTypeForMember(SymbolAdapter member, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             Debug.Assert(member.AdaptedSymbol.IsDefinition);
             Debug.Assert(ModuleBeingBuilt.SourceModule.AnyReferencedAssembliesAreLinked);

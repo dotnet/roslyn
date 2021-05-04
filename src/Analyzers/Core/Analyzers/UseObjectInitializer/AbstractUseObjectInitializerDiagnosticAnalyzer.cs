@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected AbstractUseObjectInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+                   EnforceOnBuildValues.UseObjectInitializer,
                    CodeStyleOptions2.PreferObjectInitializer,
                    new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -46,6 +47,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
 
         protected abstract bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context);
+
+        protected abstract bool IsValidContainingStatement(TStatementSyntax node);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
@@ -74,6 +77,11 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (containingStatement == null)
+            {
+                return;
+            }
+
+            if (!IsValidContainingStatement(containingStatement))
             {
                 return;
             }
@@ -117,7 +125,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             {
                 var end = FadeOutOperatorToken
                     ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
-                    : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression).Span.End;
+                    : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression)!.Span.End;
 
                 var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                     match.MemberAccessExpression.SpanStart, end));

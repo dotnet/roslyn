@@ -33,14 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-        public override ImageMoniker ExpandedIconMoniker
-        {
-            get
-            {
-                return KnownMonikers.CodeInformation;
-            }
-        }
-
         public override ImageMoniker OverlayIconMoniker
         {
             get

@@ -27,7 +27,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 {
     [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(SplitCommentCommandHandler))]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal sealed class SplitCommentCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
@@ -65,6 +65,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             if (document == null)
                 return false;
 
+            var splitCommentService = document.GetLanguageService<ISplitCommentService>();
+            if (splitCommentService == null)
+                return false;
+
             // If there is a selection, ensure that it's all on one-line.  It's not clear what sort of semantics we
             // would want if this spanned multiple lines.
             var selectionSpan = spans[0].Span;
@@ -76,7 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 
             // Quick check.  If the line doesn't contain a comment in it before the caret,
             // then no point in doing any more expensive synchronous work.
-            var splitCommentService = document.GetRequiredLanguageService<ISplitCommentService>();
             if (!LineProbablyContainsComment(splitCommentService, new SnapshotPoint(snapshot, position)))
                 return false;
 

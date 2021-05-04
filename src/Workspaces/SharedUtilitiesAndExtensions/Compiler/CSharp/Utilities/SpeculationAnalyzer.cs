@@ -716,18 +716,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);
         }
 
-        private static bool IsPotentiallyTargetTypedConditionalExpression(ExpressionSyntax expressionSyntax)
-        {
-            return expressionSyntax is ConditionalExpressionSyntax &&
-                   ((CSharpParseOptions)expressionSyntax.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp9;
-        }
-
         protected override bool ReplacementIntroducesErrorType(ExpressionSyntax originalExpression, ExpressionSyntax newExpression)
         {
             // The base implementation will see that the type of the new expression may potentially change to null,
             // because the expression has no type but can be converted to a conditional expression type. In that case,
             // we don't want to consider the null type to be an error type.
-            if (IsPotentiallyTargetTypedConditionalExpression(newExpression) &&
+            if (newExpression.IsKind(SyntaxKind.ConditionalExpression) &&
+                ConditionalExpressionConversionsAreAllowed(newExpression) &&
                 this.SpeculativeSemanticModel.GetConversion(newExpression).IsConditionalExpression)
             {
                 return false;
@@ -741,19 +736,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var originalConversion = originalModel.GetConversion(originalExpression);
             var newConversion = newModel.GetConversion(newExpression);
 
-            if (IsPotentiallyTargetTypedConditionalExpression(originalExpression) &&
-                IsPotentiallyTargetTypedConditionalExpression(newExpression))
+            if (originalExpression.IsKind(SyntaxKind.ConditionalExpression) &&
+                newExpression.IsKind(SyntaxKind.ConditionalExpression))
             {
-                // If the only change to the conversion here is the introduction of a conditional expression conversion,
-                // that means types didn't really change in a meaningful way.
-                if (originalConversion.IsIdentity && newConversion.IsConditionalExpression)
+                if (newConversion.IsConditionalExpression)
                 {
-                    return true;
+                    // If we went from a non-conditional-conversion to a conditional-conversion (i.e. by removing a
+                    // cast), then that is always an error before CSharp9, and should not be allowed.
+                    if (!originalConversion.IsConditionalExpression && !ConditionalExpressionConversionsAreAllowed(originalExpression))
+                        return false;
+
+                    // If the only change to the conversion here is the introduction of a conditional expression conversion,
+                    // that means types didn't really change in a meaningful way.
+                    if (originalConversion.IsIdentity)
+                        return true;
                 }
             }
 
             return ConversionsAreCompatible(originalConversion, newConversion);
         }
+
+        private static bool ConditionalExpressionConversionsAreAllowed(ExpressionSyntax originalExpression)
+            => ((CSharpParseOptions)originalExpression.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp9;
 
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {
