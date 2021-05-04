@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     await _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(true);
                 }
 
-                using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
+                using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActionsAsync, cancellationToken))
                 {
                     var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document == null)
