@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name(nameof(SourceGeneratedFileItemSourceProvider))]
     [Order]
-    [AppliesToProject("CSharp | VisualBasic")]
+    [AppliesToProject("CSharp | VB")]
     internal sealed class SourceGeneratedFileItemSourceProvider : AttachedCollectionSourceProvider<SourceGeneratorItem>
     {
         private readonly Workspace _workspace;

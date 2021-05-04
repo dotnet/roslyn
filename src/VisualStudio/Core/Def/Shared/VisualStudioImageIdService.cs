@@ -10,10 +10,12 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tags;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -34,11 +36,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         }
     }
 
-    [ExportImageMonikerService(Name = Name)]
-    [Order(Before = DefaultImageMonikerService.Name)]
-    internal class VisualStudioImageMonikerService : ForegroundThreadAffinitizedObject, IImageMonikerService
+    [ExportImageIdService(Name = Name)]
+    [Order(Before = DefaultImageIdService.Name)]
+    internal class VisualStudioImageIdService : ForegroundThreadAffinitizedObject, IImageIdService
     {
-        public const string Name = nameof(VisualStudioImageMonikerService);
+        public const string Name = nameof(VisualStudioImageIdService);
 
         private readonly IVsImageService2 _imageService;
 
@@ -47,32 +49,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioImageMonikerService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+        public VisualStudioImageIdService(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
             _imageService = (IVsImageService2)serviceProvider.GetService(typeof(SVsImageService));
         }
 
-        public bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageMoniker imageMoniker)
+        public bool TryGetImageId(ImmutableArray<string> tags, out ImageId imageId)
         {
             this.AssertIsForeground();
 
-            imageMoniker = GetImageMoniker(tags);
-            return !imageMoniker.IsNullImage();
+            imageId = GetImageId(tags);
+            return imageId != default;
         }
 
-        private ImageMoniker GetImageMoniker(ImmutableArray<string> tags)
+        private ImageId GetImageId(ImmutableArray<string> tags)
         {
             var glyph = tags.GetFirstGlyph();
             switch (glyph)
             {
                 case Glyph.AddReference:
-                    return GetCompositedImageMoniker(
+                    return GetCompositedImageId(
                         CreateLayer(Glyph.Reference.GetImageMoniker(), virtualXOffset: 1, virtualYOffset: 2),
                         CreateLayer(KnownMonikers.PendingAddNode, virtualWidth: 7, virtualXOffset: -1, virtualYOffset: -2));
             }
 
-            return glyph.GetImageMoniker();
+            return glyph.GetImageId();
         }
 
         private ImageCompositionLayer CreateLayer(
@@ -93,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
             };
         }
 
-        private ImageMoniker GetCompositedImageMoniker(params ImageCompositionLayer[] layers)
+        private ImageId GetCompositedImageId(params ImageCompositionLayer[] layers)
         {
             this.AssertIsForeground();
 
@@ -101,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
             {
                 if (compositeImage.Layers.SequenceEqual(layers))
                 {
-                    return compositeImage.ImageHandle.Moniker;
+                    return compositeImage.ImageHandle.Moniker.ToImageId();
                 }
             }
 
@@ -112,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
             _compositeImages.Add(new CompositeImage(layers.AsImmutableOrEmpty(), imageHandle));
 
             var moniker = imageHandle.Moniker;
-            return moniker;
+            return moniker.ToImageId();
         }
     }
 }

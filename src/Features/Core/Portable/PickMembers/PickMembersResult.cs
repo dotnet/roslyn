@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.PickMembers
@@ -16,15 +14,22 @@ namespace Microsoft.CodeAnalysis.PickMembers
         public readonly ImmutableArray<ISymbol> Members;
         public readonly ImmutableArray<PickMembersOption> Options;
 
+        /// <summary>
+        /// <see langword="true"/> if 'Select All' was chosen.  <see langword="false"/> if 'Deselect All' was chosen.
+        /// </summary>
+        public readonly bool SelectedAll;
+
         private PickMembersResult(bool isCanceled)
             => IsCanceled = isCanceled;
 
         public PickMembersResult(
             ImmutableArray<ISymbol> members,
-            ImmutableArray<PickMembersOption> options)
+            ImmutableArray<PickMembersOption> options,
+            bool selectedAll)
         {
             Members = members;
             Options = options;
+            SelectedAll = selectedAll;
         }
     }
 }

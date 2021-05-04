@@ -227,20 +227,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private IEnumerable<DocumentId> GetPrioritizedPendingDocuments()
                     {
-                        if (Processor._documentTracker != null)
+                        // First the active document
+                        var activeDocumentId = Processor._documentTracker.TryGetActiveDocument();
+                        if (activeDocumentId != null)
                         {
-                            // First the active document
-                            var activeDocumentId = Processor._documentTracker.TryGetActiveDocument();
-                            if (activeDocumentId != null)
-                            {
-                                yield return activeDocumentId;
-                            }
+                            yield return activeDocumentId;
+                        }
 
-                            // Now any visible documents
-                            foreach (var visibleDocumentId in Processor._documentTracker.GetVisibleDocuments())
-                            {
-                                yield return visibleDocumentId;
-                            }
+                        // Now any visible documents
+                        foreach (var visibleDocumentId in Processor._documentTracker.GetVisibleDocuments())
+                        {
+                            yield return visibleDocumentId;
                         }
 
                         // Any other high priority documents
@@ -254,6 +251,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         try
                         {
+                            if (!Processor._documentTracker.SupportsDocumentTracking)
+                            {
+                                return false;
+                            }
+
                             foreach (var documentId in GetPrioritizedPendingDocuments())
                             {
                                 if (CancellationToken.IsCancellationRequested)
