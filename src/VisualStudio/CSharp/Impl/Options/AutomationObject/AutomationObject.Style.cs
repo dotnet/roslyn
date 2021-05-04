@@ -392,6 +392,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return GetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer); }
             set { SetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, value); }
         }
-
     }
 }
