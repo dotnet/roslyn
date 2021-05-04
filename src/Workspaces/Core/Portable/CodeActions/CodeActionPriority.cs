@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Internal priority used to bluntly place items in a light bulb in strict orderings.  Priorities take
     /// the highest precedence when ordering items so that we can ensure very important items get top prominance,
@@ -26,4 +27,5 @@ namespace Microsoft.CodeAnalysis.CodeActions
         Medium = 2,
         High = 3
     }
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
 }
