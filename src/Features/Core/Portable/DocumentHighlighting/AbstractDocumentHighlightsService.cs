@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +36,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 var result = await client.TryInvokeAsync<IRemoteDocumentHighlightsService, ImmutableArray<SerializableDocumentHighlights>>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.GetDocumentHighlightsAsync(solutionInfo, document.Id, position, documentsToSearch.SelectAsArray(d => d.Id), cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     return ImmutableArray<DocumentHighlights>.Empty;
                 }
 
-                return result.Value.SelectAsArray(h => h.Rehydrate(solution));
+                return await result.Value.SelectAsArrayAsync(h => h.RehydrateAsync(solution)).ConfigureAwait(false);
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var result = await TryGetEmbeddedLanguageHighlightsAsync(
                 document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefaultOrEmpty)
-            {
                 return result;
-            }
 
             var solution = document.Project.Solution;
 
@@ -66,13 +64,20 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
-            {
                 return ImmutableArray<DocumentHighlights>.Empty;
-            }
 
             // Get unique tags for referenced symbols
-            return await GetTagsForReferencedSymbolAsync(
+            var tags = await GetTagsForReferencedSymbolAsync(
                 symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+
+            // Only accept these highlights if at least one of them actually intersected with the 
+            // position the caller was asking for.  For example, if the user had `$$new X();` then 
+            // SymbolFinder will consider that the symbol `X`. However, the doc highlights won't include
+            // the `new` part, so it's not appropriate for us to highlight `X` in that case.
+            if (!tags.Any(t => t.HighlightSpans.Any(hs => hs.TextSpan.IntersectsWith(position))))
+                return ImmutableArray<DocumentHighlights>.Empty;
+
+            return tags;
         }
 
         private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
@@ -228,11 +233,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                             // GetDocument will return null for locations in #load'ed trees.
                             // TODO:  Remove this check and add logic to fetch the #load'ed tree's
                             // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
-                            // TODO: the assert is also commented out becase generated syntax trees won't
-                            // have a document until https://github.com/dotnet/roslyn/issues/42823 is fixed
                             if (document == null)
                             {
-                                // Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                                Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
                                 continue;
                             }
 
@@ -320,7 +323,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     }
                 }
             }
-            catch (NullReferenceException e) when (FatalError.ReportWithoutCrash(e))
+            catch (NullReferenceException e) when (FatalError.ReportAndCatch(e))
             {
                 // We currently are seeing a strange null references crash in this code.  We have
                 // a strong belief that this is recoverable, but we'd like to know why it is 

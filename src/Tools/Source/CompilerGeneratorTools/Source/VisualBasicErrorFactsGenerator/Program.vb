@@ -22,7 +22,10 @@ Friend Module Program
         outputText.AppendLine("Namespace Microsoft.CodeAnalysis.VisualBasic")
         outputText.AppendLine("    Friend Partial Module ErrorFacts")
 
-        Dim warningCodeNames, fatalCodeNames, infoCodeNames, hiddenCodeNames As New List(Of String)
+        Dim warningCodeNames As New List(Of String)
+        Dim fatalCodeNames As New List(Of String)
+        Dim infoCodeNames As New List(Of String)
+        Dim hiddenCodeNames As New List(Of String)
         For Each line In From l In File.ReadAllLines(inputPath) Select l.Trim
             If line.StartsWith("WRN_", StringComparison.OrdinalIgnoreCase) Then
                 warningCodeNames.Add(line.Substring(0, line.IndexOf(" "c)))

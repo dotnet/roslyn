@@ -129,6 +129,15 @@ namespace Microsoft.CodeAnalysis
 
         internal int Position => _position;
 
+        internal GreenNode RequiredUnderlyingNode
+        {
+            get
+            {
+                Debug.Assert(UnderlyingNode is not null);
+                return UnderlyingNode;
+            }
+        }
+
         /// <summary>
         /// Determines whether this <see cref="SyntaxNodeOrToken"/> is wrapping a token.
         /// </summary>
@@ -551,7 +560,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determines if this node or token has the specific annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             if (_token != null)
             {
@@ -748,6 +757,12 @@ namespace Microsoft.CodeAnalysis
 
             return (thisUnderlying == otherUnderlying) || (thisUnderlying != null && thisUnderlying.IsEquivalentTo(otherUnderlying));
         }
+
+        /// <summary>
+        /// See <see cref="SyntaxNode.IsIncrementallyIdenticalTo"/> and <see cref="SyntaxToken.IsIncrementallyIdenticalTo"/>.
+        /// </summary>
+        public bool IsIncrementallyIdenticalTo(SyntaxNodeOrToken other)
+            => this.UnderlyingNode != null && this.UnderlyingNode == other.UnderlyingNode;
 
         /// <summary>
         /// Returns a new <see cref="SyntaxNodeOrToken"/> that wraps the supplied token.

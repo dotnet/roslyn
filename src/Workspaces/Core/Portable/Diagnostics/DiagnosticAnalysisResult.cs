@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -101,13 +102,15 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 fromBuild: false);
         }
 
-        public static DiagnosticAnalysisResult CreateFromBuild(Project project, ImmutableArray<DiagnosticData> diagnostics)
+        public static DiagnosticAnalysisResult CreateFromBuild(Project project, ImmutableArray<DiagnosticData> diagnostics, IEnumerable<DocumentId> initialDocuments)
         {
             // we can't distinguish locals and non locals from build diagnostics nor determine right snapshot version for the build.
             // so we put everything in as semantic local with default version. this lets us to replace those to live diagnostics when needed easily.
             var version = VersionStamp.Default;
 
             var documentIds = ImmutableHashSet.CreateBuilder<DocumentId>();
+            documentIds.AddRange(initialDocuments);
+
             var diagnosticsWithDocumentId = PooledDictionary<DocumentId, ArrayBuilder<DiagnosticData>>.GetInstance();
             var diagnosticsWithoutDocumentId = ArrayBuilder<DiagnosticData>.GetInstance();
 

@@ -14,9 +14,12 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
+using Roslyn.Utilities;
 using RunTests;
+using Xunit;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -82,6 +85,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 File.WriteAllText(Path.Combine(logDir, $"{baseFileName}.log"), eventArgs.Exception.ToString());
 
+                ActivityLogCollector.TryWriteActivityLogToFile(Path.Combine(logDir, $"{baseFileName}.Actvty.log"));
                 EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
                 EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
 
@@ -163,6 +167,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ImmutableHashSet<string> supportedPackageIds;
             string installationPath;
 
+            var isUsingLspEditor = IsUsingLspEditor();
+
             if (shouldStartNewInstance)
             {
                 // We are starting a new instance, so ensure we close the currently running instance, if it exists
@@ -174,7 +180,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 var instanceVersion = instance.GetInstallationVersion();
                 var majorVersion = int.Parse(instanceVersion.Substring(0, instanceVersion.IndexOf('.')));
-                hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion);
+                hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion, isUsingLspEditor);
 
                 var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
                 if (procDumpInfo != null)
@@ -204,7 +210,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 _currentlyRunningInstance.Close(exitHostProcess: false);
             }
 
-            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
+            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath, isUsingLspEditor);
         }
 
         private static IEnumerable<ISetupInstance> EnumerateVisualStudioInstances()
@@ -304,7 +310,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             throw new Exception(string.Join(Environment.NewLine, messages));
         }
 
-        private static Process StartNewVisualStudioProcess(string installationPath, int majorVersion)
+        private static Process StartNewVisualStudioProcess(string installationPath, int majorVersion, bool isUsingLspEditor)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
             var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
@@ -328,6 +334,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
+
+                var lspRegistryValue = isUsingLspEditor ? "1" : "0";
+                var lspFeatureFlagName = VisualStudioWorkspaceContextService.LspEditorFeatureFlagName.Replace(".", "\\");
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\{lspFeatureFlagName}\" Value dword {lspRegistryValue}")).WaitForExit();
+                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\Telemetry\Channels", "fileLogger", 1, RegistryValueKind.DWord);
 
                 // Remove legacy experiment setting for controlling async completion to ensure it does not interfere.
                 // We no longer set this value, but it could be in place from an earlier test run on the same machine.
@@ -356,7 +367,36 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             IntegrationHelper.KillProcess("VsJITDebugger");
             IntegrationHelper.KillProcess("dexplore");
 
-            var process = Process.Start(vsExeFile, VsLaunchArgs);
+            var processStartInfo = new ProcessStartInfo(vsExeFile, VsLaunchArgs) { UseShellExecute = false };
+
+            // Clear variables set by CI builds which are known to affect IDE behavior. Integration tests should show
+            // correct behavior for default IDE installations, without Roslyn-, Arcade-, or Azure Pipelines-specific
+            // influences.
+            processStartInfo.Environment.Remove("DOTNET_MULTILEVEL_LOOKUP");
+            processStartInfo.Environment.Remove("DOTNET_INSTALL_DIR");
+            processStartInfo.Environment.Remove("DotNetRoot");
+            processStartInfo.Environment.Remove("DotNetTool");
+
+            if (isUsingLspEditor)
+            {
+                // When running under the LSP editor set logging to verbose to ensure LSP client logs are captured.
+                processStartInfo.Environment.Add("LogLevel", "Verbose");
+            }
+
+            // The first element of the path in CI is a .dotnet used for the Roslyn build. Make sure to remove that.
+            if (processStartInfo.Environment.TryGetValue("BUILD_SOURCESDIRECTORY", out var sourcesDirectory))
+            {
+                var environmentPath = processStartInfo.Environment["PATH"];
+
+                // Assert that the PATH still has the form we are expecting since we're about to modify it
+                var firstPath = environmentPath.Substring(0, environmentPath.IndexOf(';'));
+                Assert.Equal(Path.Combine(sourcesDirectory, ".dotnet") + '\\', firstPath);
+
+                // Drop the first path element
+                processStartInfo.Environment["PATH"] = environmentPath.Substring(environmentPath.IndexOf(';') + 1);
+            }
+
+            var process = Process.Start(processStartInfo);
             Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {process.Id})");
 
             return process;
@@ -371,6 +411,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
             return Path.GetDirectoryName(assemblyPath);
+        }
+
+        private static bool IsUsingLspEditor()
+        {
+            return string.Equals(Environment.GetEnvironmentVariable("ROSLYN_LSPEDITOR"), "true", StringComparison.OrdinalIgnoreCase);
         }
 
         public void Dispose()

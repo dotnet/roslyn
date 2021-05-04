@@ -18,19 +18,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(INamedTypeSymbol symbol)
             => symbol.TypeKind != TypeKind.Error;
 
-        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             INamedTypeSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<ISymbol>.GetInstance();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
 
             if (symbol.AssociatedSymbol != null)
-            {
                 Add(result, ImmutableArray.Create(symbol.AssociatedSymbol));
-            }
 
             // cascade to constructors
             Add(result, symbol.Constructors);
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // cascade to destructor
             Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
 
-            return Task.FromResult(result.ToImmutableAndFree());
+            return Task.FromResult(result.SelectAsArray(s => (s, cascadeDirection)));
         }
 
         private static void Add<TSymbol>(ArrayBuilder<ISymbol> result, ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             INamedTypeSymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -132,7 +131,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             return FindReferencesInDocumentAsync(document, semanticModel, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
-                (t, m) => new ValueTask<(bool matched, CandidateReason reason)>((matched: true, reason: CandidateReason.None)),
+                (t, m) => ValueTaskFactory.FromResult((matched: true, reason: CandidateReason.None)),
                 docCommentId: null,
                 findInGlobalSuppressions: false,
                 cancellationToken);

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         protected NamingStyleDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.NamingRuleId,
+                   EnforceOnBuildValues.NamingRule,
                    option: null,    // No unique option to configure the diagnosticId
                    s_localizableTitleNamingStyle,
                    s_localizableMessageFormat)
@@ -111,7 +113,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
+            if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsEntryPoint(compilation.TaskType(), compilation.TaskOfTType()))
+            {
+                return null;
+            }
+
             if (ShouldIgnore(symbol))
+            {
+                return null;
+            }
+
+            if (symbol.IsSymbolWithSpecialDiscardName())
             {
                 return null;
             }

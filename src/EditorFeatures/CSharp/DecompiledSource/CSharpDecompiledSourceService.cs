@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                     var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
                     GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                 }
             }

@@ -62,7 +62,7 @@ namespace ConsoleApplication1
         }
     }
 }");
-            var terms = CSharpProximityExpressionsService.Do(tree, 245);
+            var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 245, cancellationToken: default);
             Assert.NotNull(terms);
             AssertEx.Equal(new[] { "yy", "xx" }, terms);
         }
@@ -300,6 +300,21 @@ class Class
     {
         get { return """"; }
         set { $$ }
+    }
+}", "this", "value");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
+        public async Task TestValueInPropertyInit()
+        {
+            await TestTryDoAsync(@"
+class Class
+{
+    string Name
+    {
+        get { return """"; }
+        init { $$ }
     }
 }", "this", "value");
         }

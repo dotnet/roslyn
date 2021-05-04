@@ -472,6 +472,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     {
                         return null;
                     }
+
                     var argumentTypeInfo = semanticModel.GetTypeInfo(expressionOfArgument);
                     var isNullLiteral = syntaxFacts.IsNullLiteralExpression(expressionOfArgument);
                     var isDefaultLiteral = syntaxFacts.IsDefaultLiteralExpression(expressionOfArgument);

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         /// </summary>
         public static bool IsEmptyOrWhitespace(this ITextSnapshotLine line, int startIndex = 0, int endIndex = -1)
         {
-            Contract.ThrowIfNull("line");
+            Contract.ThrowIfNull(line, "line");
             Contract.ThrowIfFalse(startIndex >= 0);
 
             var text = line.GetText();
@@ -92,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
             return true;
         }
 
-        public static ITextSnapshotLine GetPreviousMatchingLine(this ITextSnapshotLine line, Func<ITextSnapshotLine, bool> predicate)
+        public static ITextSnapshotLine? GetPreviousMatchingLine(this ITextSnapshotLine line, Func<ITextSnapshotLine, bool> predicate)
         {
             Contract.ThrowIfNull(line, @"line");
             Contract.ThrowIfNull(predicate, @"tree");

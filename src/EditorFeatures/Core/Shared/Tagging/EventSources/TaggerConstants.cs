@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
@@ -31,19 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         internal static TimeSpan ComputeTimeDelay(this TaggerDelay behavior)
-        {
-            switch (behavior)
+            => behavior switch
             {
-                case TaggerDelay.NearImmediate:
-                    return TimeSpan.FromMilliseconds(NearImmediateDelay);
-                case TaggerDelay.Short:
-                    return TimeSpan.FromMilliseconds(ShortDelay);
-                case TaggerDelay.Medium:
-                    return TimeSpan.FromMilliseconds(MediumDelay);
-                case TaggerDelay.OnIdle:
-                default:
-                    return TimeSpan.FromMilliseconds(IdleDelay);
-            }
-        }
+                TaggerDelay.NearImmediate => TimeSpan.FromMilliseconds(NearImmediateDelay),
+                TaggerDelay.Short => TimeSpan.FromMilliseconds(ShortDelay),
+                TaggerDelay.Medium => TimeSpan.FromMilliseconds(MediumDelay),
+                _ => TimeSpan.FromMilliseconds(IdleDelay),
+            };
     }
 }

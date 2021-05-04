@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 
         public UseExplicitTupleNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
+                   EnforceOnBuildValues.UseExplicitTupleName,
                    CodeStyleOptions2.PreferExplicitTupleNames,
                    title: new LocalizableResourceString(nameof(AnalyzersResources.Use_explicitly_provided_tuple_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    messageFormat: new LocalizableResourceString(nameof(AnalyzersResources.Prefer_explicitly_provided_tuple_element_name), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))

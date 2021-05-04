@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 string xpathValue;
                 if (string.IsNullOrEmpty(pathAttribute?.Value))
                 {
-                    xpathValue = BuildXPathForElement(element.Parent);
+                    xpathValue = BuildXPathForElement(element.Parent!);
                 }
                 else
                 {
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
                 else if (memberSymbol.IsOverride)
                 {
-                    return memberSymbol.OverriddenMember();
+                    return memberSymbol.GetOverriddenMember();
                 }
 
                 if (memberSymbol is IMethodSymbol methodSymbol)
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 XContainer temp = new XElement("temp");
                 temp.Add(node);
-                copy = temp.LastNode;
+                copy = temp.LastNode!;
                 temp.RemoveNodes();
             }
 
@@ -667,11 +667,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var symbol in symbols)
             {
-                var overriddenMember = symbol.OverriddenMember();
+                var overriddenMember = symbol.GetOverriddenMember();
                 if (overriddenMember != null && !overriddenSymbols.Contains(overriddenMember))
-                {
                     overriddenSymbols.Add(overriddenMember);
-                }
             }
 
             return symbols.WhereAsArray(s => !overriddenSymbols.Contains(s));

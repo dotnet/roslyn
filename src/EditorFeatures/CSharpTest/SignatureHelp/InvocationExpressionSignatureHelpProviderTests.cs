@@ -2011,7 +2011,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
     </Project>
 </Workspace>";
-            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
@@ -2047,7 +2047,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"void C.bar()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
@@ -2225,7 +2225,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = new SignatureHelpTestItem($"void C.Do(int x)", currentParameterIndex: 0);
+            var expectedDescription = new SignatureHelpTestItem($"void C.Do(int x)\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
             await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
         }
 
@@ -2484,6 +2484,47 @@ class C
             var expectedOrderedItems = new List<SignatureHelpTestItem> { new SignatureHelpTestItem("int delegate*(string, long)", currentParameterIndex: 1) };
 
             await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task ShowWarningForOverloadUnavailableInRelatedDocument(bool typeParameterProvided)
+        {
+            var markup = $@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""TFM"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{{
+    public void M(object o) => false;
+#if TFM
+    public void M<T>(Action<T> arg1, T arg2, bool flag) => false;
+#endif
+
+    void goo()
+    {{
+        M{(typeParameterProvided ? "<object>" : string.Empty)}($$
+    }}
+}}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument"" />
+    </Project>
+</Workspace>";
+
+            var expectedItems = new List<SignatureHelpTestItem>();
+
+            if (typeParameterProvided)
+            {
+                // If generic method is instantiated, non-generic overloads would be excluded (desciption would be instantiated as well, i.e. object instead of T)
+                expectedItems.Add(new SignatureHelpTestItem($"void C.M<object>(Action<object> arg1, object arg2, bool flag)\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0));
+            }
+            else
+            {
+                expectedItems.Add(new SignatureHelpTestItem($"void C.M(object o)", currentParameterIndex: 0));
+                expectedItems.Add(new SignatureHelpTestItem($"void C.M<T>(Action<T> arg1, T arg2, bool flag)\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0));
+            }
+            await VerifyItemWithReferenceWorkerAsync(markup, expectedItems, hideAdvancedMembers: false);
         }
     }
 }

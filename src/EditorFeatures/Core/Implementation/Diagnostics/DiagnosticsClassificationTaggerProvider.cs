@@ -46,10 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             ClassificationTypeMap typeMap,
-            IForegroundNotificationService notificationService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, diagnosticService, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _classificationTag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeDefinitions.UnnecessaryCode));
@@ -95,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     var result = serializer.ReadObject(stream) as IEnumerable<int>;
                     return result ?? Array.Empty<int>();
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     return ImmutableArray<int>.Empty;
                 }

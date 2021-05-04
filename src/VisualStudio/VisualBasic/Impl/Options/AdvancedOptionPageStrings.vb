@@ -33,6 +33,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             BasicVSResources.Show_procedure_line_separators
 
+        Public ReadOnly Property Option_Display_all_hints_while_pressing_Alt_F1 As String =
+            ServicesVSResources.Display_all_hints_while_pressing_Alt_F1
+
+        Public ReadOnly Property Option_Color_hints As String =
+            ServicesVSResources.Color_hints
+
         Public ReadOnly Property Option_Inline_Hints_experimental As String =
             ServicesVSResources.Inline_Hints_experimental
 
@@ -48,11 +54,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_hints_for_everything_else As String =
             ServicesVSResources.Show_hints_for_everything_else
 
-        Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String
-            Get
-                Return BasicVSResources.Don_t_put_ByRef_on_custom_structure
-            End Get
-        End Property
+        Public ReadOnly Property Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent As String =
+            ServicesVSResources.Suppress_hints_when_parameter_name_matches_the_method_s_intent
+
+        Public ReadOnly Property Option_Suppress_hints_when_parameter_names_differ_only_by_suffix As String =
+            ServicesVSResources.Suppress_hints_when_parameter_names_differ_only_by_suffix
+
+        Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
+            BasicVSResources.Don_t_put_ByRef_on_custom_structure
 
         Public ReadOnly Property Option_EditorHelp As String
             Get
@@ -233,6 +242,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String =
             BasicVSResources.Suggest_imports_for_types_in_NuGet_packages
 
+        Public ReadOnly Property Option_Add_missing_imports_on_paste As String =
+            BasicVSResources.Add_missing_imports_on_paste
+
         Public ReadOnly Property Option_Regular_Expressions As String =
             ServicesVSResources.Regular_Expressions
 
@@ -268,5 +280,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As SchemeName =
             SchemeName.VisualStudio2017
+
+        Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental As String =
+            ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
+
+        Public ReadOnly Property Enable_all_features_in_opened_files_from_source_generators_experimental As String =
+             ServicesVSResources.Enable_all_features_in_opened_files_from_source_generators_experimental
+
+        Public ReadOnly Property Option_Enable_file_logging_for_diagnostics As String =
+            ServicesVSResources.Enable_file_logging_for_diagnostics
     End Module
 End Namespace

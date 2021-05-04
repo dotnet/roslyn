@@ -82,17 +82,20 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var data = (await AssetStorage.GetTestAccessor().GetAssetAsync(checksum, CancellationToken.None).ConfigureAwait(false))!;
             Contract.ThrowIfNull(data.Value);
 
+            using var context = SolutionReplicationContext.Create();
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                Serializer.Serialize(data.Value, writer, CancellationToken.None);
+                Serializer.Serialize(data.Value, writer, context, CancellationToken.None);
             }
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
 
             // deserialize bits to object
-            return Serializer.Deserialize<T>(data.Kind, reader, CancellationToken.None);
+            var result = Serializer.Deserialize<T>(data.Kind, reader, CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
         }
 
         public async Task<Solution> GetSolutionAsync(SolutionAssetStorage.Scope scope)
@@ -213,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal async Task VerifySolutionStateSerializationAsync(Solution solution, Checksum solutionChecksum)
         {
             var solutionObjectFromSyncObject = await GetValueAsync<SolutionStateChecksums>(solutionChecksum);
-            Assert.True(solution.State.TryGetStateChecksums(out var solutionObjectFromSolution));
+            Contract.ThrowIfFalse(solution.State.TryGetStateChecksums(out var solutionObjectFromSolution));
 
             SolutionStateEqual(solutionObjectFromSolution, solutionObjectFromSyncObject);
         }

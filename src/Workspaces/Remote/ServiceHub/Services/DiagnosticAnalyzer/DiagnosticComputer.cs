@@ -43,13 +43,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
         public DiagnosticComputer(
-            DocumentId? documentId,
+            TextDocument? document,
             Project project,
             TextSpan? span,
             AnalysisKind? analysisKind,
             DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
-            _document = documentId != null ? project.Solution.GetRequiredTextDocument(documentId) : null;
+            _document = document;
             _project = project;
             _span = span;
             _analysisKind = analysisKind;
@@ -73,6 +73,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             if (analyzers.IsEmpty)
             {
                 return SerializableDiagnosticAnalysisResults.Empty;
+            }
+
+            if (_document == null && analyzers.Length < compilationWithAnalyzers.Analyzers.Length)
+            {
+                // PERF: Generate a new CompilationWithAnalyzers with trimmed analyzers for non-document analysis case.
+                compilationWithAnalyzers = compilationWithAnalyzers.Compilation.WithAnalyzers(analyzers, compilationWithAnalyzers.AnalysisOptions);
             }
 
             var cacheService = _project.Solution.Workspace.Services.GetRequiredService<IProjectCacheService>();

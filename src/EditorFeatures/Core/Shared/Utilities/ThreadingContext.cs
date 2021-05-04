@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public void Dispose()
         {
-            // https://github.com/Microsoft/vs-threading/blob/master/doc/cookbook_vs.md#how-to-write-a-fire-and-forget-method-responsibly
+            // https://github.com/Microsoft/vs-threading/blob/main/doc/cookbook_vs.md#how-to-write-a-fire-and-forget-method-responsibly
             _disposalTokenSource.Cancel();
 
             try

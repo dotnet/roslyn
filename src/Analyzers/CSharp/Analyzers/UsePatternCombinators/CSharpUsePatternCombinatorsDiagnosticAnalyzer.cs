@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
     {
         public CSharpUsePatternCombinatorsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
+                EnforceOnBuildValues.UsePatternCombinators,
                 CSharpCodeStyleOptions.PreferPatternMatching,
                 LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

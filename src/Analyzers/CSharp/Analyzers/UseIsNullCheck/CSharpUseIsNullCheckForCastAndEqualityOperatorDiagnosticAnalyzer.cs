@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         public CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
+                   EnforceOnBuildValues.UseIsNullCheck,
                    CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
                    CSharpAnalyzersResources.Use_is_null_check,
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))

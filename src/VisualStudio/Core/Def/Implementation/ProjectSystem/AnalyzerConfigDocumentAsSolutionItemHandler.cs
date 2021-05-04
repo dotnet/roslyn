@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     [Export, Shared]
     internal partial class AnalyzerConfigDocumentAsSolutionItemHandler : IDisposable
     {
-        private static readonly string LocalRegistryPath = $@"Roslyn\Internal\{nameof(AnalyzerConfigDocumentAsSolutionItemHandler)}\";
+        private const string LocalRegistryPath = $@"Roslyn\Internal\{nameof(AnalyzerConfigDocumentAsSolutionItemHandler)}\";
         private static readonly Option<bool> NeverShowAgain = new(nameof(AnalyzerConfigDocumentAsSolutionItemHandler), nameof(NeverShowAgain),
             defaultValue: false, storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(NeverShowAgain)));
 
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _infoBarShownForCurrentSolution = true;
                     var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
-                    infoBarService.ShowInfoBarInGlobalView(
+                    infoBarService.ShowInfoBar(
                         ServicesVSResources.A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item,
                         GetInfoBarUIItems().ToArray());
                 }

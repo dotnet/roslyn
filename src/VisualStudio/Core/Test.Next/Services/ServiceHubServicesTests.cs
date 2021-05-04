@@ -14,9 +14,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -43,6 +44,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             => solution.WithChangedOptionsFrom(remoteWorkpace.Options);
 
         [Fact]
+        [Obsolete]
         public void TestRemoteHostCreation()
         {
             var remoteLogger = new TraceSource("inprocRemoteClient");
@@ -100,12 +102,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var newText = oldText.WithChanges(new TextChange(TextSpan.FromBounds(0, 0), "/* test */"));
 
             // sync
-            await client.RunRemoteAsync(
-                WellKnownServiceHubService.RemoteHost,
-                nameof(IRemoteHostService.SynchronizeTextAsync),
-                solution: null,
-                new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) },
-                callbackTarget: null,
+            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText), cancellationToken),
                 CancellationToken.None);
 
             // apply change to solution
@@ -125,6 +123,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 // TODO: Test";
 
             using var workspace = CreateWorkspace();
+            workspace.SetOptions(workspace.Options.WithChangedOption(TodoCommentOptions.TokenList, "HACK:1|TODO:1|UNDONE:1|UnresolvedMergeConflict:0"));
             workspace.InitializeDocuments(LanguageNames.CSharp, files: new[] { source }, openDocuments: false);
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
@@ -132,7 +131,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // Ensure remote workspace is in sync with normal workspace.
             var solution = workspace.CurrentSolution;
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
@@ -140,13 +139,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteTodoCommentsDiscoveryService>(callback, cancellationTokenSource.Token);
+            using var connection = client.CreateConnection<IRemoteTodoCommentsDiscoveryService>(callback);
 
             var invokeTask = connection.TryInvokeAsync(
-                (service, cancellationToken) => service.ComputeTodoCommentsAsync(cancellationToken),
+                (service, callbackId, cancellationToken) => service.ComputeTodoCommentsAsync(callbackId, cancellationToken),
                 cancellationTokenSource.Token);
 
-            var data = await callback.Data;
+            var data = await callback.Data.WithTimeout(TimeSpan.FromMinutes(1));
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, data.Item1);
             Assert.Equal(1, data.Item2.Length);
 
@@ -169,18 +168,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class TodoCommentsListener : ITodoCommentsListener
         {
-            private readonly TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)> _dataSource
-                = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+            private readonly TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)> _dataSource = new();
+
             public Task<(DocumentId, ImmutableArray<TodoCommentData>)> Data => _dataSource.Task;
 
             public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
             {
                 _dataSource.SetResult((documentId, data));
-                return new ValueTask();
+                return ValueTaskFactory.CompletedTask;
             }
         }
 
-        private static async Task<AssetProvider> GetAssetProviderAsync(Workspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
+        private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, Workspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
         {
             // make sure checksum is calculated
             await solution.State.GetChecksumAsync(CancellationToken.None);
@@ -190,7 +189,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new SolutionAssetCache();
-            var assetSource = new SimpleAssetSource(map);
+            var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
         }
@@ -210,16 +209,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solution = workspace.CurrentSolution;
 
             // Ensure remote workspace is in sync with normal workspace.
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
             var callback = new DesignerAttributeListener();
 
-            using var connection = await client.CreateConnectionAsync<IRemoteDesignerAttributeDiscoveryService>(callback, cancellationTokenSource.Token);
+            using var connection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callback);
 
             var invokeTask = connection.TryInvokeAsync(
-                (service, cancellationToken) => service.StartScanningForDesignerAttributesAsync(cancellationToken),
+                (service, callbackId, cancellationToken) => service.StartScanningForDesignerAttributesAsync(callbackId, cancellationToken),
                 cancellationTokenSource.Token);
 
             var infos = await callback.Infos;
@@ -236,17 +235,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private class DesignerAttributeListener : IDesignerAttributeListener
         {
-            private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource
-                = new TaskCompletionSource<ImmutableArray<DesignerAttributeData>>();
+            private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource = new();
+
             public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
 
             public ValueTask OnProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
-                => new ValueTask();
+                => ValueTaskFactory.CompletedTask;
 
             public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
             {
                 _infosSource.SetResult(infos);
-                return new ValueTask();
+                return ValueTaskFactory.CompletedTask;
             }
         }
 
@@ -458,12 +457,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
         {
-            await client.RunRemoteAsync(
-                WellKnownServiceHubService.RemoteHost,
-                nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+            var checksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                 solution,
-                new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
-                callbackTarget: null,
+                async (service, solutionInfo, cancellationToken) => await service.SynchronizePrimaryWorkspaceAsync(solutionInfo, checksum, _solutionVersion++, cancellationToken),
                 CancellationToken.None);
         }
 

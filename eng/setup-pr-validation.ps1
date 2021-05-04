@@ -3,7 +3,11 @@ param (
   [string]$sourceBranchName,
   [string]$prNumber)
 
-try {
+try {  
+    # name and email are only used for merge commit, it doesn't really matter what we put in there.    
+    git config user.name "RoslynValidation"
+    git config user.email "validation@roslyn.net"   
+    
     if ($sourceBranchName -notlike '*-vs-deps') {
       Write-Host  "##vso[task.LogIssue type=warning;]The base branch for insertion validation is $sourceBranchName, which is not a vs-deps branch."
     }

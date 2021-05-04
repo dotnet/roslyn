@@ -8,13 +8,18 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+#If DEBUG Then
+    Partial Friend Class ArrayTypeSymbolAdapter
+        Inherits SymbolAdapter
+#Else
     Partial Friend Class ArrayTypeSymbol
+#End If
         Implements Cci.IArrayTypeReference
 
         Private Function IArrayTypeReferenceGetElementType(context As EmitContext) As Cci.ITypeReference Implements Cci.IArrayTypeReference.GetElementType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Dim customModifiers As ImmutableArray(Of CustomModifier) = Me.CustomModifiers
-            Dim type = moduleBeingBuilt.Translate(Me.ElementType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Dim customModifiers As ImmutableArray(Of CustomModifier) = AdaptedArrayTypeSymbol.CustomModifiers
+            Dim type = moduleBeingBuilt.Translate(AdaptedArrayTypeSymbol.ElementType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
 
             If customModifiers.Length = 0 Then
                 Return type
@@ -25,25 +30,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IArrayTypeReferenceIsSZArray As Boolean Implements Cci.IArrayTypeReference.IsSZArray
             Get
-                Return Me.IsSZArray
+                Return AdaptedArrayTypeSymbol.IsSZArray
             End Get
         End Property
 
         Private ReadOnly Property IArrayTypeReferenceLowerBounds As ImmutableArray(Of Integer) Implements Cci.IArrayTypeReference.LowerBounds
             Get
-                Return LowerBounds
+                Return AdaptedArrayTypeSymbol.LowerBounds
             End Get
         End Property
 
         Private ReadOnly Property IArrayTypeReferenceRank As Integer Implements Cci.IArrayTypeReference.Rank
             Get
-                Return Rank
+                Return AdaptedArrayTypeSymbol.Rank
             End Get
         End Property
 
         Private ReadOnly Property IArrayTypeReferenceSizes As ImmutableArray(Of Integer) Implements Cci.IArrayTypeReference.Sizes
             Get
-                Return Sizes
+                Return AdaptedArrayTypeSymbol.Sizes
             End Get
         End Property
 
@@ -131,4 +136,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
     End Class
+
+    Partial Friend Class ArrayTypeSymbol
+#If DEBUG Then
+        Private _lazyAdapter As ArrayTypeSymbolAdapter
+
+        Protected Overrides Function GetCciAdapterImpl() As SymbolAdapter
+            Return GetCciAdapter()
+        End Function
+
+        Friend Shadows Function GetCciAdapter() As ArrayTypeSymbolAdapter
+            If _lazyAdapter Is Nothing Then
+                Return InterlockedOperations.Initialize(_lazyAdapter, New ArrayTypeSymbolAdapter(Me))
+            End If
+
+            Return _lazyAdapter
+        End Function
+#Else
+        Friend ReadOnly Property AdaptedArrayTypeSymbol As ArrayTypeSymbol
+            Get
+                Return Me
+            End Get
+        End Property
+
+        Friend Shadows Function GetCciAdapter() As ArrayTypeSymbol
+            Return Me
+        End Function
+#End If
+    End Class
+
+#If DEBUG Then
+    Partial Friend NotInheritable Class ArrayTypeSymbolAdapter
+        Friend ReadOnly Property AdaptedArrayTypeSymbol As ArrayTypeSymbol
+
+        Friend Sub New(underlyingArrayTypeSymbol As ArrayTypeSymbol)
+            AdaptedArrayTypeSymbol = underlyingArrayTypeSymbol
+        End Sub
+
+        Friend Overrides ReadOnly Property AdaptedSymbol As Symbol
+            Get
+                Return AdaptedArrayTypeSymbol
+            End Get
+        End Property
+    End Class
+#End If
 End Namespace

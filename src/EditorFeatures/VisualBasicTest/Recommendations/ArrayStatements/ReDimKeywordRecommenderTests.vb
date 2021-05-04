@@ -6,34 +6,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ar
     Public Class ReDimKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ReDimInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "ReDim")
-        End Function
+        Public Sub ReDimInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "ReDim")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ReDimAfterStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub ReDimAfterStatementTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x 
 |</MethodBody>, "ReDim")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ReDimMissingInClassBlockTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "ReDim")
-        End Function
+        Public Sub ReDimMissingInClassBlockTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "ReDim")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ReDimInSingleLineLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub() |</MethodBody>, "ReDim")
-        End Function
+        Public Sub ReDimInSingleLineLambdaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "ReDim")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ReDimNotInSingleLineFunctionLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function() |</MethodBody>, "ReDim")
-        End Function
+        Public Sub ReDimNotInSingleLineFunctionLambdaTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "ReDim")
+        End Sub
     End Class
 End Namespace

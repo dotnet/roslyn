@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis
                 SymbolDisplayPartKind.EnumMemberName => TextTags.EnumMember,
                 SymbolDisplayPartKind.ExtensionMethodName => TextTags.ExtensionMethod,
                 SymbolDisplayPartKind.ConstantName => TextTags.Constant,
+                SymbolDisplayPartKind.RecordClassName => TextTags.Record,
+                SymbolDisplayPartKind.RecordStructName => TextTags.RecordStruct,
                 _ => string.Empty,
             };
     }

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -13,12 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
     Friend Class EndKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
-            If context.IsSingleLineStatementContext Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("End", VBFeaturesResources.Stops_execution_immediately))
-            End If
+        Private Shared ReadOnly s_keywords As ImmutableArray(Of RecommendedKeyword) =
+            ImmutableArray.Create(New RecommendedKeyword("End", VBFeaturesResources.Stops_execution_immediately))
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
+            Return If(context.IsSingleLineStatementContext, s_keywords, ImmutableArray(Of RecommendedKeyword).Empty)
         End Function
     End Class
 End Namespace

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -35,6 +36,11 @@ namespace Microsoft.CodeAnalysis.Remote
             FeatureName, nameof(OOP64Bit), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOP64Bit)));
 
+        // use Server GC for 64-bit OOP
+        public static readonly Option2<bool> OOPServerGC = new Option2<bool>(
+            FeatureName, nameof(OOPServerGC), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOPServerGC)));
+
         // Override 64-bit OOP option to force use of a 32-bit process. This option exists as a registry-based
         // workaround for cases where the new 64-bit mode fails and 32-bit in-process fails to provide a viable
         // fallback.
@@ -44,6 +50,15 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static bool IsServiceHubProcess64Bit(HostWorkspaceServices services)
             => IsUsingServiceHubOutOfProcess(services) && !services.GetRequiredService<IOptionService>().GetOption(OOP32BitOverride);
+
+        public static bool IsServiceHubProcessServerGC(HostWorkspaceServices services)
+        {
+            if (!IsServiceHubProcess64Bit(services))
+                return false;
+
+            return services.GetRequiredService<IOptionService>().GetOption(OOPServerGC)
+                || services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.OOPServerGC) == true;
+        }
 
         /// <summary>
         /// Determines whether ServiceHub out-of-process execution is enabled for Roslyn.

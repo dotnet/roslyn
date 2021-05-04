@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(!String.IsNullOrEmpty(fileName));
 
             // PermissionSetAttribute type must have a writable public string type property member 'Hex'
-            ISymbol iSymbol = ((ISymbolInternal)_sourceAttribute.GetType(context)).GetISymbol();
+            ISymbol iSymbol = _sourceAttribute.GetType(context).GetInternalSymbol()!.GetISymbol();
             Debug.Assert(((INamedTypeSymbol)iSymbol).GetMembers(HexPropertyName).Any(
                 member => member.Kind == SymbolKind.Property && ((IPropertySymbol)member).Type.SpecialType == SpecialType.System_String));
 #endif

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
@@ -3193,12 +3192,13 @@ struct S : IEquatable<S>
                 {
                     AdditionalProjects =
                     {
-                        new CSharpProjectState("P1")
+                        ["P1"] =
                         {
                             Sources = { ("HashCode.cs", publicHashCode) },
                         },
                     },
                     Sources = { code },
+                    AdditionalProjectReferences = { "P1" },
                 },
                 FixedState =
                 {
@@ -3211,18 +3211,6 @@ struct S : IEquatable<S>
                 },
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-                SolutionTransforms =
-                {
-                    (solution, projectId) =>
-                    {
-                        var dependency = solution.Projects.Single(project => project.Name == "P1");
-                        var mainProject = solution.GetRequiredProject(projectId);
-                        return solution
-                            .WithProjectMetadataReferences(dependency.Id, mainProject.MetadataReferences)
-                            .WithProjectCompilationOptions(dependency.Id, mainProject.CompilationOptions)
-                            .WithProjectParseOptions(dependency.Id, mainProject.ParseOptions);
-                    }
-                },
             };
 
             test.Options.AddRange(PreferImplicitTypeWithInfo());
@@ -3280,28 +3268,17 @@ struct S : IEquatable<S>
                 {
                     AdditionalProjects =
                     {
-                        new CSharpProjectState("P1")
+                        ["P1"] =
                         {
                             Sources = { ("HashCode.cs", internalHashCode) },
                         },
                     },
                     Sources = { code },
+                    AdditionalProjectReferences = { "P1" },
                 },
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-                SolutionTransforms =
-                {
-                    (solution, projectId) =>
-                    {
-                        var dependency = solution.Projects.Single(project => project.Name == "P1");
-                        var mainProject = solution.GetRequiredProject(projectId);
-                        return solution
-                            .WithProjectMetadataReferences(dependency.Id, mainProject.MetadataReferences)
-                            .WithProjectCompilationOptions(dependency.Id, mainProject.CompilationOptions)
-                            .WithProjectParseOptions(dependency.Id, mainProject.ParseOptions);
-                    }
-                },
             };
 
             test.Options.AddRange(PreferImplicitTypeWithInfo());

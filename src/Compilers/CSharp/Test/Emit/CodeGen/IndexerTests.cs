@@ -1132,6 +1132,58 @@ class Test
 ");
         }
 
+        [Fact]
+        public void IndexerOverrideNotAllAccessors_DefaultParameterValues()
+        {
+            var text = @"
+using System;
+
+class Base
+{
+    public virtual int this[int x, int y = 1]
+    {
+        get
+        {
+            Console.WriteLine(""Base.get y: "" + y);
+            return y;
+        }
+        set { Console.WriteLine(""Base.set y: "" + y); }
+    }
+}
+
+class Override : Base
+{
+    public override int this[int x, int y = 2]
+    {
+        set { Console.WriteLine(""Override.set y: "" + y); }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Base b = new Base();
+        _ = b[0];
+        b[0] = 0;
+
+        Override o = new Override();
+        _ = o[0];
+        o[0] = 0;
+        o[0] += 0;
+    }
+}
+";
+            CompileAndVerify(text, expectedOutput:
+@"Base.get y: 1
+Base.set y: 1
+Base.get y: 1
+Override.set y: 2
+Base.get y: 1
+Override.set y: 1
+");
+        }
+
         #endregion Lowering
     }
 }

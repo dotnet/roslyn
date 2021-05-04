@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
         private static readonly LocalizableResourceString s_localizableRemoveUnnecessarySuppression = new(
            nameof(AnalyzersResources.Remove_unnecessary_suppression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         internal static readonly DiagnosticDescriptor s_removeUnnecessarySuppressionDescriptor = CreateDescriptor(
-            IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, s_localizableRemoveUnnecessarySuppression, s_localizableRemoveUnnecessarySuppression, isUnnecessary: true);
+            IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId,
+            EnforceOnBuildValues.RemoveUnnecessarySuppression,
+            s_localizableRemoveUnnecessarySuppression, s_localizableRemoveUnnecessarySuppression, isUnnecessary: true);
 
         private readonly Lazy<ImmutableHashSet<int>> _lazySupportedCompilerErrorCodes;
 
@@ -82,7 +84,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             TextSpan? span,
             CompilationWithAnalyzers compilationWithAnalyzers,
             Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnostics,
-            Func<DiagnosticAnalyzer, bool> getIsCompilationEndAnalyzer,
             Action<Diagnostic> reportDiagnostic,
             CancellationToken cancellationToken)
         {
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // Compute all the reported compiler and analyzer diagnostics for diagnostic IDs corresponding to pragmas in the tree.
             var (diagnostics, unhandledIds) = await GetReportedDiagnosticsForIdsAsync(
                 idsToAnalyze, root, semanticModel, compilationWithAnalyzers,
-                getSupportedDiagnostics, getIsCompilationEndAnalyzer, compilerDiagnosticIds, cancellationToken).ConfigureAwait(false);
+                getSupportedDiagnostics, compilerDiagnosticIds, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -306,7 +307,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             // We handle all the three supported formats for compiler diagnostic pragmas.
 
             var idWithoutPrefix = id.StartsWith(CompilerErrorCodePrefix) && id.Length == CompilerErrorCodePrefix.Length + CompilerErrorCodeDigitCount
-                ? id.Substring(CompilerErrorCodePrefix.Length)
+                ? id[CompilerErrorCodePrefix.Length..]
                 : id;
 
             // ID without prefix should parse as an integer for compiler diagnostics.
@@ -390,7 +391,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             SemanticModel semanticModel,
             CompilationWithAnalyzers compilationWithAnalyzers,
             Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnostics,
-            Func<DiagnosticAnalyzer, bool> getIsCompilationEndAnalyzer,
             PooledHashSet<string> compilerDiagnosticIds,
             CancellationToken cancellationToken)
         {
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
                             continue;
                         }
 
-                        lazyIsUnhandledAnalyzer ??= getIsCompilationEndAnalyzer(analyzer) || analyzer is IPragmaSuppressionsAnalyzer;
+                        lazyIsUnhandledAnalyzer ??= descriptor.IsCompilationEnd() || analyzer is IPragmaSuppressionsAnalyzer;
                         if (lazyIsUnhandledAnalyzer.Value)
                         {
                             unhandledIds.Add(descriptor.Id);
@@ -460,16 +460,46 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             {
                 var analyzers = analyzersBuilder.ToImmutable();
 
-                var syntaxDiagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(semanticModel.SyntaxTree, analyzers, cancellationToken).ConfigureAwait(false);
+                var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel.SyntaxTree, analyzers, cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
-                reportedDiagnostics.AddRange(syntaxDiagnostics);
+                if (analysisResult.SyntaxDiagnostics.TryGetValue(semanticModel.SyntaxTree, out var diagnostics))
+                {
+                    AddAllDiagnostics(diagnostics, reportedDiagnostics);
+                }
 
-                var semanticDiagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan: null, analyzers, cancellationToken).ConfigureAwait(false);
+                analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan: null, analyzers, cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
-                reportedDiagnostics.AddRange(semanticDiagnostics);
+                if (analysisResult.SemanticDiagnostics.TryGetValue(semanticModel.SyntaxTree, out diagnostics))
+                {
+                    AddAllDiagnostics(diagnostics, reportedDiagnostics);
+                }
+
+                AddAllCompilationDiagnosticsForTree(analysisResult, semanticModel.SyntaxTree, reportedDiagnostics);
             }
 
             return (reportedDiagnostics.ToImmutable(), unhandledIds.ToImmutable());
+
+            static void AddAllDiagnostics(ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnostics, ArrayBuilder<Diagnostic> reportedDiagnostics)
+            {
+                foreach (var perAnalyzerDiagnostics in diagnostics.Values)
+                {
+                    reportedDiagnostics.AddRange(perAnalyzerDiagnostics);
+                }
+            }
+
+            static void AddAllCompilationDiagnosticsForTree(AnalysisResult analysisResult, SyntaxTree tree, ArrayBuilder<Diagnostic> reportedDiagnostics)
+            {
+                foreach (var perAnalyzerDiagnostics in analysisResult.CompilationDiagnostics.Values)
+                {
+                    foreach (var diagnostic in perAnalyzerDiagnostics)
+                    {
+                        if (diagnostic.Location.SourceTree == tree)
+                        {
+                            reportedDiagnostics.Add(diagnostic);
+                        }
+                    }
+                }
+            }
         }
 
         private static async Task ProcessReportedDiagnosticsAsync(

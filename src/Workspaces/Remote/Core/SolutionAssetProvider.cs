@@ -20,11 +20,14 @@ using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// Provides solution assets present locally (in the current process) to a remote process where the solution is being replicated to.
+    /// </summary>
     internal sealed class SolutionAssetProvider : ISolutionAssetProvider
     {
-        public const string ServiceName = ServiceDescriptors.ServiceNamePrefix + "SolutionAssetProvider";
+        public const string ServiceName = ServiceDescriptors.ServiceNameTopLevelPrefix + ServiceDescriptors.ComponentName + ".SolutionAssetProvider";
 
-        internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceName);
+        internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceName, ServiceDescriptors.GetFeatureDisplayName);
 
         private readonly HostWorkspaceServices _services;
 
@@ -37,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
             var serializer = _services.GetRequiredService<ISerializerService>();
+            var replicationContext = assetStorage.GetReplicationContext(scopeId);
 
             SolutionAsset? singleAsset = null;
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
@@ -68,9 +72,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var stream = localPipe.Writer.AsStream(leaveOpen: false);
                     using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
-                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, scopeId, checksums, cancellationToken);
+                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, replicationContext, scopeId, checksums, cancellationToken);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     // no-op
                 }
@@ -92,18 +96,28 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (Exception e)
                 {
-                    FatalError.ReportWithoutCrashUnlessCanceled(e, cancellationToken);
+                    FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken);
                     exception = e;
                 }
                 finally
                 {
                     await localPipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
-                    await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
+
+                    if (cancellationToken.IsCancellationRequested && exception is null or OperationCanceledException)
+                    {
+                        // Throw rather than close the pipe writer. The caller will coordinate cancellation and closing
+                        // of the reader and writer together.
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+                    else
+                    {
+                        await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
+                    }
                 }
             }
         }
 
         public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => new ValueTask<bool>(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
+            => ValueTaskFactory.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
     }
 }

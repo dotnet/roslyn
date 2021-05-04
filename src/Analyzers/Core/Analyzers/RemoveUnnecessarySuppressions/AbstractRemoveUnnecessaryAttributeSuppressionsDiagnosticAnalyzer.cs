@@ -25,16 +25,22 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions
             nameof(AnalyzersResources.Invalid_or_missing_target_for_SuppressMessageAttribute), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
 
         private static readonly DiagnosticDescriptor s_invalidScopeDescriptor = CreateDescriptor(
-            IDEDiagnosticIds.InvalidSuppressMessageAttributeDiagnosticId, s_localizableTitle, s_localizableInvalidScopeMessage, isUnnecessary: true);
+            IDEDiagnosticIds.InvalidSuppressMessageAttributeDiagnosticId,
+            EnforceOnBuildValues.InvalidSuppressMessageAttribute,
+            s_localizableTitle, s_localizableInvalidScopeMessage, isUnnecessary: true);
         private static readonly DiagnosticDescriptor s_invalidOrMissingTargetDescriptor = CreateDescriptor(
-            IDEDiagnosticIds.InvalidSuppressMessageAttributeDiagnosticId, s_localizableTitle, s_localizableInvalidOrMissingTargetMessage, isUnnecessary: true);
+            IDEDiagnosticIds.InvalidSuppressMessageAttributeDiagnosticId,
+            EnforceOnBuildValues.InvalidSuppressMessageAttribute,
+            s_localizableTitle, s_localizableInvalidOrMissingTargetMessage, isUnnecessary: true);
 
         private static readonly LocalizableResourceString s_localizableLegacyFormatTitle = new(
            nameof(AnalyzersResources.Avoid_legacy_format_target_in_SuppressMessageAttribute), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         private static readonly LocalizableResourceString s_localizableLegacyFormatMessage = new(
             nameof(AnalyzersResources.Avoid_legacy_format_target_0_in_SuppressMessageAttribute), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
         internal static readonly DiagnosticDescriptor LegacyFormatTargetDescriptor = CreateDescriptor(
-            IDEDiagnosticIds.LegacyFormatSuppressMessageAttributeDiagnosticId, s_localizableLegacyFormatTitle, s_localizableLegacyFormatMessage, isUnnecessary: false);
+            IDEDiagnosticIds.LegacyFormatSuppressMessageAttributeDiagnosticId,
+            EnforceOnBuildValues.LegacyFormatSuppressMessageAttribute,
+            s_localizableLegacyFormatTitle, s_localizableLegacyFormatMessage, isUnnecessary: false);
 
         protected AbstractRemoveUnnecessaryAttributeSuppressionsDiagnosticAnalyzer()
             : base(ImmutableArray.Create(s_invalidScopeDescriptor, s_invalidOrMissingTargetDescriptor, LegacyFormatTargetDescriptor), GeneratedCodeAnalysisFlags.None)

@@ -7,8 +7,6 @@ using System.Composition;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Versioning;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -48,13 +46,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _serviceProvider = serviceProvider;
             }
 
-            public async Task<string?> ResolveAssemblyPathAsync(
+            public string? ResolveAssemblyPath(
                 ProjectId projectId,
                 string assemblyName,
-                string? fullyQualifiedTypeName,
-                CancellationToken cancellationToken)
+                string? fullyQualifiedTypeName)
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                AssertIsForeground();
 
                 var assembly = ResolveAssembly(projectId, assemblyName);
                 if (assembly != null)

@@ -15,24 +15,26 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Channel back to VS to inform it of the designer attributes we discover.
         /// </summary>
-        private readonly RemoteCallback<IDesignerAttributeListener> _callback;
+        private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback;
+        private readonly RemoteServiceCallbackId _callbackId;
 
-        public RemoteDesignerAttributeIncrementalAnalyzer(RemoteCallback<IDesignerAttributeListener> callback)
+        public RemoteDesignerAttributeIncrementalAnalyzer(RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback, RemoteServiceCallbackId callbackId)
         {
             _callback = callback;
+            _callbackId = callbackId;
         }
 
         protected override async ValueTask ReportProjectRemovedAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             await _callback.InvokeAsync(
-                (callback, cancellationToken) => callback.OnProjectRemovedAsync(projectId, cancellationToken),
+                (callback, cancellationToken) => callback.OnProjectRemovedAsync(_callbackId, projectId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
         protected override async ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
             await _callback.InvokeAsync(
-               (callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(data, cancellationToken),
+               (callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(_callbackId, data, cancellationToken),
                cancellationToken).ConfigureAwait(false);
         }
     }

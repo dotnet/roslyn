@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         //we want to compute this lazily since it may be expensive for the underlying symbol
         private ImmutableArray<EventSymbol> _lazyExplicitInterfaceImplementations;
 
-        private DiagnosticInfo? _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         public RetargetingEventSymbol(RetargetingModuleSymbol retargetingModule, EventSymbol underlyingEvent)
             : base(underlyingEvent)
@@ -171,16 +171,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                DiagnosticInfo? result = null;
+                AssemblySymbol primaryDependency = PrimaryDependency;
+                var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                _lazyUseSiteDiagnostic = result;
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
-            return _lazyUseSiteDiagnostic;
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
         }
 
         internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness

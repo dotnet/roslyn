@@ -65,12 +65,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var comp = CSharp.CSharpCompilation.Create(
                 "c",
-                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                references: new[] { TestMetadata.NetCoreApp31.SystemRuntime });
+                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel),
+                references: new[] { TestMetadata.NetCoreApp.SystemRuntime });
 
             var knownMissingTypes = new HashSet<SpecialType>()
             {
-                SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute
             };
 
             for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)

@@ -704,10 +704,8 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                 solution = AddProject(solution, projectName);
             }
 
-            foreach (var kvp in references)
-            {
-                solution = AddProjectReferences(solution, kvp.Key, kvp.Value);
-            }
+            foreach (var (name, refs) in references)
+                solution = AddProjectReferences(solution, name, refs);
 
             return solution;
         }

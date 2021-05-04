@@ -9,35 +9,39 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Cci = Microsoft.Cci;
 
+#if !DEBUG
+using PropertySymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.PropertySymbol;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
     internal sealed class EmbeddedProperty : EmbeddedTypesManager.CommonEmbeddedProperty
     {
-        public EmbeddedProperty(PropertySymbol underlyingProperty, EmbeddedMethod getter, EmbeddedMethod setter) :
+        public EmbeddedProperty(PropertySymbolAdapter underlyingProperty, EmbeddedMethod getter, EmbeddedMethod setter) :
             base(underlyingProperty, getter, setter)
         {
         }
 
         protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return UnderlyingProperty.GetCustomAttributesToEmit(moduleBuilder);
+            return UnderlyingProperty.AdaptedPropertySymbol.GetCustomAttributesToEmit(moduleBuilder);
         }
 
         protected override ImmutableArray<EmbeddedParameter> GetParameters()
         {
-            return EmbeddedTypesManager.EmbedParameters(this, UnderlyingProperty.Parameters);
+            return EmbeddedTypesManager.EmbedParameters(this, UnderlyingProperty.AdaptedPropertySymbol.Parameters);
         }
 
         protected override bool IsRuntimeSpecial
         {
-            get { return UnderlyingProperty.HasRuntimeSpecialName; }
+            get { return UnderlyingProperty.AdaptedPropertySymbol.HasRuntimeSpecialName; }
         }
 
         protected override bool IsSpecialName
         {
             get
             {
-                return UnderlyingProperty.HasSpecialName;
+                return UnderlyingProperty.AdaptedPropertySymbol.HasSpecialName;
             }
         }
 
@@ -58,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return PEModuleBuilder.MemberVisibility(UnderlyingProperty);
+                return PEModuleBuilder.MemberVisibility(UnderlyingProperty.AdaptedPropertySymbol);
             }
         }
 
@@ -66,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingProperty.MetadataName;
+                return UnderlyingProperty.AdaptedPropertySymbol.MetadataName;
             }
         }
     }

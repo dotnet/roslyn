@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 declarationModifiers: declarationModifiers,
                 returnsVoid: baseMethod.ReturnsVoid,
                 isExtensionMethod: false,
+                isNullableAnalysisEnabled: false,
                 isMetadataVirtualIgnoringModifiers: false);
         }
 
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeParameters = typeParameters;
         }
 
-        protected override void MethodChecks(DiagnosticBag diagnostics)
+        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             // TODO: move more functionality into here, making these symbols more lazy
         }
@@ -88,8 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext)
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         internal override int ParameterCount
         {

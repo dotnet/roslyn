@@ -47,23 +47,41 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
         private QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)
         {
-            var errorCode = token.Parent switch
+            var errorCodeNode = token.Parent switch
             {
                 PragmaWarningDirectiveTriviaSyntax directive
                     => token.IsKind(SyntaxKind.EndOfDirectiveToken)
-                        ? directive.ErrorCodes.LastOrDefault() as IdentifierNameSyntax
-                        : directive.ErrorCodes.FirstOrDefault() as IdentifierNameSyntax,
-                IdentifierNameSyntax { Parent: PragmaWarningDirectiveTriviaSyntax _ } identifier
-                    => identifier,
+                        ? directive.ErrorCodes.LastOrDefault()
+                        : directive.ErrorCodes.FirstOrDefault(),
+                { Parent: PragmaWarningDirectiveTriviaSyntax } node => node,
                 _ => null,
             };
-
-            if (errorCode != null)
+            if (errorCodeNode is null)
             {
-                return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode.Identifier.ValueText, errorCode.Span);
+                return null;
             }
 
-            return null;
+            // https://docs.microsoft.com/en-US/dotnet/csharp/language-reference/preprocessor-directives/preprocessor-pragma-warning
+            // warning-list: A comma-separated list of warning numbers. The "CS" prefix is optional.
+            // errorCodeNode is single error code from the comma separated list
+            var errorCode = errorCodeNode switch
+            {
+                // case CS0219 or SA0012:
+                IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText,
+                // case 0219 or 219:
+                // Take the number and add the "CS" prefix.
+                LiteralExpressionSyntax { RawKind: (int)SyntaxKind.NumericLiteralExpression } literal
+                    => int.TryParse(literal.Token.ValueText, out var errorCodeNumber)
+                        ? $"CS{errorCodeNumber:0000}"
+                        : literal.Token.ValueText,
+                _ => null,
+            };
+            if (errorCode is null)
+            {
+                return null;
+            }
+
+            return GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(document, errorCode, errorCodeNode.Span);
         }
 
         private async Task<QuickInfoItem?> GetQuickInfoForSuppressMessageAttributeAsync(
@@ -83,8 +101,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                         Parent: AttributeSyntax
                         {
                             Name: var attributeName
-                        } _
-                    } _
+                        }
+                    }
                 } argument when
                     attributeName.IsSuppressMessageAttribute() &&
                     (argument.NameColon is null

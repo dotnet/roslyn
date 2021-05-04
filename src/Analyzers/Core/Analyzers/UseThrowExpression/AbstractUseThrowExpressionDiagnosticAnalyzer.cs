@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option2<CodeStyleOption2<bool>> preferThrowExpressionOption, string language)
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
+                   EnforceOnBuildValues.UseThrowExpression,
                    preferThrowExpressionOption,
                    language,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_throw_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),

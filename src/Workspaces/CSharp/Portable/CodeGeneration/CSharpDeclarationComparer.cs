@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.RecordDeclaration:
                     return Compare((BaseTypeDeclarationSyntax)x, (BaseTypeDeclarationSyntax)y);
@@ -360,9 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // All interface members are public
                     return (int)Accessibility.Public;
                 }
-                else if (node.Kind() == SyntaxKind.StructDeclaration ||
-                    node.Kind() == SyntaxKind.ClassDeclaration ||
-                    node.Kind() == SyntaxKind.RecordDeclaration)
+                else if (node.Kind() is SyntaxKind.StructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration)
                 {
                     // Members and nested types default to private
                     return (int)Accessibility.Private;

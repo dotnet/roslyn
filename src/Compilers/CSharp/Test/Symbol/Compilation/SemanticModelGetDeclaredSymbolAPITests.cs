@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2749,7 +2749,7 @@ namespace A
 
             var compilation = CSharpCompilation.Create(
                 assemblyName: "Test",
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithScriptClassName("Script"),
+                options: TestOptions.DebugExe.WithScriptClassName("Script"),
                 syntaxTrees: new[] { tree },
                 references: new[] { MscorlibRef });
 
@@ -3873,7 +3873,7 @@ class C
             var alias2 = model2.GetAliasInfo(node);
 
             Assert.Equal(alias1, alias2);
-            Assert.NotSame(alias1, alias2);
+            Assert.Same(alias1, alias2);
         }
 
         [WorkItem(542475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")]
@@ -3937,7 +3937,7 @@ class C
 
             // This symbol we generate on-demand.
             var alias2b = model.GetDeclaredSymbol(usingDirectives[1]);
-            Assert.NotSame(alias2, alias2b);
+            Assert.Same(alias2, alias2b);
             Assert.Equal(alias2, alias2b);
         }
 
@@ -5223,7 +5223,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
             var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
-            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[? = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 
@@ -5244,7 +5244,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
             var symbol1 = VerifyParameter(model, decls[0], 0, "System.Int32 x", null, null);
-            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[? = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 
@@ -5265,7 +5265,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var decls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
             var symbol1 = VerifyParameter(model, decls[0], 0, "[System.Int32 x = 2]", "System.Int32", 2);
-            var symbol2 = VerifyParameter(model, decls[1], 1, "[?  = null]", "System.Int32", 3);
+            var symbol2 = VerifyParameter(model, decls[1], 1, "[? = null]", "System.Int32", 3);
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 

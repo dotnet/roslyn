@@ -195,8 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // attempting to access its value as a string.
 
                         var rightConstant = boundCoalesce.RightOperand.ConstantValue;
-                        // See https://github.com/dotnet/roslyn/issues/41964 for eliminating the !. below
-                        if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue!.Length == 0)
+                        if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
                         {
                             arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
                             return true;
@@ -305,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringString);
             Debug.Assert((object)method != null);
 
-            return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, loweredLeft, loweredRight);
         }
 
         private BoundExpression RewriteStringConcatenationThreeExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird)
@@ -317,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
         }
 
         private BoundExpression RewriteStringConcatenationFourExprs(SyntaxNode syntax, BoundExpression loweredFirst, BoundExpression loweredSecond, BoundExpression loweredThird, BoundExpression loweredFourth)
@@ -330,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatStringStringStringString);
             Debug.Assert((object)method != null);
 
-            return BoundCall.Synthesized(syntax, null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth));
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird, loweredFourth));
         }
 
         private BoundExpression RewriteStringConcatenationManyExprs(SyntaxNode syntax, ImmutableArray<BoundExpression> loweredArgs)
@@ -343,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var array = _factory.ArrayOrEmpty(_factory.SpecialType(SpecialType.System_String), loweredArgs);
 
-            return (BoundExpression)BoundCall.Synthesized(syntax, null, method, array);
+            return BoundCall.Synthesized(syntax, receiverOpt: null, method, array);
         }
 
         /// <summary>

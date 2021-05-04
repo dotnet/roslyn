@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                         throw new InvalidOperationException(
                             $"We should always be able to map a body symbol back to a document:\r\n{symbol.Kind}\r\n{symbol.Name}\r\n{syntaxTree.FilePath}\r\n{projectId}");
                     }
-                    catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                    catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                     {
                     }
                 }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
                         throw new InvalidOperationException(
                             $"Syntax tree for a body symbol should map to the same project as the body symbol's assembly:\r\n{symbol.Kind}\r\n{symbol.Name}\r\n{syntaxTree.FilePath}\r\n{projectId}\r\n{documentId.ProjectId}");
                     }
-                    catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                    catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                     {
                     }
                 }

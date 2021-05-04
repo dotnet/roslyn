@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     _generateOperatorsOptionValue = generateOperatorsOption.Value;
                 }
 
-                var implementIEquatable = (implementIEqutableOption?.Value).GetValueOrDefault();
-                var generatorOperators = (generateOperatorsOption?.Value).GetValueOrDefault();
+                var implementIEquatable = (implementIEqutableOption?.Value ?? false);
+                var generatorOperators = (generateOperatorsOption?.Value ?? false);
 
                 var action = new GenerateEqualsAndGetHashCodeAction(
                     _document, _typeDeclaration, _containingType, result.Members,

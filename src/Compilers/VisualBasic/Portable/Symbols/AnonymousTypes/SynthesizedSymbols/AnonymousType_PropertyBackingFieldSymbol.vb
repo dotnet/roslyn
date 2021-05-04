@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Get
                     ' To be sure that when we emitting the name, it's 
                     ' casing is in sync with that of the property
-                    Return "$" & Me._propertyOrEvent.Name
+                    Return "$" & Me._propertyOrEvent.MetadataName
                 End Get
             End Property
 

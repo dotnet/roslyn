@@ -1,58 +1,51 @@
 # Branches that trigger a build on commit
 trigger:
-- master
-- master-vs-deps
+- main
+- main-vs-deps
 - release/*
 - features/*
 - demos/*
 
 # Branches that trigger builds on PR
 pr:
-- master
-- master-vs-deps
+- main
+- main-vs-deps
 - release/*
 - features/*
 - demos/*
 
-# Windows Build and Test Jobs 
+# Windows Build and Test Jobs
 jobs:
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Debug
-    testArtifactName: Test_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
+    queueName: BuildPool.Windows.10.Amd64.Open
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Release
-    testArtifactName: Test_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
+    queueName: BuildPool.Windows.10.Amd64.Open
+    buildArguments: "/p:Features=run-nullable-analysis=never"
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
     testRunName: 'Test Windows Desktop Debug 32'
     jobName: Test_Windows_Desktop_Debug_32
     buildJobName: Build_Windows_Debug
-    testArtifactName: Test_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testDesktop -test32
-
-- template: eng/pipelines/test-windows-job.yml
-  parameters:
-    testRunName: 'Test Windows Desktop Spanish Debug 32'
-    jobName: Test_Windows_Desktop_Spanish_Debug_32
-    buildJobName: Build_Windows_Debug
-    testArtifactName: Test_Windows_Debug
-    configuration: Debug
-    testArguments: -testDesktop -test32
-    queueName: 'BuildPool.Windows.10.Amd64.ES.VS2017.Open'
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
     testRunName: 'Test Windows Desktop Debug 64'
     jobName: Test_Windows_Desktop_Debug_64
     buildJobName: Build_Windows_Debug
-    testArtifactName: Test_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testDesktop -test64
 
@@ -61,7 +54,16 @@ jobs:
     testRunName: 'Test Windows CoreClr Debug'
     jobName: Test_Windows_CoreClr_Debug
     buildJobName: Build_Windows_Debug
-    testArtifactName: Test_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testCoreClr
+
+- template: eng/pipelines/test-windows-job-single-machine.yml
+  parameters:
+    testRunName: 'Test Windows CoreClr Debug Single Machine'
+    jobName: Test_Windows_CoreClr_Debug_Single_Machine
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testCoreClr
 
@@ -70,16 +72,25 @@ jobs:
     testRunName: 'Test Windows Desktop Release 32'
     jobName: Test_Windows_Desktop_Release_32
     buildJobName: Build_Windows_Release
-    testArtifactName: Test_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testDesktop -test32
+
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows Desktop Spanish Release 32'
+    jobName: Test_Windows_Desktop_Spanish_Release_32
+    buildJobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
+    testArguments: -testDesktop -test32 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
     testRunName: 'Test Windows Desktop Release 64'
     jobName: Test_Windows_Desktop_Release_64
     buildJobName: Build_Windows_Release
-    testArtifactName: Test_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testDesktop -test64
 
@@ -88,37 +99,54 @@ jobs:
     testRunName: 'Test Windows CoreClr Release'
     jobName: Test_Windows_CoreClr_Release
     buildJobName: Build_Windows_Release
-    testArtifactName: Test_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
     testArguments: -testCoreClr
 
-# Unix Build and Test Jobs 
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows CoreCLR IOperation Debug'
+    jobName: Test_Windows_CoreClr_IOperation_Debug
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testCoreClr -testIOperation -testCompilerOnly
+
+# Unix Build and Test Jobs
 - template: eng/pipelines/build-unix-job.yml
   parameters:
     jobName: Build_Unix_Debug
-    testArtifactName: Test_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    vmImageName: 'ubuntu-16.04'
+    vmImageName: 'ubuntu-18.04'
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
     testRunName: 'Test Linux Debug'
     jobName: Test_Linux_Debug
     buildJobName: Build_Unix_Debug
-    testArtifactName: Test_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
+    configuration: Debug
+    testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
+
+- template: eng/pipelines/test-unix-job-single-machine.yml
+  parameters:
+    testRunName: 'Test Linux Debug Single Machine'
+    jobName: Test_Linux_Debug_Single_Machine
+    buildJobName: Build_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
     testArguments: --testCoreClr
-    queueName: 'BuildPool.Ubuntu.1604.amd64.Open'
+    queueName: 'BuildPool.Ubuntu.1804.amd64.Open'
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
-    testRunName: 'Test OSX Debug'
-    jobName: Test_OSX_Debug
+    testRunName: 'Test macOS Debug'
+    jobName: Test_macOS_Debug
     buildJobName: Build_Unix_Debug
-    testArtifactName: Test_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    testArguments: --testCoreClr
-    vmImageName: 'macOS-10.14'
+    testArguments: --testCoreClr --helixQueueName OSX.1014.Amd64.Open
 
 # Build Correctness Jobs
 
@@ -128,6 +156,8 @@ jobs:
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
     - script: eng/test-determinism.cmd -configuration Debug
       displayName: Build - Validate determinism
 
@@ -142,7 +172,9 @@ jobs:
     queue: BuildPool.Windows.10.Amd64.VS2017.Open
   timeoutInMinutes: 90
   steps:
-    - script: eng/test-build-correctness.cmd -configuration Release
+    - template: eng/pipelines/checkout-windows-task.yml
+
+    - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
       displayName: Build - Validate correctness
 
     - template: eng/pipelines/publish-logs.yml
@@ -169,10 +201,12 @@ jobs:
 - job: Correctness_SourceBuild
   pool:
    name: NetCorePublic-Pool
-   queue: BuildPool.Ubuntu.1604.amd64.Open
+   queue: BuildPool.Ubuntu.1804.amd64.Open
   timeoutInMinutes: 90
   steps:
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild
+    - template: eng/pipelines/checkout-unix-task.yml
+
+    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --binaryLog --sourceBuild
       displayName: Build
 
     - template: eng/pipelines/publish-logs.yml
@@ -188,3 +222,33 @@ jobs:
       continueOnError: true
       condition: not(succeeded())
 
+- job: Correctness_Rebuild
+  pool:
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.Open
+  timeoutInMinutes: 90
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
+    - task: PowerShell@2
+      displayName: Restore
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
+
+    - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
+      displayName: Run BuildValidator
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish BuildValidator debug outputs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/BuildValidator'
+        ArtifactName: 'BuildValidator_DebugOut'
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Rebuild
+        configuration: Release

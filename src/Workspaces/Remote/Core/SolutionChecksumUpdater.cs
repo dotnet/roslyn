@@ -15,6 +15,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// This class runs against the in-process workspace, and when it sees changes proactively pushes them to
+    /// the out-of-process workspace through the <see cref="IRemoteAssetSynchronizationService"/>.
+    /// </summary>
     internal sealed class SolutionChecksumUpdater : GlobalOperationAwareIdleProcessor
     {
         private readonly Workspace _workspace;
@@ -137,12 +141,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.RemoteHost,
-                    nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
+                await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
                     solution,
-                    new object[] { checksum, solution.WorkspaceVersion },
-                    callbackTarget: null,
+                    (service, solution, cancellationToken) => service.SynchronizePrimaryWorkspaceAsync(solution, checksum, solution.WorkspaceVersion, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
         }
@@ -207,14 +208,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var state = await oldDocument.State.GetStateChecksumsAsync(CancellationToken).ConfigureAwait(false);
 
-                await client.RunRemoteAsync(
-                    WellKnownServiceHubService.RemoteHost,
-                    nameof(IRemoteHostService.SynchronizeTextAsync),
-                    solution: null,
-                    new object[] { oldDocument.Id, state.Text, textChanges },
-                    callbackTarget: null,
+                await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                    (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, state.Text, textChanges, cancellationToken),
                     CancellationToken).ConfigureAwait(false);
-
             }, CancellationToken);
         }
     }

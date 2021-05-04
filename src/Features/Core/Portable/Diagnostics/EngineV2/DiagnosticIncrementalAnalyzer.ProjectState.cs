@@ -187,7 +187,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            public async Task SaveAsync(IPersistentStorageService persistentService, Project project, DiagnosticAnalysisResult result)
+            public Task SaveAsync(IPersistentStorageService persistentService, Project project, DiagnosticAnalysisResult result)
+                => SaveCoreAsync(project, result, persistentService);
+
+            public Task SaveInMemoryCacheAsync(Project project, DiagnosticAnalysisResult result)
+                => SaveCoreAsync(project, result, persistentService: null);
+
+            private async Task SaveCoreAsync(Project project, DiagnosticAnalysisResult result, IPersistentStorageService? persistentService)
             {
                 Contract.ThrowIfTrue(result.IsAggregatedForm);
                 Contract.ThrowIfNull(result.DocumentIds);
@@ -343,12 +349,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            private async Task SerializeAsync(IPersistentStorageService persistentService, DiagnosticDataSerializer serializer, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
+            private async Task SerializeAsync(IPersistentStorageService? persistentService, DiagnosticDataSerializer serializer, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 
                 // try to serialize it
-                if (await serializer.SerializeAsync(persistentService, project, document, stateKey, diagnostics, CancellationToken.None).ConfigureAwait(false))
+                if (persistentService != null &&
+                    await serializer.SerializeAsync(persistentService, project, document, stateKey, diagnostics, CancellationToken.None).ConfigureAwait(false))
                 {
                     // we succeeded saving it to persistent storage. remove it from in memory cache if it exists
                     RemoveInMemoryCacheEntry(key, stateKey);
@@ -416,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializer.Version == entry.Version)
                 {
-                    return new ValueTask<ImmutableArray<DiagnosticData>>(entry.Diagnostics);
+                    return ValueTaskFactory.FromResult(entry.Diagnostics);
                 }
 
                 return serializer.DeserializeAsync(persistentService, project, document, stateKey, cancellationToken);

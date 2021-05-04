@@ -152,8 +152,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         protected void Reset(ref ResetPoint point)
         {
-            _mode = point.Mode;
             var offset = point.Position - _firstToken;
+            Debug.Assert(offset >= 0);
+
+            if (offset >= _tokenCount)
+            {
+                // Re-fetch tokens to the position in the reset point
+                PeekToken(offset - _tokenOffset);
+
+                // Re-calculate new offset in case tokens got shifted to the left while we were peeking. 
+                offset = point.Position - _firstToken;
+            }
+
+            _mode = point.Mode;
             Debug.Assert(offset >= 0 && offset < _tokenCount);
             _tokenOffset = offset;
             _currentToken = null;
@@ -364,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void AddTokenSlot()
         {
             // shift tokens to left if we are far to the right
-            // don't shift if reset points have fixed locked tge starting point at the token in the window
+            // don't shift if reset points have fixed locked the starting point at the token in the window
             if (_tokenOffset > (_blendedTokens.Length >> 1)
                 && (_resetStart == -1 || _resetStart > _firstToken))
             {
@@ -392,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void AddLexedTokenSlot()
         {
             // shift tokens to left if we are far to the right
-            // don't shift if reset points have fixed locked tge starting point at the token in the window
+            // don't shift if reset points have fixed locked the starting point at the token in the window
             if (_tokenOffset > (_lexedTokens.Length >> 1)
                 && (_resetStart == -1 || _resetStart > _firstToken))
             {

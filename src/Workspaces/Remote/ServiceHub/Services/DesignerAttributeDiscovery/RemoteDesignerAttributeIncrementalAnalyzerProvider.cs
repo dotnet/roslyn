@@ -14,14 +14,16 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </remarks>
     internal sealed class RemoteDesignerAttributeIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly RemoteCallback<IDesignerAttributeListener> _callback;
+        private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback;
+        private readonly RemoteServiceCallbackId _callbackId;
 
-        public RemoteDesignerAttributeIncrementalAnalyzerProvider(RemoteCallback<IDesignerAttributeListener> callback)
+        public RemoteDesignerAttributeIncrementalAnalyzerProvider(RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback, RemoteServiceCallbackId callbackId)
         {
             _callback = callback;
+            _callbackId = callbackId;
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new RemoteDesignerAttributeIncrementalAnalyzer(_callback);
+            => new RemoteDesignerAttributeIncrementalAnalyzer(_callback, _callbackId);
     }
 }

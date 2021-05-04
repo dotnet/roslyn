@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     internal class TestResponse
     {
-        public int RequestOrder { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
 

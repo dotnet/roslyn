@@ -48,5 +48,11 @@ namespace Microsoft.CodeAnalysis
         /// specified by the 'DiagnosticId' property on 'ObsoleteAttribute'.
         /// </summary>
         public const string CustomObsolete = nameof(CustomObsolete);
+
+        /// <summary>
+        /// Indicates that the diagnostic is a compilation end diagnostic reported
+        /// from a compilation end action.
+        /// </summary>
+        public const string CompilationEnd = nameof(CompilationEnd);
     }
 }

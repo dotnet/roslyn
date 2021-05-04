@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
@@ -646,7 +647,7 @@ namespace Microsoft.CodeAnalysis
             return discriminator == ConstantValueTypeDiscriminator.String;
         }
 
-        // See https://github.com/dotnet/roslyn/issues/41964: when this property is true, that implies StringValue is non-null.
+        [MemberNotNullWhen(true, nameof(StringValue))]
         public bool IsString
         {
             get

@@ -445,9 +445,6 @@
   <data name="ArgumentElementCannotBeNull" xml:space="preserve">
     <value>Argument cannot have a null element.</value>
   </data>
-  <data name="AsyncAnalyzerActionCannotBeRegistered" xml:space="preserve">
-    <value>Analyzer attempted to register an 'async' action, which is not supported.</value>
-  </data>
   <data name="UnsupportedDiagnosticReported" xml:space="preserve">
     <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
   </data>
@@ -720,5 +717,8 @@
   </data>
   <data name="WRN_InvalidGlobalSectionName_Title" xml:space="preserve">
     <value>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</value>
+  </data>
+  <data name="ChangesMustBeWithinBoundsOfSourceText" xml:space="preserve">
+    <value>Changes must be within bounds of SourceText</value>
   </data>
 </root>

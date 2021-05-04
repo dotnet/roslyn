@@ -4386,5 +4386,360 @@ namespace N {
     }
 }");
         }
+
+        [WorkItem(47928, "https://github.com/dotnet/roslyn/issues/47928")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateConstructorFromImplicitObjectCreation()
+        {
+            await TestInRegularAndScriptAsync(@"
+namespace N
+{
+    public class B
+    {
+        void M()
+        {
+            C c = [||]new(0);
+        }
+    }
+
+    public class C
+    {
+    }
+}", @"
+namespace N
+{
+    public class B
+    {
+        void M()
+        {
+            C c = new(0);
+        }
+    }
+
+    public class C
+    {
+        private int v;
+
+        public C(int v)
+        {
+            this.v = v;
+        }
+    }
+}");
+        }
+
+        [WorkItem(47928, "https://github.com/dotnet/roslyn/issues/47928")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateConstructorFromImplicitObjectCreation_Properties()
+        {
+            await TestInRegularAndScriptAsync(@"
+namespace N
+{
+    public class B
+    {
+        void M()
+        {
+            C c = [||]new(0);
+        }
+    }
+
+    public class C
+    {
+    }
+}", @"
+namespace N
+{
+    public class B
+    {
+        void M()
+        {
+            C c = new(0);
+        }
+    }
+
+    public class C
+    {
+        public C(int v)
+        {
+            V = v;
+        }
+
+        public int V { get; }
+    }
+}", index: 1);
+        }
+
+        [WorkItem(47928, "https://github.com/dotnet/roslyn/issues/47928")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateConstructorFromImplicitObjectCreation_NoField()
+        {
+            await TestInRegularAndScriptAsync(@"
+namespace N
+{
+    public class B
+    {
+        void M()
+        {
+            C c = [||]new(0);
+        }
+    }
+
+    public class C
+    {
+    }
+}", @"
+namespace N
+{
+    public class B
+    {
+        void M()
+        {
+            C c = new(0);
+        }
+    }
+
+    public class C
+    {
+        public C(int v)
+        {
+        }
+    }
+}", index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateConstructorFromImplicitObjectCreation_Delegating()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        D d = [||]new(1);
+    }
+}
+
+class B
+{
+    protected B(int x)
+    {
+    }
+}
+
+class D : B
+{
+}",
+@"class C
+{
+    void M()
+    {
+        D d = new(1);
+    }
+}
+
+class B
+{
+    protected B(int x)
+    {
+    }
+}
+
+class D : B
+{
+    public D(int x) : base(x)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateConstructorFromImplicitObjectCreation_DelegatingFromParameter()
+        {
+            const string input =
+@"class C
+{
+    void M(D d)
+    {
+        M([||]new(1));
+    }
+}
+
+class B
+{
+    protected B(int x)
+    {
+    }
+}
+
+class D : B
+{
+}";
+
+            await TestActionCountAsync(input, 1);
+            await TestInRegularAndScriptAsync(
+         input,
+@"class C
+{
+    void M(D d)
+    {
+        M(new(1));
+    }
+}
+
+class B
+{
+    protected B(int x)
+    {
+    }
+}
+
+class D : B
+{
+    public D(int x) : base(x)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateWithLambda1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class A
+{
+    void M()
+    {
+        Delta d1 = new [|Delta|](x => x.Length, 3);
+    }
+}
+
+class Delta
+{
+    public Delta(Func<string, int> f)
+    {
+    }
+}",
+@"using System;
+
+class A
+{
+    void M()
+    {
+        Delta d1 = new Delta(x => x.Length, 3);
+    }
+}
+
+class Delta
+{
+    private int v;
+
+    public Delta(Func<string, int> f)
+    {
+    }
+
+    public Delta(Func<string, int> f, int v) : this(f)
+    {
+        this.v = v;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateWithLambda2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class A
+{
+    public A(Func<string, int> f) { }
+
+    void M()
+    {
+        Delta d1 = new [|Delta|](x => x.Length, 3);
+    }
+}
+
+class Delta : A
+{
+}",
+@"using System;
+
+class A
+{
+    public A(Func<string, int> f) { }
+
+    void M()
+    {
+        Delta d1 = new Delta(x => x.Length, 3);
+    }
+}
+
+class Delta : A
+{
+    private int v;
+
+    public Delta(Func<string, int> f, int v) : base(f)
+    {
+        this.v = v;
+    }
+}");
+        }
+
+        [WorkItem(50765, "https://github.com/dotnet/roslyn/issues/50765")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructorWithMissingType()
+        {
+            // CSharpProjectWithExtraType is added as a project reference to CSharpProjectGeneratingInto
+            // but not at the place we're actually invoking the fix.
+            await TestAsync(@"
+<Workspace>
+    <Project Language=""C#"" Name=""CSharpProjectWithExtraType"" CommonReferences=""true"">
+        <Document>
+public class ExtraType { }
+        </Document>
+    </Project>
+    <Project Language=""C#"" Name=""CSharpProjectGeneratingInto"" CommonReferences=""true"">
+        <ProjectReference>CSharpProjectWithExtraType</ProjectReference>
+        <Document>
+public class C
+{
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <ProjectReference>CSharpProjectGeneratingInto</ProjectReference>
+        <Document>
+public class InvokingConstructor
+{
+    public void M()
+    {
+        [|new C(42, 42)|];
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+public class C
+{
+    private int v1;
+    private int v2;
+
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+
+    public C(int v1, int v2)
+    {
+        this.v1 = v1;
+        this.v2 = v2;
+    }
+}
+        ", parseOptions: TestOptions.Regular);
+        }
     }
 }

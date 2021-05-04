@@ -64,9 +64,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
         }
 
+#if !CODE_STYLE
+        public static SyntaxNode GetRequiredSyntaxRootSynchronously(this Document document, CancellationToken cancellationToken)
+        {
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            return root ?? throw new InvalidOperationException(string.Format(WorkspaceExtensionsResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+        }
+#endif
+
         public static bool IsOpen(this TextDocument document)
         {
-            var workspace = document.Project.Solution.Workspace as Workspace;
+            var workspace = document.Project.Solution.Workspace;
             return workspace != null && workspace.IsDocumentOpen(document.Id);
         }
 
@@ -194,6 +202,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 yield return solution.GetRequiredDocument(linkedDocumentId);
             }
+        }
+
+        public static bool CanAddImportsInHiddenRegions(this Document document)
+        {
+#if !CODE_STYLE
+            // Normally we don't allow generation into a hidden region in the file.  However, if we have a
+            // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
+            // our edit to their domain appropriate.
+            var spanMapper = document.Services.GetService<ISpanMappingService>();
+            return spanMapper != null && spanMapper.SupportsMappingImportDirectives;
+#else
+            return false;
+#endif
         }
     }
 }

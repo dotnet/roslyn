@@ -30,6 +30,7 @@ Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress
 Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress.ElapsedTime.get -> System.TimeSpan
 Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress.FilePath.get -> string
 Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress.Operation.get -> Microsoft.CodeAnalysis.MSBuild.ProjectLoadOperation
+Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress.ProjectLoadProgress() -> void
 Microsoft.CodeAnalysis.MSBuild.ProjectLoadProgress.TargetFramework.get -> string
 Microsoft.CodeAnalysis.MSBuild.ProjectMap
 Microsoft.CodeAnalysis.MSBuild.ProjectMap.Add(Microsoft.CodeAnalysis.Project project) -> void
@@ -39,7 +40,7 @@ static Microsoft.CodeAnalysis.Host.Mef.MSBuildMefHostServices.DefaultAssemblies.
 static Microsoft.CodeAnalysis.Host.Mef.MSBuildMefHostServices.DefaultServices.get -> Microsoft.CodeAnalysis.Host.Mef.MefHostServices
 static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create() -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
-static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties, Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
+static Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create(System.Collections.Generic.IDictionary<string, string> properties, Microsoft.CodeAnalysis.Host.HostServices hostServices) -> Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace
 static Microsoft.CodeAnalysis.MSBuild.ProjectMap.Create() -> Microsoft.CodeAnalysis.MSBuild.ProjectMap
 static Microsoft.CodeAnalysis.MSBuild.ProjectMap.Create(Microsoft.CodeAnalysis.Solution solution) -> Microsoft.CodeAnalysis.MSBuild.ProjectMap

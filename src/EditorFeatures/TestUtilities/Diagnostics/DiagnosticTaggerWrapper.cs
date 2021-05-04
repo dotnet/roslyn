@@ -97,11 +97,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         public async Task WaitForTags()
         {
-            await _listenerProvider.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-            await _listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
-            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
-            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).ExpeditedWaitAsync();
-            await _listenerProvider.GetWaiter(FeatureAttribute.Classification).ExpeditedWaitAsync();
+            await _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
+                _workspace,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles,
+                FeatureAttribute.Classification);
         }
     }
 }

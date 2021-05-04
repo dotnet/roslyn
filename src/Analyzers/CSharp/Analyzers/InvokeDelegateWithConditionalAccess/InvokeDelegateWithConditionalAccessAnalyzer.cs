@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     {
         public InvokeDelegateWithConditionalAccessAnalyzer()
             : base(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
+                   EnforceOnBuildValues.InvokeDelegateWithConditionalAccess,
                    CSharpCodeStyleOptions.PreferConditionalDelegateCall,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))

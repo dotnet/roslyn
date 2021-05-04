@@ -1,8 +1,8 @@
 # Nullable Annotations
 
 This document describes how nullable annotations should be approached in the 
-Roslyn code base. The default is to simply follow [the same guidance](https://github.com/dotnet/runtime/blob/master/docs/coding-guidelines/api-guidelines/nullability.md)
-as the [dotnet/runtime](github.com/dotnet/runtime) repository. This document
+Roslyn code base. The default is to simply follow [the same guidance](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/api-guidelines/nullability.md)
+as the [dotnet/runtime](https://github.com/dotnet/runtime) repository. This document
 serves to detail the places where the guidance differs for Roslyn and 
 re-emphasize rules that come up frequently.
 

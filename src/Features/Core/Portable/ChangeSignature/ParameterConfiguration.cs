@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             if ((parametersList.LastOrDefault() as ExistingParameter)?.Symbol.IsParams == true)
             {
                 // Params arrays cannot be added, so must be pre-existing.
-                paramsParameter = (ExistingParameter)parametersList[parametersList.Count - 1];
+                paramsParameter = (ExistingParameter)parametersList[^1];
                 parametersList.RemoveAt(parametersList.Count - 1);
             }
 

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.UseCompoundAssignment;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCompoundAssignment), Shared]
     internal class CSharpUseCompoundAssignmentCodeFixProvider
         : AbstractUseCompoundAssignmentCodeFixProvider<SyntaxKind, AssignmentExpressionSyntax, ExpressionSyntax>
     {
@@ -28,6 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             SyntaxKind assignmentOpKind, ExpressionSyntax left, SyntaxToken syntaxToken, ExpressionSyntax right)
         {
             return SyntaxFactory.AssignmentExpression(assignmentOpKind, left, syntaxToken, right);
+        }
+
+        protected override ExpressionSyntax Increment(ExpressionSyntax left)
+        {
+            return SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, left);
+        }
+
+        protected override ExpressionSyntax Decrement(ExpressionSyntax left)
+        {
+            return SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostDecrementExpression, left);
         }
     }
 }

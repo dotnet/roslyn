@@ -7,23 +7,27 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
+#If Not DEBUG Then
+Imports ParameterSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.ParameterSymbol
+#End If
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
     Friend NotInheritable Class EmbeddedParameter
         Inherits EmbeddedTypesManager.CommonEmbeddedParameter
 
-        Public Sub New(containingPropertyOrMethod As EmbeddedTypesManager.CommonEmbeddedMember, underlyingParameter As ParameterSymbol)
+        Public Sub New(containingPropertyOrMethod As EmbeddedTypesManager.CommonEmbeddedMember, underlyingParameter As ParameterSymbolAdapter)
             MyBase.New(containingPropertyOrMethod, underlyingParameter)
-            Debug.Assert(underlyingParameter.IsDefinition)
+            Debug.Assert(underlyingParameter.AdaptedParameterSymbol.IsDefinition)
         End Sub
 
         Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingParameter.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
+            Return UnderlyingParameter.AdaptedParameterSymbol.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
         End Function
 
         Protected Overrides ReadOnly Property HasDefaultValue As Boolean
             Get
-                Return UnderlyingParameter.HasMetadataConstantValue
+                Return UnderlyingParameter.AdaptedParameterSymbol.HasMetadataConstantValue
             End Get
         End Property
 
@@ -33,43 +37,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Protected Overrides ReadOnly Property IsIn As Boolean
             Get
-                Return UnderlyingParameter.IsMetadataIn
+                Return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataIn
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsOut As Boolean
             Get
-                Return UnderlyingParameter.IsMetadataOut
+                Return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataOut
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsOptional As Boolean
             Get
-                Return UnderlyingParameter.IsMetadataOptional
+                Return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataOptional
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsMarshalledExplicitly As Boolean
             Get
-                Return UnderlyingParameter.IsMarshalledExplicitly
+                Return UnderlyingParameter.AdaptedParameterSymbol.IsMarshalledExplicitly
             End Get
         End Property
 
         Protected Overrides ReadOnly Property MarshallingInformation As Cci.IMarshallingInformation
             Get
-                Return UnderlyingParameter.MarshallingInformation
+                Return UnderlyingParameter.AdaptedParameterSymbol.MarshallingInformation
             End Get
         End Property
 
         Protected Overrides ReadOnly Property MarshallingDescriptor As ImmutableArray(Of Byte)
             Get
-                Return UnderlyingParameter.MarshallingDescriptor
+                Return UnderlyingParameter.AdaptedParameterSymbol.MarshallingDescriptor
             End Get
         End Property
 
         Protected Overrides ReadOnly Property Name As String
             Get
-                Return UnderlyingParameter.MetadataName
+                Return UnderlyingParameter.AdaptedParameterSymbol.MetadataName
             End Get
         End Property
 
@@ -81,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Protected Overrides ReadOnly Property Index As UShort
             Get
-                Return CUShort(UnderlyingParameter.Ordinal)
+                Return CUShort(UnderlyingParameter.AdaptedParameterSymbol.Ordinal)
             End Get
         End Property
 

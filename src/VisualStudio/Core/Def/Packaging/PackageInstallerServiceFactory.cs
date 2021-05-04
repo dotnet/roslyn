@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 // These exceptions can happen when the nuget.config file is broken.
             }
-            catch (ArgumentException ae) when (FatalError.ReportWithoutCrash(ae))
+            catch (ArgumentException ae) when (FatalError.ReportAndCatch(ae))
             {
                 // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
                 // https://github.com/dotnet/roslyn/issues/40857
@@ -211,16 +211,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return true;
         }
 
-        protected override void EnableService()
+        private async ValueTask<IVsPackageSourceProvider> GetPackageSourceProviderAsync()
+        {
+            Contract.ThrowIfFalse(IsEnabled);
+
+            if (!_packageSourceProvider.IsValueCreated)
+            {
+                // Switch to background thread for known assembly load
+                await TaskScheduler.Default;
+            }
+
+            return _packageSourceProvider.Value;
+        }
+
+        protected override async Task EnableServiceAsync(CancellationToken cancellationToken)
         {
             if (!IsEnabled)
             {
                 return;
             }
 
+            // Continue on captured context since EnableServiceAsync is part of a UI thread initialization sequence
+            var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(true);
+
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _packageSourceProvider.Value.SourcesChanged += OnSourceProviderSourcesChanged;
+            packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
         }
 
         protected override void StartWorking()
@@ -324,7 +340,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 // fall through.
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_colon_0, e.Message);
 
@@ -364,7 +380,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 // fall through.
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_colon_0, e.Message);
 
@@ -390,7 +406,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
             }
 
@@ -552,7 +568,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 return new ProjectState(installedPackages.ToImmutableDictionary());
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return null;
             }

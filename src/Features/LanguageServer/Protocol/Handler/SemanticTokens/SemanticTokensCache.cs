@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -22,7 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// Multiple token sets can be cached per document. The number of token sets cached
     /// per document is determined by the _maxCachesPerDoc field.
     /// </summary>
-    [Export(typeof(SemanticTokensCache)), Shared]
     internal class SemanticTokensCache
     {
         /// <summary>
@@ -48,14 +43,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// We need this sempahore to ensure that we aren't making concurrent
         /// modifications to the _tokens dictionary.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _semaphore = new(1);
 
         #region protected by _semaphore
         /// <summary>
         /// Maps a document URI to its n most recently cached token sets.
         /// </summary>
-        private readonly Dictionary<Uri, List<LSP.SemanticTokens>> _tokens =
-            new Dictionary<Uri, List<LSP.SemanticTokens>>();
+        private readonly Dictionary<Uri, List<LSP.SemanticTokens>> _tokens = new();
         #endregion
 
         static SemanticTokensCache()
@@ -76,8 +70,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             }
         }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensCache()
         {
         }

@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 // use FormattableString if conversion between String and FormattableString
                 if (info.Type?.SpecialType == SpecialType.System_String &&
-                    info.ConvertedType?.IsFormattableString() == true)
+                    info.ConvertedType?.IsFormattableStringOrIFormattable() == true)
                 {
                     return info.GetConvertedTypeWithAnnotatedNullability();
                 }

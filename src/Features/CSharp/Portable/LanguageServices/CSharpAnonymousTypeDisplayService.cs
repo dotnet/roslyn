@@ -6,12 +6,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
@@ -25,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
         {
         }
 
-        public override IEnumerable<SymbolDisplayPart> GetAnonymousTypeParts(
+        public override ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
             INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
         {
-            var members = new List<SymbolDisplayPart>();
+            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var members);
 
             members.Add(Keyword(SyntaxFacts.GetText(SyntaxKind.NewKeyword)));
             members.AddRange(Space());
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             members.AddRange(Space());
             members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.CloseBraceToken)));
 
-            return members;
+            return members.ToImmutable();
         }
     }
 }

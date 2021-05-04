@@ -34,7 +34,13 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new Analyzer(workspace.Services);
+        {
+#if DEBUG
+            return new Analyzer(workspace.Services);
+#else
+            return null;
+#endif
+        }
 
         private sealed class Analyzer : IIncrementalAnalyzer
         {

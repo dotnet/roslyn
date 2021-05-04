@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -31,13 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
             // this service is directly tied to DiagnosticAnalyzerService and
             // depends on its implementation.
-            _analyzerService = analyzerService as DiagnosticAnalyzerService;
-            Contract.ThrowIfNull(_analyzerService);
+            _analyzerService = (DiagnosticAnalyzerService)analyzerService;
 
             _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
         {
             // to make life time management easier, just create new service per new workspace
             return new Service(this, workspaceServices.Workspace);
@@ -52,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
             // since we now have one service for each one specific instance of workspace,
             // we can have states for this specific workspace.
-            private Task _analyzeTask;
+            private Task? _analyzeTask;
 
             public Service(PreviewSolutionCrawlerRegistrationServiceFactory owner, Workspace workspace)
             {
@@ -120,6 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             private async Task UnregisterAsync(Workspace workspace)
             {
                 Contract.ThrowIfFalse(workspace == _workspace);
+                Contract.ThrowIfNull(_analyzeTask);
+
                 _source.Cancel();
 
                 // wait for analyzer work to be finished

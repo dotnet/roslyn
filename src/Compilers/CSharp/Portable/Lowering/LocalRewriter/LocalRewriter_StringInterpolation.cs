@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
 
@@ -53,23 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
-        }
-
-        private static string Unescape(string s)
-        {
-            var builder = PooledStringBuilder.GetInstance();
-            var stringBuilder = builder.Builder;
-            int formatLength = s.Length;
-            for (int i = 0; i < formatLength; i++)
-            {
-                char c = s[i];
-                stringBuilder.Append(c);
-                if ((c == '{' || c == '}') && (i + 1) < formatLength && s[i + 1] == c)
-                {
-                    i++;
-                }
-            }
-            return builder.ToStringAndFree();
         }
 
         private void MakeInterpolatedStringFormat(BoundInterpolatedString node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions)
@@ -151,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // this is one of the literal parts
                         Debug.Assert(part is BoundLiteral && part.ConstantValue is { StringValue: { } });
-                        part = _factory.StringLiteral(Unescape(part.ConstantValue.StringValue));
+                        part = _factory.StringLiteral(ConstantValueUtils.UnescapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
                     }
 
                     result = result == null ?

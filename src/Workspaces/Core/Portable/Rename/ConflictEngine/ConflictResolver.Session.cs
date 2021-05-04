@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     return conflictResolution;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     return conflictResolution.RelatedLocations.Any(r => r.Type == RelatedLocationType.PossiblyResolvableConflict);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             hasConflict = true;
 
                             var newLocationTasks = newReferencedSymbols.Select(async symbol => await GetSymbolLocationAsync(solution, symbol, _cancellationToken).ConfigureAwait(false));
-                            var newLocations = (await Task.WhenAll(newLocationTasks).ConfigureAwait(false)).Where(loc => loc != null && loc.IsInSource);
+                            var newLocations = (await Task.WhenAll(newLocationTasks).ConfigureAwait(false)).WhereNotNull().Where(loc => loc.IsInSource);
                             foreach (var originalReference in conflictAnnotation.RenameDeclarationLocationReferences.Where(loc => loc.IsSourceLocation))
                             {
                                 var adjustedStartPosition = conflictResolution.GetAdjustedTokenStartingPosition(originalReference.TextSpan.Start, originalReference.DocumentId);
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                         }
                                         else
                                         {
-                                            var overriddenSymbol = overridingSymbol.OverriddenMember();
+                                            var overriddenSymbol = overridingSymbol.GetOverriddenMember();
                                             if (overriddenSymbol == null || !overriddenSymbol.Locations.All(loc => loc.IsInMetadata))
                                             {
                                                 hasConflict = true;
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     return hasConflict;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     var newSymbol = await SymbolFinder.FindSymbolAtPositionAsync(document, start, cancellationToken: _cancellationToken).ConfigureAwait(false);
                     return newSymbol;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     await AddDocumentsWithPotentialConflictsAsync(documentsFromAffectedProjects).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             continue;
                         }
 
-                        var info = await SyntaxTreeIndex.GetIndexAsync(document, _cancellationToken).ConfigureAwait(false);
+                        var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, _cancellationToken).ConfigureAwait(false);
                         if (info.ProbablyContainsEscapedIdentifier(_originalText))
                         {
                             _documentsIdsToBeCheckedForConflict.Add(document.Id);
@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         }
                     }
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     return partiallyRenamedSolution;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

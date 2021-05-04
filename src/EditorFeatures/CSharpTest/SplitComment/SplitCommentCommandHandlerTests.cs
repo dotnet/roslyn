@@ -159,23 +159,72 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
         }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
         public void TestSplitMiddleOfQuadComment()
         {
-            TestHandled(
+            TestNotHandled(
 @"public class Program
 {
     public static void Main(string[] args) 
     { 
         //[||]//Test Comment
     }
-}",
+}");
+        }
+
+        [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestSplitWithCommentAfterwards1()
+        {
+            TestNotHandled(
 @"public class Program
 {
     public static void Main(string[] args) 
     { 
-        //
-        ////Test Comment
+        // goo[||]  //Test Comment
+    }
+}");
+        }
+
+        [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestSplitWithCommentAfterwards2()
+        {
+            TestNotHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        // goo [||] //Test Comment
+    }
+}");
+        }
+
+        [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestSplitWithCommentAfterwards3()
+        {
+            TestNotHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        // goo  [||]//Test Comment
+    }
+}");
+        }
+
+        [WorkItem(48547, "https://github.com/dotnet/roslyn/issues/48547")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestSplitWithCommentAfterwards4()
+        {
+            TestNotHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        // [|goo|] //Test Comment
     }
 }");
         }

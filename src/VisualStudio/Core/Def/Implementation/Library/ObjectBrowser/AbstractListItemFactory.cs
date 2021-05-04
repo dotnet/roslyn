@@ -379,16 +379,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             {
                 if (member.IsOverride)
                 {
-                    var overriddenMember = member.OverriddenMember();
-                    while (overriddenMember != null)
+                    for (var overriddenMember = member.GetOverriddenMember(); overriddenMember != null; overriddenMember = overriddenMember.GetOverriddenMember())
                     {
-                        if (overriddenMembers == null)
-                        {
-                            overriddenMembers = new HashSet<ISymbol>();
-                        }
-
+                        overriddenMembers ??= new();
                         overriddenMembers.Add(overriddenMember);
-                        overriddenMember = overriddenMember.OverriddenMember();
                     }
                 }
             }
