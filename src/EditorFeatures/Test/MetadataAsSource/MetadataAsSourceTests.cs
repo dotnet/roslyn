@@ -3106,8 +3106,6 @@ public enum BinaryOperatorKind
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-using System;
-
 public enum BinaryOperatorKind
 {{
     //
