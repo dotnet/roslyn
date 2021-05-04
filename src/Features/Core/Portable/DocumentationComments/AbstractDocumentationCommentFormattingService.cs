@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
@@ -102,10 +103,12 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             public void AppendString(string s)
             {
                 EmitPendingChars();
-
-                Builder.Add(new TaggedText(TextTags.Text, s, Style, NavigationTarget.target, NavigationTarget.hint));
+                Builder.Add(new TaggedText(TextTags.Text, NormalizeLineEndings(s), Style, NavigationTarget.target, NavigationTarget.hint));
 
                 _anyNonWhitespaceSinceLastPara = true;
+
+                static string NormalizeLineEndings(string input) => Regex.Replace(input, "(?<!\r)\n", "\r\n");
+
             }
 
             public void AppendParts(IEnumerable<TaggedText> parts)
@@ -305,8 +308,9 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
         private static void AppendTextFromNode(FormatterState state, XNode node, Compilation compilation)
         {
-            if (node.NodeType == XmlNodeType.Text)
+            if (node.NodeType is XmlNodeType.Text or XmlNodeType.CDATA)
             {
+                // cast is safe since XCData inherits XText
                 AppendTextFromTextNode(state, (XText)node);
             }
 
@@ -550,6 +554,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         private static void AppendTextFromTextNode(FormatterState state, XText element)
         {
             var rawText = element.Value;
+            if (state.Style == TaggedTextStyle.Code)
+            {
+                // Don't normalize code.
+                state.AppendString(rawText);
+                return;
+            }
+
             var builder = new StringBuilder(rawText.Length);
 
             // Normalize the whitespace.
