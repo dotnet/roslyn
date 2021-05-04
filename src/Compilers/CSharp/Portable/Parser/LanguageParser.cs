@@ -2286,6 +2286,7 @@ tryAgain:
 
                 try
                 {
+                    // Try as a regualr statement rather than a member declaration, if appropriate.
                     if ((!haveAttributes || !IsScript) && !haveModifiers && (type.Kind == SyntaxKind.RefType || !IsOperatorStart(out _, advanceParser: false)))
                     {
                         this.Reset(ref afterAttributesPoint);
@@ -6007,7 +6008,7 @@ tryAgain:
             }
         }
 
-        private void AccumulateExplicitInterfaceName(ref NameSyntax explicitInterfaceName, ref SyntaxToken separator, bool reportAnErrorOnMispacedColonColon = false)
+        private void AccumulateExplicitInterfaceName(ref NameSyntax explicitInterfaceName, ref SyntaxToken separator, bool reportAnErrorOnMisplacedColonColon = false)
         {
             // first parse the upcoming name portion.
 
@@ -6038,7 +6039,7 @@ tryAgain:
                 {
                     separator = this.EatToken();
 
-                    if (reportAnErrorOnMispacedColonColon)
+                    if (reportAnErrorOnMisplacedColonColon)
                     {
                         // The https://github.com/dotnet/roslyn/issues/53021 is tracking fixing this in general
                         separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName);
@@ -6090,8 +6091,19 @@ tryAgain:
                     bool isPartOfInterfaceName;
                     try
                     {
-                        ScanNamedTypePart();
-                        isPartOfInterfaceName = IsDotOrColonColon();
+                        if (IsOperatorKeyword())
+                        {
+                            isPartOfInterfaceName = false;
+                        }
+                        else
+                        {
+                            ScanNamedTypePart();
+
+                            // If we have part of the interface name, but no dot before the operator token, then
+                            // for the purpose of error recovery, treat this as an operator start with a
+                            // missing dot token.
+                            isPartOfInterfaceName = IsDotOrColonColon() || IsOperatorKeyword();
+                        }
                     }
                     finally
                     {
@@ -6113,7 +6125,7 @@ tryAgain:
                     else
                     {
                         // If we saw a . or :: then we must have something explicit.
-                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator, reportAnErrorOnMispacedColonColon: true);
+                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator, reportAnErrorOnMisplacedColonColon: true);
                     }
                 }
 
