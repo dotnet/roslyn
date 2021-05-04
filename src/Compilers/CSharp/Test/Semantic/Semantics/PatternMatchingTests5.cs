@@ -132,6 +132,18 @@ True
   IL_003e:  ldc.i4.0
   IL_003f:  ret
 }");
+            verifier.VerifyIL("C.Test4", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""A0 S0.Prop1""
+  IL_0006:  ldfld      ""B0 A0.Prop2""
+  IL_000b:  ldfld      ""int B0.Prop3""
+  IL_0010:  ldc.i4     0x1a4
+  IL_0015:  ceq
+  IL_0017:  ret
+}");
         }
 
         [Fact]
@@ -313,6 +325,8 @@ class C
     public static void Main()
     {        
         _ = new C() is { Prop1.Prop2: {} };
+        _ = new C() is { Prop1?.Prop2: {} };
+        _ = new C() is { Missing: null, Prop1.Prop2: {} };
     }
 }
 ";
@@ -327,7 +341,19 @@ class C
                     Diagnostic(ErrorCode.WRN_UnreferencedField, "Prop2").WithArguments("C.Prop2").WithLocation(4, 14),
                     // (7,26): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         _ = new C() is { Prop1.Prop2: {} };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop1.Prop2").WithArguments("extended property patterns").WithLocation(7, 26));
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop1.Prop2").WithArguments("extended property patterns").WithLocation(7, 26),
+                    // (8,26): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = new C() is { Prop1?.Prop2: {} };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop1?.Prop2").WithArguments("extended property patterns").WithLocation(8, 26),
+                    // (8,26): error CS9000: Identifier or a simple member access expected.
+                    //         _ = new C() is { Prop1?.Prop2: {} };
+                    Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1?.Prop2").WithLocation(8, 26),
+                    // (9,26): error CS0117: 'C' does not contain a definition for 'Missing'
+                    //         _ = new C() is { Missing: null, Prop1.Prop2: {} };
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("C", "Missing").WithLocation(9, 26),
+                    // (9,41): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         _ = new C() is { Missing: null, Prop1.Prop2: {} };
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop1.Prop2").WithArguments("extended property patterns").WithLocation(9, 41));
         }
     }
 }
