@@ -61,8 +61,6 @@ Microsoft.CodeAnalysis.SyntaxToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnal
 Microsoft.CodeAnalysis.SyntaxValueSources
 Microsoft.CodeAnalysis.SyntaxValueSources.SyntaxValueSources() -> void
 Microsoft.CodeAnalysis.SyntaxValueSources.Transform<T>(System.Func<Microsoft.CodeAnalysis.SyntaxNode!, bool>! filterFunc, System.Func<Microsoft.CodeAnalysis.GeneratorSyntaxContext, T>! transformFunc) -> Microsoft.CodeAnalysis.IncrementalValueSource<T>
-Microsoft.CodeAnalysis.ValueSources.ParseOptions.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.ParseOptions!>
-Microsoft.CodeAnalysis.ValueSources.Syntax.get -> Microsoft.CodeAnalysis.SyntaxValueSources
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool

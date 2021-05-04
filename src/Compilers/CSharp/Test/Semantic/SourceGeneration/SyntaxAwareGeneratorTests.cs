@@ -868,7 +868,6 @@ class E  { string fieldC = null; }
             Assert.Equal(lastTree, newLastTree);
 
 
-
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => c);
