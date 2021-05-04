@@ -273,5 +273,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Enable_file_logging_for_diagnostics
             => ServicesVSResources.Enable_file_logging_for_diagnostics;
+
+        public static string Show_inheritance_margin
+            => ServicesVSResources.Show_inheritance_margin;
+
+        public static string Inheritance_Margin_experimental
+            => ServicesVSResources.Inheritance_Margin_experimental;
     }
 }

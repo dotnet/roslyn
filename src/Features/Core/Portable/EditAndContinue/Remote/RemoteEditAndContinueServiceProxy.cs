@@ -48,6 +48,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public ValueTask<ManagedEditAndContinueAvailability> GetAvailabilityAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
                 => ((EditSessionCallback)GetCallback(callbackId)).GetAvailabilityAsync(mvid, cancellationToken);
 
+            public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+                => ((EditSessionCallback)GetCallback(callbackId)).GetCapabilitiesAsync(cancellationToken);
+
             public ValueTask PrepareModuleForUpdateAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
                 => ((EditSessionCallback)GetCallback(callbackId)).PrepareModuleForUpdateAsync(mvid, cancellationToken);
         }
@@ -137,6 +140,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     // nop
+                }
+            }
+
+            public async ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+            {
+                try
+                {
+                    return await _debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                {
+                    return ImmutableArray<string>.Empty;
                 }
             }
         }
@@ -436,7 +451,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                GetLocalService().OnSourceFileUpdated(document);
+                await GetLocalService().OnSourceFileUpdatedAsync(document, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
