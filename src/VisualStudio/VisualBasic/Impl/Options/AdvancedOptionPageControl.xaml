@@ -240,6 +240,14 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Name="InheritanceMarginGroupbox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin_experimental}">
+                <StackPanel>
+                    <CheckBox x:Uid="ShowInheritanceMargin"
+                              x:Name="ShowInheritanceMargin"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Show_inheritance_margin}"/>
+                </StackPanel>
+            </GroupBox>
         </StackPanel>
     </ScrollViewer>
 </options:AbstractOptionPageControl>
