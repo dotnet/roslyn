@@ -844,17 +844,34 @@ class C
         [Fact]
         public void IncrementalGenerator_With_Syntax_Filter()
         {
-            var source = @"
+            var source1 = @"
 class C { string fieldA = null; }
 ";
+            var source2 = @"
+class D { string fieldB = null; }
+";
+            var source3 = @"
+class E  { string fieldC = null; }
+";
             var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
             //compilation.VerifyDiagnostics();
-            Assert.Single(compilation.SyntaxTrees);
+            //Assert.Single(compilation.SyntaxTrees);
+
+            var firstTree = compilation.SyntaxTrees.First();
+            var lastTree = compilation.SyntaxTrees.Last();
+            var replaceTree = CSharpSyntaxTree.ParseText(source3, parseOptions);
+
+            compilation = compilation.ReplaceSyntaxTree(firstTree, replaceTree);
+            var newLastTree = compilation.SyntaxTrees.Last();
+
+            Assert.Equal(lastTree, newLastTree);
+
+
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.TransformMany(c => c.Node is FieldDeclarationSyntax fds ? ImmutableArray.Create(fds) : ImmutableArray<FieldDeclarationSyntax>.Empty);
+                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => c);
                 context.RegisterOutput(source.GenerateSource((spc, fds) =>
                 {
                     int a = 4;
