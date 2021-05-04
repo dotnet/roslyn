@@ -62,6 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         /// </summary>
         public async Task CleanUpDeadObjectsAsync()
         {
+            Debug.Assert(ThreadingContext.JoinableTaskContext.IsOnMainThread, "This method is optimized for cases where calls do not yield before checking _needsCleanUp.");
+
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(ThreadingContext.DisposalToken);
 
             if (!_needsCleanUp)
