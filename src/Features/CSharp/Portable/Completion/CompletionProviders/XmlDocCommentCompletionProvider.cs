@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -363,6 +364,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 default:
                     return null;
             }
+        }
+
+        protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
+        {
+            var declaredParameters = declarationSymbol.GetParameters();
+            if (declarationSymbol is INamedTypeSymbol { IsRecord: true } recordSymbol)
+            {
+                Debug.Assert(declaredParameters.IsDefaultOrEmpty, "If GetParameters extension handles record, we can remove the handling here.");
+                // A bit hacky to determine the parameters of primary constructor associated with a given record.
+                // Simplifying is tracked by: https://github.com/dotnet/roslyn/issues/53092.
+                // Note: When the issue is handled, we can remove the logic here and handle things in GetParameters. BUT
+                // make sure none of the other callers doesn't need records to be handled.
+                var primaryConstructor = recordSymbol.InstanceConstructors.FirstOrDefault(
+                    c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is RecordDeclarationSyntax);
+
+                if (primaryConstructor is not null)
+                {
+                    declaredParameters = primaryConstructor.Parameters;
+                }
+            }
+
+            return declaredParameters;
         }
 
         private static readonly CompletionItemRules s_defaultRules =

@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private IEnumerable<CompletionItem> GetParamRefItems(ISymbol symbol)
         {
-            var names = symbol.GetParameters().Select(p => p.Name);
+            var names = GetParameters(symbol).Select(p => p.Name);
 
             return names.Select(p => CreateCompletionItem(
                 displayText: FormatParameter(ParameterReferenceElementName, p),
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 if (tagName == ParameterElementName || tagName == ParameterReferenceElementName)
                 {
-                    return symbol.GetParameters()
+                    return GetParameters(symbol)
                                  .Select(parameter => CreateCompletionItem(parameter.Name));
                 }
                 else if (tagName == TypeParameterElementName)
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (symbol != null)
             {
-                items.AddRange(GetParameterItems(symbol.GetParameters(), syntax, ParameterElementName));
+                items.AddRange(GetParameterItems(GetParameters(symbol), syntax, ParameterElementName));
                 items.AddRange(GetParameterItems(symbol.GetTypeParameters(), syntax, TypeParameterElementName));
 
                 if (symbol is IPropertySymbol && !existingTopLevelTags.Contains(ValueElementName))
@@ -242,6 +242,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return items.ToImmutable();
         }
+
+        protected abstract ImmutableArray<IParameterSymbol> GetParameters(ISymbol symbol);
 
         protected IEnumerable<CompletionItem> GetItemTagItems()
             => new[] { TermElementName, DescriptionElementName }.Select(GetItem);

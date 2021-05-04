@@ -126,15 +126,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
                 else if (typeSymbol.IsRecord)
                 {
-                    // A bit hacky to determine the parameters of primary constructor associated with a given record.
-                    // TODO: record structs.
-                    const int RecordDeclarationRawKind = 9063;
-                    var potentialPrimaryCtor = typeSymbol.InstanceConstructors.FirstOrDefault(
-                        c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()?.RawKind == RecordDeclarationRawKind);
-
-                    if (potentialPrimaryCtor is not null)
+                    if (TryGetRecordPrimaryConstructor(typeSymbol, out var primaryConstructor))
                     {
-                        symbol = potentialPrimaryCtor;
+                        symbol = primaryConstructor;
                     }
                 }
             }
@@ -177,12 +171,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             var parameterConfiguration = ParameterConfiguration.Create(
-                symbol.GetParameters().Select(p => new ExistingParameter(p)).ToImmutableArray<Parameter>(),
+                GetParameters(symbol).Select(p => new ExistingParameter(p)).ToImmutableArray<Parameter>(),
                 symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalysisSucceededContext(
                 declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
         }
+
+        protected abstract bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, out IMethodSymbol? primaryConstructor);
 
         internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
         {
@@ -258,7 +254,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var symbols = await FindChangeSignatureReferencesAsync(
                 declaredSymbol, context.Solution, cancellationToken).ConfigureAwait(false);
 
-            var declaredSymbolParametersCount = declaredSymbol.GetParameters().Length;
+            var declaredSymbolParametersCount = GetParameters(declaredSymbol).Length;
 
             var telemetryNumberOfDeclarationsToUpdate = 0;
             var telemetryNumberOfReferencesToUpdate = 0;
@@ -454,14 +450,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return nodeToUpdate != null;
         }
 
-        protected static ImmutableArray<IUnifiedArgumentSyntax> PermuteArguments(
+        protected ImmutableArray<IUnifiedArgumentSyntax> PermuteArguments(
             ISymbol declarationSymbol,
             ImmutableArray<IUnifiedArgumentSyntax> arguments,
             SignatureChange updatedSignature,
             bool isReducedExtensionMethod = false)
         {
             // 1. Determine which parameters are permutable
-            var declarationParameters = declarationSymbol.GetParameters();
+            var declarationParameters = GetParameters(declarationSymbol);
             var declarationParametersToPermute = GetParametersToPermute(arguments, declarationParameters, isReducedExtensionMethod);
             var argumentsToPermute = arguments.Take(declarationParametersToPermute.Length).ToList();
 
@@ -560,19 +556,21 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return newArguments.ToImmutableAndFree();
         }
 
+        protected abstract ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol);
+
         /// <summary>
         /// Sometimes signature changes can cascade from a declaration with m parameters to one with n > m parameters, such as
         /// delegate Invoke methods (m) and delegate BeginInvoke methods (n = m + 2). This method adds on those extra parameters
         /// to the base <see cref="SignatureChange"/>.
         /// </summary>
-        private static SignatureChange UpdateSignatureChangeToIncludeExtraParametersFromTheDeclarationSymbol(ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private SignatureChange UpdateSignatureChangeToIncludeExtraParametersFromTheDeclarationSymbol(ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
-            if (declarationSymbol.GetParameters().Length > updatedSignature.OriginalConfiguration.ToListOfParameters().Length)
+            var realParameters = GetParameters(declarationSymbol);
+            if (realParameters.Length > updatedSignature.OriginalConfiguration.ToListOfParameters().Length)
             {
                 var originalConfigurationParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
                 var updatedConfigurationParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
-                var realParameters = declarationSymbol.GetParameters();
                 var bonusParameters = realParameters.Skip(originalConfigurationParameters.Length);
 
                 var originalConfigurationParametersWithExtraParameters = originalConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
@@ -772,13 +770,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 if (updatedParameters[i] != signaturePermutation.UpdatedConfiguration.ThisParameter
                     || !isReducedExtensionMethod)
                 {
+                    var parameters = GetParameters(declarationSymbol);
                     if (updatedParameters[i] is AddedParameter addedParameter)
                     {
                         // Omitting an argument only works in some languages, depending on whether
                         // there is a params array. We sometimes need to reinterpret an requested 
                         // omitted parameter as one with a TODO requested.
                         var forcedCallsiteErrorDueToParamsArray = addedParameter.CallSiteKind == CallSiteKind.Omitted &&
-                            declarationSymbol.GetParameters().LastOrDefault()?.IsParams == true &&
+                            parameters.LastOrDefault()?.IsParams == true &&
                             !SupportsOptionalAndParamsArrayParametersSimultaneously();
 
                         var isCallsiteActuallyOmitted = addedParameter.CallSiteKind == CallSiteKind.Omitted && !forcedCallsiteErrorDueToParamsArray;
@@ -821,7 +820,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     }
                     else
                     {
-                        var parameters = declarationSymbol.GetParameters();
                         if (indexInListOfPreexistingArguments == parameters.Length - 1 &&
                             parameters[indexInListOfPreexistingArguments].IsParams)
                         {
