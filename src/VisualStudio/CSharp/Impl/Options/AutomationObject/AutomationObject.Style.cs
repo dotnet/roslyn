@@ -183,6 +183,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, value); }
         }
 
+        public string Style_PreferExpressionBodiedLambdas
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, value); }
+        }
+
+        public string Style_PreferExpressionBodiedLocalFunctions
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, value); }
+        }
+
         public string Style_PreferBraces
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferBraces); }
@@ -194,5 +206,192 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return GetXmlOption(CodeStyleOptions2.PreferReadonly); }
             set { SetXmlOption(CodeStyleOptions2.PreferReadonly, value); }
         }
+
+        public int Style_PreferObjectInitializer_FadeOutCode
+        {
+            get { return GetBooleanOption(CodeStyleOptions2.PreferObjectInitializer_FadeOutCode); }
+            set { SetBooleanOption(CodeStyleOptions2.PreferObjectInitializer_FadeOutCode, value); }
+        }
+
+        public int Style_PreferCollectionInitializer_FadeOutCode
+        {
+            get { return GetBooleanOption(CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode); }
+            set { SetBooleanOption(CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode, value); }
+        }
+
+        public string Style_PreferSimplifiedBooleanExpressions
+        {
+            get { return GetXmlOption(CodeStyleOptions2.PreferSimplifiedBooleanExpressions); }
+            set { SetXmlOption(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, value); }
+        }
+
+        public string Style_PreferAutoProperties
+        {
+            get { return GetXmlOption(CodeStyleOptions2.PreferAutoProperties); }
+            set { SetXmlOption(CodeStyleOptions2.PreferAutoProperties, value); }
+        }
+
+        public string Style_PreferIsNullCheckOverReferenceEqualityMethod
+        {
+            get { return GetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod); }
+            set { SetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, value); }
+        }
+
+        public string Style_PreferConditionalExpressionOverAssignment
+        {
+            get { return GetXmlOption(CodeStyleOptions2.PreferConditionalExpressionOverAssignment); }
+            set { SetXmlOption(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, value); }
+        }
+
+        public string Style_PreferConditionalExpressionOverReturn
+        {
+            get { return GetXmlOption(CodeStyleOptions2.PreferConditionalExpressionOverReturn); }
+            set { SetXmlOption(CodeStyleOptions2.PreferConditionalExpressionOverReturn, value); }
+        }
+
+        public string Style_PreferCompoundAssignment
+        {
+            get { return GetXmlOption(CodeStyleOptions2.PreferCompoundAssignment); }
+            set { SetXmlOption(CodeStyleOptions2.PreferCompoundAssignment, value); }
+        }
+
+        public string Style_PreferSimplifiedInterpolation
+        {
+            get { return GetXmlOption(CodeStyleOptions2.PreferSimplifiedInterpolation); }
+            set { SetXmlOption(CodeStyleOptions2.PreferSimplifiedInterpolation, value); }
+        }
+
+        public string Style_RequireAccessibilityModifiers
+        {
+            get { return GetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers); }
+            set { SetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers, value); }
+        }
+
+        public string Style_RemoveUnnecessarySuppressionExclusions
+        {
+            get { return GetOption(CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions); }
+            set { SetOption(CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions, value); }
+        }
+
+        public string Style_PreferSystemHashCode
+        {
+            get { return GetXmlOption(CodeStyleOptions2.PreferSystemHashCode); }
+            set { SetXmlOption(CodeStyleOptions2.PreferSystemHashCode, value); }
+        }
+
+        public string Style_PreferNamespaceAndFolderMatchStructure
+        {
+            get { return GetXmlOption(CodeStyleOptions2.PreferNamespaceAndFolderMatchStructure); }
+            set { SetXmlOption(CodeStyleOptions2.PreferNamespaceAndFolderMatchStructure, value); }
+        }
+
+        public string Style_AllowMultipleBlankLines
+        {
+            get { return GetXmlOption(CodeStyleOptions2.AllowMultipleBlankLines); }
+            set { SetXmlOption(CodeStyleOptions2.AllowMultipleBlankLines, value); }
+        }
+
+        public string Style_AllowStatementImmediatelyAfterBlock
+        {
+            get { return GetXmlOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock); }
+            set { SetXmlOption(CodeStyleOptions2.AllowStatementImmediatelyAfterBlock, value); }
+        }
+
+        public string Style_PreferNotPattern
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferNotPattern); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferNotPattern, value); }
+        }
+
+        public string Style_PreferDeconstructedVariableDeclaration
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration, value); }
+        }
+
+        public string Style_PreferIndexOperator
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferIndexOperator); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferIndexOperator, value); }
+        }
+
+        public string Style_PreferRangeOperator
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferRangeOperator); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferRangeOperator, value); }
+        }
+
+        public string Style_PreferSimpleDefaultExpression
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression, value); }
+        }
+
+        public string Style_PreferredModifierOrder
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferredModifierOrder); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferredModifierOrder, value); }
+        }
+
+        public string Style_PreferStaticLocalFunction
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferStaticLocalFunction); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, value); }
+        }
+
+        public string Style_PreferSimpleUsingStatement
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement, value); }
+        }
+
+        public string Style_PreferLocalOverAnonymousFunction
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, value); }
+        }
+
+        public string Style_PreferredUsingDirectivePlacement
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, value); }
+        }
+
+        public string Style_UnusedValueExpressionStatement
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.UnusedValueExpressionStatement); }
+            set { SetXmlOption(CSharpCodeStyleOptions.UnusedValueExpressionStatement, value); }
+        }
+
+        public string Style_UnusedValueAssignment
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.UnusedValueAssignment); }
+            set { SetXmlOption(CSharpCodeStyleOptions.UnusedValueAssignment, value); }
+        }
+
+        public string Style_ImplicitObjectCreationWhenTypeIsApparent
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent); }
+            set { SetXmlOption(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, value); }
+        }
+
+        public string Style_AllowEmbeddedStatementsOnSameLine
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine); }
+            set { SetXmlOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, value); }
+        }
+
+        public string Style_AllowBlankLinesBetweenConsecutiveBraces
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces); }
+            set { SetXmlOption(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces, value); }
+        }
+
+        public string Style_AllowBlankLineAfterColonInConstructorInitializer
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer); }
+            set { SetXmlOption(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, value); }
+        }
+
     }
 }
