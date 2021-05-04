@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
                 case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
-                case AnonymousFunctionExpressionSyntax anonymous: anonymous.WithModifiers(modifiers);
+                case AnonymousFunctionExpressionSyntax anonymous: return anonymous.WithModifiers(modifiers);
                 case LocalFunctionStatementSyntax localFunction: return localFunction.WithModifiers(modifiers);
                 case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.WithModifiers(modifiers);
             }
