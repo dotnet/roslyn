@@ -208,6 +208,29 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestOnInit1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int Goo
+    {
+        init
+        {
+            [|Bar|]();
+        }
+    }
+}",
+@"class C
+{
+    int Goo
+    {
+        init => [|Bar|]();
+    }
+}", options: UseExpressionBody);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestMissingWithOnlySetter()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
@@ -218,6 +241,19 @@ class C
     int Goo
     {
         set => Bar();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestMissingWithOnlyInit()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    int Goo
+    {
+        init => [|Bar|]();
     }
 }");
         }
@@ -336,6 +372,29 @@ class C
     }
 }";
             await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseBlockBodyForInit1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int Goo
+    {
+        init [|=>|] Bar();
+        }
+    }",
+@"class C
+{
+    int Goo
+    {
+        init
+        {
+            Bar();
+        }
+    }
+}", options: UseBlockBodyIncludingPropertiesAndIndexers);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -503,6 +562,32 @@ class C
                     { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.Never },
                 },
             }.RunAsync();
+        }
+
+        [WorkItem(20350, "https://github.com/dotnet/roslyn/issues/20350")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestAccessorListFormatting_FixAll2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int Goo { get {|FixAllInDocument:=>|} Bar(); init => Bar(); }
+}",
+@"class C
+{
+    int Goo
+    {
+        get
+        {
+            return Bar();
+        }
+
+        init
+        {
+            Bar();
+        }
+    }
+}", options: UseBlockBodyIncludingPropertiesAndIndexers);
         }
 
         [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
