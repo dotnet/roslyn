@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         public enum Composition
         {
-<<<<<<< HEAD
             Default,
             FirstVisible,
             FirstActiveAndVisible,
@@ -89,44 +88,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             await TestAsync(content, body, testHost, testComposition);
         }
 
+        protected async Task TestAsync(TestHost testHost, Composition composition, XElement content, Func<TestWorkspace, Task> body)
+        {
+            var testComposition = composition switch
+            {
+                Composition.Default => DefaultComposition,
+                Composition.FirstVisible => FirstVisibleComposition,
+                Composition.FirstActiveAndVisible => FirstActiveAndVisibleComposition,
+                _ => throw ExceptionUtilities.UnexpectedValue(composition),
+            };
+
+            await TestAsync(content, body, testHost, testComposition);
+        }
+
         private async Task TestAsync(
             string content, Func<TestWorkspace, Task> body, TestHost testHost,
             TestComposition composition)
         {
             using var workspace = CreateWorkspace(content, testHost, composition);
             await body(workspace);
-=======
-            await TestAsync(content, body, testHost, null);
-            await TestAsync(content, body, testHost, w => new FirstDocIsVisibleDocumentTrackingService(w.Workspace));
-            await TestAsync(content, body, testHost, w => new FirstDocIsActiveAndVisibleDocumentTrackingService(w.Workspace));
-
-            return;
-
-            async Task TestAsync(
-                string content, Func<TestWorkspace, Task> body, TestHost testHost,
-                Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
-            {
-                using var workspace = CreateWorkspace(content, testHost, createTrackingService);
-                await body(workspace);
-            }
         }
 
-        protected async Task TestAsync(TestHost testHost, XElement content, Func<TestWorkspace, Task> body)
+        protected async Task TestAsync(
+            XElement content, Func<TestWorkspace, Task> body, TestHost testHost,
+            TestComposition composition)
         {
-            await TestAsync(content, body, testHost, null);
-            await TestAsync(content, body, testHost, w => new FirstDocIsVisibleDocumentTrackingService(w.Workspace));
-            await TestAsync(content, body, testHost, w => new FirstDocIsActiveAndVisibleDocumentTrackingService(w.Workspace));
-
-            return;
-
-            async Task TestAsync(
-                XElement content, Func<TestWorkspace, Task> body, TestHost testHost,
-                Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
-            {
-                using var workspace = CreateWorkspace(content, testHost, createTrackingService);
-                await body(workspace);
-            }
->>>>>>> dotnet/features/compiler
+            using var workspace = CreateWorkspace(content, testHost, composition);
+            await body(workspace);
         }
 
         private protected TestWorkspace CreateWorkspace(

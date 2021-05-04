@@ -73,13 +73,10 @@ testHost, composition, @"record Goo
 
         [Theory]
         [CombinatorialData]
-<<<<<<< HEAD
-        public async Task FindVerbatimClass(TestHost testHost, Composition composition)
-=======
-        public async Task FindRecordClass(TestHost testHost)
+        public async Task FindRecordClass(TestHost testHost, Composition composition)
         {
             await TestAsync(
-testHost, @"record class Goo
+testHost, composition, @"record class Goo
 {
 }", async w =>
             {
@@ -90,7 +87,7 @@ testHost, @"record class Goo
 
         [Theory]
         [CombinatorialData]
-        public async Task FindRecordStruct(TestHost testHost)
+        public async Task FindRecordStruct(TestHost testHost, Composition composition)
         {
             var content = XElement.Parse(@"
 <Workspace>
@@ -103,7 +100,7 @@ record struct Goo
     </Project>
 </Workspace>
 ");
-            await TestAsync(testHost, content, async w =>
+            await TestAsync(testHost, composition, content, async w =>
             {
                 var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.StructureInternal);
@@ -112,8 +109,7 @@ record struct Goo
 
         [Theory]
         [CombinatorialData]
-        public async Task FindVerbatimClass(TestHost testHost)
->>>>>>> dotnet/features/compiler
+        public async Task FindVerbatimClass(TestHost testHost, Composition composition)
         {
             await TestAsync(
 testHost, composition, @"class @static
