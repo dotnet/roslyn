@@ -7332,11 +7332,11 @@ interface IGoo {  }";
 
             await TestAsync(markup,
                 MainDescription("interface IGoo"),
-                Documentation(@"Normalize this, but Not        this</c>
+                Documentation(@"Normalize this, but Not        this
 
 
 line 1
-line    2
+line     2
 "));
         }
     }
