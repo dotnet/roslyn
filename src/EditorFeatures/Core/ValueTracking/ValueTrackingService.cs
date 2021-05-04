@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
         private static async Task TrackVariableReferencesAsync(ISymbol symbol, OperationCollector collector, CancellationToken cancellationToken)
         {
-            var findReferenceProgressCollector = new FindReferencesProgress(collector, cancellationToken: cancellationToken);
+            var findReferenceProgressCollector = new FindReferencesProgress(collector);
             await SymbolFinder.FindReferencesAsync(
                                     symbol,
                                     collector.Solution,
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             CancellationToken cancellationToken)
         {
             var containingMethod = (IMethodSymbol)parameterSymbol.ContainingSymbol;
-            var findReferenceProgressCollector = new FindReferencesProgress(collector, cancellationToken: cancellationToken);
+            var findReferenceProgressCollector = new FindReferencesProgress(collector);
             await SymbolFinder.FindReferencesAsync(
                 containingMethod,
                 collector.Solution,
