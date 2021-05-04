@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private async Task AnalyzeDocumentForKindAsync(TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
         {
+            await AnalyzeDocumentForKindAsync(document, kind, highPriority: true, cancellationToken).ConfigureAwait(false);
+            await AnalyzeDocumentForKindAsync(document, kind, highPriority: false, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task AnalyzeDocumentForKindAsync(TextDocument document, AnalysisKind kind, bool highPriority, CancellationToken cancellationToken)
+        {
             try
             {
                 if (!AnalysisEnabled(document, _documentTrackingService))
@@ -74,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // Then, compute the diagnostics for non-cached state sets, and cache and raise diagnostic reported events for these diagnostics.
                 if (nonCachedStateSets.Count > 0)
                 {
-                    var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
+                    var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind, highPriority);
                     var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true, onAnalysisException: OnAnalysisException);
                     foreach (var stateSet in nonCachedStateSets)
                     {

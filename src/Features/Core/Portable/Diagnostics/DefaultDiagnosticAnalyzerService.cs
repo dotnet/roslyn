@@ -135,11 +135,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private async Task AnalyzeForKindAsync(TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
             {
-                var diagnosticData = await GetDiagnosticsAsync(document, kind, cancellationToken).ConfigureAwait(false);
+                // collect high pri diagnostics first, followed by normal pri.
+                await AnalyzeForKindAsync(highPriority: true).ConfigureAwait(false);
+                await AnalyzeForKindAsync(highPriority: false).ConfigureAwait(false);
 
-                _service.RaiseDiagnosticsUpdated(
-                    DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
-                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
+                async Task AnalyzeForKindAsync(bool highPriority)
+                {
+                    var diagnosticData = await GetDiagnosticsAsync(document, kind, highPriority, cancellationToken).ConfigureAwait(false);
+
+                    _service.RaiseDiagnosticsUpdated(
+                        DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
+                        _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
+                }
             }
 
             /// <summary>
@@ -155,33 +162,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// that provide all kinds of knobs/cache/persistency/OOP to get better perf over simplicity.
             /// </summary>
             private async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-               TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
+               TextDocument document, AnalysisKind kind, bool highPriority, CancellationToken cancellationToken)
             {
                 var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
                 if (loadDiagnostic != null)
-                {
                     return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
-                }
 
                 var project = document.Project;
                 var analyzers = GetAnalyzers(project.Solution.State.Analyzers, project);
                 if (analyzers.IsEmpty)
-                {
                     return ImmutableArray<DiagnosticData>.Empty;
-                }
 
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
                     project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
-                var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
+                var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind, highPriority);
                 var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
 
-                var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
                 foreach (var analyzer in analyzers)
-                {
                     builder.AddRange(await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false));
-                }
 
-                return builder.ToImmutableAndFree();
+                return builder.ToImmutable();
             }
 
             private static ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(HostDiagnosticAnalyzers hostAnalyzers, Project project)
