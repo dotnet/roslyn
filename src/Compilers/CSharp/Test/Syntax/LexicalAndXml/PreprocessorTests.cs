@@ -2267,7 +2267,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestDefineInIfExclusionAfterFirstToken()
         {
-            // bad defines after first token in exlusion zone should not be errors
+            // bad defines after first token in exclusion zone should not be errors
             var text = @"
 class A { }
 #if false
@@ -2547,7 +2547,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestUndefInIfExclusionAfterFirstToken()
         {
-            // bad defines after first token in exlusion zone should not be errors
+            // bad defines after first token in exclusion zone should not be errors
             var text = @"
 class A { }
 #if false

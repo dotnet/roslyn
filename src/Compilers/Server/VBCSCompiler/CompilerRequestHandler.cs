@@ -137,7 +137,7 @@ Run Compilation for {request.RequestId}
             bool utf8output = compiler.Arguments.Utf8Output;
             if (!CheckAnalyzers(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, out List<string>? errorMessages))
             {
-                Logger.Log($"Rejected: {request.RequestId}: for analyer load issues {string.Join(";", errorMessages)}");
+                Logger.Log($"Rejected: {request.RequestId}: for analyzer load issues {string.Join(";", errorMessages)}");
                 return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(errorMessages));
             }
 

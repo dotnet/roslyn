@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // there's no constructor)), the final handler instance type is passed by reference if the parameter is by reference.
         //
         // Example:
-        //        M($""); // Language lowers this to a sequence of creating CustomHandler, appending all values, and evaluting to the builder
+        //        M($""); // Language lowers this to a sequence of creating CustomHandler, appending all values, and evaluating to the builder
         //        static void M(ref CustomHandler c) { }
         //
         // NB: The readonliness is not considered here.

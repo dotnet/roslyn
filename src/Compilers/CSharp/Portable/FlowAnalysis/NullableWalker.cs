@@ -9784,7 +9784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // https://github.com/dotnet/roslyn/issues/54583
-        // Better handle the constructor propogation
+        // Better handle the constructor propagation
         //public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
         //{
         //}

@@ -2034,7 +2034,7 @@ NS9.C10
         }
 
         [Fact]
-        public void AliasConfictWithExternAlias_01()
+        public void AliasConflictWithExternAlias_01()
         {
             var source1 = @"
 public class C1
@@ -2184,7 +2184,7 @@ class C5 {}
         }
 
         [Fact]
-        public void AliasConfictWithExternAlias_02()
+        public void AliasConflictWithExternAlias_02()
         {
             var source1 = @"
 public class C1
@@ -2221,7 +2221,7 @@ class C2 {}
         }
 
         [Fact]
-        public void AliasConfictWithGlobalAlias_01()
+        public void AliasConflictWithGlobalAlias_01()
         {
             var source3 = @"
 #line 1000
@@ -2285,7 +2285,7 @@ class C4 {}
         }
 
         [Fact]
-        public void AliasConfictWithGlobalAlias_02()
+        public void AliasConflictWithGlobalAlias_02()
         {
             var source2 = @"
 #line 1000
@@ -2314,7 +2314,7 @@ class C3 {}
         }
 
         [Fact]
-        public void AliasConfictWithGlobalAlias_03()
+        public void AliasConflictWithGlobalAlias_03()
         {
             var source2 = @"
 global using alias1 = C3;
@@ -2346,7 +2346,7 @@ class C3 {}
         }
 
         [Fact]
-        public void TypeConfictWithGlobalAlias_01()
+        public void TypeConflictWithGlobalAlias_01()
         {
             var source3 = @"
 #line 1000
@@ -2433,7 +2433,7 @@ class C4 {}
         }
 
         [Fact]
-        public void NamespaceConfictWithGlobalAlias_01()
+        public void NamespaceConflictWithGlobalAlias_01()
         {
             var source3 = @"
 #line 1000
@@ -2529,7 +2529,7 @@ namespace NS4
         }
 
         [Fact]
-        public void UsingConfictWithGlobalUsing_01()
+        public void UsingConflictWithGlobalUsing_01()
         {
             var source3 = @"
 #line 1000
@@ -2620,7 +2620,7 @@ class C2 {}
         }
 
         [Fact]
-        public void UsingConfictWithGlobalUsing_02()
+        public void UsingConflictWithGlobalUsing_02()
         {
             var source2 = @"
 #line 1000
@@ -2648,7 +2648,7 @@ class C2 {}
         }
 
         [Fact]
-        public void UsingConfictWithGlobalUsing_03()
+        public void UsingConflictWithGlobalUsing_03()
         {
             var source2 = @"
 global using static C2;
@@ -2683,7 +2683,7 @@ class C2 {}
         }
 
         [Fact]
-        public void UsingConfictWithGlobalUsing_04()
+        public void UsingConflictWithGlobalUsing_04()
         {
             var source3 = @"
 #line 1000
@@ -2774,7 +2774,7 @@ namespace N2 { class C2 {} }
         }
 
         [Fact]
-        public void UsingConfictWithGlobalUsing_05()
+        public void UsingConflictWithGlobalUsing_05()
         {
             var source2 = @"
 #line 1000
@@ -2802,7 +2802,7 @@ namespace N2 { class C2 {} }
         }
 
         [Fact]
-        public void UsingConfictWithGlobalUsing_06()
+        public void UsingConflictWithGlobalUsing_06()
         {
             var source2 = @"
 global using N2;

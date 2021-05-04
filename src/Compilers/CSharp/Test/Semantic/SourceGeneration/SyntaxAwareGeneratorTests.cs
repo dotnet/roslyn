@@ -1434,7 +1434,7 @@ class C
             Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, noCompareCalledFor);
             Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, compareCalledFor);
 
-            // now, when we re-run, both transforms will run, but only the comparare output will re-run
+            // now, when we re-run, both transforms will run, but only the comparer output will re-run
             syntaxCalledFor.Clear();
             noCompareCalledFor.Clear();
             compareCalledFor.Clear();

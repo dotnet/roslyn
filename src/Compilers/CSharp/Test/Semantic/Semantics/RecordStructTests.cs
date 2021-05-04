@@ -2706,7 +2706,7 @@ record struct R(params int[] Array);
         public void PositionalMemberDefaultValue()
         {
             var src = @"
-var r = new R(); // This uses the parameterless contructor
+var r = new R(); // This uses the parameterless constructor
 System.Console.Write(r.P);
 
 record struct R(int P = 42);
