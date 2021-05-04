@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -4184,21 +4184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(rightOperand);
             TypeWithState rightResult = ResultType;
 
-            if (whenNotNull.IsConditionalState)
-            {
-                Split();
-            }
-
-            if (IsConditionalState)
-            {
-                Join(ref StateWhenTrue, ref whenNotNull.IsConditionalState ? ref whenNotNull.StateWhenTrue : ref whenNotNull.State);
-                Join(ref StateWhenFalse, ref whenNotNull.IsConditionalState ? ref whenNotNull.StateWhenFalse : ref whenNotNull.State);
-            }
-            else
-            {
-                Debug.Assert(!whenNotNull.IsConditionalState);
-                Join(ref State, ref whenNotNull.State);
-            }
+            Join(ref whenNotNull);
 
             var leftResultType = leftResult.Type;
             var rightResultType = rightResult.Type;
@@ -4486,40 +4472,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            BoundExpression consequence;
-            BoundExpression alternative;
-            Conversion consequenceConversion;
-            Conversion alternativeConversion;
-            bool consequenceEndReachable;
-            bool alternativeEndReachable;
+            (var consequence, var consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, originalConsequence);
+            var consequenceConditionalState = PossiblyConditionalState.Create(this);
+            Unsplit();
+            consequenceState = this.State.Clone();
+            var consequenceEndReachable = consequenceState.Reachable;
 
-            // In cases where one branch is unreachable, we don't need to Unsplit the state
-            if (!alternativeState.Reachable)
+            (var alternative, var alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, originalAlternative);
+            if (IsConditionalState)
             {
-                (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, originalAlternative);
-                (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, originalConsequence);
-                alternativeEndReachable = false;
-                consequenceEndReachable = IsReachable();
-            }
-            else if (!consequenceState.Reachable)
-            {
-                (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, originalConsequence);
-                (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, originalAlternative);
-                consequenceEndReachable = false;
-                alternativeEndReachable = IsReachable();
+                alternativeState = StateWhenTrue.Clone();
+                Join(ref alternativeState, ref StateWhenFalse);
             }
             else
             {
-                (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, originalConsequence);
-                Unsplit();
-                consequenceState = this.State;
-                consequenceEndReachable = consequenceState.Reachable;
-
-                (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, originalAlternative);
-                Unsplit();
-                alternativeEndReachable = this.State.Reachable;
-                Join(ref this.State, ref consequenceState);
+                alternativeState = this.State.Clone();
             }
+            var alternativeEndReachable = alternativeState.Reachable;
+            Join(ref consequenceConditionalState);
 
             TypeSymbol? resultType;
             bool wasTargetTyped = node is BoundConditionalOperator { WasTargetTyped: true };
@@ -9841,6 +9811,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             Normalize(ref other);
 
             return self.Join(in other);
+        }
+
+        private void Join(ref PossiblyConditionalState other)
+        {
+            var otherIsConditional = other.IsConditionalState;
+            if (otherIsConditional)
+            {
+                Split();
+            }
+
+            if (IsConditionalState)
+            {
+                Join(ref StateWhenTrue, ref otherIsConditional ? ref other.StateWhenTrue : ref other.State);
+                Join(ref StateWhenFalse, ref otherIsConditional ? ref other.StateWhenFalse : ref other.State);
+            }
+            else
+            {
+                Debug.Assert(!otherIsConditional);
+                Join(ref State, ref other.State);
+            }
         }
 
         internal sealed class LocalStateSnapshot
