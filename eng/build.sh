@@ -162,10 +162,9 @@ while [[ $# > 0 ]]; do
       shift
       continue
       ;;
-    --sourcebuild)
-      source_build=true
-      ;;
-    /p:ArcadeBuildFromSource=true)
+    --sourcebuild|/p:arcadebuildfromsource=true)
+      # Arcade specifies /p:ArcadeBuildFromSource=true instead of --sourceBuild, but that's not developer friendly so we
+      # have an alias.
       source_build=true
       ;;
     /p:*)
