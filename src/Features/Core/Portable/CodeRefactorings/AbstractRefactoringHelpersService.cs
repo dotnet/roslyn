@@ -501,6 +501,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         return;
                     }
                 }
+
                 ancestor = ancestor.Parent;
             }
         }

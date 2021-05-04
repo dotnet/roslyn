@@ -13,3 +13,25 @@
 "CS"="CA719A03-D55C-48F9-85DE-D934346E7F70"
 "VB"="EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275"
 
+[$RootKey$\FeatureFlags\Roslyn\LSP\Editor]
+"Description"="Enables the LSP-powered C#/VB editing experience outside of CodeSpaces."
+"Value"=dword:00000000
+"Title"="Enable experimental C#/VB editor (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Roslyn\LSP\Completion]
+"Description"="Enables the LSP-powered C#/VB completion experience to operate with prototype behavior. Note this currently will not affect local C#/VB scenarios except for C# in Razor."
+"Value"=dword:00000000
+"Title"="Enable experimental C#/VB LSP completion experience"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+// 68b46364-d378-42f2-9e72-37d86c5f4468 is the guid for SettingsEditorFactory
+// 6cf2e545-6109-4730-8883-cf43d7aec3e1 is the guid for RoslynPackage
+[$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}]
+"Package"="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+[$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}\Extensions]
+// dword must be larger that 26 (the priority of the textmate editor)
+// we set it to 100 (64 in hex) here
+"editorconfig"=dword:00000064
+[$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}\LogicalViews]
+"{7651a703-06e5-11d1-8ebd-00a0c90f26ea}"=""

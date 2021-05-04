@@ -168,6 +168,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeStyleConfigFileGenerato
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Collections", "src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.shproj", "{E919DD77-34F8-4F57-8058-4D3FF4C2B241}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild", "src\Compilers\Core\Rebuild\Microsoft.CodeAnalysis.Rebuild.csproj", "{321F9FED-AACC-42CB-93E5-541D79E099E8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild.UnitTests", "src\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj", "{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -182,6 +186,7 @@ Global
 		src\Analyzers\VisualBasic\Analyzers\VisualBasicAnalyzers.projitems*{2531a8c4-97dd-47bc-a79c-b7846051e137}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\VisualBasicCompilerExtensions.projitems*{2531a8c4-97dd-47bc-a79c-b7846051e137}*SharedItemsImports = 5
 		src\Analyzers\Core\Analyzers\Analyzers.projitems*{275812ee-dedb-4232-9439-91c9757d2ae4}*SharedItemsImports = 5
+		src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems*{275812ee-dedb-4232-9439-91c9757d2ae4}*SharedItemsImports = 5
 		src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems*{275812ee-dedb-4232-9439-91c9757d2ae4}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems*{275812ee-dedb-4232-9439-91c9757d2ae4}*SharedItemsImports = 5
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{4b45ca0c-03a0-400f-b454-3d4bcb16af38}*SharedItemsImports = 5
@@ -466,6 +471,14 @@ Global
 		{432F4461-E198-44AA-8022-9E8C06A17C93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{432F4461-E198-44AA-8022-9E8C06A17C93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{432F4461-E198-44AA-8022-9E8C06A17C93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{321F9FED-AACC-42CB-93E5-541D79E099E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{321F9FED-AACC-42CB-93E5-541D79E099E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{321F9FED-AACC-42CB-93E5-541D79E099E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{321F9FED-AACC-42CB-93E5-541D79E099E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -541,6 +554,8 @@ Global
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{432F4461-E198-44AA-8022-9E8C06A17C93} = {B20208C3-D3A6-4020-A274-6BE3786D29FB}
 		{E919DD77-34F8-4F57-8058-4D3FF4C2B241} = {3CDEA9FB-CD44-4AB4-98A8-5537AAA2169B}
+		{321F9FED-AACC-42CB-93E5-541D79E099E8} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
+		{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}

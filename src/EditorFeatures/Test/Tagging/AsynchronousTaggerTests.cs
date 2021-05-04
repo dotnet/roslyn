@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,15 +62,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
             WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(LargeNumberOfSpans)} creates asynchronous taggers");
 
-            var notificationService = workspace.GetService<IForegroundNotificationService>();
-
             var eventSource = CreateEventSource();
             var taggerProvider = new TestTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 tagProducer,
                 eventSource,
-                asyncListener,
-                notificationService);
+                asyncListener);
 
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
@@ -93,21 +88,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         }
 
         [WpfFact]
-        public void TestSynchronousOutlining()
+        public void TestNotSynchronousOutlining()
         {
             using var workspace = TestWorkspace.CreateCSharp("class Program {\r\n\r\n}", composition: EditorTestCompositions.EditorFeaturesWpf);
-            WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
+            WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestNotSynchronousOutlining)} creates asynchronous taggers");
 
-            var tagProvider = workspace.ExportProvider.GetExportedValue<VisualStudio14StructureTaggerProvider>();
+            var tagProvider = workspace.ExportProvider.GetExportedValue<AbstractStructureTaggerProvider>();
 
             var document = workspace.Documents.First();
             var textBuffer = document.GetTextBuffer();
-            var tagger = tagProvider.CreateTagger<IOutliningRegionTag>(textBuffer);
+            var tagger = tagProvider.CreateTagger<IStructureTag>(textBuffer);
 
             using var disposable = (IDisposable)tagger;
-            // The very first all to get tags should return the single outlining span.
-            var tags = tagger.GetAllTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()), CancellationToken.None);
-            Assert.Equal(1, tags.Count());
+            // The very first all to get tags will not be synchronous as this contains no #region tag
+            var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
+            Assert.Equal(0, tags.Count());
+        }
+
+        [WpfFact]
+        public void TestSynchronousOutlining()
+        {
+            using var workspace = TestWorkspace.CreateCSharp(@"
+#region x
+
+class Program
+{
+}
+
+#endregion", composition: EditorTestCompositions.EditorFeaturesWpf);
+            WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestSynchronousOutlining)} creates asynchronous taggers");
+
+            var tagProvider = workspace.ExportProvider.GetExportedValue<AbstractStructureTaggerProvider>();
+
+            var document = workspace.Documents.First();
+            var textBuffer = document.GetTextBuffer();
+            var tagger = tagProvider.CreateTagger<IStructureTag>(textBuffer);
+
+            using var disposable = (IDisposable)tagger;
+            // The very first all to get tags will be synchronous because of the #region
+            var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
+            Assert.Equal(2, tags.Count());
         }
 
         private static TestTaggerEventSource CreateEventSource()
@@ -132,13 +152,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 IThreadingContext threadingContext,
                 Callback callback,
                 ITaggerEventSource eventSource,
-                IAsynchronousOperationListener asyncListener,
-                IForegroundNotificationService notificationService)
-                    : base(threadingContext, asyncListener, notificationService)
+                IAsynchronousOperationListener asyncListener)
+                : base(threadingContext, asyncListener)
             {
                 _callback = callback;
                 _eventSource = eventSource;
             }
+
+            protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
             protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
                 => _eventSource;
@@ -161,7 +182,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
         private sealed class TestTaggerEventSource : AbstractTaggerEventSource
         {
             public TestTaggerEventSource()
-                : base(delay: TaggerDelay.NearImmediate)
             {
             }
 

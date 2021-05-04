@@ -628,13 +628,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
                     }
                 }
+
                 editor.RemoveNode(node, removeOptions);
             }
 
-            foreach (var kvp in nodeReplacementMap)
-            {
-                editor.ReplaceNode(kvp.Key, kvp.Value.WithAdditionalAnnotations(Formatter.Annotation));
-            }
+            foreach (var (node, replacement) in nodeReplacementMap)
+                editor.ReplaceNode(node, replacement.WithAdditionalAnnotations(Formatter.Annotation));
 
             return;
 

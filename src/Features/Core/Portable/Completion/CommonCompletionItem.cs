@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.Completion
             bool showsWarningIcon = false,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default,
-            string inlineDescription = null)
+            string inlineDescription = null,
+            string displayTextPrefix = null,
+            bool isComplexTextEdit = false)
         {
             tags = tags.NullToEmpty();
 
@@ -49,12 +51,14 @@ namespace Microsoft.CodeAnalysis.Completion
             return CompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: displayTextPrefix,
                 filterText: filterText,
                 sortText: sortText,
                 properties: properties,
                 tags: tags,
                 rules: rules,
-                inlineDescription: inlineDescription);
+                inlineDescription: inlineDescription,
+                isComplexTextEdit: isComplexTextEdit);
         }
 
         public static bool HasDescription(CompletionItem item)

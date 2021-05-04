@@ -3,25 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -33,27 +33,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    [ExportWorkspaceService(typeof(ISymbolNavigationService), ServiceLayer.Host), Shared]
     internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAffinitizedObject, ISymbolNavigationService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly SourceGeneratedFileManager _sourceGeneratedFileManager;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
-            VisualStudio14StructureTaggerProvider outliningTaggerProvider)
-            : base(outliningTaggerProvider.ThreadingContext)
+            IThreadingContext threadingContext,
+            IVsEditorAdaptersFactoryService editorAdaptersFactory,
+            IMetadataAsSourceFileService metadataAsSourceFileService)
+            : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
-
-            var componentModel = IServiceProviderExtensions.GetService<SComponentModel, IComponentModel>(_serviceProvider);
-            _editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-            _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
-            _sourceGeneratedFileManager = componentModel.GetService<SourceGeneratedFileManager>();
+            _editorAdaptersFactory = editorAdaptersFactory;
+            _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
-        public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options, CancellationToken cancellationToken)
+        public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet? options, CancellationToken cancellationToken)
         {
             if (project == null || symbol == null)
             {
@@ -75,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
+                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options, cancellationToken);
                 }
             }
 
@@ -155,29 +156,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             windowFrame.Show();
 
-            var openedDocument = textBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+            var openedDocument = textBuffer?.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             if (openedDocument != null)
             {
                 var editorWorkspace = openedDocument.Project.Solution.Workspace;
                 var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
 
                 return navigationService.TryNavigateToSpan(
-                    workspace: editorWorkspace,
-                    documentId: openedDocument.Id,
-                    textSpan: result.IdentifierLocation.SourceSpan,
-                    options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
+                    editorWorkspace,
+                    openedDocument.Id,
+                    result.IdentifierLocation.SourceSpan,
+                    options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true),
+                    cancellationToken);
             }
 
             return true;
         }
 
-        public bool TrySymbolNavigationNotify(ISymbol symbol, Project project, CancellationToken cancellationToken)
-            => TryNotifyForSpecificSymbol(symbol, project.Solution, cancellationToken);
-
-        private bool TryNotifyForSpecificSymbol(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        public async Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             AssertIsForeground();
+
+            var solution = project.Solution;
 
             var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);

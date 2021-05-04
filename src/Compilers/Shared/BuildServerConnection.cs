@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         internal static bool IsCompilerServerSupported => GetPipeNameForPath("") is object;
 
         public static Task<BuildResponse> RunServerCompilationAsync(
+            Guid requestId,
             RequestLanguage language,
             string? sharedCompilationId,
             List<string> arguments,
@@ -90,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var pipeNameOpt = sharedCompilationId ?? GetPipeNameForPath(buildPaths.ClientDirectory);
 
             return RunServerCompilationCoreAsync(
+                requestId,
                 language,
                 arguments,
                 buildPaths,
@@ -103,12 +105,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         internal static async Task<BuildResponse> RunServerCompilationCoreAsync(
+            Guid requestId,
             RequestLanguage language,
             List<string> arguments,
             BuildPathsAlt buildPaths,
             string? pipeName,
             string? keepAlive,
-            string? libEnvVariable,
+            string? libDirectory,
             int? timeoutOverride,
             CreateServerFunc createServerFunc,
             ICompilerServerLogger logger,
@@ -149,8 +152,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                                       workingDirectory: buildPaths.WorkingDirectory,
                                                       tempDirectory: buildPaths.TempDirectory,
                                                       compilerHash: BuildProtocolConstants.GetCommitHash() ?? "",
+                                                      requestId: requestId,
                                                       keepAlive: keepAlive,
-                                                      libDirectory: libEnvVariable);
+                                                      libDirectory: libDirectory);
 
                     return await TryCompileAsync(pipe, request, logger, cancellationToken).ConfigureAwait(false);
                 }
@@ -167,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 ICompilerServerLogger logger,
                 CancellationToken cancellationToken)
             {
-                var originalThreadId = Thread.CurrentThread.ManagedThreadId;
+                var originalThreadId = Environment.CurrentManagedThreadId;
                 var clientDir = buildPaths.ClientDirectory;
                 var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
                 var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
@@ -232,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
                     catch (ApplicationException e)
                     {
-                        var releaseThreadId = Thread.CurrentThread.ManagedThreadId;
+                        var releaseThreadId = Environment.CurrentManagedThreadId;
                         var message = $"ReleaseMutex failed. WaitOne Id: {originalThreadId} Release Id: {releaseThreadId}";
                         throw new Exception(message, e);
                     }
@@ -256,26 +260,26 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // Write the request
                 try
                 {
-                    logger.Log("Begin writing request");
+                    logger.Log($"Begin writing request for {request.RequestId}");
                     await request.WriteAsync(pipeStream, cancellationToken).ConfigureAwait(false);
-                    logger.Log("End writing request");
+                    logger.Log($"End writing request for {request.RequestId}");
                 }
                 catch (Exception e)
                 {
-                    logger.LogException(e, "Error writing build request.");
+                    logger.LogException(e, $"Error writing build request for {request.RequestId}");
                     return new RejectedBuildResponse($"Error writing build request: {e.Message}");
                 }
 
                 // Wait for the compilation and a monitor to detect if the server disconnects
                 var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-                logger.Log("Begin reading response");
+                logger.Log($"Begin reading response for {request.RequestId}");
 
                 var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
-                var monitorTask = MonitorDisconnectAsync(pipeStream, "client", logger, serverCts.Token);
+                var monitorTask = MonitorDisconnectAsync(pipeStream, request.RequestId, logger, serverCts.Token);
                 await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
 
-                logger.Log("End reading response");
+                logger.Log($"End reading response for {request.RequestId}");
 
                 if (responseTask.IsCompleted)
                 {
@@ -286,13 +290,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
                     catch (Exception e)
                     {
-                        logger.LogException(e, "Error reading response");
+                        logger.LogException(e, $"Reading response for {request.RequestId}");
                         response = new RejectedBuildResponse($"Error reading response: {e.Message}");
                     }
                 }
                 else
                 {
-                    logger.LogError("Client disconnect");
+                    logger.LogError($"Client disconnect for {request.RequestId}");
                     response = new RejectedBuildResponse($"Client disconnected");
                 }
 
@@ -310,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static async Task MonitorDisconnectAsync(
             PipeStream pipeStream,
-            string identifier,
+            Guid requestId,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken = default)
         {
@@ -332,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 {
                     // It is okay for this call to fail.  Errors will be reflected in the
                     // IsConnected property which will be read on the next iteration of the
-                    logger.LogException(e, $"Error poking pipe {identifier}.");
+                    logger.LogException(e, $"Error poking pipe {requestId}.");
                 }
             }
         }

@@ -3878,7 +3878,7 @@ class C : I
                     NamedTypeSymbol iEquatable = compilation.GetWellKnownType(WellKnownType.System_IEquatable_T);
                     Assert.False(iEquatable.IsErrorType());
                     Assert.Equal(1, iEquatable.Arity);
-                    Assert.Null(compilation.GetTypeByMetadataName("System.IEquatable`1"));
+                    Assert.Same(iEquatable, compilation.GetTypeByMetadataName("System.IEquatable`1"));
 
                     NamedTypeSymbol iQueryable_T = compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable_T);
                     Assert.True(iQueryable_T.IsErrorType());
@@ -7122,6 +7122,109 @@ static class Program
                 //         GetServiceC<>().ToString();
                 Diagnostic(ErrorCode.ERR_BadArity, "GetServiceC<>").WithArguments("Program.GetServiceC<T1, T2>()", "method", "2").WithLocation(14, 9)
             );
+        }
+
+        [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
+        public void RecursiveConstraintsFromUnifiedAssemblies_1()
+        {
+            var code = @"
+public abstract class A<T1, T2>
+    where T1 : A<T1, T2>
+    where T2 : A<T1, T2>.B<T1, T2>
+{
+    public abstract class B<T3, T4>
+        where T3 : A<T3, T4>
+        where T4 : A<T3, T4>.B<T3, T4>
+    { }
+}
+public class C : A<C, C.D>
+{
+    public class D : A<C, C.D>.B<C, D>
+    {
+    }
+}
+";
+            var metadataComp = CreateEmptyCompilation(code, new[] { MscorlibRef_v20 }, assemblyName: "assembly1");
+            metadataComp.VerifyDiagnostics();
+            var comp = CreateCompilation(@"System.Console.WriteLine(typeof(C.D).FullName);",
+                new[] { metadataComp.EmitToImageReference() },
+                targetFramework: TargetFramework.Mscorlib45);
+
+            // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+            DiagnosticDescription expectedDiagnostic = Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1);
+
+            // These are unification use-site diagnostics. The original stackoverflow bug here came from checking constraints as part of
+            // unification diagnostic calculation, so we want to verify that these are present to make sure we're testing the correct scenario.
+            comp.VerifyDiagnostics(
+                    expectedDiagnostic,
+                    // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                    expectedDiagnostic
+                );
+
+            CompileAndVerify(
+                comp.WithOptions(comp.Options.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)),
+                expectedOutput: "C+D");
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.True(c.ContainingModule.HasUnifiedReferences);
+            Assert.Equal(expectedDiagnostic.Code, c.GetUseSiteDiagnostic().Code);
+        }
+
+        [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
+        public void RecursiveConstraintsFromUnifiedAssemblies_2()
+        {
+            var remappedCode = @"public class F {}";
+
+            var remappedComp11 = CreateCompilation(
+                new AssemblyIdentity("remapped", new Version("1.0.0.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                new[] { remappedCode },
+                TargetFrameworkUtil.NetStandard20References.ToArray(),
+                TestOptions.ReleaseDll.WithPublicSign(true));
+
+            var remappedComp12 = CreateCompilation(
+                new AssemblyIdentity("remapped", new Version("2.0.0.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                new[] { remappedCode },
+                TargetFrameworkUtil.NetStandard20References.ToArray(),
+                TestOptions.ReleaseDll.WithPublicSign(true));
+
+            var code = @"
+public abstract class A<T1, T2>
+    where T1 : A<T1, T2>
+    where T2 : A<T1, T2>.B<T1, T2>
+{
+    public abstract class B<T3, T4>
+        where T3 : A<T3, T4>
+        where T4 : A<T3, T4>.B<T3, T4>
+    { }
+}
+public class C : A<C, C.D>
+{
+    public class D : A<C, C.D>.B<C, D>
+    {
+    }
+}
+
+public class G : F {}
+";
+
+            var metadataComp = CreateCompilation(code, new[] { remappedComp11.EmitToImageReference() }, assemblyName: "intermediate", targetFramework: TargetFramework.NetStandard20);
+            metadataComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation(@"
+System.Console.WriteLine(typeof(C.D).FullName);
+System.Console.WriteLine(typeof(G).FullName);
+",
+                new[] { metadataComp.EmitToImageReference(), remappedComp12.EmitToImageReference() },
+                targetFramework: TargetFramework.NetStandard20);
+
+            comp.VerifyDiagnostics(
+                // warning CS1701: Assuming assembly reference 'remapped, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'intermediate' matches identity 'remapped, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'remapped', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("remapped, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "intermediate", "remapped, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "remapped").WithLocation(1, 1)
+            );
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.Null(c.GetUseSiteDiagnostic());
+            Assert.True(c.ContainingModule.HasUnifiedReferences);
         }
     }
 }

@@ -330,6 +330,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                     // The point that continues dispatch is not reachable. Cancel the dispatch.
                                     return;
                                 }
+
                                 break;
 
                             case ControlFlowRegionKind.TryAndCatch:

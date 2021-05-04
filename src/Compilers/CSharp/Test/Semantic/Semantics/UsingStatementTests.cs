@@ -1130,7 +1130,7 @@ class C2
     }
 }";
             var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }).VerifyDiagnostics(
-                // (16,22): error CS4012: Parameters or locals of type 'S1' cannot be declared in async methods or lambda expressions.
+                // (16,22): error CS4012: Parameters or locals of type 'S1' cannot be declared in async methods or async lambda expressions.
                 //         await using (S1 c = new S1())
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "S1").WithArguments("S1").WithLocation(16, 22)
                 );
@@ -1804,6 +1804,34 @@ class C
                 );
         }
 
+        [Fact]
+        public void SemanticModel_02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.IDisposable i = null;
+
+        using (i)
+        {
+            int x;
+            x = 1;
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(node).Type.SpecialType);
+        }
 
         #region help method
 

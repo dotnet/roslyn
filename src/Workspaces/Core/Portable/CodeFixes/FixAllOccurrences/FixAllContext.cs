@@ -232,13 +232,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return new FixAllContext(State, this.ProgressTracker, cancellationToken);
         }
 
-        public FixAllContext WithScope(FixAllScope scope)
+        internal FixAllContext WithScope(FixAllScope scope)
             => this.WithState(State.WithScope(scope));
 
-        public FixAllContext WithProject(Project project)
+        internal FixAllContext WithProject(Project project)
             => this.WithState(State.WithProject(project));
 
-        public FixAllContext WithDocument(Document? document)
+        internal FixAllContext WithDocument(Document? document)
             => this.WithState(State.WithDocument(document));
 
         private FixAllContext WithState(FixAllState state)

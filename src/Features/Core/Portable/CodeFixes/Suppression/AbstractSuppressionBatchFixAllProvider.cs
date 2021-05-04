@@ -270,10 +270,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             // Finally, apply the changes to each document to the solution, producing the
             // new solution.
             var currentSolution = oldSolution;
-            foreach (var kvp in documentIdToFinalText)
-            {
-                currentSolution = currentSolution.WithDocumentText(kvp.Key, kvp.Value);
-            }
+            foreach (var (documentId, finalText) in documentIdToFinalText)
+                currentSolution = currentSolution.WithDocumentText(documentId, finalText);
 
             return currentSolution;
         }
@@ -315,11 +313,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             var documentIdToFinalText = new ConcurrentDictionary<DocumentId, SourceText>();
             var getFinalDocumentTasks = new List<Task>();
-            foreach (var kvp in documentIdToChangedDocuments)
+            foreach (var (_, changedDocuments) in documentIdToChangedDocuments)
             {
                 getFinalDocumentTasks.Add(GetFinalDocumentTextAsync(
-                    oldSolution, codeActionToDiagnosticLocation, documentIdToFinalText,
-                    kvp.Value, cancellationToken));
+                    oldSolution, codeActionToDiagnosticLocation, documentIdToFinalText, changedDocuments, cancellationToken));
             }
 
             await Task.WhenAll(getFinalDocumentTasks).ConfigureAwait(false);

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -49,13 +50,63 @@ internal static class Program
 }");
 
             VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedEnglishClassName);
-            VisualStudio.Editor.GoToDefinition();
-            Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
+            VisualStudio.Editor.GoToDefinition($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}");
             Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, VisualStudio.Editor.GetSelectedText());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
-        public void FindReferencesForFileWithDefinitionInSourceGeneratedFile()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        [CombinatorialData]
+        public void FindReferencesForFileWithDefinitionInSourceGeneratedFile(bool invokeFromSourceGeneratedFile)
+        {
+            VisualStudio.Editor.SetText(@"using System;
+internal static class Program
+{
+    public static void Main()
+    {
+        Console.WriteLine(" + HelloWorldGenerator.GeneratedEnglishClassName + @".GetMessage());
+    }
+}");
+
+            VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedEnglishClassName);
+
+            if (invokeFromSourceGeneratedFile)
+            {
+                VisualStudio.Workspace.SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(true);
+                VisualStudio.Editor.GoToDefinition($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}");
+            }
+
+            VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
+
+            var programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
+            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption).OrderBy(r => r.Line).ToArray();
+
+            Assert.Collection(
+                results,
+                new Action<Reference>[]
+                {
+                    reference =>
+                    {
+                        Assert.Equal(expected: "/// <summary><see cref=\"HelloWorld\" /> is a simple class to fetch the classic message.</summary>", actual: reference.Code);
+                        Assert.Equal(expected: 1, actual: reference.Line);
+                        Assert.Equal(expected: 24, actual: reference.Column);
+                    },
+                    reference =>
+                    {
+                        Assert.Equal(expected: "internal class HelloWorld", actual: reference.Code);
+                        Assert.Equal(expected: 2, actual: reference.Line);
+                        Assert.Equal(expected: 15, actual: reference.Column);
+                    },
+                    reference =>
+                    {
+                        Assert.Equal(expected: "Console.WriteLine(" + HelloWorldGenerator.GeneratedEnglishClassName + ".GetMessage());", actual: reference.Code);
+                        Assert.Equal(expected: 5, actual: reference.Line);
+                        Assert.Equal(expected: 26, actual: reference.Column);
+                    },
+                });
+        }
+
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        public void FindReferencesAndNavigateToReferenceInGeneratedFile(bool isPreview)
         {
             VisualStudio.Editor.SetText(@"using System;
 internal static class Program
@@ -69,26 +120,22 @@ internal static class Program
             VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedEnglishClassName);
             VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-            string programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
+            var programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
+            var referenceInGeneratedFile = results.Single(r => r.Code.Contains("<summary>"));
+            VisualStudio.FindReferencesWindow.NavigateTo(programReferencesCaption, referenceInGeneratedFile, isPreview: isPreview);
 
-            Assert.Collection(
-                results,
-                new Action<Reference>[]
-                {
-                    reference =>
-                    {
-                        Assert.Equal(expected: "internal class HelloWorld", actual: reference.Code);
-                        Assert.Equal(expected: 1, actual: reference.Line);
-                        Assert.Equal(expected: 15, actual: reference.Column);
-                    },
-                    reference =>
-                    {
-                        Assert.Equal(expected: "Console.WriteLine(" + HelloWorldGenerator.GeneratedEnglishClassName + ".GetMessage());", actual: reference.Code);
-                        Assert.Equal(expected: 5, actual: reference.Line);
-                        Assert.Equal(expected: 26, actual: reference.Column);
-                    }
-                });
+            // Assert we are in the right file now
+            Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal(isPreview, VisualStudio.Shell.IsActiveTabProvisional());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        public void InvokeNavigateToForGeneratedFile()
+        {
+            VisualStudio.Editor.InvokeNavigateTo(HelloWorldGenerator.GeneratedEnglishClassName, VirtualKey.Enter);
+            VisualStudio.Editor.WaitForActiveView(HelloWorldGenerator.GeneratedEnglishClassName + ".cs");
+            Assert.Equal("HelloWorld", VisualStudio.Editor.GetSelectedText());
         }
     }
 }

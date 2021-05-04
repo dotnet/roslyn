@@ -1804,8 +1804,36 @@ public class C { } // end").Members[0];
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.Declaration(
                     _emptyCompilation.GetTypeByMetadataName("System.IntPtr").GetMembers("ToPointer").Single()),
-@"public unsafe void *ToPointer()
+@"public unsafe void* ToPointer()
 {
+}");
+        }
+
+        [Fact]
+        public void TestEnumDeclarationFromSymbol()
+        {
+            VerifySyntax<EnumDeclarationSyntax>(
+                    Generator.Declaration(
+                        _emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
+@"public enum DateTimeKind
+{
+    Unspecified = 0,
+    Utc = 1,
+    Local = 2
+}");
+        }
+
+        [Fact]
+        public void TestEnumWithUnderlyingTypeFromSymbol()
+        {
+            VerifySyntax<EnumDeclarationSyntax>(
+                    Generator.Declaration(
+                        _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
+@"public enum SecurityRuleSet : byte
+{
+    None = 0,
+    Level1 = 1,
+    Level2 = 2
 }");
         }
 

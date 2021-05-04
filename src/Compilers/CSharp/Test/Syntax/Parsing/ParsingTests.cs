@@ -3,10 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -317,6 +320,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (dump)
             {
                 _output.WriteLine("EOF();");
+            }
+        }
+
+        protected static void ParseIncompleteSyntax(string text)
+        {
+            var tokens = getLexedTokens(text);
+
+            var stringBuilder = new StringBuilder();
+            for (int skip = 0; skip < tokens.Length; skip++)
+            {
+                stringBuilder.Clear();
+
+                for (int i = 0; i < tokens.Length; i++)
+                {
+                    if (i == skip)
+                    {
+                        continue;
+                    }
+                    stringBuilder.Append(tokens[i].Text);
+                    stringBuilder.Append(' ');
+
+                    // Verify that we can parse and round-trip
+                    _ = SyntaxFactory.ParseSyntaxTree(stringBuilder.ToString(), TestOptions.RegularPreview);
+                }
+            }
+
+            static ImmutableArray<Syntax.InternalSyntax.SyntaxToken> getLexedTokens(string text)
+            {
+                var lexer = new Syntax.InternalSyntax.Lexer(Text.SourceText.From(text), CSharpParseOptions.Default);
+                var tokensBuilder = ArrayBuilder<Syntax.InternalSyntax.SyntaxToken>.GetInstance();
+
+                while (lexer.Lex(Syntax.InternalSyntax.LexerMode.Syntax) is var token && token.Kind != SyntaxKind.EndOfFileToken)
+                {
+                    tokensBuilder.Add(token);
+                }
+
+                return tokensBuilder.ToImmutableAndFree();
             }
         }
     }
