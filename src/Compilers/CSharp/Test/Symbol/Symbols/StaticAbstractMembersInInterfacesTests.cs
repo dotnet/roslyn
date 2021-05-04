@@ -16048,7 +16048,7 @@ struct C2 : I1<C2>
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, op).WithArguments("I1<T>", "T", "C2").WithLocation(14, 35),
                 // (14,44): error CS0452: The type 'C2' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I1<T>'
                 //     static I1<C2> I1<C2>.operator %(I1<C2> x, int y) => default;
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "x").WithArguments("I1<T>", "T", "C2").WithLocation(14, 44 + op.Length -1)
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "x").WithArguments("I1<T>", "T", "C2").WithLocation(14, 44 + op.Length - 1)
                 );
         }
     }
