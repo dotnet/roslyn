@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             // mutable state
             private Workspace? _workspace;
-            private IWorkspaceStatusService _workspaceStatusService = NoOpWorkspaceStatusService.Instance;
             private int _lastSolutionVersionReported;
 
             public event EventHandler<EventArgs>? SuggestedActionsChanged;
@@ -80,10 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     updateSource.DiagnosticsUpdated -= OnDiagnosticsUpdated;
                 }
 
-                _workspaceStatusService.StatusChanged -= OnWorkspaceStatusChanged;
-
                 if (_workspace != null)
                 {
+                    _workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged -= OnWorkspaceStatusChanged;
                     _workspace.DocumentActiveContextChanged -= OnActiveContextChanged;
                 }
 
@@ -99,7 +97,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 _owner = null!;
                 _workspace = null;
-                _workspaceStatusService = NoOpWorkspaceStatusService.Instance;
                 _registration = null!;
                 _textView = null!;
                 _subjectBuffer = null!;
@@ -176,23 +173,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
+                var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
+                {
+                    // this is here to fail test and see why it is failed.
+                    Trace.WriteLine("given range is not current");
+                    return null;
+                }
+
+                var workspace = document.Project.Solution.Workspace;
                 using (operationContext?.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
                 {
                     // This needs to run under threading context otherwise, we can deadlock on VS
-                    ThreadingContext.JoinableTaskFactory.Run(() => _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken));
+                    ThreadingContext.JoinableTaskFactory.Run(() =>
+                        workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken));
                 }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
-                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document == null)
-                    {
-                        // this is here to fail test and see why it is failed.
-                        Trace.WriteLine("given range is not current");
-                        return null;
-                    }
-
-                    var workspace = document.Project.Solution.Workspace;
                     var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
                     var selection = TryGetCodeRefactoringSelection(range);
@@ -514,10 +512,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // one doesn't need to hold onto workspace in field.
 
                 // remove existing event registration
-                _workspaceStatusService.StatusChanged -= OnWorkspaceStatusChanged;
 
                 if (_workspace != null)
                 {
+                    _workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged -= OnWorkspaceStatusChanged;
                     _workspace.DocumentActiveContextChanged -= OnActiveContextChanged;
                 }
 
@@ -536,8 +534,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 _workspace.DocumentActiveContextChanged += OnActiveContextChanged;
-                _workspaceStatusService = _workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-                _workspaceStatusService.StatusChanged += OnWorkspaceStatusChanged;
+                _workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged += OnWorkspaceStatusChanged;
             }
 
             private void OnActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
@@ -602,8 +599,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
+                if (_workspace == null)
+                    return null;
+
                 // never show light bulb if solution is not fully loaded yet
-                if (!await _workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
+                if (!await _workspace.Services.GetRequiredService<IWorkspaceStatusService>().IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
                     return null;
 
                 var provider = _owner;
