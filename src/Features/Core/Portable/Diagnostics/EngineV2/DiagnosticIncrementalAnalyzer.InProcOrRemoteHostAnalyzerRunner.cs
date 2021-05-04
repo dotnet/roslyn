@@ -180,6 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 documentAnalysisScope?.TextDocument.Id,
                 documentAnalysisScope?.Span,
                 documentAnalysisScope?.Kind,
+                documentAnalysisScope?.HighPriority,
                 project.Id,
                 analyzerMap.Keys.ToArray());
 

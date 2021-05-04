@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         reportSuppressedDiagnostics: arguments.ReportSuppressedDiagnostics,
                         logPerformanceInfo: arguments.LogPerformanceInfo,
                         getTelemetryInfo: arguments.GetTelemetryInfo,
+                        highPriority: arguments.HighPriority,
                         cancellationToken).ConfigureAwait(false);
 
                     // save log for debugging

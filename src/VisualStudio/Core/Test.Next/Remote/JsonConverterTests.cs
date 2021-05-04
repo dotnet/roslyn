@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 documentId: DocumentId.CreateNewId(projectId),
                 documentSpan: new TextSpan(0, 1),
                 documentAnalysisKind: AnalysisKind.Syntax,
+                highPriority: null,
                 projectId: projectId,
                 analyzerIds: new[] { "analyzer1", "analyzer2" });
 

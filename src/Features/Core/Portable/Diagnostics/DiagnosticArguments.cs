@@ -56,16 +56,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [DataMember(Order = 5)]
         public AnalysisKind? DocumentAnalysisKind;
 
+        [DataMember(Order = 6)]
+        public bool? HighPriority;
+
         /// <summary>
         /// Project ID for the document or project for which diagnostics need to be computed.
         /// </summary>
-        [DataMember(Order = 6)]
+        [DataMember(Order = 7)]
         public ProjectId ProjectId;
 
         /// <summary>
         /// Array of analyzer IDs for analyzers that need to be executed for computing diagnostics.
         /// </summary>
-        [DataMember(Order = 7)]
+        [DataMember(Order = 8)]
         public string[] AnalyzerIds;
 
         public DiagnosticArguments(
@@ -75,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentId? documentId,
             TextSpan? documentSpan,
             AnalysisKind? documentAnalysisKind,
+            bool? highPriority,
             ProjectId projectId,
             string[] analyzerIds)
         {
@@ -90,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentId = documentId;
             DocumentSpan = documentSpan;
             DocumentAnalysisKind = documentAnalysisKind;
+            HighPriority = highPriority;
             ProjectId = projectId;
             AnalyzerIds = analyzerIds;
         }
