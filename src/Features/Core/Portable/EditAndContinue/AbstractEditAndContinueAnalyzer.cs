@@ -1143,6 +1143,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             trackedStatement = null;
             trackedStatementPart = -1;
 
+            // Active statements are not tracked in this document (e.g. the file is closed).
             if (activeStatementSpans.IsEmpty)
             {
                 return false;

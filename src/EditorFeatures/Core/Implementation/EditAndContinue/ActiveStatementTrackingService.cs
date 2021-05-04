@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                             var document = documents[i];
                             if (document?.FilePath == null)
                             {
-                                // Document has been deleted or doesn't have a path.
+                                // Document has been deleted, doesn't have a path or is an open design-time document (which does not exist in the compile-time solution)
                                 continue;
                             }
 

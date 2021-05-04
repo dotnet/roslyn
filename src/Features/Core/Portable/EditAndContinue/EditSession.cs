@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (analysis.ActiveStatements.Length > 0)
                     {
-                        var oldDocument = oldProject.GetDocument(analysis.DocumentId);
+                        var oldDocument = await oldProject.GetDocumentAsync(analysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
                         var oldActiveStatements = (oldDocument == null) ? ImmutableArray<UnmappedActiveStatement>.Empty :
                             await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
