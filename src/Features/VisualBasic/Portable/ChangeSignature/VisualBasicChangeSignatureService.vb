@@ -604,7 +604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return GetPermutedDocCommentTrivia(document, node, permutedParamNodes)
         End Function
 
-        Private Shared Function VerifyAndPermuteParamNodes(paramNodes As ImmutableArray(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxNode)
+        Private Function VerifyAndPermuteParamNodes(paramNodes As ImmutableArray(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxNode)
             ' Only reorder if count and order match originally.
 
             Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()

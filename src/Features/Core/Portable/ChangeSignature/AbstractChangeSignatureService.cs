@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
         }
 
-        protected abstract bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, out IMethodSymbol? primaryConstructor);
+        protected abstract bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor);
 
         internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
         {
