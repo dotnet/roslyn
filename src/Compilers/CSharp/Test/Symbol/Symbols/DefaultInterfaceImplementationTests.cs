@@ -43687,6 +43687,47 @@ true
         }
 
         [Fact]
+        [WorkItem(52202, "https://github.com/dotnet/roslyn/issues/52202")]
+        public void Operators_33()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static implicit operator int(I1 x)
+    {
+        return 0;
+    }
+
+    static explicit operator byte(I1 x)
+    {
+        return 0;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 parseOptions: TestOptions.Regular);
+
+            var i1 = compilation1.GlobalNamespace.GetTypeMember("I1");
+
+            foreach (var member in i1.GetMembers())
+            {
+                Assert.Equal(Accessibility.Public, member.DeclaredAccessibility);
+            }
+
+            compilation1.VerifyDiagnostics(
+                // (4,30): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                //     static implicit operator int(I1 x)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 30),
+                // (9,30): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                //     static explicit operator byte(I1 x)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "byte").WithLocation(9, 30)
+                );
+        }
+
+        [Fact]
         public void RuntimeFeature_01()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
