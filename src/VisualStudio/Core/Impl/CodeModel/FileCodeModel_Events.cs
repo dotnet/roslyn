@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public void FireEvents()
         {
-            _ = _codeElementTable.CleanUpDeadObjectsAsync().ReportNonFatalErrorAsync();
+            _ = _codeElementTable.CleanUpDeadObjectsAsync(State.ProjectCodeModelFactory.Listener).ReportNonFatalErrorAsync();
 
             if (this.IsZombied)
             {

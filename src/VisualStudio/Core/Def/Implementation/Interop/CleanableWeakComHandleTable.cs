@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         private const int DefaultCleanUpThreshold = 25;
         private static readonly TimeSpan s_defaultCleanUpTimeSlice = TimeSpan.FromMilliseconds(15);
 
-        private readonly IAsynchronousOperationListener _listener;
         private readonly Dictionary<TKey, WeakComHandle<TValue, TValue>> _table;
         private readonly HashSet<TKey> _deadKeySet;
 
@@ -45,10 +44,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
         public bool NeedsCleanUp => _needsCleanUp;
 
-        public CleanableWeakComHandleTable(IThreadingContext threadingContext, IAsynchronousOperationListener listener, int? cleanUpThreshold = null, TimeSpan? cleanUpTimeSlice = null)
+        public CleanableWeakComHandleTable(IThreadingContext threadingContext, int? cleanUpThreshold = null, TimeSpan? cleanUpTimeSlice = null)
             : base(threadingContext)
         {
-            _listener = listener;
             _table = new Dictionary<TKey, WeakComHandle<TValue, TValue>>();
             _deadKeySet = new HashSet<TKey>();
 
@@ -60,8 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         /// Cleans up references to dead objects in the table. This operation will yield to other foreground operations
         /// any time execution exceeds <see cref="CleanUpTimeSlice"/>.
         /// </summary>
-        public async Task CleanUpDeadObjectsAsync()
+        public async Task CleanUpDeadObjectsAsync(IAsynchronousOperationListener listener)
         {
+            using var _ = listener.BeginAsyncOperation(nameof(CleanUpDeadObjectsAsync));
+
             Debug.Assert(ThreadingContext.JoinableTaskContext.IsOnMainThread, "This method is optimized for cases where calls do not yield before checking _needsCleanUp.");
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(ThreadingContext.DisposalToken);
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
             async Task ResetTimeSliceAsync()
             {
-                await _listener.Delay(TimeSpan.FromMilliseconds(50), ThreadingContext.DisposalToken).ConfigureAwait(true);
+                await listener.Delay(TimeSpan.FromMilliseconds(50), ThreadingContext.DisposalToken).ConfigureAwait(true);
                 timeSlice = new TimeSlice(CleanUpTimeSlice);
             }
         }

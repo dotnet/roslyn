@@ -11,7 +11,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
@@ -25,7 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     internal sealed partial class CodeModelProjectCache
     {
         private readonly CodeModelState _state;
-        private readonly IAsynchronousOperationListener _listener;
         private readonly ProjectId _projectId;
         private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;
 
@@ -35,10 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private EnvDTE.CodeModel _rootCodeModel;
         private bool _zombied;
 
-        internal CodeModelProjectCache(IThreadingContext threadingContext, IAsynchronousOperationListener listener, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, ProjectCodeModelFactory projectFactory, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
+        internal CodeModelProjectCache(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, ProjectCodeModelFactory projectFactory, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
         {
             _state = new CodeModelState(threadingContext, serviceProvider, languageServices, workspace, projectFactory);
-            _listener = listener;
             _projectId = projectId;
             _codeModelInstanceFactory = codeModelInstanceFactory;
         }
@@ -112,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             // Create object (outside of lock)
-            var newFileCodeModel = FileCodeModel.Create(_state, _listener, parent, documentId, new TextManagerAdapter());
+            var newFileCodeModel = FileCodeModel.Create(_state, parent, documentId, new TextManagerAdapter());
             var newCacheEntry = new CacheEntry(newFileCodeModel);
 
             // Second try (object might have been added by another thread at this point!)

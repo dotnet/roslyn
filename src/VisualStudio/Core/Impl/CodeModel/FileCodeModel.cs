@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
@@ -35,12 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     {
         internal static ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> Create(
             CodeModelState state,
-            IAsynchronousOperationListener listener,
             object parent,
             DocumentId documentId,
             ITextManagerAdapter textManagerAdapter)
         {
-            return new FileCodeModel(state, listener, parent, documentId, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
+            return new FileCodeModel(state, parent, documentId, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
         }
 
         private readonly ComHandle<object, object> _parentHandle;
@@ -70,7 +68,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private FileCodeModel(
             CodeModelState state,
-            IAsynchronousOperationListener listener,
             object parent,
             DocumentId documentId,
             ITextManagerAdapter textManagerAdapter)
@@ -83,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _documentId = documentId;
             TextManagerAdapter = textManagerAdapter;
 
-            _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>(state.ThreadingContext, listener);
+            _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>(state.ThreadingContext);
 
             _batchMode = false;
             _batchDocument = null;

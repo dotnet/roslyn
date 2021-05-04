@@ -32,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private readonly IThreadingContext _threadingContext;
 
         private readonly IForegroundNotificationService _notificationService;
-        private readonly IAsynchronousOperationListener _listener;
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
 
         [ImportingConstructor]
@@ -49,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _threadingContext = threadingContext;
 
             _notificationService = notificationService;
-            _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
+            Listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
 
             // Queue up notifications we hear about docs changing.  that way we don't have to fire events multiple times
             // for the same documents.  Once enough time has passed, take the documents that were changed and run
@@ -60,11 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 // We only care about unique doc-ids, so pass in this comparer to collapse streams of changes for a
                 // single document down to one notification.
                 EqualityComparer<DocumentId>.Default,
-                _listener,
+                Listener,
                 threadingContext.DisposalToken);
 
             _visualStudioWorkspace.WorkspaceChanged += OnWorkspaceChanged;
         }
+
+        internal IAsynchronousOperationListener Listener { get; }
 
         private System.Threading.Tasks.Task ProcessNextDocumentBatchAsync(
             ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
@@ -76,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 // doesn't saturate  the UI thread.
                 _notificationService.RegisterNotification(
                     () => FireEventsForDocument(documentId),
-                    _listener.BeginAsyncOperation("CodeModelEvent"),
+                    Listener.BeginAsyncOperation("CodeModelEvent"),
                     cancellationToken);
             }
 
@@ -147,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public IProjectCodeModel CreateProjectCodeModel(ProjectId id, ICodeModelInstanceFactory codeModelInstanceFactory)
         {
-            var projectCodeModel = new ProjectCodeModel(_threadingContext, _listener, id, codeModelInstanceFactory, _visualStudioWorkspace, _serviceProvider, this);
+            var projectCodeModel = new ProjectCodeModel(_threadingContext, id, codeModelInstanceFactory, _visualStudioWorkspace, _serviceProvider, this);
             if (!_projectCodeModels.TryAdd(id, projectCodeModel))
             {
                 throw new InvalidOperationException($"A {nameof(IProjectCodeModel)} has already been created for project with ID {id}");
