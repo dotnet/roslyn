@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindUsages
-    <ExportLanguageService(GetType(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(IFindUsagesService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicFindUsagesService
         Inherits AbstractFindUsagesService
 

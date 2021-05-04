@@ -289,6 +289,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 case DeclaredSymbolInfoKind.Class:
                 case DeclaredSymbolInfoKind.Record:
                     return NavigateToItemKind.Class;
+                case DeclaredSymbolInfoKind.RecordStruct:
+                    return NavigateToItemKind.Structure;
                 case DeclaredSymbolInfoKind.Constant:
                     return NavigateToItemKind.Constant;
                 case DeclaredSymbolInfoKind.Delegate:
@@ -402,6 +404,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                         case NavigateToItemKind.Structure:
                             lookupTable[(int)DeclaredSymbolInfoKind.Struct] = true;
+                            lookupTable[(int)DeclaredSymbolInfoKind.RecordStruct] = true;
                             break;
 
                         default:

@@ -134,6 +134,10 @@ class C
             => await VerifyAbsenceAsync("using $$");
 
         [Fact]
+        public async Task TestGlobalUsingDirective()
+            => await VerifyAbsenceAsync("global using $$");
+
+        [Fact]
         public async Task TestForeachStatement()
         {
             await VerifyAbsenceAsync(@"

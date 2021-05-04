@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -15,26 +16,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private async Task ProcessDocumentQueueAsync(
             Document document,
-            HashSet<(SymbolGroup group, ISymbol symbol, IReferenceFinder finder)> documentQueue)
+            HashSet<(SymbolGroup group, ISymbol symbol, IReferenceFinder finder)> documentQueue,
+            CancellationToken cancellationToken)
         {
-            await _progress.OnFindInDocumentStartedAsync(document).ConfigureAwait(false);
+            await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
 
             SemanticModel? model = null;
             try
             {
-                model = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
+                model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 // start cache for this semantic model
                 FindReferenceCache.Start(model);
 
                 foreach (var (group, symbol, finder) in documentQueue)
-                    await ProcessDocumentAsync(document, model, group, symbol, finder).ConfigureAwait(false);
+                    await ProcessDocumentAsync(document, model, group, symbol, finder, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 FindReferenceCache.Stop(model);
 
-                await _progress.OnFindInDocumentCompletedAsync(document).ConfigureAwait(false);
+                await _progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -48,22 +50,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SemanticModel semanticModel,
             SymbolGroup group,
             ISymbol symbol,
-            IReferenceFinder finder)
+            IReferenceFinder finder,
+            CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbol, _cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbol, cancellationToken))
             {
                 try
                 {
                     var references = await finder.FindReferencesInDocumentAsync(
-                        symbol, document, semanticModel, _options, _cancellationToken).ConfigureAwait(false);
+                        symbol, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
                     foreach (var (_, location) in references)
                     {
-                        await HandleLocationAsync(group, symbol, location).ConfigureAwait(false);
+                        await HandleLocationAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 finally
                 {
-                    await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
+                    await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
         }
