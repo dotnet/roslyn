@@ -599,7 +599,7 @@ tryAgain:
                 var colon = EatToken();
                 exprColon = expr is IdentifierNameSyntax identifierName
                     ? _syntaxFactory.NameColon(identifierName, colon)
-                    : _syntaxFactory.ExpressionColon(expr, colon);
+                    : _syntaxFactory.ExpressionColon(CheckFeatureAvailability(expr, MessageID.IDS_FeatureExtendedPropertyPatterns), colon);
 
                 pattern = ParsePattern(Precedence.Conditional);
             }

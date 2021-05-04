@@ -1184,10 +1184,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var memberBuilder = ArrayBuilder<Symbol>.GetInstance();
                     LookupMembersForPropertyPattern(inputType, expr, memberBuilder, diagnostics, ref hasErrors, out memberType);
                     members = memberBuilder.ToImmutableAndFree();
-                    if (!hasErrors && members.Length > 1)
-                    {
-                        MessageID.IDS_FeatureExtendedPropertyPatterns.CheckFeatureAvailability(diagnostics, this.Compilation, expr.GetLocation());
-                    }
                 }
 
                 BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);

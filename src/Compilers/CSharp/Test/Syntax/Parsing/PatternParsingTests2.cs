@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,58 +25,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ExtendedPropertySubpattern_01()
         {
             UsingExpression(@"e is { a.b.c: p }");
+            verify();
 
-            N(SyntaxKind.IsPatternExpression);
+            UsingExpression(@"e is { a.b.c: p }", TestOptions.Regular9,
+                    // (1,8): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // e is { a.b.c: p }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "a.b.c").WithArguments("extended property patterns").WithLocation(1, 8));
+            verify();
+
+            void verify()
             {
-                N(SyntaxKind.IdentifierName);
+
+                N(SyntaxKind.IsPatternExpression);
                 {
-                    N(SyntaxKind.IdentifierToken, "e");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.RecursivePattern);
-                {
-                    N(SyntaxKind.PropertyPatternClause);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.Subpattern);
+                        N(SyntaxKind.IdentifierToken, "e");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PropertyPatternClause);
                         {
-                            N(SyntaxKind.ExpressionColon);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.Subpattern);
                             {
-                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                N(SyntaxKind.ExpressionColon);
                                 {
                                     N(SyntaxKind.SimpleMemberAccessExpression);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "a");
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "a");
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "b");
+                                            }
                                         }
                                         N(SyntaxKind.DotToken);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "b");
+                                            N(SyntaxKind.IdentifierToken, "c");
                                         }
                                     }
-                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.ColonToken);
+                                }
+                                N(SyntaxKind.ConstantPattern);
+                                {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "c");
+                                        N(SyntaxKind.IdentifierToken, "p");
                                     }
                                 }
-                                N(SyntaxKind.ColonToken);
                             }
-                            N(SyntaxKind.ConstantPattern);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "p");
-                                }
-                            }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
+                EOF();
             }
-            EOF();
         }
 
         [Fact]
