@@ -140,6 +140,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return completionListSetting.Data;
         }
 
+        public static bool HasCompletionListCommitCharactersCapability(this ClientCapabilities clientCapabilities)
+        {
+            if (!TryGetVSCompletionListSetting(clientCapabilities, out var completionListSetting))
+            {
+                return false;
+            }
+
+            return completionListSetting.CommitCharacters;
+        }
+
         public static string GetMarkdownLanguageName(this Document document)
         {
             switch (document.Project.Language)
