@@ -159,6 +159,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // * { - in property pattern clauses in pattern matching context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause))
+            {
+                if (!_options.NewLinesForBracesInObjectCollectionArrayInitializers)
+                {
+                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
             // * { - in the anonymous Method context
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent.IsKind(SyntaxKind.AnonymousMethodExpression))
             {
@@ -371,6 +380,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // * { - in property pattern clauses in pattern matching context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause))
+            {
+                if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
+                {
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
             // * { - in the anonymous Method context
             if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent.Kind() == SyntaxKind.AnonymousMethodExpression)
             {
@@ -437,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // Wrapping - Leave statements on same line (false): 
+            // Wrapping - Leave statements on same line (false):
             // Insert a newline between the previous statement and this one.
             // ; *
             if (previousToken.Kind() == SyntaxKind.SemicolonToken
