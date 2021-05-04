@@ -273,7 +273,8 @@ class B : A
             {
                 foreach (var completionItem in completionList.Items)
                 {
-                    completionItem.Data ??= vsCompletionList.Data;
+                    Assert.Null(completionItem.Data);
+                    completionItem.Data = vsCompletionList.Data;
                 }
             }
 
