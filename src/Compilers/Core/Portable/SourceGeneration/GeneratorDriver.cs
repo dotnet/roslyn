@@ -231,29 +231,25 @@ namespace Microsoft.CodeAnalysis
                         var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
                         var sourcesBuilder = new PerGeneratorInputNodes.Builder();
                         var pipelineContext = new IncrementalGeneratorPipelineContext(sourcesBuilder, outputBuilder);
-                        var info = generatorState.Info;
                         try
                         {
-                            info.PipelineCallback(pipelineContext);
+                            generatorState.Info.PipelineCallback(pipelineContext);
                         }
                         catch (Exception e)
                         {
                             ex = e;
                         }
 
-                        // PROTOTYPE(source-generators): why do we have the builder at all, do we actually need to keep the sources around after this??
-                        // oh its used to set the syntax receiver later on. hmm.
-
                         // if the pipeline registered any syntax callbacks, create a receiver to handle them
                         if (sourcesBuilder.SyntaxTransformNodes.Count > 0)
                         {
                             // it isn't possible for an incremental generator to directly create a walker as part of init
-                            Debug.Assert(info.SyntaxContextReceiverCreator is null);
+                            Debug.Assert(generatorState.Info.SyntaxContextReceiverCreator is null);
                             syntaxInputNodes.AddRange(sourcesBuilder.SyntaxTransformNodes);
                         }
 
                         generatorState = ex is null
-                                         ? new GeneratorState(info, generatorState.PostInitTrees, sourcesBuilder.ToImmutable(), outputBuilder.ToImmutable())
+                                         ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, sourcesBuilder.ToImmutable(), outputBuilder.ToImmutable())
                                          : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
 
                         outputBuilder.Free();
