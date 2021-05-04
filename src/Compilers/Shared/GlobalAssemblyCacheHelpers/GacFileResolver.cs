@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         public static bool IsAvailable
             // Since mscorlib may not be loaded from the GAC on Mono, also check if the platform is Mono which supports a GAC.
-#pragma warning disable SYSLIB0005 // 'Assembly.GlobalAssemblyCache' is obsolete: 'The Global Assembly Cache is not supported.'
             => typeof(object).Assembly.GlobalAssemblyCache || PlatformInformation.IsRunningOnMono;
-#pragma warning restore SYSLIB0005
 
         /// <summary>
         /// Architecture filter used when resolving assembly references.

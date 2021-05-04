@@ -152,9 +152,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static string? TryGetAssemblyPath(Assembly assembly)
         {
-#pragma warning disable SYSLIB0005 // 'Assembly.GlobalAssemblyCache' is obsolete: 'The Global Assembly Cache is not supported.'
             if (assembly.GlobalAssemblyCache)
-#pragma warning restore SYSLIB0005
             {
                 return null;
             }
