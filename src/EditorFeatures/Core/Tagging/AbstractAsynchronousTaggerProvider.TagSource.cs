@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
@@ -61,9 +62,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             /// <summary>
             /// Work queue that collects event notifications and kicks off the work to process them.
-            /// The value that is passed here tells us if this is the initial tag computation or not.
             /// </summary>
-            private readonly AsyncBatchingWorkQueue<bool> _eventWorkQueue;
+            private Task _eventWorkQueue = Task.CompletedTask;
+
+            /// <summary>
+            /// Series of tokens used to cancel previous outstanding work when new work comes in. Also used as the lock
+            /// to ensure threadsafe writing of _eventWorkQueue.
+            /// </summary>
+            private readonly CancellationSeries _cancellationSeries;
 
             /// <summary>
             /// Work queue that collects high priority requests to call TagsChanged with.
@@ -120,12 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
-                _eventWorkQueue = new AsyncBatchingWorkQueue<bool>(
-                    _dataSource.EventChangeDelay.ComputeTimeDelay(),
-                    ProcessEventsAsync,
-                    EqualityComparer<bool>.Default,
-                    asyncListener,
-                    _disposalTokenSource.Token);
+                _cancellationSeries = new CancellationSeries(_disposalTokenSource.Token);
 
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
@@ -153,12 +154,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 DebugRecordInitialStackTrace();
 
                 _eventSource = CreateEventSource();
-
                 Connect();
 
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
-                _eventWorkQueue.AddWork(/*initialTags*/ true);
+                EnqueueWork(initialTags: true);
 
                 return;
 
@@ -199,6 +199,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Stop computing any initial tags if we've been asked for them.
                 _disposalTokenSource.Cancel();
+                _cancellationSeries.Dispose();
+
                 _disposed = true;
                 _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
                 GC.SuppressFinalize(this);

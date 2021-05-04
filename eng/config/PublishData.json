@@ -176,11 +176,22 @@
         "Shipping",
         "NonShipping"
       ],
-      "version": "3.10.*",
+      "version": "4.0.*",
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "main",
-      "vsMajorVersion": 16
+      "vsMajorVersion": 17
+    },
+    "release/dev17.0-preview1-nopia-vs-deps": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "version": "4.0.*",
+      "packageFeeds": "default",
+      "channels": [],
+      "vsBranch": "feature/d17initial",
+      "vsMajorVersion": 17
     },
     "release/dev17.0-preview1-vs-deps": {
       "nugetKind": [
@@ -209,11 +220,11 @@
         "Shipping",
         "NonShipping"
       ],
-      "version": "3.10.*",
+      "version": "4.0.*",
       "packageFeeds": "arcade",
       "channels": [],
       "vsBranch": "main",
-      "vsMajorVersion": 16
+      "vsMajorVersion": 17
     },
     "features/NullableReferenceTypes": {
       "nugetKind": "PerBuildPreRelease",
