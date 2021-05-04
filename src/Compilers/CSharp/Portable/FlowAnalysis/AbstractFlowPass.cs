@@ -2697,7 +2697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var access = node switch
             {
                 BoundConditionalAccess ca => ca,
-                BoundConversion { Conversion: Conversion innerConversion, Operand: BoundConditionalAccess ca } when isAcceptableConversion(ca, innerConversion) => ca,
+                BoundConversion { Conversion: Conversion innerConversion, Operand: BoundConditionalAccess ca } when CanPropagateStateWhenNotNull(ca, innerConversion) => ca,
                 _ => null
             };
 
@@ -2714,26 +2714,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             stateWhenNotNull = default;
             return false;
 
-            // "State when not null" can only propagate out of a conditional access if
-            // it is not subject to a user-defined conversion whose parameter is not of a non-nullable value type.
-            static bool isAcceptableConversion(BoundConditionalAccess operand, Conversion conversion)
+        }
+
+        /// <summary>
+        /// "State when not null" can only propagate out of a conditional access if
+        /// it is not subject to a user-defined conversion whose parameter is not of a non-nullable value type.
+        /// </summary>
+        protected static bool CanPropagateStateWhenNotNull(BoundConditionalAccess operand, Conversion conversion)
+        {
+            if (conversion.Kind is not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined))
             {
-                if (conversion.Kind is not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined))
-                {
-                    return true;
-                }
-
-                var method = conversion.Method;
-                Debug.Assert(method is not null);
-                Debug.Assert(method.ParameterCount is 1);
-                var param = method.Parameters[0];
-                if (operand.Type.IsNullableType() && param.Type.IsNonNullableValueType())
-                {
-                    return true;
-                }
-
-                return false;
+                return true;
             }
+
+            var method = conversion.Method;
+            Debug.Assert(method is not null);
+            Debug.Assert(method.ParameterCount is 1);
+            var param = method.Parameters[0];
+            if (operand.Type.IsNullableType() && param.Type.IsNonNullableValueType())
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -2760,8 +2763,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Receiver.ConstantValue != null && !IsConstantNull(node.Receiver))
             {
-                VisitRvalue(node.AccessExpression);
-                stateWhenNotNull = this.State.Clone();
+                // Consider a scenario like `"a"?.M0(x = 1)?.M0(y = 1)`.
+                // We can "know" that `.M0(x = 1)` was evaluated unconditionally but not `M0(y = 1)`.
+                // Therefore we do a VisitPossibleConditionalAccess here which unconditionally includes the "after receiver" state in State
+                // and includes the "after subsequent conditional accesses" in stateWhenNotNull
+                if (VisitPossibleConditionalAccess(node.AccessExpression, out var innerStateWhenNotNull))
+                {
+                    stateWhenNotNull = innerStateWhenNotNull;
+                }
+                else
+                {
+                    Unsplit();
+                    stateWhenNotNull = this.State.Clone();
+                }
             }
             else
             {
@@ -2783,7 +2797,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitRvalue(innerCondAccess.Receiver);
                     expr = innerCondAccess.AccessExpression;
 
-                    // PROTOTYPE(improved-definite-assignment): Add NullableWalker implementation and tests which exercises this.
                     // The savedState here represents the scenario where 0 or more of the access expressions could have been evaluated.
                     // e.g. after visiting `a?.b(x = null)?.c(x = new object())`, the "state when not null" of `x` is NotNull, but the "state when maybe null" of `x` is MaybeNull.
                     Join(ref savedState, ref State);
