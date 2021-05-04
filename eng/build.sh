@@ -165,6 +165,9 @@ while [[ $# > 0 ]]; do
     --sourcebuild)
       source_build=true
       ;;
+    /p:ArcadeBuildFromSource=true)
+      source_build=true
+      ;;
     /p:*)
       properties="$properties $1"
       ;;
