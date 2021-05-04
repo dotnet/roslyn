@@ -101,6 +101,16 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     }
                 }
             }
+
+            /// <summary>
+            /// A metadata name used by telemetry to distinguish between the different kinds of this code action.
+            /// This code action will perform 2 different actions depending on if missing parameters can be optional.
+            /// 
+            /// In this case we don't want to use the title as it depends on the class name for the ctor.
+            /// </summary>
+            internal string ActionName => _missingParameters[0].IsOptional
+                ? nameof(FeaturesResources.Add_optional_parameters_to_0)
+                : nameof(FeaturesResources.Add_parameters_to_0);
         }
     }
 }
