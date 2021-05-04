@@ -206,40 +206,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (needToCheckConversionToObject)
                 {
                     objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
-                    conversionDiagnostics = BindingDiagnosticBag.GetInstance(template: diagnostics);
+                    conversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                 }
 
                 Debug.Assert(appendCalls.Length == unconvertedInterpolatedString.Parts.Length);
-                var partsBuilder = ArrayBuilder<BoundExpression>.GetInstance(appendCalls.Length);
+                Debug.Assert(appendCalls.All(a => a is { HasErrors: true } or BoundCall { Arguments: { Length: > 0 } } or BoundDynamicInvocation));
                 int baseStringLength = 0;
                 int numFormatHoles = 0;
 
-                for (int i = 0; i < appendCalls.Length; i++)
+                foreach (var currentPart in unconvertedInterpolatedString.Parts)
                 {
-                    var currentFormatCall = appendCalls[i];
-                    Debug.Assert(currentFormatCall is { HasErrors: true } or BoundCall { Arguments: { Length: > 0 } } or BoundDynamicInvocation);
-                    var currentPart = unconvertedInterpolatedString.Parts[i];
-                    BoundExpression newPart;
-
-                    // If we were able to actually bind the Append call, then just update the current part to be the call.
-                    // Otherwise, there was some kind of error, and we just want to keep the original part. We'll update
-                    // the HasErrors to be true, but we don't want IOperation to have to try and find the original node
-                    // to include in the tree in a potentially arbitrary tree
-                    if (currentFormatCall is BoundCall call)
-                    {
-                        Debug.Assert(call.Arguments.Length > 0);
-                        newPart = currentPart is BoundStringInsert si
-                            ? si.Update(call, si.Alignment, si.Format, isInterpolatedStringBuilderAppendCall: true)
-                            : call;
-                    }
-                    else
-                    {
-                        Debug.Assert(currentFormatCall.HasErrors);
-                        newPart = currentPart.WithHasErrors();
-                    }
-
-                    partsBuilder.Add(newPart);
-
                     if (currentPart is BoundStringInsert insert)
                     {
                         numFormatHoles++;
@@ -255,21 +231,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (conversionDiagnostics.HasAnyErrors())
                                 {
                                     CheckFeatureAvailability(value.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
-                                    conversionDiagnostics.Clear();
                                     reported = true;
                                 }
                             }
 
                             if (!reported)
                             {
-                                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(conversionDiagnostics);
                                 _ = GenerateConversionForAssignment(objectType, value, conversionDiagnostics);
                                 if (conversionDiagnostics.HasAnyErrors())
                                 {
                                     CheckFeatureAvailability(value.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
-                                    conversionDiagnostics.Clear();
                                 }
                             }
+
+                            conversionDiagnostics.Clear();
                         }
                     }
                     else
@@ -281,8 +256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 conversionDiagnostics?.Free();
 
-                var newParts = partsBuilder.ToImmutableAndFree();
-
                 var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, unconvertedInterpolatedString.Syntax);
                 var arguments = ImmutableArray.Create<BoundExpression>(
                     new BoundLiteral(unconvertedInterpolatedString.Syntax, ConstantValue.Create(baseStringLength), intType) { WasCompilerGenerated = true },
@@ -291,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundCall? createExpression = BindCreateCall(unconvertedInterpolatedString.Syntax, interpolatedStringBuilderType, arguments, diagnostics);
 
                 result = constructWithData(
-                    newParts,
+                    appendCalls,
                     new InterpolatedStringBuilderData(
                         interpolatedStringBuilderType,
                         createExpression,
@@ -357,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (ImmutableArray<BoundExpression>.Empty, false);
             }
 
-            var implicitBuilderReceiver = new BoundInterpolatedStringBuilderPlaceholder(source.Syntax, builderType);
+            var implicitBuilderReceiver = new BoundInterpolatedStringBuilderPlaceholder(source.Syntax, builderType) { WasCompilerGenerated = true };
             bool? builderPatternExpectsBool = null;
             var builderAppendCalls = ArrayBuilder<BoundExpression>.GetInstance(source.Parts.Length);
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(3);
@@ -366,8 +339,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var part in source.Parts)
             {
                 Debug.Assert(part is BoundLiteral or BoundStringInsert);
-                argumentsBuilder.Clear();
-                parameterNamesAndLocationsBuilder.Clear();
                 string methodName;
 
                 if (part is BoundStringInsert insert)
@@ -426,8 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (builderPatternExpectsBool != methodReturnsBool)
                     {
-                        // Interpolated string builder method '{0}' has inconsistent return types. Expected to return '{0}'.
-                        var expected = builderPatternExpectsBool == true ? Compilation.GetSpecialType(SpecialType.System_Boolean) : Compilation.GetSpecialType(SpecialType.System_Object);
+                        // Interpolated string builder method '{0}' has inconsistent return types. Expected to return '{1}'.
+                        var expected = builderPatternExpectsBool == true ? Compilation.GetSpecialType(SpecialType.System_Boolean) : Compilation.GetSpecialType(SpecialType.System_Void);
                         diagnostics.Add(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, part.Syntax.Location, method, expected);
                     }
                 }

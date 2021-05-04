@@ -508,8 +508,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringBuilderMethodReturnInconsistent">
-        <source>Interpolated string builder method '{0}' has inconsistent return types. Expected to return '{0}'.</source>
-        <target state="new">Interpolated string builder method '{0}' has inconsistent return types. Expected to return '{0}'.</target>
+        <source>Interpolated string builder method '{0}' has inconsistent return type. Expected to return '{1}'.</source>
+        <target state="new">Interpolated string builder method '{0}' has inconsistent return type. Expected to return '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringBuilderMethodReturnMalformed">

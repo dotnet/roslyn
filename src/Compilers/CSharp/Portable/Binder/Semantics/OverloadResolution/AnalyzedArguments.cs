@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var nameAndLocation = Names[i];
-            return nameAndLocation is (string name, _) ? name : null;
+            return nameAndLocation?.Name;
         }
 
         public ImmutableArray<string?> GetNames()

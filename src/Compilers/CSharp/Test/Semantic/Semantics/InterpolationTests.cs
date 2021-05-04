@@ -1198,6 +1198,9 @@ static class C
                 );
         }
 
+// PROTOTYPE(interp-string): Define how these are represented in IOperation
+#if !ROSLYN_TEST_IOPERATION
+
         private string GetInterpolatedStringBuilderDefinition(bool includeSpanOverloads, bool useDefaultParameters, bool useBoolReturns, string returnExpression = null)
         {
             Debug.Assert(returnExpression == null || useBoolReturns);
@@ -1345,7 +1348,7 @@ value:1,alignment:2:format:Y";
 
             var comp1 = CreateCompilation(interpolatedStringBuilder);
 
-            foreach (var reference in new[] { comp1.EmitToImageReference(), comp1.EmitToPortableExecutableReference() })
+            foreach (var reference in new[] { comp1.EmitToImageReference(), comp1.ToMetadataReference() })
             {
                 var comp2 = CreateCompilation(source, new[] { reference });
                 verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput);
@@ -1575,7 +1578,7 @@ value:1,alignment:2:format:Y";
 
             var comp1 = CreateCompilation(interpolatedStringBuilder, targetFramework: TargetFramework.NetCoreApp);
 
-            foreach (var reference in new[] { comp1.EmitToImageReference(), comp1.EmitToPortableExecutableReference() })
+            foreach (var reference in new[] { comp1.EmitToImageReference(), comp1.ToMetadataReference() })
             {
                 var comp2 = CreateCompilation(source, new[] { reference }, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
                 verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput);
@@ -2997,5 +3000,241 @@ ref struct S
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "{s}").WithArguments("S").WithLocation(5, 21)
             );
         }
+
+        [Fact]
+        public void ImplicitUserDefinedConversionInLiteral()
+        {
+            var source = @"
+using System;
+
+Console.WriteLine($""Text{1}"");
+
+public struct CustomStruct
+{
+    public static implicit operator CustomStruct(string s) => new CustomStruct { S = s };
+    public string S { get; set; }
+    public override string ToString() => ""literal:"" + S;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Text;
+    public ref struct InterpolatedStringBuilder
+    {
+        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
+        private readonly StringBuilder _builder;
+        public InterpolatedStringBuilder(int literalLength)
+        {
+            _builder = new StringBuilder();
+        }
+        public string ToStringAndClear() => _builder.ToString();
+        public void AppendLiteral(CustomStruct s) => _builder.AppendLine(s.ToString());
+        public void AppendFormatted(object o) => _builder.AppendLine(""value:"" + o.ToString());
+    }
+}";
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+literal:Text
+value:1");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (System.Runtime.CompilerServices.InterpolatedStringBuilder V_0)
+  IL_0000:  ldc.i4.4
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldstr      ""Text""
+  IL_000f:  call       ""CustomStruct CustomStruct.op_Implicit(string)""
+  IL_0014:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(CustomStruct)""
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  ldc.i4.1
+  IL_001c:  box        ""int""
+  IL_0021:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)""
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_002d:  call       ""void System.Console.WriteLine(string)""
+  IL_0032:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ExplicitUserDefinedConversionInLiteral()
+        {
+            var source = @"
+using System;
+
+Console.WriteLine($""Text{1}"");
+
+public struct CustomStruct
+{
+    public static explicit operator CustomStruct(string s) => new CustomStruct { S = s };
+    public string S { get; set; }
+    public override string ToString() => ""literal:"" + S;
+}
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Text;
+    public ref struct InterpolatedStringBuilder
+    {
+        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
+        private readonly StringBuilder _builder;
+        public InterpolatedStringBuilder(int literalLength)
+        {
+            _builder = new StringBuilder();
+        }
+        public string ToStringAndClear() => _builder.ToString();
+        public void AppendLiteral(CustomStruct s) => _builder.AppendLine(s.ToString());
+        public void AppendFormatted(object o) => _builder.AppendLine(""value:"" + o.ToString());
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,21): error CS1503: Argument 1: cannot convert from 'string' to 'CustomStruct'
+                // Console.WriteLine($"Text{1}");
+                Diagnostic(ErrorCode.ERR_BadArgType, "Text").WithArguments("1", "string", "CustomStruct").WithLocation(4, 21)
+            );
+        }
+
+        [Fact]
+        public void InvalidBuilderReturnType()
+        {
+            var source = @"
+using System;
+
+Console.WriteLine($""Text{1}"");
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Text;
+    public ref struct InterpolatedStringBuilder
+    {
+        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
+        private readonly StringBuilder _builder;
+        public InterpolatedStringBuilder(int literalLength)
+        {
+            _builder = new StringBuilder();
+        }
+        public string ToStringAndClear() => _builder.ToString();
+        public int AppendLiteral(string s) => 0;
+        public int AppendFormatted(object o) => 0;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,21): error CS9001: Interpolated string builder method 'InterpolatedStringBuilder.AppendLiteral(string)' is malformed. It does not return 'void' or 'bool'.
+                // Console.WriteLine($"Text{1}");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnMalformed, "Text").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)").WithLocation(4, 21),
+                // (4,25): error CS9001: Interpolated string builder method 'InterpolatedStringBuilder.AppendFormatted(object)' is malformed. It does not return 'void' or 'bool'.
+                // Console.WriteLine($"Text{1}");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnMalformed, "{1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)").WithLocation(4, 25)
+            );
+        }
+
+        [Fact]
+        public void MixedBuilderReturnTypes_01()
+        {
+            var source = @"
+using System;
+
+Console.WriteLine($""Text{1}"");
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Text;
+    public ref struct InterpolatedStringBuilder
+    {
+        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
+        private readonly StringBuilder _builder;
+        public InterpolatedStringBuilder(int literalLength)
+        {
+            _builder = new StringBuilder();
+        }
+        public string ToStringAndClear() => _builder.ToString();
+        public bool AppendLiteral(string s) => true;
+        public void AppendFormatted(object o) { }
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,25): error CS9002: Interpolated string builder method 'InterpolatedStringBuilder.AppendFormatted(object)' has inconsistent return type. Expected to return 'bool'.
+                // Console.WriteLine($"Text{1}");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)", "bool").WithLocation(4, 25)
+            );
+        }
+
+        [Fact]
+        public void MixedBuilderReturnTypes_02()
+        {
+            var source = @"
+using System;
+
+Console.WriteLine($""Text{1}"");
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Text;
+    public ref struct InterpolatedStringBuilder
+    {
+        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
+        private readonly StringBuilder _builder;
+        public InterpolatedStringBuilder(int literalLength)
+        {
+            _builder = new StringBuilder();
+        }
+        public string ToStringAndClear() => _builder.ToString();
+        public void AppendLiteral(string s) { }
+        public bool AppendFormatted(object o) => true;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,25): error CS9002: Interpolated string builder method 'InterpolatedStringBuilder.AppendFormatted(object)' has inconsistent return type. Expected to return 'void'.
+                // Console.WriteLine($"Text{1}");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)", "void").WithLocation(4, 25)
+            );
+        }
+
+        [Fact]
+        public void MixedBuilderReturnTypes_03()
+        {
+            var source = @"
+using System;
+
+Console.WriteLine($""{1}"");
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Text;
+    public ref struct InterpolatedStringBuilder
+    {
+        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
+        private readonly StringBuilder _builder;
+        public InterpolatedStringBuilder(int literalLength)
+        {
+            _builder = new StringBuilder();
+        }
+        public string ToStringAndClear() => _builder.ToString();
+        public bool AppendLiteral(string s) => true;
+        public void AppendFormatted(object o)
+        {
+            _builder.AppendLine(""value:"" + o.ToString());
+        }
+    }
+}";
+
+            // PROTOTYPE(interp-string): Have a symmetric test for just using AppendLiteral when we have general builder
+            // type support (that the compiler won't optimize away to just the literal value)
+            CompileAndVerify(source, expectedOutput: "value:1");
+        }
+#endif
     }
 }

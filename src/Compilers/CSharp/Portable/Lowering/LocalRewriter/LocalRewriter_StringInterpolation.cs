@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? appendBinaryExpression = null;
             foreach (var currentPart in node.Parts)
             {
-                var appendCall = (BoundCall)(currentPart is BoundStringInsert si ? si.Value : currentPart);
+                var appendCall = (BoundCall)currentPart;
                 Debug.Assert(usesBoolReturn == (appendCall.Method.ReturnType.SpecialType == SpecialType.System_Boolean));
 
                 var rewrittenArgs = VisitList(appendCall.Arguments);
@@ -176,19 +176,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.InterpolationData is not null)
             {
                 // If we can lower to the builder pattern, do so.
-                var resultSymbol = _factory.SynthesizedLocal(_compilation.GetSpecialType(SpecialType.System_String), node.Syntax);
-                var resultTemp = _factory.Local(resultSymbol);
-
                 (ArrayBuilder<BoundExpression> builderPatternExpressions, BoundLocal builderTemp) = RewriteToInterpolatedStringBuilderPattern(node);
 
                 // resultTemp = builderTemp.ToStringAndClear();
                 var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__ToStringAndClear, _diagnostics, syntax: node.Syntax);
-                if (toStringAndClear is not null)
-                {
-                    builderPatternExpressions.Add(_factory.AssignmentExpression(resultTemp, BoundCall.Synthesized(node.Syntax, builderTemp, toStringAndClear)));
-                }
+                BoundExpression toStringAndClearCall = toStringAndClear is not null
+                    ? BoundCall.Synthesized(node.Syntax, builderTemp, toStringAndClear)
+                    : new BoundBadExpression(node.Syntax, LookupResultKind.Empty, symbols: ImmutableArray<Symbol?>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, node.Type);
 
-                return _factory.Sequence(ImmutableArray.Create(resultSymbol, builderTemp.LocalSymbol), builderPatternExpressions.ToImmutableAndFree(), resultTemp);
+                return _factory.Sequence(ImmutableArray.Create(builderTemp.LocalSymbol), builderPatternExpressions.ToImmutableAndFree(), toStringAndClearCall);
             }
             else if (CanLowerToStringConcatenation(node))
             {

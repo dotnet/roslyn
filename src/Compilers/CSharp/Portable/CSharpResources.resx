@@ -6608,7 +6608,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>void and bool are keywords</comment>
   </data>
   <data name="ERR_InterpolatedStringBuilderMethodReturnInconsistent" xml:space="preserve">
-    <value>Interpolated string builder method '{0}' has inconsistent return types. Expected to return '{0}'.</value>
+    <value>Interpolated string builder method '{0}' has inconsistent return type. Expected to return '{1}'.</value>
   </data>
   <data name="ERR_InterpolatedStringBuilderInvalidCreateMethod" xml:space="preserve">
     <value>Interpolated string builder type '{0}' does not have a valid 'Create' method.</value>

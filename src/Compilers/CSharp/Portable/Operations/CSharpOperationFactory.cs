@@ -1973,8 +1973,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInterpolatedStringOperation CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)
         {
-            ImmutableArray<IInterpolatedStringContentOperation> parts =
-                CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts, boundInterpolatedString.InterpolationData != null);
+            ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts);
             SyntaxNode syntax = boundInterpolatedString.Syntax;
             ITypeSymbol? type = boundInterpolatedString.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundInterpolatedString.ConstantValue;
@@ -1982,61 +1981,26 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InterpolatedStringOperation(parts, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        internal ImmutableArray<IInterpolatedStringContentOperation> CreateBoundInterpolatedStringContentOperation(ImmutableArray<BoundExpression> parts, bool usesBuilderPattern)
+        internal ImmutableArray<IInterpolatedStringContentOperation> CreateBoundInterpolatedStringContentOperation(ImmutableArray<BoundExpression> parts)
         {
             var builder = ArrayBuilder<IInterpolatedStringContentOperation>.GetInstance(parts.Length);
             foreach (var part in parts)
             {
-                switch (part)
+                if (part.Kind == BoundKind.StringInsert)
                 {
-                    case BoundStringInsert stringInsert:
-                        Debug.Assert(!stringInsert.IsInterpolatedStringBuilderAppendCall || usesBuilderPattern);
-                        builder.Add((IInterpolatedStringContentOperation)CreateBoundInterpolationOperation(stringInsert));
-                        break;
-                    case BoundLiteral literal:
-                        builder.Add(CreateBoundInterpolatedStringTextOperation(literal));
-                        break;
-                    case BoundCall call:
-                        {
-                            Debug.Assert(usesBuilderPattern);
-                            Debug.Assert(call.Arguments.Length == 1);
-
-                            var currentArg = call.Arguments[0];
-                            addArgument(currentArg);
-                            break;
-                        }
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(part);
+                    builder.Add((IInterpolatedStringContentOperation)Create(part));
+                }
+                else
+                {
+                    builder.Add(CreateBoundInterpolatedStringTextOperation((BoundLiteral)part));
                 }
             }
             return builder.ToImmutableAndFree();
-
-            void addArgument(BoundExpression currentArg)
-            {
-                // If the `AppendLiteral` call didn't take a string, there could be conversions. Walk through the conversions until
-                // we find the literal
-                while (currentArg is BoundConversion c)
-                {
-                    currentArg = c.Operand;
-                }
-
-                builder.Add(CreateBoundInterpolatedStringTextOperation((BoundLiteral)currentArg));
-            }
         }
 
         private IInterpolationOperation CreateBoundInterpolationOperation(BoundStringInsert boundStringInsert)
         {
-            // If the string insert is part of a builder pattern, then the actual thing we want to be in the tree is the first argument of
-            // the AppendFormat call. The rest is synthesized and not user-visible
-            // PROTOTYPE(interp-string): We may want to expose this data when the interpolated string is not being used directly as a string
-            var value = (boundStringInsert.IsInterpolatedStringBuilderAppendCall, boundStringInsert.Value) switch
-            {
-                (false, var v) => v,
-                (true, BoundCall call) => call.Arguments[0],
-                var v => throw ExceptionUtilities.UnexpectedValue(v)
-            };
-
-            IOperation expression = Create(value);
+            IOperation expression = Create(boundStringInsert.Value);
             IOperation? alignment = Create(boundStringInsert.Alignment);
             IOperation? formatString = Create(boundStringInsert.Format);
             SyntaxNode syntax = boundStringInsert.Syntax;

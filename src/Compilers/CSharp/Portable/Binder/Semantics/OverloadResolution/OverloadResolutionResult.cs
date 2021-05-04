@@ -476,7 +476,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     && firstSupported.Result.Kind == MemberResolutionKind.NoCorrespondingNamedParameter)
                 {
                     int badArg = firstSupported.Result.BadArgumentsOpt[0];
-                    Location badName = arguments.Names[badArg].Value.Location;
+                    Debug.Assert(arguments.Names[badArg].HasValue);
+                    Location badName = arguments.Names[badArg].GetValueOrDefault().Location;
                     diagnostics.Add(ErrorCode.ERR_FunctionPointersCannotBeCalledWithNamedArguments, badName);
                     return;
                 }
@@ -773,14 +774,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             int badArg = bad.Result.BadArgumentsOpt[0];
             // We would not have gotten this error had there not been a named argument.
             Debug.Assert(arguments.Names.Count > badArg);
-            (string Name, Location Location)? badName = arguments.Names[badArg];
+            Debug.Assert(arguments.Names[badArg].HasValue);
+            (string badName, Location location) = arguments.Names[badArg].GetValueOrDefault();
             Debug.Assert(badName != null);
 
             // Named argument 'x' specifies a parameter for which a positional argument has already been given
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 ErrorCode.ERR_NamedArgumentUsedInPositional,
-                new object[] { badName.Value.Name },
-                symbols), badName.Value.Location);
+                new object[] { badName },
+                symbols), location);
         }
 
         private static void ReportBadNonTrailingNamedArgument(
@@ -792,24 +794,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             int badArg = bad.Result.BadArgumentsOpt[0];
             // We would not have gotten this error had there not been a named argument.
             Debug.Assert(arguments.Names.Count > badArg);
-            (string Name, Location Location)? badName = arguments.Names[badArg];
+            Debug.Assert(arguments.Names[badArg].HasValue);
+            (string badName, Location location) = arguments.Names[badArg].GetValueOrDefault();
             Debug.Assert(badName != null);
 
             // Named argument 'x' is used out-of-position but is followed by an unnamed argument.
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 ErrorCode.ERR_BadNonTrailingNamedArgument,
-                new object[] { badName.Value.Name },
-                symbols), badName.Value.Location);
+                new object[] { badName },
+                symbols), location);
         }
 
         private void ReportDuplicateNamedArgument(MemberResolutionResult<TMember> result, BindingDiagnosticBag diagnostics, AnalyzedArguments arguments)
         {
             Debug.Assert(result.Result.BadArgumentsOpt.Length == 1);
-            (string Name, Location Location)? name = arguments.Names[result.Result.BadArgumentsOpt[0]];
+            Debug.Assert(arguments.Names[result.Result.BadArgumentsOpt[0]].HasValue);
+            (string name, Location location) = arguments.Names[result.Result.BadArgumentsOpt[0]].GetValueOrDefault();
             Debug.Assert(name != null);
 
             // CS: Named argument '{0}' cannot be specified multiple times
-            diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_DuplicateNamedArgument, name.Value.Name), name.Value.Location);
+            diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_DuplicateNamedArgument, name), location);
         }
 
         private static void ReportNoCorrespondingNamedParameter(
@@ -830,7 +834,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int badArg = bad.Result.BadArgumentsOpt[0];
             // We would not have gotten this error had there not been a named argument.
             Debug.Assert(arguments.Names.Count > badArg);
-            (string Name, Location Location)? badName = arguments.Names[badArg];
+            Debug.Assert(arguments.Names[badArg].HasValue);
+            (string badName, Location location) = arguments.Names[badArg].GetValueOrDefault();
             Debug.Assert(badName != null);
 
             // error CS1739: The best overload for 'M' does not have a parameter named 'x'
@@ -844,8 +849,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 code,
-                new object[] { obj, badName.Value.Name },
-                symbols), badName.Value.Location);
+                new object[] { obj, badName },
+                symbols), location);
         }
 
         private static void ReportMissingRequiredParameter(

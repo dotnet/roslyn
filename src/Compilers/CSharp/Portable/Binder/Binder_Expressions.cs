@@ -8012,7 +8012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argIsRange
                         ? ErrorCode.ERR_ImplicitRangeIndexerWithName
                         : ErrorCode.ERR_ImplicitIndexIndexerWithName,
-                    arguments.Names[0].Value.Location);
+                    arguments.Names[0].GetValueOrDefault().Location);
             }
             return true;
 
