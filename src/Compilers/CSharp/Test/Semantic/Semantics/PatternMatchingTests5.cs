@@ -262,6 +262,7 @@ class C
     {        
         _ = new C() is { Prop1<int>.Prop2: {} };
         _ = new C() is { Prop1->Prop2: {} };
+        _ = new C() is { Prop1!.Prop2: {} };
         _ = new C() is { Prop1?.Prop2: {} };
         _ = new C() is { Prop1[0]: {} };
         _ = new C() is { 1: {} };
@@ -277,26 +278,29 @@ class C
                     //         _ = new C() is { Prop1->Prop2: {} };
                     Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1->Prop2").WithLocation(7, 26),
                     // (8,26): error CS9000: Identifier or a simple member access expected.
+                    //         _ = new C() is { Prop1!.Prop2: {} };
+                    Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1!").WithLocation(8, 26),
+                    // (9,26): error CS9000: Identifier or a simple member access expected.
                     //         _ = new C() is { Prop1?.Prop2: {} };
-                    Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1?.Prop2").WithLocation(8, 26),
-                    // (9,26): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Prop1[0] }'
+                    Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1?.Prop2").WithLocation(9, 26),
+                    // (10,26): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Prop1[0] }'
                     //         _ = new C() is { Prop1[0]: {} };
-                    Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "Prop1[0]").WithArguments("Prop1[0]").WithLocation(9, 26),
-                    // (9,26): error CS0246: The type or namespace name 'Prop1' could not be found (are you missing a using directive or an assembly reference?)
+                    Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "Prop1[0]").WithArguments("Prop1[0]").WithLocation(10, 26),
+                    // (10,26): error CS0246: The type or namespace name 'Prop1' could not be found (are you missing a using directive or an assembly reference?)
                     //         _ = new C() is { Prop1[0]: {} };
-                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Prop1").WithArguments("Prop1").WithLocation(9, 26),
-                    // (9,31): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Prop1").WithArguments("Prop1").WithLocation(10, 26),
+                    // (10,31): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                     //         _ = new C() is { Prop1[0]: {} };
-                    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[0]").WithLocation(9, 31),
-                    // (9,34): error CS1003: Syntax error, ',' expected
+                    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[0]").WithLocation(10, 31),
+                    // (10,34): error CS1003: Syntax error, ',' expected
                     //         _ = new C() is { Prop1[0]: {} };
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(9, 34),
-                    // (9,36): error CS1003: Syntax error, ',' expected
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(10, 34),
+                    // (10,36): error CS1003: Syntax error, ',' expected
                     //         _ = new C() is { Prop1[0]: {} };
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(9, 36),
-                    // (10,26): error CS9000: Identifier or a simple member access expected.
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(10, 36),
+                    // (11,26): error CS9000: Identifier or a simple member access expected.
                     //         _ = new C() is { 1: {} };
-                    Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "1").WithLocation(10, 26));
+                    Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "1").WithLocation(11, 26));
         }
 
         [Fact]
