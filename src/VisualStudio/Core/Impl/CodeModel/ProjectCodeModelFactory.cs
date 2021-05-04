@@ -32,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly IThreadingContext _threadingContext;
 
-        private readonly IAsynchronousOperationListener _listener;
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
 
         [ImportingConstructor]
@@ -48,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
 
-            _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
+            Listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
 
             // Queue up notifications we hear about docs changing.  that way we don't have to fire events multiple times
             // for the same documents.  Once enough time has passed, take the documents that were changed and run
@@ -59,13 +58,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 // We only care about unique doc-ids, so pass in this comparer to collapse streams of changes for a
                 // single document down to one notification.
                 EqualityComparer<DocumentId>.Default,
-                _listener,
+                Listener,
                 threadingContext.DisposalToken);
 
             _visualStudioWorkspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
-        private async System.Threading.Tasks.Task ProcessNextDocumentBatchAsync(
+        internal IAsynchronousOperationListener Listener { get; }
+
+        private async Task ProcessNextDocumentBatchAsync(
             ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             // This logic preserves the previous behavior we had with IForegroundNotificationService.
@@ -80,40 +81,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var stopwatch = SharedStopwatch.StartNew();
             foreach (var documentId in documentIds)
             {
-                do
+                FireEventsForDocument(documentId);
+
+                // Keep firing events for this doc, as long as we haven't exceeded the max amount
+                // of waiting time, and there's no user input that should take precedence.
+                if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IsInputPending())
                 {
-                    // Keep firing events for this doc, as long as we haven't exceeded the max amount
-                    // of waiting time, and there's no user input that should take precedence.
-                    if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IsInputPending())
-                    {
-                        await _listener.Delay(delayBetweenProcessing, cancellationToken).ConfigureAwait(true);
-                        stopwatch = SharedStopwatch.StartNew();
-                    }
+                    await this.Listener.Delay(delayBetweenProcessing, cancellationToken).ConfigureAwait(true);
+                    stopwatch = SharedStopwatch.StartNew();
                 }
-                while (FireEventsForDocument(documentId));
             }
 
             return;
 
-            bool FireEventsForDocument(DocumentId documentId)
+            void FireEventsForDocument(DocumentId documentId)
             {
                 // If we've been asked to shutdown, don't bother reporting any more events.
                 if (_threadingContext.DisposalToken.IsCancellationRequested)
-                    return false;
+                    return;
 
                 var projectCodeModel = this.TryGetProjectCodeModel(documentId.ProjectId);
                 if (projectCodeModel == null)
-                    return false;
+                    return;
 
                 var filename = _visualStudioWorkspace.GetFilePath(documentId);
                 if (filename == null)
-                    return false;
+                    return;
 
                 if (!projectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
-                    return false;
+                    return;
 
                 var codeModel = fileCodeModelHandle.Object;
-                return codeModel.FireEvents();
+                codeModel.FireEvents();
+                return;
             }
         }
 
