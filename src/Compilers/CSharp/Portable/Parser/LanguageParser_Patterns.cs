@@ -266,8 +266,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.CommaToken:
                 case SyntaxKind.SemicolonToken:
                     return true;
-                case SyntaxKind.MinusGreaterThanToken: // parse as an expression for error recovery
-                case SyntaxKind.DotToken: // int.MaxValue is an expression, not a type.
+                case SyntaxKind.DotToken:
+                    // int.MaxValue is an expression, not a type.
+                    return false;
+                case SyntaxKind.MinusGreaterThanToken:
+                case SyntaxKind.ExclamationToken:
+                    // parse as an expression for error recovery
                     return false;
                 case var kind:
                     // If we find what looks like a continuation of an expression, it is not a type.
