@@ -7,7 +7,7 @@ parameters that are constrained by the interface.
 
 Proposal: 
 - https://github.com/dotnet/csharplang/issues/4436
-- https://github.com/dotnet/csharplang/blob/main/proposals/statics-in-interfaces.md
+- https://github.com/dotnet/csharplang/blob/main/proposals/static-abstracts-in-interfaces.md
 
 Feature branch: https://github.com/dotnet/roslyn/tree/features/StaticAbstractMembersInInterfaces
 
