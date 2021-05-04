@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
             _filterFunc = filterFunc;
         }
 
-        public ISyntaxTransformBuilder GetBuilder(DriverStateTable previousStateTable) => new Builder(this, previousStateTable.GetStateTable(this), previousStateTable.GetStateTable(this.FilterNode));
+        public ISyntaxTransformBuilder GetBuilder(DriverStateTable previousStateTable) => new Builder(this, previousStateTable.GetStateTable(this), previousStateTable.GetStateTable(this._filterNode));
 
         internal sealed class Builder : ISyntaxTransformBuilder
         {
