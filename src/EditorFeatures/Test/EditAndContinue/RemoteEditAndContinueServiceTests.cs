@@ -24,9 +24,10 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
-using Xunit;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 {
@@ -213,6 +214,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                     metadataDelta: ImmutableArray.Create<byte>(3, 4),
                     pdbDelta: ImmutableArray.Create<byte>(5, 6),
                     updatedMethods: ImmutableArray.Create(0x06000001),
+                    updatedTypes: ImmutableArray.Create(0x02000001),
                     sequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
                     activeStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
                     exceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1)));
@@ -256,6 +258,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             AssertEx.Equal(new byte[] { 3, 4 }, delta.MetadataDelta);
             AssertEx.Equal(new byte[] { 5, 6 }, delta.PdbDelta);
             AssertEx.Equal(new[] { 0x06000001 }, delta.UpdatedMethods);
+            AssertEx.Equal(new[] { 0x02000001 }, delta.UpdatedTypes);
 
             var lineEdit = delta.SequencePoints.Single();
             Assert.Equal("file.cs", lineEdit.FileName);
@@ -343,10 +346,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             // OnSourceFileUpdatedAsync
 
             called = false;
-            mockEncService.OnSourceFileUpdatedImpl = updatedDocument =>
+            mockEncService.OnSourceFileUpdatedAsyncImpl = (updatedDocument, _) =>
             {
                 Assert.Equal(document.Id, updatedDocument.Id);
                 called = true;
+                return ValueTaskFactory.CompletedTask;
             };
 
             await proxy.OnSourceFileUpdatedAsync(document, CancellationToken.None).ConfigureAwait(false);

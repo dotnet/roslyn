@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// to delete the database and retry opening one more time.  If that fails again, the <see
         /// cref="NoOpPersistentStorage"/> instance will be used.
         /// </summary>
-        protected abstract ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, string workingFolderPath, string databaseFilePath);
+        protected abstract ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         [Obsolete("Use GetStorageAsync instead")]
@@ -62,9 +62,7 @@ namespace Microsoft.CodeAnalysis.Storage
             Workspace workspace, SolutionKey solutionKey, Solution? bulkLoadSnapshot, bool checkBranchId, CancellationToken cancellationToken)
         {
             if (!DatabaseSupported(solutionKey, checkBranchId))
-            {
-                return new(NoOpPersistentStorage.Instance);
-            }
+                return new(NoOpPersistentStorage.GetOrThrow(workspace.Options));
 
             return GetStorageWorkerAsync(workspace, solutionKey, bulkLoadSnapshot, cancellationToken);
         }
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
                 var workingFolder = TryGetWorkingFolder(workspace, solutionKey, bulkLoadSnapshot);
                 if (workingFolder == null)
-                    return NoOpPersistentStorage.Instance;
+                    return NoOpPersistentStorage.GetOrThrow(workspace.Options);
 
                 // If we already had some previous cached service, let's let it start cleaning up
                 if (_currentPersistentStorage != null)
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     _currentPersistentStorageSolutionId = null;
                 }
 
-                var storage = await CreatePersistentStorageAsync(solutionKey, workingFolder).ConfigureAwait(false);
+                var storage = await CreatePersistentStorageAsync(workspace, solutionKey, workingFolder, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(storage);
 
                 // Create and cache a new storage instance associated with this particular solution.
@@ -146,26 +144,32 @@ namespace Microsoft.CodeAnalysis.Storage
             return true;
         }
 
-        private async ValueTask<IChecksummedPersistentStorage> CreatePersistentStorageAsync(SolutionKey solutionKey, string workingFolderPath)
+        private async ValueTask<IChecksummedPersistentStorage> CreatePersistentStorageAsync(
+            Workspace workspace, SolutionKey solutionKey, string workingFolderPath, CancellationToken cancellationToken)
         {
             // Attempt to create the database up to two times.  The first time we may encounter
             // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
             // try to create it again.  If we can't create it the second time, then there's nothing
             // we can do and we have to store things in memory.
-            var result = await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath).ConfigureAwait(false) ??
-                         await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath).ConfigureAwait(false);
+            var result = await TryCreatePersistentStorageAsync(workspace, solutionKey, workingFolderPath, cancellationToken).ConfigureAwait(false) ??
+                         await TryCreatePersistentStorageAsync(workspace, solutionKey, workingFolderPath, cancellationToken).ConfigureAwait(false);
+
             if (result != null)
                 return result;
 
-            return NoOpPersistentStorage.Instance;
+            return NoOpPersistentStorage.GetOrThrow(workspace.Options);
         }
 
-        private async ValueTask<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(SolutionKey solutionKey, string workingFolderPath)
+        private async ValueTask<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(
+            Workspace workspace,
+            SolutionKey solutionKey,
+            string workingFolderPath,
+            CancellationToken cancellationToken)
         {
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                return await TryOpenDatabaseAsync(solutionKey, workingFolderPath, databaseFilePath).ConfigureAwait(false);
+                return await TryOpenDatabaseAsync(solutionKey, workingFolderPath, databaseFilePath, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -178,6 +182,9 @@ namespace Microsoft.CodeAnalysis.Storage
                     FatalError.ReportAndCatch(ex);
                     IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath)!, recursive: true));
                 }
+
+                if (workspace.Options.GetOption(StorageOptions.DatabaseMustSucceed))
+                    throw;
 
                 return null;
             }

@@ -11,6 +11,7 @@ parameters:
 
   SourcesDirectory: $(Build.SourcesDirectory)
   CreatePr: true
+  AutoCompletePr: false
   UseCheckedInLocProjectJson: false
   LanguageSet: VS_Main_Languages
   LclSource: lclFilesInRepo
@@ -48,14 +49,16 @@ jobs:
 
     - task: OneLocBuild@2
       displayName: OneLocBuild
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       inputs:
         locProj: Localize/LocProject.json
         outDir: $(Build.ArtifactStagingDirectory)
         lclSource: ${{ parameters.LclSource }}
         lclPackageId: ${{ parameters.LclPackageId }}
         isCreatePrSelected: ${{ parameters.CreatePr }}
-        repoType: ${{ parameters.RepoType }}
-        gitHubPatVariable: "${{ parameters.GithubPat }}"
+        ${{ if eq(parameters.CreatePr, true) }}:
+          isAutoCompletePrSelected: ${{ parameters.AutoCompletePr }}
         packageSourceAuth: patAuth
         patVariable: ${{ parameters.CeapexPat }}
         ${{ if eq(parameters.RepoType, 'gitHub') }}:
