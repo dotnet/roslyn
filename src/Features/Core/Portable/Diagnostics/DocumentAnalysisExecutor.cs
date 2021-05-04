@@ -63,6 +63,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Contract.ThrowIfFalse(AnalysisScope.Analyzers.Contains(analyzer));
 
+            // If the caller only wants us processing high pri items, then only proceed with certain analyzers.
+            if (!MatchesPriority(analyzer, AnalysisScope.HighPriority))
+                return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+
             var textDocument = AnalysisScope.TextDocument;
             var span = AnalysisScope.Span;
             var kind = AnalysisScope.Kind;
@@ -146,6 +150,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #endif
 
             return diagnostics;
+        }
+
+        private static bool MatchesPriority(DiagnosticAnalyzer analyzer, bool? highPriority)
+        {
+            // If caller isn't asking for prioritized result, then run all analyzers.
+            if (highPriority == null)
+                return true;
+
+            // Otherwise, check our special internal flag to tell.
+            //
+            // Note: the compiler analyzer is always considered high-pri.  This is needed as there can 
+            // be high pri fixers that operate entirely off of compiler diagnostics.  For example, the 
+            // add-using fixer is high pri, and it works off of compiler diagnostics.  So we always have
+            // to run that one up front.
+            var analyzerIsHighPri = analyzer.IsCompilerAnalyzer() || analyzer is IBuiltInAnalyzer { IsHighPriority: true };
+            return analyzerIsHighPri == highPriority;
         }
 
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetAnalysisResultAsync(DocumentAnalysisScope analysisScope, CancellationToken cancellationToken)

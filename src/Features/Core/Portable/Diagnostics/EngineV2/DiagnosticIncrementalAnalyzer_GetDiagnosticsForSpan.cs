@@ -205,11 +205,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ArrayBuilder<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                analyzers = analyzers.WhereAsArray(a => MatchesPriority(a));
-                if (analyzers.IsEmpty)
-                    return;
-
-                var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);
+                var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind, _highPriority);
                 var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, logPerformanceInfo: false);
                 foreach (var analyzer in analyzers)
                 {
@@ -227,23 +223,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
                     }
                 }
-            }
-
-            private bool MatchesPriority(DiagnosticAnalyzer analyzer)
-            {
-                // If caller isn't asking for prioritized result, then run all analyzers.
-                if (_highPriority == null)
-                    return true;
-
-                // Even if the caller is asking for prioritized results, we always need to
-                // run the compiler analyzer to get the basic set of diagnostics that analyzers
-                // need to process.
-                if (analyzer.IsCompilerAnalyzer())
-                    return true;
-
-                // Otherwise, check our special internal flag to tell.
-                var analyzerIsHighPri = analyzer is IBuiltInAnalyzer { IsHighPriority: true };
-                return analyzerIsHighPri == _highPriority;
             }
 
             private bool ShouldInclude(DiagnosticData diagnostic)
