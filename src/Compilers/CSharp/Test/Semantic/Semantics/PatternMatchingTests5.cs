@@ -22,29 +22,58 @@ class C
     
     static bool Test1(C o) => o is { Prop1.Prop2.Prop3: null };
     static bool Test2(S o) => o is { Prop1.Prop2.Prop3: null };
+    static bool Test3(S? o) => o is { Prop1.Prop2.Prop3: null };
+    static bool Test4(S0 o) => o is { Prop1.Prop2.Prop3: 420 };
 
     public static void Main()
     {        
-        Console.Write(Test1(new() { Prop1 = new() { Prop2 = new() { Prop3 = null }}}));
-        Console.Write(Test2(new() { Prop1 = new() { Prop2 = new() { Prop3 = null }}}));
+        Console.WriteLine(Test1(new() { Prop1 = new() { Prop2 = new() { Prop3 = null }}}));
+        Console.WriteLine(Test2(new() { Prop1 = new() { Prop2 = new() { Prop3 = null }}}));
+        Console.WriteLine(Test3(new() { Prop1 = new() { Prop2 = new() { Prop3 = null }}}));
+
+        Console.WriteLine(Test1(new() { Prop1 = new() { Prop2 = null }}));
+        Console.WriteLine(Test2(new() { Prop1 = new() { Prop2 = null }}));
+        Console.WriteLine(Test3(new() { Prop1 = new() { Prop2 = null }}));
+
+        Console.WriteLine(Test1(new() { Prop1 = null }));
+        Console.WriteLine(Test2(new() { Prop1 = null }));
+        Console.WriteLine(Test3(new() { Prop1 = null }));
+
+        Console.WriteLine(Test1(default));
+        Console.WriteLine(Test2(default));
+        Console.WriteLine(Test3(default));
+
+        Console.WriteLine(Test4(new() { Prop1 = new() { Prop2 = new() { Prop3 = 421 }}}));
+        Console.WriteLine(Test4(new() { Prop1 = new() { Prop2 = new() { Prop3 = 420 }}}));
     }
 }
-struct S
-{
-    public A? Prop1;
-}
-struct A
-{
-    public B? Prop2;
-}
-struct B
-{
-    public int? Prop3;
-}
+struct S { public A? Prop1; }
+struct A { public B? Prop2; }
+struct B { public int? Prop3; }
+
+struct S0 { public A0 Prop1; }
+struct A0 { public B0 Prop2; }
+struct B0 { public int Prop3; }
 ";
             var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var verifier = CompileAndVerify(compilation, expectedOutput: "TrueTrue");
+            var expectedOutput = @"
+True
+True
+True
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+True
+";
+            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             verifier.VerifyIL("C.Test1", @"
 {
   // Code size       35 (0x23)
