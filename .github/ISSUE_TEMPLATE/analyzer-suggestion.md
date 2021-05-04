@@ -1,7 +1,6 @@
 ---
 name: Analyzer suggestion
 about: Suggest a Roslyn analyzer related to code style. Semantic/code quality analyzers are developed in roslyn-analyzers repository.
-labels: [Area-IDE, Feature Request]
 ---
 
 **Brief description:**
