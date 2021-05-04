@@ -3113,7 +3113,7 @@ public enum BinaryOperatorKind
     //
     // {FeaturesResources.Summary_colon}
     //     Represents the << operator.
-    LeftShift = 0x8,
+    [|LeftShift|] = 0x8,
 }}";
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.CSharp, expectedCS, includeXmlDocComments: true);
         }
