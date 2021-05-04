@@ -657,8 +657,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (includeMethod)
             {
-                template.Append(")$end$");
+                template.Append(')');
             }
+
+            template.Append("$end$");
 
             // A snippet is manually constructed. Replacement fields are added for each argument, and the field name
             // matches the parameter name.
