@@ -17,11 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public TopLevelStatementsParsingTests(ITestOutputHelper output) : base(output) { }
 
-        protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
-        {
-            return SyntaxFactory.ParseSyntaxTree(text, options: options ?? TestOptions.Regular9);
-        }
-
         private SyntaxTree UsingTree(string text, params DiagnosticDescription[] expectedErrors)
         {
             var tree = base.UsingTree(text);

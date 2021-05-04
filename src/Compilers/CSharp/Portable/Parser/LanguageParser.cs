@@ -2286,7 +2286,7 @@ tryAgain:
 
                 try
                 {
-                    if ((!haveAttributes || !IsScript) && !haveModifiers && (type.Kind == SyntaxKind.RefType || !IsOperatorKeyword()))
+                    if ((!haveAttributes || !IsScript) && !haveModifiers && (type.Kind == SyntaxKind.RefType || !IsOperatorStart(out _, advanceParser: false)))
                     {
                         this.Reset(ref afterAttributesPoint);
 
@@ -2332,12 +2332,13 @@ tryAgain:
 parse_member_name:;
                     // If we've seen the ref keyword, we know we must have an indexer, method, property, or local.
                     bool typeIsRef = type.IsRef;
+                    ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
 
                     // Check here for operators
                     // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
-                    if (!typeIsRef && IsOperatorKeyword())
+                    if (!typeIsRef && IsOperatorStart(out explicitInterfaceOpt))
                     {
-                        return this.ParseOperatorDeclaration(attributes, modifiers, type);
+                        return this.ParseOperatorDeclaration(attributes, modifiers, type, explicitInterfaceOpt);
                     }
 
                     if ((!typeIsRef || !IsScript) && IsFieldDeclaration(isEvent: false))
@@ -2374,7 +2375,6 @@ parse_member_name:;
                     // At this point we can either have indexers, methods, or 
                     // properties (or something unknown).  Try to break apart
                     // the following name and determine what to do from there.
-                    ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
                     SyntaxToken identifierOrThisOpt;
                     TypeParameterListSyntax typeParameterListOpt;
                     this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, isEvent: false);
@@ -2716,14 +2716,16 @@ parse_member_name:;
                     }
 
 parse_member_name:;
+                    ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
+
                     // If we've seen the ref keyword, we know we must have an indexer, method, or property.
                     if (type.Kind != SyntaxKind.RefType)
                     {
                         // Check here for operators
                         // Allow old-style implicit/explicit casting operator syntax, just so we can give a better error
-                        if (IsOperatorKeyword())
+                        if (IsOperatorStart(out explicitInterfaceOpt))
                         {
-                            return this.ParseOperatorDeclaration(attributes, modifiers, type);
+                            return this.ParseOperatorDeclaration(attributes, modifiers, type, explicitInterfaceOpt);
                         }
 
                         if (IsFieldDeclaration(isEvent: false))
@@ -2735,7 +2737,6 @@ parse_member_name:;
                     // At this point we can either have indexers, methods, or 
                     // properties (or something unknown).  Try to break apart
                     // the following name and determine what to do from there.
-                    ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt;
                     SyntaxToken identifierOrThisOpt;
                     TypeParameterListSyntax typeParameterListOpt;
                     this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterListOpt, isEvent: false);
@@ -3193,7 +3194,8 @@ parse_member_name:;
         private OperatorDeclarationSyntax ParseOperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
-            TypeSyntax type)
+            TypeSyntax type,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt)
         {
             var opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
             SyntaxToken opToken;
@@ -3313,6 +3315,7 @@ parse_member_name:;
                 attributes,
                 modifiers.ToList(),
                 type,
+                explicitInterfaceOpt,
                 opKeyword,
                 opToken,
                 paramList,
@@ -5935,37 +5938,7 @@ tryAgain:
                     else
                     {
                         // If we saw a . or :: then we must have something explicit.
-                        // first parse the upcoming name portion.
-
-                        var saveTerm = _termState;
-                        _termState |= TerminatorState.IsEndOfNameInExplicitInterface;
-
-                        if (explicitInterfaceName == null)
-                        {
-                            // If this is the first time, then just get the next simple
-                            // name and store it as the explicit interface name.
-                            explicitInterfaceName = this.ParseSimpleName(NameOptions.InTypeList);
-
-                            // Now, get the next separator.
-                            separator = this.CurrentToken.Kind == SyntaxKind.ColonColonToken
-                                ? this.EatToken() // fine after the first identifier
-                                : this.EatToken(SyntaxKind.DotToken);
-                        }
-                        else
-                        {
-                            // Parse out the next part and combine it with the 
-                            // current explicit name to form the new explicit name.
-                            var tmp = this.ParseQualifiedNameRight(NameOptions.InTypeList, explicitInterfaceName, separator);
-                            Debug.Assert(!ReferenceEquals(tmp, explicitInterfaceName), "We should have consumed something and updated explicitInterfaceName");
-                            explicitInterfaceName = tmp;
-
-                            // Now, get the next separator.
-                            separator = this.CurrentToken.Kind == SyntaxKind.ColonColonToken
-                                ? this.ConvertToMissingWithTrailingTrivia(this.EatToken(), SyntaxKind.DotToken)
-                                : this.EatToken(SyntaxKind.DotToken);
-                        }
-
-                        _termState = saveTerm;
+                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator);
                     }
                 }
 
@@ -6031,6 +6004,144 @@ tryAgain:
                 {
                     Release(ref beforeIdentifierPoint);
                 }
+            }
+        }
+
+        private void AccumulateExplicitInterfaceName(ref NameSyntax explicitInterfaceName, ref SyntaxToken separator, bool reportAnErrorOnMispacedColonColon = false)
+        {
+            // first parse the upcoming name portion.
+
+            var saveTerm = _termState;
+            _termState |= TerminatorState.IsEndOfNameInExplicitInterface;
+
+            if (explicitInterfaceName == null)
+            {
+                // If this is the first time, then just get the next simple
+                // name and store it as the explicit interface name.
+                explicitInterfaceName = this.ParseSimpleName(NameOptions.InTypeList);
+
+                // Now, get the next separator.
+                separator = this.CurrentToken.Kind == SyntaxKind.ColonColonToken
+                    ? this.EatToken() // fine after the first identifier
+                    : this.EatToken(SyntaxKind.DotToken);
+            }
+            else
+            {
+                // Parse out the next part and combine it with the 
+                // current explicit name to form the new explicit name.
+                var tmp = this.ParseQualifiedNameRight(NameOptions.InTypeList, explicitInterfaceName, separator);
+                Debug.Assert(!ReferenceEquals(tmp, explicitInterfaceName), "We should have consumed something and updated explicitInterfaceName");
+                explicitInterfaceName = tmp;
+
+                // Now, get the next separator.
+                if (this.CurrentToken.Kind == SyntaxKind.ColonColonToken)
+                {
+                    separator = this.EatToken();
+
+                    if (reportAnErrorOnMispacedColonColon)
+                    {
+                        // The https://github.com/dotnet/roslyn/issues/53021 is tracking fixing this in general
+                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName);
+                    }
+
+                    separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
+                }
+                else
+                {
+                    separator = this.EatToken(SyntaxKind.DotToken);
+                }
+            }
+
+            _termState = saveTerm;
+        }
+
+        /// <summary>
+        /// This is an adjusted version of <see cref="ParseMemberName"/>.
+        /// When it returns true, it stops at operator keyword (<see cref="IsOperatorKeyword"/>).
+        /// When it returns false, it does not advance in the token stream.
+        /// </summary>
+        private bool IsOperatorStart(out ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt, bool advanceParser = true)
+        {
+            explicitInterfaceOpt = null;
+
+            if (IsOperatorKeyword())
+            {
+                return true;
+            }
+
+            if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+            {
+                return false;
+            }
+
+            NameSyntax explicitInterfaceName = null;
+            SyntaxToken separator = null;
+
+            ResetPoint beforeIdentifierPoint = GetResetPoint();
+
+            try
+            {
+                while (true)
+                {
+                    // now, scan past the next name.  if it's followed by a dot then
+                    // it's part of the explicit name we're building up.  Otherwise,
+                    // it should be an operator token
+                    var point = GetResetPoint();
+                    bool isPartOfInterfaceName;
+                    try
+                    {
+                        ScanNamedTypePart();
+                        isPartOfInterfaceName = IsDotOrColonColon();
+                    }
+                    finally
+                    {
+                        this.Reset(ref point);
+                        this.Release(ref point);
+                    }
+
+                    if (!isPartOfInterfaceName)
+                    {
+                        // We're past any explicit interface portion
+                        if (separator != null && separator.Kind == SyntaxKind.ColonColonToken)
+                        {
+                            separator = this.AddError(separator, ErrorCode.ERR_AliasQualAsExpression);
+                            separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
+                        }
+
+                        break;
+                    }
+                    else
+                    {
+                        // If we saw a . or :: then we must have something explicit.
+                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator, reportAnErrorOnMispacedColonColon: true);
+                    }
+                }
+
+                if (!IsOperatorKeyword() || explicitInterfaceName is null)
+                {
+                    Reset(ref beforeIdentifierPoint);
+                    return false;
+                }
+
+                if (!advanceParser)
+                {
+                    Reset(ref beforeIdentifierPoint);
+                    return true;
+                }
+
+                if (separator.Kind != SyntaxKind.DotToken)
+                {
+                    separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, separator.GetLeadingTriviaWidth(), separator.Width));
+                    separator = ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
+                }
+
+                explicitInterfaceOpt = CheckFeatureAvailability(_syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator), MessageID.IDS_FeatureStaticAbstractMembersInInterfaces);
+
+                return true;
+            }
+            finally
+            {
+                Release(ref beforeIdentifierPoint);
             }
         }
 
