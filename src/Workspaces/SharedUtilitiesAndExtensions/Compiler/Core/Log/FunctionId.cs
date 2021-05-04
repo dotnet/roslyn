@@ -516,5 +516,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LSP_CompletionListCacheMiss = 486,
 
         VS_ErrorReportingService_ShowGlobalErrorInfo = 489,
+
+        ValueTracking_Command = 490,
+        ValueTracking_TrackValueSource = 491,
     }
 }
