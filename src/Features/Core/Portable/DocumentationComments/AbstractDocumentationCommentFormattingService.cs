@@ -107,11 +107,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
                 _anyNonWhitespaceSinceLastPara = true;
 
-                // This regex replaces `\n`s that are not preceded by `\r` with `\r\n`.
-                // This is because XText.Value returns a string contaning `\n` as the line endings, causing
+                // XText.Value returns a string with `\n` as the line endings, causing
                 // the end result to have mixed line-endings. So normalize everything to `\r\n`.
-                static string NormalizeLineEndings(string input) => Regex.Replace(input, "(?<!\r)\n", "\r\n");
-
+                // https://www.w3.org/TR/xml/#sec-line-ends
+                static string NormalizeLineEndings(string input) => input.Replace("\n", "\r\n");
             }
 
             public void AppendParts(IEnumerable<TaggedText> parts)
