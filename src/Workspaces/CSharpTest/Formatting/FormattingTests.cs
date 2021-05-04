@@ -9860,5 +9860,29 @@ class C
     }
 }", changedOptionSet: changingOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task RecordClass()
+        {
+            await AssertFormatAsync(
+                @"
+record class R(int X);
+",
+                @"
+record  class  R(int X);
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task RecordStruct()
+        {
+            await AssertFormatAsync(
+                @"
+record struct R(int X);
+",
+                @"
+record  struct  R(int X);
+");
+        }
     }
 }

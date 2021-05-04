@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
         [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
         public async Task TestFieldsWithoutInitializers1(string typeKind)
         {
             var initial =
@@ -38,6 +40,30 @@ $@"{typeKind} C {{
     int A;
     int B;
     int C;
+}}";
+            await CheckAsync(initial, final);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TestNestedTypes(string typeKind)
+        {
+            var initial =
+$@"class C {{
+    {typeKind} Nested1 {{ }}
+    {typeKind} Nested2 {{ }}
+    int A;
+}}";
+
+            var final =
+$@"class C {{
+    int A;
+    {typeKind} Nested1 {{ }}
+    {typeKind} Nested2 {{ }}
 }}";
             await CheckAsync(initial, final);
         }
@@ -66,6 +92,7 @@ $@"{typeKind} C {{
         [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
+        [InlineData("record struct")]
         public async Task TestFieldsWithInitializers1(string typeKind)
         {
             var initial =
@@ -287,6 +314,7 @@ $@"{typeKind} C {{
         [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
         [InlineData("class")]
         [InlineData("record")]
+        [InlineData("record struct")]
         public async Task TestAccessibility(string typeKind)
         {
             var initial =
