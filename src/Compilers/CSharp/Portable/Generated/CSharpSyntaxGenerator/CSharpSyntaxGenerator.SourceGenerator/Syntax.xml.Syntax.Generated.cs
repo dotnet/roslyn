@@ -2783,7 +2783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <summary>IdentifierNameSyntax representing the identifier name.</summary>
-        public new IdentifierNameSyntax Name => GetRedAtZero(ref this.name)!;
+        public IdentifierNameSyntax Name => GetRedAtZero(ref this.name)!;
 
         /// <summary>SyntaxToken representing colon.</summary>
         public override SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NameColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));

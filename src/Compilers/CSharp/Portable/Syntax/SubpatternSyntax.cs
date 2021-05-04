@@ -10,9 +10,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public NameColonSyntax? NameColon => ExpressionColon as NameColonSyntax;
 
-        public SubpatternSyntax WithNameColon(NameColonSyntax? nameColon) => WithExpressionColon(nameColon);
+        public SubpatternSyntax WithNameColon(NameColonSyntax? nameColon)
+            => WithExpressionColon(nameColon);
 
-        public SubpatternSyntax Update(NameColonSyntax nameColon, PatternSyntax pattern)
+        public SubpatternSyntax Update(NameColonSyntax? nameColon, PatternSyntax pattern)
             => Update((BaseExpressionColonSyntax?)nameColon, pattern);
     }
 }

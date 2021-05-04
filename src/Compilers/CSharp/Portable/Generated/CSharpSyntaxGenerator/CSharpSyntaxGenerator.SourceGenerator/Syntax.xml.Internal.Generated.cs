@@ -5834,7 +5834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>IdentifierNameSyntax representing the identifier name.</summary>
-        public new IdentifierNameSyntax Name => this.name;
+        public IdentifierNameSyntax Name => this.name;
         /// <summary>SyntaxToken representing colon.</summary>
         public override SyntaxToken ColonToken => this.colonToken;
 

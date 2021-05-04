@@ -1267,7 +1267,7 @@
   </Node>
   <Node Name="NameColonSyntax" Base="BaseExpressionColonSyntax">
     <Kind Name="NameColon"/>
-    <Field Name="Name" Type="IdentifierNameSyntax" New="true">
+    <Field Name="Name" Type="IdentifierNameSyntax">
       <Kind Name="IdentifierName"/>
       <PropertyComment>
         <summary>IdentifierNameSyntax representing the identifier name.</summary>
