@@ -166,12 +166,16 @@ namespace Microsoft.CodeAnalysis
                 _states.Add(values.SelectAsArray(v => (v, state)));
             }
 
-            public void AddEntriesFromPreviousTable(NodeStateTable<T> previousTable, EntryState newState)
+            public ImmutableArray<T> AddEntriesFromPreviousTable(NodeStateTable<T> previousTable, EntryState newState)
             {
                 Debug.Assert(previousTable._states.Length > _states.Count);
                 var previousEntries = previousTable._states[_states.Count].SelectAsArray(s => (s.item, newState));
                 CheckCompacted(newState);
                 _states.Add(previousEntries);
+
+                // PROTOTYPE(source-generators): this is mostly unused, so wastes cycles.
+                // if we refactor the way we store states as noted above though, it will become essentially free
+                return previousEntries.SelectAsArray(e => e.item);
             }
 
             public void ModifyEntriesFromPreviousTable(NodeStateTable<T> previousTable, ImmutableArray<T> outputs, IEqualityComparer<T> comparer)

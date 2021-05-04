@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -177,6 +178,7 @@ namespace Microsoft.CodeAnalysis
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, fillWithValue: null); // we know there is at max 1 per generator
+            var syntaxInputNodes = ArrayBuilder<ISyntaxTransformNode>.GetInstance();
             int receiverCount = 0;
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
@@ -247,8 +249,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             // it isn't possible for an incremental generator to directly create a walker as part of init
                             Debug.Assert(info.SyntaxContextReceiverCreator is null);
-                            var nodes = sourcesBuilder.SyntaxTransformNodes.ToImmutable();
-                            info = new GeneratorInfo(() => new IncrementalSyntaxReceiver(nodes), info.PostInitCallback, info.PipelineCallback);
+                            syntaxInputNodes.AddRange(sourcesBuilder.SyntaxTransformNodes);
                         }
 
                         generatorState = ex is null
@@ -296,40 +297,100 @@ namespace Microsoft.CodeAnalysis
             }
             constantSourcesBuilder.Free();
 
-            // Run a syntax walk if any of the generators requested it
-            if (receiverCount > 0)
-            {
-                foreach (var tree in compilation.SyntaxTrees)
-                {
-                    var root = tree.GetRoot(cancellationToken);
-                    var semanticModel = compilation.GetSemanticModel(tree);
-
-                    // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
-                    for (int i = 0; i < walkerBuilder.Count; i++)
-                    {
-                        var walker = walkerBuilder[i];
-                        if (walker is object)
-                        {
-                            try
-                            {
-                                walker.VisitWithModel(semanticModel, root);
-                            }
-                            catch (Exception e)
-                            {
-                                stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], e, diagnosticsBag);
-                                walkerBuilder.SetItem(i, null); // don't re-visit this walker for any other trees
-                            }
-                        }
-                    }
-                }
-            }
-            walkerBuilder.Free();
 
             // PROTOTYPE(source-generators): we don't need to run at all if none of the inputs have changes.
             var driverStateBuilder = new DriverStateTable.Builder(_state.StateTable, cancellationToken);
             driverStateBuilder.SetInputState(SharedInputNodes.Compilation, NodeStateTable<Compilation>.WithSingleItem(compilation, EntryState.Added));
             driverStateBuilder.SetInputState(SharedInputNodes.AnalzerConfigOptions, NodeStateTable<AnalyzerConfigOptionsProvider>.WithSingleItem(_state.OptionsProvider, EntryState.Added));
             driverStateBuilder.SetInputState(SharedInputNodes.ParseOptions, NodeStateTable<ParseOptions>.WithSingleItem(_state.ParseOptions, EntryState.Added));
+
+            // build the updated node for the syntax trees
+            PooledHashSet<SyntaxTree> syntaxTrees = PooledHashSet<SyntaxTree>.GetInstance();
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                syntaxTrees.Add(tree);
+            }
+
+            var previousTrees = state.StateTable.GetStateTable<SyntaxTree>(SharedInputNodes.SyntaxTrees);
+            var newTrees = new NodeStateTable<SyntaxTree>.Builder();
+            foreach ((var tree, var treeState) in previousTrees)
+            {
+                newTrees.AddEntriesFromPreviousTable(previousTrees, syntaxTrees.Contains(tree) ? EntryState.Cached : EntryState.Removed);
+                syntaxTrees.Remove(tree);
+            }
+            foreach (var tree in syntaxTrees)
+            {
+                newTrees.AddEntries(ImmutableArray.Create(tree), EntryState.Added);
+            }
+            var syntaxTreeTable = newTrees.ToImmutableAndFree();
+            driverStateBuilder.SetInputState(SharedInputNodes.SyntaxTrees, syntaxTreeTable);
+            syntaxTrees.Free();
+
+            // PROTOTYPE(source-generators): Can we do this inline as we update the trees above?
+            if (syntaxInputNodes.Count > 0 || receiverCount > 0)
+            {
+                var builders = syntaxInputNodes.SelectAsArray(n => n.GetBuilder(_state.StateTable));
+                foreach ((var tree, var treeState) in driverStateBuilder.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
+                {
+                    if (treeState == EntryState.Removed)
+                    {
+                        // building a new state, so don't need to worry about the removed.
+                        continue;
+                    }
+
+                    // PROTOTYPE(source-generators): It would be nice to somehow collect all the results up front, then pass them to the builder
+                    //                               so we don't have to worry about the generic and have the extra interface.
+
+                    var semanticModel = compilation.GetSemanticModel(tree);
+                    Lazy<SyntaxNode> root = new Lazy<SyntaxNode>(() => tree.GetRoot(cancellationToken));
+
+                    if (treeState == EntryState.Cached)
+                    {
+                        foreach (var b in builders)
+                        {
+                            b.AddFilterFromPreviousTable(semanticModel);
+                        }
+                    }
+                    else
+                    {
+                        // run a walk for each filter, and save the results
+                        var results = IncrementalGeneratorSyntaxWalker.Run(root.Value, builders);
+                        for (int i = 0; i < builders.Length; i++)
+                        {
+                            builders[i].AddFilterEntries(results[i], semanticModel);
+                        }
+                    }
+
+                    // back compat, run this tree over any ISyntaxContextReceviers
+                    if (receiverCount > 0)
+                    {
+                        for (int i = 0; i < walkerBuilder.Count; i++)
+                        {
+                            var walker = walkerBuilder[i];
+                            if (walker is object)
+                            {
+                                try
+                                {
+                                    walker.VisitWithModel(semanticModel, root.Value);
+                                }
+                                catch (Exception e)
+                                {
+                                    stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], e, diagnosticsBag);
+                                    walkerBuilder.SetItem(i, null); // don't re-visit this walker for any other trees
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // save the updated nodes as inputs to the new graph
+                foreach (var builder in builders)
+                {
+                    builder.SetInputState(driverStateBuilder);
+                }
+            }
+            walkerBuilder.Free();
+
 
             var additionalBuilder = new NodeStateTable<AdditionalText>.Builder(_state.AdditionalTexts.Length);
             foreach (var text in _state.AdditionalTexts)
@@ -348,18 +409,10 @@ namespace Microsoft.CodeAnalysis
 
                 if (generatorState.SyntaxReceiver is object)
                 {
-                    // PROTOTYPE(source-generators): I wonder if we can just make an adaptor for the individual syntax recevier too and it do it all in the same place?
-                    if (generatorState.SyntaxReceiver is IncrementalSyntaxReceiver isr)
-                    {
-                        isr.SetInputStates(driverStateBuilder);
-                    }
-                    else
-                    {
-                        Debug.Assert(generatorState.Sources.ReceiverNode is object);
+                    Debug.Assert(generatorState.Sources.ReceiverNode is object);
 
-                        // PROTOTYPE(source-generators): if we can somehow compare the syntax walkers (maybe just enough to overload equals?) then this can be made to be incremental
-                        driverStateBuilder.SetInputState(generatorState.Sources.ReceiverNode, NodeStateTable<ISyntaxContextReceiver>.WithSingleItem(generatorState.SyntaxReceiver, EntryState.Added));
-                    }
+                    // PROTOTYPE(source-generators): if we can somehow compare the syntax walkers (maybe just enough to overload equals?) then this can be made to be incremental
+                    driverStateBuilder.SetInputState(generatorState.Sources.ReceiverNode, NodeStateTable<ISyntaxContextReceiver>.WithSingleItem(generatorState.SyntaxReceiver, EntryState.Added));
                 }
 
                 IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());

@@ -32,6 +32,7 @@ Microsoft.CodeAnalysis.IncrementalValueSources.Compilation.get -> Microsoft.Code
 Microsoft.CodeAnalysis.IncrementalValueSources.IncrementalValueSources() -> void
 Microsoft.CodeAnalysis.IncrementalValueSources.ParseOptions.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.ParseOptions!>
 Microsoft.CodeAnalysis.IncrementalValueSourceExtensions
+Microsoft.CodeAnalysis.IncrementalValueSources.Syntax.get -> Microsoft.CodeAnalysis.SyntaxValueSources
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
 Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void
 Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void
@@ -58,8 +59,8 @@ Microsoft.CodeAnalysis.SyntaxNode.IsIncrementallyIdenticalTo(Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.SyntaxNodeOrToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNodeOrToken other) -> bool
 Microsoft.CodeAnalysis.SyntaxToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxToken token) -> bool
 Microsoft.CodeAnalysis.SyntaxValueSources
-Microsoft.CodeAnalysis.SyntaxValueSources.CreateTransform<T>(System.Func<Microsoft.CodeAnalysis.GeneratorSyntaxContext, System.Collections.Generic.IEnumerable<T>!>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<T>
 Microsoft.CodeAnalysis.SyntaxValueSources.SyntaxValueSources() -> void
+Microsoft.CodeAnalysis.SyntaxValueSources.Transform<T>(System.Func<Microsoft.CodeAnalysis.SyntaxNode!, bool>! filterFunc, System.Func<Microsoft.CodeAnalysis.GeneratorSyntaxContext, T>! transformFunc) -> Microsoft.CodeAnalysis.IncrementalValueSource<T>
 Microsoft.CodeAnalysis.ValueSources.ParseOptions.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.ParseOptions!>
 Microsoft.CodeAnalysis.ValueSources.Syntax.get -> Microsoft.CodeAnalysis.SyntaxValueSources
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!

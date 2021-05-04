@@ -36,46 +36,6 @@ namespace Microsoft.CodeAnalysis
         internal IncrementalValueSource<ISyntaxContextReceiver> CreateSyntaxReceiver() => new IncrementalValueSource<ISyntaxContextReceiver>(_perGeneratorBuilder.GetOrCreateReceiverNode());
     }
 
-    public struct SyntaxValueSources
-    {
-        private readonly PerGeneratorInputNodes.Builder _builder;
-
-        internal SyntaxValueSources(PerGeneratorInputNodes.Builder builder)
-        {
-            _builder = builder;
-        }
-
-        //public IncrementalValueSource<T> Transform<T>(Func<GeneratorSyntaxContext, T> func)
-        //{
-        //    // we need to save the func somewhere. Presumably inside the builder.
-        //    // how are we going to handlle the input nodes?
-
-
-        //  //  new IIncrementalGeneratorNode<T>
-
-        //    // register the transform with the builder.
-        //    // do... something?
-
-        //    return default;
-        //}
-
-        public IncrementalValueSource<T> TransformMany<T>(Func<GeneratorSyntaxContext, ImmutableArray<T>> func)
-        {
-            var node = new SyntaxTransformNode<T>(func);
-            _builder.SyntaxTransformNodes.Add(node);
-            return new IncrementalValueSource<T>(node);
-        }
-
-        public IncrementalValueSource<T> Transform<T>(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
-        {
-            var node = new SyntaxTransformNode<T>(filterFunc, transformFunc);
-            _builder.SyntaxTransformNodes.Add(node);
-            return new IncrementalValueSource<T>(node);
-        }
-
-        //public IncrementalValueSource<GeneratorSyntaxContext> Filter(Func<GeneratorSyntaxContext, bool> applies) => default;
-    }
-
     /// <summary>
     /// Holds input nodes that are shared between generators and always exist
     /// </summary>
@@ -86,6 +46,8 @@ namespace Microsoft.CodeAnalysis
         public static readonly InputNode<ParseOptions> ParseOptions = new InputNode<ParseOptions>();
 
         public static readonly InputNode<AdditionalText> AdditionalTexts = new InputNode<AdditionalText>();
+
+        public static readonly InputNode<SyntaxTree> SyntaxTrees = new InputNode<SyntaxTree>();
 
         public static readonly InputNode<AnalyzerConfigOptionsProvider> AnalzerConfigOptions = new InputNode<AnalyzerConfigOptionsProvider>();
     }
@@ -132,96 +94,6 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(!disposed);
                 disposed = true;
                 return _receiverNode is null ? Empty : new PerGeneratorInputNodes(_receiverNode, SyntaxTransformNodes.ToImmutableAndFree());
-            }
-        }
-    }
-
-    internal interface ISyntaxTransformNode
-    {
-        ISyntaxTransformBuilder GetBuilder();
-
-    }
-
-    internal interface ISyntaxTransformBuilder
-    {
-        void OnVisitSyntaxNode(GeneratorSyntaxContext context);
-        void SetInputState(DriverStateTable.Builder driverStateBuilder);
-    }
-
-    internal class SyntaxTransformNode<T> : InputNode<T>, ISyntaxTransformNode
-    {
-        private readonly Func<GeneratorSyntaxContext, ImmutableArray<T>> _func;
-
-        private readonly Func<SyntaxNode, bool> _filterFunc;
-
-        internal SyntaxTransformNode(Func<GeneratorSyntaxContext, ImmutableArray<T>> func)
-        {
-            _filterFunc = (n) => true;
-            _func = func;
-        }
-
-        internal SyntaxTransformNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
-        {
-            _func = (t) => ImmutableArray.Create(transformFunc(t));
-            _filterFunc = filterFunc;
-        }
-
-        public ISyntaxTransformBuilder GetBuilder() => new Builder(this);
-
-        internal class Builder : ISyntaxTransformBuilder
-        {
-            private readonly SyntaxTransformNode<T> _owner;
-
-            private readonly NodeStateTable<T>.Builder _stateTable;
-
-            public Builder(SyntaxTransformNode<T> owner)
-            {
-                _owner = owner;
-                //PROTOTYPE(source-generators): presumably actually want to get the previous one, right?
-                _stateTable = new NodeStateTable<T>.Builder();
-            }
-
-            public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
-            {
-                //PROTOTYPE(source-generators): make this actually be efficient.
-                if (_owner._filterFunc(context.Node))
-                {
-                    var result = _owner._func(context).ToImmutableArray();
-                    _stateTable.AddEntries(result, EntryState.Added);
-                }
-            }
-
-            public void SetInputState(DriverStateTable.Builder driverStateBuilder)
-            {
-                // set the table from the built up state.
-                driverStateBuilder.SetInputState(_owner, _stateTable.ToImmutableAndFree());
-            }
-        }
-    }
-
-    // For now, we build the incremental syntax stuff on top of ISyntaxReceiver, but in the future we probably want to invert the relationsip
-    internal class IncrementalSyntaxReceiver : ISyntaxContextReceiver
-    {
-        private ImmutableArray<ISyntaxTransformBuilder> transformBuilders;
-
-        public IncrementalSyntaxReceiver(ImmutableArray<ISyntaxTransformNode> transformNodes)
-        {
-            this.transformBuilders = transformNodes.SelectAsArray(n => n.GetBuilder());
-        }
-
-        public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
-        {
-            foreach (var node in transformBuilders)
-            {
-                node.OnVisitSyntaxNode(context);
-            }
-        }
-
-        internal void SetInputStates(DriverStateTable.Builder driverStateBuilder)
-        {
-            foreach (var node in transformBuilders)
-            {
-                node.SetInputState(driverStateBuilder);
             }
         }
     }
