@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -889,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         protected override SyntaxToken CommaTokenWithElasticSpace()
             => Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace);
 
-        protected override bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, out IMethodSymbol? primaryConstructor)
+        protected override bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
         {
             Debug.Assert(typeSymbol.IsRecord);
             primaryConstructor = typeSymbol.InstanceConstructors.FirstOrDefault(
