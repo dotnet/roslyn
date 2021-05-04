@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             // mutable state
             private Workspace? _workspace;
-            private IWorkspaceStatusService? _workspaceStatusService;
+            private IWorkspaceStatusService _workspaceStatusService = NoOpWorkspaceStatusService.Instance;
             private int _lastSolutionVersionReported;
 
             public event EventHandler<EventArgs>? SuggestedActionsChanged;
@@ -80,10 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     updateSource.DiagnosticsUpdated -= OnDiagnosticsUpdated;
                 }
 
-                if (_workspaceStatusService != null)
-                {
-                    _workspaceStatusService.StatusChanged -= OnWorkspaceStatusChanged;
-                }
+                _workspaceStatusService.StatusChanged -= OnWorkspaceStatusChanged;
 
                 if (_workspace != null)
                 {
@@ -102,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 _owner = null!;
                 _workspace = null;
-                _workspaceStatusService = null;
+                _workspaceStatusService = NoOpWorkspaceStatusService.Instance;
                 _registration = null!;
                 _textView = null!;
                 _subjectBuffer = null!;
@@ -179,13 +176,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                if (_workspaceStatusService != null)
+                using (operationContext?.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
                 {
-                    using (operationContext?.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
-                    {
-                        // This needs to run under threading context otherwise, we can deadlock on VS
-                        ThreadingContext.JoinableTaskFactory.Run(() => _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken));
-                    }
+                    // This needs to run under threading context otherwise, we can deadlock on VS
+                    ThreadingContext.JoinableTaskFactory.Run(() => _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken));
                 }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
@@ -520,10 +514,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // one doesn't need to hold onto workspace in field.
 
                 // remove existing event registration
-                if (_workspaceStatusService != null)
-                {
-                    _workspaceStatusService.StatusChanged -= OnWorkspaceStatusChanged;
-                }
+                _workspaceStatusService.StatusChanged -= OnWorkspaceStatusChanged;
 
                 if (_workspace != null)
                 {
@@ -545,11 +536,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 _workspace.DocumentActiveContextChanged += OnActiveContextChanged;
-                _workspaceStatusService = _workspace.Services.GetService<IWorkspaceStatusService>();
-                if (_workspaceStatusService != null)
-                {
-                    _workspaceStatusService.StatusChanged += OnWorkspaceStatusChanged;
-                }
+                _workspaceStatusService = _workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+                _workspaceStatusService.StatusChanged += OnWorkspaceStatusChanged;
             }
 
             private void OnActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
@@ -614,11 +602,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
-                if (_workspaceStatusService != null && !await _workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    // never show light bulb if solution is not fully loaded yet
+                // never show light bulb if solution is not fully loaded yet
+                if (!await _workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
                     return null;
-                }
 
                 var provider = _owner;
 
