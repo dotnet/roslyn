@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeCleanup
 {
     [Export(typeof(ICodeCleanUpFixerProvider))]
-    [AppliesToProject(ContentTypeNames.CSharpContentType)]
+    [AppliesToProject("CSharp")]
     [ContentType(ContentTypeNames.CSharpContentType)]
     internal class CSharpCodeCleanUpFixerProvider : AbstractCodeCleanUpFixerProvider
     {
