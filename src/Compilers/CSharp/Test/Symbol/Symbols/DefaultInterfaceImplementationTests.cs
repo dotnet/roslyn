@@ -43669,7 +43669,7 @@ true
                 Assert.Equal(Accessibility.Public, member.DeclaredAccessibility);
             }
 
-            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(); ;
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             CompilationReference compilationReference = compilation1.ToMetadataReference();
             MetadataReference metadataReference = compilation1.EmitToImageReference();
@@ -43678,12 +43678,12 @@ true
                                                  targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(); ;
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
 
             var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics(); ;
+            CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
         }
 
         [Fact]
