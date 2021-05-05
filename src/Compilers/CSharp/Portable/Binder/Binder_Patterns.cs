@@ -780,6 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isError = hasErrors || outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                 TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
                 ParameterSymbol? parameter = null;
+                // PROTOTYPE(extended-property-patterns) ExpressionColon
                 if (subPattern.NameColon != null && !isError)
                 {
                     // Check that the given name is the same as the corresponding parameter of the method.
@@ -818,6 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
             foreach (var subpatternSyntax in node.Subpatterns)
             {
+                // PROTOTYPE(extended-property-patterns) ExpressionColon
                 if (subpatternSyntax.NameColon != null)
                 {
                     // error: name not permitted in ITuple deconstruction
@@ -874,6 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isError = i >= elementTypesWithAnnotations.Length;
                 TypeSymbol elementType = isError ? CreateErrorType() : elementTypesWithAnnotations[i].Type;
                 FieldSymbol? foundField = null;
+                // PROTOTYPE(extended-property-patterns) ExpressionColon
                 if (subpatternSyntax.NameColon != null && !isError)
                 {
                     string name = subpatternSyntax.NameColon.Name.Identifier.ValueText;
@@ -1163,34 +1166,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundSubpattern>.GetInstance(node.Subpatterns.Count);
             foreach (SubpatternSyntax p in node.Subpatterns)
             {
-                IdentifierNameSyntax? name = p.NameColon?.Name;
+                ExpressionSyntax? expr = p.ExpressionColon?.Expression;
                 PatternSyntax pattern = p.Pattern;
-                Symbol? member = null;
+                ImmutableArray<Symbol> members;
                 TypeSymbol memberType;
-                if (name == null)
+                if (expr == null)
                 {
                     if (!hasErrors)
                         diagnostics.Add(ErrorCode.ERR_PropertyPatternNameMissing, pattern.Location, pattern);
 
                     memberType = CreateErrorType();
+                    members = ImmutableArray<Symbol>.Empty;
                     hasErrors = true;
                 }
                 else
                 {
-                    member = LookupMemberForPropertyPattern(inputType, name, diagnostics, ref hasErrors, out memberType);
+                    var memberBuilder = ArrayBuilder<Symbol>.GetInstance();
+                    LookupMembersForPropertyPattern(inputType, expr, memberBuilder, diagnostics, ref hasErrors, out memberType);
+                    members = memberBuilder.ToImmutableAndFree();
                 }
 
                 BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
-                builder.Add(new BoundSubpattern(p, member, boundPattern));
+                builder.Add(new BoundSubpattern(p, members, boundPattern));
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        private Symbol? LookupMemberForPropertyPattern(
-            TypeSymbol inputType, IdentifierNameSyntax name, BindingDiagnosticBag diagnostics, ref bool hasErrors, out TypeSymbol memberType)
+        private void LookupMembersForPropertyPattern(
+            TypeSymbol inputType, ExpressionSyntax expr, ArrayBuilder<Symbol> builder, BindingDiagnosticBag diagnostics, ref bool hasErrors, out TypeSymbol memberType)
         {
-            Symbol? symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
+            Symbol? symbol;
+            switch (expr)
+            {
+                case IdentifierNameSyntax name:
+                    symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
+                    break;
+                case MemberAccessExpressionSyntax { Name: IdentifierNameSyntax name } memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
+                    LookupMembersForPropertyPattern(inputType, memberAccess.Expression, builder, diagnostics, ref hasErrors, out memberType);
+                    symbol = BindPropertyPatternMember(memberType.StrippedType(), name, ref hasErrors, diagnostics);
+                    break;
+                default:
+                    Error(diagnostics, ErrorCode.ERR_InvalidNameInSubpattern, expr);
+                    symbol = null;
+                    hasErrors = true;
+                    break;
+            }
 
             memberType = symbol switch
             {
@@ -1199,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => CreateErrorType()
             };
 
-            return symbol;
+            builder.AddIfNotNull(symbol);
         }
 
         private Symbol? BindPropertyPatternMember(

@@ -532,6 +532,11 @@
         <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidNameInSubpattern">
+        <source>Identifier or a simple member access expected.</source>
+        <target state="new">Identifier or a simple member access expected.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
         <target state="translated">Недопустимое создание объекта</target>
@@ -975,6 +980,11 @@
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">пустые переменные</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
+        <source>extended property patterns</source>
+        <target state="new">extended property patterns</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">

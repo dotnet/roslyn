@@ -1934,6 +1934,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics introduced for C# 10.0
 
+        // PROTOTYPE(extended-property-patterns) Temp values
+        ERR_InvalidNameInSubpattern = 9000,
+
         ERR_InheritingFromRecordWithSealedToString = 8912,
         ERR_HiddenPositionalMember = 8913,
 

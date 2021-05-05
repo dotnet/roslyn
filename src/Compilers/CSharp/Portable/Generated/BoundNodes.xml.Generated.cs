@@ -7538,28 +7538,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSubpattern : BoundNode
     {
-        public BoundSubpattern(SyntaxNode syntax, Symbol? symbol, BoundPattern pattern, bool hasErrors = false)
+        public BoundSubpattern(SyntaxNode syntax, ImmutableArray<Symbol> symbols, BoundPattern pattern, bool hasErrors = false)
             : base(BoundKind.Subpattern, syntax, hasErrors || pattern.HasErrors())
         {
 
+            RoslynDebug.Assert(!symbols.IsDefault, "Field 'symbols' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(pattern is object, "Field 'pattern' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
-            this.Symbol = symbol;
+            this.Symbols = symbols;
             this.Pattern = pattern;
         }
 
 
-        public Symbol? Symbol { get; }
+        public ImmutableArray<Symbol> Symbols { get; }
 
         public BoundPattern Pattern { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSubpattern(this);
 
-        public BoundSubpattern Update(Symbol? symbol, BoundPattern pattern)
+        public BoundSubpattern Update(ImmutableArray<Symbol> symbols, BoundPattern pattern)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(symbol, this.Symbol) || pattern != this.Pattern)
+            if (symbols != this.Symbols || pattern != this.Pattern)
             {
-                var result = new BoundSubpattern(this.Syntax, symbol, pattern, this.HasErrors);
+                var result = new BoundSubpattern(this.Syntax, symbols, pattern, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10860,7 +10861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitSubpattern(BoundSubpattern node)
         {
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
-            return node.Update(node.Symbol, pattern);
+            return node.Update(node.Symbols, pattern);
         }
         public override BoundNode? VisitTypePattern(BoundTypePattern node)
         {
@@ -13170,9 +13171,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitSubpattern(BoundSubpattern node)
         {
-            Symbol? symbol = GetUpdatedSymbol(node, node.Symbol);
+            ImmutableArray<Symbol> symbols = GetUpdatedArray(node, node.Symbols);
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
-            return node.Update(symbol, pattern);
+            return node.Update(symbols, pattern);
         }
 
         public override BoundNode? VisitTypePattern(BoundTypePattern node)
@@ -15076,7 +15077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitSubpattern(BoundSubpattern node, object? arg) => new TreeDumperNode("subpattern", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("symbol", node.Symbol, null),
+            new TreeDumperNode("symbols", node.Symbols, null),
             new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

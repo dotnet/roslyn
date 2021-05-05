@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // List the members that are already tested in this property sub-pattern
             var alreadyTestedMembers = new HashSet<string>(propertyPatternClause.Subpatterns.Select(
+                // PROTOTYPE(extended-property-patterns) ExpressionColon
                 p => p.NameColon?.Name.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s)));
 
             var untestedMembers = members.Where(m => !alreadyTestedMembers.Contains(m.Name) &&

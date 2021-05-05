@@ -829,6 +829,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
 
+        // PROTOTYPE(extended-property-patterns) Temp value
+        ExpressionColon = 9039,
+
         DeclarationExpression = 9040,
         RefExpression = 9050,
         RefType = 9051,

@@ -527,29 +527,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!recursive.Properties.IsDefault)
             {
                 // we have a "property" form
-                for (int i = 0; i < recursive.Properties.Length; i++)
+                foreach (var subpattern in recursive.Properties)
                 {
-                    var subPattern = recursive.Properties[i];
-                    Symbol? symbol = subPattern.Symbol;
-                    BoundPattern pattern = subPattern.Pattern;
-                    BoundDagEvaluation evaluation;
-                    switch (symbol)
+                    BoundPattern pattern = subpattern.Pattern;
+                    BoundDagTemp currentInput = input;
+                    if (subpattern.Symbols.IsEmpty)
                     {
-                        case PropertySymbol property:
-                            evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(input, property));
-                            break;
-                        case FieldSymbol field:
-                            evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, OriginalInput(input, field));
-                            break;
-                        default:
-                            RoslynDebug.Assert(recursive.HasAnyErrors);
-                            tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
-                            continue;
+                        addErrorTest();
+                        goto done;
                     }
 
-                    tests.Add(new Tests.One(evaluation));
-                    var element = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType().Type, evaluation);
-                    tests.Add(MakeTestsAndBindings(element, pattern, bindings));
+                    for (int index = 0, count = subpattern.Symbols.Length; ;)
+                    {
+                        Symbol symbol = subpattern.Symbols[index];
+                        BoundDagEvaluation evaluation;
+                        switch (symbol)
+                        {
+                            case PropertySymbol property:
+                                evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(currentInput, property));
+                                break;
+                            case FieldSymbol field:
+                                evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, OriginalInput(currentInput, field));
+                                break;
+                            default:
+                                addErrorTest();
+                                goto done;
+                        }
+
+                        tests.Add(new Tests.One(evaluation));
+                        TypeSymbol type = symbol.GetTypeOrReturnType().Type;
+                        currentInput = new BoundDagTemp(pattern.Syntax, type, evaluation);
+
+                        if (++index == count)
+                            break;
+
+                        // If this is not the last member, add null test, unwrap nullables, and continue.
+                        currentInput = MakeConvertToType(currentInput, pattern.Syntax, type.StrippedType(), isExplicitTest: false, tests);
+                    }
+
+done:
+                    tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
                 }
             }
 
@@ -560,6 +577,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Tests.AndSequence.Create(tests);
+
+            void addErrorTest()
+            {
+                Debug.Assert(recursive.HasAnyErrors);
+                tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
+            }
         }
 
         private Tests MakeTestsAndBindingsForNegatedPattern(BoundDagTemp input, BoundNegatedPattern neg, ArrayBuilder<BoundPatternBinding> bindings)
