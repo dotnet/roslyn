@@ -1074,12 +1074,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation compilation,
             SuppressMessageAttributeState suppressMessageState)
         {
-            if (diagnostics.IsEmpty)
+            if (diagnostics.IsEmpty || compilation.Options.ReportSuppressedDiagnostics)
             {
                 return diagnostics;
             }
 
-            var reportSuppressedDiagnostics = compilation.Options.ReportSuppressedDiagnostics;
             var builder = ImmutableArray.CreateBuilder<Diagnostic>();
             for (var i = 0; i < diagnostics.Length; i++)
             {
@@ -1089,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #endif
 
                 var diagnostic = suppressMessageState.ApplySourceSuppressions(diagnostics[i]);
-                if (!reportSuppressedDiagnostics && diagnostic.IsSuppressed)
+                if (diagnostic.IsSuppressed)
                 {
                     // Diagnostic suppressed in source.
                     continue;
