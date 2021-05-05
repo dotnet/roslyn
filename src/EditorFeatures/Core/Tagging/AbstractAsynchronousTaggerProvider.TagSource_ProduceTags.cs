@@ -178,9 +178,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 var state = stateRef.Target;
 
-                // cancel the last piece of computation work and enqueue the next.  This doesn't apply for the very
-                // first tag request we make.  We don't want that to be cancellable as we want that result to be 
-                // shown as soon as possible.
                 var cancellationToken = state.GetCancellationToken(initialTags);
 
                 // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
