@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             return progressTracker.GetItems();
         }
 
-
         public async Task TrackValueSourceAsync(
             TextSpan selection,
             Document document,
