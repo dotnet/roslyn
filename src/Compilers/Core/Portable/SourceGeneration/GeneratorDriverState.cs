@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
         /// Should this driver run incremental generators or not
         /// </summary>
         /// <remarks>
-        /// Only used during preview period when incrmental generators are enabled/disabled by preview flag
+        /// Only used during preview period when incremental generators are enabled/disabled by preview flag
         /// </remarks>
         internal readonly bool EnableIncremental;
 

@@ -13,31 +13,46 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class IncrementalGeneratorSyntaxWalker : SyntaxWalker
     {
-        private readonly ImmutableArray<ISyntaxTransformBuilder> _builders;
+        private readonly ArrayBuilder<ISyntaxTransformBuilder> _builders;
 
-        private readonly ImmutableArray<ArrayBuilder<SyntaxNode>> _resultArray;
+        private readonly ArrayBuilder<ArrayBuilder<SyntaxNode>?> _results;
 
-        internal IncrementalGeneratorSyntaxWalker(ImmutableArray<ISyntaxTransformBuilder> builders, ImmutableArray<ArrayBuilder<SyntaxNode>> resultArray)
+        internal IncrementalGeneratorSyntaxWalker(ArrayBuilder<ISyntaxTransformBuilder> builders, ArrayBuilder<ArrayBuilder<SyntaxNode>?> results)
         {
             _builders = builders;
-            _resultArray = resultArray;
+            _results = results;
         }
 
-        public static ImmutableArray<ImmutableArray<SyntaxNode>> Run(SyntaxNode root, ImmutableArray<ISyntaxTransformBuilder> builders)
+        public static void VisitNodeForBuilders(SyntaxNode root, SemanticModel semanticModel, ArrayBuilder<ISyntaxTransformBuilder> builders)
         {
-            var results = builders.SelectAsArray(s => ArrayBuilder<SyntaxNode>.GetInstance());
+            var results = ArrayBuilder<ArrayBuilder<SyntaxNode>?>.GetInstance(builders.Count, fillWithValue: null);
+
             IncrementalGeneratorSyntaxWalker walker = new IncrementalGeneratorSyntaxWalker(builders, results);
             walker.Visit(root);
-            return results.SelectAsArray(r => r.ToImmutableAndFree());
+
+            for (int i = 0; i < builders.Count; i++)
+            {
+                var result = results[i];
+                if (result is object)
+                {
+                    builders[i].AddFilterEntries(result.ToImmutableAndFree(), semanticModel);
+                }
+            }
+            results.Free();
         }
 
         public override void Visit(SyntaxNode node)
         {
-            for (int i = 0; i < _builders.Length; i++)
+            for (int i = 0; i < _builders.Count; i++)
             {
                 if (_builders[i].Filter(node))
                 {
-                    _resultArray[i].Add(node);
+                    var result = _results[i];
+                    if (result is null)
+                    {
+                        _results[i] = result = ArrayBuilder<SyntaxNode>.GetInstance();
+                    }
+                    result.Add(node);
                 }
             }
             base.Visit(node);

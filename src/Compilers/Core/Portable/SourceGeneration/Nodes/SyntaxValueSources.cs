@@ -3,8 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,18 +12,18 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct SyntaxValueSources
     {
-        private readonly PerGeneratorInputNodes.Builder _builder;
+        private readonly ArrayBuilder<ISyntaxTransformNode> _nodes;
 
-        internal SyntaxValueSources(PerGeneratorInputNodes.Builder builder)
+        internal SyntaxValueSources(ArrayBuilder<ISyntaxTransformNode> nodes)
         {
-            _builder = builder;
+            _nodes = nodes;
         }
 
         // PROTOTYPE(source-generators): Minimum exposed, low-level API for now, we can add more as needed
         public IncrementalValueSource<T> Transform<T>(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
         {
             var node = new SyntaxTransformNode<T>(filterFunc, transformFunc);
-            _builder.SyntaxTransformNodes.Add(node);
+            _nodes.Add(node);
             return new IncrementalValueSource<T>(node);
         }
     }

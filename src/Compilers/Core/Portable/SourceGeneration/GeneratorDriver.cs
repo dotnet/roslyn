@@ -94,13 +94,11 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
         {
-            // PROTOTYPE(source-generators): Should be possible to factor out and share this with the regular input code
             var builder = _state.StateTable.GetStateTable(SharedInputNodes.AdditionalTexts).ToBuilder(extraCapacity: additionalTexts.Length);
             foreach (var text in additionalTexts)
             {
                 builder.AddEntries(ImmutableArray.Create(text), EntryState.Added);
             }
-
             var stateTable = _state.StateTable.SetStateTable(SharedInputNodes.AdditionalTexts, builder.ToImmutableAndFree());
 
             var newState = _state.With(additionalTexts: _state.AdditionalTexts.AddRange(additionalTexts), stateTable: stateTable);
@@ -245,6 +243,7 @@ namespace Microsoft.CodeAnalysis
                                          : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
 
                         outputBuilder.Free();
+                        sourcesBuilder.Free();
                     }
                 }
 
@@ -269,8 +268,8 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                // if the pipeline registered any syntax callbacks, create a receiver to handle them
-                if (!generatorState.Sources.TransformNodes.IsDefaultOrEmpty)
+                // if the pipeline registered any syntax callbacks, record them in the syntax input node list
+                if (!generatorState.Sources.TransformNodes.IsEmpty)
                 {
                     // it isn't possible for an incremental generator to directly create a walker as part of init
                     Debug.Assert(generatorState.Info.SyntaxContextReceiverCreator is null);
@@ -296,36 +295,19 @@ namespace Microsoft.CodeAnalysis
 
             // PROTOTYPE(source-generators): we don't need to run at all if none of the inputs have changes.
             var driverStateBuilder = new DriverStateTable.Builder(_state.StateTable, cancellationToken);
-            driverStateBuilder.SetInputState(SharedInputNodes.Compilation, NodeStateTable<Compilation>.WithSingleItem(compilation, EntryState.Added));
-            driverStateBuilder.SetInputState(SharedInputNodes.AnalzerConfigOptions, NodeStateTable<AnalyzerConfigOptionsProvider>.WithSingleItem(_state.OptionsProvider, EntryState.Added));
-            driverStateBuilder.SetInputState(SharedInputNodes.ParseOptions, NodeStateTable<ParseOptions>.WithSingleItem(_state.ParseOptions, EntryState.Added));
 
-            // build the updated node for the syntax trees
-            PooledHashSet<SyntaxTree> syntaxTrees = PooledHashSet<SyntaxTree>.GetInstance();
-            foreach (var tree in compilation.SyntaxTrees)
-            {
-                syntaxTrees.Add(tree);
-            }
+            driverStateBuilder.SetInputValue(SharedInputNodes.Compilation, compilation);
+            driverStateBuilder.SetInputValue(SharedInputNodes.SyntaxTrees, compilation.SyntaxTrees);
+            driverStateBuilder.SetInputValue(SharedInputNodes.AnalyzerConfigOptions, _state.OptionsProvider);
+            driverStateBuilder.SetInputValue(SharedInputNodes.ParseOptions, _state.ParseOptions);
+            driverStateBuilder.SetInputValue(SharedInputNodes.AdditionalTexts, _state.AdditionalTexts);
 
-            var previousTrees = state.StateTable.GetStateTable<SyntaxTree>(SharedInputNodes.SyntaxTrees);
-            var newTrees = new NodeStateTable<SyntaxTree>.Builder();
-            foreach ((var tree, var treeState) in previousTrees)
-            {
-                newTrees.AddEntriesFromPreviousTable(previousTrees, syntaxTrees.Contains(tree) ? EntryState.Cached : EntryState.Removed);
-                syntaxTrees.Remove(tree);
-            }
-            foreach (var tree in syntaxTrees)
-            {
-                newTrees.AddEntries(ImmutableArray.Create(tree), EntryState.Added);
-            }
-            var syntaxTreeTable = newTrees.ToImmutableAndFree();
-            driverStateBuilder.SetInputState(SharedInputNodes.SyntaxTrees, syntaxTreeTable);
-            syntaxTrees.Free();
-
-            // PROTOTYPE(source-generators): Can we do this inline as we update the trees above?
+            // If we have syntax inputs, or receivers, bring them up to date
             if (syntaxInputNodes.Count > 0 || receiverCount > 0)
             {
-                var builders = syntaxInputNodes.SelectAsArray(n => n.GetBuilder(_state.StateTable));
+                var builders = ArrayBuilder<ISyntaxTransformBuilder>.GetInstance(syntaxInputNodes.Count);
+                builders.AddRange(syntaxInputNodes.Select(n => n.GetBuilder(_state.StateTable)));
+
                 foreach ((var tree, var treeState) in driverStateBuilder.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
                 {
                     if (treeState == EntryState.Removed)
@@ -333,7 +315,7 @@ namespace Microsoft.CodeAnalysis
                         // we need to keep the removed tree entries, but can skip everything else
                         foreach (var b in builders)
                         {
-                            // PROTOTYPE(source-generators): we know we on't use the model in this case
+                            // PROTOTYPE(source-generators): we know we don't use the model in this case
                             b.AddFilterFromPreviousTable(null!, EntryState.Removed);
                         }
                         continue;
@@ -343,8 +325,6 @@ namespace Microsoft.CodeAnalysis
                     //                               so we don't have to worry about the generic and have the extra interface.
 
                     var semanticModel = compilation.GetSemanticModel(tree);
-                    Lazy<SyntaxNode> root = new Lazy<SyntaxNode>(() => tree.GetRoot(cancellationToken));
-
                     if (treeState == EntryState.Cached)
                     {
                         foreach (var b in builders)
@@ -354,17 +334,14 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        // run a walk for each filter, and save the results
-                        var results = IncrementalGeneratorSyntaxWalker.Run(root.Value, builders);
-                        for (int i = 0; i < builders.Length; i++)
-                        {
-                            builders[i].AddFilterEntries(results[i], semanticModel);
-                        }
+                        // run a walk for each filter and apply the results
+                        IncrementalGeneratorSyntaxWalker.VisitNodeForBuilders(tree.GetRoot(cancellationToken), semanticModel, builders);
                     }
 
-                    // back compat, run this tree over any ISyntaxContextReceviers
+                    // back compat, run this tree over any ISyntaxContextReceivers
                     if (receiverCount > 0)
                     {
+                        var root = tree.GetRoot(cancellationToken);
                         for (int i = 0; i < walkerBuilder.Count; i++)
                         {
                             var walker = walkerBuilder[i];
@@ -372,7 +349,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 try
                                 {
-                                    walker.VisitWithModel(semanticModel, root.Value);
+                                    walker.VisitWithModel(semanticModel, root);
                                 }
                                 catch (Exception e)
                                 {
@@ -389,16 +366,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     builder.SetInputState(driverStateBuilder);
                 }
+
+                builders.Free();
             }
             walkerBuilder.Free();
-
-
-            var additionalBuilder = new NodeStateTable<AdditionalText>.Builder(_state.AdditionalTexts.Length);
-            foreach (var text in _state.AdditionalTexts)
-            {
-                additionalBuilder.AddEntries(ImmutableArray.Create(text), EntryState.Added);
-            }
-            driverStateBuilder.SetInputState(SharedInputNodes.AdditionalTexts, additionalBuilder.ToImmutableAndFree());
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
@@ -411,9 +382,7 @@ namespace Microsoft.CodeAnalysis
                 if (generatorState.SyntaxReceiver is object)
                 {
                     Debug.Assert(generatorState.Sources.ReceiverNode is object);
-
-                    // PROTOTYPE(source-generators): if we can somehow compare the syntax walkers (maybe just enough to overload equals?) then this can be made to be incremental
-                    driverStateBuilder.SetInputState(generatorState.Sources.ReceiverNode, NodeStateTable<ISyntaxContextReceiver>.WithSingleItem(generatorState.SyntaxReceiver, EntryState.Added));
+                    driverStateBuilder.SetInputValue(generatorState.Sources.ReceiverNode, generatorState.SyntaxReceiver);
                 }
 
                 IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());

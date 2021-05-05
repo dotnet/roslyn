@@ -54,6 +54,9 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var entry in sourceTable)
             {
+                // PROTOTYPE(source-generators): this is a bit weird that we ask the state table before deciding what to apply
+                // we should convert the Add... methods to a set of TryAdd... that the caller first says 'try getting this from cache'
+                // if that fails, try modifying, then finally, just add them.
                 if ((entry.state == EntryState.Cached || entry.state == EntryState.Removed) && !previousTable.IsEmpty)
                 {
                     newTable.AddEntriesFromPreviousTable(previousTable, entry.state);

@@ -27,23 +27,29 @@ namespace Microsoft.CodeAnalysis
         void SetInputState(DriverStateTable.Builder builder);
     }
 
-    internal sealed class SyntaxTransformNode<T> : InputNode<T>, ISyntaxTransformNode
+    internal sealed class SyntaxTransformNode<T> : IIncrementalGeneratorNode<T>, ISyntaxTransformNode
     {
-        private readonly Func<GeneratorSyntaxContext, ImmutableArray<T>> _func;
-
+        private readonly Func<GeneratorSyntaxContext, T> _func;
+        private readonly IEqualityComparer<T> _comparer;
         private readonly Func<SyntaxNode, bool> _filterFunc;
 
         private readonly InputNode<SyntaxNode> _filterNode = new InputNode<SyntaxNode>();
 
-        internal SyntaxTransformNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
+        internal SyntaxTransformNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc, IEqualityComparer<T>? comparer = null)
         {
-            _func = (t) => ImmutableArray.Create(transformFunc(t));
+            _func = transformFunc;
             _filterFunc = filterFunc;
+            _comparer = comparer ?? EqualityComparer<T>.Default;
         }
+
+        // this is an input node, so we don't perform any updates
+        public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken) => previousTable;
+
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxTransformNode<T>(_filterFunc, _func, comparer);
 
         public ISyntaxTransformBuilder GetBuilder(DriverStateTable previousStateTable) => new Builder(this, previousStateTable.GetStateTable(this), previousStateTable.GetStateTable(this._filterNode));
 
-        internal sealed class Builder : ISyntaxTransformBuilder
+        private sealed class Builder : ISyntaxTransformBuilder
         {
             private readonly SyntaxTransformNode<T> _owner;
 
@@ -89,15 +95,14 @@ namespace Microsoft.CodeAnalysis
                     else
                     {
                         var value = new GeneratorSyntaxContext(node, model);
-                        var transformed = _owner._func(value);
+                        var transformed = ImmutableArray.Create(_owner._func(value));
                         if (_previousTransformTable.IsEmpty || state == EntryState.Added)
                         {
                             _transformTable.AddEntries(transformed, EntryState.Added);
                         }
                         else
                         {
-                            // PROTOTYPE(source-generators): need to be able to set a comparer here
-                            _transformTable.ModifyEntriesFromPreviousTable(_previousTransformTable, transformed, EqualityComparer<T>.Default);
+                            _transformTable.ModifyEntriesFromPreviousTable(_previousTransformTable, transformed, _owner._comparer);
                         }
                     }
                 }
@@ -105,8 +110,8 @@ namespace Microsoft.CodeAnalysis
 
             public void SetInputState(DriverStateTable.Builder builder)
             {
-                builder.SetInputState(_owner._filterNode, _filterTable.ToImmutableAndFree());
-                builder.SetInputState(_owner, _transformTable.ToImmutableAndFree());
+                builder.SetInputTable(_owner._filterNode, _filterTable.ToImmutableAndFree());
+                builder.SetInputTable(_owner, _transformTable.ToImmutableAndFree());
             }
         }
     }

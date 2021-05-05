@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -26,5 +28,40 @@ namespace Microsoft.CodeAnalysis
         // PROTOTYPE(source-generators): how does this work? we definitly want to be able to add custom comparers to the input nodes
         // I guess its just a 'compare only' node with this as the input?
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => this;
+
+        public NodeStateTable<T> GetInputTable(NodeStateTable<T> previousTable, T item)
+        {
+            // PROTOTYPE(source-generators): we should compare the values, not just assume they were added
+            return NodeStateTable<T>.WithSingleItem(item, EntryState.Added);
+        }
+
+        public NodeStateTable<T> GetInputTable(NodeStateTable<T> previousTable, IEnumerable<T> items)
+        {
+            // create a mutable hashset of the new items we can check against
+            PooledHashSet<T> itemsSet = PooledHashSet<T>.GetInstance();
+            foreach (var item in items)
+            {
+                itemsSet.Add(item);
+            }
+
+            var builder = new NodeStateTable<T>.Builder();
+
+            // for each item in the previous table, check if its still in the new items
+            foreach ((var oldItem, _) in previousTable)
+            {
+                bool inItemSet = itemsSet.Remove(oldItem);
+                builder.AddEntriesFromPreviousTable(previousTable, inItemSet ? EntryState.Cached : EntryState.Removed);
+            }
+
+            // any remaining new items are added
+            foreach (var newItem in itemsSet)
+            {
+                builder.AddEntries(ImmutableArray.Create(newItem), EntryState.Added);
+            }
+            var newTable = builder.ToImmutableAndFree();
+            itemsSet.Free();
+
+            return newTable;
+        }
     }
 }

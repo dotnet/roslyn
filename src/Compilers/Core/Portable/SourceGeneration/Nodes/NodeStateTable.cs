@@ -78,6 +78,9 @@ namespace Microsoft.CodeAnalysis
 
         public int Count { get => _states.Length; }
 
+        /// <summary>
+        /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
+        /// </summary>
         public bool IsCompacted { get; }
 
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
@@ -162,7 +165,7 @@ namespace Microsoft.CodeAnalysis
 
             public void AddEntries(ImmutableArray<T> values, EntryState state)
             {
-                CheckCompacted(state);
+                UpdateCompactedState(state);
                 _states.Add(values.SelectAsArray(v => (v, state)));
             }
 
@@ -170,7 +173,7 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(previousTable._states.Length > _states.Count);
                 var previousEntries = previousTable._states[_states.Count].SelectAsArray(s => (s.item, newState));
-                CheckCompacted(newState);
+                UpdateCompactedState(newState);
                 _states.Add(previousEntries);
 
                 // PROTOTYPE(source-generators): this is mostly unused, so wastes cycles.
@@ -206,7 +209,7 @@ namespace Microsoft.CodeAnalysis
 
                     var entryState = comparer.Equals(previous.item, replacement) ? EntryState.Cached : EntryState.Modified;
                     modifiedEntries.Add((replacement, entryState));
-                    CheckCompacted(entryState);
+                    UpdateCompactedState(entryState);
 
                     previousHasItems = previousEnumerator.MoveNext();
                     outputHasItems = outputEnumerator.MoveNext();
@@ -236,7 +239,7 @@ namespace Microsoft.CodeAnalysis
                 _exception = e;
             }
 
-            private void CheckCompacted(EntryState state)
+            private void UpdateCompactedState(EntryState state)
             {
                 _isCompacted &= state == EntryState.Cached;
             }
