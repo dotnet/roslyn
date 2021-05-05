@@ -177,12 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         document, selection, addOperationScope, cancellationToken);
 
                     var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
-                    if (!filteredSets.HasValue)
-                    {
-                        return null;
-                    }
-
-                    return filteredSets.Value.SelectAsArray((s, arg) => ConvertToSuggestedActionSet(s, arg.Owner, arg.SubjectBuffer), (state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
+                    return filteredSets.SelectAsArray((s, arg) => ConvertToSuggestedActionSet(s, arg.Owner, arg.SubjectBuffer), (state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
                 }
             }
 
