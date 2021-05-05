@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -176,9 +177,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         state, supportsFeatureService, requestedActionCategories, workspace,
                         document, selection, addOperationScope, cancellationToken);
 
-                    var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
-                    return filteredSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
+                    return ConvertToSuggestedActionSets(state, selection, fixes, refactorings);
                 }
+            }
+
+            private IEnumerable<SuggestedActionSet> ConvertToSuggestedActionSets(ReferenceCountedDisposable<State> state, TextSpan? selection, ImmutableArray<UnifiedSuggestedActionSet> fixes, ImmutableArray<UnifiedSuggestedActionSet> refactorings)
+            {
+                var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
+                return filteredSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
             }
 
             public async IAsyncEnumerable<SuggestedActionSet> GetSuggestedActionsAsync(
@@ -205,13 +211,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // Compute and return the high pri set of fixes and refactorings first so the user
                     // can act on them immediately without waiting on the regular set.
-                    var highPriSet = await GetCodeFixesAndRefactoringsAsync(
-                        requestedActionCategories, document, range, AddOperationScope, highPriority: true, cancellationToken).ConfigureAwait(false);
-                    foreach (var set in highPriSet)
+                    var highPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, AddOperationScope, highPriority: true, cancellationToken);
+                    await foreach (var set in highPriSet)
                         yield return set;
 
-                    var lowPriSet = await GetCodeFixesAndRefactoringsAsync(
-                        state, requestedActionCategories, document, range, AddOperationScope, highPriority: false, cancellationToken).ConfigureAwait(false);
+                    var lowPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, AddOperationScope, highPriority: false, cancellationToken);
                     await foreach (var set in lowPriSet)
                         yield return set;
                 }
@@ -224,14 +228,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private async Task<IAsyncEnumerable<SuggestedActionSet>> GetCodeFixesAndRefactoringsAsync(
+            private async IAsyncEnumerable<SuggestedActionSet> GetCodeFixesAndRefactoringsAsync(
                 ReferenceCountedDisposable<State> state,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Document document,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
                 bool highPriority,
-                CancellationToken cancellationToken)
+                [EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 var workspace = document.Project.Solution.Workspace;
                 var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
@@ -248,39 +252,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (highPriority)
                 {
                     // in a high pri scenario, return data as soon as possible so that the user can interact with them.
+                    // this is especially important for state-machine oriented refactorings (like rename) where the user
+                    // should always have access to them effectively synchronously.
                     var firstTask = await Task.WhenAny(fixesTask, refactoringsTask).ConfigureAwait(false);
                     var secondTask = firstTask == fixesTask ? refactoringsTask : fixesTask;
 
-                    if (firstTask == fixesTask)
+                    var orderedTasks = new[] { firstTask, secondTask };
+                    foreach (var task in orderedTasks)
                     {
-                        var fixes = await firstTask.ConfigureAwait(false);
+                        if (task == fixesTask)
+                        {
+                            var fixes = await fixesTask.ConfigureAwait(false);
+                            foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes, ImmutableArray<UnifiedSuggestedActionSet>.Empty))
+                                yield return set;
+                        }
+                        else
+                        {
+                            Contract.ThrowIfFalse(task == refactoringsTask);
 
-                        var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
-                            fixes, ImmutableArray<UnifiedSuggestedActionSet>.Empty, selection);
-                        if (filteredSets.HasValue)
-                            yield return filteredSets.Value.Select(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
-
-                        var refactorings = await secondTask.ConfigureAwait(false);
-                        filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
-                            ImmutableArray<UnifiedSuggestedActionSet>.Empty, refactorings, selection);
-                        if (filteredSets.HasValue)
-                            yield return filteredSets.Value.Select(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
-                    }
-                    else
-                    {
-
+                            var refactorings = await refactoringsTask.ConfigureAwait(false);
+                            foreach (var set in ConvertToSuggestedActionSets(state, selection, ImmutableArray<UnifiedSuggestedActionSet>.Empty, refactorings))
+                                yield return set;
+                        }
                     }
                 }
                 else
                 {
                     await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
-
                     var fixes = await fixesTask.ConfigureAwait(false);
                     var refactorings = await refactoringsTask.ConfigureAwait(false);
-
-                    var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
-                    if (filteredSets.HasValue)
-                        yield return filteredSets.Value.Select(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
+                    foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes, refactorings))
+                        yield return set;
                 }
             }
 
