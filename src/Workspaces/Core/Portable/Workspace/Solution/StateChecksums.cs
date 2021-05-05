@@ -282,6 +282,14 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public static Checksum GetOrCreate(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
         {
+#if DEBUG
+            if (value is PortableExecutableReference && s_cache.TryGetValue(value, out var existing))
+            {
+                Debug.Assert((Checksum)existing == (Checksum)checksumCreator(value));
+                return (Checksum)existing;
+            }
+#endif
+
             // same key should always return same checksum
             return (Checksum)s_cache.GetValue(value, checksumCreator);
         }

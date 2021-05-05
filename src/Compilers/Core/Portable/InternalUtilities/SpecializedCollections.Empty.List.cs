@@ -15,7 +15,7 @@ namespace Roslyn.Utilities
             internal static class BoxedImmutableArray<T>
             {
                 // empty boxed immutable array
-                public static readonly IReadOnlyList<T> Instance = ImmutableArray<T>.Empty;
+                public static readonly IImmutableList<T> Instance = ImmutableArray<T>.Empty;
             }
 
             internal class List<T> : Collection<T>, IList<T>, IReadOnlyList<T>

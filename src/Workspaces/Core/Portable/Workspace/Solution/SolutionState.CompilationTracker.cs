@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis
                 // that the in-progress project only reports a reference to another project if it
                 // could actually get a reference to that project's metadata.
                 var metadataReferences = new List<MetadataReference>();
-                var newProjectReferences = new List<ProjectReference>();
+                using var _ = ArrayBuilder<ProjectReference>.GetInstance(out var newProjectReferences);
                 metadataReferences.AddRange(this.ProjectState.MetadataReferences);
 
                 metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                inProgressProject = inProgressProject.WithProjectReferences(newProjectReferences);
+                inProgressProject = inProgressProject.WithProjectReferences(newProjectReferences.ToImmutableAndClear());
 
                 if (!Enumerable.SequenceEqual(inProgressCompilation.ExternalReferences, metadataReferences))
                 {

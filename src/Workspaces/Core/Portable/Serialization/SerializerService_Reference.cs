@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -15,6 +16,10 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
+
+#if DEBUG
+using Microsoft.CodeAnalysis.ErrorReporting;
+#endif
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
@@ -549,7 +554,11 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 return reference.GetMetadata();
             }
+#if DEBUG
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+#else
             catch
+#endif
             {
                 // we have a reference but the file the reference is pointing to
                 // might not actually exist on disk.
@@ -652,6 +661,48 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             public IEnumerable<ITemporaryStreamStorage>? GetStorages()
                 => _storagesOpt.IsDefault ? (IEnumerable<ITemporaryStreamStorage>?)null : _storagesOpt;
+
+            public override string ToString()
+            {
+                var checksum = Checksum.Create(WellKnownSynchronizationKind.MetadataReference, CreateChecksum(this, CancellationToken.None)).ToString();
+                var mvids = string.Join(",", GetMvids().Select(guid => "\"" + guid + "\""));
+                return $@"{Display} {{""Checksum"":{checksum},""{nameof(Properties.Kind)}"":{Properties.Kind},""{nameof(Properties.Aliases)}"":[{string.Join(",", Properties.Aliases.Select(alias => $@"""{alias}"""))}],""{nameof(Properties.EmbedInteropTypes)}"":{Properties.EmbedInteropTypes},""HasRecursiveAliases"":{Properties.GetType().GetProperty("HasRecursiveAliases", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(Properties)},""Mvids"":[{mvids}]}}";
+            }
+
+            private ImmutableArray<Guid> GetMvids()
+            {
+                var metadata = TryGetMetadata(this);
+                if (metadata is null)
+                    return ImmutableArray<Guid>.Empty;
+
+                if (metadata is AssemblyMetadata assemblyMetadata)
+                {
+                    if (!TryGetModules(assemblyMetadata, out var modules))
+                    {
+                        // Gracefully bail out without writing anything to the writer.
+                        return ImmutableArray<Guid>.Empty;
+                    }
+
+                    var builder = ImmutableArray.CreateBuilder<Guid>(modules.Length);
+                    foreach (var module in modules)
+                    {
+                        builder.Add(GetMvid(module));
+                    }
+
+                    return builder.MoveToImmutable();
+                }
+                else
+                {
+                    return ImmutableArray.Create(GetMvid((ModuleMetadata)metadata));
+                }
+            }
+
+            private static Guid GetMvid(ModuleMetadata metadata)
+            {
+                var metadataReader = metadata.GetMetadataReader();
+                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+                return metadataReader.GetGuid(mvidHandle);
+            }
         }
     }
 }

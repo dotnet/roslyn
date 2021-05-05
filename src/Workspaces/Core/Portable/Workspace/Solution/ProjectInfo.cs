@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -109,35 +110,53 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ParseOptions? ParseOptions { get; }
 
+        /// <inheritdoc cref="Documents"/>
+        private IImmutableList<DocumentInfo> ImmutableDocuments { get; }
+
         /// <summary>
         /// The list of source documents initially associated with the project.
         /// </summary>
-        public IReadOnlyList<DocumentInfo> Documents { get; }
+        public IReadOnlyList<DocumentInfo> Documents => ImmutableDocuments;
+
+        /// <inheritdoc cref="ProjectReferences"/>
+        private IImmutableList<ProjectReference> ImmutableProjectReferences { get; }
 
         /// <summary>
         /// The project references initially defined for the project.
         /// </summary>
-        public IReadOnlyList<ProjectReference> ProjectReferences { get; }
+        public IReadOnlyList<ProjectReference> ProjectReferences => ImmutableProjectReferences;
+
+        /// <inheritdoc cref="MetadataReferences"/>
+        private IImmutableList<MetadataReference> ImmutableMetadataReferences { get; }
 
         /// <summary>
         /// The metadata references initially defined for the project.
         /// </summary>
-        public IReadOnlyList<MetadataReference> MetadataReferences { get; }
+        public IReadOnlyList<MetadataReference> MetadataReferences => ImmutableMetadataReferences;
+
+        /// <inheritdoc cref="AnalyzerReferences"/>
+        private IImmutableList<AnalyzerReference> ImmutableAnalyzerReferences { get; }
 
         /// <summary>
         /// The analyzers initially associated with this project.
         /// </summary>
-        public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
+        public IReadOnlyList<AnalyzerReference> AnalyzerReferences => ImmutableAnalyzerReferences;
+
+        /// <inheritdoc cref="AdditionalDocuments"/>
+        private IImmutableList<DocumentInfo> ImmutableAdditionalDocuments { get; }
 
         /// <summary>
         /// The list of non-source documents associated with this project.
         /// </summary>
-        public IReadOnlyList<DocumentInfo> AdditionalDocuments { get; }
+        public IReadOnlyList<DocumentInfo> AdditionalDocuments => ImmutableAdditionalDocuments;
+
+        /// <inheritdoc cref="AnalyzerConfigDocuments"/>
+        private IImmutableList<DocumentInfo> ImmutableAnalyzerConfigDocuments { get; }
 
         /// <summary>
         /// The list of analyzerconfig documents associated with this project.
         /// </summary>
-        public IReadOnlyList<DocumentInfo> AnalyzerConfigDocuments { get; }
+        public IReadOnlyList<DocumentInfo> AnalyzerConfigDocuments => ImmutableAnalyzerConfigDocuments;
 
         /// <summary>
         /// Type of the host object.
@@ -148,23 +167,23 @@ namespace Microsoft.CodeAnalysis
             ProjectAttributes attributes,
             CompilationOptions? compilationOptions,
             ParseOptions? parseOptions,
-            IReadOnlyList<DocumentInfo> documents,
-            IReadOnlyList<ProjectReference> projectReferences,
-            IReadOnlyList<MetadataReference> metadataReferences,
-            IReadOnlyList<AnalyzerReference> analyzerReferences,
-            IReadOnlyList<DocumentInfo> additionalDocuments,
-            IReadOnlyList<DocumentInfo> analyzerConfigDocuments,
+            IImmutableList<DocumentInfo> documents,
+            IImmutableList<ProjectReference> projectReferences,
+            IImmutableList<MetadataReference> metadataReferences,
+            IImmutableList<AnalyzerReference> analyzerReferences,
+            IImmutableList<DocumentInfo> additionalDocuments,
+            IImmutableList<DocumentInfo> analyzerConfigDocuments,
             Type? hostObjectType)
         {
             Attributes = attributes;
             CompilationOptions = compilationOptions;
             ParseOptions = parseOptions;
-            Documents = documents;
-            ProjectReferences = projectReferences;
-            MetadataReferences = metadataReferences;
-            AnalyzerReferences = analyzerReferences;
-            AdditionalDocuments = additionalDocuments;
-            AnalyzerConfigDocuments = analyzerConfigDocuments;
+            ImmutableDocuments = documents;
+            ImmutableProjectReferences = projectReferences;
+            ImmutableMetadataReferences = metadataReferences;
+            ImmutableAnalyzerReferences = analyzerReferences;
+            ImmutableAdditionalDocuments = additionalDocuments;
+            ImmutableAnalyzerConfigDocuments = analyzerConfigDocuments;
             HostObjectType = hostObjectType;
         }
 
@@ -250,23 +269,23 @@ namespace Microsoft.CodeAnalysis
             ProjectAttributes? attributes = null,
             Optional<CompilationOptions?> compilationOptions = default,
             Optional<ParseOptions?> parseOptions = default,
-            IReadOnlyList<DocumentInfo>? documents = null,
-            IReadOnlyList<ProjectReference>? projectReferences = null,
-            IReadOnlyList<MetadataReference>? metadataReferences = null,
-            IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
-            IReadOnlyList<DocumentInfo>? additionalDocuments = null,
-            IReadOnlyList<DocumentInfo>? analyzerConfigDocuments = null,
+            IImmutableList<DocumentInfo>? documents = null,
+            IImmutableList<ProjectReference>? projectReferences = null,
+            IImmutableList<MetadataReference>? metadataReferences = null,
+            IImmutableList<AnalyzerReference>? analyzerReferences = null,
+            IImmutableList<DocumentInfo>? additionalDocuments = null,
+            IImmutableList<DocumentInfo>? analyzerConfigDocuments = null,
             Optional<Type?> hostObjectType = default)
         {
             var newAttributes = attributes ?? Attributes;
             var newCompilationOptions = compilationOptions.HasValue ? compilationOptions.Value : CompilationOptions;
             var newParseOptions = parseOptions.HasValue ? parseOptions.Value : ParseOptions;
-            var newDocuments = documents ?? Documents;
-            var newProjectReferences = projectReferences ?? ProjectReferences;
-            var newMetadataReferences = metadataReferences ?? MetadataReferences;
-            var newAnalyzerReferences = analyzerReferences ?? AnalyzerReferences;
-            var newAdditionalDocuments = additionalDocuments ?? AdditionalDocuments;
-            var newAnalyzerConfigDocuments = analyzerConfigDocuments ?? AnalyzerConfigDocuments;
+            var newDocuments = documents ?? ImmutableDocuments;
+            var newProjectReferences = projectReferences ?? ImmutableProjectReferences;
+            var newMetadataReferences = metadataReferences ?? ImmutableMetadataReferences;
+            var newAnalyzerReferences = analyzerReferences ?? ImmutableAnalyzerReferences;
+            var newAdditionalDocuments = additionalDocuments ?? ImmutableAdditionalDocuments;
+            var newAnalyzerConfigDocuments = analyzerConfigDocuments ?? ImmutableAnalyzerConfigDocuments;
             var newHostObjectType = hostObjectType.HasValue ? hostObjectType.Value : HostObjectType;
 
             if (newAttributes == Attributes &&
