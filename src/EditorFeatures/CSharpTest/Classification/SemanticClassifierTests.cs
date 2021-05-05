@@ -4411,5 +4411,33 @@ class C
                 testHost,
                 Record("R"));
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicRecordClassClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record class R
+{
+    R r;
+
+    R() { }
+}",
+                testHost,
+                Record("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicRecordStructClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record struct R
+{
+    R property { get; set; }
+}",
+                testHost,
+                RecordStruct("R"));
+        }
     }
 }

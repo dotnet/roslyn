@@ -318,9 +318,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return service.IsMethodLevelMember(memberNode) ? memberNode : null;
                 }
 
-                internal ProjectId? GetActiveProjectId()
-                    => _documentTracker.TryGetActiveDocument()?.ProjectId;
-
                 private static string EnqueueLogger(int tick, object documentOrProjectId, bool replaced)
                 {
                     if (documentOrProjectId is DocumentId documentId)
@@ -370,11 +367,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private class AnalyzersGetter
                 {
                     private readonly List<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> _analyzerProviders;
-                    private readonly Dictionary<Workspace, ImmutableArray<ValueTuple<IIncrementalAnalyzer, bool>>> _analyzerMap;
+                    private readonly Dictionary<Workspace, ImmutableArray<(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap;
 
                     public AnalyzersGetter(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
                     {
-                        _analyzerMap = new Dictionary<Workspace, ImmutableArray<ValueTuple<IIncrementalAnalyzer, bool>>>();
+                        _analyzerMap = new Dictionary<Workspace, ImmutableArray<(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>>();
                         _analyzerProviders = analyzerProviders.ToList();
                     }
 
@@ -385,9 +382,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             if (!_analyzerMap.TryGetValue(workspace, out var analyzers))
                             {
                                 // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
-                                analyzers = _analyzerProviders.Select(p => ValueTuple.Create(p.Value.CreateIncrementalAnalyzer(workspace), p.Metadata.HighPriorityForActiveFile))
-                                                .Where(t => t.Item1 != null)
-                                                .OrderBy(t => !(t.Item1 is DiagnosticIncrementalAnalyzer))
+                                analyzers = _analyzerProviders.Select(p => (analyzer: p.Value.CreateIncrementalAnalyzer(workspace), highPriorityForActiveFile: p.Metadata.HighPriorityForActiveFile))
+                                                .Where(t => t.analyzer != null)
+                                                .OrderBy(t => !(t.analyzer is DiagnosticIncrementalAnalyzer))
                                                 .ToImmutableArray()!;
 
                                 _analyzerMap[workspace] = analyzers;
@@ -396,11 +393,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             if (onlyHighPriorityAnalyzer)
                             {
                                 // include only high priority analyzer for active file
-                                return analyzers.Where(t => t.Item2).Select(t => t.Item1).ToImmutableArray();
+                                return analyzers.Where(t => t.highPriorityForActiveFile).Select(t => t.analyzer).ToImmutableArray();
                             }
 
                             // return all analyzers
-                            return analyzers.Select(t => t.Item1).ToImmutableArray();
+                            return analyzers.Select(t => t.analyzer).ToImmutableArray();
                         }
                     }
                 }

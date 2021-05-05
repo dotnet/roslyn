@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             DocumentId documentId,
             TextSpan span,
             Scope scope,
+            bool isRecord,
             CancellationToken cancellationToken);
     }
 

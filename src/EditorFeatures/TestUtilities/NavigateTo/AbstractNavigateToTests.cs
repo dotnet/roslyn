@@ -88,8 +88,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             await TestAsync(content, body, testHost, testComposition);
         }
 
+        protected async Task TestAsync(TestHost testHost, Composition composition, XElement content, Func<TestWorkspace, Task> body)
+        {
+            var testComposition = composition switch
+            {
+                Composition.Default => DefaultComposition,
+                Composition.FirstVisible => FirstVisibleComposition,
+                Composition.FirstActiveAndVisible => FirstActiveAndVisibleComposition,
+                _ => throw ExceptionUtilities.UnexpectedValue(composition),
+            };
+
+            await TestAsync(content, body, testHost, testComposition);
+        }
+
         private async Task TestAsync(
             string content, Func<TestWorkspace, Task> body, TestHost testHost,
+            TestComposition composition)
+        {
+            using var workspace = CreateWorkspace(content, testHost, composition);
+            await body(workspace);
+        }
+
+        protected async Task TestAsync(
+            XElement content, Func<TestWorkspace, Task> body, TestHost testHost,
             TestComposition composition)
         {
             using var workspace = CreateWorkspace(content, testHost, composition);
@@ -205,6 +226,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             private FirstDocIsVisibleDocumentTrackingService(Workspace workspace)
                 => _workspace = workspace;
 
+            public bool SupportsDocumentTracking => true;
+
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
             public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
@@ -236,6 +259,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             private FirstDocIsActiveAndVisibleDocumentTrackingService(Workspace workspace)
                 => _workspace = workspace;
+
+            public bool SupportsDocumentTracking => true;
 
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
             public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
