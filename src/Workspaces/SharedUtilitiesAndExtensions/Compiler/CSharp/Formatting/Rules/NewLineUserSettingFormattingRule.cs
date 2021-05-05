@@ -126,9 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // new { - Object Initialization, or with { - Record with initializer
+            // new { - Object Initialization, or with { - Record with initializer, or is { - property pattern clauses
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-                (currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) || currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression)))
+                (currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause)))
             {
                 if (!_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
@@ -154,15 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent is AccessorDeclarationSyntax)
             {
                 if (!_options.NewLinesForBracesInAccessors)
-                {
-                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
-                }
-            }
-
-            // * { - in property pattern clauses in pattern matching context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause))
-            {
-                if (!_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -322,10 +315,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // new MyObject { - Object Initialization
             // new List<int> { - Collection Initialization
             // with { - Record with initializer
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken &&
-                (currentToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.CollectionInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.WithInitializerExpression))
+            // is { - property pattern clauses
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+                (currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause)))
             {
                 if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
@@ -371,19 +366,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent is AccessorDeclarationSyntax)
             {
                 if (_options.NewLinesForBracesInAccessors)
-                {
-                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-                }
-                else
-                {
-                    return null;
-                }
-            }
-
-            // * { - in property pattern clauses in pattern matching context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause))
-            {
-                if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
