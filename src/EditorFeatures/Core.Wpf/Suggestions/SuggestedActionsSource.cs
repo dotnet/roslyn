@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 const bool includeSuppressionFixes = true;
 
                 return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
-                    workspace, _owner._codeFixService, document, range.Span.ToTextSpan(),
+                    workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
                     includeSuppressionFixes, highPriority, isBlocking, addOperationScope, cancellationToken).ConfigureAwait(false);
             }
 

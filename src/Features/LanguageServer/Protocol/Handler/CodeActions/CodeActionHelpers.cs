@@ -165,15 +165,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var actionSets = await GetActionSetsAsync(
                 document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
-            {
-                actionSets = await GetActionSetsAsync(
-                    document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+                return ImmutableArray<CodeAction>.Empty;
 
-                if (actionSets.IsDefaultOrEmpty)
-                    return ImmutableArray<CodeAction>.Empty;
-
-                await codeActionsCache.UpdateActionSetsAsync(document, selection, actionSets, cancellationToken).ConfigureAwait(false);
-            }
+            await codeActionsCache.UpdateActionSetsAsync(document, selection, actionSets, cancellationToken).ConfigureAwait(false);
 
             var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
             foreach (var set in actionSets)
@@ -217,7 +211,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 codeAction.Title, nestedActions.ToImmutable(), codeAction.IsInlinable, codeAction.Priority);
         }
 
-        private static async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
+        private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
             Document document,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
