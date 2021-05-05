@@ -1086,7 +1086,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         PropertySubpatterns (1):
             IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'prop.field: null')
             Member: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'prop.field: null')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'prop.field')
                 Children(0)
             Pattern: 
                 IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
@@ -1122,23 +1122,23 @@ class C
 ";
             string expectedOperationTree = @"  
 IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is { p ... n: null } y')
-  Value: 
+    Value: 
     IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
-  Pattern: 
+    Pattern: 
     IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ prop.action: null } y') (InputType: C, NarrowedType: C, DeclaredSymbol: C y, MatchedType: C, DeconstructSymbol: null)
-      DeconstructionSubpatterns (0)
-      PropertySubpatterns (1):
-          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'prop.action: null')
+        DeconstructionSubpatterns (0)
+        PropertySubpatterns (1):
+            IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'prop.action: null')
             Member: 
-              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'prop.action: null')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'prop.action')
                 Children(0)
             Pattern: 
-              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
                 Value: 
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsImplicit) (Syntax: 'null')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsImplicit) (Syntax: 'null')
                     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     Operand: 
-                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {              
                     // file.cs(5,32): warning CS0067: The event 'C.action' is never used
