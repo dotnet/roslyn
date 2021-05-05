@@ -7030,7 +7030,7 @@ oneMoreTime:
                     : new ObjectCreationOperation(
                         matchFailureCtor, initializer: null, ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, operation.Syntax,
                         type: matchFailureCtor.ContainingType, constantValue: null, isImplicit: true);
-                LinkThrowStatement(makeException); 
+                LinkThrowStatement(makeException);
             }
 
             _currentBasicBlock = null;
