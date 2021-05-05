@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigableSymbols
 
@@ -117,7 +118,7 @@ End Class"
         Private Shared Function ExtractSymbol(workspace As TestWorkspace, position As Integer) As Task(Of INavigableSymbol)
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             Dim presenter = New MockStreamingFindUsagesPresenter(Sub() Return)
-            Dim service = New NavigableSymbolService(TestWaitIndicator.Default, threadingContext, presenter)
+            Dim service = New NavigableSymbolService(workspace.ExportProvider.GetExportedValue(Of IUIThreadOperationExecutor)(), threadingContext, presenter)
             Dim view = workspace.Documents.First().GetTextView()
             Dim buffer = workspace.Documents.First().GetTextBuffer()
             Dim triggerSpan = New SnapshotSpan(buffer.CurrentSnapshot, New Span(position, 0))
