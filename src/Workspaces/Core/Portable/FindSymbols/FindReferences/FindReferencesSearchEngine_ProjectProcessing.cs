@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task ProcessProjectAsync(
             Project project,
             DocumentMap documentMap,
+            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, cancellationToken))
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var (document, documentQueue) in documentMap)
                     {
                         if (document.Project == project)
-                            documentTasks.Add(Task.Factory.StartNew(() => ProcessDocumentQueueAsync(document, documentQueue, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                            documentTasks.Add(Task.Factory.StartNew(() => ProcessDocumentQueueAsync(document, documentQueue, isMatchAsync, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                     }
 
                     await Task.WhenAll(documentTasks).ConfigureAwait(false);

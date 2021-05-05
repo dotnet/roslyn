@@ -212,31 +212,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private ImmutableHashSet<Project>? GetProjectScope()
-        {
-            if (_documents == null)
-            {
-                return null;
-            }
-
-            var builder = ImmutableHashSet.CreateBuilder<Project>();
-            foreach (var document in _documents)
-            {
-                builder.Add(document.Project);
-
-                foreach (var reference in document.Project.ProjectReferences)
-                {
-                    var referenceProject = document.Project.Solution.GetProject(reference.ProjectId);
-                    if (referenceProject != null)
-                    {
-                        builder.Add(referenceProject);
-                    }
-                }
-            }
-
-            return builder.ToImmutable();
-        }
-
         private static ISymbol MapToAppropriateSymbol(ISymbol symbol)
         {
             // Never search for an alias.  Always search for it's target.  Note: if the caller was
