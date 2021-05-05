@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.ValueTracking;
@@ -68,6 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         public bool ExecuteCommand(ValueTrackingEditorCommandArgs args, CommandExecutionContext executionContext)
         {
+            using var logger = Logger.LogBlock(FunctionId.ValueTracking_Command, CancellationToken.None, LogLevel.Information);
+
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPosition.HasValue)

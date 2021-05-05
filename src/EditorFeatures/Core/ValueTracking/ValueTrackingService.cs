@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,12 +33,27 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             Document document,
             CancellationToken cancellationToken)
         {
+            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
             var progressTracker = new ValueTrackingProgressCollector();
-            await TrackValueSourceAsync(selection, document, progressTracker, cancellationToken).ConfigureAwait(false);
+            await TrackValueSourceInternalAsync(selection, document, progressTracker, cancellationToken).ConfigureAwait(false);
             return progressTracker.GetItems();
         }
 
         public async Task TrackValueSourceAsync(
+            TextSpan selection,
+            Document document,
+            ValueTrackingProgressCollector progressCollector,
+            CancellationToken cancellationToken)
+        {
+            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
+            await TrackValueSourceInternalAsync(
+                selection,
+                document,
+                progressCollector,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task TrackValueSourceInternalAsync(
             TextSpan selection,
             Document document,
             ValueTrackingProgressCollector progressCollector,
@@ -95,12 +111,25 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             ValueTrackedItem previousTrackedItem,
             CancellationToken cancellationToken)
         {
+            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
             var progressTracker = new ValueTrackingProgressCollector();
-            await TrackValueSourceAsync(previousTrackedItem, progressTracker, cancellationToken).ConfigureAwait(false);
+            await TrackValueSourceInternalAsync(previousTrackedItem, progressTracker, cancellationToken).ConfigureAwait(false);
             return progressTracker.GetItems();
         }
 
         public async Task TrackValueSourceAsync(
+            ValueTrackedItem previousTrackedItem,
+            ValueTrackingProgressCollector progressCollector,
+            CancellationToken cancellationToken)
+        {
+            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
+            await TrackValueSourceInternalAsync(
+                previousTrackedItem,
+                progressCollector,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task TrackValueSourceInternalAsync(
             ValueTrackedItem previousTrackedItem,
             ValueTrackingProgressCollector progressCollector,
             CancellationToken cancellationToken)
@@ -199,7 +228,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
         private static async Task TrackVariableReferencesAsync(ISymbol symbol, OperationCollector collector, CancellationToken cancellationToken)
         {
-            var findReferenceProgressCollector = new FindReferencesProgress(collector, cancellationToken: cancellationToken);
+            var findReferenceProgressCollector = new FindReferencesProgress(collector);
             await SymbolFinder.FindReferencesAsync(
                                     symbol,
                                     collector.Solution,
@@ -213,7 +242,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             CancellationToken cancellationToken)
         {
             var containingMethod = (IMethodSymbol)parameterSymbol.ContainingSymbol;
-            var findReferenceProgressCollector = new FindReferencesProgress(collector, cancellationToken: cancellationToken);
+            var findReferenceProgressCollector = new FindReferencesProgress(collector);
             await SymbolFinder.FindReferencesAsync(
                 containingMethod,
                 collector.Solution,

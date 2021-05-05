@@ -16,29 +16,27 @@ namespace Microsoft.CodeAnalysis.ValueTracking
     {
         private class FindReferencesProgress : IStreamingFindReferencesProgress, IStreamingProgressTracker
         {
-            private readonly CancellationToken _cancellationToken;
             private readonly OperationCollector _operationCollector;
-            public FindReferencesProgress(OperationCollector valueTrackingProgressCollector, CancellationToken cancellationToken = default)
+            public FindReferencesProgress(OperationCollector valueTrackingProgressCollector)
             {
                 _operationCollector = valueTrackingProgressCollector;
-                _cancellationToken = cancellationToken;
             }
 
             public IStreamingProgressTracker ProgressTracker => this;
 
-            public ValueTask AddItemsAsync(int count) => new();
+            public ValueTask AddItemsAsync(int count, CancellationToken _) => new();
 
-            public ValueTask ItemCompletedAsync() => new();
+            public ValueTask ItemCompletedAsync(CancellationToken _) => new();
 
-            public ValueTask OnCompletedAsync() => new();
+            public ValueTask OnCompletedAsync(CancellationToken _) => new();
 
-            public ValueTask OnDefinitionFoundAsync(SymbolGroup symbolGroup) => new();
+            public ValueTask OnDefinitionFoundAsync(SymbolGroup symbolGroup, CancellationToken _) => new();
 
-            public ValueTask OnFindInDocumentCompletedAsync(Document document) => new();
+            public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken _) => new();
 
-            public ValueTask OnFindInDocumentStartedAsync(Document document) => new();
+            public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken _) => new();
 
-            public async ValueTask OnReferenceFoundAsync(SymbolGroup _, ISymbol symbol, ReferenceLocation location)
+            public async ValueTask OnReferenceFoundAsync(SymbolGroup _, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
             {
                 if (!location.Location.IsInSource)
                 {
@@ -49,13 +47,13 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 {
                     if (methodSymbol.IsConstructor())
                     {
-                        await TrackConstructorAsync(location).ConfigureAwait(false);
+                        await TrackConstructorAsync(location, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
                         // If we're searching for references to a method, we don't want to store the symbol as that method again. Instead
                         // we want to track the invocations and how to follow their source
-                        await TrackMethodInvocationArgumentsAsync(location).ConfigureAwait(false);
+                        await TrackMethodInvocationArgumentsAsync(location, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 else if (location.IsWrittenTo)
@@ -74,30 +72,30 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                     if (syntaxFacts.IsLeftSideOfAnyAssignment(node))
                     {
-                        await AddItemsFromAssignmentAsync(location.Document, node, _operationCollector, _cancellationToken).ConfigureAwait(false);
+                        await AddItemsFromAssignmentAsync(location.Document, node, _operationCollector, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
-                        var semanticModel = await location.Document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
-                        var operation = semanticModel.GetOperation(node, _cancellationToken);
+                        var semanticModel = await location.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        var operation = semanticModel.GetOperation(node, cancellationToken);
                         if (operation is null)
                         {
                             return;
                         }
 
-                        await _operationCollector.VisitAsync(operation, _cancellationToken).ConfigureAwait(false);
+                        await _operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
-            public ValueTask OnStartedAsync() => new();
+            public ValueTask OnStartedAsync(CancellationToken _) => new();
 
-            private async Task TrackConstructorAsync(ReferenceLocation referenceLocation)
+            private async Task TrackConstructorAsync(ReferenceLocation referenceLocation, CancellationToken cancellationToken)
             {
                 var document = referenceLocation.Document;
                 var span = referenceLocation.Location.SourceSpan;
 
-                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
+                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var originalNode = syntaxRoot.FindNode(span);
 
                 if (originalNode is null || originalNode.Parent is null)
@@ -105,22 +103,22 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return;
                 }
 
-                var semanticModel = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
-                var operation = semanticModel.GetOperation(originalNode.Parent, _cancellationToken);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var operation = semanticModel.GetOperation(originalNode.Parent, cancellationToken);
                 if (operation is not IObjectCreationOperation)
                 {
                     return;
                 }
 
-                await _operationCollector.VisitAsync(operation, _cancellationToken).ConfigureAwait(false);
+                await _operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task TrackMethodInvocationArgumentsAsync(ReferenceLocation referenceLocation)
+            private async Task TrackMethodInvocationArgumentsAsync(ReferenceLocation referenceLocation, CancellationToken cancellationToken)
             {
                 var document = referenceLocation.Document;
                 var span = referenceLocation.Location.SourceSpan;
 
-                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
+                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var originalNode = syntaxRoot.FindNode(span);
 
                 if (originalNode is null)
@@ -135,14 +133,14 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return;
                 }
 
-                var semanticModel = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
-                var operation = semanticModel.GetOperation(invocationSyntax, _cancellationToken);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var operation = semanticModel.GetOperation(invocationSyntax, cancellationToken);
                 if (operation is not IInvocationOperation)
                 {
                     return;
                 }
 
-                await _operationCollector.VisitAsync(operation, _cancellationToken).ConfigureAwait(false);
+                await _operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
             }
         }
     }
