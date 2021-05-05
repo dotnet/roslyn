@@ -203,7 +203,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (child is Checksum checksum)
                 {
-                    set.Add(checksum);
+                    if (checksum != Checksum.Null)
+                        set.Add(checksum);
                 }
 
                 if (child is ChecksumCollection collection)

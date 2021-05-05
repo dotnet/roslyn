@@ -858,6 +858,7 @@ namespace Microsoft.Cci
 
                 WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
                 WriteValue(CompilationOptionNames.SourceFileCount, module.CommonCompilation.SyntaxTrees.Count().ToString());
+                WriteValue(CompilationOptionNames.OutputKind, module.OutputKind.ToString());
 
                 if (module.EmitOptions.FallbackSourceFileEncoding != null)
                 {
@@ -883,7 +884,7 @@ namespace Microsoft.Cci
 
                 var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
                 var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
-                if (optimizationLevel != OptimizationLevel.Debug || debugPlusMode)
+                if ((optimizationLevel, debugPlusMode) != OptimizationLevelFacts.DefaultValues)
                 {
                     WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
                 }
@@ -927,13 +928,15 @@ namespace Microsoft.Cci
             // COFF header Timestamp field (4 byte int)
             // COFF header SizeOfImage field (4 byte int)
             // MVID (Guid, 24 bytes)
-            foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
+            var referenceManager = module.CommonCompilation.GetBoundReferenceManager();
+            foreach (var pair in referenceManager.GetReferencedAssemblyAliases())
             {
-                if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
+                if (referenceManager.GetMetadataReference(pair.AssemblySymbol) is PortableExecutableReference { FilePath: { } } portableReference)
                 {
                     var fileName = PathUtilities.GetFileName(portableReference.FilePath);
-                    var reference = module.CommonCompilation.GetAssemblyOrModuleSymbol(portableReference);
-                    var peReader = GetReader(reference);
+                    var peReader = pair.AssemblySymbol.GetISymbol() is IAssemblySymbol assemblySymbol
+                        ? assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt
+                        : null;
 
                     // Don't write before checking that we can get a peReader for the metadata reference
                     if (peReader is null)
@@ -946,8 +949,8 @@ namespace Microsoft.Cci
                     builder.WriteByte(0);
 
                     // Extern alias
-                    if (portableReference.Properties.Aliases.Any())
-                        builder.WriteUTF8(string.Join(",", portableReference.Properties.Aliases));
+                    if (pair.Aliases.Length > 0)
+                        builder.WriteUTF8(string.Join(",", pair.Aliases.OrderBy(StringComparer.Ordinal)));
 
                     // Always null terminate the extern alias list
                     builder.WriteByte(0);
@@ -977,14 +980,6 @@ namespace Microsoft.Cci
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationMetadataReferences),
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
-
-            static PEReader GetReader(ISymbol symbol)
-                => symbol switch
-                {
-                    IAssemblySymbol assemblySymbol => assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt,
-                    IModuleSymbol moduleSymbol => moduleSymbol.GetMetadata().Module.PEReaderOpt,
-                    _ => null
-                };
         }
     }
 }

@@ -46,17 +46,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
 
-            var debuggingSession = new DebuggingSession(solution, mockDebuggerService, mockCompilationOutputsProvider, SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>());
+            var debuggingSession = new DebuggingSession(
+                solution,
+                mockDebuggerService,
+                EditAndContinueTestHelpers.Net5RuntimeCapabilities,
+                mockCompilationOutputsProvider,
+                SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>(),
+                new DebuggingSessionTelemetry(),
+                new EditSessionTelemetry());
 
             if (initialState != CommittedSolution.DocumentState.None)
             {
                 EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, solution, initialState);
             }
 
-            debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
-
-            var telemetry = new EditSessionTelemetry();
-            return new EditSession(debuggingSession, telemetry, inBreakState: true);
+            debuggingSession.GetTestAccessor().SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
+            debuggingSession.RestartEditSession(inBreakState: true, out _);
+            return debuggingSession.EditSession;
         }
 
         private static Solution AddDefaultTestSolution(TestWorkspace workspace, string[] markedSources)

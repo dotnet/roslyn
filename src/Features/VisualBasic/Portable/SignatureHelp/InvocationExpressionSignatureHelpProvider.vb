@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.SelectAsArray(Function(m) If(Equals(matchedMethodSymbol.OriginalDefinition, m), matchedMethodSymbol, m))
             End If
 
-            Dim enclosingSymbol = semanticModel.GetEnclosingSymbol(position)
+            Dim enclosingSymbol = semanticModel.GetEnclosingSymbol(position, cancellationToken)
             If enclosingSymbol.IsConstructor() Then
                 memberGroup = memberGroup.WhereAsArray(Function(m) Not m.Equals(enclosingSymbol))
             End If

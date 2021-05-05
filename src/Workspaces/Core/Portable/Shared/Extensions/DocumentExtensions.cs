@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsFromPrimaryBranch(this Document document)
             => document.Project.Solution.BranchId == document.Project.Solution.Workspace.PrimaryBranchId;
 
-        public static ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
+        public static ValueTask<SyntaxTreeIndex?> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
             => SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken);
 
-        public static ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
+        public static ValueTask<SyntaxTreeIndex?> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
             => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken);
 
         /// <summary>

@@ -38,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 CodeMarkerLogger.Instance,
                 new EtwLogger(_optionsService),
                 new VSTelemetryLogger(telemetrySession),
+                new FileLogger(_optionsService),
                 Logger.GetLogger());
 
         protected override void TelemetrySessionInitialized()

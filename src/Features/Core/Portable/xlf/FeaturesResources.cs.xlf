@@ -105,6 +105,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Přidání prvku {0} do rozhraní zabrání v pokračování relace ladění.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
+        <target state="new">Adding a positional parameter to a record will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">Přidání metody s explicitním specifikátorem rozhraní zabrání v pokračování relace ladění.</target>
@@ -305,6 +310,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Vytvořit a přiřadit zbývající položky jako vlastnosti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
+        <target state="new">Deleting a positional parameter from a record will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
         <source>Do not change this code. Put cleanup code in '{0}' method</source>
         <target state="translated">Neměňte tento kód. Kód pro vyčištění vložte do metody {0}.</target>
@@ -335,6 +345,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Změny provedené v projektu {0} znemožní relaci ladění pokračovat dále: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
+        <source>Edit and continue is not supported by the runtime.</source>
+        <target state="new">Edit and continue is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Při čtení souboru {0} došlo k chybě: {1}</target>
@@ -359,6 +374,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <source>Examples:</source>
         <target state="translated">Příklady:</target>
         <note>Plural form when we have multiple examples to show.</note>
+      </trans-unit>
+      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
+        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
+        <target state="new">Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</target>
+        <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
@@ -495,6 +515,16 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Implementovat přes {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing">
+        <source>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</source>
+        <target state="new">Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing">
+        <source>Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</source>
+        <target state="new">Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">Neúplné uvození znaků \p{X}</target>
@@ -573,6 +603,16 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">Převrátit podmínku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method an iterator will prevent the debug session from continuing.</source>
+        <target state="new">Making a method an iterator will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_async_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method 'async' will prevent the debug session from continuing.</source>
+        <target state="new">Making a method 'async' will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -2312,13 +2352,13 @@ Ačkoli je možné tuto část sekundy hodnoty času zobrazit, nemusí tato hodn
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">Specifikátor vlastního formátu f představuje platné číslici zlomku sekund. To znamená, že v hodnotě data a času představuje desetiny sekundy.
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="needs-review-translation">Specifikátor vlastního formátu f představuje platné číslici zlomku sekund. To znamená, že v hodnotě data a času představuje desetiny sekundy.
 
 Pokud se specifikátor formátu f použije bez jiných specifikátorů formátu, interpretuje se jako standardní specifikátor formátu data a času f.
 
 Když specifikátor formátu f použijete v rámci řetězce formátu, který se předává metodám ParseExact, TryParseExact, ParseExact nebo TryParseExact, počet specifikátorů formátu f určuje počet platných číslic zlomku sekundy, který musí být k dispozici pro úspěšné parsování řetězce.</target>
-        <note />
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>

@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Task<ManagedEditAndContinueAvailability> IManagedEditAndContinueDebuggerService.GetAvailabilityAsync(Guid moduleVersionId, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.GetAvailabilityAsync(_callbackId, moduleVersionId, cancellationToken), cancellationToken).AsTask();
 
+            Task<ImmutableArray<string>> IManagedEditAndContinueDebuggerService.GetCapabilitiesAsync(CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.GetCapabilitiesAsync(_callbackId, cancellationToken), cancellationToken).AsTask();
+
             Task IManagedEditAndContinueDebuggerService.PrepareModuleForUpdateAsync(Guid moduleVersionId, CancellationToken cancellationToken)
                 => _callback.InvokeAsync((callback, cancellationToken) => callback.PrepareModuleForUpdateAsync(_callbackId, moduleVersionId, cancellationToken), cancellationToken).AsTask();
         }
@@ -132,7 +135,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics, ImmutableArray<DocumentId> DocumentsWithRudeEdits)> EmitSolutionUpdateAsync(
+        public ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
             PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -143,7 +146,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 try
                 {
                     var results = await service.EmitSolutionUpdateAsync(solution, CreateSolutionActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
-                    return (results.ModuleUpdates, results.GetDiagnosticData(solution), results.DocumentsWithRudeEdits.SelectAsArray(d => d.DocumentId));
+                    return results.Dehydrate(solution);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
@@ -152,7 +155,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
                     var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, solution.Options));
 
-                    return (updates, diagnostics, ImmutableArray<DocumentId>.Empty);
+                    return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty);
                 }
             }, cancellationToken);
         }

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
 
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToImplementation)]
-    internal class GoToImplementationCommandHandler : AbstractGoToCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>
+    internal class GoToImplementationCommandHandler : AbstractGoToCommandHandler<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess, GoToImplementationCommandArgs>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -39,7 +40,20 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToImplementation;
 
-        protected override Task FindActionAsync(IFindUsagesService service, Document document, int caretPosition, IFindUsagesContext context)
+        protected override Task FindActionAsync(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess service, Document document, int caretPosition, IFindUsagesContext context)
             => service.FindImplementationsAsync(document, caretPosition, context);
+
+        protected override IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess GetService(Document document)
+        {
+            // Defer to the legacy interface if the language is still exporting it.
+            // Otherwise, move to the latest EA interface.
+#pragma warning disable CS0618 // Type or member is obsolete
+            var legacyService = document?.GetLanguageService<IFindUsagesService>();
+#pragma warning restore CS0618 // Type or member is obsolete
+            return legacyService == null
+                ? document?.GetLanguageService<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess>()
+                : new FindUsagesServiceWrapper(legacyService);
+
+        }
     }
 }
