@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             return new CSDiagnosticInfo(ErrorCode.ERR_MissingTypeInAssembly, this, containingAssembly.Name);
                         }
                     }
-                    else if (ContainingType is ErrorTypeSymbol { ErrorInfo: { } info})
+                    else if (ContainingType is ErrorTypeSymbol { ErrorInfo: { } info })
                     {
                         return info;
                     }
