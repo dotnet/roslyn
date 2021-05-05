@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.ParseOptions:
                     case WellKnownSynchronizationKind.ProjectReference:
                     case WellKnownSynchronizationKind.OptionSet:
+                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
                         return Checksum.Create(kind, value, this);
 
                     case WellKnownSynchronizationKind.MetadataReference:
@@ -124,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.SolutionAttributes:
                     case WellKnownSynchronizationKind.ProjectAttributes:
                     case WellKnownSynchronizationKind.DocumentAttributes:
+                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
                         ((IObjectWritable)value).WriteTo(writer);
                         return;
 
@@ -197,6 +199,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return (T)(object)ProjectInfo.ProjectAttributes.ReadFrom(reader);
                     case WellKnownSynchronizationKind.DocumentAttributes:
                         return (T)(object)DocumentInfo.DocumentAttributes.ReadFrom(reader);
+                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
+                        return (T)(object)SourceGeneratedDocumentIdentity.ReadFrom(reader);
                     case WellKnownSynchronizationKind.CompilationOptions:
                         return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
                     case WellKnownSynchronizationKind.ParseOptions:

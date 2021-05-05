@@ -41,28 +41,102 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly SymbolReferenceKinds _symbolReferenceKinds;
             private readonly ImmutableDictionary<string, string> _customColumnsData;
 
-            public DocumentSpanEntry(
+            private readonly string _rawProjectName;
+            private readonly List<string> _projectFlavors = new();
+
+            private string? _cachedProjectName;
+
+            private DocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
-                HighlightSpanKind spanKind,
-                string documentName,
+                string rawProjectName,
+                string? projectFlavor,
                 Guid projectGuid,
+                HighlightSpanKind spanKind,
                 MappedSpanResult mappedSpanResult,
                 ExcerptResult excerptResult,
                 SourceText lineText,
                 SymbolUsageInfo symbolUsageInfo,
                 ImmutableDictionary<string, string> customColumnsData)
-                : base(context,
-                      definitionBucket,
-                      documentName,
-                      projectGuid,
-                      lineText,
-                      mappedSpanResult)
+                : base(context, definitionBucket, projectGuid, lineText, mappedSpanResult)
             {
                 _spanKind = spanKind;
                 _excerptResult = excerptResult;
                 _symbolReferenceKinds = symbolUsageInfo.ToSymbolReferenceKinds();
                 _customColumnsData = customColumnsData;
+
+                _rawProjectName = rawProjectName;
+                this.AddFlavor(projectFlavor);
+            }
+
+            protected override string GetProjectName()
+            {
+                // Check if we have any flavors.  If we have at least 2, combine with the project name
+                // so the user can know htat in the UI.
+                lock (_projectFlavors)
+                {
+                    if (_cachedProjectName == null)
+                    {
+                        _cachedProjectName = _projectFlavors.Count < 2
+                            ? _rawProjectName
+                            : $"{_rawProjectName} ({string.Join(", ", _projectFlavors)})";
+                    }
+
+                    return _cachedProjectName;
+                }
+            }
+
+            private void AddFlavor(string? projectFlavor)
+            {
+                if (projectFlavor == null)
+                    return;
+
+                lock (_projectFlavors)
+                {
+                    if (_projectFlavors.Contains(projectFlavor))
+                        return;
+
+                    _projectFlavors.Add(projectFlavor);
+                    _projectFlavors.Sort();
+                    _cachedProjectName = null;
+                }
+            }
+
+            public static DocumentSpanEntry? TryCreate(
+                AbstractTableDataSourceFindUsagesContext context,
+                RoslynDefinitionBucket definitionBucket,
+                DocumentSpan documentSpan,
+                HighlightSpanKind spanKind,
+                MappedSpanResult mappedSpanResult,
+                ExcerptResult excerptResult,
+                SourceText lineText,
+                SymbolUsageInfo symbolUsageInfo,
+                ImmutableDictionary<string, string> customColumnsData)
+            {
+                var document = documentSpan.Document;
+                var (guid, projectName, projectFlavor) = GetGuidAndProjectInfo(document);
+                var entry = new DocumentSpanEntry(
+                    context, definitionBucket,
+                    projectName, projectFlavor, guid,
+                    spanKind, mappedSpanResult, excerptResult,
+                    lineText, symbolUsageInfo, customColumnsData);
+
+                // Because of things like linked files, we may have a reference up in multiple
+                // different locations that are effectively at the exact same navigation location
+                // for the user. i.e. they're the same file/span.  Showing multiple entries for these
+                // is just noisy and gets worse and worse with shared projects and whatnot.  So, we
+                // collapse things down to only show a single entry for each unique file/span pair.
+                var winningEntry = definitionBucket.GetOrAddEntry(documentSpan, entry);
+
+                // If we were the one that successfully added this entry to the bucket, then pass us
+                // back out to be put in the ui.
+                if (winningEntry == entry)
+                    return entry;
+
+                // We were not the winner.  Add our flavor to the entry that already exists, but throw
+                // away the item we created as we do not want to add it to the ui.
+                winningEntry.AddFlavor(projectFlavor);
+                return null;
             }
 
             protected override IList<System.Windows.Documents.Inline> CreateLineTextInlines()

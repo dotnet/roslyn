@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
         IDS_FeatureConstantInterpolatedStrings = MessageBase + 12792,
         IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction = MessageBase + 12793,
-
+        IDS_FeatureSealedToStringInRecord = MessageBase + 12794,
 
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 13000, // PROTOTYPE(interp-string): condense
     }
@@ -327,6 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# preview features.
                 case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction:
+                case MessageID.IDS_FeatureSealedToStringInRecord: // semantic check
                 case MessageID.IDS_FeatureImprovedInterpolatedStrings: // semantic check
                     return LanguageVersion.Preview;
 

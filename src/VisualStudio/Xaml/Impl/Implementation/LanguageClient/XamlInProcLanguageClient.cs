@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// </summary>
         public override string Name => "XAML Language Server Client (Experimental)";
 
-        protected internal override VSServerCapabilities GetCapabilities()
+        public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
             var isLspExperimentEnabled = experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);

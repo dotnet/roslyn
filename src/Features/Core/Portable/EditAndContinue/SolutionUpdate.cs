@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         public readonly ManagedModuleUpdates ModuleUpdates;
         public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> NonRemappableRegions;
-        public readonly ImmutableArray<IDisposable> ModuleReaders;
         public readonly ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> EmitBaselines;
         public readonly ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostic)> Diagnostics;
         public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> DocumentsWithRudeEdits;
@@ -21,7 +20,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public SolutionUpdate(
             ManagedModuleUpdates moduleUpdates,
             ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
-            ImmutableArray<IDisposable> moduleReaders,
             ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> emitBaselines,
             ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnostics,
             ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> documentsWithRudeEdits)
@@ -29,7 +27,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ModuleUpdates = moduleUpdates;
             NonRemappableRegions = nonRemappableRegions;
             EmitBaselines = emitBaselines;
-            ModuleReaders = moduleReaders;
             Diagnostics = diagnostics;
             DocumentsWithRudeEdits = documentsWithRudeEdits;
         }
@@ -40,7 +37,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => new(
                 new(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty),
                 ImmutableArray<(Guid, ImmutableArray<(ManagedModuleMethodId, NonRemappableRegion)>)>.Empty,
-                ImmutableArray<IDisposable>.Empty,
                 ImmutableArray<(ProjectId, EmitBaseline)>.Empty,
                 diagnostics,
                 documentsWithRudeEdits);

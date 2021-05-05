@@ -13,13 +13,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
     Friend Class VisualBasicSimplifyInterpolationCodeFixProvider
         Inherits AbstractSimplifyInterpolationCodeFixProvider(Of
             InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,
-            InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax,
-            TernaryConditionalExpressionSyntax, ParenthesizedExpressionSyntax)
+            InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides Function GetHelpers() As AbstractSimplifyInterpolationHelpers
+            Return VisualBasicSimplifyInterpolationHelpers.Instance
+        End Function
 
         Protected Overrides Function WithExpression(interpolation As InterpolationSyntax, expression As ExpressionSyntax) As InterpolationSyntax
             Return interpolation.WithExpression(expression)
