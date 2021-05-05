@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
-                    includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken).WaitAndGetResult(cancellationToken);
+                    includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
