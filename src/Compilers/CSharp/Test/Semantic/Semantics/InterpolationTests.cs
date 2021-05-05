@@ -1198,7 +1198,7 @@ static class C
                 );
         }
 
-// PROTOTYPE(interp-string): Define how these are represented in IOperation
+        // PROTOTYPE(interp-string): Define how these are represented in IOperation
 #if !ROSLYN_TEST_IOPERATION
 
         private string GetInterpolatedStringBuilderDefinition(bool includeSpanOverloads, bool useDefaultParameters, bool useBoolReturns, string returnExpression = null)
