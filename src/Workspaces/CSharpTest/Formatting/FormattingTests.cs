@@ -9929,39 +9929,25 @@ class A
 }", changedOptionSet: changingOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
-        public async Task NewLinesForBraces_PropertyPatternClauses_SingleLine()
+        public async Task NewLinesForBraces_PropertyPatternClauses_SingleLine(bool option)
         {
             var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+                { NewLinesForBracesInObjectCollectionArrayInitializers, option },
             };
-            await AssertFormatAsync(
-                @"
+            var code = @"
 class A
 {
     public string Name { get; }
 
     public bool IsFoo(A a)
     {
-        return a is {
-            Name: ""foo"",
-        };
+        return a is { Name: ""foo"" };
     }
-}",
-                @"
-class A
-{
-    public string Name { get; }
-
-    public bool IsFoo(A a)
-    {
-        return a is {
-            Name: ""foo"",
-        };
-    }
-}", changedOptionSet: changingOptions);
+}";
+            await AssertFormatAsync(code, code, changedOptionSet: changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
