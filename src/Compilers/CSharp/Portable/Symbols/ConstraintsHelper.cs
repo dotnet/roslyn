@@ -978,8 +978,8 @@ hasRelatedInterfaces:
             // original definition of the type parameters using the map from the constructed symbol.
             var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(args.Template);
-            ImmutableArray<TypeWithAnnotations> originalConstrintTypes = typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
-            substitution.SubstituteConstraintTypesDistinctWithoutModifiers(typeParameter, originalConstrintTypes, constraintTypes,
+            ImmutableArray<TypeWithAnnotations> originalConstraintTypes = typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+            substitution.SubstituteConstraintTypesDistinctWithoutModifiers(typeParameter, originalConstraintTypes, constraintTypes,
                                                                            ignoreTypeConstraintsDependentOnTypeParametersOpt);
             bool hasError = false;
 

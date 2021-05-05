@@ -38,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
-        <source>Document higlights</source>
-        <target state="translated">Wyróżnienia dokumentów</target>
+        <source>Document highlights</source>
+        <target state="needs-review-translation">Wyróżnienia dokumentów</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EditAndContinue">
@@ -65,6 +65,11 @@
       <trans-unit id="FeatureName_GlobalNotificationDelivery">
         <source>Global notification delivery</source>
         <target state="translated">Dostarczanie powiadomień globalnych</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="new">Inheritance margin</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
