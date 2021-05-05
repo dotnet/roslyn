@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     {
         bool Filter(SyntaxNode node);
 
-        void AddFilterFromPreviousTable(SemanticModel model);
+        void AddFilterFromPreviousTable(SemanticModel model, EntryState state);
 
         void AddFilterEntries(ImmutableArray<SyntaxNode> nodes, SemanticModel model);
 
@@ -66,25 +66,40 @@ namespace Microsoft.CodeAnalysis
 
             public bool Filter(SyntaxNode syntaxNode) => _owner._filterFunc(syntaxNode);
 
-            public void AddFilterFromPreviousTable(SemanticModel model)
+            public void AddFilterFromPreviousTable(SemanticModel model, EntryState state)
             {
-                var nodes = _filterTable.AddEntriesFromPreviousTable(_previousFilterTable, EntryState.Cached);
-                UpdateTransformTable(nodes, model);
+                var nodes = _filterTable.AddEntriesFromPreviousTable(_previousFilterTable, state);
+                UpdateTransformTable(nodes, model, state);
             }
 
             public void AddFilterEntries(ImmutableArray<SyntaxNode> nodes, SemanticModel model)
             {
                 _filterTable.AddEntries(nodes, EntryState.Added);
-                UpdateTransformTable(nodes, model);
+                UpdateTransformTable(nodes, model, EntryState.Added);
             }
 
-            private void UpdateTransformTable(ImmutableArray<SyntaxNode> nodes, SemanticModel model)
+            private void UpdateTransformTable(ImmutableArray<SyntaxNode> nodes, SemanticModel model, EntryState state)
             {
                 foreach (var node in nodes)
                 {
-                    var value = new GeneratorSyntaxContext(node, model);
-                    var transformed = _owner._func(value);
-                    _transformTable.AddEntries(transformed, EntryState.Added);
+                    if (state == EntryState.Removed)
+                    {
+                        _transformTable.AddEntriesFromPreviousTable(_previousTransformTable, EntryState.Removed);
+                    }
+                    else
+                    {
+                        var value = new GeneratorSyntaxContext(node, model);
+                        var transformed = _owner._func(value);
+                        if (_previousTransformTable.IsEmpty || state == EntryState.Added)
+                        {
+                            _transformTable.AddEntries(transformed, EntryState.Added);
+                        }
+                        else
+                        {
+                            // PROTOTYPE(source-generators): need to be able to set a comparer here
+                            _transformTable.ModifyEntriesFromPreviousTable(_previousTransformTable, transformed, EqualityComparer<T>.Default);
+                        }
+                    }
                 }
             }
 

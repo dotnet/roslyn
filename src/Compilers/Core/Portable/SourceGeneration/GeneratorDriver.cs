@@ -240,14 +240,6 @@ namespace Microsoft.CodeAnalysis
                             ex = e;
                         }
 
-                        // if the pipeline registered any syntax callbacks, create a receiver to handle them
-                        if (sourcesBuilder.SyntaxTransformNodes.Count > 0)
-                        {
-                            // it isn't possible for an incremental generator to directly create a walker as part of init
-                            Debug.Assert(generatorState.Info.SyntaxContextReceiverCreator is null);
-                            syntaxInputNodes.AddRange(sourcesBuilder.SyntaxTransformNodes);
-                        }
-
                         generatorState = ex is null
                                          ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, sourcesBuilder.ToImmutable(), outputBuilder.ToImmutable())
                                          : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
@@ -275,6 +267,14 @@ namespace Microsoft.CodeAnalysis
                         generatorState = generatorState.WithReceiver(rx);
                         receiverCount++;
                     }
+                }
+
+                // if the pipeline registered any syntax callbacks, create a receiver to handle them
+                if (!generatorState.Sources.TransformNodes.IsDefaultOrEmpty)
+                {
+                    // it isn't possible for an incremental generator to directly create a walker as part of init
+                    Debug.Assert(generatorState.Info.SyntaxContextReceiverCreator is null);
+                    syntaxInputNodes.AddRange(generatorState.Sources.TransformNodes);
                 }
 
                 // record any constant sources
@@ -330,7 +330,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (treeState == EntryState.Removed)
                     {
-                        // building a new state, so don't need to worry about the removed.
+                        // we need to keep the removed tree entries, but can skip everything else
+                        foreach (var b in builders)
+                        {
+                            // PROTOTYPE(source-generators): we know we on't use the model in this case
+                            b.AddFilterFromPreviousTable(null!, EntryState.Removed);
+                        }
                         continue;
                     }
 
@@ -344,7 +349,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         foreach (var b in builders)
                         {
-                            b.AddFilterFromPreviousTable(semanticModel);
+                            b.AddFilterFromPreviousTable(semanticModel, EntryState.Cached);
                         }
                     }
                     else

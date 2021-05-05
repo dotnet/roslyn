@@ -75,11 +75,9 @@ namespace Microsoft.CodeAnalysis
         {
             private InputNode<ISyntaxContextReceiver>? _receiverNode;
 
-            bool disposed = false;
+            private ArrayBuilder<ISyntaxTransformNode>? _transformNodes;
 
-            public Builder()
-            {
-            }
+            bool disposed = false;
 
             public InputNode<ISyntaxContextReceiver> GetOrCreateReceiverNode()
             {
@@ -87,13 +85,23 @@ namespace Microsoft.CodeAnalysis
                 return InterlockedOperations.Initialize(ref _receiverNode, new InputNode<ISyntaxContextReceiver>());
             }
 
-            public ArrayBuilder<ISyntaxTransformNode> SyntaxTransformNodes { get; } = ArrayBuilder<ISyntaxTransformNode>.GetInstance();
+            public ArrayBuilder<ISyntaxTransformNode> SyntaxTransformNodes
+            {
+                get
+                {
+                    Debug.Assert(!disposed);
+                    return InterlockedOperations.Initialize(ref _transformNodes, ArrayBuilder<ISyntaxTransformNode>.GetInstance());
+                }
+            }
 
             public PerGeneratorInputNodes ToImmutable()
             {
                 Debug.Assert(!disposed);
                 disposed = true;
-                return _receiverNode is null ? Empty : new PerGeneratorInputNodes(_receiverNode, SyntaxTransformNodes.ToImmutableAndFree());
+
+                return _receiverNode is null && _transformNodes is null
+                    ? Empty
+                    : new PerGeneratorInputNodes(_receiverNode, _transformNodes?.ToImmutableAndFree() ?? ImmutableArray<ISyntaxTransformNode>.Empty);
             }
         }
     }
