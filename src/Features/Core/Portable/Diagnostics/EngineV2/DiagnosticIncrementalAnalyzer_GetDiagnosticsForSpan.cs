@@ -205,6 +205,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ArrayBuilder<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
+                if (analyzers.IsEmpty)
+                    return;
+
                 var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind, _highPriority);
                 var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, logPerformanceInfo: false);
                 foreach (var analyzer in analyzers)
