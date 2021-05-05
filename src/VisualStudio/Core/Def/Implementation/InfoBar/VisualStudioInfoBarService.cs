@@ -24,20 +24,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class VisualStudioInfoBarService : ForegroundThreadAffinitizedObject, IInfoBarService
     {
         private readonly SVsServiceProvider _serviceProvider;
-        private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
+
+        /// <summary>
+        /// Keep track of the messages that are currently being shown to the user.  If we would 
+        /// show the same message again, block that from happening so we don't spam the user with
+        /// the same message.  When the info bar item is dismissed though, we then may show the
+        /// same message in the future.  This is important for user clarity as it's possible for 
+        /// a feature to fail for some reason, then work fine for a while, then fail again.  We want
+        /// the second failure message to be reported to ensure the user is not confused.
+        /// </summary>
+        private readonly HashSet<string> _currentlyShowingMessages = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioInfoBarService(
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
-            IForegroundNotificationService foregroundNotificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
-            _foregroundNotificationService = foregroundNotificationService;
             _listener = listenerProvider.GetListener(FeatureAttribute.InfoBar);
         }
 
@@ -46,13 +53,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             ThisCanBeCalledOnAnyThread();
 
             // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
-            _foregroundNotificationService.RegisterNotification(() =>
+            this.ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
+                using var _ = _listener.BeginAsyncOperation(nameof(ShowInfoBar));
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(ThreadingContext.DisposalToken);
                 if (TryGetInfoBarData(out var infoBarHost))
-                {
                     CreateInfoBar(infoBarHost, message, items);
-                }
-            }, _listener.BeginAsyncOperation(nameof(ShowInfoBar)), ThreadingContext.DisposalToken);
+            });
         }
 
         private bool TryGetInfoBarData(out IVsInfoBarHost infoBarHost)
@@ -74,11 +81,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void CreateInfoBar(IVsInfoBarHost infoBarHost, string message, InfoBarUI[] items)
         {
+            this.AssertIsForeground();
+
             if (!(_serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is IVsInfoBarUIFactory factory))
             {
                 // no info bar factory, don't do anything
                 return;
             }
+
+            // If we're already shown this same message to the user, then do not bother showing it
+            // to them again.  It will just be noisy.
+            if (_currentlyShowingMessages.Contains(message))
+                return;
 
             var textSpans = new List<IVsInfoBarTextSpan>()
             {
@@ -107,19 +121,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var infoBarModel = new InfoBarModel(
                 textSpans,
-                actionItems.ToArray(),
+                actionItems,
                 KnownMonikers.StatusInformation,
                 isCloseButtonVisible: true);
 
-            if (!TryCreateInfoBarUI(factory, infoBarModel, out var infoBarUI))
-            {
+            var infoBarUI = factory.CreateInfoBar(infoBarModel);
+            if (infoBarUI == null)
                 return;
-            }
 
             uint? infoBarCookie = null;
-            var eventSink = new InfoBarEvents(items, () =>
+            var eventSink = new InfoBarEvents(items, onClose: () =>
             {
-                // run given onClose action if there is one.
+                // Remove the message from the list that we're keeping track of.  Future identical
+                // messages can now be shown.
+                _currentlyShowingMessages.Remove(message);
+
+                // Run given onClose action if there is one.
                 items.FirstOrDefault(i => i.Kind == InfoBarUI.UIKind.Close).Action?.Invoke();
 
                 if (infoBarCookie.HasValue)
@@ -132,6 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             infoBarCookie = cookie;
 
             infoBarHost.AddInfoBar(infoBarUI);
+            _currentlyShowingMessages.Add(message);
         }
 
         private class InfoBarEvents : IVsInfoBarUIEvents
@@ -167,12 +185,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public void OnClosed(IVsInfoBarUIElement infoBarUIElement)
                 => _onClose();
-        }
-
-        private static bool TryCreateInfoBarUI(IVsInfoBarUIFactory infoBarUIFactory, IVsInfoBar infoBar, out IVsInfoBarUIElement uiElement)
-        {
-            uiElement = infoBarUIFactory.CreateInfoBar(infoBar);
-            return uiElement != null;
         }
     }
 }

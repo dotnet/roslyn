@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -145,13 +146,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var cancellationToken = context.CancellationToken;
                 using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
                 {
-                    var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
                     await AddSemanticClassificationsAsync(
                         document, snapshotSpan.Span.ToTextSpan(), classificationService, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                    ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
-                    ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
+                    foreach (var span in classifiedSpans)
+                        context.AddTag(ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, span));
 
                     var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             Document document,
             TextSpan textSpan,
             IClassificationService classificationService,
-            List<ClassifiedSpan> classifiedSpans,
+            ArrayBuilder<ClassifiedSpan> classifiedSpans,
             CancellationToken cancellationToken)
         {
             var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private static async Task<bool> TryAddSemanticClassificationsFromCacheAsync(
             Document document,
             TextSpan textSpan,
-            List<ClassifiedSpan> classifiedSpans,
+            ArrayBuilder<ClassifiedSpan> classifiedSpans,
             bool isFullyLoaded,
             CancellationToken cancellationToken)
         {

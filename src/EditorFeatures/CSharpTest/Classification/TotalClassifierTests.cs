@@ -177,6 +177,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRecordClass(TestHost testHost)
+        {
+            await TestAsync(
+@"record class R
+{
+    R()
+    {
+    }
+}",
+                testHost,
+                Keyword("record"),
+                Keyword("class"),
+                Record("R"),
+                Punctuation.OpenCurly,
+                Record("R"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRecordStruct(TestHost testHost)
+        {
+            await TestAsync(
+@"record struct R
+{
+    R(int i)
+    {
+    }
+}",
+                testHost,
+                Keyword("record"),
+                Keyword("struct"),
+                RecordStruct("R"),
+                Punctuation.OpenCurly,
+                RecordStruct("R"),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Parameter("i"),
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task UsingAliasGlobalNamespace(TestHost testHost)
         {
             await TestAsync(
@@ -995,6 +1045,7 @@ var x = Number;",
                 Keyword("const"),
                 Keyword("int"),
                 Constant("Number"),
+                Static("Number"),
                 Operators.Equals,
                 Number("42"),
                 Punctuation.Semicolon,

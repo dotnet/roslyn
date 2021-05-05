@@ -537,7 +537,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 var methodName = dataBufferSpan.GetText();
                 var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty);
 
-                var doc = new DOMDocumentClass();
+                var doc = (DOMDocument)new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
                 {
                     if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
@@ -657,8 +657,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (includeMethod)
             {
-                template.Append(")$end$");
+                template.Append(')');
             }
+
+            template.Append("$end$");
 
             // A snippet is manually constructed. Replacement fields are added for each argument, and the field name
             // matches the parameter name.
@@ -897,7 +899,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, newArguments);
-            var doc = new DOMDocumentClass();
+            var doc = (DOMDocument)new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {
                 if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)

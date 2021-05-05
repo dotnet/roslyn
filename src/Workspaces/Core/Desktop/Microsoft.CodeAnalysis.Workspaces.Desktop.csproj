@@ -6,6 +6,9 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
