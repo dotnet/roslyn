@@ -189,10 +189,25 @@ if (x is $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInGlobalUsingAliasFirst()
+        {
+            // Ideally, keywords should not be recommended as first token in target.
+            await VerifyKeywordAsync(
+@"global using A = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUsingAliasLater()
         {
             await VerifyKeywordAsync(
 @"using A = List<$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInGlobalUsingAliasLater()
+        {
+            await VerifyKeywordAsync(
+@"global using A = List<$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

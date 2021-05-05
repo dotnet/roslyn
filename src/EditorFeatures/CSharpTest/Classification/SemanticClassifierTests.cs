@@ -2610,7 +2610,6 @@ struct Type<T>
 
             var provider = new SemanticClassificationViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                 workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
                 listenerProvider);
 
@@ -4411,6 +4410,34 @@ class C
 }",
                 testHost,
                 Record("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicRecordClassClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record class R
+{
+    R r;
+
+    R() { }
+}",
+                testHost,
+                Record("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicRecordStructClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record struct R
+{
+    R property { get; set; }
+}",
+                testHost,
+                RecordStruct("R"));
         }
     }
 }

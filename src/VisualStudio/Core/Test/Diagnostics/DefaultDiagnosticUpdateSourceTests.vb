@@ -52,7 +52,6 @@ class 123 { }
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
-                WpfTestRunner.RequireWpfFact($"This test uses {NameOf(IForegroundNotificationService)}")
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = workspace.ExportProvider.GetExportedValues(Of ITaggerProvider)().OfType(Of DiagnosticsSquiggleTaggerProvider)().Single()

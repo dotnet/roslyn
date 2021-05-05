@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// <summary>
         /// Gets, filters, and orders code fixes.
         /// </summary>
-        public static async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetFilterAndOrderCodeFixesAsync(
+        public static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetFilterAndOrderCodeFixesAsync(
             Workspace workspace,
             ICodeFixService codeFixService,
             Document document,
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// Should be called with the results from <see cref="GetFilterAndOrderCodeFixesAsync"/>
         /// and <see cref="GetFilterAndOrderCodeRefactoringsAsync"/>.
         /// </summary>
-        public static ImmutableArray<UnifiedSuggestedActionSet>? FilterAndOrderActionSets(
+        public static ImmutableArray<UnifiedSuggestedActionSet> FilterAndOrderActionSets(
             ImmutableArray<UnifiedSuggestedActionSet> fixes,
             ImmutableArray<UnifiedSuggestedActionSet> refactorings,
             TextSpan? selectionOpt)
@@ -529,9 +529,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // ordered against each other.
             var result = GetInitiallyOrderedActionSets(selectionOpt, fixes, refactorings);
             if (result.IsEmpty)
-            {
-                return null;
-            }
+                return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
 
             // Now that we have the entire set of action sets, inline, sort and filter
             // them appropriately against each other.

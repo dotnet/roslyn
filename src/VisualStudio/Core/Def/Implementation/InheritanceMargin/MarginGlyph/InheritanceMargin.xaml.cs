@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
@@ -22,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _waitIndicator;
         private readonly Workspace _workspace;
 
         public InheritanceMargin(
@@ -30,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor waitIndicator,
             InheritanceMarginTag tag)
         {
             _threadingContext = threadingContext;
@@ -59,17 +61,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
             {
                 Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget, KeyValueLogMessage.Create(LogType.UserAction));
-                _waitIndicator.Wait(
+                _waitIndicator.Execute(
                     title: EditorFeaturesResources.Navigating,
-                    message: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
-                    allowCancel: true,
+                    defaultDescription: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
+                    allowCancellation: true,
+                    showProgress: false,
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
                         _workspace,
                         string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
                         _threadingContext,
                         _streamingFindUsagesPresenter,
-                        context.CancellationToken));
+                        context.UserCancellationToken));
             }
         }
 
@@ -101,14 +104,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
         {
-            // If this context menu just has one member, then if the context menu open, it means all inheritance targets are shown.
-            if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginViewModel { HasMultipleMembers: false } })
+            if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginViewModel inheritanceMarginViewModel }
+                && inheritanceMarginViewModel.MenuItemViewModels.Any(vm => vm is TargetMenuItemViewModel))
             {
+                // We have two kinds of context menu. e.g.
+                // 1. [margin] -> Target1
+                //                Target2
+                //                Target3
+                //
+                // 2. [margin] -> method Bar -> Target1
+                //                           -> Target2
+                //             -> method Foo -> Target3
+                //                           -> Target4
+                // If the first level of the context menu contains a TargetMenuItemViewModel, it means here it is case 1,
+                // user is viewing the targets menu.
                 Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
             }
         }
 
-        private void TargetsMenu_OnOpen(object sender, RoutedEventArgs e)
+        private void TargetsSubmenu_OnOpen(object sender, RoutedEventArgs e)
         {
             Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
         }
@@ -120,4 +134,3 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
     }
 }
-
