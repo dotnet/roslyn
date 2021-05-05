@@ -854,7 +854,7 @@ namespace Microsoft.Cci
         {
             var builder = new BlobBuilder();
 
-            if (this.Context.RebuildDataOpt is { } rebuildData)
+            if (this.Context.RebuildData is { } rebuildData)
             {
                 var reader = rebuildData.OptionsBlobReader;
                 builder.WriteBytes(reader.ReadBytes(reader.RemainingBytes));

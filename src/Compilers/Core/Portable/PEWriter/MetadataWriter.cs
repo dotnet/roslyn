@@ -1800,7 +1800,7 @@ namespace Microsoft.Cci
                     }
                 }
 
-                if (Context.RebuildDataOpt is { } rebuildData)
+                if (Context.RebuildData is { } rebuildData)
                 {
                     _usingNonSourceDocumentNameEnumerator = true;
                     _nonSourceDocumentNameEnumerator = rebuildData.NonSourceFileDocumentNames.GetEnumerator();
