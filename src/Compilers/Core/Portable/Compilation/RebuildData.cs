@@ -21,20 +21,10 @@ namespace Microsoft.CodeAnalysis
 
         internal RebuildData(
             BlobReader optionsBlobReader,
-            MetadataReader pdbReader,
-            int sourceFileCount)
+            ImmutableArray<string>  nonSourceFileDocumentNames)
         {
             OptionsBlobReader = optionsBlobReader;
-
-            var count = pdbReader.Documents.Count - sourceFileCount;
-            var builder = ArrayBuilder<string>.GetInstance(count);
-            foreach (var documentHandle in pdbReader.Documents.Skip(sourceFileCount))
-            {
-                var document = pdbReader.GetDocument(documentHandle);
-                var name = pdbReader.GetString(document.Name);
-                builder.Add(name);
-            }
-            NonSourceFileDocumentNames = builder.ToImmutableAndFree();
+            NonSourceFileDocumentNames = nonSourceFileDocumentNames;
         }
     }
 }
