@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
 
         internal RebuildData(
             BlobReader optionsBlobReader,
-            ImmutableArray<string>  nonSourceFileDocumentNames)
+            ImmutableArray<string> nonSourceFileDocumentNames)
         {
             OptionsBlobReader = optionsBlobReader;
             NonSourceFileDocumentNames = nonSourceFileDocumentNames;
