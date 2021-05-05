@@ -45,8 +45,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return document.GetLanguageService<SyntaxGenerator>().CreateEqualsMethod(
-                compilation, tree.Options, namedType, members, localNameOpt, s_specializedFormattingAnnotation);
+            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var generatorInternal = document.GetLanguageService<SyntaxGeneratorInternal>();
+            return generator.CreateEqualsMethod(
+                generatorInternal, compilation, tree.Options, namedType, members, localNameOpt, s_specializedFormattingAnnotation);
         }
 
         public async Task<IMethodSymbol> GenerateIEquatableEqualsMethodAsync(
@@ -54,8 +56,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             ImmutableArray<ISymbol> members, INamedTypeSymbol constructedEquatableType, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return document.GetLanguageService<SyntaxGenerator>().CreateIEquatableEqualsMethod(
-                semanticModel, namedType, members, constructedEquatableType, s_specializedFormattingAnnotation);
+            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var generatorInternal = document.GetLanguageService<SyntaxGeneratorInternal>();
+            return generator.CreateIEquatableEqualsMethod(
+                generatorInternal, semanticModel, namedType, members, constructedEquatableType, s_specializedFormattingAnnotation);
         }
 
         public async Task<IMethodSymbol> GenerateEqualsMethodThroughIEquatableEqualsAsync(
@@ -120,15 +124,16 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var factory = document.GetLanguageService<SyntaxGenerator>();
-            return CreateGetHashCodeMethod(factory, compilation, namedType, members);
+            var generatorInternal = document.GetLanguageService<SyntaxGeneratorInternal>();
+            return CreateGetHashCodeMethod(factory, generatorInternal, compilation, namedType, members);
         }
 
         private IMethodSymbol CreateGetHashCodeMethod(
-            SyntaxGenerator factory, Compilation compilation,
+            SyntaxGenerator factory, SyntaxGeneratorInternal generatorInternal, Compilation compilation,
             INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
             var statements = CreateGetHashCodeStatements(
-                factory, compilation, namedType, members);
+                factory, generatorInternal, compilation, namedType, members);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default,
@@ -144,7 +149,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         }
 
         private ImmutableArray<SyntaxNode> CreateGetHashCodeStatements(
-            SyntaxGenerator factory, Compilation compilation,
+            SyntaxGenerator factory, SyntaxGeneratorInternal generatorInternal, Compilation compilation,
             INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
             // See if there's an accessible System.HashCode we can call into to do all the work.
@@ -153,7 +158,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 hashCodeType = null;
 
             var components = factory.GetGetHashCodeComponents(
-                compilation, namedType, members, justMemberReference: true);
+                generatorInternal, compilation, namedType, members, justMemberReference: true);
 
             if (components.Length > 0 && hashCodeType != null)
             {
