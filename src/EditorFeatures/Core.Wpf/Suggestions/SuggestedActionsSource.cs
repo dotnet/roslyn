@@ -195,12 +195,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 AssertIsForeground();
                 var cancellationToken = operationContext.UserCancellationToken;
 
-                if (IsDisposed)
+                using var state = _state.TryAddReference();
+                if (state is null)
+                    yield break;
+
+                var workspace = state.Target.Workspace;
+                if (workspace == null)
                     yield break;
 
                 using (operationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
                 {
-                    await _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(true);
+                    await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(true);
                 }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActionsAsync, cancellationToken))
@@ -243,10 +248,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var selection = TryGetCodeRefactoringSelection(state, range);
 
                 var fixesTask = GetCodeFixesAsync(
-                    supportsFeatureService, requestedActionCategories, workspace, document, range,
+                    state, supportsFeatureService, requestedActionCategories, workspace, document, range,
                     addOperationScope, highPriority, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
-                    supportsFeatureService, requestedActionCategories, workspace, document, selection,
+                    state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
                     addOperationScope, highPriority, isBlocking: false, cancellationToken);
 
                 if (highPriority)
@@ -353,11 +358,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 this.AssertIsForeground();
 
                 return GetCodeFixesAsync(
-                    supportsFeatureService, requestedActionCategories, workspace, document, range,
+                    state, supportsFeatureService, requestedActionCategories, workspace, document, range,
                     addOperationScope, highPriority: null, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
-            private async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync(
+            private static async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync(
+                ReferenceCountedDisposable<State> state,
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
@@ -368,8 +374,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 bool isBlocking,
                 CancellationToken cancellationToken)
             {
-                if (_owner._codeFixService == null ||
-                    !supportsFeatureService.SupportsCodeFixes(_subjectBuffer) ||
+                if (state.Target.Owner._codeFixService == null ||
+                    !supportsFeatureService.SupportsCodeFixes(state.Target.SubjectBuffer) ||
                     !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
                     return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
@@ -411,11 +417,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 this.AssertIsForeground();
                 return GetRefactoringsAsync(
-                    supportsFeatureService, requestedActionCategories, workspace, document, selection,
+                    state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
                     addOperationScope, highPriority: null, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
-            private async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync(
+            private static async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync(
+                ReferenceCountedDisposable<State> state,
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
@@ -441,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                 return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                    workspace, _owner._codeRefactoringService, document, selection.Value, highPriority, isBlocking,
+                    workspace, state.Target.Owner._codeRefactoringService, document, selection.Value, highPriority, isBlocking,
                     addOperationScope, filterOutsideSelection, cancellationToken).ConfigureAwait(false);
             }
 
