@@ -378,6 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var call = MakeInvocationExpression(part.Syntax, implicitBuilderReceiver, methodName, arguments, diagnostics, names: parameterNamesAndLocations, searchExtensionMethodsIfNecessary: false);
+                call.WasCompilerGenerated = true;
                 builderAppendCalls.Add(call);
 
                 // PROTOTYPE(interp-string): Handle dynamic
@@ -416,6 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expression = MakeInvocationExpression(syntax, typeExpression, "Create", args, diagnostics);
             if (expression is BoundCall call && call.Type.Equals(builderType, TypeCompareKind.AllIgnoreOptions))
             {
+                call.WasCompilerGenerated = true;
                 return call;
             }
 

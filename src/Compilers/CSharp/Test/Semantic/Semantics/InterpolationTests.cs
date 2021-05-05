@@ -3144,6 +3144,7 @@ namespace System.Runtime.CompilerServices
 using System;
 
 Console.WriteLine($""Text{1}"");
+Console.WriteLine($""{1}Text"");
 
 namespace System.Runtime.CompilerServices
 {
@@ -3166,7 +3167,10 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics(
                 // (4,25): error CS9002: Interpolated string builder method 'InterpolatedStringBuilder.AppendFormatted(object)' has inconsistent return type. Expected to return 'bool'.
                 // Console.WriteLine($"Text{1}");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)", "bool").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)", "bool").WithLocation(4, 25),
+                // (5,24): error CS9002: Interpolated string builder method 'InterpolatedStringBuilder.AppendLiteral(string)' has inconsistent return type. Expected to return 'void'.
+                // Console.WriteLine($"{1}Text");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)", "void").WithLocation(5, 24)
             );
         }
 
@@ -3177,6 +3181,7 @@ namespace System.Runtime.CompilerServices
 using System;
 
 Console.WriteLine($""Text{1}"");
+Console.WriteLine($""{1}Text"");
 
 namespace System.Runtime.CompilerServices
 {
@@ -3199,7 +3204,10 @@ namespace System.Runtime.CompilerServices
             comp.VerifyDiagnostics(
                 // (4,25): error CS9002: Interpolated string builder method 'InterpolatedStringBuilder.AppendFormatted(object)' has inconsistent return type. Expected to return 'void'.
                 // Console.WriteLine($"Text{1}");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)", "void").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)", "void").WithLocation(4, 25),
+                // (5,24): error CS9002: Interpolated string builder method 'InterpolatedStringBuilder.AppendLiteral(string)' has inconsistent return type. Expected to return 'bool'.
+                // Console.WriteLine($"{1}Text");
+                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)", "bool").WithLocation(5, 24)
             );
         }
 
