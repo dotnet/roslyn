@@ -1331,5 +1331,165 @@ class C { }
             Assert.Single(result3.GeneratedSources);
             Assert.Equal(results.GeneratedTrees[3], result3.GeneratedSources[0].SyntaxTree);
         }
+
+        [Fact]
+        public void SyntaxTrees_Are_Lazy()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new SingleFileTestGenerator("public class D {}", "source.cs");
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            var results = driver.GetRunResult();
+
+            var tree = Assert.Single(results.GeneratedTrees);
+
+            Assert.False(tree.TryGetRoot(out _));
+            var rootFromGetRoot = tree.GetRoot();
+            Assert.NotNull(rootFromGetRoot);
+            Assert.True(tree.TryGetRoot(out var rootFromTryGetRoot));
+            Assert.Same(rootFromGetRoot, rootFromTryGetRoot);
+        }
+
+        [Fact]
+        public void Diagnostics_Respect_Suppression()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+            CallbackGenerator gen = new CallbackGenerator((c) => { }, (c) =>
+            {
+                c.ReportDiagnostic(CSDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 2));
+                c.ReportDiagnostic(CSDiagnostic.Create("GEN002", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 3));
+            });
+
+            var options = ((CSharpCompilationOptions)compilation.Options);
+
+            // generator driver diagnostics are reported seperately from the compilation
+            verifyDiagnosticsWithOptions(options,
+                Diagnostic("GEN001").WithLocation(1, 1),
+                Diagnostic("GEN002").WithLocation(1, 1));
+
+            // warnings can be individually suppressed
+            verifyDiagnosticsWithOptions(options.WithSpecificDiagnosticOptions("GEN001", ReportDiagnostic.Suppress),
+                Diagnostic("GEN002").WithLocation(1, 1));
+
+            verifyDiagnosticsWithOptions(options.WithSpecificDiagnosticOptions("GEN002", ReportDiagnostic.Suppress),
+                Diagnostic("GEN001").WithLocation(1, 1));
+
+            // warning level is respected
+            verifyDiagnosticsWithOptions(options.WithWarningLevel(0));
+
+            verifyDiagnosticsWithOptions(options.WithWarningLevel(2),
+                Diagnostic("GEN001").WithLocation(1, 1));
+
+            verifyDiagnosticsWithOptions(options.WithWarningLevel(3),
+                Diagnostic("GEN001").WithLocation(1, 1),
+                Diagnostic("GEN002").WithLocation(1, 1));
+
+            // warnings can be upgraded to errors
+            verifyDiagnosticsWithOptions(options.WithSpecificDiagnosticOptions("GEN001", ReportDiagnostic.Error),
+                Diagnostic("GEN001").WithLocation(1, 1).WithWarningAsError(true),
+                Diagnostic("GEN002").WithLocation(1, 1));
+
+            verifyDiagnosticsWithOptions(options.WithSpecificDiagnosticOptions("GEN002", ReportDiagnostic.Error),
+                Diagnostic("GEN001").WithLocation(1, 1),
+                Diagnostic("GEN002").WithLocation(1, 1).WithWarningAsError(true));
+
+
+            void verifyDiagnosticsWithOptions(CompilationOptions options, params DiagnosticDescription[] expected)
+            {
+                GeneratorDriver driver = CSharpGeneratorDriver.Create(ImmutableArray.Create(gen), parseOptions: parseOptions);
+                var updatedCompilation = compilation.WithOptions(options);
+
+                driver.RunGeneratorsAndUpdateCompilation(updatedCompilation, out var outputCompilation, out var diagnostics);
+                outputCompilation.VerifyDiagnostics();
+                diagnostics.Verify(expected);
+            }
+        }
+
+        [Fact]
+        public void Diagnostics_Respect_Pragma_Suppression()
+        {
+            var gen001 = CSDiagnostic.Create("GEN001", "generators", "message", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 2);
+
+            // reported diagnostics can have a location in source
+            verifyDiagnosticsWithSource("//comment",
+                new[] { (gen001, TextSpan.FromBounds(2, 5)) },
+                Diagnostic("GEN001", "com").WithLocation(1, 3));
+
+            // diagnostics are suppressed via #pragma
+            verifyDiagnosticsWithSource(
+@"#pragma warning disable
+//comment",
+                new[] { (gen001, TextSpan.FromBounds(27, 30)) },
+                Diagnostic("GEN001", "com", isSuppressed: true).WithLocation(2, 3));
+
+            // but not when they don't have a source location
+            verifyDiagnosticsWithSource(
+@"#pragma warning disable
+//comment",
+                new[] { (gen001, new TextSpan(0, 0)) },
+                Diagnostic("GEN001").WithLocation(1, 1));
+
+            // can be suppressed explicitly
+            verifyDiagnosticsWithSource(
+@"#pragma warning disable GEN001
+//comment",
+                new[] { (gen001, TextSpan.FromBounds(34, 37)) },
+                Diagnostic("GEN001", "com", isSuppressed: true).WithLocation(2, 3));
+
+            // suppress + restore
+            verifyDiagnosticsWithSource(
+@"#pragma warning disable GEN001
+//comment
+#pragma warning restore GEN001
+//another",
+                new[] { (gen001, TextSpan.FromBounds(34, 37)), (gen001, TextSpan.FromBounds(77, 80)) },
+                Diagnostic("GEN001", "com", isSuppressed: true).WithLocation(2, 3),
+                Diagnostic("GEN001", "ano").WithLocation(4, 3));
+
+            void verifyDiagnosticsWithSource(string source, (Diagnostic, TextSpan)[] reportDiagnostics, params DiagnosticDescription[] expected)
+            {
+                var parseOptions = TestOptions.Regular;
+                source = source.Replace(Environment.NewLine, "\r\n");
+                Compilation compilation = CreateCompilation(source, sourceFileName: "sourcefile.cs", options: TestOptions.DebugDll, parseOptions: parseOptions);
+                compilation.VerifyDiagnostics();
+                Assert.Single(compilation.SyntaxTrees);
+
+                CallbackGenerator gen = new CallbackGenerator((c) => { }, (c) =>
+                {
+                    foreach ((var d, var l) in reportDiagnostics)
+                    {
+                        if (l.IsEmpty)
+                        {
+                            c.ReportDiagnostic(d);
+                        }
+                        else
+                        {
+                            c.ReportDiagnostic(d.WithLocation(Location.Create(c.Compilation.SyntaxTrees.First(), l)));
+                        }
+                    }
+                });
+                GeneratorDriver driver = CSharpGeneratorDriver.Create(ImmutableArray.Create(gen), parseOptions: parseOptions);
+
+                driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+                outputCompilation.VerifyDiagnostics();
+                diagnostics.Verify(expected);
+            }
+        }
     }
 }

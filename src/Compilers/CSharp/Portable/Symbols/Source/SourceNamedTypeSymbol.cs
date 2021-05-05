@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Delegate:
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
+                case DeclarationKind.RecordStruct:
                     break;
                 default:
                     Debug.Assert(false, "bad declaration kind");
@@ -123,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return ((BaseTypeDeclarationSyntax)node).Identifier;
                 default:
                     return default(SyntaxToken);
@@ -164,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         tpl = ((TypeDeclarationSyntax)typeDecl).TypeParameterList;
                         break;
 
@@ -462,6 +465,7 @@ next:;
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     var typeDeclaration = (TypeDeclarationSyntax)node;
                     typeParameterList = typeDeclaration.TypeParameterList;
                     return typeDeclaration.ConstraintClauses;
@@ -1290,24 +1294,12 @@ next:;
 
         private bool HasInstanceFields()
         {
-            var members = this.GetMembersUnordered();
-            for (var i = 0; i < members.Length; i++)
+            var fields = this.GetFieldsToEmit();
+            foreach (var field in fields)
             {
-                var m = members[i];
-                if (!m.IsStatic)
+                if (!field.IsStatic)
                 {
-                    switch (m.Kind)
-                    {
-                        case SymbolKind.Field:
-                            return true;
-
-                        case SymbolKind.Event:
-                            if (((EventSymbol)m).AssociatedField != null)
-                            {
-                                return true;
-                            }
-                            break;
-                    }
+                    return true;
                 }
             }
 

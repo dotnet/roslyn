@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.AddRequiredParentheses), Shared]
     internal class AddRequiredParenthesesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]

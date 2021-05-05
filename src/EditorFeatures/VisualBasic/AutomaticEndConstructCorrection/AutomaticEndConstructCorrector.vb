@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrection
     ''' <summary>
@@ -16,16 +17,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
     Partial Friend Class AutomaticEndConstructCorrector
         Private ReadOnly _buffer As ITextBuffer
         Private ReadOnly _session As Session
-        Private ReadOnly _waitIndicator As IWaitIndicator
+        Private ReadOnly _uiThreadOperationExecutor As IUIThreadOperationExecutor
 
         Private _previousDocument As Document
         Private _referencingViews As Integer
 
-        Public Sub New(subjectBuffer As ITextBuffer, waitIndicator As IWaitIndicator)
+        Public Sub New(subjectBuffer As ITextBuffer, uiThreadOperationExecutor As IUIThreadOperationExecutor)
             Contract.ThrowIfNull(subjectBuffer)
 
             Me._buffer = subjectBuffer
-            Me._waitIndicator = waitIndicator
+            Me._uiThreadOperationExecutor = uiThreadOperationExecutor
             Me._session = New Session(subjectBuffer)
 
             Me._previousDocument = Nothing
@@ -67,10 +68,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         End Sub
 
         Private Sub OnTextBufferChanged(sender As Object, e As TextContentChangedEventArgs)
-            _waitIndicator.Wait(
+            _uiThreadOperationExecutor.Execute(
                 "IntelliSense",
-                allowCancel:=True,
-                action:=Sub(c) StartSession(e, c.CancellationToken))
+                defaultDescription:="",
+                allowCancellation:=True,
+                showProgress:=False,
+                action:=Sub(c) StartSession(e, c.UserCancellationToken))
 
             ' clear previous document
             _previousDocument = Nothing

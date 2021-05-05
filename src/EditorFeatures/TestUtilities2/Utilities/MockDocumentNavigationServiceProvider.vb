@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return TryNavigateToPositionReturnValue
             End Function
 
-            Public Function TryNavigateToSpan(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As OptionSet, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToSpan
+            Public Function TryNavigateToSpan(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As OptionSet, allowInvalidSpans As Boolean, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToSpan
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedTextSpan = textSpan
                 Me.ProvidedOptions = options

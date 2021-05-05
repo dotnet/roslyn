@@ -21,6 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return RewriteInterpolatedStringConversion(node);
             }
 
+            if (node.ConversionKind is ConversionKind.SwitchExpression or ConversionKind.ConditionalExpression)
+            {
+                // Skip through target-typed conditionals and switches
+                Debug.Assert(node.Operand is BoundConditionalOperator { WasTargetTyped: true } or BoundConvertedSwitchExpression { WasTargetTyped: true });
+                return Visit(node.Operand)!;
+            }
+
             var rewrittenType = VisitType(node.Type);
 
             bool wasInExpressionLambda = _inExpressionLambda;

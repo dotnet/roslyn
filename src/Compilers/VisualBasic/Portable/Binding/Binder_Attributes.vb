@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
                 Dim namedType = DirectCast(symbol, NamedTypeSymbol)
-                Dim localUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(Compilation.Assembly), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependecies)
+                Dim localUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(Compilation.Assembly), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies)
 
                 ' type cannot be generic
                 If namedType.IsGenericType Then

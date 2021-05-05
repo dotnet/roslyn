@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -12,12 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal struct AliasAndUsingDirective
     {
         public readonly AliasSymbol Alias;
-        public readonly UsingDirectiveSyntax UsingDirective;
+        public readonly SyntaxReference? UsingDirectiveReference;
 
-        public AliasAndUsingDirective(AliasSymbol alias, UsingDirectiveSyntax usingDirective)
+        public AliasAndUsingDirective(AliasSymbol alias, UsingDirectiveSyntax? usingDirective)
         {
             this.Alias = alias;
-            this.UsingDirective = usingDirective;
+            this.UsingDirectiveReference = usingDirective?.GetReference();
         }
+
+        public UsingDirectiveSyntax? UsingDirective => (UsingDirectiveSyntax?)UsingDirectiveReference?.GetSyntax();
     }
 }

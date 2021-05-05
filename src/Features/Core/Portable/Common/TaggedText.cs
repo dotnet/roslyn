@@ -87,15 +87,16 @@ namespace Microsoft.CodeAnalysis
 
     internal static class TaggedTextExtensions
     {
-        public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts)
-            => displayParts.ToTaggedText(TaggedTextStyle.None);
+        public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts, Func<ISymbol, string> getNavigationHint = null)
+            => displayParts.ToTaggedText(TaggedTextStyle.None, getNavigationHint);
 
-        public static ImmutableArray<TaggedText> ToTaggedText(this IEnumerable<SymbolDisplayPart> displayParts, TaggedTextStyle style)
+        public static ImmutableArray<TaggedText> ToTaggedText(
+            this IEnumerable<SymbolDisplayPart> displayParts, TaggedTextStyle style, Func<ISymbol, string> getNavigationHint = null)
         {
             if (displayParts == null)
-            {
                 return ImmutableArray<TaggedText>.Empty;
-            }
+
+            getNavigationHint ??= GetNavigationHint;
 
             return displayParts.SelectAsArray(d =>
                 new TaggedText(
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis
                     d.ToString(),
                     style,
                     GetNavigationTarget(d.Symbol),
-                    GetNavigationHint(d.Symbol)));
+                    getNavigationHint(d.Symbol)));
 
             static string GetNavigationTarget(ISymbol symbol)
             {
@@ -114,10 +115,10 @@ namespace Microsoft.CodeAnalysis
 
                 return SymbolKey.CreateString(symbol);
             }
-
-            static string GetNavigationHint(ISymbol symbol)
-                => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
         }
+
+        private static string GetNavigationHint(ISymbol symbol)
+            => symbol?.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
         public static string JoinText(this ImmutableArray<TaggedText> values)
         {
@@ -228,6 +229,9 @@ namespace Microsoft.CodeAnalysis
 
                 case TextTags.Record:
                     return ClassificationTypeNames.RecordClassName;
+
+                case TextTags.RecordStruct:
+                    return ClassificationTypeNames.RecordStructName;
 
                 case TextTags.ContainerStart:
                 case TextTags.ContainerEnd:

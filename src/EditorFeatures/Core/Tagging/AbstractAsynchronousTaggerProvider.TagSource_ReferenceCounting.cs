@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -17,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             /// <summary>How many taggers are currently using us.</summary>
             private int _taggers = 0;
-            private bool _disposed = false;
 
             ~TagSource()
             {
@@ -36,30 +33,10 @@ StackTrace:
                 }
             }
 
-            public event EventHandler Disposed = (s, e) => { };
-
-            private void Dispose()
-            {
-                if (_disposed)
-                {
-                    Debug.Fail("Tagger already disposed");
-                    return;
-                }
-
-                // Stop computing any initial tags if we've been asked for them.
-                _initialComputationCancellationTokenSource.Cancel();
-                _disposed = true;
-                this.Disposed(this, EventArgs.Empty);
-                GC.SuppressFinalize(this);
-
-                this.Disconnect();
-            }
-
             internal void OnTaggerAdded(Tagger _)
             {
                 // this should be only called from UI thread. 
                 // in unit test, must be called from same thread as OnTaggerDisposed
-                Contract.ThrowIfTrue(_disposed);
                 Contract.ThrowIfFalse(_taggers >= 0);
 
                 _taggers++;
@@ -87,8 +64,8 @@ StackTrace:
                 => Dispose();
 
 #if DEBUG
-            private Thread _thread;
-            private string _stackTrace;
+            private Thread? _thread;
+            private string? _stackTrace;
 
             private void DebugRecordInitialStackTrace()
                 => _stackTrace = new StackTrace().ToString();

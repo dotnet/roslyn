@@ -344,6 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return true;
 
                 default:

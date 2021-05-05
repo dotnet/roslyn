@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseSystemHashCode), Shared]
     internal class UseSystemHashCodeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                     // so that we generate the same.
                     var containingType = accessesBase ? method!.ContainingType : null;
                     var components = generator.GetGetHashCodeComponents(
-                        semanticModel.Compilation, containingType, members, justMemberReference: true);
+                        generatorInternal, semanticModel.Compilation, containingType, members, justMemberReference: true);
 
                     var updatedDecl = generator.WithStatements(
                         methodBlock,

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _nameToAttributeMap[name] = newValue;
         }
 
-        internal QuickAttributeChecker AddAliasesIfAny(SyntaxList<UsingDirectiveSyntax> usingsSyntax)
+        internal QuickAttributeChecker AddAliasesIfAny(SyntaxList<UsingDirectiveSyntax> usingsSyntax, bool onlyGlobalAliases = false)
         {
             if (usingsSyntax.Count == 0)
             {
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var usingDirective in usingsSyntax)
             {
-                if (usingDirective.Alias != null)
+                if (usingDirective.Alias != null && (!onlyGlobalAliases || usingDirective.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword)))
                 {
                     string name = usingDirective.Alias.Name.Identifier.ValueText;
                     string target = usingDirective.Name.GetUnqualifiedName().Identifier.ValueText;
