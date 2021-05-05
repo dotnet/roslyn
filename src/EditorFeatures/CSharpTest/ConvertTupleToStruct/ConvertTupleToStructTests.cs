@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
     [UseExportProvider]
     public class ConvertTupleToStructTests
     {
-        #region update containing member tests
-
         private static OptionsCollection PreferImplicitTypeWithInfo()
             => new OptionsCollection(LanguageNames.CSharp)
             {
@@ -65,6 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 test.Options.AddRange(options);
             await test.RunAsync();
         }
+
+        #region update containing member tests
 
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
         public async Task ConvertSingleTupleType(TestHost host)
@@ -149,7 +149,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
     }
 }
 
@@ -185,7 +185,7 @@ class Test
 {
     void Method()
     {
-        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+        var t1 = new NewStruct(a: 1, b: 2);
     }
 }
 
@@ -3120,7 +3120,7 @@ internal struct NewStruct
     }
 }";
             await TestAsync(
-                text, expected, index: 1, equivalenceKey: Scope.ContainingMember.ToString(),
+                text, expected, index: 1, equivalenceKey: Scope.ContainingType.ToString(),
                 options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
