@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource3
+        private partial class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource3
         {
             private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
 
@@ -139,13 +139,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (state is null)
                     return null;
 
-                if (state.Target.WorkspaceStatusService is { } workspaceStatusService)
+                if (state.Target.Workspace == null)
+                    return null;
+
+                using (operationContext?.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
                 {
-                    using (operationContext?.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
-                    {
-                        // This needs to run under threading context otherwise, we can deadlock on VS
-                        ThreadingContext.JoinableTaskFactory.Run(() => workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken));
-                    }
+                    // This needs to run under threading context otherwise, we can deadlock on VS
+                    var statusService = state.Target.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+                    ThreadingContext.JoinableTaskFactory.Run(() => statusService.WaitUntilFullyLoadedAsync(cancellationToken));
                 }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
@@ -486,13 +487,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // one doesn't need to hold onto workspace in field.
 
                 // remove existing event registration
-                if (state.Target.WorkspaceStatusService != null)
-                {
-                    state.Target.WorkspaceStatusService.StatusChanged -= OnWorkspaceStatusChanged;
-                }
-
                 if (state.Target.Workspace != null)
                 {
+                    state.Target.Workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged -= OnWorkspaceStatusChanged;
                     state.Target.Workspace.DocumentActiveContextChanged -= OnActiveContextChanged;
                 }
 
@@ -511,11 +508,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 state.Target.Workspace.DocumentActiveContextChanged += OnActiveContextChanged;
-                state.Target.WorkspaceStatusService = state.Target.Workspace.Services.GetService<IWorkspaceStatusService>();
-                if (state.Target.WorkspaceStatusService != null)
-                {
-                    state.Target.WorkspaceStatusService.StatusChanged += OnWorkspaceStatusChanged;
-                }
+                state.Target.Workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged += OnWorkspaceStatusChanged;
             }
 
             private void OnActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
@@ -584,26 +577,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (state is null)
                     return null;
 
-                if (state.Target.WorkspaceStatusService != null && !await state.Target.WorkspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    // never show light bulb if solution is not fully loaded yet
+                var workspace = state.Target.Workspace;
+                if (workspace == null)
                     return null;
-                }
+
+                // never show light bulb if solution is not fully loaded yet
+                if (!await workspace.Services.GetRequiredService<IWorkspaceStatusService>().IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
+                    return null;
 
                 cancellationToken.ThrowIfCancellationRequested();
 
                 using var asyncToken = state.Target.Owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync));
                 var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
-                {
                     return null;
-                }
 
                 using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 var linkedToken = linkedTokenSource.Token;
 
-                var errorTask = Task.Run(
-                    () => GetFixLevelAsync(state, document, range, linkedToken), linkedToken);
+                var errorTask = Task.Run(() => GetFixLevelAsync(state, document, range, linkedToken), linkedToken);
 
                 var selection = await GetSpanAsync(state, range, linkedToken).ConfigureAwait(false);
 
@@ -622,70 +614,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return result == null
                     ? null
                     : _suggestedActionCategoryRegistry.CreateSuggestedActionCategorySet(result);
-            }
-
-            private sealed class State : IDisposable
-            {
-                private readonly SuggestedActionsSource _source;
-
-                // state that will be only reset when source is disposed.
-                public SuggestedActionsSourceProvider Owner { get; private set; }
-                public ITextView TextView { get; private set; }
-                public ITextBuffer SubjectBuffer { get; private set; }
-                public WorkspaceRegistration Registration { get; private set; }
-
-                // mutable state
-                public Workspace? Workspace { get; set; }
-                public IWorkspaceStatusService? WorkspaceStatusService { get; set; }
-                public int _lastSolutionVersionReported;
-                public ref int LastSolutionVersionReported => ref _lastSolutionVersionReported;
-
-                public State(SuggestedActionsSource source, SuggestedActionsSourceProvider owner, ITextView textView, ITextBuffer textBuffer)
-                {
-                    _source = source;
-
-                    Owner = owner;
-                    TextView = textView;
-                    SubjectBuffer = textBuffer;
-                    Registration = Workspace.GetWorkspaceRegistration(textBuffer.AsTextContainer());
-                    LastSolutionVersionReported = InvalidSolutionVersion;
-                }
-
-                public void Dispose()
-                {
-                    if (Owner != null)
-                    {
-                        var updateSource = (IDiagnosticUpdateSource)Owner._diagnosticService;
-                        updateSource.DiagnosticsUpdated -= _source.OnDiagnosticsUpdated;
-                    }
-
-                    if (WorkspaceStatusService != null)
-                    {
-                        WorkspaceStatusService.StatusChanged -= _source.OnWorkspaceStatusChanged;
-                    }
-
-                    if (Workspace != null)
-                    {
-                        Workspace.DocumentActiveContextChanged -= _source.OnActiveContextChanged;
-                    }
-
-                    if (Registration != null)
-                    {
-                        Registration.WorkspaceChanged -= _source.OnWorkspaceChanged;
-                    }
-
-                    if (TextView != null)
-                    {
-                        TextView.Closed -= _source.OnTextViewClosed;
-                    }
-
-                    Owner = null!;
-                    Workspace = null;
-                    WorkspaceStatusService = null;
-                    Registration = null!;
-                    TextView = null!;
-                    SubjectBuffer = null!;
-                }
             }
         }
     }
