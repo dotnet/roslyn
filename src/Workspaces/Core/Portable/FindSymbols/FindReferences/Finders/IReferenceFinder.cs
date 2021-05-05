@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// Implementations of this method must be thread-safe.
         /// </summary>
         Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
+            ISymbol symbol, Project project,
             FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken);
 

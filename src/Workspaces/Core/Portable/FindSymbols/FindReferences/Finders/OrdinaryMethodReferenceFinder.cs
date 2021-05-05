@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
-            Solution solution,
-            IImmutableSet<Project>? projects,
+            Project project,
             FindReferencesSearchOptions options,
             FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var otherPartsOfPartial = GetOtherPartsOfPartial(symbol);
                 var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(
-                    symbol, solution, projects, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
+                    symbol, project, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
 
                 if (otherPartsOfPartial == null && baseCascadedSymbols == null)
                     return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;

@@ -289,6 +289,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var projectsToExamine = GetProjectsToExamineWorker(
                 solution, projects, projectsThatCouldReferenceType);
 
+            // Ensure that we don't look past the actual set of projects we've been asked to find refernces in.
+            projectsToExamine = projectsToExamine.Intersect(projects);
+
             // Ensure the projects we're going to examine are ordered topologically.
             // That way we can just sweep over them from left to right as no project
             // could affect a previous project in the sweep.

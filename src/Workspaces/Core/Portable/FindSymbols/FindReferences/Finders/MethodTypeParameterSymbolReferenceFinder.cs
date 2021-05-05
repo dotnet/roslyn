@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             ITypeParameterSymbol symbol,
-            Solution solution,
-            IImmutableSet<Project>? projects,
+            Project project,
             FindReferencesSearchOptions options,
             FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)

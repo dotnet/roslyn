@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             TSymbol symbol,
-            Solution solution,
-            IImmutableSet<Project>? projects,
+            Project project,
             FindReferencesSearchOptions options,
             FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
@@ -29,6 +28,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // Static methods can't cascade.
             if (symbol.IsStatic)
                 return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;
+
+            var solution = project.Solution;
+            var projects = ImmutableHashSet.Create(project);
 
             if (symbol.IsImplementableMember())
             {

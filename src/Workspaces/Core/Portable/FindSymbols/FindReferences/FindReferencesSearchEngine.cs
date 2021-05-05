@@ -63,8 +63,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 await using var _ = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
 
+                var searchSymbol = MapToAppropriateSymbol(symbol);
+                var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(searchSymbol, _solution, cancellationToken).ConfigureAwait(false);
+                if (sourceSymbol != null)
+                    searchSymbol = sourceSymbol;
+
+                var group = await DetermineSymbolGroupAsync(searchSymbol, cancellationToken).ConfigureAwait(false);
+
                 // For the starting symbol, always cascade up and down the inheritance hierarchy.
-                var symbols = await DetermineAllSymbolsAsync(
+                var symbols = await DetermineInitialSymbolsAsync(
                     symbol, FindReferencesCascadeDirection.UpAndDown, cancellationToken).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols, cancellationToken).ConfigureAwait(false);

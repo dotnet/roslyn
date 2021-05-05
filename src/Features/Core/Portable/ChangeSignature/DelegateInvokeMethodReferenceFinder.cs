@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
-            Solution solution,
-            IImmutableSet<Project> projects,
+            Project project,
             FindReferencesSearchOptions options,
             FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
@@ -48,9 +47,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 result.Add((beginInvoke, cascadeDirection));
 
             // All method group references
-            foreach (var project in solution.Projects)
+            foreach (var currentProject in project.Solution.Projects)
             {
-                foreach (var document in project.Documents)
+                foreach (var document in currentProject.Documents)
                 {
                     var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
                     var cascaded = await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(

@@ -97,8 +97,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IParameterSymbol parameter,
-            Solution solution,
-            IImmutableSet<Project>? projects,
+            Project project,
             FindReferencesSearchOptions options,
             FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
-            await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameter, symbols, cancellationToken).ConfigureAwait(false);
+            await CascadeBetweenAnonymousFunctionParametersAsync(project, parameter, symbols, cancellationToken).ConfigureAwait(false);
             CascadeBetweenPropertyAndAccessorParameters(parameter, symbols);
             CascadeBetweenDelegateMethodParameters(parameter, symbols);
             CascadeBetweenPartialMethodParameters(parameter, symbols);
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static async Task CascadeBetweenAnonymousFunctionParametersAsync(
-            Solution solution,
+            Project project,
             IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results,
             CancellationToken cancellationToken)
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var parameterNode = parameter.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
                 if (parameterNode != null)
                 {
-                    var document = solution.GetDocument(parameterNode.SyntaxTree);
+                    var document = project.Solution.GetDocument(parameterNode.SyntaxTree);
                     if (document != null)
                     {
                         var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();

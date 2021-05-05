@@ -17,14 +17,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
-            Solution solution,
-            IImmutableSet<Project>? projects,
+            Project project,
             FindReferencesSearchOptions options,
             FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             var result = await base.DetermineCascadedSymbolsAsync(
-                symbol, solution, projects, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
+                symbol, project, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
 
             // If we've been asked to search for specific accessors, then do not cascade.
             // We don't want to produce results for the associated property.

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public const string ContainingMemberInfoPropertyName = "ContainingMemberInfo";
 
         public abstract Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
+            ISymbol symbol, Project project,
             FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken);
 
@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
+            ISymbol symbol, Project project,
             FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
@@ -941,8 +941,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol is TSymbol typedSymbol &&
                 CanFind(typedSymbol))
             {
-                return DetermineCascadedSymbolsAsync(
-                    typedSymbol, solution, projects, options, cascadeDirection, cancellationToken);
+                return DetermineCascadedSymbolsAsync(typedSymbol, project, options, cascadeDirection, cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>();
@@ -956,7 +955,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected virtual Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
-            TSymbol symbol, Solution solution, IImmutableSet<Project>? projects,
+            TSymbol symbol, Project project,
             FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {

@@ -24,14 +24,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IPropertySymbol symbol,
-            Solution solution,
-            IImmutableSet<Project>? projects,
+            Project project,
             FindReferencesSearchOptions options,
             FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             var baseSymbols = await base.DetermineCascadedSymbolsAsync(
-                symbol, solution, projects, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
+                symbol, project, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
 
             var backingFields = symbol.ContainingType.GetMembers()
                                       .OfType<IFieldSymbol>()
