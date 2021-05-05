@@ -8724,30 +8724,33 @@ record C : [|I|]
         }
 
         [WorkItem(48295, "https://github.com/dotnet/roslyn/issues/48295")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestImplementOnRecord_WithSemiColonAndTrivia()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TestImplementOnRecord_WithSemiColonAndTrivia(string record)
         {
-            await TestInRegularAndScriptAsync(@"
+            await TestInRegularAndScriptAsync($@"
 interface I
-{
+{{
     void M1();
-}
+}}
 
-record C : [|I|]; // hello
+{record} C : [|I|]; // hello
 ",
-@"
+$@"
 interface I
-{
+{{
     void M1();
-}
+}}
 
-record C : [|I|] // hello
-{
+{record} C : [|I|] // hello
+{{
     public void M1()
-    {
+    {{
         throw new System.NotImplementedException();
-    }
-}
+    }}
+}}
 ");
         }
 

@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.ConvertTupleToStruct;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
             string expected,
             int index = 0,
             string? equivalenceKey = null,
+            LanguageVersion languageVersion = LanguageVersion.CSharp9,
             OptionsCollection? options = null,
             TestHost testHost = TestHost.InProcess,
             string[]? actions = null)
@@ -53,8 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
                 TestCode = text,
                 FixedCode = expected,
                 TestHost = testHost,
+                LanguageVersion = languageVersion,
                 CodeActionIndex = index,
-                CodeActionEquivalenceKey = null,
+                CodeActionEquivalenceKey = equivalenceKey,
                 ExactActionSetOffered = actions,
             };
 
@@ -127,6 +130,93 @@ internal struct NewStruct
     }
 }";
             await TestAsync(text, expected, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeToRecord(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](a: 1, b: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+    }
+}
+
+internal record struct NewStruct(int a, int b)
+{
+    public static implicit operator (int a, int b)(NewStruct value)
+    {
+        return (value.a, value.b);
+    }
+
+    public static implicit operator NewStruct((int a, int b) value)
+    {
+        return new NewStruct(value.a, value.b);
+    }
+}";
+            await TestAsync(text, expected, languageVersion: LanguageVersion.Preview, options: PreferImplicitTypeWithInfo(), testHost: host);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
+        public async Task ConvertSingleTupleTypeToRecord_MismatchedNameCasing(TestHost host)
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||](A: 1, B: 2);
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewStruct|}(a: 1, b: 2);
+    }
+}
+
+internal record struct NewStruct
+{
+    public int A;
+    public int B;
+
+    public NewStruct(int a, int b)
+    {
+        A = a;
+        B = b;
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = A;
+        b = B;
+    }
+
+    public static implicit operator (int A, int B)(NewStruct value)
+    {
+        return (value.A, value.B);
+    }
+
+    public static implicit operator NewStruct((int A, int B) value)
+    {
+        return new NewStruct(value.A, value.B);
+    }
+}";
+            await TestAsync(text, expected, languageVersion: LanguageVersion.Preview, options: PreferImplicitTypeWithInfo(), testHost: host);
         }
 
         [WorkItem(45451, "https://github.com/dotnet/roslyn/issues/45451")]

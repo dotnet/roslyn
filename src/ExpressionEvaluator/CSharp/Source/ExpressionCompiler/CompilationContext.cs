@@ -732,7 +732,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Debug.Assert((object)@namespace == compilation.GlobalNamespace);
                 }
 
-                Imports? imports = null;
                 if (hasImports)
                 {
                     if (currentStringGroup < 0)
@@ -742,11 +741,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     var importsBinder = new InContainerBinder(@namespace, binder);
-                    imports = BuildImports(compilation, importRecordGroups[currentStringGroup], importsBinder);
+                    Imports imports = BuildImports(compilation, importRecordGroups[currentStringGroup], importsBinder);
                     currentStringGroup--;
+
+                    binder = WithExternAndUsingAliasesBinder.Create(imports.ExternAliases, imports.UsingAliases, WithUsingNamespacesAndTypesBinder.Create(imports.Usings, binder));
                 }
 
-                binder = new InContainerBinder(@namespace, binder, imports);
+                binder = new InContainerBinder(@namespace, binder);
             }
 
             stack.Free();
@@ -944,9 +945,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     continue;
                 }
 
-                var externAliasSyntax = SyntaxFactory.ExternAliasDirective(aliasNameSyntax.Identifier);
-                var aliasSymbol = new AliasSymbol(binder, externAliasSyntax); // Binder is only used to access compilation.
-                externsBuilder.Add(new AliasAndExternAliasDirective(aliasSymbol, externAliasDirective: null)); // We have one, but we pass null for consistency.
+                NamespaceSymbol target;
+                compilation.GetExternAliasTarget(aliasNameSyntax.Identifier.ValueText, out target);
+                Debug.Assert(target.IsGlobalNamespace);
+
+                var aliasSymbol = AliasSymbol.CreateCustomDebugInfoAlias(target, aliasNameSyntax.Identifier, binder.ContainingMemberOrLambda, isExtern: true);
+                externsBuilder.Add(new AliasAndExternAliasDirective(aliasSymbol, externAliasDirective: null, skipInLookup: false));
             }
 
             var externs = externsBuilder.ToImmutableAndFree();
@@ -958,8 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // the actual binder chain.
                 binder = new InContainerBinder(
                     binder.Container,
-                    binder,
-                    Imports.FromCustomDebugInfo(binder.Compilation, ImmutableDictionary<string, AliasAndUsingDirective>.Empty, ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, externs));
+                    WithExternAliasesBinder.Create(externs, binder));
             }
 
             var usingAliases = ImmutableDictionary.CreateBuilder<string, AliasAndUsingDirective>();
@@ -1070,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            return Imports.FromCustomDebugInfo(binder.Compilation, usingAliases.ToImmutableDictionary(), usingsBuilder.ToImmutableAndFree(), externs);
+            return Imports.Create(usingAliases.ToImmutableDictionary(), usingsBuilder.ToImmutableAndFree(), externs);
         }
 
         private static NamespaceSymbol? BindNamespace(string namespaceName, NamespaceSymbol globalNamespace)
@@ -1110,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return false;
                 }
 
-                var aliasSymbol = AliasSymbol.CreateCustomDebugInfoAlias(targetSymbol, aliasSyntax.Identifier, binder);
+                var aliasSymbol = AliasSymbol.CreateCustomDebugInfoAlias(targetSymbol, aliasSyntax.Identifier, binder.ContainingMemberOrLambda, isExtern: false);
                 usingAliases.Add(alias, new AliasAndUsingDirective(aliasSymbol, usingDirective: null));
             }
 
