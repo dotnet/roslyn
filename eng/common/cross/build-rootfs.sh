@@ -78,6 +78,10 @@ __IllumosPackages+=" openssl-1.1.1e"
 __IllumosPackages+=" zlib-1.2.11"
 __IllumosPackages+=" openldap-client-2.4.49"
 
+# ML.NET dependencies
+__UbuntuPackages+=" libomp5"
+__UbuntuPackages+=" libomp-dev"
+
 __UseMirror=0
 
 __UnprocessedBuildArgs=
