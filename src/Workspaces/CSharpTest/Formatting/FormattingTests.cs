@@ -9930,6 +9930,41 @@ class A
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_SingleLine()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+            };
+            await AssertFormatAsync(
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is {
+            Name: ""foo"",
+        };
+    }
+}",
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is {
+            Name: ""foo"",
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task RecordClass()
         {
             await AssertFormatAsync(
