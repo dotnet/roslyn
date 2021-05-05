@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
+            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // TODO(cyrusn): Method type parameters are like locals.  They are only in scope in
             // the bounds of the method they're declared within.  We could improve perf by
             // limiting our search by only looking within the method body's span. 
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);
+            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, isMatchAsync, document, semanticModel, cancellationToken);
         }
     }
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -114,16 +115,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
+            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var nameMatches = await FindReferencesInDocumentUsingSymbolNameAsync(
-                symbol,
-                document,
-                semanticModel,
-                cancellationToken).ConfigureAwait(false);
+                symbol, isMatchAsync, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             if (IsForEachMethod(symbol))
             {

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             INamespaceSymbol symbol,
+            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
@@ -46,14 +48,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
                 document, semanticModel, identifierName, cancellationToken).ConfigureAwait(false);
-            var nonAliasReferences = await FindReferencesInTokensAsync(symbol,
+            var nonAliasReferences = await FindReferencesInTokensAsync(
+                symbol,
+                isMatchAsync,
                 document,
                 semanticModel,
                 tokens,
                 t => syntaxFacts.TextMatch(t.ValueText, identifierName),
                 cancellationToken).ConfigureAwait(false);
 
-            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var aliasReferences = await FindAliasReferencesAsync(
+                nonAliasReferences, symbol, isMatchAsync, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             var suppressionReferences = ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId)
                 ? await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel,

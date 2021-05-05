@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -75,31 +76,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             INamedTypeSymbol namedType,
+            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var nonAliasReferences = await FindNonAliasReferencesAsync(namedType, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
+            var nonAliasReferences = await FindNonAliasReferencesAsync(namedType, isMatchAsync, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, isMatchAsync, findParentNode: null, document.Project.Solution, cancellationToken);
             var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false);
             return nonAliasReferences.Concat(aliasReferences);
         }
 
         internal static async ValueTask<ImmutableArray<FinderLocation>> FindNonAliasReferencesAsync(
             INamedTypeSymbol symbol,
+            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            var attributeRefs = await FindAttributeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, isMatchAsync, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var attributeRefs = await FindAttributeReferencesAsync(symbol, isMatchAsync, document, semanticModel, cancellationToken).ConfigureAwait(false);
             var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
             return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs);
         }
 
         private static ValueTask<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
             INamedTypeSymbol namedType,
+            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -109,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // to the constructor not the type.  That's a good thing as we don't want these object-creations to
             // associate with the type, but rather with the constructor itself.
             var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(document, namedType);
-            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode, document.Project.Solution, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, isMatchAsync, findParentNode, document.Project.Solution, cancellationToken);
 
             return FindReferencesInDocumentUsingIdentifierAsync(
                 namedType, namedType.Name, document, semanticModel, symbolsMatch, cancellationToken);
@@ -138,11 +142,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private static ValueTask<ImmutableArray<FinderLocation>> FindAttributeReferencesAsync(
             INamedTypeSymbol namedType,
+            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, isMatchAsync, findParentNode: null, document.Project.Solution, cancellationToken);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             return TryGetNameWithoutAttributeSuffix(namedType.Name, syntaxFacts, out var simpleName)
                 ? FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, semanticModel,
