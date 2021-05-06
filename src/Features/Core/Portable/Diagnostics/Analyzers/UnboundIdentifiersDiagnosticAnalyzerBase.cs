@@ -11,17 +11,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 {
-    internal abstract class UnboundIdentifiersDiagnosticAnalyzerBase<TLanguageKindEnum, TSimpleNameSyntax, TQualifiedNameSyntax, TIncompleteMemberSyntax, TLambdaExpressionSyntax> : DiagnosticAnalyzer, IBuiltInAnalyzer
+    internal abstract class UnboundIdentifiersDiagnosticAnalyzerBase<TLanguageKindEnum, TSimpleNameSyntax, TQualifiedNameSyntax, TIncompleteMemberSyntax> : DiagnosticAnalyzer, IBuiltInAnalyzer
         where TLanguageKindEnum : struct
         where TSimpleNameSyntax : SyntaxNode
         where TQualifiedNameSyntax : SyntaxNode
         where TIncompleteMemberSyntax : SyntaxNode
-        where TLambdaExpressionSyntax : SyntaxNode
     {
         protected abstract DiagnosticDescriptor DiagnosticDescriptor { get; }
         protected abstract DiagnosticDescriptor DiagnosticDescriptor2 { get; }
         protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
-        protected abstract bool ConstructorDoesNotExist(SyntaxNode node, SymbolInfo info, SemanticModel semanticModel);
         protected abstract bool IsNameOf(SyntaxNode node);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor, DiagnosticDescriptor2);
@@ -48,32 +46,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (IsBrokenLambda(context) || context.Node is TIncompleteMemberSyntax)
+            if (context.Node is TIncompleteMemberSyntax)
             {
                 ReportUnboundIdentifierNames(context, context.Node);
             }
         }
 
-        private static bool IsBrokenLambda(SyntaxNodeAnalysisContext context)
-        {
-            if (context.Node is TLambdaExpressionSyntax)
-            {
-                if (context.Node.ContainsDiagnostics)
-                {
-                    return true;
-                }
-
-                var lastToken = context.Node.GetLastToken();
-                return lastToken.GetNextToken(includeZeroWidth: true).IsMissing;
-            }
-
-            return false;
-        }
-
         private void ReportUnboundIdentifierNames(SyntaxNodeAnalysisContext context, SyntaxNode member)
         {
-            static bool isQualifiedOrSimpleName(SyntaxNode n) => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
-            var typeNames = member.DescendantNodes().Where(n => isQualifiedOrSimpleName(n) && !n.Span.IsEmpty);
+            var typeNames = member.DescendantNodes().Where(n => IsQualifiedOrSimpleName(n) && !n.Span.IsEmpty);
             foreach (var typeName in typeNames)
             {
                 var info = context.SemanticModel.GetSymbolInfo(typeName);
@@ -87,12 +68,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptor, typeName.GetLocation(), typeName.ToString()));
                 }
-                else if (ConstructorDoesNotExist(typeName, info, context.SemanticModel))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptor2, typeName.GetLocation(), typeName.ToString()));
-                }
             }
         }
+
+        private static bool IsQualifiedOrSimpleName(SyntaxNode n)
+            => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
