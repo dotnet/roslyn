@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             using var pdbStream = new MemoryStream();
 
             var updatedMethods = new List<MethodDefinitionHandle>();
-            var updatedTypes= new List<TypeDefinitionHandle>();
+            var updatedTypes = new List<TypeDefinitionHandle>();
 
             var result = compilation.EmitDifference(
                 baseline,
