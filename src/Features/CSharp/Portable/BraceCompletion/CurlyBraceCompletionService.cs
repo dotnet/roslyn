@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return new BraceCompletionFormattingRule(_indentStyle, cachedOptions);
             }
 
-            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            private static bool? NeedsNewLine(in SyntaxToken previousToken, in SyntaxToken currentToken, CachedOptions options)
             {
                 // If we're inside any of the following expressions check if the option for
                 // braces on new lines in object / array initializers is set before we attempt
@@ -382,16 +382,26 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                     SyntaxKind.ObjectInitializerExpression,
                     SyntaxKind.CollectionInitializerExpression,
                     SyntaxKind.ArrayInitializerExpression,
-                    SyntaxKind.ImplicitArrayCreationExpression))
+                    SyntaxKind.ImplicitArrayCreationExpression,
+                    SyntaxKind.WithInitializerExpression,
+                    SyntaxKind.PropertyPatternClause))
                 {
-                    if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
-                    {
-                        return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return options.NewLinesForBracesInObjectCollectionArrayInitializers;
+                }
+
+                return null;
+            }
+
+            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            {
+                var needsNewLine = NeedsNewLine(previousToken, currentToken, _options);
+                if (needsNewLine == true)
+                {
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                }
+                else if (needsNewLine == false)
+                {
+                    return null;
                 }
 
                 return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
