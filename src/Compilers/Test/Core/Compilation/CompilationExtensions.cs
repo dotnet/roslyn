@@ -146,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             using var pdbStream = new MemoryStream();
 
             var updatedMethods = new List<MethodDefinitionHandle>();
+            var updatedTypes= new List<TypeDefinitionHandle>();
 
             var result = compilation.EmitDifference(
                 baseline,
@@ -155,6 +156,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ilStream,
                 pdbStream,
                 updatedMethods,
+                updatedTypes,
                 testData,
                 CancellationToken.None);
 
@@ -164,7 +166,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 pdbStream.ToImmutable(),
                 testData,
                 result,
-                updatedMethods.ToImmutableArray());
+                updatedMethods.ToImmutableArray(),
+                updatedTypes.ToImmutableArray());
         }
 
         internal static void VerifyAssemblyVersionsAndAliases(this Compilation compilation, params string[] expectedAssembliesAndAliases)

@@ -2735,6 +2735,28 @@ namespace Microsoft.CodeAnalysis
             ICollection<MethodDefinitionHandle> updatedMethods,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            var updatedTypes = new List<TypeDefinitionHandle>();
+            return EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, updatedMethods, updatedTypes, cancellationToken);
+        }
+
+        /// <summary>
+        /// Emit the differences between the compilation and the previous generation
+        /// for Edit and Continue. The differences are expressed as added and changed
+        /// symbols, and are emitted as metadata, IL, and PDB deltas. A representation
+        /// of the current compilation is returned as an EmitBaseline for use in a
+        /// subsequent Edit and Continue.
+        /// </summary>
+        public EmitDifferenceResult EmitDifference(
+            EmitBaseline baseline,
+            IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol,
+            Stream metadataStream,
+            Stream ilStream,
+            Stream pdbStream,
+            ICollection<MethodDefinitionHandle> updatedMethods,
+            ICollection<TypeDefinitionHandle> updatedTypes,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
             if (baseline == null)
             {
                 throw new ArgumentNullException(nameof(baseline));
@@ -2768,7 +2790,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(pdbStream));
             }
 
-            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, updatedMethods, testData: null, cancellationToken);
+            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, updatedMethods, updatedTypes, testData: null, cancellationToken);
         }
 
         internal abstract EmitDifferenceResult EmitDifference(
@@ -2779,6 +2801,7 @@ namespace Microsoft.CodeAnalysis
             Stream ilStream,
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethodHandles,
+            ICollection<TypeDefinitionHandle> updatedTypeHandlers,
             CompilationTestData? testData,
             CancellationToken cancellationToken);
 
@@ -3068,6 +3091,7 @@ namespace Microsoft.CodeAnalysis
             Stream ilStream,
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethods,
+            ICollection<TypeDefinitionHandle> updatedTypes,
             DiagnosticBag diagnostics,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             string? pdbFilePath,
@@ -3103,6 +3127,8 @@ namespace Microsoft.CodeAnalysis
                         out MetadataSizes metadataSizes);
 
                     writer.GetMethodTokens(updatedMethods);
+
+                    writer.GetTypeTokens(updatedTypes);
 
                     nativePdbWriter?.WriteTo(pdbStream);
 

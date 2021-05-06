@@ -2555,6 +2555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ilStream As Stream,
             pdbStream As Stream,
             updatedMethods As ICollection(Of MethodDefinitionHandle),
+            updatedTypes As ICollection(Of TypeDefinitionHandle),
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -2567,6 +2568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ilStream,
                 pdbStream,
                 updatedMethods,
+                updatedTypes,
                 testData,
                 cancellationToken)
         End Function

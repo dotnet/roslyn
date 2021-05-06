@@ -883,6 +883,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     using var ilStream = SerializableBytes.CreateWritableStream();
 
                     var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
+                    var updatedTypes = ImmutableArray.CreateBuilder<TypeDefinitionHandle>();
 
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(newCompilation);
@@ -895,6 +896,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         ilStream,
                         pdbStream,
                         updatedMethods,
+                        updatedTypes,
                         cancellationToken);
 
                     if (emitResult.Success)
@@ -902,6 +904,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         Contract.ThrowIfNull(emitResult.Baseline);
 
                         var updatedMethodTokens = updatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        var updatedTypeTokens = updatedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
+
 
                         // Determine all active statements whose span changed and exception region span deltas.
                         GetActiveStatementAndExceptionRegionSpans(

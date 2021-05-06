@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Stream ilStream,
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethods,
+            ICollection<TypeDefinitionHandle> updatedTypes,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -87,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ilStream,
                     pdbStream,
                     updatedMethods,
+                    updatedTypes,
                     diagnostics,
                     testData?.SymWriterFactory,
                     emitOptions.PdbFilePath,

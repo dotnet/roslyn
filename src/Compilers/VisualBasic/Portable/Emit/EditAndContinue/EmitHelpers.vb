@@ -23,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ilStream As Stream,
             pdbStream As Stream,
             updatedMethods As ICollection(Of MethodDefinitionHandle),
+            updatedTypes As ICollection(Of TypeDefinitionHandle),
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -81,6 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     ilStream,
                     pdbStream,
                     updatedMethods,
+                    updatedTypes,
                     diagnostics,
                     testData?.SymWriterFactory,
                     emitOpts.PdbFilePath,

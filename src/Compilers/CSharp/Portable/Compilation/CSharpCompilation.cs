@@ -3353,6 +3353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Stream ilStream,
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethods,
+            ICollection<TypeDefinitionHandle> updatedTypes,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -3365,6 +3366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ilStream,
                 pdbStream,
                 updatedMethods,
+                updatedTypes,
                 testData,
                 cancellationToken);
         }
