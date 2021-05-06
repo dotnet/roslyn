@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Linq;
@@ -13,18 +14,18 @@ namespace Microsoft.CodeAnalysis
 {
     internal interface ISyntaxTransformNode
     {
-        ISyntaxTransformBuilder GetBuilder(DriverStateTable previousStateTable);
+        ISyntaxTransformBuilder GetBuilder(DriverStateTable previousTable);
     }
 
     internal interface ISyntaxTransformBuilder
     {
         bool Filter(SyntaxNode node);
 
-        void AddFilterFromPreviousTable(SemanticModel model, EntryState state);
+        void AddFilterFromPreviousTable(SemanticModel? model, EntryState state);
 
         void AddFilterEntries(ImmutableArray<SyntaxNode> nodes, SemanticModel model);
 
-        void SetInputState(DriverStateTable.Builder builder);
+        void AddInputs(DriverStateTable.Builder builder);
     }
 
     internal sealed class SyntaxTransformNode<T> : IIncrementalGeneratorNode<T>, ISyntaxTransformNode
@@ -32,7 +33,6 @@ namespace Microsoft.CodeAnalysis
         private readonly Func<GeneratorSyntaxContext, T> _func;
         private readonly IEqualityComparer<T> _comparer;
         private readonly Func<SyntaxNode, bool> _filterFunc;
-
         private readonly InputNode<SyntaxNode> _filterNode = new InputNode<SyntaxNode>();
 
         internal SyntaxTransformNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc, IEqualityComparer<T>? comparer = null)
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
 
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxTransformNode<T>(_filterFunc, _func, comparer);
 
-        public ISyntaxTransformBuilder GetBuilder(DriverStateTable previousStateTable) => new Builder(this, previousStateTable.GetStateTable(this), previousStateTable.GetStateTable(this._filterNode));
+        public ISyntaxTransformBuilder GetBuilder(DriverStateTable previousStateTable) => new Builder(this, previousStateTable.GetStateTable(this._filterNode), previousStateTable.GetStateTable(this));
 
         private sealed class Builder : ISyntaxTransformBuilder
         {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             private readonly NodeStateTable<SyntaxNode> _previousFilterTable;
             private readonly NodeStateTable<SyntaxNode>.Builder _filterTable;
 
-            public Builder(SyntaxTransformNode<T> owner, NodeStateTable<T> previousTransform, NodeStateTable<SyntaxNode> previousFilter)
+            public Builder(SyntaxTransformNode<T> owner, NodeStateTable<SyntaxNode> previousFilter, NodeStateTable<T> previousTransform)
             {
                 _owner = owner;
 
@@ -72,8 +72,9 @@ namespace Microsoft.CodeAnalysis
 
             public bool Filter(SyntaxNode syntaxNode) => _owner._filterFunc(syntaxNode);
 
-            public void AddFilterFromPreviousTable(SemanticModel model, EntryState state)
+            public void AddFilterFromPreviousTable(SemanticModel? model, EntryState state)
             {
+                Debug.Assert(model is object || state == EntryState.Removed);
                 var nodes = _filterTable.AddEntriesFromPreviousTable(_previousFilterTable, state);
                 UpdateTransformTable(nodes, model, state);
             }
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 UpdateTransformTable(nodes, model, EntryState.Added);
             }
 
-            private void UpdateTransformTable(ImmutableArray<SyntaxNode> nodes, SemanticModel model, EntryState state)
+            private void UpdateTransformTable(ImmutableArray<SyntaxNode> nodes, SemanticModel? model, EntryState state)
             {
                 foreach (var node in nodes)
                 {
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
+                        Debug.Assert(model is object);
                         var value = new GeneratorSyntaxContext(node, model);
                         var transformed = ImmutableArray.Create(_owner._func(value));
                         if (_previousTransformTable.IsEmpty || state == EntryState.Added)
@@ -108,10 +110,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public void SetInputState(DriverStateTable.Builder builder)
+            public void AddInputs(DriverStateTable.Builder builder)
             {
-                builder.SetInputTable(_owner._filterNode, _filterTable.ToImmutableAndFree());
-                builder.SetInputTable(_owner, _transformTable.ToImmutableAndFree());
+                builder.SetTable(_owner._filterNode, _filterTable.ToImmutableAndFree());
+                builder.SetTable(_owner, _transformTable.ToImmutableAndFree());
             }
         }
     }

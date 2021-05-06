@@ -42,19 +42,19 @@ namespace Microsoft.CodeAnalysis
                 _cancellationToken = cancellationToken;
             }
 
-            public void SetInputTable<T>(IIncrementalGeneratorNode<T> source, NodeStateTable<T> table)
+            public void SetTable<T>(IIncrementalGeneratorNode<T> source, NodeStateTable<T> table)
             {
                 _tableBuilder[source] = table;
             }
 
-            public void SetInputValue<T>(InputNode<T> source, T value)
+            public void AddInput<T>(InputNode<T> source, T value)
             {
-                _tableBuilder[source] = source.GetInputTable(_previousTable.GetStateTable(source), value);
+                _tableBuilder[source] = source.CreateInputTable(_previousTable.GetStateTable(source), value);
             }
 
-            public void SetInputValue<T>(InputNode<T> source, IEnumerable<T> value)
+            public void AddInput<T>(InputNode<T> source, IEnumerable<T> value)
             {
-                _tableBuilder[source] = source.GetInputTable(_previousTable.GetStateTable(source), value);
+                _tableBuilder[source] = source.CreateInputTable(_previousTable.GetStateTable(source), value);
             }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)

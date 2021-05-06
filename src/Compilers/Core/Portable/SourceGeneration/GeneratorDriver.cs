@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, fillWithValue: null); // we know there is at max 1 per generator
             var syntaxInputNodes = ArrayBuilder<ISyntaxTransformNode>.GetInstance();
-            int receiverCount = 0;
+            int walkerCount = 0;
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         walkerBuilder.SetItem(i, new GeneratorSyntaxWalker(rx));
                         generatorState = generatorState.WithReceiver(rx);
-                        receiverCount++;
+                        walkerCount++;
                     }
                 }
 
@@ -296,14 +296,14 @@ namespace Microsoft.CodeAnalysis
             // PROTOTYPE(source-generators): we don't need to run at all if none of the inputs have changes.
             var driverStateBuilder = new DriverStateTable.Builder(_state.StateTable, cancellationToken);
 
-            driverStateBuilder.SetInputValue(SharedInputNodes.Compilation, compilation);
-            driverStateBuilder.SetInputValue(SharedInputNodes.SyntaxTrees, compilation.SyntaxTrees);
-            driverStateBuilder.SetInputValue(SharedInputNodes.AnalyzerConfigOptions, _state.OptionsProvider);
-            driverStateBuilder.SetInputValue(SharedInputNodes.ParseOptions, _state.ParseOptions);
-            driverStateBuilder.SetInputValue(SharedInputNodes.AdditionalTexts, _state.AdditionalTexts);
+            driverStateBuilder.AddInput(SharedInputNodes.Compilation, compilation);
+            driverStateBuilder.AddInput(SharedInputNodes.SyntaxTrees, compilation.SyntaxTrees);
+            driverStateBuilder.AddInput(SharedInputNodes.AnalyzerConfigOptions, _state.OptionsProvider);
+            driverStateBuilder.AddInput(SharedInputNodes.ParseOptions, _state.ParseOptions);
+            driverStateBuilder.AddInput(SharedInputNodes.AdditionalTexts, _state.AdditionalTexts);
 
             // If we have syntax inputs, or receivers, bring them up to date
-            if (syntaxInputNodes.Count > 0 || receiverCount > 0)
+            if (syntaxInputNodes.Count > 0 || walkerCount > 0)
             {
                 var builders = ArrayBuilder<ISyntaxTransformBuilder>.GetInstance(syntaxInputNodes.Count);
                 builders.AddRange(syntaxInputNodes.Select(n => n.GetBuilder(_state.StateTable)));
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         foreach (var b in builders)
                         {
-                            b.AddFilterFromPreviousTable(semanticModel, EntryState.Cached);
+                            b.AddFilterFromPreviousTable(semanticModel, treeState);
                         }
                     }
                     else
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     // back compat, run this tree over any ISyntaxContextReceivers
-                    if (receiverCount > 0)
+                    if (walkerCount > 0)
                     {
                         var root = tree.GetRoot(cancellationToken);
                         for (int i = 0; i < walkerBuilder.Count; i++)
@@ -361,10 +361,10 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                // save the updated nodes as inputs to the new graph
+                // add the updated nodes as inputs to the new graph
                 foreach (var builder in builders)
                 {
-                    builder.SetInputState(driverStateBuilder);
+                    builder.AddInputs(driverStateBuilder);
                 }
 
                 builders.Free();
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis
                 if (generatorState.SyntaxReceiver is object)
                 {
                     Debug.Assert(generatorState.Sources.ReceiverNode is object);
-                    driverStateBuilder.SetInputValue(generatorState.Sources.ReceiverNode, generatorState.SyntaxReceiver);
+                    driverStateBuilder.AddInput(generatorState.Sources.ReceiverNode, generatorState.SyntaxReceiver);
                 }
 
                 IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());

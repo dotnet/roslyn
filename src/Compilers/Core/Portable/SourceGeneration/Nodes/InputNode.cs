@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// Input nodes don't actually do anything. They are just placeholders for the value sources
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class InputNode<T> : IIncrementalGeneratorNode<T>
+    internal sealed class InputNode<T> : IIncrementalGeneratorNode<T>
     {
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
@@ -25,17 +25,17 @@ namespace Microsoft.CodeAnalysis
             return previousTable;
         }
 
-        // PROTOTYPE(source-generators): how does this work? we definitly want to be able to add custom comparers to the input nodes
+        // PROTOTYPE(source-generators): how does this work? we definitely want to be able to add custom comparers to the input nodes
         // I guess its just a 'compare only' node with this as the input?
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => this;
 
-        public NodeStateTable<T> GetInputTable(NodeStateTable<T> previousTable, T item)
+        public NodeStateTable<T> CreateInputTable(NodeStateTable<T> previousTable, T item)
         {
             // PROTOTYPE(source-generators): we should compare the values, not just assume they were added
             return NodeStateTable<T>.WithSingleItem(item, EntryState.Added);
         }
 
-        public NodeStateTable<T> GetInputTable(NodeStateTable<T> previousTable, IEnumerable<T> items)
+        public NodeStateTable<T> CreateInputTable(NodeStateTable<T> previousTable, IEnumerable<T> items)
         {
             // create a mutable hashset of the new items we can check against
             PooledHashSet<T> itemsSet = PooledHashSet<T>.GetInstance();
