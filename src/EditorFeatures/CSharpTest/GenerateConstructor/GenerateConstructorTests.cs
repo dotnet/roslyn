@@ -2796,6 +2796,53 @@ class C
     }
 }");
             }
+
+            [WorkItem(38822, @"https://github.com/dotnet/roslyn/issues/38822")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+            public async Task TestOptionalParameterConstructorInIncompleteLambda()
+            {
+                await TestMissingInRegularAndScriptAsync(@"
+using System;
+
+namespace Test
+{
+    public class InstanceType
+    {
+        public InstanceType(object a = null) { }
+    }
+
+    public static class Example
+    {
+        public static void Test()
+        {
+            Action lambda = () =>
+            {
+                var _ = new [|InstanceType|]();  // IDE1008: 'InstanceType' does not contain a constructor that takes that many arguments
+                var _ = 0  // CS1002: ; expected
+            };
+        }
+    }
+}");
+            }
+
+            [WorkItem(38822, @"https://github.com/dotnet/roslyn/issues/38822")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+            public async Task TestOptionalParameterConstructorInIncompleteLambdaWithWarning()
+            {
+                await TestMissingInRegularAndScriptAsync(@"
+using System;
+
+public class C
+{
+    public static Action Test() => () =>
+    {
+        new [|C|](); // error IDE1008: 'C' does not contain a constructor that takes that many arguments.
+#warning warn
+    };
+
+    C(int i=0) { }
+}");
+            }
         }
 
         [WorkItem(5274, "https://github.com/dotnet/roslyn/issues/5274")]
