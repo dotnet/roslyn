@@ -192,6 +192,7 @@ namespace Microsoft.CodeAnalysis
 
         private class CurrentNodes
         {
+            [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1320760", Constraint = "Avoid large object heap allocations")]
             private readonly ImmutableSegmentedDictionary<SyntaxAnnotation, IReadOnlyList<SyntaxNode>> _idToNodeMap;
 
             public CurrentNodes(SyntaxNode root)
