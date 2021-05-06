@@ -2475,7 +2475,7 @@ namespace Microsoft.CodeAnalysis
                 sourceLinkStream,
                 embeddedTexts,
                 metadataPEStream,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 cancellationToken);
         }
 
@@ -2491,7 +2491,7 @@ namespace Microsoft.CodeAnalysis
             Stream? sourceLinkStream,
             IEnumerable<EmbeddedText>? embeddedTexts,
             Stream? metadataPEStream,
-            BlobReader? pdbOptionsBlobReader,
+            RebuildData? rebuildData,
             CancellationToken cancellationToken)
         {
             if (peStream == null)
@@ -2589,7 +2589,7 @@ namespace Microsoft.CodeAnalysis
                 debugEntryPoint,
                 sourceLinkStream,
                 embeddedTexts,
-                pdbOptionsBlobReader,
+                rebuildData,
                 testData: null,
                 cancellationToken: cancellationToken);
         }
@@ -2610,7 +2610,7 @@ namespace Microsoft.CodeAnalysis
             IMethodSymbol? debugEntryPoint,
             Stream? sourceLinkStream,
             IEnumerable<EmbeddedText>? embeddedTexts,
-            BlobReader? pdbOptionsBlobReader,
+            RebuildData? rebuildData,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -2692,7 +2692,7 @@ namespace Microsoft.CodeAnalysis
                         new SimpleEmitStreamProvider(peStream),
                         (metadataPEStream != null) ? new SimpleEmitStreamProvider(metadataPEStream) : null,
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
-                        pdbOptionsBlobReader,
+                        rebuildData,
                         testData?.SymWriterFactory,
                         diagnostics,
                         emitOptions: options,
@@ -2854,7 +2854,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider peStreamProvider,
             EmitStreamProvider? metadataPEStreamProvider,
             EmitStreamProvider? pdbStreamProvider,
-            BlobReader? pdbOptionsBlobReader,
+            RebuildData? rebuildData,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             DiagnosticBag diagnostics,
             EmitOptions emitOptions,
@@ -2928,7 +2928,7 @@ namespace Microsoft.CodeAnalysis
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
-                        pdbOptionsBlobReader,
+                        rebuildData,
                         emitOptions.EmitMetadataOnly,
                         emitOptions.IncludePrivateMembers,
                         deterministic,
@@ -3010,7 +3010,7 @@ namespace Microsoft.CodeAnalysis
             Func<Stream?>? getPortablePdbStreamOpt,
             Cci.PdbWriter? nativePdbWriterOpt,
             string? pdbPathOpt,
-            BlobReader? pdbOptionsBlobReader,
+            RebuildData? rebuildData,
             bool metadataOnly,
             bool includePrivateMembers,
             bool isDeterministic,
@@ -3023,12 +3023,11 @@ namespace Microsoft.CodeAnalysis
             bool includePrivateMembersOnPrimaryOutput = metadataOnly ? includePrivateMembers : true;
             bool deterministicPrimaryOutput = (metadataOnly && !includePrivateMembers) || isDeterministic;
             if (!Cci.PeWriter.WritePeToStream(
-                new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput),
+                new EmitContext(moduleBeingBuilt, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput, rebuildData: rebuildData),
                 messageProvider,
                 getPeStream,
                 getPortablePdbStreamOpt,
                 nativePdbWriterOpt,
-                pdbOptionsBlobReader,
                 pdbPathOpt,
                 metadataOnly,
                 deterministicPrimaryOutput,
@@ -3046,12 +3045,11 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(!includePrivateMembers);
 
                 if (!Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly: true, includePrivateMembers: false),
+                    new EmitContext(moduleBeingBuilt, syntaxNode: null, metadataDiagnostics, metadataOnly: true, includePrivateMembers: false),
                     messageProvider,
                     getMetadataPeStreamOpt,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
-                    pdbOptionsBlobReader: null,
                     pdbPathOpt: null,
                     metadataOnly: true,
                     isDeterministic: true,
@@ -3088,7 +3086,7 @@ namespace Microsoft.CodeAnalysis
 
             using (nativePdbWriter)
             {
-                var context = new EmitContext(moduleBeingBuilt, null, diagnostics, metadataOnly: false, includePrivateMembers: true);
+                var context = new EmitContext(moduleBeingBuilt, diagnostics, metadataOnly: false, includePrivateMembers: true);
                 var encId = Guid.NewGuid();
 
                 try
@@ -3107,7 +3105,6 @@ namespace Microsoft.CodeAnalysis
                         metadataStream,
                         ilStream,
                         (nativePdbWriter == null) ? pdbStream : null,
-                        pdbOptionsBlobReader: null,
                         out MetadataSizes metadataSizes);
 
                     writer.GetMethodTokens(updatedMethods);
