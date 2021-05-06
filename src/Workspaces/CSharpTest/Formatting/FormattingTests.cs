@@ -9860,5 +9860,118 @@ class C
     }
 }", changedOptionSet: changingOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_Default()
+        {
+            await AssertFormatAsync(
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is
+        {
+            Name: ""foo"",
+        };
+    }
+}",
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is {
+            Name: ""foo"",
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_NonDefault()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+            };
+            await AssertFormatAsync(
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is {
+            Name: ""foo"",
+        };
+    }
+}",
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is
+        {
+            Name: ""foo"",
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_SingleLine(bool option)
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, option },
+            };
+            var code = @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is { Name: ""foo"" };
+    }
+}";
+            await AssertFormatAsync(code, code, changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task RecordClass()
+        {
+            await AssertFormatAsync(
+                @"
+record class R(int X);
+",
+                @"
+record  class  R(int X);
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task RecordStruct()
+        {
+            await AssertFormatAsync(
+                @"
+record struct R(int X);
+",
+                @"
+record  struct  R(int X);
+");
+        }
     }
 }

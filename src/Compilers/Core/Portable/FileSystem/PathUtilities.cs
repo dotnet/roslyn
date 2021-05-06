@@ -534,6 +534,9 @@ namespace Roslyn.Utilities
         {
             string relativePath = string.Empty;
 
+            directory = TrimTrailingSeparators(directory);
+            fullPath = TrimTrailingSeparators(fullPath);
+
             if (IsChildPath(directory, fullPath))
             {
                 return GetRelativeChildPath(directory, fullPath);
