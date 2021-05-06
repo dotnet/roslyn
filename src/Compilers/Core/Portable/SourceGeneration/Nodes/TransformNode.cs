@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             // - Added: perform transform and add
             // - Modified: perform transform and do element wise comparison with previous results
 
-            var newTable = new NodeStateTable<TOutput>.Builder();
+            var newTable = previousTable.ToBuilderWithABetterName();
 
             foreach (var entry in sourceTable)
             {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
                 // if that fails, try modifying, then finally, just add them.
                 if ((entry.state == EntryState.Cached || entry.state == EntryState.Removed) && !previousTable.IsEmpty)
                 {
-                    newTable.AddEntriesFromPreviousTable(previousTable, entry.state);
+                    newTable.AddEntriesFromPreviousTable(entry.state);
                 }
                 else
                 {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (entry.state == EntryState.Modified && !previousTable.IsEmpty)
                     {
-                        newTable.ModifyEntriesFromPreviousTable(previousTable, newOutputs, _comparer);
+                        newTable.ModifyEntriesFromPreviousTable(newOutputs, _comparer);
                     }
                     else
                     {

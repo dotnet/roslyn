@@ -128,7 +128,13 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!this.IsFaulted);
             int? capacity = extraCapacity.HasValue ? this._states.Length + extraCapacity.Value : null;
-            return new Builder(this, capacity);
+            return new Builder(this, copyPrevious: true, capacity);
+        }
+
+        public Builder ToBuilderWithABetterName()
+        {
+            Debug.Assert(!this.IsFaulted);
+            return new Builder(this, copyPrevious: false);
         }
 
         public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
@@ -145,20 +151,43 @@ namespace Microsoft.CodeAnalysis
         public sealed class Builder
         {
             private readonly ArrayBuilder<ImmutableArray<(T, EntryState)>> _states;
-
+            private readonly NodeStateTable<T> _previous;
             private Exception? _exception = null;
 
-            public Builder(int? capacity = null)
+            internal Builder(NodeStateTable<T> previous, bool copyPrevious = false, int? capacity = null)
             {
                 _states = capacity.HasValue
                           ? ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance(capacity.Value)
                           : ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
+
+                if (copyPrevious)
+                {
+                    _states.AddRange(previous._states);
+                }
+                _previous = previous;
             }
 
-            public Builder(NodeStateTable<T> previous, int? capacity = null)
-                : this(capacity)
+
+            public void RemoveEntries()
             {
-                _states.AddRange(previous._states);
+                // if a new table is asked to remove entries we can just do nothing
+                // as it can't have any effect on downstream tables
+                if (_previous._states.Length > _states.Count)
+                {
+                    UpdateCompactedState(EntryState.Removed);
+                    var previousEntries = _previous._states[_states.Count].SelectAsArray(s => (s.item, EntryState.Removed));
+                    _states.Add(previousEntries);
+                }
+            }
+
+            public bool TryUseCachedEntries()
+            {
+                return false;
+            }
+
+            public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer)
+            {
+                return false;
             }
 
             public void AddEntries(ImmutableArray<T> values, EntryState state)
@@ -166,10 +195,10 @@ namespace Microsoft.CodeAnalysis
                 _states.Add(values.SelectAsArray(v => (v, state)));
             }
 
-            public ImmutableArray<T> AddEntriesFromPreviousTable(NodeStateTable<T> previousTable, EntryState newState)
+            public ImmutableArray<T> AddEntriesFromPreviousTable(EntryState newState)
             {
-                Debug.Assert(previousTable._states.Length > _states.Count);
-                var previousEntries = previousTable._states[_states.Count].SelectAsArray(s => (s.item, newState));
+                Debug.Assert(_previous._states.Length > _states.Count);
+                var previousEntries = _previous._states[_states.Count].SelectAsArray(s => (s.item, newState));
                 _states.Add(previousEntries);
 
                 // PROTOTYPE(source-generators): this is mostly unused, so wastes cycles.
@@ -177,7 +206,7 @@ namespace Microsoft.CodeAnalysis
                 return previousEntries.SelectAsArray(e => e.item);
             }
 
-            public void ModifyEntriesFromPreviousTable(NodeStateTable<T> previousTable, ImmutableArray<T> outputs, IEqualityComparer<T> comparer)
+            public void ModifyEntriesFromPreviousTable(ImmutableArray<T> outputs, IEqualityComparer<T> comparer)
             {
 
                 // Semantics:
@@ -187,8 +216,8 @@ namespace Microsoft.CodeAnalysis
                 // - Removed when i > outputs.length
                 // - Added when i < previousTable.length
 
-                Debug.Assert(previousTable._states.Length > _states.Count);
-                var previousEntries = previousTable._states[_states.Count];
+                Debug.Assert(_previous._states.Length > _states.Count);
+                var previousEntries = _previous._states[_states.Count];
                 var modifiedEntries = ArrayBuilder<(T item, EntryState state)>.GetInstance();
 
                 var previousEnumerator = previousEntries.GetEnumerator();

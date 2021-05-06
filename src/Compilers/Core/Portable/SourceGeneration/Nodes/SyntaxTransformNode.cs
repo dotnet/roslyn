@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis
                 _owner = owner;
 
                 _previousFilterTable = previousFilter;
-                _filterTable = new NodeStateTable<SyntaxNode>.Builder();
+                _filterTable = _previousFilterTable.ToBuilderWithABetterName();
 
                 _previousTransformTable = previousTransform;
-                _transformTable = new NodeStateTable<T>.Builder();
+                _transformTable = _previousTransformTable.ToBuilderWithABetterName();
             }
 
             public bool Filter(SyntaxNode syntaxNode) => _owner._filterFunc(syntaxNode);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
             public void AddFilterFromPreviousTable(SemanticModel? model, EntryState state)
             {
                 Debug.Assert(model is object || state == EntryState.Removed);
-                var nodes = _filterTable.AddEntriesFromPreviousTable(_previousFilterTable, state);
+                var nodes = _filterTable.AddEntriesFromPreviousTable(state);
                 UpdateTransformTable(nodes, model, state);
             }
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (state == EntryState.Removed)
                     {
-                        _transformTable.AddEntriesFromPreviousTable(_previousTransformTable, EntryState.Removed);
+                        _transformTable.AddEntriesFromPreviousTable(EntryState.Removed);
                     }
                     else
                     {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            _transformTable.ModifyEntriesFromPreviousTable(_previousTransformTable, transformed, _owner._comparer);
+                            _transformTable.ModifyEntriesFromPreviousTable(transformed, _owner._comparer);
                         }
                     }
                 }

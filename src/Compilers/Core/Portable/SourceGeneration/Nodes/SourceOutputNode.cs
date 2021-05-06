@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis
                 return NodeStateTable<TOutput>.FromFaultedTable(sourceTable);
             }
 
-            var nodeTable = new NodeStateTable<TOutput>.Builder();
+            var nodeTable = previousTable.ToBuilderWithABetterName();
             foreach (var entry in sourceTable)
             {
                 if (entry.state == EntryState.Cached || entry.state == EntryState.Removed)
                 {
-                    nodeTable.AddEntriesFromPreviousTable(previousTable, entry.state);
+                    nodeTable.AddEntriesFromPreviousTable(entry.state);
                 }
                 else if (entry.state == EntryState.Added || entry.state == EntryState.Modified)
                 {

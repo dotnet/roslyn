@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
             var transformed = _func(source);
 
             // update the table 
-            var newTable = new NodeStateTable<TOutput>.Builder();
+            var newTable = previousTable.ToBuilderWithABetterName();
             if (previousTable.IsEmpty)
             {
                 newTable.AddEntries(transformed, EntryState.Added);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 Debug.Assert(previousTable.Count == 1);
-                newTable.ModifyEntriesFromPreviousTable(previousTable, transformed, _comparer);
+                newTable.ModifyEntriesFromPreviousTable(transformed, _comparer);
             }
             return newTable.ToImmutableAndFree();
         }

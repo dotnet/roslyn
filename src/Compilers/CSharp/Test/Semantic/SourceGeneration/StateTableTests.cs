@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_Entries_Can_Be_Enumerated()
         {
-            var builder = new NodeStateTable<int>.Builder();
+            var builder = NodeStateTable<int>.Empty.ToBuilderWithABetterName();
             builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
             builder.AddEntries(ImmutableArray.Create(2), EntryState.Added);
             builder.AddEntries(ImmutableArray.Create(3), EntryState.Added);
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_Entries_Are_Flattened_When_Enumerated()
         {
-            var builder = new NodeStateTable<int>.Builder();
+            var builder = NodeStateTable<int>.Empty.ToBuilderWithABetterName();
             builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
             builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Added);
             builder.AddEntries(ImmutableArray.Create(7, 8, 9), EntryState.Added);
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         {
             var o = new object();
 
-            var builder = new NodeStateTable<object>.Builder();
+            var builder = NodeStateTable<object>.Empty.ToBuilderWithABetterName();
             builder.AddEntries(ImmutableArray.Create(o, o, o), EntryState.Added);
             var table = builder.ToImmutableAndFree();
 
@@ -54,18 +54,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Builder_Can_Add_Entries_From_Previous_Table()
         {
-            var builder = new NodeStateTable<int>.Builder();
+            var builder = NodeStateTable<int>.Empty.ToBuilderWithABetterName();
             builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
             builder.AddEntries(ImmutableArray.Create(2, 3), EntryState.Cached);
             builder.AddEntries(ImmutableArray.Create(4, 5), EntryState.Modified);
             builder.AddEntries(ImmutableArray.Create(6), EntryState.Added);
             var previousTable = builder.ToImmutableAndFree();
 
-            builder = new NodeStateTable<int>.Builder();
+            builder = previousTable.ToBuilderWithABetterName();
             builder.AddEntries(ImmutableArray.Create(10, 11), EntryState.Added);
-            builder.AddEntriesFromPreviousTable(previousTable, EntryState.Cached); // ((2, EntryState.Cached), (3, EntryState.Cached))
+            builder.AddEntriesFromPreviousTable(EntryState.Cached); // ((2, EntryState.Cached), (3, EntryState.Cached))
             builder.AddEntries(ImmutableArray.Create(20, 21, 22), EntryState.Modified);
-            builder.AddEntriesFromPreviousTable(previousTable, EntryState.Removed); //((6, EntryState.Removed))); 
+            builder.AddEntriesFromPreviousTable(EntryState.Removed); //((6, EntryState.Removed))); 
             var newTable = builder.ToImmutableAndFree();
 
             var expected = ImmutableArray.Create((10, EntryState.Added), (11, EntryState.Added), (2, EntryState.Cached), (3, EntryState.Cached), (20, EntryState.Modified), (21, EntryState.Modified), (22, EntryState.Modified), (6, EntryState.Removed));
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_Entries_Are_Cached_Or_Removed_When_Compacted()
         {
-            var builder = new NodeStateTable<int>.Builder();
+            var builder = NodeStateTable<int>.Empty.ToBuilderWithABetterName();
             builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
             builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Removed);
             builder.AddEntries(ImmutableArray.Create(7, 8, 9), EntryState.Added);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_Compaction_Occurs_Only_Once()
         {
-            var builder = new NodeStateTable<int>.Builder();
+            var builder = NodeStateTable<int>.Empty.ToBuilderWithABetterName();
             builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
             builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Removed);
             builder.AddEntries(ImmutableArray.Create(7, 8, 9), EntryState.Added);
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Driver_Table_Calls_Into_Node_With_PreviousTable()
         {
-            var nodeBuilder = new NodeStateTable<int>.Builder();
+            var nodeBuilder = NodeStateTable<int>.Empty.ToBuilderWithABetterName();
             nodeBuilder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Cached);
             var newTable = nodeBuilder.ToImmutableAndFree();
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Driver_Table_Compacts_State_Tables_When_Made_Immutable()
         {
-            var nodeBuilder = new NodeStateTable<int>.Builder();
+            var nodeBuilder = NodeStateTable<int>.Empty.ToBuilderWithABetterName();
             nodeBuilder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
             nodeBuilder.AddEntries(ImmutableArray.Create(4), EntryState.Removed);
             nodeBuilder.AddEntries(ImmutableArray.Create(5, 6), EntryState.Modified);

@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis
 
         private readonly IIncrementalGeneratorNode<TInput2> _input2;
 
-
         public JoinNode(IIncrementalGeneratorNode<TInput1> input1, IIncrementalGeneratorNode<TInput2> input2)
         {
             _input1 = input1;
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                 return NodeStateTable<(TInput1, ImmutableArray<TInput2>)>.FromFaultedTable(input2Table);
             }
 
-            var builder = new NodeStateTable<(TInput1, ImmutableArray<TInput2>)>.Builder();
+            var builder = previousTable.ToBuilderWithABetterName();
 
             // Semantics of a join:
             //

@@ -44,13 +44,13 @@ namespace Microsoft.CodeAnalysis
                 itemsSet.Add(item);
             }
 
-            var builder = new NodeStateTable<T>.Builder();
+            var builder = previousTable.ToBuilderWithABetterName();
 
             // for each item in the previous table, check if its still in the new items
             foreach ((var oldItem, _) in previousTable)
             {
                 bool inItemSet = itemsSet.Remove(oldItem);
-                builder.AddEntriesFromPreviousTable(previousTable, inItemSet ? EntryState.Cached : EntryState.Removed);
+                builder.AddEntriesFromPreviousTable(inItemSet ? EntryState.Cached : EntryState.Removed);
             }
 
             // any remaining new items are added
