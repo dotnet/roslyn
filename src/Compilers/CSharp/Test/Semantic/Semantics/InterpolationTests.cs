@@ -3211,7 +3211,8 @@ namespace System.Runtime.CompilerServices
 
         [ConditionalFact(typeof(NoIOperationValidation))]
         public void MixedBuilderReturnTypes_03()
-        {            var source = @"
+        {
+            var source = @"
 using System;
 
 Console.WriteLine($""{1}"");
