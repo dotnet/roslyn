@@ -906,7 +906,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var updatedMethodTokens = updatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
                         var updatedTypeTokens = updatedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
 
-
                         // Determine all active statements whose span changed and exception region span deltas.
                         GetActiveStatementAndExceptionRegionSpans(
                             mvid,
