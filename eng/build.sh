@@ -162,7 +162,9 @@ while [[ $# > 0 ]]; do
       shift
       continue
       ;;
-    --sourcebuild)
+    --sourcebuild|/p:arcadebuildfromsource=true)
+      # Arcade specifies /p:ArcadeBuildFromSource=true instead of --sourceBuild, but that's not developer friendly so we
+      # have an alias.
       source_build=true
       ;;
     /p:*)
@@ -319,7 +321,7 @@ if [[ "$restore" == true || "$test_core_clr" == true ]]; then
   install=true
 fi
 InitializeDotNetCli $install
-if [[ "$restore" == true ]]; then
+if [[ "$restore" == true && "$source_build" != true ]]; then
   dotnet tool restore
 fi
 

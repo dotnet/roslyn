@@ -133,7 +133,7 @@
   <!-- 
      Code indexing targets to help generating LSIF from indexing builds.
   -->
-  <ItemGroup>
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
     <PackageReference Include="RichCodeNav.EnvVarDump" Version="$(RichCodeNavEnvVarDumpVersion)" PrivateAssets="all" />
   </ItemGroup>
 
