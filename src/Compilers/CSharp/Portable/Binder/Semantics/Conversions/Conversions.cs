@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Conversion GetMethodGroupDelegateConversion(BoundMethodGroup source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Must be a bona fide delegate type, not an expression tree type.
-            if (!(destination.IsDelegateType() || destination.SpecialType == SpecialType.System_Delegate))
+            if (!(destination.IsDelegateType() || (destination.SpecialType == SpecialType.System_Delegate && IsFeatureInferredDelegateTypeEnabled(source))))
             {
                 return Conversion.NoConversion;
             }
