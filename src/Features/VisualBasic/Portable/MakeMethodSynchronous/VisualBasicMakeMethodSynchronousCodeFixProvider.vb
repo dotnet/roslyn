@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+﻿﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous
+Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider
 Imports Microsoft.CodeAnalysis.MakeMethodSynchronous
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
             Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
-        Protected Overrides Function RemoveAsyncTokenAndFixReturnType(methodSymbolOpt As IMethodSymbol, node As SyntaxNode, knownTaskTypes As KnownTaskTypes) As SyntaxNode
+        Protected Overrides Function RemoveAsyncTokenAndFixReturnType(methodSymbolOpt As IMethodSymbol, node As SyntaxNode, knownTypes As KnownTypes) As SyntaxNode
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                 node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then
 
@@ -47,21 +47,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
             ElseIf node.IsKind(SyntaxKind.SubBlock) Then
                 Return FixSubBlock(DirectCast(node, MethodBlockSyntax))
             Else
-                Return FixFunctionBlock(methodSymbolOpt, DirectCast(node, MethodBlockSyntax), knownTaskTypes)
+                Return FixFunctionBlock(methodSymbolOpt, DirectCast(node, MethodBlockSyntax), knownTypes)
             End If
         End Function
 
-        Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTaskTypes As KnownTaskTypes) As SyntaxNode
+        Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTypes) As SyntaxNode
             Dim functionStatement = node.SubOrFunctionStatement
 
             ' if this returns Task(of T), then we want to convert this to a T returning function.
             ' if this returns Task, then we want to convert it to a Sub method.
-            If methodSymbol.ReturnType.OriginalDefinition.Equals(knownTaskTypes.TaskOfT) Then
+            If methodSymbol.ReturnType.OriginalDefinition.Equals(knownTypes._taskOfTType) Then
                 Dim newAsClause = functionStatement.AsClause.WithType(methodSymbol.ReturnType.GetTypeArguments()(0).GenerateTypeSyntax())
                 Dim newFunctionStatement = functionStatement.WithAsClause(newAsClause)
                 newFunctionStatement = RemoveAsyncModifierHelpers.RemoveAsyncKeyword(newFunctionStatement)
                 Return node.WithSubOrFunctionStatement(newFunctionStatement)
-            ElseIf Equals(methodSymbol.ReturnType.OriginalDefinition, knownTaskTypes.Task) Then
+            ElseIf Equals(methodSymbol.ReturnType.OriginalDefinition, knownTypes._taskType) Then
                 ' Convert this to a 'Sub' method.
                 Dim subStatement = SyntaxFactory.SubStatement(
                     functionStatement.AttributeLists,

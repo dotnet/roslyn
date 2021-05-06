@@ -45,14 +45,20 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
             => node.IsAsyncSupportingFunctionSyntax();
 
+        protected override bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes)
+        {
+            return IsIAsyncEnumerableOrEnumerator(type, knownTypes)
+                || IsTaskLike(type, knownTypes);
+        }
+
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
-            KnownTaskTypes knownTaskTypes)
+            KnownTypes knownTypes)
         {
             switch (node)
             {
-                case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, knownTaskTypes);
-                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(keepVoid, methodSymbolOpt, localFunction, knownTaskTypes);
+                case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, knownTypes);
+                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(keepVoid, methodSymbolOpt, localFunction, knownTypes);
                 case AnonymousMethodExpressionSyntax method: return FixAnonymousMethod(method);
                 case ParenthesizedLambdaExpressionSyntax lambda: return FixParenthesizedLambda(lambda);
                 case SimpleLambdaExpressionSyntax lambda: return FixSimpleLambda(lambda);
@@ -62,25 +68,25 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         private static SyntaxNode FixMethod(
             bool keepVoid, IMethodSymbol methodSymbol, MethodDeclarationSyntax method,
-            KnownTaskTypes knownTaskTypes)
+            KnownTypes knownTypes)
         {
-            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTaskTypes);
+            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTypes);
             var newModifiers = AddAsyncModifierWithCorrectedTrivia(method.Modifiers, ref newReturnType);
             return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
         private static SyntaxNode FixLocalFunction(
             bool keepVoid, IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction,
-            KnownTaskTypes knownTaskTypes)
+            KnownTypes knownTypes)
         {
-            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, knownTaskTypes);
+            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, knownTypes);
             var newModifiers = AddAsyncModifierWithCorrectedTrivia(localFunction.Modifiers, ref newReturnType);
             return localFunction.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
         private static TypeSyntax FixMethodReturnType(
             bool keepVoid, IMethodSymbol methodSymbol, TypeSyntax returnTypeSyntax,
-            KnownTaskTypes knownTaskTypes)
+            KnownTypes knownTypes)
         {
             var newReturnType = returnTypeSyntax.WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -88,33 +94,33 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             {
                 if (!keepVoid)
                 {
-                    newReturnType = knownTaskTypes.Task.GenerateTypeSyntax();
+                    newReturnType = knownTypes._taskType.GenerateTypeSyntax();
                 }
             }
             else
             {
                 var returnType = methodSymbol.ReturnType;
-                if (IsIEnumerable(returnType, knownTaskTypes) && IsIterator(methodSymbol))
+                if (IsIEnumerable(returnType, knownTypes) && IsIterator(methodSymbol))
                 {
-                    newReturnType = knownTaskTypes.IAsyncEnumerableOfT is null
+                    newReturnType = knownTypes._iAsyncEnumerableOfTTypeOpt is null
                         ? MakeGenericType("IAsyncEnumerable", methodSymbol.ReturnType)
-                        : knownTaskTypes.IAsyncEnumerableOfT.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                        : knownTypes._iAsyncEnumerableOfTTypeOpt.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
                 }
-                else if (IsIEnumerator(returnType, knownTaskTypes) && IsIterator(methodSymbol))
+                else if (IsIEnumerator(returnType, knownTypes) && IsIterator(methodSymbol))
                 {
-                    newReturnType = knownTaskTypes.IAsyncEnumeratorOfT is null
+                    newReturnType = knownTypes._iAsyncEnumeratorOfTTypeOpt is null
                         ? MakeGenericType("IAsyncEnumerator", methodSymbol.ReturnType)
-                        : knownTaskTypes.IAsyncEnumeratorOfT.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
+                        : knownTypes._iAsyncEnumeratorOfTTypeOpt.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
                 }
-                else if (knownTaskTypes.IsIAsyncEnumerableOrEnumerator(returnType))
+                else if (IsIAsyncEnumerableOrEnumerator(returnType, knownTypes))
                 {
                     // Leave the return type alone
                 }
-                else if (!knownTaskTypes.IsTaskLikeType(returnType))
+                else if (!IsTaskLike(returnType, knownTypes))
                 {
                     // If it's not already Task-like, then wrap the existing return type
                     // in Task<>.
-                    newReturnType = knownTaskTypes.TaskOfT.Construct(methodSymbol.ReturnType).GenerateTypeSyntax();
+                    newReturnType = knownTypes._taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax();
                 }
             }
 
@@ -140,11 +146,15 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 => node.IsKind(SyntaxKind.YieldBreakStatement, SyntaxKind.YieldReturnStatement);
         }
 
-        private static bool IsIEnumerable(ITypeSymbol returnType, KnownTaskTypes knownTaskTypes)
-            => returnType.OriginalDefinition.Equals(knownTaskTypes.IEnumerableOfT);
+        private static bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)
+            => returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumerableOfTTypeOpt) ||
+                returnType.OriginalDefinition.Equals(knownTypes._iAsyncEnumeratorOfTTypeOpt);
 
-        private static bool IsIEnumerator(ITypeSymbol returnType, KnownTaskTypes knownTaskTypes)
-            => returnType.OriginalDefinition.Equals(knownTaskTypes.IEnumeratorOfT);
+        private static bool IsIEnumerable(ITypeSymbol returnType, KnownTypes knownTypes)
+            => returnType.OriginalDefinition.Equals(knownTypes._iEnumerableOfTType);
+
+        private static bool IsIEnumerator(ITypeSymbol returnType, KnownTypes knownTypes)
+            => returnType.OriginalDefinition.Equals(knownTypes._iEnumeratorOfTType);
 
         private static SyntaxTokenList AddAsyncModifierWithCorrectedTrivia(SyntaxTokenList modifiers, ref TypeSyntax newReturnType)
         {

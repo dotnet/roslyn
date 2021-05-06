@@ -34,8 +34,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\CommandLine\ICommandLineParserService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\GeneratedCodeRecognition\AbstractGeneratedCodeRecognitionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\GeneratedCodeRecognition\IGeneratedCodeRecognitionService.cs" />
-	<Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MakeMethodAsynchronousService\IMakeMethodAsynchronousService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MakeMethodAsynchronousService\KnownTaskTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MoveDeclarationNearReference\AbstractMoveDeclarationNearReferenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MoveDeclarationNearReference\AbstractMoveDeclarationNearReferenceService.State.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\MoveDeclarationNearReference\IMoveDeclarationNearReferenceService.cs" />
