@@ -19,27 +19,11 @@ namespace Microsoft.CodeAnalysis
     {
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
-            // the input node doesn't change the table. 
-            // instead the driver manipulates the previous table to contain the current state of the node.
-            // we can just return that state, as it's already up to date.
-            return previousTable;
-        }
+            var inputItems = graphState.GetInputValue(this);
 
-        // PROTOTYPE(source-generators): how does this work? we definitely want to be able to add custom comparers to the input nodes
-        // I guess its just a 'compare only' node with this as the input?
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => this;
-
-        public NodeStateTable<T> CreateInputTable(NodeStateTable<T> previousTable, T item)
-        {
-            // PROTOTYPE(source-generators): we should compare the values, not just assume they were added
-            return NodeStateTable<T>.WithSingleItem(item, EntryState.Added);
-        }
-
-        public NodeStateTable<T> CreateInputTable(NodeStateTable<T> previousTable, IEnumerable<T> items)
-        {
             // create a mutable hashset of the new items we can check against
             PooledHashSet<T> itemsSet = PooledHashSet<T>.GetInstance();
-            foreach (var item in items)
+            foreach (var item in inputItems)
             {
                 itemsSet.Add(item);
             }
@@ -61,5 +45,9 @@ namespace Microsoft.CodeAnalysis
             itemsSet.Free();
             return builder.ToImmutableAndFree();
         }
+
+        // PROTOTYPE(source-generators): how does this work? we definitely want to be able to add custom comparers to the input nodes
+        // I guess its just a 'compare only' node with this as the input?
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => this;
     }
 }

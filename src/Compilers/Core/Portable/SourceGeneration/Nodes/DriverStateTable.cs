@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly ImmutableDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableDictionary.CreateBuilder<object, IStateTable>();
 
+            private readonly ImmutableDictionary<object, object>.Builder _inputBuilder = ImmutableDictionary.CreateBuilder<object, object>();
+
             private readonly DriverStateTable _previousTable;
 
             private readonly CancellationToken _cancellationToken;
@@ -49,13 +51,19 @@ namespace Microsoft.CodeAnalysis
 
             public void AddInput<T>(InputNode<T> source, T value)
             {
-                _tableBuilder[source] = source.CreateInputTable(_previousTable.GetStateTable(source), value);
+                _inputBuilder[source] = ImmutableArray.Create(value);
             }
 
             public void AddInput<T>(InputNode<T> source, IEnumerable<T> value)
             {
-                _tableBuilder[source] = source.CreateInputTable(_previousTable.GetStateTable(source), value);
+                _inputBuilder[source] = value.ToImmutableArray();
             }
+
+            public ImmutableArray<T> GetInputValue<T>(InputNode<T> source)
+            {
+                return (ImmutableArray<T>)_inputBuilder[source];
+            }
+
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
             {

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static readonly PerGeneratorInputNodes Empty = new PerGeneratorInputNodes(receiverNode: null, ImmutableArray<ISyntaxTransformNode>.Empty);
 
-        private PerGeneratorInputNodes(InputNode<ISyntaxContextReceiver>? receiverNode, ImmutableArray<ISyntaxTransformNode> transformNodes)
+        private PerGeneratorInputNodes(InputNode<ISyntaxContextReceiver?>? receiverNode, ImmutableArray<ISyntaxTransformNode> transformNodes)
         {
             this.ReceiverNode = receiverNode;
             this.TransformNodes = transformNodes;
@@ -67,23 +67,23 @@ namespace Microsoft.CodeAnalysis
 
         public ImmutableArray<ISyntaxTransformNode> TransformNodes { get; }
 
-        public InputNode<ISyntaxContextReceiver>? ReceiverNode { get; }
+        public InputNode<ISyntaxContextReceiver?>? ReceiverNode { get; }
 
         public sealed class Builder
         {
-            private InputNode<ISyntaxContextReceiver>? _receiverNode;
+            private InputNode<ISyntaxContextReceiver?>? _receiverNode;
 
             private ArrayBuilder<ISyntaxTransformNode>? _transformNodes;
 
             bool _disposed = false;
 
-            public InputNode<ISyntaxContextReceiver> GetOrCreateReceiverNode()
+            public InputNode<ISyntaxContextReceiver?> GetOrCreateReceiverNode()
             {
                 Debug.Assert(!_disposed);
                 if (_receiverNode is null)
                 {
                     // this is called by only internal code which we know to be thread safe
-                    _receiverNode = new InputNode<ISyntaxContextReceiver>();
+                    _receiverNode = new InputNode<ISyntaxContextReceiver?>();
                 }
                 return _receiverNode;
             }

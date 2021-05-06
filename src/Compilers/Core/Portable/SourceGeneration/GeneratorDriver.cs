@@ -382,9 +382,8 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                if (generatorState.SyntaxReceiver is object)
+                if (generatorState.Sources.ReceiverNode is object)
                 {
-                    Debug.Assert(generatorState.Sources.ReceiverNode is object);
                     driverStateBuilder.AddInput(generatorState.Sources.ReceiverNode, generatorState.SyntaxReceiver);
                 }
 
