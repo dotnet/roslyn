@@ -174,8 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foreach (BoundPropertySubpattern subpattern in rp.Properties)
                             {
                                 // PROTOTYPE(extended-property-patterns): Investigate if we need to visit nested members; is there a test gap?
-                                if (subpattern.Member is { Symbol: Symbol symbol, Receiver: var receiver } member &&
-                                    symbol.ContainingType.Equals(receiver is not null ? receiver.Type : inputType, TypeCompareKind.AllIgnoreOptions))
+                                if (subpattern.Member is { Symbol: Symbol symbol } member)
                                 {
                                     LearnFromAnyNullPatterns(GetOrCreateSlot(symbol, inputSlot), member.Type, subpattern.Pattern);
                                 }
