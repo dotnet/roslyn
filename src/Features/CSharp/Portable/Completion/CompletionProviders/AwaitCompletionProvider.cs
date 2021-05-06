@@ -81,19 +81,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                        isComplexTextEdit: shouldMakeContainerAsync);
         }
 
-        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem completionItem, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             // IsComplexTextEdit is true when we want to add async to the container.
-            if (!completionItem.IsComplexTextEdit)
+            if (!item.IsComplexTextEdit)
             {
-                return await base.GetChangeAsync(document, completionItem, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
+                return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var declaration = root.FindToken(completionListSpan.Start).GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
+            var declaration = root.FindToken(item.Span.Start).GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
             if (declaration is null)
             {
-                return await base.GetChangeAsync(document, completionItem, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
+                return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
             }
 
             var documentWithAsyncModifier = document.WithSyntaxRoot(root.ReplaceNode(declaration, AddAsyncModifier(document, declaration)));
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
 
             builder.AddRange(await formattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false));
-            builder.Add(new TextChange(completionListSpan, completionItem.DisplayText));
+            builder.Add(new TextChange(item.Span, item.DisplayText));
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
