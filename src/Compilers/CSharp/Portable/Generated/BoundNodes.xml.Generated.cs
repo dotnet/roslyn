@@ -7279,7 +7279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
 
         public BoundExpression Value { get; }
 
