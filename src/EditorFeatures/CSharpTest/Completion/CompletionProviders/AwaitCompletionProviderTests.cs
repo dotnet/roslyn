@@ -58,7 +58,7 @@ class C
   void F()
   {
     $$  }
-}", LanguageVersion.CSharp9);
+}", LanguageVersion.CSharp9, CSharpFeaturesResources.Make_container_async);
         }
 
         [Fact]
