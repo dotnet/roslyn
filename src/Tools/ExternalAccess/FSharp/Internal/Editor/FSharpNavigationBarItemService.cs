@@ -22,8 +22,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
     [Shared]
-    [ExportLanguageService(typeof(INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.FSharp)]
-    internal class FSharpNavigationBarItemService : INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess
+    [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.FSharp)]
+    internal class FSharpNavigationBarItemService : INavigationBarItemService
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IFSharpNavigationBarItemService _service;
