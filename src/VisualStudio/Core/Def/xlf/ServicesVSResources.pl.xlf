@@ -332,6 +332,11 @@
         <target state="new">Error</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_updating_suppressions_0">
+        <source>Error updating suppressions: {0}</source>
+        <target state="new">Error updating suppressions: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">Szacowanie (zadania w kolejce: {0})</target>
