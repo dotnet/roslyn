@@ -2033,6 +2033,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     pattern.InputType, pattern.NarrowedType, nullability: default, convertedNullability: default,
                     Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, ref discardedUseSiteInfo));
             }
+            if (lowestBoundNode is BoundPropertySubpatternMember member)
+            {
+                return new CSharpTypeInfo(member.Type, member.Type, nullability: default, convertedNullability: default, Conversion.Identity);
+            }
 
             var boundExpr = lowestBoundNode as BoundExpression;
             var highestBoundExpr = highestBoundNode as BoundExpression;

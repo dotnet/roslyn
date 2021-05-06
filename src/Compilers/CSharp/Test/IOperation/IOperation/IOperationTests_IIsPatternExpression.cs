@@ -1065,6 +1065,67 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'th
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact]
+        public void IsPattern_RecursivePatternWithNestedPropertyPatterns_ControlFlow()
+        {
+            string source = @"
+class C
+{
+    C field;
+    C prop { get; } 
+    void M()
+    /*<bind>*/
+    {
+        if (this is { prop.field: null }) { }
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B2]
+        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'this is { p ... eld: null }')
+            Value: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+            Pattern: 
+            IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ prop.field: null }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'prop.field: null')
+                    Member: 
+                        IFieldReferenceOperation: C C.field (OperationKind.FieldReference, Type: C) (Syntax: 'prop.field')
+                        Instance Receiver: 
+                            IPropertyReferenceOperation: C C.prop { get; } (OperationKind.PropertyReference, Type: C) (Syntax: 'prop')
+                            Instance Receiver: 
+                                IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'prop')
+                    Pattern: 
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: C, NarrowedType: C)
+                        Value: 
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, Constant: null, IsImplicit) (Syntax: 'null')
+                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                (ImplicitReference)
+                            Operand: 
+                                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1*2]
+    Statements (0)
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                    // file.cs(4,7): warning CS0169: The field 'C.field' is never used
+                    //     C field;
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C.field").WithLocation(4, 7)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
         public void IsPattern_RecursivePatternWithNestedPropertyPatterns_MissingMember()
         {
             string source = @"

@@ -14,13 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternMatchingTests5 : PatternMatchingTestBase
     {
-        private static void AssertEmpty(SymbolInfo info)
-        {
-            Assert.NotEqual(default, info);
-            Assert.Null(info.Symbol);
-            Assert.Equal(CandidateReason.None, info.CandidateReason);
-        }
-
         [Fact]
         public void ExtendedPropertyPatterns_01()
         {
@@ -549,7 +542,96 @@ class P
         }
 
         [Fact]
-        public void ExtendedPropertyPatterns_Nullability()
+        public void ExtendedPropertyPatterns_SymbolInfo_04()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.WriteLine(new C() is { X.Y: {} });
+        Console.WriteLine(new S() is { Y.X: {} });
+    }
+}
+class C
+{
+    public S? X { get; }
+}
+struct S
+{
+    public C Y;
+}
+";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                    // (17,14): warning CS0649: Field 'S.Y' is never assigned to, and will always have its default value null
+                    //     public C Y;
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Y").WithArguments("S.Y", "null").WithLocation(17, 14)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var subpatterns = tree.GetRoot().DescendantNodes().OfType<SubpatternSyntax>().ToArray();
+            Assert.Equal(2, subpatterns.Length);
+
+            AssertEmpty(model.GetSymbolInfo(subpatterns[0]));
+            AssertEmpty(model.GetSymbolInfo(subpatterns[0].ExpressionColon));
+            var xy = subpatterns[0].ExpressionColon.Expression;
+            var xySymbol = model.GetSymbolInfo(xy);
+            Assert.Equal(CandidateReason.None, xySymbol.CandidateReason);
+            Assert.Equal("C S.Y", xySymbol.Symbol.ToTestDisplayString());
+            var xyType = model.GetTypeInfo(xy);
+            Assert.Equal("C", xyType.Type.ToTestDisplayString());
+            Assert.Equal("C", xyType.ConvertedType.ToTestDisplayString());
+
+            var x = ((MemberAccessExpressionSyntax)subpatterns[0].ExpressionColon.Expression).Expression;
+            var xSymbol = model.GetSymbolInfo(x);
+            Assert.Equal(CandidateReason.None, xSymbol.CandidateReason);
+            Assert.Equal("S? C.X { get; }", xSymbol.Symbol.ToTestDisplayString());
+            var xType = model.GetTypeInfo(x);
+            Assert.Equal("S?", xType.Type.ToTestDisplayString());
+            Assert.Equal("S?", xType.ConvertedType.ToTestDisplayString());
+
+            var yName = ((MemberAccessExpressionSyntax)subpatterns[0].ExpressionColon.Expression).Name;
+            var yNameSymbol = model.GetSymbolInfo(yName);
+            Assert.Equal(CandidateReason.None, yNameSymbol.CandidateReason);
+            Assert.Equal("C S.Y", yNameSymbol.Symbol.ToTestDisplayString());
+            var yNameType = model.GetTypeInfo(yName);
+            Assert.Equal("C", yNameType.Type.ToTestDisplayString());
+            Assert.Equal("C", yNameType.ConvertedType.ToTestDisplayString());
+
+            AssertEmpty(model.GetSymbolInfo(subpatterns[1]));
+            AssertEmpty(model.GetSymbolInfo(subpatterns[1].ExpressionColon));
+            var yx = subpatterns[1].ExpressionColon.Expression;
+            var yxSymbol = model.GetSymbolInfo(yx);
+            Assert.NotEqual(default, yxSymbol);
+            Assert.Equal(CandidateReason.None, yxSymbol.CandidateReason);
+            Assert.Equal("S? C.X { get; }", yxSymbol.Symbol.ToTestDisplayString());
+            var yxType = model.GetTypeInfo(yx);
+            Assert.Equal("S?", yxType.Type.ToTestDisplayString());
+            Assert.Equal("S?", yxType.ConvertedType.ToTestDisplayString());
+
+            var y = ((MemberAccessExpressionSyntax)subpatterns[1].ExpressionColon.Expression).Expression;
+            var ySymbol = model.GetSymbolInfo(y);
+            Assert.Equal(CandidateReason.None, ySymbol.CandidateReason);
+            Assert.Equal("C S.Y", ySymbol.Symbol.ToTestDisplayString());
+            var yType = model.GetTypeInfo(y);
+            Assert.Equal("C", yType.Type.ToTestDisplayString());
+            Assert.Equal("C", yType.ConvertedType.ToTestDisplayString());
+
+            var xName = ((MemberAccessExpressionSyntax)subpatterns[1].ExpressionColon.Expression).Name;
+            var xNameSymbol = model.GetSymbolInfo(xName);
+            Assert.Equal(CandidateReason.None, xNameSymbol.CandidateReason);
+            Assert.Equal("S? C.X { get; }", xNameSymbol.Symbol.ToTestDisplayString());
+            var xNameType = model.GetTypeInfo(xName);
+            Assert.Equal("S?", xNameType.Type.ToTestDisplayString());
+            Assert.Equal("S?", xNameType.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_Nullability_01()
         {
             var program = @"
 #nullable enable
@@ -595,6 +677,62 @@ class C {
                     // (26,13): warning CS8602: Dereference of a possibly null reference.
                     //             this.Prop.Prop.ToString(); // 4
                     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this.Prop.Prop").WithLocation(26, 13));
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_Nullability_02()
+        {
+            var program = @"
+#nullable enable
+class C {
+    public void M(C1 c1) {
+        if (c1 is { Prop.Prop: null }) 
+        {
+            c1.Prop.ToString();
+            c1.Prop.Prop.ToString(); // 1
+        }
+        if (c1 is { Prop.Prop: {} }) 
+        {
+            c1.Prop.ToString();
+            c1.Prop.Prop.ToString();
+        }
+        if (c1 is { Prop: null } && 
+            c1 is { Prop.Prop: null }) 
+        {
+            c1.Prop.ToString();
+            c1.Prop.Prop.ToString(); // 2
+        }
+        if (c1 is { Prop: null } || 
+            c1 is { Prop.Prop: null }) 
+        {
+            c1.Prop.ToString();      // 3
+            c1.Prop.Prop.ToString(); // 4
+        }
+    }
+}
+class C1 { public C2? Prop; }
+class C2 { public object? Prop; }
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyDiagnostics(
+                    // (8,13): warning CS8602: Dereference of a possibly null reference.
+                    //             c1.Prop.Prop.ToString(); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop.Prop").WithLocation(8, 13),
+                    // (19,13): warning CS8602: Dereference of a possibly null reference.
+                    //             c1.Prop.Prop.ToString(); // 2
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop.Prop").WithLocation(19, 13),
+                    // (24,13): warning CS8602: Dereference of a possibly null reference.
+                    //             c1.Prop.ToString();      // 3
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop").WithLocation(24, 13),
+                    // (25,13): warning CS8602: Dereference of a possibly null reference.
+                    //             c1.Prop.Prop.ToString(); // 4
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop.Prop").WithLocation(25, 13),
+                    // (29,23): warning CS0649: Field 'C1.Prop' is never assigned to, and will always have its default value null
+                    // class C1 { public C2? Prop; }
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Prop").WithArguments("C1.Prop", "null").WithLocation(29, 23),
+                    // (30,27): warning CS0649: Field 'C2.Prop' is never assigned to, and will always have its default value null
+                    // class C2 { public object? Prop; }
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Prop").WithArguments("C2.Prop", "null").WithLocation(30, 27));
         }
     }
 }
