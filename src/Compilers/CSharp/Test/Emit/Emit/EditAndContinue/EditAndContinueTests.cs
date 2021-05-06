@@ -863,6 +863,8 @@ namespace N
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
 
+            diff1.VerifyUpdatedTypes("0x02000002");
+
             CheckNames(readers, reader1.GetTypeDefNames());
             CheckNames(readers, reader1.GetFieldDefNames(), "G");
             CheckNames(readers, reader1.GetMethodDefNames(), ".ctor");
@@ -2046,6 +2048,8 @@ interface I
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
 
+            diff1.VerifyUpdatedTypes("0x02000002");
+
             CheckNames(readers, reader1.GetTypeDefNames(), "J");
             CheckNames(readers, reader1.GetFieldDefNames(), "X", "Y");
             CheckNames(readers, reader1.GetMethodDefNames(), "add_Y", "remove_Y", "M", "N", "get_P", "set_P", "get_Q", "set_Q", "add_E", "remove_E", "add_F", "remove_F", ".cctor");
@@ -2070,6 +2074,8 @@ interface I
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
             readers = new[] { reader0, reader1, reader2 };
+
+            diff2.VerifyUpdatedTypes("0x02000002");
 
             CheckNames(readers, reader2.GetTypeDefNames());
             CheckNames(readers, reader2.GetFieldDefNames(), "X");
@@ -2206,6 +2212,8 @@ delegate void D();
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
+
+            diff1.VerifyUpdatedTypes("0x02000004");
 
             CheckNames(readers, reader1.GetTypeDefNames());
             CheckNames(readers, reader1.GetMethodDefNames(), "M2", "get_P2", "add_E2", "remove_E2");
@@ -2352,6 +2360,9 @@ class C
             // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
             var readers = new[] { reader0, md1.Reader };
+
+            diff1.VerifyUpdatedTypes("0x02000002");
+
             CheckNames(readers, md1.Reader.GetTypeDefNames());
             CheckNames(readers, md1.Reader.GetMethodDefNames(), "M");
             CheckEncLog(md1.Reader,
@@ -2422,6 +2433,9 @@ class C
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
+
+            diff1.VerifyUpdatedTypes("0x02000003");
+
             CheckNames(readers, reader1.GetTypeDefNames());
             CheckNames(readers, reader1.GetEventDefNames());
             CheckNames(readers, reader1.GetFieldDefNames());
@@ -2464,6 +2478,8 @@ class C
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
+
+            diff1.VerifyUpdatedTypes("0x02000002");
 
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
@@ -2558,6 +2574,8 @@ class C
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.puts"))));
+
+            diff1.VerifyUpdatedTypes("0x02000002");
 
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -7382,6 +7400,7 @@ class C
 
                 using MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream();
                 var updatedMethods = new List<MethodDefinitionHandle>();
+                var updatedTypes = new List<TypeDefinitionHandle>();
                 var isAddedSymbol = new Func<ISymbol, bool>(s => false);
 
                 var badStream = new BrokenStream();
@@ -7395,6 +7414,7 @@ class C
                     ilStream,
                     pdbStream,
                     updatedMethods,
+                    updatedTypes,
                     new CompilationTestData(),
                     default);
                 Assert.False(result.Success);
@@ -7411,6 +7431,7 @@ class C
                     badStream,
                     pdbStream,
                     updatedMethods,
+                    updatedTypes,
                     new CompilationTestData(),
                     default);
                 Assert.False(result.Success);
@@ -7427,6 +7448,7 @@ class C
                     ilStream,
                     badStream,
                     updatedMethods,
+                    updatedTypes,
                     new CompilationTestData(),
                     default);
                 Assert.False(result.Success);
@@ -7471,6 +7493,7 @@ class C
 
                 using MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream();
                 var updatedMethods = new List<MethodDefinitionHandle>();
+                var updatedTypes = new List<TypeDefinitionHandle>();
                 var isAddedSymbol = new Func<ISymbol, bool>(s => false);
 
                 var badStream = new BrokenStream();
@@ -7484,6 +7507,7 @@ class C
                     ilStream,
                     badStream,
                     updatedMethods,
+                    updatedTypes,
                     new CompilationTestData(),
                     default);
                 Assert.False(result.Success);
