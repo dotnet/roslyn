@@ -1,12 +1,13 @@
 ﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
 
     <!-- VSIX -->
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\Templates\Editorconfig</ExtensionInstallationFolder>
-    <VisualStudioInsertionComponent>Templates.Editorconfig.Setup</VisualStudioInsertionComponent>
+    <VisualStudioInsertionComponent>Templates.Editorconfig.Setup</VisualStudioInsertionComponent>    
+    <SetupProductArch>Neutral</SetupProductArch>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Tools\Microsoft.VisualStudio.Templates.Editorconfig.Wizard\Microsoft.VisualStudio.Templates.Editorconfig.Wizard.csproj">
