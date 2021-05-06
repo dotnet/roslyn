@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return GenerateConstructorDiagnosticIds.AllDiagnosticIds
+                Return GenerateConstructorDiagnosticIds.AllDiagnosticIds.Concat(GenerateConstructorDiagnosticIds.TooManyArgumentsDiagnosticIds)
             End Get
         End Property
 

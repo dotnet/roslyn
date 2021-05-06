@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -4729,6 +4726,33 @@ public class C
     }
 }
         ", parseOptions: TestOptions.Regular);
+        }
+
+        [WorkItem(38822, "https://github.com/dotnet/roslyn/issues/38822")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestMissingInLambdaWithCallToExistingConstructor()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+public class InstanceType
+{
+    public InstanceType(object? a = null) { }
+}
+
+public static class Example
+{
+    public static void Test()
+    {
+        Action lambda = () =>
+        {
+            var _ = new [|InstanceType|]();
+            var _ = 0
+        };
+    }
+}
+");
         }
     }
 }
