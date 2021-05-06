@@ -257,7 +257,6 @@ namespace Roslyn.Test.Utilities
                     pdbStream: pdbStream,
                     xmlDocumentationStream: null,
                     win32Resources: null,
-                    useRawWin32Resources: false,
                     manifestResources: manifestResources,
                     options: emitOptions,
                     debugEntryPoint: null,

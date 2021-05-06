@@ -144,7 +144,6 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 pdbStream: rebuildPdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: win32ResourceStream,
-                useRawWin32Resources: true,
                 manifestResources: OptionsReader.GetManifestResources(),
                 options: new EmitOptions(
                     debugInformationFormat: debugInformationFormat,
