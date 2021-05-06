@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (signature, true, new CallingConventionInfo(signature.CallingConvention, signature.GetCallingConventionModifiers()));
             }
 
-            var delegateType = (type.SpecialType == SpecialType.System_Delegate) ?
+            var delegateType = (type.SpecialType == SpecialType.System_Delegate) && methodGroup.Syntax.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) ?
                 // https://github.com/dotnet/roslyn/issues/52869: Avoid calculating the delegate type multiple times during conversion.
                 _binder.GetMethodGroupDelegateType(methodGroup, ref useSiteInfo) :
                 type.GetDelegateType();
