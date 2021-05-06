@@ -11,6 +11,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 {
+    /// <summary>
+    /// See https://github.com/dotnet/roslyn/issues/7536.  IDE should not be analyzing and reporting
+    /// compiler diagnostics for normal constructs.  However, the compiler does not report issues
+    /// for incomplete members.  That means that if you just have `public DateTime` that that is counted 
+    /// as an incomplete member where no binding happens at all.  This means that features like 'add import'
+    /// won't work here to offer to add `using System;` if that is all that is written.  
+    /// <para/>
+    /// This definitely needs to be fixed at the compiler layer.  However, until that happens, this is 
+    /// only alternative at our disposal.
+    /// </summary>
     internal abstract class UnboundIdentifiersDiagnosticAnalyzerBase<TLanguageKindEnum, TSimpleNameSyntax, TQualifiedNameSyntax, TIncompleteMemberSyntax> : DiagnosticAnalyzer, IBuiltInAnalyzer
         where TLanguageKindEnum : struct
         where TSimpleNameSyntax : SyntaxNode
