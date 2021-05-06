@@ -65,15 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
                 var argToParameterDictionary = ArgumentToParameterMapping(args, constructor.Parameters, model);
                 return GetCountOfOptionalParameters(constructor) + argToParameterDictionary.Count == constructor.Parameters.Length;
 
-                /*for (var i = 0; i < args.Count; i++)
-                {
-                    var typeInfo = model.GetTypeInfo(args[i].Expression);
-                    if (!constructor.Parameters[i].Type.Equals(typeInfo.ConvertedType))
-                    {
-                        return false;
-                    }
-                }*/
-
             }).Length;
 
             if (count == 0)
