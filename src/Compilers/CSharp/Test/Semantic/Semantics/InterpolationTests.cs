@@ -1199,8 +1199,6 @@ static class C
         }
 
         // PROTOTYPE(interp-string): Define how these are represented in IOperation
-#if !ROSLYN_TEST_IOPERATION
-
         private string GetInterpolatedStringBuilderDefinition(bool includeSpanOverloads, bool useDefaultParameters, bool useBoolReturns, string returnExpression = null)
         {
             Debug.Assert(returnExpression == null || useBoolReturns);
@@ -1319,7 +1317,7 @@ namespace System.Runtime.CompilerServices
             }
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(NoIOperationValidation))]
         [CombinatorialData]
         public void InterpolatedStringBuilder_OverloadsAndBoolReturns(bool useDefaultParameters, bool useBoolReturns)
         {
@@ -1531,7 +1529,7 @@ value:1,alignment:2:format:Y";
             };
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void UseOfSpanInInterpolationHole_CSharp9()
         {
             var source = @"
@@ -1547,7 +1545,7 @@ Console.WriteLine($""{span}"");";
                 );
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation))]
         [CombinatorialData]
         public void UseOfSpanInInterpolationHole(bool useDefaultParameters, bool useBoolReturns)
         {
@@ -1765,7 +1763,7 @@ value:1,alignment:2:format:Y";
             };
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void BoolReturns_ShortCircuit()
         {
             var source = @"
@@ -1782,7 +1780,7 @@ base
 1");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void AwaitInHoles_UsesFormat()
         {
             // PROTOTYPE(interp-string): We could make this case use the builder as well by evaluating the holes ahead of time. For InterpolatedStringBuilder,
@@ -1821,7 +1819,7 @@ Task<int> Hole() => Task.FromResult(1);";
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void NoAwaitInHoles_UsesBuilder()
         {
             var source = @"
@@ -1926,7 +1924,7 @@ value:1");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void NoAwaitInHoles_AwaitInExpression_UsesBuilder()
         {
             var source = @"
@@ -2092,7 +2090,7 @@ value:2");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingCreate_01()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2122,7 +2120,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingCreate_02()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2150,7 +2148,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingCreate_03()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2181,7 +2179,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MissingCreate_04()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2209,7 +2207,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(NoIOperationValidation))]
         [InlineData(null)]
         [InlineData("public string ToStringAndClear(int literalLength) => throw null;")]
         [InlineData("public void ToStringAndClear() => throw null;")]
@@ -2244,7 +2242,7 @@ namespace System.Runtime.CompilerServices
 
         // PROTOTYPE(interp-string): Should we hard error on malformed Append... methods in the well-known InterpolatedStringBuilder as well?
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void ObsoleteCreateMethod()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2273,7 +2271,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void ObsoleteAppendLiteralMethod()
         {
             var code = @"_ = $""base{(object)1}"";";
@@ -2302,7 +2300,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void ObsoleteAppendFormattedMethod()
         {
             var code = @"_ = $""base{(object)1}"";";
@@ -2331,7 +2329,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void UnmanagedCallersOnlyCreateMethod()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2392,7 +2390,7 @@ namespace System.Runtime.InteropServices
     }
 }";
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void UnmanagedCallersOnlyAppendFormattedMethod()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2488,7 +2486,7 @@ namespace System.Runtime.InteropServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void UnmanagedCallersOnlyToStringMethod()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2578,7 +2576,7 @@ namespace System.Runtime.InteropServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void UnsupportedArgumentType()
         {
             var source = @"
@@ -2605,7 +2603,7 @@ ref struct S
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void TargetTypedInterpolationHoles()
         {
             var source = @"
@@ -2666,7 +2664,7 @@ value:");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void TargetTypedInterpolationHoles_Errors()
         {
             var source = @"System.Console.WriteLine($""{(null, default)}{new()}"");";
@@ -2687,7 +2685,7 @@ value:");
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void RefTernary()
         {
             var source = @"
@@ -2700,7 +2698,7 @@ System.Console.WriteLine($""{(!b ? ref i : ref i)}"");";
             CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"value:1");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void NestedInterpolatedStrings()
         {
             // PROTOTYPE(interp-string): Should we notice the nested string and just treat it as being concated?
@@ -2744,7 +2742,7 @@ System.Console.WriteLine($""{$""{i}""}"");";
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void ExceptionFilter_01()
         {
             var source = @"
@@ -2827,7 +2825,7 @@ Caught");
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation))]
         public void ExceptionFilter_02()
         {
             var source = @"
@@ -2919,7 +2917,7 @@ Caught");
 ");
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation))]
         public void ImplicitUserDefinedConversionInHole()
         {
             var source = @"
@@ -2977,7 +2975,7 @@ value:C");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void ExplicitUserDefinedConversionInHole()
         {
             var source = @"
@@ -3001,7 +2999,7 @@ ref struct S
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void ImplicitUserDefinedConversionInLiteral()
         {
             var source = @"
@@ -3061,7 +3059,7 @@ value:1");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void ExplicitUserDefinedConversionInLiteral()
         {
             var source = @"
@@ -3101,7 +3099,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void InvalidBuilderReturnType()
         {
             var source = @"
@@ -3137,7 +3135,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MixedBuilderReturnTypes_01()
         {
             var source = @"
@@ -3174,7 +3172,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MixedBuilderReturnTypes_02()
         {
             var source = @"
@@ -3211,10 +3209,9 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MixedBuilderReturnTypes_03()
-        {
-            var source = @"
+        {            var source = @"
 using System;
 
 Console.WriteLine($""{1}"");
@@ -3243,6 +3240,5 @@ namespace System.Runtime.CompilerServices
             // type support (that the compiler won't optimize away to just the literal value)
             CompileAndVerify(source, expectedOutput: "value:1");
         }
-#endif
     }
 }

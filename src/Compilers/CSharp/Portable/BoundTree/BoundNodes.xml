@@ -2021,7 +2021,7 @@
   <Node Name="BoundInterpolatedStringBuilderPlaceholder" Base="BoundValuePlaceholderBase"/>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Alignment" Type="BoundExpression?"/>
     <Field Name="Format" Type="BoundLiteral?"/>
