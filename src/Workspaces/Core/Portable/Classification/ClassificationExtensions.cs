@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 TypeKind.Class => type.IsRecord ? ClassificationTypeNames.RecordClassName : ClassificationTypeNames.ClassName,
                 TypeKind.Module => ClassificationTypeNames.ModuleName,
-                TypeKind.Struct => ClassificationTypeNames.StructName,
+                TypeKind.Struct => type.IsRecord ? ClassificationTypeNames.RecordStructName : ClassificationTypeNames.StructName,
                 TypeKind.Interface => ClassificationTypeNames.InterfaceName,
                 TypeKind.Enum => ClassificationTypeNames.EnumName,
                 TypeKind.Delegate => ClassificationTypeNames.DelegateName,

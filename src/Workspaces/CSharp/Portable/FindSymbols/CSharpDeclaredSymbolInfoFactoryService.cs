@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
                     var typeDecl = (TypeDeclarationSyntax)node;
@@ -182,6 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
                             SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
                             SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
+                            SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
                             _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
                         },
                         GetAccessibility(typeDecl, typeDecl.Modifiers),
@@ -461,7 +463,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             switch (node.Parent.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     // Anything without modifiers is private if it's in a class/struct declaration.
                     return Accessibility.Private;
                 case SyntaxKind.InterfaceDeclaration:

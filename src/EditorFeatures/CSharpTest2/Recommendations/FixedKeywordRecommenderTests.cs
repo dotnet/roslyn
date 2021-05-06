@@ -51,6 +51,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInsideEmptyMethod()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -97,6 +104,14 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"struct S {
+    $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInRecordStruct()
+        {
+            await VerifyAbsenceAsync(
+@"record struct S {
     $$");
         }
 

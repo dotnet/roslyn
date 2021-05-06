@@ -11,7 +11,7 @@ Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeCleanup
     <Export(GetType(ICodeCleanUpFixerProvider))>
-    <AppliesToProject(ContentTypeNames.VisualBasicContentType)>
+    <AppliesToProject("VB")>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     Friend Class VisualBasicCodeCleanUpFixerProvider
         Inherits AbstractCodeCleanUpFixerProvider

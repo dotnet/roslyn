@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         {
             var constructor = memberAccess.Ancestors().OfType<ConstructorDeclarationSyntax>().SingleOrDefault();
 
-            if (constructor == null || constructor.Parent.Kind() != SyntaxKind.StructDeclaration)
+            if (constructor == null || !constructor.Parent.IsKind(SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration))
             {
                 return false;
             }

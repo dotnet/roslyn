@@ -191,12 +191,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_globalNamespace == null)
                 {
-                    var diagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+                    var diagnostics = BindingDiagnosticBag.GetInstance();
                     var globalNS = new SourceNamespaceSymbol(
                         this, this, DeclaringCompilation.MergedRootDeclaration, diagnostics);
-                    Debug.Assert(diagnostics.DiagnosticBag.IsEmptyWithoutResolution);
+
+                    if (Interlocked.CompareExchange(ref _globalNamespace, globalNS, null) == null)
+                    {
+                        this.AddDeclarationDiagnostics(diagnostics);
+                    }
+
                     diagnostics.Free();
-                    Interlocked.CompareExchange(ref _globalNamespace, globalNS, null);
                 }
 
                 return _globalNamespace;
