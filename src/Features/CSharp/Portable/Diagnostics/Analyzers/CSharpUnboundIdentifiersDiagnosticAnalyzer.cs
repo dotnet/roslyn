@@ -21,14 +21,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
         private readonly LocalizableString _constructorOverloadResolutionFailureMessageFormat =
             new LocalizableResourceString(nameof(CSharpFeaturesResources._0_does_not_contain_a_constructor_that_takes_that_many_arguments), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
-        private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.IncompleteMember, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression);
+        private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.IncompleteMember);
 
         protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest => s_kindsOfInterest;
 
-        protected override DiagnosticDescriptor DiagnosticDescriptor => GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundIdentifierId, _nameNotInContextMessageFormat);
+        protected override DiagnosticDescriptor DiagnosticDescriptor
+            => GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundIdentifierId, _nameNotInContextMessageFormat);
 
-        protected override DiagnosticDescriptor DiagnosticDescriptor2 => GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundConstructorId, _constructorOverloadResolutionFailureMessageFormat);
+        protected override DiagnosticDescriptor DiagnosticDescriptor2
+            => GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundConstructorId, _constructorOverloadResolutionFailureMessageFormat);
 
-        protected override bool IsNameOf(SyntaxNode node) => node.Parent is InvocationExpressionSyntax invocation && invocation.IsNameOfInvocation();
+        protected override bool IsNameOf(SyntaxNode node)
+            => node.Parent is InvocationExpressionSyntax invocation && invocation.IsNameOfInvocation();
     }
 }

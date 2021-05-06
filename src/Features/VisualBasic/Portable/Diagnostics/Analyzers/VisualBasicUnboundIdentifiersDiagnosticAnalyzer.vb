@@ -15,12 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
         Private ReadOnly _messageFormat As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.Type_0_is_not_defined), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources))
         Private ReadOnly _messageFormat2 As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.Too_many_arguments_to_0), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources))
 
-        Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
-            SyntaxKind.IncompleteMember,
-            SyntaxKind.MultiLineFunctionLambdaExpression,
-            SyntaxKind.MultiLineSubLambdaExpression,
-            SyntaxKind.SingleLineFunctionLambdaExpression,
-            SyntaxKind.SingleLineSubLambdaExpression)
+        Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.IncompleteMember)
 
         Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind)
             Get
