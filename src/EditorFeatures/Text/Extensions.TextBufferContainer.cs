@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Text
             /// <summary>
             /// A weak map of all Editor ITextBuffers and their associated SourceTextContainer
             /// </summary>
-            private static readonly ConditionalWeakTable<ITextBuffer, TextBufferContainer> s_textContainerMap = new ConditionalWeakTable<ITextBuffer, TextBufferContainer>();
-            private static readonly ConditionalWeakTable<ITextBuffer, TextBufferContainer>.CreateValueCallback s_createContainerCallback = CreateContainer;
+            private static readonly ConditionalWeakTable<ITextBuffer, WeakReference<TextBufferContainer>> s_textContainerMap = new();
+            private static readonly ConditionalWeakTable<ITextBuffer, WeakReference<TextBufferContainer>>.CreateValueCallback s_createContainerCallback = CreateContainer;
 
             public static TextBufferContainer From(ITextBuffer buffer)
             {
@@ -47,11 +47,27 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new ArgumentNullException(nameof(buffer));
                 }
 
-                return s_textContainerMap.GetValue(buffer, s_createContainerCallback);
+                var weakReference = s_textContainerMap.GetValue(buffer, s_createContainerCallback);
+                var container = weakReference.GetTarget();
+
+                if (container != null)
+                {
+                    return container;
+                }
+
+                // The container has been garbage collected, so we need to create a new one; in this case
+                // we need to ensure we don't potentially create two and hand out more than one container
+                // for the same buffer, so we'll take a lock on the WeakReference to serialize.
+                lock (weakReference)
+                {
+                    container = new TextBufferContainer(buffer);
+                    weakReference.SetTarget(container);
+                    return container;
+                }
             }
 
-            private static TextBufferContainer CreateContainer(ITextBuffer editorBuffer)
-                => new TextBufferContainer(editorBuffer);
+            private static WeakReference<TextBufferContainer> CreateContainer(ITextBuffer editorBuffer)
+                => new WeakReference<TextBufferContainer>(new TextBufferContainer(editorBuffer));
 
             public ITextBuffer? TryFindEditorTextBuffer()
                 => _weakEditorBuffer.GetTarget();
