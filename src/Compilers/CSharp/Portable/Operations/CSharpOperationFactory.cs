@@ -2287,23 +2287,18 @@ namespace Microsoft.CodeAnalysis.Operations
         internal IPropertySubpatternOperation CreatePropertySubpattern(BoundPropertySubpattern subpattern, ITypeSymbol matchedType)
         {
             SyntaxNode syntax = subpattern.Syntax;
-            IOperation? member = CreatePropertySubpatternMember(subpattern.Member, matchedType);
-            if (member is null)
-            {
-                SyntaxNode nameSyntax = syntax is SubpatternSyntax { ExpressionColon: { Expression: var expr } } ? expr : syntax;
-                bool isImplicit = nameSyntax == syntax;
-                // We should expose the symbol in this case somehow:
-                // https://github.com/dotnet/roslyn/issues/33175
-                member = OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit);
-            }
-
+            IOperation member = CreatePropertySubpatternMember(subpattern.Member, matchedType) ??
+                                OperationFactory.CreateInvalidOperation(_semanticModel, syntax, ImmutableArray<IOperation>.Empty, isImplicit: true);
             IPatternOperation pattern = (IPatternOperation)Create(subpattern.Pattern);
             return new PropertySubpatternOperation(member, pattern, _semanticModel, syntax, isImplicit: false);
         }
 
         internal IOperation? CreatePropertySubpatternMember(BoundPropertySubpatternMember? member, ITypeSymbol matchedType)
         {
-            switch (member?.Symbol)
+            if (member is null)
+                return null;
+
+            switch (member.Symbol)
             {
                 case FieldSymbol field:
                     {
@@ -2317,12 +2312,18 @@ namespace Microsoft.CodeAnalysis.Operations
                             createReceiver(), _semanticModel, member.Syntax, property.Type.StrippedType().GetPublicSymbol(), isImplicit: false);
                     }
                 default:
-                    return null;
+                    {
+                        // We should expose the symbol in this case somehow:
+                        // https://github.com/dotnet/roslyn/issues/33175
+                        IOperation? receiver = CreatePropertySubpatternMember(member.Receiver, matchedType);
+                        var children = receiver is null ? ImmutableArray<IOperation>.Empty : ImmutableArray.Create(receiver);
+                        return OperationFactory.CreateInvalidOperation(_semanticModel, member.Syntax, children, isImplicit: false);
+                    }
             }
 
             IOperation? createReceiver()
                 => CreatePropertySubpatternMember(member.Receiver, matchedType) ??
-                   (member.Symbol?.IsStatic == false
+                   (member.Symbol.IsStatic == false
                        ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, member.Syntax, matchedType, isImplicit: true)
                        : null);
         }
