@@ -205,10 +205,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ArrayBuilder<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
+                analyzers = analyzers.WhereAsArray(a => MatchesPriority(a));
+
                 if (analyzers.IsEmpty)
                     return;
 
-                var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind, _highPriority);
+                var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, logPerformanceInfo: false);
                 foreach (var analyzer in analyzers)
                 {
@@ -226,6 +228,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
                     }
                 }
+            }
+
+            private bool MatchesPriority(DiagnosticAnalyzer analyzer)
+            {
+                // If caller isn't asking for prioritized result, then run all analyzers.
+                if (_highPriority == null)
+                    return true;
+
+                // Otherwise, check our special internal flag to tell.
+                //
+                // Note: the compiler analyzer is always considered high-pri.  This is needed as there can 
+                // be high pri fixers that operate entirely off of compiler diagnostics.  For example, the 
+                // add-using fixer is high pri, and it works off of compiler diagnostics.  So we always have
+                // to run that one up front.
+                var analyzerIsHighPri = analyzer.IsCompilerAnalyzer() || analyzer is IBuiltInAnalyzer { IsHighPriority: true };
+                return analyzerIsHighPri == _highPriority;
             }
 
             private bool ShouldInclude(DiagnosticData diagnostic)

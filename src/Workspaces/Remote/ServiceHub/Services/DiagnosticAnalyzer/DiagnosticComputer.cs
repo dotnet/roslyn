@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             bool reportSuppressedDiagnostics,
             bool logPerformanceInfo,
             bool getTelemetryInfo,
-            bool? highPriority,
             CancellationToken cancellationToken)
         {
             var (compilationWithAnalyzers, analyzerToIdMap) = await GetOrCreateCompilationWithAnalyzersAsync(
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             try
             {
                 return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, analyzers, skippedAnalyzersInfo,
-                    reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, highPriority, cancellationToken).ConfigureAwait(false);
+                    reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
             }
             catch
             {
@@ -107,11 +106,10 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             bool reportSuppressedDiagnostics,
             bool logPerformanceInfo,
             bool getTelemetryInfo,
-            bool? highPriority,
             CancellationToken cancellationToken)
         {
             var documentAnalysisScope = _document != null
-                ? new DocumentAnalysisScope(_document, _span, analyzers, _analysisKind!.Value, highPriority)
+                ? new DocumentAnalysisScope(_document, _span, analyzers, _analysisKind!.Value)
                 : null;
 
             var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(

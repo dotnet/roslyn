@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextDocument document,
             TextSpan? span,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
-            AnalysisKind kind,
-            bool? highPriority)
+            AnalysisKind kind)
         {
             Debug.Assert(kind == AnalysisKind.Syntax || kind == AnalysisKind.Semantic);
             Debug.Assert(!analyzers.IsDefaultOrEmpty);
@@ -32,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Span = span;
             Analyzers = analyzers;
             Kind = kind;
-            HighPriority = highPriority;
             _lazyAdditionalFile = new Lazy<AdditionalText>(ComputeAdditionalFile);
         }
 
@@ -40,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public TextSpan? Span { get; }
         public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; }
         public AnalysisKind Kind { get; }
-        public bool? HighPriority { get; }
 
         /// <summary>
         /// Gets the <see cref="AdditionalText"/> corresponding to the <see cref="TextDocument"/>.
@@ -57,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public DocumentAnalysisScope WithSpan(TextSpan? span)
-            => new(TextDocument, span, Analyzers, Kind, HighPriority);
+            => new(TextDocument, span, Analyzers, Kind);
 
         public DocumentAnalysisScope WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
-            => new(TextDocument, Span, analyzers, Kind, HighPriority);
+            => new(TextDocument, Span, analyzers, Kind);
     }
 }

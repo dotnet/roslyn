@@ -135,18 +135,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private async Task AnalyzeForKindAsync(TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
             {
-                // collect high pri diagnostics first, followed by normal pri.
-                await AnalyzeForKindAsync(highPriority: true).ConfigureAwait(false);
-                await AnalyzeForKindAsync(highPriority: false).ConfigureAwait(false);
+                var diagnosticData = await GetDiagnosticsAsync(document, kind, cancellationToken).ConfigureAwait(false);
 
-                async Task AnalyzeForKindAsync(bool highPriority)
-                {
-                    var diagnosticData = await GetDiagnosticsAsync(document, kind, highPriority, cancellationToken).ConfigureAwait(false);
-
-                    _service.RaiseDiagnosticsUpdated(
-                        DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
-                        _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
-                }
+                _service.RaiseDiagnosticsUpdated(
+                    DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
+                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
             }
 
             /// <summary>
@@ -162,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// that provide all kinds of knobs/cache/persistency/OOP to get better perf over simplicity.
             /// </summary>
             private async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-               TextDocument document, AnalysisKind kind, bool highPriority, CancellationToken cancellationToken)
+               TextDocument document, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
                 if (loadDiagnostic != null)
@@ -175,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
                     project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
-                var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind, highPriority);
+                var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
 
                 using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
