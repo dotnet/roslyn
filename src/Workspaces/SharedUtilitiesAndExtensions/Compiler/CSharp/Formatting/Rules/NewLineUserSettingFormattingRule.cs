@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             RoslynDebug.Assert(node != null);
 
-            if (node.Kind() == SyntaxKind.SwitchStatement)
+            if (node.IsKind(SyntaxKind.SwitchStatement))
             {
                 return true;
             }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { in the type declaration context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && (currentToken.Parent is BaseTypeDeclarationSyntax || currentToken.Parent is NamespaceDeclarationSyntax))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent is BaseTypeDeclarationSyntax or NamespaceDeclarationSyntax)
             {
                 if (!_options.NewLinesForBracesInTypes)
                 {
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var currentTokenParentParent = currentToken.Parent.Parent;
 
             // * { - in the member declaration context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent is MemberDeclarationSyntax)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent is MemberDeclarationSyntax)
             {
                 var option = currentTokenParentParent is BasePropertyDeclarationSyntax
                     ? _options.NewLinesForBracesInProperties
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent is AccessorDeclarationSyntax)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent is AccessorDeclarationSyntax)
             {
                 if (!_options.NewLinesForBracesInAccessors)
                 {
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the anonymous Method context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent.IsKind(SyntaxKind.AnonymousMethodExpression))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent.IsKind(SyntaxKind.AnonymousMethodExpression))
             {
                 if (!_options.NewLinesForBracesInAnonymousMethods)
                 {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the local function context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent.IsKind(SyntaxKind.LocalFunctionStatement))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent.IsKind(SyntaxKind.LocalFunctionStatement))
             {
                 if (!_options.NewLinesForBracesInMethods)
                 {
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the Lambda context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null &&
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
                (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression) || currentTokenParentParent.IsKind(SyntaxKind.ParenthesizedLambdaExpression)))
             {
                 if (!_options.NewLinesForBracesInLambdaExpressionBody)
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the control statement context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && IsControlBlock(currentToken.Parent))
             {
                 if (!_options.NewLinesForBracesInControlBlocks)
                 {
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // else condition is actually handled in the GetAdjustSpacesOperation()
 
             // For Object Initialization Expression
-            if (previousToken.Kind() == SyntaxKind.CommaToken && previousToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression))
+            if (previousToken.IsKind(SyntaxKind.CommaToken) && previousToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression))
             {
                 if (_options.NewLineForMembersInObjectInit)
                 {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For Anonymous Object Creation Expression
-            if (previousToken.Kind() == SyntaxKind.CommaToken && previousToken.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
+            if (previousToken.IsKind(SyntaxKind.CommaToken) && previousToken.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
                 if (_options.NewLineForMembersInAnonymousTypes)
                 {
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * catch in the try catch context
-            if (currentToken.Kind() == SyntaxKind.CatchKeyword)
+            if (currentToken.IsKind(SyntaxKind.CatchKeyword))
             {
                 if (_options.NewLineForCatch)
                 {
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * Finally
-            if (currentToken.Kind() == SyntaxKind.FinallyKeyword)
+            if (currentToken.IsKind(SyntaxKind.FinallyKeyword))
             {
                 if (_options.NewLineForFinally)
                 {
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the type declaration context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && (currentToken.Parent is BaseTypeDeclarationSyntax || currentToken.Parent is NamespaceDeclarationSyntax))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent is BaseTypeDeclarationSyntax or NamespaceDeclarationSyntax)
             {
                 if (_options.NewLinesForBracesInTypes)
                 {
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // new { - Anonymous object creation
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentToken.Parent.Kind() == SyntaxKind.AnonymousObjectCreationExpression)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
                 if (_options.NewLinesForBracesInAnonymousTypes)
                 {
@@ -337,8 +337,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             //             new[] {
             //             { - Implicit Array
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-                (currentToken.Parent.Kind() == SyntaxKind.ArrayInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.ImplicitArrayCreationExpression))
+                (currentToken.Parent.IsKind(SyntaxKind.ArrayInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.ImplicitArrayCreationExpression)))
             {
                 return null;
             }
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var currentTokenParentParent = currentToken.Parent.Parent;
 
             // * { - in the member declaration context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent is MemberDeclarationSyntax)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent is MemberDeclarationSyntax)
             {
                 var option = currentTokenParentParent is BasePropertyDeclarationSyntax
                     ? _options.NewLinesForBracesInProperties
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the property accessor context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent is AccessorDeclarationSyntax)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent is AccessorDeclarationSyntax)
             {
                 if (_options.NewLinesForBracesInAccessors)
                 {
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the anonymous Method context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent.Kind() == SyntaxKind.AnonymousMethodExpression)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent.IsKind(SyntaxKind.AnonymousMethodExpression))
             {
                 if (_options.NewLinesForBracesInAnonymousMethods)
                 {
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the local function context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent.Kind() == SyntaxKind.LocalFunctionStatement)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent.IsKind(SyntaxKind.LocalFunctionStatement))
             {
                 if (_options.NewLinesForBracesInMethods)
                 {
@@ -402,8 +402,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the simple Lambda context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null &&
-               (currentTokenParentParent.Kind() == SyntaxKind.SimpleLambdaExpression || currentTokenParentParent.Kind() == SyntaxKind.ParenthesizedLambdaExpression))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+               (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression) || currentTokenParentParent.IsKind(SyntaxKind.ParenthesizedLambdaExpression)))
             {
                 if (_options.NewLinesForBracesInLambdaExpressionBody)
                 {
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the control statement context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && IsControlBlock(currentToken.Parent))
             {
                 if (_options.NewLinesForBracesInControlBlocks)
                 {
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Wrapping - Leave statements on same line (false):
             // Insert a newline between the previous statement and this one.
             // ; *
-            if (previousToken.Kind() == SyntaxKind.SemicolonToken
+            if (previousToken.IsKind(SyntaxKind.SemicolonToken)
                 && (previousToken.Parent is StatementSyntax && !previousToken.Parent.IsKind(SyntaxKind.ForStatement))
                 && !_options.WrappingKeepStatementsOnSingleLine)
             {
