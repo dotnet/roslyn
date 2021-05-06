@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Globalization;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             IsEnabled = enabled;
             Severity = severity;
             Language = language;
+            IsNotConfigurable = descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.NotConfigurable);
         }
 
         public string Id => _descriptor.Id;
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public DiagnosticSeverity Severity { get; private set; }
         public bool IsEnabled { get; private set; }
         public Language Language { get; }
+        public bool IsNotConfigurable { get; set; }
 
         internal void ChangeSeverity(DiagnosticSeverity severity)
         {
