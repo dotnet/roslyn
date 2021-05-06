@@ -8,7 +8,7 @@ param(
 )
 
 # Maximum number of jobs to run in parallel
-$MaxParallelJobs = 6
+$MaxParallelJobs = 16
 
 # Max number of retries
 $MaxRetry = 5

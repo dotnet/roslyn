@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _waitIndicator;
         private readonly Workspace _workspace;
 
         public InheritanceMargin(
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor waitIndicator,
             InheritanceMarginTag tag)
         {
             _threadingContext = threadingContext;
@@ -60,17 +61,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
             {
                 Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget, KeyValueLogMessage.Create(LogType.UserAction));
-                _waitIndicator.Wait(
+                _waitIndicator.Execute(
                     title: EditorFeaturesResources.Navigating,
-                    message: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
-                    allowCancel: true,
+                    defaultDescription: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
+                    allowCancellation: true,
+                    showProgress: false,
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
                         _workspace,
                         string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
                         _threadingContext,
                         _streamingFindUsagesPresenter,
-                        context.CancellationToken));
+                        context.UserCancellationToken));
             }
         }
 
