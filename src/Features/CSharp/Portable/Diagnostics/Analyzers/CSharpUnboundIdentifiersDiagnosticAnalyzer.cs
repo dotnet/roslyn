@@ -79,34 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
 
                 return true;
             }).Length;
-            /*var count = 0;
-            foreach (var constructor in constructors)
-            {
-                var optionalCount = 0;
-                foreach (var parameter in constructor.Parameters)
-                {
-                    if (parameter.IsOptional)
-                    {
-                        optionalCount++;
-                    }
-                }
-
-
-                if (constructor.Parameters.Length == args.Count || optionalCount + args.Count == constructor.Parameters.Length)
-                {
-                    for (var i = 0; i < args.Count; i++)
-                    {
-                        var typeInfo = model.GetTypeInfo(args[i].Expression);
-                        if (!constructor.Parameters[i].Type.Equals(typeInfo.ConvertedType))
-                        {
-                            count--;
-                            break;
-                        }
-                    }
-                }
-
-                count++;
-            }*/
 
             if (count == 0)
             {
