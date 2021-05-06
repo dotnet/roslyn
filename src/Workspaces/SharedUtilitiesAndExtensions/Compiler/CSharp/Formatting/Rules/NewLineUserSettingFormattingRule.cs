@@ -128,9 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // new { - Object Initialization, or with { - Record with initializer, or is { - property pattern clauses
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-                (currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
-                currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression) ||
-                currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause)))
+                currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.WithInitializerExpression, SyntaxKind.PropertyPatternClause)
             {
                 if (!_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // * { - in the Lambda context
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-               (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression) || currentTokenParentParent.IsKind(SyntaxKind.ParenthesizedLambdaExpression)))
+               currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression))
             {
                 if (!_options.NewLinesForBracesInLambdaExpressionBody)
                 {
@@ -317,10 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // with { - Record with initializer
             // is { - property pattern clauses
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-                (currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
-                currentToken.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) ||
-                currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression) ||
-                currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause)))
+                currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.CollectionInitializerExpression, SyntaxKind.WithInitializerExpression, SyntaxKind.PropertyPatternClause))
             {
                 if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
@@ -337,8 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             //             new[] {
             //             { - Implicit Array
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-                (currentToken.Parent.IsKind(SyntaxKind.ArrayInitializerExpression) ||
-                currentToken.Parent.IsKind(SyntaxKind.ImplicitArrayCreationExpression)))
+                currentToken.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, SyntaxKind.ImplicitArrayCreationExpression))
             {
                 return null;
             }
@@ -403,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // * { - in the simple Lambda context
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-               (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression) || currentTokenParentParent.IsKind(SyntaxKind.ParenthesizedLambdaExpression)))
+               currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression))
             {
                 if (_options.NewLinesForBracesInLambdaExpressionBody)
                 {
