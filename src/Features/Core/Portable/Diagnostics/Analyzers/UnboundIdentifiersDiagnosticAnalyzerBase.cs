@@ -17,9 +17,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
     /// for incomplete members.  That means that if you just have `public DateTime` that that is counted 
     /// as an incomplete member where no binding happens at all.  This means that features like 'add import'
     /// won't work here to offer to add `using System;` if that is all that is written.  
-    /// <para/>
+    /// <para>
     /// This definitely needs to be fixed at the compiler layer.  However, until that happens, this is 
     /// only alternative at our disposal.
+    /// </para>
     /// </summary>
     internal abstract class UnboundIdentifiersDiagnosticAnalyzerBase<TLanguageKindEnum, TSimpleNameSyntax, TQualifiedNameSyntax, TIncompleteMemberSyntax> : DiagnosticAnalyzer, IBuiltInAnalyzer
         where TLanguageKindEnum : struct
