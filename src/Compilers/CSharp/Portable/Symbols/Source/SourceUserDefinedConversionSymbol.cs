@@ -42,11 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics) :
             base(
                 MethodKind.Conversion,
+                explicitInterfaceType: null,
                 name,
                 containingType,
                 location,
                 syntax,
-                MakeDeclarationModifiers(containingType.IsInterface, syntax, location, diagnostics),
+                MakeDeclarationModifiers(MethodKind.Conversion, containingType.IsInterface, syntax, location, diagnostics),
                 hasBody: syntax.HasAnyBody(),
                 isExpressionBodied: syntax.Body == null && syntax.ExpressionBody != null,
                 isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),

@@ -11164,6 +11164,11 @@ interface I7 : I1
 {
     abstract static void M01();
 }
+
+interface I8 : I1
+{
+    abstract static void I1.M01();
+}
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -11188,7 +11193,13 @@ interface I7 : I1
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I6.M01()").WithLocation(27, 20),
                 // (32,26): warning CS0108: 'I7.M01()' hides inherited member 'I1.M01()'. Use the new keyword if hiding was intended.
                 //     abstract static void M01();
-                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01()", "I1.M01()").WithLocation(32, 26)
+                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01()", "I1.M01()").WithLocation(32, 26),
+                // (37,29): error CS0106: The modifier 'static' is not valid for this item
+                //     abstract static void I1.M01();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(37, 29),
+                // (37,29): error CS0539: 'I8.M01()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static void I1.M01();
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I8.M01()").WithLocation(37, 29)
                 );
 
             var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
@@ -11199,6 +11210,7 @@ interface I7 : I1
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
             Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I8").FindImplementationForInterfaceMember(m01));
         }
 
         [Theory]
@@ -11212,6 +11224,7 @@ interface I7 : I1
 public interface I1
 {
     abstract static void M01();
+    abstract static void M02();
 }
 ";
             var source2 =
@@ -11219,6 +11232,7 @@ typeKeyword + @"
     Test: I1
 {
     static void I1.M01() {}
+    public static void M02() {}
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -11244,9 +11258,12 @@ typeKeyword + @"
                 // (4,20): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     static void I1.M01() {}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "9.0", "preview").WithLocation(4, 20),
-                // (9,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                // (10,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static void M01();
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(10, 26),
+                // (11,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static void M02();
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("abstract", "9.0", "preview").WithLocation(11, 26)
                 );
         }
 
@@ -11384,6 +11401,8 @@ public interface I1
                 var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
                 var c = module.GlobalNamespace.GetTypeMember("C");
 
+                Assert.Equal(1, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
                 var cM01 = (MethodSymbol)c.FindImplementationForInterfaceMember(m01);
 
                 Assert.True(cM01.IsStatic);
@@ -11392,6 +11411,7 @@ public interface I1
                 Assert.False(cM01.IsMetadataVirtual());
                 Assert.False(cM01.IsMetadataFinal);
                 Assert.False(cM01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.Ordinary, cM01.MethodKind);
 
                 Assert.Equal("void C.M01()", cM01.ToTestDisplayString());
 
@@ -11442,6 +11462,8 @@ public interface I1
                 var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
                 var c = module.GlobalNamespace.GetTypeMember("C");
 
+                Assert.Equal(1, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
                 var cM01 = (MethodSymbol)c.FindImplementationForInterfaceMember(m01);
 
                 Assert.True(cM01.IsStatic);
@@ -11450,6 +11472,7 @@ public interface I1
                 Assert.False(cM01.IsMetadataVirtual());
                 Assert.False(cM01.IsMetadataFinal);
                 Assert.False(cM01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, cM01.MethodKind);
 
                 Assert.Equal("void C.I1.M01()", cM01.ToTestDisplayString());
                 Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
@@ -11508,6 +11531,7 @@ public class C3 : C2, I1
             void validate(ModuleSymbol module)
             {
                 var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
                 var m01 = c3.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
 
                 var cM01 = (MethodSymbol)c3.FindImplementationForInterfaceMember(m01);
@@ -11776,6 +11800,7 @@ class C2 : C1, I1
 
                 if (module is PEModuleSymbol)
                 {
+                    Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c2M01.MethodKind);
                     Assert.Equal("void C2.I1.M01()", c2M01.ToTestDisplayString());
                     Assert.Same(m01, c2M01.ExplicitInterfaceImplementations.Single());
 
@@ -11787,9 +11812,11 @@ class C2 : C1, I1
                     Assert.False(c1M01.IsMetadataVirtual());
                     Assert.False(c1M01.IsMetadataFinal);
                     Assert.False(c1M01.IsMetadataNewSlot());
+                    Assert.Equal(MethodKind.Ordinary, c1M01.MethodKind);
                 }
                 else
                 {
+                    Assert.Equal(MethodKind.Ordinary, c2M01.MethodKind);
                     Assert.Equal("void C1.M01()", c2M01.ToTestDisplayString());
                     Assert.Empty(c2M01.ExplicitInterfaceImplementations);
                 }
@@ -11827,6 +11854,11 @@ class C1 : I1
 {
     public static void M01() {}
 }
+
+class C2 : I1
+{
+    static void I1.M01() {}
+}
 ";
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
@@ -11851,6 +11883,7 @@ class C1 : I1
 
                 if (module is PEModuleSymbol)
                 {
+                    Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c1M01.MethodKind);
                     Assert.Equal("void modopt(I1) C1.I1.M01()", c1M01.ToTestDisplayString());
                     Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
 
@@ -11863,14 +11896,33 @@ class C1 : I1
                     Assert.False(c1M01.IsMetadataVirtual());
                     Assert.False(c1M01.IsMetadataFinal);
                     Assert.False(c1M01.IsMetadataNewSlot());
+                    Assert.Equal(MethodKind.Ordinary, c1M01.MethodKind);
 
                     Assert.Empty(c1M01.ExplicitInterfaceImplementations);
                 }
                 else
                 {
+                    Assert.Equal(MethodKind.Ordinary, c1M01.MethodKind);
                     Assert.Equal("void C1.M01()", c1M01.ToTestDisplayString());
                     Assert.Empty(c1M01.ExplicitInterfaceImplementations);
                 }
+
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+
+                var c2M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(c2M01.IsStatic);
+                Assert.False(c2M01.IsAbstract);
+                Assert.False(c2M01.IsVirtual);
+                Assert.False(c2M01.IsMetadataVirtual());
+                Assert.False(c2M01.IsMetadataFinal);
+                Assert.False(c2M01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c2M01.MethodKind);
+
+                Assert.Equal("void modopt(I1) C2.I1.M01()", c2M01.ToTestDisplayString());
+                Assert.Same(m01, c2M01.ExplicitInterfaceImplementations.Single());
+
+                Assert.Same(c2M01, c2.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single());
             }
 
             verifier.VerifyIL("C1.I1.M01()",
@@ -12485,8 +12537,6 @@ public class C11<T> : C1<T>, I1<T>
 }
 ";
 
-
-
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp,
@@ -12541,6 +12591,3465 @@ public class C2 : C11<int>, I1<int>
                     Assert.Empty(c1M01.ExplicitInterfaceImplementations);
                 }
             }
+        }
+
+        private static string UnaryOperatorName(string op) => OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind());
+        private static string BinaryOperatorName(string op) => op switch { ">>" => WellKnownMemberNames.RightShiftOperatorName, _ => OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind()) };
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_01([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            string opName = UnaryOperatorName(op);
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + op + @"(T x);
+}
+
+" + typeKeyword + @"
+    C1 : I1<C1>
+{}
+
+" + typeKeyword + @"
+    C2 : I1<C2>
+{
+    public C2 operator " + op + @"(C2 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C3 : I1<C3>
+{
+    static C3 operator " + op + @"(C3 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C4 : I1<C4>
+{
+    C4 I1<C4>.operator " + op + @"(C4 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C5 : I1<C5>
+{
+    public static int operator " + op + @" (C5 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C6 : I1<C6>
+{
+    static int I1<C6>.operator " + op + @" (C6 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C7 : I1<C7>
+{
+    public static C7 " + opName + @"(C7 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C8 : I1<C8>
+{
+    static C8 I1<C8>." + opName + @"(C8 x) => throw null;
+}
+
+public interface I2<T> where T : I2<T>
+{
+    abstract static T " + opName + @"(T x);
+}
+
+" + typeKeyword + @"
+    C9 : I2<C9>
+{
+    public static C9 operator " + op + @"(C9 x) => throw null;
+}
+
+" + typeKeyword + @"
+    C10 : I2<C10>
+{
+    static C10 I2<C10>.operator " + op + @"(C10 x) => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadIncDecRetType or (int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+                // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator +(C1)'
+                //     C1 : I1<C1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1)").WithLocation(8, 10),
+                // (12,10): error CS9109: 'C2' does not implement static interface member 'I1<C2>.operator +(C2)'. 'C2.operator +(C2)' cannot implement the interface member because it is not static.
+                //     C2 : I1<C2>
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + op + "(C2)", "C2.operator " + op + "(C2)").WithLocation(12, 10),
+                // (14,24): error CS0558: User-defined operator 'C2.operator +(C2)' must be declared static and public
+                //     public C2 operator +(C2 x) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + op + "(C2)").WithLocation(14, 24),
+                // (18,10): error CS0737: 'C3' does not implement interface member 'I1<C3>.operator +(C3)'. 'C3.operator +(C3)' cannot implement an interface member because it is not public.
+                //     C3 : I1<C3>
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1<C3>").WithArguments("C3", "I1<C3>.operator " + op + "(C3)", "C3.operator " + op + "(C3)").WithLocation(18, 10),
+                // (20,24): error CS0558: User-defined operator 'C3.operator +(C3)' must be declared static and public
+                //     static C3 operator +(C3 x) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + op + "(C3)").WithLocation(20, 24),
+                // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator +(C4)'
+                //     C4 : I1<C4>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + op + "(C4)").WithLocation(24, 10),
+                // (26,24): error CS9111: Explicit implementation of a user-defined operator 'C4.operator +(C4)' must be declared static
+                //     C4 I1<C4>.operator +(C4 x) => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + op + "(C4)").WithLocation(26, 24),
+                // (26,24): error CS0539: 'C4.operator +(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     C4 I1<C4>.operator +(C4 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + op + "(C4)").WithLocation(26, 24),
+                // (30,10): error CS0738: 'C5' does not implement interface member 'I1<C5>.operator +(C5)'. 'C5.operator +(C5)' cannot implement 'I1<C5>.operator +(C5)' because it does not have the matching return type of 'C5'.
+                //     C5 : I1<C5>
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1<C5>").WithArguments("C5", "I1<C5>.operator " + op + "(C5)", "C5.operator " + op + "(C5)", "C5").WithLocation(30, 10),
+                // (36,10): error CS0535: 'C6' does not implement interface member 'I1<C6>.operator +(C6)'
+                //     C6 : I1<C6>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + op + "(C6)").WithLocation(36, 10),
+                // (38,32): error CS0539: 'C6.operator +(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static int I1<C6>.operator + (C6 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + op + "(C6)").WithLocation(38, 32),
+                // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.operator +(C7)'
+                //     C7 : I1<C7>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + op + "(C7)").WithLocation(42, 10),
+                // (48,10): error CS0535: 'C8' does not implement interface member 'I1<C8>.operator +(C8)'
+                //     C8 : I1<C8>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C8>").WithArguments("C8", "I1<C8>.operator " + op + "(C8)").WithLocation(48, 10),
+                // (50,22): error CS0539: 'C8.op_UnaryPlus(C8)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C8 I1<C8>.op_UnaryPlus(C8 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8)").WithLocation(50, 22),
+                // (59,10): error CS0535: 'C9' does not implement interface member 'I2<C9>.op_UnaryPlus(C9)'
+                //     C9 : I2<C9>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<C9>").WithArguments("C9", "I2<C9>." + opName + "(C9)").WithLocation(59, 10),
+                // (65,11): error CS0535: 'C10' does not implement interface member 'I2<C10>.op_UnaryPlus(C10)'
+                //     C10 : I2<C10>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<C10>").WithArguments("C10", "I2<C10>." + opName + "(C10)").WithLocation(65, 11),
+                // (67,33): error CS0539: 'C10.operator +(C10)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C10 I2<C10>.operator +(C10 x) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C10.operator " + op + "(C10)").WithLocation(67, 33)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            string opName = BinaryOperatorName(op);
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + op + @"(T x, int y);
+}
+
+" + typeKeyword + @"
+    C1 : I1<C1>
+{}
+
+" + typeKeyword + @"
+    C2 : I1<C2>
+{
+    public C2 operator " + op + @"(C2 x, int y) => throw null;
+}
+
+" + typeKeyword + @"
+    C3 : I1<C3>
+{
+    static C3 operator " + op + @"(C3 x, int y) => throw null;
+}
+
+" + typeKeyword + @"
+    C4 : I1<C4>
+{
+    C4 I1<C4>.operator " + op + @"(C4 x, int y) => throw null;
+}
+
+" + typeKeyword + @"
+    C5 : I1<C5>
+{
+    public static int operator " + op + @" (C5 x, int y) => throw null;
+}
+
+" + typeKeyword + @"
+    C6 : I1<C6>
+{
+    static int I1<C6>.operator " + op + @" (C6 x, int y) => throw null;
+}
+
+" + typeKeyword + @"
+    C7 : I1<C7>
+{
+    public static C7 " + opName + @"(C7 x, int y) => throw null;
+}
+
+" + typeKeyword + @"
+    C8 : I1<C8>
+{
+    static C8 I1<C8>." + opName + @"(C8 x, int y) => throw null;
+}
+
+public interface I2<T> where T : I2<T>
+{
+    abstract static T " + opName + @"(T x, int y);
+}
+
+" + typeKeyword + @"
+    C9 : I2<C9>
+{
+    public static C9 operator " + op + @"(C9 x, int y) => throw null;
+}
+
+" + typeKeyword + @"
+    C10 : I2<C10>
+{
+    static C10 I2<C10>.operator " + op + @"(C10 x, int y) => throw null;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator >>(C1, int)'
+                //     C1 : I1<C1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1, int)").WithLocation(8, 10),
+                // (12,10): error CS9109: 'C2' does not implement static interface member 'I1<C2>.operator >>(C2, int)'. 'C2.operator >>(C2, int)' cannot implement the interface member because it is not static.
+                //     C2 : I1<C2>
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + op + "(C2, int)", "C2.operator " + op + "(C2, int)").WithLocation(12, 10),
+                // (14,24): error CS0558: User-defined operator 'C2.operator >>(C2, int)' must be declared static and public
+                //     public C2 operator >>(C2 x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + op + "(C2, int)").WithLocation(14, 24),
+                // (18,10): error CS0737: 'C3' does not implement interface member 'I1<C3>.operator >>(C3, int)'. 'C3.operator >>(C3, int)' cannot implement an interface member because it is not public.
+                //     C3 : I1<C3>
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1<C3>").WithArguments("C3", "I1<C3>.operator " + op + "(C3, int)", "C3.operator " + op + "(C3, int)").WithLocation(18, 10),
+                // (20,24): error CS0558: User-defined operator 'C3.operator >>(C3, int)' must be declared static and public
+                //     static C3 operator >>(C3 x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + op + "(C3, int)").WithLocation(20, 24),
+                // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator >>(C4, int)'
+                //     C4 : I1<C4>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + op + "(C4, int)").WithLocation(24, 10),
+                // (26,24): error CS9111: Explicit implementation of a user-defined operator 'C4.operator >>(C4, int)' must be declared static
+                //     C4 I1<C4>.operator >>(C4 x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + op + "(C4, int)").WithLocation(26, 24),
+                // (26,24): error CS0539: 'C4.operator >>(C4, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     C4 I1<C4>.operator >>(C4 x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + op + "(C4, int)").WithLocation(26, 24),
+                // (30,10): error CS0738: 'C5' does not implement interface member 'I1<C5>.operator >>(C5, int)'. 'C5.operator >>(C5, int)' cannot implement 'I1<C5>.operator >>(C5, int)' because it does not have the matching return type of 'C5'.
+                //     C5 : I1<C5>
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1<C5>").WithArguments("C5", "I1<C5>.operator " + op + "(C5, int)", "C5.operator " + op + "(C5, int)", "C5").WithLocation(30, 10),
+                // (36,10): error CS0535: 'C6' does not implement interface member 'I1<C6>.operator >>(C6, int)'
+                //     C6 : I1<C6>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + op + "(C6, int)").WithLocation(36, 10),
+                // (38,32): error CS0539: 'C6.operator >>(C6, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static int I1<C6>.operator >> (C6 x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + op + "(C6, int)").WithLocation(38, 32),
+                // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.operator >>(C7, int)'
+                //     C7 : I1<C7>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + op + "(C7, int)").WithLocation(42, 10),
+                // (48,10): error CS0535: 'C8' does not implement interface member 'I1<C8>.operator >>(C8, int)'
+                //     C8 : I1<C8>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C8>").WithArguments("C8", "I1<C8>.operator " + op + "(C8, int)").WithLocation(48, 10),
+                // (50,22): error CS0539: 'C8.op_RightShift(C8, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C8 I1<C8>.op_RightShift(C8 x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8, int)").WithLocation(50, 22),
+                // (59,10): error CS0535: 'C9' does not implement interface member 'I2<C9>.op_RightShift(C9, int)'
+                //     C9 : I2<C9>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<C9>").WithArguments("C9", "I2<C9>." + opName + "(C9, int)").WithLocation(59, 10),
+                // (65,11): error CS0535: 'C10' does not implement interface member 'I2<C10>.op_RightShift(C10, int)'
+                //     C10 : I2<C10>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<C10>").WithArguments("C10", "I2<C10>." + opName + "(C10, int)").WithLocation(65, 11),
+                // (67,33): error CS0539: 'C10.operator >>(C10, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C10 I2<C10>.operator >>(C10 x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C10.operator " + op + "(C10, int)").WithLocation(67, 33)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_03([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x);
+}
+
+interface I2 : I1
+{}
+
+interface I3 : I1
+{
+    I1 operator " + op + @"(I1 x) => default;
+}
+
+interface I4 : I1
+{
+    static I1 operator " + op + @"(I1 x) => default;
+}
+
+interface I5 : I1
+{
+    I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+interface I6 : I1
+{
+    static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+interface I7 : I1
+{
+    abstract static I1 operator " + op + @"(I1 x);
+}
+
+public interface I11<T> where T : I11<T>
+{
+    abstract static T operator " + op + @"(T x);
+}
+
+interface I8<T> : I11<T> where T : I8<T>
+{
+    T operator " + op + @"(T x) => default;
+}
+
+interface I9<T> : I11<T> where T : I9<T>
+{
+    static T operator " + op + @"(T x) => default;
+}
+
+interface I10<T> : I11<T> where T : I10<T>
+{
+    abstract static T operator " + op + @"(T x);
+}
+
+interface I12<T> : I11<T> where T : I12<T>
+{
+    static T I11<T>.operator " + op + @"(T x) => default;
+}
+
+interface I13<T> : I11<T> where T : I13<T>
+{
+    abstract static T I11<T>.operator " + op + @"(T x);
+}
+
+interface I14 : I1
+{
+    abstract static I1 I1.operator " + op + @"(I1 x);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            ErrorCode badSignatureError = op.Length != 2 ? ErrorCode.ERR_BadUnaryOperatorSignature : ErrorCode.ERR_BadIncDecSignature;
+            ErrorCode badAbstractSignatureError = op.Length != 2 ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadAbstractIncDecSignature;
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+                // (12,17): error CS0558: User-defined operator 'I3.operator +(I1)' must be declared static and public
+                //     I1 operator +(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + op + "(I1)").WithLocation(12, 17),
+                // (12,17): error CS0562: The parameter of a unary operator must be the containing type
+                //     I1 operator +(I1 x) => default;
+                Diagnostic(badSignatureError, op).WithLocation(12, 17),
+                // (17,24): error CS0562: The parameter of a unary operator must be the containing type
+                //     static I1 operator +(I1 x) => default;
+                Diagnostic(badSignatureError, op).WithLocation(17, 24),
+                // (22,20): error CS9111: Explicit implementation of a user-defined operator 'I5.operator +(I1)' must be declared static
+                //     I1 I1.operator +(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + op + "(I1)").WithLocation(22, 20),
+                // (22,20): error CS0539: 'I5.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     I1 I1.operator +(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + op + "(I1)").WithLocation(22, 20),
+                // (27,27): error CS0539: 'I6.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static I1 I1.operator +(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + op + "(I1)").WithLocation(27, 27),
+                // (32,33): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                //     abstract static I1 operator +(I1 x);
+                Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33),
+                // (42,16): error CS0558: User-defined operator 'I8<T>.operator +(T)' must be declared static and public
+                //     T operator +(T x) => default;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + op + "(T)").WithLocation(42, 16),
+                // (42,16): error CS0562: The parameter of a unary operator must be the containing type
+                //     T operator +(T x) => default;
+                Diagnostic(badSignatureError, op).WithLocation(42, 16),
+                // (47,23): error CS0562: The parameter of a unary operator must be the containing type
+                //     static T operator +(T x) => default;
+                Diagnostic(badSignatureError, op).WithLocation(47, 23),
+                // (57,30): error CS0539: 'I12<T>.operator +(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static T I11<T>.operator +(T x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + op + "(T)").WithLocation(57, 30),
+                // (62,39): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static T I11<T>.operator +(T x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(62, 39),
+                // (62,39): error CS0501: 'I13<T>.operator +(T)' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract static T I11<T>.operator +(T x);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I13<T>.operator " + op + "(T)").WithLocation(62, 39),
+                // (62,39): error CS0539: 'I13<T>.operator +(T)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static T I11<T>.operator +(T x);
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + op + "(T)").WithLocation(62, 39),
+                // (67,36): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static I1 I1.operator +(I1 x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(67, 36),
+                // (67,36): error CS0501: 'I14.operator +(I1)' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract static I1 I1.operator +(I1 x);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I14.operator " + op + "(I1)").WithLocation(67, 36),
+                // (67,36): error CS0539: 'I14.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static I1 I1.operator +(I1 x);
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + op + "(I1)").WithLocation(67, 36)
+                );
+
+            var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
+
+            var i8 = compilation1.GlobalNamespace.GetTypeMember("I8");
+            Assert.Null(i8.FindImplementationForInterfaceMember(i8.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i9 = compilation1.GlobalNamespace.GetTypeMember("I9");
+            Assert.Null(i9.FindImplementationForInterfaceMember(i9.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i10 = compilation1.GlobalNamespace.GetTypeMember("I10");
+            Assert.Null(i10.FindImplementationForInterfaceMember(i10.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i12 = compilation1.GlobalNamespace.GetTypeMember("I12");
+            Assert.Null(i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i13 = compilation1.GlobalNamespace.GetTypeMember("I13");
+            Assert.Null(i13.FindImplementationForInterfaceMember(i13.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I14").FindImplementationForInterfaceMember(m01));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x, int y);
+}
+
+interface I2 : I1
+{}
+
+interface I3 : I1
+{
+    I1 operator " + op + @"(I1 x, int y) => default;
+}
+
+interface I4 : I1
+{
+    static I1 operator " + op + @"(I1 x, int y) => default;
+}
+
+interface I5 : I1
+{
+    I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+interface I6 : I1
+{
+    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+interface I7 : I1
+{
+    abstract static I1 operator " + op + @"(I1 x, int y);
+}
+
+public interface I11<T> where T : I11<T>
+{
+    abstract static T operator " + op + @"(T x, int y);
+}
+
+interface I8<T> : I11<T> where T : I8<T>
+{
+    T operator " + op + @"(T x, int y) => default;
+}
+
+interface I9<T> : I11<T> where T : I9<T>
+{
+    static T operator " + op + @"(T x, int y) => default;
+}
+
+interface I10<T> : I11<T> where T : I10<T>
+{
+    abstract static T operator " + op + @"(T x, int y);
+}
+
+interface I12<T> : I11<T> where T : I12<T>
+{
+    static T I11<T>.operator " + op + @"(T x, int y) => default;
+}
+
+interface I13<T> : I11<T> where T : I13<T>
+{
+    abstract static T I11<T>.operator " + op + @"(T x, int y);
+}
+
+interface I14 : I1
+{
+    abstract static I1 I1.operator " + op + @"(I1 x, int y);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            bool isShift = op == "<<" || op == ">>";
+            ErrorCode badSignatureError = isShift ? ErrorCode.ERR_BadShiftOperatorSignature : ErrorCode.ERR_BadBinaryOperatorSignature;
+            ErrorCode badAbstractSignatureError = isShift ? ErrorCode.ERR_BadAbstractShiftOperatorSignature : ErrorCode.ERR_BadAbstractBinaryOperatorSignature;
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
+                //     I1 operator |(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + op + "(I1, int)").WithLocation(12, 17),
+                // (12,17): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     I1 operator |(I1 x, int y) => default;
+                Diagnostic(badSignatureError, op).WithLocation(12, 17),
+                // (17,24): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     static I1 operator |(I1 x, int y) => default;
+                Diagnostic(badSignatureError, op).WithLocation(17, 24),
+                // (22,20): error CS9111: Explicit implementation of a user-defined operator 'I5.operator |(I1, int)' must be declared static
+                //     I1 I1.operator |(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + op + "(I1, int)").WithLocation(22, 20),
+                // (22,20): error CS0539: 'I5.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     I1 I1.operator |(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + op + "(I1, int)").WithLocation(22, 20),
+                // (27,27): error CS0539: 'I6.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static I1 I1.operator |(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + op + "(I1, int)").WithLocation(27, 27),
+                // (32,33): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                //     abstract static I1 operator |(I1 x, int y);
+                Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33),
+                // (42,16): error CS0558: User-defined operator 'I8<T>.operator |(T, int)' must be declared static and public
+                //     T operator |(T x, int y) => default;
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + op + "(T, int)").WithLocation(42, 16),
+                // (42,16): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     T operator |(T x, int y) => default;
+                Diagnostic(badSignatureError, op).WithLocation(42, 16),
+                // (47,23): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     static T operator |(T x, int y) => default;
+                Diagnostic(badSignatureError, op).WithLocation(47, 23),
+                // (57,30): error CS0539: 'I12<T>.operator |(T, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static T I11<T>.operator |(T x, int y) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + op + "(T, int)").WithLocation(57, 30),
+                // (62,39): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static T I11<T>.operator |(T x, int y);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(62, 39),
+                // (62,39): error CS0501: 'I13<T>.operator |(T, int)' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract static T I11<T>.operator |(T x, int y);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I13<T>.operator " + op + "(T, int)").WithLocation(62, 39),
+                // (62,39): error CS0539: 'I13<T>.operator |(T, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static T I11<T>.operator |(T x, int y);
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + op + "(T, int)").WithLocation(62, 39),
+                // (67,36): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static I1 I1.operator |(I1 x, int y);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(67, 36),
+                // (67,36): error CS0501: 'I14.operator |(I1, int)' must declare a body because it is not marked abstract, extern, or partial
+                //     abstract static I1 I1.operator |(I1 x, int y);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I14.operator " + op + "(I1, int)").WithLocation(67, 36),
+                // (67,36): error CS0539: 'I14.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static I1 I1.operator |(I1 x, int y);
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + op + "(I1, int)").WithLocation(67, 36)
+                );
+
+            var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
+
+            var i8 = compilation1.GlobalNamespace.GetTypeMember("I8");
+            Assert.Null(i8.FindImplementationForInterfaceMember(i8.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i9 = compilation1.GlobalNamespace.GetTypeMember("I9");
+            Assert.Null(i9.FindImplementationForInterfaceMember(i9.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i10 = compilation1.GlobalNamespace.GetTypeMember("I10");
+            Assert.Null(i10.FindImplementationForInterfaceMember(i10.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i12 = compilation1.GlobalNamespace.GetTypeMember("I12");
+            Assert.Null(i12.FindImplementationForInterfaceMember(i12.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            var i13 = compilation1.GlobalNamespace.GetTypeMember("I13");
+            Assert.Null(i13.FindImplementationForInterfaceMember(i13.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single()));
+
+            Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I14").FindImplementationForInterfaceMember(m01));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_04([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x);
+}
+
+public interface I2<T> where T : I2<T>
+{
+    abstract static T operator " + op + @"(T x);
+}
+";
+            var source2 =
+typeKeyword + @"
+    Test1: I1
+{
+    static I1 I1.operator " + op + @"(I1 x) => default;
+}
+" + typeKeyword + @"
+    Test2: I2<Test2>
+{
+    public static Test2 operator " + op + @"(Test2 x) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+                // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static I1 I1.operator +(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+                // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static I1 I1.operator +(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static I1 operator +(I1 x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
+                // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static T operator +(T x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x, int y);
+}
+
+public interface I2<T> where T : I2<T>
+{
+    abstract static T operator " + op + @"(T x, int y);
+}
+";
+            var source2 =
+typeKeyword + @"
+    Test1: I1
+{
+    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+" + typeKeyword + @"
+    Test2: I2<Test2>
+{
+    public static Test2 operator " + op + @"(Test2 x, int y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static I1 I1.operator +(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static I1 I1.operator +(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static I1 operator +(I1 x, int y);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
+                // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static T operator +(T x, int y);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_05([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T> 
+{
+    abstract static T operator " + op + @"(T x);
+}
+";
+            var source2 =
+typeKeyword + @"
+    Test1: I1<Test1>
+{
+    public static Test1 operator " + op + @"(Test1 x) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+                // (2,12): error CS9110: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     Test1: I1<Test1>
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1)", "I1<Test1>.operator " + op + "(Test1)", "Test1").WithLocation(2, 12)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+                // (2,12): error CS9110: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     Test1: I1<Test1>
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1)", "I1<Test1>.operator " + op + "(Test1)", "Test1").WithLocation(2, 12),
+                // (9,32): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static T operator +(T x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 32)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T> 
+{
+    abstract static T operator " + op + @"(T x, int y);
+}
+";
+            var source2 =
+typeKeyword + @"
+    Test1: I1<Test1>
+{
+    public static Test1 operator " + op + @"(Test1 x, int y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (2,12): error CS9110: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     Test1: I1<Test1>
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1, int)", "I1<Test1>.operator " + op + "(Test1, int)", "Test1").WithLocation(2, 12)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (2,12): error CS9110: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     Test1: I1<Test1>
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1, int)", "I1<Test1>.operator " + op + "(Test1, int)", "Test1").WithLocation(2, 12),
+                // (9,32): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static T operator >>(T x, int y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 32)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_06([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x);
+}
+";
+            var source2 =
+typeKeyword + @"
+    Test1: I1
+{
+    static I1 I1.operator " + op + @"(I1 x) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (4,27): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     static I1 I1.operator +(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+                // (4,27): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     static I1 I1.operator +(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27),
+                // (9,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static I1 operator +(I1 x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 33)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x, int y);
+}
+";
+            var source2 =
+typeKeyword + @"
+    Test1: I1
+{
+    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (4,27): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     static I1 I1.operator +(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (4,27): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     static I1 I1.operator +(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27),
+                // (9,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static I1 operator +(I1 x, int y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 33)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_07([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool structure)
+        {
+            // Basic implicit implementation scenario, MethodImpl is emitted
+
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + op + @"(T x);
+}
+
+" + typeKeyword + @"
+    C : I1<C>
+{
+    public static C operator " + op + @"(C x) => default;
+}
+";
+
+            var opName = UnaryOperatorName(op);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped,
+                             emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var i1 = c.Interfaces().Single();
+                var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
+
+                Assert.Equal(1, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                var cM01 = (MethodSymbol)c.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(cM01.IsStatic);
+                Assert.False(cM01.IsAbstract);
+                Assert.False(cM01.IsVirtual);
+                Assert.False(cM01.IsMetadataVirtual());
+                Assert.False(cM01.IsMetadataFinal);
+                Assert.False(cM01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.UserDefinedOperator, cM01.MethodKind);
+                Assert.False(cM01.HasRuntimeSpecialName);
+                Assert.True(cM01.HasSpecialName);
+
+                Assert.Equal("C C." + opName + "(C x)", cM01.ToTestDisplayString());
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(m01, cM01.ExplicitInterfaceImplementations.Single());
+                }
+                else
+                {
+                    Assert.Empty(cM01.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryTrueFalseOperator_07([CombinatorialValues("true", "false")] string op, bool structure)
+        {
+            // Basic implicit implementation scenario, MethodImpl is emitted
+
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static bool operator " + op + @"(T x);
+}
+
+partial " + typeKeyword + @"
+    C : I1<C>
+{
+    public static bool operator " + op + @"(C x) => default;
+}
+";
+            string matchingOp = op == "true" ? "false" : "true";
+
+            source1 +=
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static bool operator " + matchingOp + @"(T x);
+}
+
+partial " + typeKeyword + @"
+    C
+{
+    public static bool operator " + matchingOp + @"(C x) => default;
+}
+";
+
+            var opName = UnaryOperatorName(op);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped,
+                             emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var i1 = c.Interfaces().Single();
+                var m01 = i1.GetMembers(opName).OfType<MethodSymbol>().Single();
+
+                Assert.Equal(2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                var cM01 = (MethodSymbol)c.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(cM01.IsStatic);
+                Assert.False(cM01.IsAbstract);
+                Assert.False(cM01.IsVirtual);
+                Assert.False(cM01.IsMetadataVirtual());
+                Assert.False(cM01.IsMetadataFinal);
+                Assert.False(cM01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.UserDefinedOperator, cM01.MethodKind);
+                Assert.False(cM01.HasRuntimeSpecialName);
+                Assert.True(cM01.HasSpecialName);
+
+                Assert.Equal("System.Boolean C." + opName + "(C x)", cM01.ToTestDisplayString());
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(m01, cM01.ExplicitInterfaceImplementations.Single());
+                }
+                else
+                {
+                    Assert.Empty(cM01.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_07([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        {
+            // Basic implicit implementation scenario, MethodImpl is emitted
+
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + op + @"(T x, int y);
+}
+
+partial " + typeKeyword + @"
+    C : I1<C>
+{
+    public static C operator " + op + @"(C x, int y) => default;
+}
+";
+            string matchingOp = MatchingBinaryOperator(op);
+
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + matchingOp + @"(T x, int y);
+}
+
+partial " + typeKeyword + @"
+    C
+{
+    public static C operator " + matchingOp + @"(C x, int y) => default;
+}
+";
+            }
+
+            var opName = BinaryOperatorName(op);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped,
+                             emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c = module.GlobalNamespace.GetTypeMember("C");
+                var i1 = c.Interfaces().Single();
+                var m01 = i1.GetMembers(opName).OfType<MethodSymbol>().Single();
+
+                Assert.Equal(matchingOp is null ? 1 : 2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                var cM01 = (MethodSymbol)c.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(cM01.IsStatic);
+                Assert.False(cM01.IsAbstract);
+                Assert.False(cM01.IsVirtual);
+                Assert.False(cM01.IsMetadataVirtual());
+                Assert.False(cM01.IsMetadataFinal);
+                Assert.False(cM01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.UserDefinedOperator, cM01.MethodKind);
+                Assert.False(cM01.HasRuntimeSpecialName);
+                Assert.True(cM01.HasSpecialName);
+
+                Assert.Equal("C C." + opName + "(C x, System.Int32 y)", cM01.ToTestDisplayString());
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(m01, cM01.ExplicitInterfaceImplementations.Single());
+                }
+                else
+                {
+                    Assert.Empty(cM01.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_08([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool structure)
+        {
+            // Basic explicit implementation scenario
+
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x);
+}
+
+" + typeKeyword + @"
+    C : I1
+{
+    static I1 I1.operator " + op + @"(I1 x) => default;
+}
+";
+
+            var opName = UnaryOperatorName(op);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+
+            Assert.Equal("default", node.ToString());
+            Assert.Equal("I1", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+
+            var declaredSymbol = model.GetDeclaredSymbol(node.FirstAncestorOrSelf<OperatorDeclarationSyntax>());
+            Assert.Equal("I1 C.I1." + opName + "(I1 x)", declaredSymbol.ToTestDisplayString());
+            Assert.DoesNotContain(opName, declaredSymbol.ContainingType.MemberNames);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped,
+                             emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
+                var c = module.GlobalNamespace.GetTypeMember("C");
+
+                Assert.Equal(1, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                var cM01 = (MethodSymbol)c.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(cM01.IsStatic);
+                Assert.False(cM01.IsAbstract);
+                Assert.False(cM01.IsVirtual);
+                Assert.False(cM01.IsMetadataVirtual());
+                Assert.False(cM01.IsMetadataFinal);
+                Assert.False(cM01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, cM01.MethodKind);
+                Assert.False(cM01.HasRuntimeSpecialName);
+                Assert.False(cM01.HasSpecialName);
+
+                Assert.Equal("I1 C.I1." + opName + "(I1 x)", cM01.ToTestDisplayString());
+                Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryTrueFalseOperator_08([CombinatorialValues("true", "false")] string op, bool structure)
+        {
+            // Basic explicit implementation scenario
+
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public partial interface I1
+{
+    abstract static bool operator " + op + @"(I1 x);
+}
+
+partial " + typeKeyword + @"
+    C : I1
+{
+    static bool I1.operator " + op + @"(I1 x) => default;
+}
+";
+            string matchingOp = op == "true" ? "false" : "true";
+
+            source1 +=
+@"
+public partial interface I1
+{
+    abstract static bool operator " + matchingOp + @"(I1 x);
+}
+
+partial " + typeKeyword + @"
+    C
+{
+    static bool I1.operator " + matchingOp + @"(I1 x) => default;
+}
+";
+
+            var opName = UnaryOperatorName(op);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().First();
+
+            Assert.Equal("default", node.ToString());
+            Assert.Equal("System.Boolean", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+
+            var declaredSymbol = model.GetDeclaredSymbol(node.FirstAncestorOrSelf<OperatorDeclarationSyntax>());
+            Assert.Equal("System.Boolean C.I1." + opName + "(I1 x)", declaredSymbol.ToTestDisplayString());
+            Assert.DoesNotContain(opName, declaredSymbol.ContainingType.MemberNames);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped,
+                             emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers(opName).OfType<MethodSymbol>().Single();
+                var c = module.GlobalNamespace.GetTypeMember("C");
+
+                Assert.Equal(2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                var cM01 = (MethodSymbol)c.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(cM01.IsStatic);
+                Assert.False(cM01.IsAbstract);
+                Assert.False(cM01.IsVirtual);
+                Assert.False(cM01.IsMetadataVirtual());
+                Assert.False(cM01.IsMetadataFinal);
+                Assert.False(cM01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, cM01.MethodKind);
+                Assert.False(cM01.HasRuntimeSpecialName);
+                Assert.False(cM01.HasSpecialName);
+
+                Assert.Equal("System.Boolean C.I1." + opName + "(I1 x)", cM01.ToTestDisplayString());
+                Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_08([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        {
+            // Basic explicit implementation scenario
+
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public partial interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x, int y);
+}
+
+partial " + typeKeyword + @"
+    C : I1
+{
+    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+";
+            string matchingOp = MatchingBinaryOperator(op);
+
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1
+{
+    abstract static I1 operator " + matchingOp + @"(I1 x, int y);
+}
+
+partial " + typeKeyword + @"
+    C
+{
+    static I1 I1.operator " + matchingOp + @"(I1 x, int y) => default;
+}
+";
+            }
+
+            var opName = BinaryOperatorName(op);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().First();
+
+            Assert.Equal("default", node.ToString());
+            Assert.Equal("I1", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+
+            var declaredSymbol = model.GetDeclaredSymbol(node.FirstAncestorOrSelf<OperatorDeclarationSyntax>());
+            Assert.Equal("I1 C.I1." + opName + "(I1 x, System.Int32 y)", declaredSymbol.ToTestDisplayString());
+            Assert.DoesNotContain(opName, declaredSymbol.ContainingType.MemberNames);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped,
+                             emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers(opName).OfType<MethodSymbol>().Single();
+                var c = module.GlobalNamespace.GetTypeMember("C");
+
+                Assert.Equal(matchingOp is null ? 1 : 2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                var cM01 = (MethodSymbol)c.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(cM01.IsStatic);
+                Assert.False(cM01.IsAbstract);
+                Assert.False(cM01.IsVirtual);
+                Assert.False(cM01.IsMetadataVirtual());
+                Assert.False(cM01.IsMetadataFinal);
+                Assert.False(cM01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, cM01.MethodKind);
+                Assert.False(cM01.HasRuntimeSpecialName);
+                Assert.False(cM01.HasSpecialName);
+
+                Assert.Equal("I1 C.I1." + opName + "(I1 x, System.Int32 y)", cM01.ToTestDisplayString());
+                Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_09([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op)
+        {
+            // Explicit implementation from base is treated as an implementation
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x);
+}
+
+public class C2 : I1
+{
+    static I1 I1.operator " + op + @"(I1 x) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C3 : C2, I1
+{
+}
+";
+
+            var opName = UnaryOperatorName(op);
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp,
+                                             references: new[] { compilation1.EmitToImageReference() });
+
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
+                var m01 = c3.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+                var cM01 = (MethodSymbol)c3.FindImplementationForInterfaceMember(m01);
+
+                Assert.Equal("I1 C2.I1." + opName + "(I1 x)", cM01.ToTestDisplayString());
+                Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryTrueFalseOperator_09([CombinatorialValues("true", "false")] string op)
+        {
+            // Explicit implementation from base is treated as an implementation
+
+            var source1 =
+@"
+public partial interface I1
+{
+    abstract static bool operator " + op + @"(I1 x);
+}
+
+public partial class C2 : I1
+{
+    static bool I1.operator " + op + @"(I1 x) => default;
+}
+";
+            string matchingOp = op == "true" ? "false" : "true";
+
+            source1 +=
+@"
+public partial interface I1
+{
+    abstract static bool operator " + matchingOp + @"(I1 x);
+}
+
+public partial class C2
+{
+    static bool I1.operator " + matchingOp + @"(I1 x) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C3 : C2, I1
+{
+}
+";
+
+            var opName = UnaryOperatorName(op);
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp,
+                                             references: new[] { compilation1.EmitToImageReference() });
+
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
+                var m01 = c3.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().Single();
+
+                var cM01 = (MethodSymbol)c3.FindImplementationForInterfaceMember(m01);
+
+                Assert.Equal("System.Boolean C2.I1." + opName + "(I1 x)", cM01.ToTestDisplayString());
+                Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_09([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        {
+            // Explicit implementation from base is treated as an implementation
+
+            var source1 =
+@"
+public partial interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x, int y);
+}
+
+public partial class C2 : I1
+{
+    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+";
+            string matchingOp = MatchingBinaryOperator(op);
+
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1
+{
+    abstract static I1 operator " + matchingOp + @"(I1 x, int y);
+}
+
+public partial class C2
+{
+    static I1 I1.operator " + matchingOp + @"(I1 x, int y) => default;
+}
+";
+            }
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C3 : C2, I1
+{
+}
+";
+
+            var opName = BinaryOperatorName(op);
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp,
+                                             references: new[] { compilation1.EmitToImageReference() });
+
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
+                var m01 = c3.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().Single();
+
+                var cM01 = (MethodSymbol)c3.FindImplementationForInterfaceMember(m01);
+
+                Assert.Equal("I1 C2.I1." + opName + "(I1 x, System.Int32 y)", cM01.ToTestDisplayString());
+                Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_10([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op)
+        {
+            // Implicit implementation is considered only for types implementing interface in source.
+            // In metadata, only explicit implementations are considered
+
+            var opName = UnaryOperatorName(op);
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig specialname abstract virtual static 
+        class I1 " + opName + @" (
+            class I1 x
+        ) cil managed 
+    {
+    }
+}
+
+.class public auto ansi beforefieldinit C1
+    extends System.Object
+    implements I1
+{
+    .method private hidebysig
+        static class I1 I1." + opName + @" (class I1 x) cil managed 
+    {
+        .override method class I1 I1::" + opName + @"(class I1)
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig static
+        specialname class I1 " + opName + @" (class I1 x) cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi beforefieldinit C2
+    extends C1
+    implements I1
+{
+    .method public hidebysig static
+        specialname class I1 " + opName + @" (class I1 x) cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void C1::.ctor()
+        IL_0006: ret
+    } // end of method C2::.ctor
+} // end of class C2
+";
+            var source1 =
+@"
+public class C3 : C2
+{
+}
+
+public class C4 : C1, I1
+{
+}
+
+public class C5 : C2, I1
+{
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+            var m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
+            Assert.Equal(MethodKind.UserDefinedOperator, c1.GetMember<MethodSymbol>(opName).MethodKind);
+
+            var c1M01 = (MethodSymbol)c1.FindImplementationForInterfaceMember(m01);
+
+            Assert.Equal("I1 C1.I1." + opName + "(I1 x)", c1M01.ToTestDisplayString());
+            Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c1M01.MethodKind);
+            Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
+
+            var c2 = compilation1.GlobalNamespace.GetTypeMember("C2");
+            Assert.Same(c1M01, c2.FindImplementationForInterfaceMember(m01));
+
+            var c3 = compilation1.GlobalNamespace.GetTypeMember("C3");
+            Assert.Same(c1M01, c3.FindImplementationForInterfaceMember(m01));
+
+            var c4 = compilation1.GlobalNamespace.GetTypeMember("C4");
+            Assert.Same(c1M01, c4.FindImplementationForInterfaceMember(m01));
+
+            var c5 = compilation1.GlobalNamespace.GetTypeMember("C5");
+
+            var c2M01 = (MethodSymbol)c5.FindImplementationForInterfaceMember(m01);
+            Assert.Equal("I1 C2." + opName + "(I1 x)", c2M01.ToTestDisplayString());
+            Assert.Equal(MethodKind.UserDefinedOperator, c2M01.MethodKind);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_10([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        {
+            // Implicit implementation is considered only for types implementing interface in source.
+            // In metadata, only explicit implementations are considered
+
+            var opName = BinaryOperatorName(op);
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig specialname abstract virtual static 
+        class I1 " + opName + @" (
+            class I1 x,
+            int32 y
+        ) cil managed 
+    {
+    }
+}
+
+.class public auto ansi beforefieldinit C1
+    extends System.Object
+    implements I1
+{
+    .method private hidebysig
+        static class I1 I1." + opName + @" (class I1 x, int32 y) cil managed 
+    {
+        .override method class I1 I1::" + opName + @"(class I1, int32)
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig static
+        specialname class I1 " + opName + @" (class I1 x, int32 y) cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi beforefieldinit C2
+    extends C1
+    implements I1
+{
+    .method public hidebysig static
+        specialname class I1 " + opName + @" (class I1 x, int32 y) cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void C1::.ctor()
+        IL_0006: ret
+    } // end of method C2::.ctor
+} // end of class C2
+";
+            var source1 =
+@"
+public class C3 : C2
+{
+}
+
+public class C4 : C1, I1
+{
+}
+
+public class C5 : C2, I1
+{
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+            var m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
+            Assert.Equal(MethodKind.UserDefinedOperator, c1.GetMember<MethodSymbol>(opName).MethodKind);
+
+            var c1M01 = (MethodSymbol)c1.FindImplementationForInterfaceMember(m01);
+
+            Assert.Equal("I1 C1.I1." + opName + "(I1 x, System.Int32 y)", c1M01.ToTestDisplayString());
+            Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c1M01.MethodKind);
+            Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
+
+            var c2 = compilation1.GlobalNamespace.GetTypeMember("C2");
+            Assert.Same(c1M01, c2.FindImplementationForInterfaceMember(m01));
+
+            var c3 = compilation1.GlobalNamespace.GetTypeMember("C3");
+            Assert.Same(c1M01, c3.FindImplementationForInterfaceMember(m01));
+
+            var c4 = compilation1.GlobalNamespace.GetTypeMember("C4");
+            Assert.Same(c1M01, c4.FindImplementationForInterfaceMember(m01));
+
+            var c5 = compilation1.GlobalNamespace.GetTypeMember("C5");
+
+            var c2M01 = (MethodSymbol)c5.FindImplementationForInterfaceMember(m01);
+            Assert.Equal("I1 C2." + opName + "(I1 x, System.Int32 y)", c2M01.ToTestDisplayString());
+            Assert.Equal(MethodKind.UserDefinedOperator, c2M01.MethodKind);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_11([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op)
+        {
+            // Ignore invalid metadata (non-abstract static virtual method). 
+
+            var opName = UnaryOperatorName(op);
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig specialname virtual
+        static class I1 " + opName + @" (
+            class I1 x
+        ) cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+}
+";
+
+            var source1 =
+@"
+public class C1 : I1
+{
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyEmitDiagnostics();
+
+            var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+            var i1 = c1.Interfaces().Single();
+            var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+
+            var source2 =
+@"
+public class C1 : I1
+{
+    static I1 I1.operator " + op + @"(I1 x) => default;
+}
+";
+
+            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation2.VerifyEmitDiagnostics(
+                // (4,27): error CS0539: 'C1.operator ~(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static I1 I1.operator ~(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C1.operator " + op + "(I1)").WithLocation(4, 27)
+                );
+
+            c1 = compilation2.GlobalNamespace.GetTypeMember("C1");
+            m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Equal("I1 I1." + opName + "(I1 x)", m01.ToTestDisplayString());
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_11([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        {
+            // Ignore invalid metadata (non-abstract static virtual method). 
+
+            var opName = BinaryOperatorName(op);
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig specialname virtual
+        static class I1 " + opName + @" (
+            class I1 x,
+            int32 y
+        ) cil managed 
+    {
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+}
+";
+
+            var source1 =
+@"
+public class C1 : I1
+{
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyEmitDiagnostics();
+
+            var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+            var i1 = c1.Interfaces().Single();
+            var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+
+            var source2 =
+@"
+public class C1 : I1
+{
+    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+";
+
+            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation2.VerifyEmitDiagnostics(
+                // (4,27): error CS0539: 'C1.operator <(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static I1 I1.operator <(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C1.operator " + op + "(I1, int)").WithLocation(4, 27)
+                );
+
+            c1 = compilation2.GlobalNamespace.GetTypeMember("C1");
+            m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Equal("I1 I1." + opName + "(I1 x, System.Int32 y)", m01.ToTestDisplayString());
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_12([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op)
+        {
+            // Ignore invalid metadata (default interface implementation for a static method)
+
+            var opName = UnaryOperatorName(op);
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig specialname abstract virtual static 
+        class I1 " + opName + @" (
+            class I1 x
+        ) cil managed 
+    {
+    }
+}
+.class interface public auto ansi abstract I2
+    implements I1
+{
+    .method private hidebysig
+        static class I1 I1." + opName + @" (class I1 x) cil managed 
+    {
+        .override method class I1 I1::" + opName + @"(class I1)
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+}
+";
+
+            var source1 =
+@"
+public class C1 : I2
+{
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyEmitDiagnostics(
+                // (2,19): error CS0535: 'C1' does not implement interface member 'I1.operator ~(I1)'
+                // public class C1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.operator " + op + "(I1)").WithLocation(2, 19)
+                );
+
+            var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+            var i2 = c1.Interfaces().Single();
+            var i1 = i2.Interfaces().Single();
+            var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_12([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        {
+            // Ignore invalid metadata (default interface implementation for a static method)
+
+            var opName = BinaryOperatorName(op);
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig specialname abstract virtual static 
+        class I1 " + opName + @" (
+            class I1 x,
+            int32 y
+        ) cil managed 
+    {
+    }
+}
+.class interface public auto ansi abstract I2
+    implements I1
+{
+    .method private hidebysig
+        static class I1 I1." + opName + @" (class I1 x, int32 y) cil managed 
+    {
+        .override method class I1 I1::" + opName + @"(class I1, int32)
+
+        IL_0000: ldnull
+        IL_0001: ret
+    }
+}
+";
+
+            var source1 =
+@"
+public class C1 : I2
+{
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyEmitDiagnostics(
+                // (2,19): error CS0535: 'C1' does not implement interface member 'I1.operator /(I1, int)'
+                // public class C1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.operator " + op + "(I1, int)").WithLocation(2, 19)
+                );
+
+            var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+            var i2 = c1.Interfaces().Single();
+            var i1 = i2.Interfaces().Single();
+            var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
+
+            Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_13([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op)
+        {
+            // A forwarding method is added for an implicit implementation declared in base class. 
+
+            var source1 =
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + op + @"(T x, C1 y);
+}
+
+public partial class C1
+{
+    public static C2 operator " + op + @"(C2 x, C1 y) => default;
+}
+
+public class C2 : C1, I1<C2>
+{
+}
+";
+            string matchingOp = MatchingBinaryOperator(op);
+
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1<T>
+{
+    abstract static T operator " + matchingOp + @"(T x, C1 y);
+}
+
+public partial class C1
+{
+    public static C2 operator " + matchingOp + @"(C2 x, C1 y) => default;
+}
+";
+            }
+
+            var opName = BinaryOperatorName(op);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                var i1 = c2.Interfaces().Single();
+                var m01 = i1.GetMembers(opName).OfType<MethodSymbol>().Single();
+
+                var c2M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(c2M01.IsStatic);
+                Assert.False(c2M01.IsAbstract);
+                Assert.False(c2M01.IsVirtual);
+                Assert.False(c2M01.IsMetadataVirtual());
+                Assert.False(c2M01.IsMetadataFinal);
+                Assert.False(c2M01.IsMetadataNewSlot());
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c2M01.MethodKind);
+                    Assert.False(c2M01.HasRuntimeSpecialName);
+                    Assert.False(c2M01.HasSpecialName);
+
+                    Assert.Equal("C2 C2.I1<C2>." + opName + "(C2 x, C1 y)", c2M01.ToTestDisplayString());
+                    Assert.Equal(m01, c2M01.ExplicitInterfaceImplementations.Single());
+
+                    var c1M01 = module.GlobalNamespace.GetMember<MethodSymbol>("C1." + opName);
+
+                    Assert.True(c1M01.IsStatic);
+                    Assert.False(c1M01.IsAbstract);
+                    Assert.False(c1M01.IsVirtual);
+                    Assert.False(c1M01.IsMetadataVirtual());
+                    Assert.False(c1M01.IsMetadataFinal);
+                    Assert.False(c1M01.IsMetadataNewSlot());
+                    Assert.Equal(MethodKind.UserDefinedOperator, c1M01.MethodKind);
+                    Assert.False(c1M01.HasRuntimeSpecialName);
+                    Assert.True(c1M01.HasSpecialName);
+                }
+                else
+                {
+                    Assert.Equal(MethodKind.UserDefinedOperator, c2M01.MethodKind);
+                    Assert.False(c2M01.HasRuntimeSpecialName);
+                    Assert.True(c2M01.HasSpecialName);
+
+                    Assert.Equal("C2 C1." + opName + "(C2 x, C1 y)", c2M01.ToTestDisplayString());
+                    Assert.Empty(c2M01.ExplicitInterfaceImplementations);
+                }
+            }
+
+            verifier.VerifyIL("C2.I1<C2>." + opName + "(C2, C1)",
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""C2 C1." + opName + @"(C2, C1)""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_14([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op)
+        {
+            // A forwarding method is added for an implicit implementation with modopt mismatch. 
+
+            var opName = UnaryOperatorName(op);
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
+{
+    // Methods
+    .method public hidebysig specialname abstract virtual static 
+        !T modopt(I1`1) " + opName + @" (
+            !T x
+        ) cil managed 
+    {
+    }
+} 
+";
+
+            var source1 =
+@"
+class C1 : I1<C1>
+{
+    public static C1 operator " + op + @"(C1 x) => default;
+}
+
+class C2 : I1<C2>
+{
+    static C2 I1<C2>.operator " + op + @"(C2 x) => default;
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c1 = module.GlobalNamespace.GetTypeMember("C1");
+                var m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+                var c1M01 = (MethodSymbol)c1.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(c1M01.IsStatic);
+                Assert.False(c1M01.IsAbstract);
+                Assert.False(c1M01.IsVirtual);
+                Assert.False(c1M01.IsMetadataVirtual());
+                Assert.False(c1M01.IsMetadataFinal);
+                Assert.False(c1M01.IsMetadataNewSlot());
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c1M01.MethodKind);
+                    Assert.Equal("C1 modopt(I1<>) C1.I1<C1>." + opName + "(C1 x)", c1M01.ToTestDisplayString());
+                    Assert.Equal(m01, c1M01.ExplicitInterfaceImplementations.Single());
+
+                    c1M01 = module.GlobalNamespace.GetMember<MethodSymbol>("C1." + opName);
+                    Assert.Equal("C1 C1." + opName + "(C1 x)", c1M01.ToTestDisplayString());
+
+                    Assert.True(c1M01.IsStatic);
+                    Assert.False(c1M01.IsAbstract);
+                    Assert.False(c1M01.IsVirtual);
+                    Assert.False(c1M01.IsMetadataVirtual());
+                    Assert.False(c1M01.IsMetadataFinal);
+                    Assert.False(c1M01.IsMetadataNewSlot());
+                    Assert.Equal(MethodKind.UserDefinedOperator, c1M01.MethodKind);
+
+                    Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+                }
+                else
+                {
+                    Assert.Equal(MethodKind.UserDefinedOperator, c1M01.MethodKind);
+                    Assert.Equal("C1 C1." + opName + "(C1 x)", c1M01.ToTestDisplayString());
+                    Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+                }
+
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                m01 = c2.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+                var c2M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(c2M01.IsStatic);
+                Assert.False(c2M01.IsAbstract);
+                Assert.False(c2M01.IsVirtual);
+                Assert.False(c2M01.IsMetadataVirtual());
+                Assert.False(c2M01.IsMetadataFinal);
+                Assert.False(c2M01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c2M01.MethodKind);
+
+                Assert.Equal("C2 modopt(I1<>) C2.I1<C2>." + opName + "(C2 x)", c2M01.ToTestDisplayString());
+                Assert.Equal(m01, c2M01.ExplicitInterfaceImplementations.Single());
+
+                Assert.Same(c2M01, c2.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single());
+            }
+
+            verifier.VerifyIL("C1.I1<C1>." + opName + "(C1)",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""C1 C1." + opName + @"(C1)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticUnaryTrueFalseOperator_14([CombinatorialValues("true", "false")] string op)
+        {
+            // A forwarding method is added for an implicit implementation with modopt mismatch. 
+
+            var opName = UnaryOperatorName(op);
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
+{
+    // Methods
+    .method public hidebysig specialname abstract virtual static 
+        bool modopt(I1`1) " + opName + @" (
+            !T x
+        ) cil managed 
+    {
+    }
+} 
+";
+
+            var source1 =
+@"
+class C1 : I1<C1>
+{
+    public static bool operator " + op + @"(C1 x) => default;
+    public static bool operator " + (op == "true" ? "false" : "true") + @"(C1 x) => default;
+}
+
+class C2 : I1<C2>
+{
+    static bool I1<C2>.operator " + op + @"(C2 x) => default;
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c1 = module.GlobalNamespace.GetTypeMember("C1");
+                var m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+                var c1M01 = (MethodSymbol)c1.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(c1M01.IsStatic);
+                Assert.False(c1M01.IsAbstract);
+                Assert.False(c1M01.IsVirtual);
+                Assert.False(c1M01.IsMetadataVirtual());
+                Assert.False(c1M01.IsMetadataFinal);
+                Assert.False(c1M01.IsMetadataNewSlot());
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c1M01.MethodKind);
+                    Assert.Equal("System.Boolean modopt(I1<>) C1.I1<C1>." + opName + "(C1 x)", c1M01.ToTestDisplayString());
+                    Assert.Equal(m01, c1M01.ExplicitInterfaceImplementations.Single());
+
+                    c1M01 = module.GlobalNamespace.GetMember<MethodSymbol>("C1." + opName);
+                    Assert.Equal("System.Boolean C1." + opName + "(C1 x)", c1M01.ToTestDisplayString());
+
+                    Assert.True(c1M01.IsStatic);
+                    Assert.False(c1M01.IsAbstract);
+                    Assert.False(c1M01.IsVirtual);
+                    Assert.False(c1M01.IsMetadataVirtual());
+                    Assert.False(c1M01.IsMetadataFinal);
+                    Assert.False(c1M01.IsMetadataNewSlot());
+                    Assert.Equal(MethodKind.UserDefinedOperator, c1M01.MethodKind);
+
+                    Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+                }
+                else
+                {
+                    Assert.Equal(MethodKind.UserDefinedOperator, c1M01.MethodKind);
+                    Assert.Equal("System.Boolean C1." + opName + "(C1 x)", c1M01.ToTestDisplayString());
+                    Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+                }
+
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                m01 = c2.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+                var c2M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(c2M01.IsStatic);
+                Assert.False(c2M01.IsAbstract);
+                Assert.False(c2M01.IsVirtual);
+                Assert.False(c2M01.IsMetadataVirtual());
+                Assert.False(c2M01.IsMetadataFinal);
+                Assert.False(c2M01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c2M01.MethodKind);
+
+                Assert.Equal("System.Boolean modopt(I1<>) C2.I1<C2>." + opName + "(C2 x)", c2M01.ToTestDisplayString());
+                Assert.Equal(m01, c2M01.ExplicitInterfaceImplementations.Single());
+
+                Assert.Same(c2M01, c2.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single());
+            }
+
+            verifier.VerifyIL("C1.I1<C1>." + opName + "(C1)",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""bool C1." + opName + @"(C1)""
+  IL_0006:  ret
+}
+");
+        }
+
+        private static string MatchingBinaryOperator(string op)
+        {
+            return op switch { "<" => ">", ">" => "<", "<=" => ">=", ">=" => "<=", _ => null };
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_14([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        {
+            // A forwarding method is added for an implicit implementation with modopt mismatch. 
+
+            var opName = BinaryOperatorName(op);
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
+{
+    // Methods
+    .method public hidebysig specialname abstract virtual static 
+        !T modopt(I1`1) " + opName + @" (
+            !T x,
+            int32 y
+        ) cil managed 
+    {
+    }
+} 
+";
+            string matchingOp = MatchingBinaryOperator(op);
+            string additionalMethods = "";
+
+            if (matchingOp is object)
+            {
+                additionalMethods =
+@"
+    public static C1 operator " + matchingOp + @"(C1 x, int y) => default;
+";
+            }
+
+            var source1 =
+@"
+class C1 : I1<C1>
+{
+    public static C1 operator " + op + @"(C1 x, int y) => default;
+" + additionalMethods + @"
+}
+
+class C2 : I1<C2>
+{
+    static C2 I1<C2>.operator " + op + @"(C2 x, int y) => default;
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c1 = module.GlobalNamespace.GetTypeMember("C1");
+                var m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+
+                var c1M01 = (MethodSymbol)c1.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(c1M01.IsStatic);
+                Assert.False(c1M01.IsAbstract);
+                Assert.False(c1M01.IsVirtual);
+                Assert.False(c1M01.IsMetadataVirtual());
+                Assert.False(c1M01.IsMetadataFinal);
+                Assert.False(c1M01.IsMetadataNewSlot());
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c1M01.MethodKind);
+                    Assert.Equal("C1 modopt(I1<>) C1.I1<C1>." + opName + "(C1 x, System.Int32 y)", c1M01.ToTestDisplayString());
+                    Assert.Equal(m01, c1M01.ExplicitInterfaceImplementations.Single());
+
+                    c1M01 = module.GlobalNamespace.GetMember<MethodSymbol>("C1." + opName);
+                    Assert.Equal("C1 C1." + opName + "(C1 x, System.Int32 y)", c1M01.ToTestDisplayString());
+
+                    Assert.True(c1M01.IsStatic);
+                    Assert.False(c1M01.IsAbstract);
+                    Assert.False(c1M01.IsVirtual);
+                    Assert.False(c1M01.IsMetadataVirtual());
+                    Assert.False(c1M01.IsMetadataFinal);
+                    Assert.False(c1M01.IsMetadataNewSlot());
+                    Assert.Equal(MethodKind.UserDefinedOperator, c1M01.MethodKind);
+
+                    Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+                }
+                else
+                {
+                    Assert.Equal(MethodKind.UserDefinedOperator, c1M01.MethodKind);
+                    Assert.Equal("C1 C1." + opName + "(C1 x, System.Int32 y)", c1M01.ToTestDisplayString());
+                    Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+                }
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                m01 = c2.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+                var c2M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(c2M01.IsStatic);
+                Assert.False(c2M01.IsAbstract);
+                Assert.False(c2M01.IsVirtual);
+                Assert.False(c2M01.IsMetadataVirtual());
+                Assert.False(c2M01.IsMetadataFinal);
+                Assert.False(c2M01.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c2M01.MethodKind);
+
+                Assert.Equal("C2 modopt(I1<>) C2.I1<C2>." + opName + "(C2 x, System.Int32 y)", c2M01.ToTestDisplayString());
+                Assert.Equal(m01, c2M01.ExplicitInterfaceImplementations.Single());
+
+                Assert.Same(c2M01, c2.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single());
+            }
+
+            verifier.VerifyIL("C1.I1<C1>." + opName + "(C1, int)",
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""C1 C1." + opName + @"(C1, int)""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_15([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op)
+        {
+            // A forwarding method isn't created if base class implements interface exactly the same way. 
+
+            var source1 =
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + op + @"(T x, C1 y);
+}
+
+public partial class C1
+{
+    public static C2 operator " + op + @"(C2 x, C1 y) => default;
+}
+
+public class C2 : C1, I1<C2>
+{
+}
+";
+
+            string matchingOp = MatchingBinaryOperator(op);
+
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1<T>
+{
+    abstract static T operator " + matchingOp + @"(T x, C1 y);
+}
+
+public partial class C1
+{
+    public static C2 operator " + matchingOp + @"(C2 x, C1 y) => default;
+}
+";
+            }
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C3 : C2, I1<C2>
+{
+}
+";
+
+            var opName = BinaryOperatorName(op);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp,
+                                             references: new[] { compilation1.EmitToImageReference() });
+
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                var m01 = c3.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().Single();
+
+                var c1M01 = c3.BaseType().BaseType().GetMember<MethodSymbol>(opName);
+                Assert.Equal("C2 C1." + opName + "(C2 x, C1 y)", c1M01.ToTestDisplayString());
+
+                Assert.True(c1M01.IsStatic);
+                Assert.False(c1M01.IsAbstract);
+                Assert.False(c1M01.IsVirtual);
+                Assert.False(c1M01.IsMetadataVirtual());
+                Assert.False(c1M01.IsMetadataFinal);
+                Assert.False(c1M01.IsMetadataNewSlot());
+
+                Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+
+                if (c1M01.ContainingModule is PEModuleSymbol)
+                {
+                    var c2M01 = (MethodSymbol)c3.FindImplementationForInterfaceMember(m01);
+                    Assert.Equal("C2 C2.I1<C2>." + opName + "(C2 x, C1 y)", c2M01.ToTestDisplayString());
+                    Assert.Equal(m01, c2M01.ExplicitInterfaceImplementations.Single());
+                }
+                else
+                {
+                    Assert.Same(c1M01, c3.FindImplementationForInterfaceMember(m01));
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_16([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op)
+        {
+            // A new implicit implementation is properly considered.
+
+            var source1 =
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + op + @"(T x, C1 y);
+}
+
+public partial class C1 : I1<C2>
+{
+    public static C2 operator " + op + @"(C2 x, C1 y) => default;
+}
+
+public partial class C2 : C1
+{
+    public static C2 operator " + op + @"(C2 x, C1 y) => default;
+}
+";
+            string matchingOp = MatchingBinaryOperator(op);
+
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1<T>
+{
+    abstract static T operator " + matchingOp + @"(T x, C1 y);
+}
+
+public partial class C1 : I1<C2>
+{
+    public static C2 operator " + matchingOp + @"(C2 x, C1 y) => default;
+}
+
+public partial class C2 : C1
+{
+    public static C2 operator " + matchingOp + @"(C2 x, C1 y) => default;
+}
+";
+            }
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C3 : C2, I1<C2>
+{
+}
+";
+
+            var opName = BinaryOperatorName(op);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+            var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C3.I1<C2>." + opName + "(C2, C1)",
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""C2 C2." + opName + @"(C2, C1)""
+  IL_0007:  ret
+}
+");
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp,
+                                             references: new[] { compilation1.EmitToImageReference() });
+
+            verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C3.I1<C2>." + opName + "(C2, C1)",
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""C2 C2." + opName + @"(C2, C1)""
+  IL_0007:  ret
+}
+");
+
+            void validate(ModuleSymbol module)
+            {
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                var m01 = c3.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().Single();
+
+                var c2M01 = c3.BaseType().GetMember<MethodSymbol>(opName);
+                Assert.Equal("C2 C2." + opName + "(C2 x, C1 y)", c2M01.ToTestDisplayString());
+
+                Assert.True(c2M01.IsStatic);
+                Assert.False(c2M01.IsAbstract);
+                Assert.False(c2M01.IsVirtual);
+                Assert.False(c2M01.IsMetadataVirtual());
+                Assert.False(c2M01.IsMetadataFinal);
+                Assert.False(c2M01.IsMetadataNewSlot());
+
+                Assert.Empty(c2M01.ExplicitInterfaceImplementations);
+
+                if (module is PEModuleSymbol)
+                {
+                    var c3M01 = (MethodSymbol)c3.FindImplementationForInterfaceMember(m01);
+                    Assert.Equal("C2 C3.I1<C2>." + opName + "(C2 x, C1 y)", c3M01.ToTestDisplayString());
+                    Assert.Equal(m01, c3M01.ExplicitInterfaceImplementations.Single());
+                }
+                else
+                {
+                    Assert.Same(c2M01, c3.FindImplementationForInterfaceMember(m01));
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_18([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op, bool genericFirst)
+        {
+            // An "ambiguity" in implicit implementation declared in generic base class plus interface is generic too.
+
+            var generic =
+@"
+    public static C1<T, U> operator " + op + @"(C1<T, U> x, U y) => default;
+";
+            var nonGeneric =
+@"
+    public static C1<T, U> operator " + op + @"(C1<T, U> x, int y) => default;
+";
+            var source1 =
+@"
+public partial interface I1<T, U> where T : I1<T, U>
+{
+    abstract static T operator " + op + @"(T x, U y);
+}
+
+public partial class C1<T, U> : I1<C1<T, U>, U>
+{
+" + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
+}
+";
+
+            string matchingOp = MatchingBinaryOperator(op);
+
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1<T, U>
+{
+    abstract static T operator " + matchingOp + @"(T x, U y);
+}
+
+public partial class C1<T, U>
+{
+    public static C1<T, U> operator " + matchingOp + @"(C1<T, U> x, U y) => default;
+    public static C1<T, U> operator " + matchingOp + @"(C1<T, U> x, int y) => default;
+}
+";
+            }
+
+            var opName = BinaryOperatorName(op);
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+
+            compilation1.VerifyDiagnostics();
+            Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains(opName)).Count());
+
+            var source2 =
+@"
+public class C2 : C1<int, int>, I1<C1<int, int>, int>
+{
+}
+";
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp,
+                                             references: new[] { compilation1.EmitToImageReference() });
+
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                var m01 = c2.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().Single();
+
+                Assert.True(m01.ContainingModule is RetargetingModuleSymbol or PEModuleSymbol);
+
+                var c1M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+                Assert.Equal("C1<T, U> C1<T, U>." + opName + "(C1<T, U> x, U y)", c1M01.OriginalDefinition.ToTestDisplayString());
+
+                var baseI1M01 = c2.BaseType().FindImplementationForInterfaceMember(m01);
+                Assert.Equal("C1<T, U> C1<T, U>." + opName + "(C1<T, U> x, U y)", baseI1M01.OriginalDefinition.ToTestDisplayString());
+
+                Assert.Equal(c1M01, baseI1M01);
+
+                if (c1M01.OriginalDefinition.ContainingModule is PEModuleSymbol)
+                {
+                    Assert.Equal(m01, c1M01.ExplicitInterfaceImplementations.Single());
+                }
+                else
+                {
+                    Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_20([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op, bool genericFirst)
+        {
+            // Same as ImplementAbstractStaticBinaryOperator_18 only implementation is explicit in source.
+
+            var generic =
+@"
+    static C1<T, U> I1<C1<T, U>, U>.operator " + op + @"(C1<T, U> x, U y) => default;
+";
+            var nonGeneric =
+@"
+    public static C1<T, U> operator " + op + @"(C1<T, U> x, int y) => default;
+";
+            var source1 =
+@"
+public partial interface I1<T, U> where T : I1<T, U>
+{
+    abstract static T operator " + op + @"(T x, U y);
+}
+
+public partial class C1<T, U> : I1<C1<T, U>, U>
+{
+" + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
+}
+";
+            string matchingOp = MatchingBinaryOperator(op);
+
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1<T, U> where T : I1<T, U>
+{
+    abstract static T operator " + matchingOp + @"(T x, U y);
+}
+
+public partial class C1<T, U> : I1<C1<T, U>, U>
+{
+    public static C1<T, U> operator " + matchingOp + @"(C1<T, U> x, int y) => default;
+    static C1<T, U> I1<C1<T, U>, U>.operator " + matchingOp + @"(C1<T, U> x, U y) => default;
+}
+";
+            }
+
+            var opName = BinaryOperatorName(op);
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+
+            compilation1.VerifyDiagnostics();
+            Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains(opName)).Count());
+
+            var source2 =
+@"
+public class C2 : C1<int, int>, I1<C1<int, int>, int>
+{
+}
+";
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp,
+                                             references: new[] { compilation1.EmitToImageReference() });
+
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                var m01 = c2.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().Single();
+
+                Assert.True(m01.ContainingModule is RetargetingModuleSymbol or PEModuleSymbol);
+
+                var c1M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+                Assert.Equal("C1<T, U> C1<T, U>.I1<C1<T, U>, U>." + opName + "(C1<T, U> x, U y)", c1M01.OriginalDefinition.ToTestDisplayString());
+
+                Assert.Equal(m01, c1M01.ExplicitInterfaceImplementations.Single());
+                Assert.Same(c1M01, c2.BaseType().FindImplementationForInterfaceMember(m01));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticBinaryOperator_22([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op, bool genericFirst)
+        {
+            // Same as ImplementAbstractStaticMethod_18 only implicit implementation is in an intermediate base.
+
+            var generic =
+@"
+    public static C11<T, U> operator " + op + @"(C11<T, U> x, C1<T, U> y) => default;
+";
+            var nonGeneric =
+@"
+    public static C11<T, U> operator " + op + @"(C11<T, int> x, C1<T, U> y) => default;
+";
+            var source1 =
+@"
+public partial interface I1<T, U> where T : I1<T, U>
+{
+    abstract static T operator " + op + @"(T x, U y);
+}
+
+public partial class C1<T, U>
+{
+" + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
+}
+
+public class C11<T, U> : C1<T, U>, I1<C11<T, U>, C1<T, U>>
+{
+}
+";
+            string matchingOp = MatchingBinaryOperator(op);
+
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1<T, U>
+{
+    abstract static T operator " + matchingOp + @"(T x, U y);
+}
+
+public partial class C1<T, U>
+{
+    public static C11<T, U> operator " + matchingOp + @"(C11<T, U> x, C1<T, U> y) => default;
+    public static C11<T, U> operator " + matchingOp + @"(C11<T, int> x, C1<T, U> y) => default;
+}
+";
+            }
+
+            var opName = BinaryOperatorName(op);
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+
+            compilation1.VerifyDiagnostics();
+            Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().Where(m => m.Name.Contains(opName)).Count());
+
+            var source2 =
+@"
+public class C2 : C11<int, int>, I1<C11<int, int>, C1<int, int>>
+{
+}
+";
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp,
+                                             references: new[] { compilation1.EmitToImageReference() });
+
+            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                var m01 = c2.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().Single();
+
+                Assert.True(m01.ContainingModule is RetargetingModuleSymbol or PEModuleSymbol);
+
+                var c1M01 = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01);
+                var expectedDisplay = m01.ContainingModule is PEModuleSymbol ? "C11<T, U> C11<T, U>.I1<C11<T, U>, C1<T, U>>." + opName + "(C11<T, U> x, C1<T, U> y)" : "C11<T, U> C1<T, U>." + opName + "(C11<T, U> x, C1<T, U> y)";
+                Assert.Equal(expectedDisplay, c1M01.OriginalDefinition.ToTestDisplayString());
+
+                var baseI1M01 = c2.BaseType().FindImplementationForInterfaceMember(m01);
+                Assert.Equal(expectedDisplay, baseI1M01.OriginalDefinition.ToTestDisplayString());
+
+                Assert.Equal(c1M01, baseI1M01);
+
+                if (c1M01.OriginalDefinition.ContainingModule is PEModuleSymbol)
+                {
+                    Assert.Equal(m01, c1M01.ExplicitInterfaceImplementations.Single());
+                }
+                else
+                {
+                    Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ExplicitImplementationModifiersUnaryOperator_01([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x);
+}
+
+class
+    C1 : I1
+{
+    static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C2 : I1
+{
+    private static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C3 : I1
+{
+    protected static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C4 : I1
+{
+    internal static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C5 : I1
+{
+    protected internal static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C6 : I1
+{
+    private protected static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C7 : I1
+{
+    public static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C8 : I1
+{
+    static partial I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C9 : I1
+{
+    async static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C10 : I1
+{
+    unsafe static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C11 : I1
+{
+    static readonly I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C12 : I1
+{
+    extern static I1 I1.operator " + op + @"(I1 x);
+}
+
+class
+    C13 : I1
+{
+    abstract static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C14 : I1
+{
+    virtual static I1 I1.operator " + op + @"(I1 x) => default;
+}
+
+class
+    C15 : I1
+{
+    sealed static I1 I1.operator " + op + @"(I1 x) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+
+            Assert.Equal(Accessibility.Private, c1.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single().DeclaredAccessibility);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.WRN_ExternMethodNoImplementation or (int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_OperatorNeedsMatch)).Verify(
+                // (16,35): error CS0106: The modifier 'private' is not valid for this item
+                //     private static I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("private").WithLocation(16, 35),
+                // (22,37): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected static I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("protected").WithLocation(22, 37),
+                // (28,36): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal static I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("internal").WithLocation(28, 36),
+                // (34,46): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal static I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("protected internal").WithLocation(34, 46),
+                // (40,45): error CS0106: The modifier 'private protected' is not valid for this item
+                //     private protected static I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("private protected").WithLocation(40, 45),
+                // (46,34): error CS0106: The modifier 'public' is not valid for this item
+                //     public static I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("public").WithLocation(46, 34),
+                // (52,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     static partial I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(52, 12),
+                // (58,33): error CS0106: The modifier 'async' is not valid for this item
+                //     async static I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("async").WithLocation(58, 33),
+                // (70,36): error CS0106: The modifier 'readonly' is not valid for this item
+                //     static readonly I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(70, 36),
+                // (82,36): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(82, 36),
+                // (88,35): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual static I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(88, 35),
+                // (94,34): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static I1 I1.operator !(I1 x) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(94, 34)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ExplicitImplementationModifiersBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x, int y);
+}
+
+struct
+    C1 : I1
+{
+    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C2 : I1
+{
+    private static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C3 : I1
+{
+    protected static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C4 : I1
+{
+    internal static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C5 : I1
+{
+    protected internal static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C6 : I1
+{
+    private protected static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C7 : I1
+{
+    public static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C8 : I1
+{
+    static partial I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C9 : I1
+{
+    async static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C10 : I1
+{
+    unsafe static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C11 : I1
+{
+    static readonly I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C12 : I1
+{
+    extern static I1 I1.operator " + op + @"(I1 x, int y);
+}
+
+struct
+    C13 : I1
+{
+    abstract static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C14 : I1
+{
+    virtual static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+
+struct
+    C15 : I1
+{
+    sealed static I1 I1.operator " + op + @"(I1 x, int y) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+
+            Assert.Equal(Accessibility.Private, c1.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Single().DeclaredAccessibility);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.WRN_ExternMethodNoImplementation or (int)ErrorCode.ERR_OperatorNeedsMatch)).Verify(
+                // (16,35): error CS0106: The modifier 'private' is not valid for this item
+                //     private static I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("private").WithLocation(16, 35),
+                // (22,37): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected static I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("protected").WithLocation(22, 37),
+                // (28,36): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal static I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("internal").WithLocation(28, 36),
+                // (34,46): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal static I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("protected internal").WithLocation(34, 46),
+                // (40,45): error CS0106: The modifier 'private protected' is not valid for this item
+                //     private protected static I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("private protected").WithLocation(40, 45),
+                // (46,34): error CS0106: The modifier 'public' is not valid for this item
+                //     public static I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("public").WithLocation(46, 34),
+                // (52,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                //     static partial I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(52, 12),
+                // (58,33): error CS0106: The modifier 'async' is not valid for this item
+                //     async static I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("async").WithLocation(58, 33),
+                // (70,36): error CS0106: The modifier 'readonly' is not valid for this item
+                //     static readonly I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("readonly").WithLocation(70, 36),
+                // (82,36): error CS0106: The modifier 'abstract' is not valid for this item
+                //     abstract static I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(82, 36),
+                // (88,35): error CS0106: The modifier 'virtual' is not valid for this item
+                //     virtual static I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("virtual").WithLocation(88, 35),
+                // (94,34): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static I1 I1.operator ^(I1 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("sealed").WithLocation(94, 34)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ExplicitInterfaceSpecifierErrorsUnaryOperator_01([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : struct
+{
+    abstract static I1<T> operator " + op + @"(I1<T> x);
+}
+
+class C1
+{
+    static I1<int> I1<int>.operator " + op + @"(I1<int> x) => default;
+}
+
+class C2 : I1<C2>
+{
+    static I1<C2> I1<C2>.operator " + op + @"(I1<C2> x) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_OperatorNeedsMatch)).Verify(
+                // (9,20): error CS0540: 'C1.I1<int>.operator -(I1<int>)': containing type does not implement interface 'I1<int>'
+                //     static I1<int> I1<int>.operator -(I1<int> x) => default;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1<int>").WithArguments("C1.I1<int>.operator " + op + "(I1<int>)", "I1<int>").WithLocation(9, 20),
+                // (12,7): error CS0453: The type 'C2' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                // class C2 : I1<C2>
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "C2").WithArguments("I1<T>", "T", "C2").WithLocation(12, 7),
+                // (14,19): error CS0453: The type 'C2' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                //     static I1<C2> I1<C2>.operator -(I1<C2> x) => default;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "I1<C2>").WithArguments("I1<T>", "T", "C2").WithLocation(14, 19),
+                // (14,35): error CS0453: The type 'C2' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                //     static I1<C2> I1<C2>.operator -(I1<C2> x) => default;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, op).WithArguments("I1<T>", "T", "C2").WithLocation(14, 35),
+                // (14,44): error CS0453: The type 'C2' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                //     static I1<C2> I1<C2>.operator -(I1<C2> x) => default;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("I1<T>", "T", "C2").WithLocation(14, 44 + op.Length - 1)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ExplicitInterfaceSpecifierErrorsBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : class
+{
+    abstract static I1<T> operator " + op + @"(I1<T> x, int y);
+}
+
+struct C1
+{
+    static I1<string> I1<string>.operator " + op + @"(I1<string> x, int y) => default;
+}
+
+struct C2 : I1<C2>
+{
+    static I1<C2> I1<C2>.operator " + op + @"(I1<C2> x, int y) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (9,23): error CS0540: 'C1.I1<string>.operator %(I1<string>, int)': containing type does not implement interface 'I1<string>'
+                //     static I1<string> I1<string>.operator %(I1<string> x, int y) => default;
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1<string>").WithArguments("C1.I1<string>.operator " + op + "(I1<string>, int)", "I1<string>").WithLocation(9, 23),
+                // (12,8): error CS0452: The type 'C2' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                // struct C2 : I1<C2>
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "C2").WithArguments("I1<T>", "T", "C2").WithLocation(12, 8),
+                // (14,19): error CS0452: The type 'C2' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                //     static I1<C2> I1<C2>.operator %(I1<C2> x, int y) => default;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "I1<C2>").WithArguments("I1<T>", "T", "C2").WithLocation(14, 19),
+                // (14,35): error CS0452: The type 'C2' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                //     static I1<C2> I1<C2>.operator %(I1<C2> x, int y) => default;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, op).WithArguments("I1<T>", "T", "C2").WithLocation(14, 35),
+                // (14,44): error CS0452: The type 'C2' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                //     static I1<C2> I1<C2>.operator %(I1<C2> x, int y) => default;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "x").WithArguments("I1<T>", "T", "C2").WithLocation(14, 44 + op.Length - 1)
+                );
         }
     }
 }

@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var nameToken = syntax.Identifier;
 
             TypeSymbol explicitInterfaceType;
-            string discardedAliasQualifier;
-            var name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, nameToken.ValueText, diagnostics, out explicitInterfaceType, out discardedAliasQualifier);
+            var name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, nameToken.ValueText, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
             var location = new SourceLocation(nameToken);
 
             var methodKind = interfaceSpecifier == null
@@ -276,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override MethodSymbol FindExplicitlyImplementedMethod(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
-            return this.FindExplicitlyImplementedMethod(_explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
+            return this.FindExplicitlyImplementedMethod(isOperator: false, _explicitInterfaceType, syntax.Identifier.ValueText, syntax.ExplicitInterfaceSpecifier, diagnostics);
         }
 
         protected override Location ReturnTypeLocation => GetSyntax().ReturnType.Location;

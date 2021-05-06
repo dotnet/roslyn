@@ -357,6 +357,11 @@
         <target state="translated">Vlastnost kontraktu rovnosti záznamu {0} musí mít přístupový objekt get.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
+        <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
+        <target state="new">Explicit implementation of a user-defined operator '{0}' must be declared static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">Explicitní použití System.Runtime.CompilerServices.NullableAttribute není povolené.</target>

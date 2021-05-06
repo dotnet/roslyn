@@ -477,6 +477,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodKind.ExplicitInterfaceImplementation:
                     {
                         AddExplicitInterfaceIfRequired(symbol.ExplicitInterfaceImplementations);
+
+                        if (!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) &&
+                            symbol.GetSymbol()?.OriginalDefinition is SourceUserDefinedOperatorSymbolBase)
+                        {
+                            var operatorName = symbol.MetadataName;
+                            var lastDotPosition = operatorName.LastIndexOf('.');
+
+                            if (lastDotPosition >= 0)
+                            {
+                                operatorName = operatorName.Substring(lastDotPosition + 1);
+                            }
+
+                            addUserDefinedOperatorName(symbol, operatorName);
+                            break;
+                        }
+
                         builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
                             ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(symbol.Name)));
                         break;
@@ -490,21 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            AddKeyword(SyntaxKind.OperatorKeyword);
-                            AddSpace();
-                            if (symbol.MetadataName == WellKnownMemberNames.TrueOperatorName)
-                            {
-                                AddKeyword(SyntaxKind.TrueKeyword);
-                            }
-                            else if (symbol.MetadataName == WellKnownMemberNames.FalseOperatorName)
-                            {
-                                AddKeyword(SyntaxKind.FalseKeyword);
-                            }
-                            else
-                            {
-                                builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
-                                    SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(symbol.MetadataName))));
-                            }
+                            addUserDefinedOperatorName(symbol, symbol.MetadataName);
                         }
                         break;
                     }
@@ -637,6 +639,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddCustomModifiersIfRequired(symbol.ReturnTypeCustomModifiers, leadingSpace: true, trailingSpace: false);
 
                 AddPunctuation(SyntaxKind.GreaterThanToken);
+            }
+
+            void addUserDefinedOperatorName(IMethodSymbol symbol, string operatorName)
+            {
+                AddKeyword(SyntaxKind.OperatorKeyword);
+                AddSpace();
+
+                if (operatorName == WellKnownMemberNames.TrueOperatorName)
+                {
+                    AddKeyword(SyntaxKind.TrueKeyword);
+                }
+                else if (operatorName == WellKnownMemberNames.FalseOperatorName)
+                {
+                    AddKeyword(SyntaxKind.FalseKeyword);
+                }
+                else
+                {
+                    builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
+                        SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName))));
+                }
             }
         }
 

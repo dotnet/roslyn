@@ -4352,7 +4352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             var method = SourceUserDefinedOperatorSymbol.CreateUserDefinedOperatorSymbol(
-                                this, operatorSyntax, compilation.IsNullableAnalysisEnabledIn(operatorSyntax), diagnostics);
+                                this, bodyBinder, operatorSyntax, compilation.IsNullableAnalysisEnabledIn(operatorSyntax), diagnostics);
                             builder.NonTypeMembers.Add(method);
                         }
                         break;

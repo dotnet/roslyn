@@ -2019,10 +2019,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             implicitImpl = null;
             closeMismatch = null;
 
+            bool? isOperator = null;
+
+            if (interfaceMember is MethodSymbol interfaceMethod)
+            {
+                isOperator = interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion;
+            }
+
             foreach (Symbol member in currType.GetMembers(interfaceMember.Name))
             {
                 if (member.Kind == interfaceMember.Kind)
                 {
+                    if (isOperator.HasValue &&
+                        (((MethodSymbol)member).MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion) != isOperator.GetValueOrDefault())
+                    {
+                        continue;
+                    }
+
                     if (IsInterfaceMemberImplementation(member, interfaceMember, implementingTypeIsFromSomeCompilation))
                     {
                         implicitImpl = member;
