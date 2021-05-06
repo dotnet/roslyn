@@ -1728,7 +1728,7 @@ class C
                 Assert.Equal("System.Int32 j", model.GetSymbolInfo(j).Symbol.ToTestDisplayString());
             }
 
-            static void verifyType(string expectedType, ITypeSymbol? type, bool inferDelegate)
+            static void verifyType(string expectedType, ITypeSymbol type, bool inferDelegate)
             {
                 if (inferDelegate)
                 {
