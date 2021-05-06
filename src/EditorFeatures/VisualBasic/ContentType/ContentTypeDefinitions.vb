@@ -11,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ContentType
 
         ''' <summary>
         ''' Definition of the primary VB content type.
-        ''' Also adds the LSP base content type To ensure the LSP client activates On C# files.
+        ''' Also adds the LSP base content type to ensure the LSP client activates On VB files.
         ''' From Microsoft.VisualStudio.LanguageServer.Client.CodeRemoteContentDefinition.CodeRemoteBaseTypeName
-        ''' We cannot directly reference the LSP client package in EditorFeatures as it Is a VS dependency.
+        ''' We cannot directly reference the LSP client package in EditorFeatures as it is a VS dependency.
         ''' </summary>
         <Export()>
         <Name(ContentTypeNames.VisualBasicContentType)>
