@@ -8,41 +8,25 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using VisualStudioIndicator = Microsoft.VisualStudio.Language.Intellisense.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
-    [Export(typeof(IWaitIndicator))]
+    // This type should be removed once the Roslyn repoa has been updated to
+    // consume https://github.com/dotnet/interactive-window/pull/202 
+    [Obsolete("This implementation of the obsolete editor API only exists to keep interactive window tests running.")]
     [Export(typeof(VisualStudioIndicator.IWaitIndicator))]
-    public sealed class TestWaitIndicator : IWaitIndicator, VisualStudioIndicator.IWaitIndicator
+    public sealed class TestWaitIndicator : VisualStudioIndicator.IWaitIndicator
     {
         public static readonly TestWaitIndicator Default = new TestWaitIndicator();
 
-        private readonly IWaitContext _waitContext;
-        private readonly Microsoft.VisualStudio.Language.Intellisense.Utilities.IWaitContext _platformWaitContext = new UncancellableWaitContext();
+        private readonly VisualStudioIndicator.IWaitContext _platformWaitContext = new UncancellableWaitContext();
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public TestWaitIndicator()
-            => _waitContext = new UncancellableWaitContext();
-
-        IWaitContext IWaitIndicator.StartWait(string title, string message, bool allowCancel, bool showProgress)
-            => _waitContext;
-
-        WaitIndicatorResult IWaitIndicator.Wait(string title, string message, bool allowCancel, bool showProgress, Action<IWaitContext> action)
         {
-            try
-            {
-                action(_waitContext);
-            }
-            catch (OperationCanceledException)
-            {
-                return WaitIndicatorResult.Canceled;
-            }
-
-            return WaitIndicatorResult.Completed;
         }
 
         VisualStudioIndicator.IWaitContext VisualStudioIndicator.IWaitIndicator.StartWait(string title, string message, bool allowCancel)
@@ -62,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             return VisualStudioIndicator.WaitIndicatorResult.Completed;
         }
 
-        private sealed class UncancellableWaitContext : IWaitContext, VisualStudioIndicator.IWaitContext
+        private sealed class UncancellableWaitContext : VisualStudioIndicator.IWaitContext
         {
             public CancellationToken CancellationToken
             {

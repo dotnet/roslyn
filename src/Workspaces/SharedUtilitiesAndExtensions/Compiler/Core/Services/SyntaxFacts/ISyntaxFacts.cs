@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsLocalFunctionDeclaration(ParseOptions options);
         bool SupportsNotPattern(ParseOptions options);
         bool SupportsRecord(ParseOptions options);
+        bool SupportsRecordStruct(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
@@ -148,6 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         void GetPartsOfInterpolationExpression(SyntaxNode node,
             out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken);
+
         bool IsVerbatimInterpolatedStringExpression(SyntaxNode node);
 
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
@@ -256,6 +258,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode? node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
+        SyntaxToken GetIdentifierOfParameter(SyntaxNode node);
+        SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node);
         SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node);
 
         /// <summary>
@@ -274,6 +278,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode? node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode? node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode? node);
+        SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode node);
+        SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode node);
 
         bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node);
 

@@ -457,6 +457,11 @@
         <target state="translated">使用者類型 - 介面</target>
         <note />
       </trans-unit>
+      <trans-unit id="User_Types_Record_Structs">
+        <source>User Types - Record Structs</source>
+        <target state="new">User Types - Record Structs</target>
+        <note />
+      </trans-unit>
       <trans-unit id="User_Types_Records">
         <source>User Types - Records</source>
         <target state="translated">使用者類型 - 記錄</target>
