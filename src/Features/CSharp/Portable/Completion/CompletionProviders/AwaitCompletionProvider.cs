@@ -56,12 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var method = syntaxContext.TargetToken.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
-            if (method is not null && !method.GetModifiers().Any(SyntaxKind.AsyncKeyword))
-            {
-                context.AddItem(GetCompletionItem(shouldMakeContainerAsync: true));
-            }
+            var shouldMakeContainerAsync = method is not null && !method.GetModifiers().Any(SyntaxKind.AsyncKeyword);
+            context.AddItem(GetCompletionItem(shouldMakeContainerAsync));
 
-            context.AddItem(GetCompletionItem(shouldMakeContainerAsync: false));
+            return;
 
             static CompletionItem GetCompletionItem(bool shouldMakeContainerAsync)
                 => CommonCompletionItem.Create(
