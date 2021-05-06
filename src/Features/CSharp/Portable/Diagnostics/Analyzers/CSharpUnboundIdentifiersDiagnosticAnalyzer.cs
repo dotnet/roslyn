@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -54,30 +55,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
                 }
                 else
                 {
-                    var optionalCount = 0;
-                    foreach (var parameter in constructor.Parameters)
-                    {
-                        if (parameter.IsOptional)
-                        {
-                            optionalCount++;
-                        }
-                    }
+                    var optionalCount = GetCountOfOptionalParameters(constructor);
 
                     return optionalCount + args.Count == constructor.Parameters.Length;
                 }
             })
             .WhereAsArray(constructor =>
             {
-                for (var i = 0; i < args.Count; i++)
+                var argToParameterDictionary = ArgumentToParameterMapping(args, constructor.Parameters, model);
+                return GetCountOfOptionalParameters(constructor) + argToParameterDictionary.Count == constructor.Parameters.Length;
+
+                /*for (var i = 0; i < args.Count; i++)
                 {
                     var typeInfo = model.GetTypeInfo(args[i].Expression);
                     if (!constructor.Parameters[i].Type.Equals(typeInfo.ConvertedType))
                     {
                         return false;
                     }
-                }
+                }*/
 
-                return true;
             }).Length;
 
             if (count == 0)
@@ -89,5 +85,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
         }
 
         protected override bool IsNameOf(SyntaxNode node) => node.Parent is InvocationExpressionSyntax invocation && invocation.IsNameOfInvocation();
+
+        private static Dictionary<ArgumentSyntax, IParameterSymbol> ArgumentToParameterMapping(SeparatedSyntaxList<ArgumentSyntax> arguments, ImmutableArray<IParameterSymbol> parameters, SemanticModel model)
+        {
+            var argToParameterDictionary = new Dictionary<ArgumentSyntax, IParameterSymbol>();
+            foreach (var argument in arguments)
+            {
+                var typeInfo = model.GetTypeInfo(argument.Expression);
+                foreach (var parameter in parameters)
+                {
+                    if (parameter.Type.Equals(typeInfo.ConvertedType))
+                    {
+                        argToParameterDictionary.Add(argument, parameter);
+                    }
+                }
+            }
+
+            return argToParameterDictionary;
+        }
+
+        private static int GetCountOfOptionalParameters(IMethodSymbol constructor)
+        {
+            var optionalCount = 0;
+            foreach (var parameter in constructor.Parameters)
+            {
+                if (parameter.IsOptional)
+                {
+                    optionalCount++;
+                }
+            }
+
+            return optionalCount;
+        }
     }
 }
