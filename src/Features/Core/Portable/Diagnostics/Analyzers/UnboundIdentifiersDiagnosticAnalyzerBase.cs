@@ -18,12 +18,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         where TIncompleteMemberSyntax : SyntaxNode
     {
         protected abstract DiagnosticDescriptor DiagnosticDescriptor { get; }
-        protected abstract DiagnosticDescriptor DiagnosticDescriptor2 { get; }
         protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
         protected abstract bool IsNameOf(SyntaxNode node);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor, DiagnosticDescriptor2);
-        public bool OpenFileOnly(OptionSet options) => false;
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(DiagnosticDescriptor);
+
+        public bool OpenFileOnly(OptionSet options)
+            => false;
 
         public override void Initialize(AnalysisContext context)
         {
