@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 foreach (var projectId in updatedProjectIds)
                 {
                     _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectReloaded, oldSolution, solution, projectId);
-                    updatedProjects.Add(solution.GetProject(projectId)!);
+                    updatedProjects.Add(solution.GetRequiredProject(projectId));
                 }
 
                 return updatedProjects.ToImmutableAndFree();
