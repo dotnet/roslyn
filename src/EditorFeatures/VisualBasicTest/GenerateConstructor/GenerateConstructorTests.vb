@@ -1578,18 +1578,10 @@ Class A
 End Class")
         End Function
 
-        Public Class GenerateConstructorTestsWithFindMissingIdentifiersAnalyzer
-            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
-
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-                Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
-                        New GenerateConstructorCodeFixProvider())
-            End Function
-
-            <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-            Public Async Function TestGenerateConstructorInIncompleteLambda() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System.Linq
 Class C
     Sub New()
@@ -1606,12 +1598,12 @@ Class C
     End Sub
 End Class
 ")
-            End Function
+        End Function
 
-            <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
-            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-            Public Async Function TestGenerateConstructorInIncompleteLambda2() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda2() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System.Linq
 Class C
     Private v As Integer
@@ -1637,8 +1629,7 @@ Class C
     End Sub
 End Class
 ")
-            End Function
-        End Class
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateConstructorNotOfferedForDuplicate() As Task

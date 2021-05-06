@@ -2753,21 +2753,11 @@ class A
 }");
         }
 
-        public partial class GenerateConstructorTestsWithFindMissingIdentifiersAnalyzer : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+        [WorkItem(1241, @"https://github.com/dotnet/roslyn/issues/1241")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateConstructorInIncompleteLambda()
         {
-            public GenerateConstructorTestsWithFindMissingIdentifiersAnalyzer(ITestOutputHelper logger)
-              : base(logger)
-            {
-            }
-
-            internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-                => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateConstructorCodeFixProvider());
-
-            [WorkItem(1241, @"https://github.com/dotnet/roslyn/issues/1241")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-            public async Task TestGenerateConstructorInIncompleteLambda()
-            {
-                await TestInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 class C
@@ -2795,7 +2785,6 @@ class C
             new C(0) });
     }
 }");
-            }
         }
 
         [WorkItem(5274, "https://github.com/dotnet/roslyn/issues/5274")]
