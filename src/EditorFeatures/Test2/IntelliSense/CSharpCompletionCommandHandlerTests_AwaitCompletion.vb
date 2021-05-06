@@ -96,7 +96,7 @@ public class C
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=String.Empty)
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=CSharpFeaturesResources.Make_container_async)
 
                 state.SendTab()
                 Assert.Equal("
@@ -106,7 +106,7 @@ public class C
 {
     public void F()
     {
-        Action<int> a = static delegate(int i) { await };
+        Action<int> a = static async delegate(int i) { await };
     }
 }
 ", state.GetDocumentText())
@@ -164,7 +164,7 @@ public class C
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=String.Empty)
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=CSharpFeaturesResources.Make_container_async)
 
                 state.SendTab()
                 Assert.Equal("
@@ -174,7 +174,7 @@ public class C
 {
     public void F()
     {
-        Action<int> b = static a => { await };
+        Action<int> b = static async a => { await };
     }
 }
 ", state.GetDocumentText())
@@ -232,7 +232,7 @@ public class C
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=String.Empty)
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=CSharpFeaturesResources.Make_container_async)
 
                 state.SendTab()
                 Assert.Equal("
@@ -242,7 +242,7 @@ public class C
 {
     public void F()
     {
-        Action<int> c = static (a) => { await };
+        Action<int> c = static async (a) => { await };
     }
 }
 ", state.GetDocumentText())
@@ -300,7 +300,7 @@ public class C
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=String.Empty)
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=CSharpFeaturesResources.Make_container_async)
 
                 state.SendTab()
                 Assert.Equal("
@@ -308,7 +308,7 @@ using System.Threading.Tasks;
 
 public class C
 {
-    public static void Main()
+    public static async void Main()
     {
         await
     }
