@@ -4,10 +4,9 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructor
     Public Class GenerateConstructorTests
@@ -1618,6 +1617,59 @@ Class C
                               Dim a = New [|C|](0, 0)",
 "Imports System
 Imports System.Linq
+Class C
+    Private v As Integer
+    Private v1 As Integer
+
+    Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New C(0, 0)Public Sub New(v As Integer, v1 As Integer)
+        Me.New(v)
+        Me.v1 = v1
+    End Sub
+End Class
+")
+        End Function
+
+        <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/53238"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda_WithoutImport() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.Linq
+Class C
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New C([|0|])",
+"Imports System.Linq
+Class C
+    Private v As Integer
+
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New C(0)Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+End Class
+")
+        End Function
+
+        <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/53238"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda2_WithoutImport() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.Linq
+Class C
+    Private v As Integer
+    Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New [|C|](0, 0)",
+"Imports System.Linq
 Class C
     Private v As Integer
     Private v1 As Integer
