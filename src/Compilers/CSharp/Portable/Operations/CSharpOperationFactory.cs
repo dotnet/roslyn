@@ -2290,7 +2290,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation? member = CreatePropertySubpatternMember(subpattern.Member, matchedType);
             if (member is null)
             {
-                SyntaxNode nameSyntax = (syntax as SubpatternSyntax)?.ExpressionColon?.Expression ?? syntax;
+                SyntaxNode nameSyntax = syntax is SubpatternSyntax { ExpressionColon: { Expression: var expr } } ? expr : syntax;
                 bool isImplicit = nameSyntax == syntax;
                 // We should expose the symbol in this case somehow:
                 // https://github.com/dotnet/roslyn/issues/33175
