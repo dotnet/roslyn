@@ -17,9 +17,18 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T"></typeparam>
     internal sealed class InputNode<T> : IIncrementalGeneratorNode<T>
     {
+        private readonly InputNode<T> _inputSource;
+        private readonly IEqualityComparer<T>? _comparer;
+
+        public InputNode(InputNode<T>? inputSource = null, IEqualityComparer<T>? comparer = null)
+        {
+            _inputSource = inputSource ?? this;
+            _comparer = comparer;
+        }
+
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
-            var inputItems = graphState.GetInputValue(this);
+            var inputItems = graphState.GetInputValue(_inputSource);
 
             // create a mutable hashset of the new items we can check against
             PooledHashSet<T> itemsSet = PooledHashSet<T>.GetInstance();
@@ -46,8 +55,6 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        // PROTOTYPE(source-generators): how does this work? we definitely want to be able to add custom comparers to the input nodes
-        // I guess its just a 'compare only' node with this as the input?
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => this;
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_inputSource, comparer);
     }
 }
