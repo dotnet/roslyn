@@ -66,5 +66,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             node.WasCompilerGenerated = true;
             return node;
         }
+
+        public static bool ContainsAwaitExpression(this ImmutableArray<BoundExpression> expressions)
+        {
+            var visitor = new ContainsAwaitVisitor();
+            foreach (var expression in expressions)
+            {
+                visitor.Visit(expression);
+                if (visitor.ContainsAwait)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private class ContainsAwaitVisitor : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            public bool ContainsAwait = false;
+
+            public override BoundNode? Visit(BoundNode? node) => ContainsAwait ? null : base.Visit(node);
+
+            public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
+            {
+                ContainsAwait = true;
+                return null;
+            }
+        }
     }
 }

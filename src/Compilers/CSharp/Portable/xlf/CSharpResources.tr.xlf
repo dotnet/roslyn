@@ -512,6 +512,21 @@
         <target state="translated">C# derleyicisinde iç hata oluştu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringBuilderInvalidCreateMethod">
+        <source>Interpolated string builder type '{0}' does not have a valid 'Create' method.</source>
+        <target state="new">Interpolated string builder type '{0}' does not have a valid 'Create' method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringBuilderMethodReturnInconsistent">
+        <source>Interpolated string builder method '{0}' has inconsistent return type. Expected to return '{1}'.</source>
+        <target state="new">Interpolated string builder method '{0}' has inconsistent return type. Expected to return '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringBuilderMethodReturnMalformed">
+        <source>Interpolated string builder method '{0}' is malformed. It does not return 'void' or 'bool'.</source>
+        <target state="new">Interpolated string builder method '{0}' is malformed. It does not return 'void' or 'bool'.</target>
+        <note>void and bool are keywords</note>
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">'{0}', geçerli bir işlev işaretçisi dönüş türü değiştiricisi değil. Geçerli değiştiriciler: 'ref' ve 'ref readonly'.</target>
@@ -980,6 +995,11 @@
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">hedeflenen türde nesne oluşturma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureImprovedInterpolatedStrings">
+        <source>interpolated string builders</source>
+        <target state="new">interpolated string builders</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">

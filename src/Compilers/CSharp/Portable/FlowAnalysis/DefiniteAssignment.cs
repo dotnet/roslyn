@@ -32,6 +32,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    // PROTOTYPE(interp-strings): Adjust for bool-returning holes
     /// <summary>
     /// Implement C# definite assignment.
     /// </summary>

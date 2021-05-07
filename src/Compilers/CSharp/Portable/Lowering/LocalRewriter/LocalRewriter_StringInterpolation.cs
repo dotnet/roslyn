@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -33,6 +35,69 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Rewrites the given interpolated string to the set of builder creation and Append calls, returning an array builder of the append calls and the result
+        /// local temp.
+        /// </summary>
+        /// <remarks>Caller is responsible for freeing the ArrayBuilder</remarks>
+        private (ArrayBuilder<BoundExpression> BuilderPatternExpressions, BoundLocal Result) RewriteToInterpolatedStringBuilderPattern(BoundInterpolatedString node)
+        {
+            Debug.Assert(node.InterpolationData is { Construction: not null });
+            Debug.Assert(node.Parts.All(static p => p is BoundCall or BoundStringInsert { Value: BoundCall }));
+            var data = node.InterpolationData.Value;
+            var builderTempSymbol = _factory.InterpolatedStringBuilderLocal(data.BuilderType, data.ScopeOfContainingExpression, node.Syntax);
+            var builderTemp = _factory.Local(builderTempSymbol);
+
+            // PROTOTYPE(interp-string): Support optional out param for whether the builder was created successfully and passing in other required args
+            // var builder = Construction(baseStringLength, numFormatHoles);
+            var builderConstruction = _factory.AssignmentExpression(builderTemp, (BoundExpression)VisitCall(data.Construction));
+
+            var usesBoolReturn = data.UsesBoolReturns;
+            var builderPatternExpressions = ArrayBuilder<BoundExpression>.GetInstance(usesBoolReturn ? 2 : node.Parts.Length);
+            builderPatternExpressions.Add(builderConstruction);
+            BoundExpression? appendBinaryExpression = null;
+            foreach (var currentPart in node.Parts)
+            {
+                var appendCall = (BoundCall)currentPart;
+                Debug.Assert(usesBoolReturn == (appendCall.Method.ReturnType.SpecialType == SpecialType.System_Boolean));
+
+                var rewrittenArgs = VisitList(appendCall.Arguments);
+                var rewrittenAppendCall = MakeCall(
+                    appendCall.Syntax,
+                    builderTemp,
+                    appendCall.Method,
+                    rewrittenArgs,
+                    appendCall.ArgumentRefKindsOpt,
+                    appendCall.Expanded,
+                    appendCall.InvokedAsExtensionMethod,
+                    appendCall.ArgsToParamsOpt,
+                    appendCall.ResultKind,
+                    appendCall.Type,
+                    appendCall);
+
+                Debug.Assert(usesBoolReturn == (rewrittenAppendCall.Type!.SpecialType == SpecialType.System_Boolean));
+                if (usesBoolReturn)
+                {
+                    // previousAppendCalls && appendCall
+                    appendBinaryExpression = appendBinaryExpression is null
+                        ? rewrittenAppendCall
+                        : _factory.LogicalAnd(appendBinaryExpression, rewrittenAppendCall);
+                }
+                else
+                {
+                    builderPatternExpressions.Add(rewrittenAppendCall);
+                }
+            }
+
+            if (usesBoolReturn)
+            {
+                Debug.Assert(appendBinaryExpression != null);
+                builderPatternExpressions.Add(appendBinaryExpression);
+            }
+
+            return (builderPatternExpressions, builderTemp);
         }
 
         private bool CanLowerToStringConcatenation(BoundInterpolatedString node)
@@ -108,7 +173,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression? result;
 
-            if (CanLowerToStringConcatenation(node))
+            if (node.InterpolationData is not null)
+            {
+                // If we can lower to the builder pattern, do so.
+                (ArrayBuilder<BoundExpression> builderPatternExpressions, BoundLocal builderTemp) = RewriteToInterpolatedStringBuilderPattern(node);
+
+                // resultTemp = builderTemp.ToStringAndClear();
+                var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__ToStringAndClear, _diagnostics, syntax: node.Syntax);
+                BoundExpression toStringAndClearCall = toStringAndClear is not null
+                    ? BoundCall.Synthesized(node.Syntax, builderTemp, toStringAndClear)
+                    : new BoundBadExpression(node.Syntax, LookupResultKind.Empty, symbols: ImmutableArray<Symbol?>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, node.Type);
+
+                return _factory.Sequence(ImmutableArray.Create(builderTemp.LocalSymbol), builderPatternExpressions.ToImmutableAndFree(), toStringAndClearCall);
+            }
+            else if (CanLowerToStringConcatenation(node))
             {
                 // All fill-ins, if any, are strings, and none of them have alignment or format specifiers.
                 // We can lower to a more efficient string concatenation

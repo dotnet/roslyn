@@ -1937,7 +1937,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InheritingFromRecordWithSealedToString = 8912,
         ERR_HiddenPositionalMember = 8913,
 
-        #endregion
+        ERR_InterpolatedStringBuilderMethodReturnMalformed = 9001,
+        ERR_InterpolatedStringBuilderMethodReturnInconsistent = 9002,
+        ERR_InterpolatedStringBuilderInvalidCreateMethod = 9003,
+
+        #endregion diagnostics introduced for C# 10.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

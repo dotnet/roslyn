@@ -17,6 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    // PROTOTYPE(interp-string): Implement TryFormat and Create method analysis.
     /// <summary>
     /// Nullability flow analysis.
     /// </summary>
@@ -9514,6 +9515,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitStringInsert(node);
             SetUnknownResultNullability(node);
             return result;
+        }
+
+        public override BoundNode? VisitInterpolatedStringBuilderPlaceholder(BoundInterpolatedStringBuilderPlaceholder node)
+        {
+            // PROTOTYPE(interp-string): handle if necessary
+            SetNotNullResult(node);
+            return null;
         }
 
         public override BoundNode? VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)

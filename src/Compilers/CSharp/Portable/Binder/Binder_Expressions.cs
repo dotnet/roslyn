@@ -376,14 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BoundUnconvertedInterpolatedString unconvertedInterpolatedString:
                     {
-                        // We determine the best method of emitting as a string (either via Concat, Format, or the builder pattern)
-                        // during lowering, and it's not part of the publicly-visible API, unlike conversion to a builder type.
-                        result = new BoundInterpolatedString(
-                            unconvertedInterpolatedString.Syntax,
-                            unconvertedInterpolatedString.Parts,
-                            unconvertedInterpolatedString.ConstantValue,
-                            unconvertedInterpolatedString.Type,
-                            unconvertedInterpolatedString.HasErrors);
+                        result = BindUnconvertedInterpolatedStringToString(unconvertedInterpolatedString, diagnostics);
                     }
                     break;
                 default:
@@ -2920,7 +2913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                result.Names.Add(nameColonSyntax.Name);
+                result.AddName(nameColonSyntax.Name);
             }
             else if (hasNames)
             {
@@ -6270,7 +6263,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             bool invoked,
             bool indexed,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool searchExtensionMethodsIfNecessary = true)
         {
             Debug.Assert(rightArity == (typeArgumentsWithAnnotations.IsDefault ? 0 : typeArgumentsWithAnnotations.Length));
             var leftType = boundLeft.Type;
@@ -6301,7 +6295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // SPEC: Otherwise, an attempt is made to process E.I as an extension method invocation.
                 // SPEC: If this fails, E.I is an invalid member reference, and a binding-time error occurs.
-                var searchExtensionMethodsIfNecessary = !leftIsBaseReference;
+                searchExtensionMethodsIfNecessary = searchExtensionMethodsIfNecessary && !leftIsBaseReference;
 
                 BoundMethodGroupFlags flags = 0;
                 if (searchExtensionMethodsIfNecessary)
@@ -8018,7 +8012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argIsRange
                         ? ErrorCode.ERR_ImplicitRangeIndexerWithName
                         : ErrorCode.ERR_ImplicitIndexIndexerWithName,
-                    arguments.Names[0].GetLocation());
+                    arguments.Names[0].GetValueOrDefault().Location);
             }
             return true;
 
