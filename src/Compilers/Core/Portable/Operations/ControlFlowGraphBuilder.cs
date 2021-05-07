@@ -7201,6 +7201,25 @@ oneMoreTime:
                 foreach (IOperation initializer in initializers)
                 {
                     var simpleAssignment = (ISimpleAssignmentOperation)initializer;
+
+                    int valueCaptureId = GetNextCaptureId(outerCaptureRegion);
+                    VisitAndCapture(simpleAssignment.Value, valueCaptureId);
+                    LeaveRegionsUpTo(innerCaptureRegion);
+                    var valueCaptureRef = new FlowCaptureReferenceOperation(valueCaptureId, operation.Operand.Syntax,
+                        operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
+
+                    if (simpleAssignment.Target is InvalidOperation)
+                    {
+                        var badTarget = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, simpleAssignment.Target.Syntax,
+                            type: null, constantValue: null, isImplicit: true);
+
+                        var badAssignment = new SimpleAssignmentOperation(isRef: false, badTarget, valueCaptureRef,
+                            semanticModel: null, operation.Syntax, valueCaptureRef.Type, constantValue: null, isImplicit: true);
+
+                        initializerBuilder.Add(badAssignment);
+                        continue;
+                    }
+
                     var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
 
                     Debug.Assert(propertyReference != null);
@@ -7208,12 +7227,6 @@ oneMoreTime:
                     Debug.Assert(propertyReference.Instance != null);
                     Debug.Assert(propertyReference.Instance.Kind == OperationKind.InstanceReference);
                     Debug.Assert(((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind == InstanceReferenceKind.ImplicitReceiver);
-
-                    int valueCaptureId = GetNextCaptureId(outerCaptureRegion);
-                    VisitAndCapture(simpleAssignment.Value, valueCaptureId);
-                    LeaveRegionsUpTo(innerCaptureRegion);
-                    var valueCaptureRef = new FlowCaptureReferenceOperation(valueCaptureId, operation.Operand.Syntax,
-                        operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
 
                     var property = propertyReference.Property;
                     var assignment = makeAssignment(property, valueCaptureRef, operation);
