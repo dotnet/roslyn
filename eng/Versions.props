@@ -60,7 +60,7 @@
     <MicrosoftBuildLocatorVersion>1.2.6</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildTasksCoreVersion>
-    <NuGetVisualStudioContractsVersion>5.7.0</NuGetVisualStudioContractsVersion>
+    <NuGetVisualStudioContractsVersion>6.0.0-preview.0.15</NuGetVisualStudioContractsVersion>
     <!-- This is working around Microsoft.VisualStudio.Shell.15.0 having an unstated conflicting reference on this with NuGet.VisualStudio.Contracts -->
     <MicrosoftVisualStudioRpcContractsVersion>16.10.17-alpha</MicrosoftVisualStudioRpcContractsVersion>
     <!--
@@ -121,10 +121,10 @@
     <MicrosoftVisualStudioComponentModelHostVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>16.5.13</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
-    <MicrosoftVisualStudioDebuggerUIInterfacesVersion>16.10.0-beta.21214.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
-    <MicrosoftVisualStudioDebuggerContractsVersion>16.10.0-beta.21214.1</MicrosoftVisualStudioDebuggerContractsVersion>
-    <MicrosoftVisualStudioDebuggerEngineimplementationVersion>16.5.1122001-preview</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
-    <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>16.5.1122001-preview</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
+    <MicrosoftVisualStudioDebuggerUIInterfacesVersion>17.0.0-beta.21255.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
+    <MicrosoftVisualStudioDebuggerContractsVersion>17.0.0-beta.21255.1</MicrosoftVisualStudioDebuggerContractsVersion>
+    <MicrosoftVisualStudioDebuggerEngineimplementationVersion>17.0.1042805-preview</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
+    <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>17.0.1042805-preview</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
     <MicrosoftVisualStudioDesignerInterfacesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsMeasurementVersion>17.0.0-preview-1-30928-1112</MicrosoftVisualStudioDiagnosticsMeasurementVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
@@ -151,7 +151,7 @@
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>
     <MicrosoftVisualStudioProgressionCommonVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCommonVersion>
     <MicrosoftVisualStudioProgressionInterfacesVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionInterfacesVersion>
-    <MicrosoftVisualStudioProjectSystemVersion>16.2.133-pre</MicrosoftVisualStudioProjectSystemVersion>
+    <MicrosoftVisualStudioProjectSystemVersion>17.0.77-pre-g62a6cb5699</MicrosoftVisualStudioProjectSystemVersion>
     <MicrosoftVisualStudioProjectSystemManagedVersion>2.3.6152103</MicrosoftVisualStudioProjectSystemManagedVersion>
     <MicrosoftVisualStudioRemoteControlVersion>16.3.32</MicrosoftVisualStudioRemoteControlVersion>
     <MicrosoftVisualStudioSDKAnalyzersVersion>16.9.2-alpha</MicrosoftVisualStudioSDKAnalyzersVersion>
@@ -181,7 +181,7 @@
     <MonoOptionsVersion>6.6.0.161</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
     <NerdbankStreamsVersion>2.7.62-alpha</NerdbankStreamsVersion>
-    <NuGetVisualStudioVersion>6.0.0-preview.0.2</NuGetVisualStudioVersion>
+    <NuGetVisualStudioVersion>6.0.0-preview.0.15</NuGetVisualStudioVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
     <RestSharpVersion>105.2.3</RestSharpVersion>
