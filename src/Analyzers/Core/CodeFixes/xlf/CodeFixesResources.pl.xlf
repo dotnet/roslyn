@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../CodeFixesResources.resx">
     <body>
       <trans-unit id="Add_blank_line_after_block">
         <source>Add blank line after block</source>
-        <target state="new">Add blank line after block</target>
+        <target state="translated">Dodaj pusty wiersz po bloku</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_both">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
         <source>Remove extra blank lines</source>
-        <target state="new">Remove extra blank lines</target>
+        <target state="translated">Usuń dodatkowe puste wiersze</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">

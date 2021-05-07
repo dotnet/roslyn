@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../VSPackage.resx">
     <body>
@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="312">
         <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Modifica impostazioni di completamento elenco;Preseleziona membri usati più di recente</target>
+        <target state="translated">Modifica impostazioni dell'elenco di completamento;Preseleziona membri usati di recente</target>
         <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">

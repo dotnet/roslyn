@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CSharpVSResources.resx">
     <body>
@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
-        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <target state="translated">Permitir una línea en blanco después de dos puntos en el inicializador del constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
         <source>Allow blank lines between consecutive braces</source>
-        <target state="new">Allow blank lines between consecutive braces</target>
+        <target state="translated">Permitir líneas en blanco entre llaves consecutivas</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_embedded_statements_on_same_line">
         <source>Allow embedded statements on same line</source>
-        <target state="new">Allow embedded statements on same line</target>
+        <target state="translated">Permitir instrucciones incrustadas en la misma línea</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
-        <target state="new">Automatically complete statement on semicolon</target>
+        <target state="translated">Completar automáticamente la instrucción al introducir punto y coma</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
-        <target state="needs-review-translation">Mostrar automáticamente la lista de finalización en las listas de argumentos (experimental)</target>
+        <target state="translated">Mostrar automáticamente la lista de finalización en las listas de argumentos</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
-        <target state="new">Completion</target>
+        <target state="translated">Finalización</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
         <source>Place open brace on new line for object, collection, array, and with initializers</source>
-        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <target state="translated">Colocar llave de apertura en la nueva línea para los inicializadores de objeto, colección, matriz y with</target>
         <note>{Locked="with"}</note>
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
