@@ -58,10 +58,8 @@ namespace Microsoft.CodeAnalysis
             {
                 builder.AddEntries(ImmutableArray.Create(newItem), EntryState.Added);
             }
-            var newTable = builder.ToImmutableAndFree();
             itemsSet.Free();
-
-            return newTable;
+            return builder.ToImmutableAndFree();
         }
     }
 }

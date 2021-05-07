@@ -47,12 +47,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_builders[i].Filter(node))
                 {
-                    var result = _results[i];
-                    if (result is null)
-                    {
-                        _results[i] = result = ArrayBuilder<SyntaxNode>.GetInstance();
-                    }
-                    result.Add(node);
+                    (_results[i] ??= ArrayBuilder<SyntaxNode>.GetInstance()).Add(node);
                 }
             }
             base.Visit(node);

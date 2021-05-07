@@ -100,15 +100,14 @@ namespace Microsoft.CodeAnalysis
                         // just say this whole thing isn't thread safe.
 
                         var newNodes = ArrayBuilder<ISyntaxTransformNode>.GetInstance();
-                        var storedNodes = InterlockedOperations.Initialize(ref _transformNodes, newNodes);
+                        InterlockedOperations.Initialize(ref _transformNodes, newNodes);
 
-                        // in the case another thread beat us to intialization, we will see that threads arraybuilder.
-                        // free the one we created and pass back the other threads
-                        if (newNodes != storedNodes)
+                        // in the case another thread beat us to initialization, we will see that threads arraybuilder.
+                        // free the one we just created
+                        if (newNodes != _transformNodes)
                         {
                             newNodes.Free();
                         }
-                        return storedNodes;
                     }
                     return _transformNodes;
                 }

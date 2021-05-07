@@ -306,7 +306,10 @@ namespace Microsoft.CodeAnalysis
             if (syntaxInputNodes.Count > 0 || walkerCount > 0)
             {
                 var builders = ArrayBuilder<ISyntaxTransformBuilder>.GetInstance(syntaxInputNodes.Count);
-                builders.AddRange(syntaxInputNodes.Select(n => n.GetBuilder(_state.StateTable)));
+                foreach (var node in syntaxInputNodes)
+                {
+                    builders.Add(node.GetBuilder(_state.StateTable));
+                }
 
                 foreach ((var tree, var treeState) in driverStateBuilder.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
                 {

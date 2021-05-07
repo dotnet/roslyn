@@ -879,7 +879,7 @@ class C
         }
 
         [Fact]
-        public void IncrementalGenerator_With_Mutliple_Filters()
+        public void IncrementalGenerator_With_Multiple_Filters()
         {
             var source1 = @"
 #pragma warning disable CS0414

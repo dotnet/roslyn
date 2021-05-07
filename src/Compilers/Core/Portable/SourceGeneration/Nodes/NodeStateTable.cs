@@ -148,8 +148,6 @@ namespace Microsoft.CodeAnalysis
 
             private Exception? _exception = null;
 
-            private bool _isCompacted = true;
-
             public Builder(int? capacity = null)
             {
                 _states = capacity.HasValue
@@ -165,7 +163,6 @@ namespace Microsoft.CodeAnalysis
 
             public void AddEntries(ImmutableArray<T> values, EntryState state)
             {
-                UpdateCompactedState(state);
                 _states.Add(values.SelectAsArray(v => (v, state)));
             }
 
@@ -173,7 +170,6 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(previousTable._states.Length > _states.Count);
                 var previousEntries = previousTable._states[_states.Count].SelectAsArray(s => (s.item, newState));
-                UpdateCompactedState(newState);
                 _states.Add(previousEntries);
 
                 // PROTOTYPE(source-generators): this is mostly unused, so wastes cycles.
@@ -209,7 +205,6 @@ namespace Microsoft.CodeAnalysis
 
                     var entryState = comparer.Equals(previous.item, replacement) ? EntryState.Cached : EntryState.Modified;
                     modifiedEntries.Add((replacement, entryState));
-                    UpdateCompactedState(entryState);
 
                     previousHasItems = previousEnumerator.MoveNext();
                     outputHasItems = outputEnumerator.MoveNext();
@@ -218,7 +213,6 @@ namespace Microsoft.CodeAnalysis
                 // removed
                 while (previousHasItems)
                 {
-                    _isCompacted = false;
                     modifiedEntries.Add((previousEnumerator.Current.item, EntryState.Removed));
                     previousHasItems = previousEnumerator.MoveNext();
                 }
@@ -226,7 +220,6 @@ namespace Microsoft.CodeAnalysis
                 // added
                 while (outputHasItems)
                 {
-                    _isCompacted = false;
                     modifiedEntries.Add((outputEnumerator.Current, EntryState.Added));
                     outputHasItems = outputEnumerator.MoveNext();
                 }
@@ -239,14 +232,16 @@ namespace Microsoft.CodeAnalysis
                 _exception = e;
             }
 
-            private void UpdateCompactedState(EntryState state)
+            public NodeStateTable<T> ToImmutableAndFree()
             {
-                _isCompacted &= state == EntryState.Cached;
-            }
+                if (_states.Count == 0)
+                {
+                    return NodeStateTable<T>.Empty;
+                }
 
-            public NodeStateTable<T> ToImmutableAndFree() => _states.Count == 0
-                                                             ? NodeStateTable<T>.Empty
-                                                             : new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: _isCompacted, exception: _exception);
+                var hasNonCached = _states.Any(s => s.Any(i => i.Item2 != EntryState.Cached));
+                return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached, exception: _exception);
+            }
         }
     }
 }
