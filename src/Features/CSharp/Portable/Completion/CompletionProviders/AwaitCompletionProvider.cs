@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 MethodDeclarationSyntax method => AddAsyncModifier(method, asyncToken),
                 LocalFunctionStatementSyntax local => AddAsyncModifier(local, asyncToken),
-                AnonymousFunctionExpressionSyntax anonymous => AddAsyncModifier(anonymous),
+                AnonymousFunctionExpressionSyntax anonymous => AddAsyncModifier(anonymous, asyncToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(declaration.Kind())
             };
         }
