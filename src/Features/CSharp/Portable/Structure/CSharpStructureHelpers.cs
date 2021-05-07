@@ -352,11 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 {
                     return propertyDeclaration.Modifiers.FirstOrNull() ?? propertyDeclaration.Type.GetFirstToken();
                 }
-                else if (node.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration)
-                    || node.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration)
-                    || node.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration)
-                    || node.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration))
+                else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration or
+                    SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.InterfaceDeclaration)
                 {
+                    var typeDeclaration = (TypeDeclarationSyntax)node;
                     return typeDeclaration.Modifiers.FirstOrNull() ?? typeDeclaration.Keyword;
                 }
                 else
@@ -371,11 +370,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 {
                     return enumDeclaration.OpenBraceToken.GetPreviousToken();
                 }
-                else if (node.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration)
-                    || node.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration)
-                    || node.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration)
-                    || node.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration))
+                else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration or
+                    SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.InterfaceDeclaration)
                 {
+                    var typeDeclaration = (TypeDeclarationSyntax)node;
                     return typeDeclaration.OpenBraceToken.GetPreviousToken();
                 }
                 else

@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -49,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(owner, parameterType, ordinal, refKind, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
-            Debug.Assert(!(owner is LambdaSymbol)); // therefore we're not dealing with discard parameters
 
             _lazyHasOptionalAttribute = ThreeState.Unknown;
             _syntaxRef = syntaxRef;
@@ -73,15 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyDefaultSyntaxValue = ConstantValue.Unset;
         }
 
-        private Binder ParameterBinderOpt => (ContainingSymbol as LocalFunctionSymbol)?.ParameterBinder;
+        private Binder ParameterBinderOpt => (ContainingSymbol as SourceMethodSymbolWithAttributes)?.ParameterBinder;
 
-        internal override SyntaxReference SyntaxReference => _syntaxRef;
+        internal sealed override SyntaxReference SyntaxReference => _syntaxRef;
 
-        internal ParameterSyntax CSharpSyntaxNode => (ParameterSyntax)_syntaxRef?.GetSyntax();
+        private ParameterSyntax CSharpSyntaxNode => (ParameterSyntax)_syntaxRef?.GetSyntax();
 
-        public sealed override bool IsDiscard => false;
+        public override bool IsDiscard => false;
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        internal sealed override ConstantValue ExplicitDefaultConstantValue
         {
             get
             {
@@ -99,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ConstantValue DefaultValueFromAttributes
+        internal sealed override ConstantValue DefaultValueFromAttributes
         {
             get
             {
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsIDispatchConstant
+        internal sealed override bool IsIDispatchConstant
             => GetDecodedWellKnownAttributeData()?.HasIDispatchConstantAttribute == true;
 
         internal override bool IsIUnknownConstant
@@ -123,11 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool HasCallerMemberNameAttribute
             => GetEarlyDecodedWellKnownAttributeData()?.HasCallerMemberNameAttribute == true;
 
-        internal override bool IsCallerLineNumber => HasCallerLineNumberAttribute;
+        internal sealed override bool IsCallerLineNumber => HasCallerLineNumberAttribute;
 
-        internal override bool IsCallerFilePath => !HasCallerLineNumberAttribute && HasCallerFilePathAttribute;
+        internal sealed override bool IsCallerFilePath => !HasCallerLineNumberAttribute && HasCallerFilePathAttribute;
 
-        internal override bool IsCallerMemberName => !HasCallerLineNumberAttribute
+        internal sealed override bool IsCallerMemberName => !HasCallerLineNumberAttribute
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
 

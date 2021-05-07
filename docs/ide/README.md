@@ -2,6 +2,8 @@
 
 ## TOC
  * [Dev16](#prod-16)
+   * [Dev 16.9](#prod-16-9)
+   * [Dev 16.8](#prod-16-8) 
    * [Dev 16.7](#prod-16-7)
    * [Dev 16.6](#prod-16-6)
    * [Dev 16.5](#prod-16-5)
@@ -20,11 +22,59 @@
 
 ## <a id="prod-16"></a> dev16
 
-### <a id="prod-16-7"></a> 16.7 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes))
+### <a id="prod-16-7"></a> 16.9 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.9))
+* There is now IntelliSense completion for preprocessor symbols.
+* Solution Explorer now displays the new .NET 5.0 Source Generators.
+* Go To All won't display duplicate results across netcoreapp3.1 and netcoreapp2.0.
+* Quick Info now displays compiler warning IDs or numbers for suppressions.
+* Using directives will now automatically get added when copying and pasting types to a new file.
+* When pressing `;` to accept a method from a completion list, IntelliSense will now automatically insert the parentheses along with a semicolon for object creation and method calls.
+* Semantic colorization for C# 9.0 [records](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-9#record-types&preserve-view=true).
+* Refactoring that removes unnecessary discards.
+* Refactoring that converts a verbatim and regular string to an interpolated string preserving curly braces that were intended to go in the output.
+* Code fix in Visual Basic that removes the shared keyword when you convert methods that are shared to a module.
+* A refactoring that suggests using `new(…)` in non-contentious scenarios
+* A code fix that removes redundant equality expressions for both C# and Visual Basic
+* The .NET Code Style (IDE) analyzers can now be enforced on build
+* The Syntax Visualizer shows the current foreground color for enhanced colors
+* A new tooltip when hovering over the diagnostic ID for pragma warnings
+* When you type the return key from within a comment the new line is now automatically commented out
+* Inline parameter name hints enhancements
+* .NET Core Debugging with WSL 2
 
-TO BE ADDED
+### <a id="prod-16-7"></a> 16.8 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.8))
+* Roslyn analyzers are now included in the .NET 5.0 SDK
+* Refactoring that introduces the new C# 9 `not` pattern matching syntax when a suppression operator is present
+* Inline method refactoring to help replace usages of static, instance, and extension method within a single statement body
+* Code fix to convert instances of `typeof` to `nameof` in C# and `GetType` to `NameOf` in Visual Basic
+* C# and Visual Basic support for inline parameter name hints that inserts adornments for literals, casted literals, and object instantiations prior to each argument in function calls
+* Refactoring that extracts members from a selected class to a new base class in both C# and Visual Basic
+* Code cleanup has new configuration options that can apply formatting and file header preferences set in your EditorConfig file across a single file or an entire solution
+* Code fix to remove the `in` keyword where the argument should not be passed by reference
+* Refactoring that introduces the new C#9 pattern combinators and pattern matching suggestions such as converting `==` to use `is` where applicable
+* Code fix to make a class abstract when you are trying to write an abstract method in a class that is not abstract
+* IntelliSense completion in `DateTime` and `TimeSpan` string literals automatically appear when the first quote is typed
+* Code fix to remove unnecessary `pragma suppressions` and unnecessary `SuppressMessageAttributes`
+* `Rename` and `Find All` References understands references to symbols within the target string of global `SuppressMessageAttributes`
+* _ByVal_ fades to say it's not necessary along with a code fix to remove the unnecessary _ByVal_ in Visual Basic
+* Interactive window support for multiple runtimes, such as .NET Framework and .NET Core.
+* Added a new _RegisterAdditionalFileAction_ API that allows analyzer authors to create an analyzer for additional files.
 
-### <a id="prod-16-6"></a> 16.6 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-archive-v16.6))
+### <a id="prod-16-7"></a> 16.7 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.7))
+* There is now a warning and code fix when a suppression operator is present but has no effect
+* A second code fix suggesting the correct negating expression is also available
+* You can now generate properties when generating a constructor in a type
+* Quick Info now displays the diagnostic ID along with a help link
+* There is now a quick action to add a debugger display attribute to a class
+* There is now a code fix for accidental assignments or comparisons to the same variable
+* You can now generate comparison operators for types that implement IComparable
+* You can now generate IEquatable operators when generating .Equals for structs
+* You can now create and assign properties or fields for all unused constructor parameters
+* There is now IntelliSense completion in DateTime and TimeSpan string literals
+* You can now add a parameter within the Change Signature dialog
+* Analyzer authors can now use CompletionProviders for IntelliSense completions when shipping their analyzers with NuGet
+
+### <a id="prod-16-6"></a> 16.6 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.6))
 * Add explicit cast code fix
 * Simplify conditional expressions refactoring
 * Convert regular string literals to verbatim string literals (and back) refactoring
@@ -33,7 +83,7 @@ TO BE ADDED
 * Add file headers to existing files, projects, and solutions with EditorConfig
 * [Microsoft Fakes support for .NET Core](https://docs.microsoft.com/visualstudio/releases/2019/release-notes#microsoft-fakes-for-net-core-and-sdk-style-projects) and SDK-style projects
 
-### <a id="prod-16-5"></a> 16.5 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-archive-v16.5))
+### <a id="prod-16-5"></a> 16.5 ([release notes](https://docs.microsoft.com/visualstudio/releases/2019/release-notes-v16.5))
 * You can now use System.HashCode to implement the GetHashCode method when System.HashCode is available.
 * Refactoring to convert if statements to switch statements or switch expressions.
 * IntelliSense completion for unimported extension methods. You will first need to turn this option on in **Tools > Options > Text Editor > C# > Intellisense > and select Show items from unimported namespaces**.

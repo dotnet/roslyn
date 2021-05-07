@@ -3318,5 +3318,48 @@ class C { int Y => 1; }
 
             hotReload.EndSession();
         }
+
+        [Fact]
+        public void ParseCapabilities()
+        {
+            var capabilities = ImmutableArray.Create("Baseline");
+
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
+
+            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
+            Assert.False(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
+        }
+
+        [Fact]
+        public void ParseCapabilities_CaseSensitive()
+        {
+            var capabilities = ImmutableArray.Create("BaseLine");
+
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
+
+            Assert.False(service.HasFlag(EditAndContinueCapabilities.Baseline));
+        }
+
+        [Fact]
+        public void ParseCapabilities_IgnoreInvalid()
+        {
+            var capabilities = ImmutableArray.Create("Baseline", "Invalid", "NewTypeDefinition");
+
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
+
+            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
+            Assert.True(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
+        }
+
+        [Fact]
+        public void ParseCapabilities_IgnoreInvalidNumeric()
+        {
+            var capabilities = ImmutableArray.Create("Baseline", "90", "NewTypeDefinition");
+
+            var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
+
+            Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
+            Assert.True(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
+        }
     }
 }

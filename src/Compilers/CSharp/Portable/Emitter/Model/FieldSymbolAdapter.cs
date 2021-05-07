@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var isFixed = AdaptedFieldSymbol.IsFixedSizeBuffer;
             var implType = isFixed ? AdaptedFieldSymbol.FixedImplementationType(moduleBeingBuilt) : fieldTypeWithAnnotations.Type;
             var type = moduleBeingBuilt.Translate(implType,
-                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                   diagnostics: context.Diagnostics);
 
             if (isFixed || customModifiers.Length == 0)
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinitionOrDistinct());
 
             return moduleBeingBuilt.Translate(AdaptedFieldSymbol.ContainingType,
-                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                              syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                               diagnostics: context.Diagnostics,
                                               needDeclaration: AdaptedFieldSymbol.IsDefinition);
         }
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // (and we specifically don't want to prevent metadata-only emit because of a bad
                 // constant).  If the constant value is bad, we'll end up exposing null to CCI.
                 return ((PEModuleBuilder)context.Module).CreateConstant(AdaptedFieldSymbol.Type, AdaptedFieldSymbol.ConstantValue,
-                                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                                diagnostics: context.Diagnostics);
             }
 

@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = document.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)()
+                Dim service = document.GetLanguageService(Of INavigationBarItemService)()
                 Dim actualItems = Await service.GetItemsAsync(document, Nothing)
                 actualItems.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = document.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)()
+                Dim service = document.GetLanguageService(Of INavigationBarItemService)()
                 Dim items = Await service.GetItemsAsync(document, Nothing)
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = document.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)()
+                Dim service = document.GetLanguageService(Of INavigationBarItemService)()
 
                 Dim items = Await service.GetItemsAsync(document, Nothing)
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
                 Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess)(), AbstractEditorNavigationBarItemService)
+                Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemService)(), AbstractEditorNavigationBarItemService)
                 Dim items = Await service.GetItemsAsync(sourceDocument, Nothing)
                 items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
 

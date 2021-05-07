@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name(nameof(LegacyDiagnosticItemSourceProvider))]
     [Order]
-    [AppliesToProject("(CSharp | VisualBasic) & !CPS")]
+    [AppliesToProject("(CSharp | VB) & !CPS")]
     internal sealed class LegacyDiagnosticItemSourceProvider : AttachedCollectionSourceProvider<AnalyzerItem>
     {
         private readonly IAnalyzersCommandHandler _commandHandler;

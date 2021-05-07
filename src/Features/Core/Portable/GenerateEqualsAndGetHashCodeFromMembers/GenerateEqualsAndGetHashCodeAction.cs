@@ -138,17 +138,22 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var compilation = await _document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+                var generatorInternal = _document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 
                 // add nullable annotation to the parameter reference type, so that (in)equality operator implementations allow comparison against null
                 var parameters = ImmutableArray.Create(
                     CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType.IsValueType ? _containingType : _containingType.WithNullableAnnotation(NullableAnnotation.Annotated), LeftName),
                     CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType.IsValueType ? _containingType : _containingType.WithNullableAnnotation(NullableAnnotation.Annotated), RightName));
 
-                members.Add(CreateEqualityOperator(compilation, generator, parameters));
+                members.Add(CreateEqualityOperator(compilation, generator, generatorInternal, parameters));
                 members.Add(CreateInequalityOperator(compilation, generator, parameters));
             }
 
-            private IMethodSymbol CreateEqualityOperator(Compilation compilation, SyntaxGenerator generator, ImmutableArray<IParameterSymbol> parameters)
+            private IMethodSymbol CreateEqualityOperator(
+                Compilation compilation,
+                SyntaxGenerator generator,
+                SyntaxGeneratorInternal generatorInternal,
+                ImmutableArray<IParameterSymbol> parameters)
             {
                 var expression = _containingType.IsValueType
                     ? generator.InvocationExpression(
@@ -158,7 +163,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                         generator.IdentifierName(RightName))
                     : generator.InvocationExpression(
                         generator.MemberAccessExpression(
-                            generator.GetDefaultEqualityComparer(compilation, _containingType),
+                            generator.GetDefaultEqualityComparer(generatorInternal, compilation, _containingType),
                             generator.IdentifierName(EqualsName)),
                         generator.IdentifierName(LeftName),
                         generator.IdentifierName(RightName));

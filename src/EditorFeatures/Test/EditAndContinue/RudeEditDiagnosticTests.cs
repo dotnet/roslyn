@@ -51,6 +51,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
                 RudeEditKind.AddRecordPositionalParameter,
                 RudeEditKind.DeleteRecordPositionalParameter,
+                RudeEditKind.NotSupportedByRuntime,
+                RudeEditKind.MakeMethodAsync,
+                RudeEditKind.MakeMethodIterator
             };
 
             var arg2 = new HashSet<RudeEditKind>()

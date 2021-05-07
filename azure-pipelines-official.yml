@@ -45,6 +45,12 @@ stages:
   displayName: Build and Test
 
   jobs:
+  - template: /eng/common/templates/job/onelocbuild.yml
+    parameters:
+      CreatePr: false
+      LclSource: lclFilesfromPackage
+      LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
+
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
@@ -331,6 +337,7 @@ stages:
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
+      publishingInfraVersion: 3
       # Symbol validation is not entirely reliable as of yet, so should be turned off until
       # https://github.com/dotnet/arcade/issues/2871 is resolved.
       enableSymbolValidation: false
