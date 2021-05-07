@@ -154,7 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CompletionItem item,
             TextSpan completionListSpan,
             char? commitKey,
-            bool disallowAddingImports,
             CancellationToken cancellationToken)
         {
             var kind = item.Properties[KindName];
