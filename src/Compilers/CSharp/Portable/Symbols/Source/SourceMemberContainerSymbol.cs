@@ -4490,5 +4490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return this; }
         }
+
+        internal sealed override bool HasFieldInitializers() => InstanceInitializers.Length > 0;
     }
 }

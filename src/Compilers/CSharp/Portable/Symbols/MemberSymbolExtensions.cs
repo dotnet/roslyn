@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the method is a constructor and has a this() constructor initializer.
         /// </summary>
-        internal static bool HasThisConstructorInitializer(this MethodSymbol method)
+        internal static bool HasThisConstructorInitializer(this MethodSymbol method, out ConstructorInitializerSyntax initializerSyntax)
         {
             if ((object)method != null && method.MethodKind == MethodKind.Constructor)
             {
@@ -380,24 +380,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ConstructorDeclarationSyntax constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;
                     if (constructorSyntax != null)
                     {
-                        ConstructorInitializerSyntax initializerSyntax = constructorSyntax.Initializer;
-                        if (initializerSyntax != null)
+                        if (constructorSyntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer)
                         {
-                            return initializerSyntax.Kind() == SyntaxKind.ThisConstructorInitializer;
+                            initializerSyntax = constructorSyntax.Initializer;
+                            return true;
                         }
                     }
                 }
             }
 
+            initializerSyntax = null;
             return false;
         }
 
         internal static bool IncludeFieldInitializersInBody(this MethodSymbol methodSymbol)
         {
             return methodSymbol.IsConstructor()
-                && !methodSymbol.HasThisConstructorInitializer()
+                && !(methodSymbol.HasThisConstructorInitializer(out var initializerSyntax) && !isDefaultValueTypeConstructor(methodSymbol.ContainingType, initializerSyntax))
                 && !(methodSymbol is SynthesizedRecordCopyCtor) // A record copy constructor is special, regular initializers are not supposed to be executed by it.
                 && !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol);
+
+            // A struct constructor that calls ": this()" will need to include field initializers if the
+            // parameterless constructor is a synthesized default constructor that is not emitted.
+            static bool isDefaultValueTypeConstructor(NamedTypeSymbol containingType, ConstructorInitializerSyntax initializerSyntax)
+            {
+                if (initializerSyntax.ArgumentList.Arguments.Count > 0)
+                {
+                    return false;
+                }
+                var constructor = containingType.InstanceConstructors.SingleOrDefault(m => m.ParameterCount == 0);
+                return constructor?.IsDefaultValueTypeConstructor(requireNoInitializers: true) == true;
+            }
         }
 
         /// <summary>
@@ -408,28 +421,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return method.MethodKind == MethodKind.Constructor && method.ParameterCount == 0;
         }
 
-        // PROTOTYPE: Replace this method with method below.
-        internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method)
-        {
-            return method.IsDefaultValueTypeConstructor(requireNoInitializers: false);
-        }
-
         /// <summary>
-        /// default zero-init constructor symbol is added to a struct when it does not define 
-        /// its own parameterless public constructor.
-        /// We do not emit this constructor and do not call it 
+        /// Returns true if the method is the default zero-init constructor synthesized for struct types.
+        /// If the struct type is from metadata, the default constructor is synthesized when there
+        /// is no accessible parameterless constructor. If the struct type is from source, a parameterless
+        /// constructor is synthesized if there is no explicit parameterless constructor, but the synthesized
+        /// constructor is only considered the default zero-init constructor if the synthesized constructor
+        /// would not be emitted. (The default constructor will be emitted if the struct type has field
+        /// initializers and no explicit constructors.)
         /// </summary>
-        internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method, bool requireNoInitializers)
+        internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method, bool requireNoInitializers = false)
         {
             if (method.IsImplicitlyDeclared &&
-                   method.ContainingType.IsValueType &&
-                   method.IsParameterlessConstructor())
+                method.ContainingType.IsValueType &&
+                method.IsParameterlessConstructor())
             {
-                if (!requireNoInitializers ||
-                    !(method.ContainingType is SourceMemberContainerTypeSymbol { InstanceInitializers: { Length: > 0 } }))
+                if (!requireNoInitializers)
                 {
                     return true;
                 }
+                var containingType = method.ContainingType.OriginalDefinition;
+                var constructors = containingType.InstanceConstructors;
+                return constructors.Length > 1 || !containingType.HasFieldInitializers();
             }
             return false;
         }
@@ -439,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool ShouldEmit(this MethodSymbol method)
         {
-            // Don't emit the default value type constructor unless there are field initializers.
+            // Don't emit the default value type constructor - the runtime handles that
             if (method.IsDefaultValueTypeConstructor(requireNoInitializers: true))
             {
                 return false;

@@ -1536,6 +1536,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract NamedTypeSymbol NativeIntegerUnderlyingType { get; }
 
+        /// <summary>
+        /// Returns true if the type is defined in source and contains field initializers.
+        /// </summary>
+        internal virtual bool HasFieldInitializers() => false;
+
         protected override ISymbol CreateISymbol()
         {
             return new PublicModel.NonErrorNamedTypeSymbol(this, DefaultNullableAnnotation);
