@@ -8,14 +8,13 @@ using System.Threading;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a step in the execution piepline of an incremental generator
+    /// Represents a step in the execution pipeline of an incremental generator
     /// </summary>
     /// <typeparam name="T">The type of value this step operates on</typeparam>
     internal interface IIncrementalGeneratorNode<T>
     {
         NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken);
 
-        // PROTOTYPE: will allow for custom comparison of values stored in statetables
         IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer);
     }
 }

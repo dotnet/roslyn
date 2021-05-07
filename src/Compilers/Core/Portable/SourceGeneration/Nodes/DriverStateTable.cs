@@ -11,10 +11,6 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
-    // PROTOTYPE(source-generators):
-    // the builder seems useful as a type, but the actual table is just a wrapper around a dict
-    // do we actually need the type itself, or should we just store the dict directly as
-    // part of the driver state?
     internal sealed class DriverStateTable
     {
         // PROTOTYPE(source-generators): should we make a non generic node interface that we can use as the key
@@ -46,9 +42,19 @@ namespace Microsoft.CodeAnalysis
                 _cancellationToken = cancellationToken;
             }
 
-            public void SetInputState<T>(InputNode<T> source, NodeStateTable<T> state)
+            public void SetTable<T>(IIncrementalGeneratorNode<T> source, NodeStateTable<T> table)
             {
-                _tableBuilder[source] = state;
+                _tableBuilder[source] = table;
+            }
+
+            public void AddInput<T>(InputNode<T> source, T value)
+            {
+                _tableBuilder[source] = source.CreateInputTable(_previousTable.GetStateTable(source), value);
+            }
+
+            public void AddInput<T>(InputNode<T> source, IEnumerable<T> value)
+            {
+                _tableBuilder[source] = source.CreateInputTable(_previousTable.GetStateTable(source), value);
             }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
@@ -68,7 +74,6 @@ namespace Microsoft.CodeAnalysis
                 return newTable;
             }
 
-            // PROTOTYPE: we only test this, but it'll eventually be called as part of saving the state back to the GeneratorDriverState
             public DriverStateTable ToImmutable()
             {
                 // we can compact the tables at this point, as we'll no longer be using them to determine current state

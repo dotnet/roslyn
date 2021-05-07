@@ -63,15 +63,13 @@ namespace Microsoft.CodeAnalysis
         //           we should make it a discriminated union that has either 1 or more items instead.
         private readonly ImmutableArray<ImmutableArray<(T item, EntryState state)>> _states;
 
-        private readonly bool _isCompacted;
-
         private readonly Exception? _exception;
 
         private NodeStateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, bool isCompacted, Exception? exception)
         {
             _states = states;
-            _isCompacted = isCompacted;
             _exception = exception;
+            IsCompacted = isCompacted;
         }
 
         public bool IsFaulted { get => _exception is not null; }
@@ -80,6 +78,11 @@ namespace Microsoft.CodeAnalysis
 
         public int Count { get => _states.Length; }
 
+        /// <summary>
+        /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
+        /// </summary>
+        public bool IsCompacted { get; }
+
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
         {
             return _states.SelectMany(s => s).GetEnumerator();
@@ -87,7 +90,7 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> Compact()
         {
-            if (_isCompacted)
+            if (IsCompacted)
                 return this;
 
             var compacted = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
@@ -106,14 +109,11 @@ namespace Microsoft.CodeAnalysis
 
         IStateTable IStateTable.Compact() => Compact();
 
-        public ImmutableArray<T> Batch(out bool allCached)
+        public ImmutableArray<T> Batch()
         {
-            allCached = true;
             var sourceBuilder = ArrayBuilder<T>.GetInstance();
             foreach (var entry in this)
             {
-                allCached &= entry.state == EntryState.Cached;
-
                 // we don't return removed entries to the downstream node.
                 // we're creating a new state table as part of this call, so they're no longer needed
                 if (entry.state != EntryState.Removed)
@@ -131,7 +131,6 @@ namespace Microsoft.CodeAnalysis
             return new Builder(this, capacity);
         }
 
-        // PROTOTYPE: this will be called to allow exceptions to flow through the graph
         public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
         {
             Debug.Assert(table.IsFaulted);
@@ -167,17 +166,18 @@ namespace Microsoft.CodeAnalysis
                 _states.Add(values.SelectAsArray(v => (v, state)));
             }
 
-            public void AddEntriesFromPreviousTable(NodeStateTable<T> previousTable, EntryState newState)
+            public ImmutableArray<T> AddEntriesFromPreviousTable(NodeStateTable<T> previousTable, EntryState newState)
             {
-                // PROTOTYPE(source-generators): this doesn't hold true if the node is added after an initial run. That 
-                //                               will occur in the IDE, so we'll need to make sure we support empty tables
-                //                               that see cached/removed entries upstream.
                 Debug.Assert(previousTable._states.Length > _states.Count);
                 var previousEntries = previousTable._states[_states.Count].SelectAsArray(s => (s.item, newState));
                 _states.Add(previousEntries);
+
+                // PROTOTYPE(source-generators): this is mostly unused, so wastes cycles.
+                // if we refactor the way we store states as noted above though, it will become essentially free
+                return previousEntries.SelectAsArray(e => e.item);
             }
 
-            public void ModifyEntriesFromPreviousTable(NodeStateTable<T> previousTable, ImmutableArray<T> outputs)
+            public void ModifyEntriesFromPreviousTable(NodeStateTable<T> previousTable, ImmutableArray<T> outputs, IEqualityComparer<T> comparer)
             {
 
                 // Semantics:
@@ -187,12 +187,7 @@ namespace Microsoft.CodeAnalysis
                 // - Removed when i > outputs.length
                 // - Added when i < previousTable.length
 
-
-                // PROTOTYPE(source-generators): this doesn't hold true if the node is added after an initial run. That 
-                //                               will occur in the IDE, so we'll need to make sure we support empty tables
-                //                               that see cached/removed entries upstream.
                 Debug.Assert(previousTable._states.Length > _states.Count);
-
                 var previousEntries = previousTable._states[_states.Count];
                 var modifiedEntries = ArrayBuilder<(T item, EntryState state)>.GetInstance();
 
@@ -208,9 +203,8 @@ namespace Microsoft.CodeAnalysis
                     var previous = previousEnumerator.Current;
                     var replacement = outputEnumerator.Current;
 
-                    // PROTOTYPE(source-generators): support custom IEqualityComparer
-                    var cached = EqualityComparer<T>.Default.Equals(previous.item, replacement);
-                    modifiedEntries.Add((replacement, cached ? EntryState.Cached : EntryState.Modified));
+                    var entryState = comparer.Equals(previous.item, replacement) ? EntryState.Cached : EntryState.Modified;
+                    modifiedEntries.Add((replacement, entryState));
 
                     previousHasItems = previousEnumerator.MoveNext();
                     outputHasItems = outputEnumerator.MoveNext();
@@ -238,9 +232,16 @@ namespace Microsoft.CodeAnalysis
                 _exception = e;
             }
 
-            public NodeStateTable<T> ToImmutableAndFree() => _states.Count == 0
-                                                             ? NodeStateTable<T>.Empty
-                                                             : new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: false, exception: _exception);
+            public NodeStateTable<T> ToImmutableAndFree()
+            {
+                if (_states.Count == 0)
+                {
+                    return NodeStateTable<T>.Empty;
+                }
+
+                var hasNonCached = _states.Any(s => s.Any(i => i.Item2 != EntryState.Cached));
+                return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached, exception: _exception);
+            }
         }
     }
 }

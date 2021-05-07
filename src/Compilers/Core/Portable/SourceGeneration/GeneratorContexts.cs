@@ -104,6 +104,12 @@ namespace Microsoft.CodeAnalysis
             _additionalSources.Free();
             _diagnostics.Free();
         }
+
+        internal void CopyToProductionContext(SourceProductionContext ctx)
+        {
+            ctx.Sources.AddRange(_additionalSources);
+            ctx.Diagnostics.AddRange(_diagnostics);
+        }
     }
 
     /// <summary>

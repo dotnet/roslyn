@@ -16,24 +16,34 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly Func<ImmutableArray<TInput>, ImmutableArray<TOutput>> _func;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
+        private readonly IEqualityComparer<TOutput> _comparer;
 
-        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<ImmutableArray<TInput>, TOutput> userFunc)
-            : this(sourceNode, userFunc: i => ImmutableArray.Create(userFunc(i)))
+        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<ImmutableArray<TInput>, TOutput> userFunc, IEqualityComparer<TOutput>? comparer = null)
+            : this(sourceNode, userFunc: (i) => ImmutableArray.Create(userFunc(i)), comparer)
         {
         }
 
-        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<ImmutableArray<TInput>, ImmutableArray<TOutput>> userFunc)
+        public BatchTransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<ImmutableArray<TInput>, ImmutableArray<TOutput>> userFunc, IEqualityComparer<TOutput>? comparer = null)
         {
             _sourceNode = sourceNode;
             _func = userFunc;
+            _comparer = comparer ?? EqualityComparer<TOutput>.Default;
         }
 
-        // PROTOTYPE(source-generators):
-        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => this;
+        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new BatchTransformNode<TInput, TOutput>(_sourceNode, _func, comparer);
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
-            // PROTOTYPE(source-generators):caching, faulted etc.
+            // grab the source inputs
+            var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
+            if (sourceTable.IsCompacted)
+            {
+                return previousTable;
+            }
+            if (sourceTable.IsFaulted)
+            {
+                return NodeStateTable<TOutput>.FromFaultedTable(sourceTable);
+            }
 
             // Semantics of a batch transform:
             // Batches will always exist (a batch of the empty table is still [])
@@ -42,14 +52,7 @@ namespace Microsoft.CodeAnalysis
             // - Added when the previous table was empty
             // - Modified otherwise
 
-            // grab the source inputs
-            var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
-
-            var source = sourceTable.Batch(out var allCached); // PROTOTYPE(source-generators): we don't need the all cached if we have an IsCached property on the table?
-
-            //if all cached, then we don't do anything, right?
-            if (allCached)
-                return previousTable;
+            var source = sourceTable.Batch();
 
             // apply the transform
             var transformed = _func(source);
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 Debug.Assert(previousTable.Count == 1);
-                newTable.ModifyEntriesFromPreviousTable(previousTable, transformed);
+                newTable.ModifyEntriesFromPreviousTable(previousTable, transformed, _comparer);
             }
             return newTable.ToImmutableAndFree();
         }

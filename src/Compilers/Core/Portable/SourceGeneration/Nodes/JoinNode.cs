@@ -11,11 +11,12 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class JoinNode<TInput1, TInput2> : IIncrementalGeneratorNode<(TInput1, IEnumerable<TInput2>)>
+    internal sealed class JoinNode<TInput1, TInput2> : IIncrementalGeneratorNode<(TInput1, ImmutableArray<TInput2>)>
     {
         private readonly IIncrementalGeneratorNode<TInput1> _input1;
 
         private readonly IIncrementalGeneratorNode<TInput2> _input2;
+
 
         public JoinNode(IIncrementalGeneratorNode<TInput1> input1, IIncrementalGeneratorNode<TInput2> input2)
         {
@@ -23,15 +24,26 @@ namespace Microsoft.CodeAnalysis
             _input2 = input2;
         }
 
-        public NodeStateTable<(TInput1, IEnumerable<TInput2>)> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, IEnumerable<TInput2>)> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<(TInput1, ImmutableArray<TInput2>)> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, ImmutableArray<TInput2>)> previousTable, CancellationToken cancellationToken)
         {
-            // PROTOTYPE(source-generators): all cached, faulted handling etc.
-
-            var builder = new NodeStateTable<(TInput1, IEnumerable<TInput2>)>.Builder();
-
             // get both input tables
             var input1Table = graphState.GetLatestStateTableForNode(_input1);
             var input2Table = graphState.GetLatestStateTableForNode(_input2);
+
+            if (input1Table.IsCompacted && input2Table.IsCompacted)
+            {
+                return previousTable;
+            }
+            if (input1Table.IsFaulted)
+            {
+                return NodeStateTable<(TInput1, ImmutableArray<TInput2>)>.FromFaultedTable(input1Table);
+            }
+            if (input2Table.IsFaulted)
+            {
+                return NodeStateTable<(TInput1, ImmutableArray<TInput2>)>.FromFaultedTable(input2Table);
+            }
+
+            var builder = new NodeStateTable<(TInput1, ImmutableArray<TInput2>)>.Builder();
 
             // Semantics of a join:
             //
@@ -41,7 +53,8 @@ namespace Microsoft.CodeAnalysis
             // State of input1[i] otherwise.
 
             // gather the input2 items
-            IEnumerable<TInput2> input2 = input2Table.Batch(out var isInput2Cached);
+            var isInput2Cached = input2Table.IsCompacted;
+            ImmutableArray<TInput2> input2 = input2Table.Batch();
 
             // append the input2 items to each item in input1 
             foreach (var entry1 in input1Table)
@@ -59,7 +72,8 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        // PROTOTYPE(source-generators):
-        public IIncrementalGeneratorNode<(TInput1, IEnumerable<TInput2>)> WithComparer(IEqualityComparer<(TInput1, IEnumerable<TInput2>)> comparer) => this;
+        // PROTOTYPE(source-generators): Is it actually ever meaningful to have a comparer for a join? Perhaps we should just put comparer on the transform nodes?
+        //                             : We could run the compare when the input would show up as modified. It's... kind of odd, but at least means something
+        public IIncrementalGeneratorNode<(TInput1, ImmutableArray<TInput2>)> WithComparer(IEqualityComparer<(TInput1, ImmutableArray<TInput2>)> comparer) => this;
     }
 }

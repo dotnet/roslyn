@@ -22,48 +22,36 @@ namespace Microsoft.CodeAnalysis
             SourceGenerator = generator;
         }
 
-        public void Initialize(IncrementalGeneratorInitializationContext context)
+        public void Initialize(IncrementalGeneratorInitializationContext initContext)
         {
-            // PROTOTYPE(source-generators):
-            // we'll call initialize on the underlying generator and pull out any info that is needed
-            // then we'll set PostInit etc on our context and register a pipleine that
-            // executes the old generator in the new framework
+            GeneratorInitializationContext generatorInitContext = new GeneratorInitializationContext(initContext.CancellationToken);
+            SourceGenerator.Initialize(generatorInitContext);
 
-            GeneratorInitializationContext oldContext = new GeneratorInitializationContext(context.CancellationToken);
-            SourceGenerator.Initialize(oldContext);
+            initContext.InfoBuilder.PostInitCallback = generatorInitContext.InfoBuilder.PostInitCallback;
+            initContext.InfoBuilder.SyntaxContextReceiverCreator = generatorInitContext.InfoBuilder.SyntaxContextReceiverCreator;
 
-            context.InfoBuilder.PostInitCallback = oldContext.InfoBuilder.PostInitCallback;
-            context.InfoBuilder.SyntaxContextReceiverCreator = oldContext.InfoBuilder.SyntaxContextReceiverCreator;
-
-            context.RegisterExecutionPipeline((ctx) =>
+            initContext.RegisterExecutionPipeline((executionContext) =>
             {
-                var context = ctx.Sources.Compilation
-                                         .Transform(c => new GeneratorContextBuilder(c))
-                                         .Join(ctx.Sources.ParseOptions).Transform(p => p.Item1 with { ParseOptions = p.Item2.FirstOrDefault() })
-                                         .Join(ctx.Sources.AnalyzerConfigOptions).Transform(p => p.Item1 with { ConfigOptions = p.Item2.FirstOrDefault() })
-                                         .Join(ctx.Sources.CreateSyntaxReceiver()).Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() })
-                                         .Join(ctx.Sources.AdditionalTexts).Transform(p => p.Item1 with { AdditionalTexts = p.Item2.ToImmutableArray() });
+                var contextBuilderSource = executionContext.Sources.Compilation
+                                            .Transform(c => new GeneratorContextBuilder(c))
+                                            .Join(executionContext.Sources.ParseOptions).Transform(p => p.Item1 with { ParseOptions = p.Item2.FirstOrDefault() })
+                                            .Join(executionContext.Sources.AnalyzerConfigOptions).Transform(p => p.Item1 with { ConfigOptions = p.Item2.FirstOrDefault() })
+                                            .Join(executionContext.Sources.CreateSyntaxReceiver()).Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() })
+                                            .Join(executionContext.Sources.AdditionalTexts).Transform(p => p.Item1 with { AdditionalTexts = p.Item2.ToImmutableArray() });
 
-                var output = context.GenerateSource((context, contextBuilder) =>
+                var output = contextBuilderSource.GenerateSource((productionContext, contextBuilder) =>
                 {
-                    var oldContext = contextBuilder.ToExecutionContext(context.CancellationToken);
+                    var generatorExecutionContext = contextBuilder.ToExecutionContext(productionContext.CancellationToken);
 
                     // PROTOTYPE(source-generators):If this throws, we'll wrap it in a user func as expected. We probably *shouldn't* do that for the rest of this code though
                     // So we probably need an internal version that doesn't wrap it? Maybe we can just construct the nodes manually.
-                    SourceGenerator.Execute(oldContext);
+                    SourceGenerator.Execute(generatorExecutionContext);
 
-                    // PROTOTYPE(source-generators): we should make the internals visible so we can just add directly here
-                    (var source, var diagnostics) = oldContext.ToImmutableAndFree();
-                    foreach (var s in source)
-                    {
-                        context.AddSource(s.HintName, s.Text);
-                    }
-                    foreach (var d in diagnostics)
-                    {
-                        context.ReportDiagnostic(d);
-                    }
+                    // copy the contents of the old context to the new
+                    generatorExecutionContext.CopyToProductionContext(productionContext);
+                    generatorExecutionContext.Free();
                 });
-                ctx.RegisterOutput(output);
+                executionContext.RegisterOutput(output);
             });
         }
 
