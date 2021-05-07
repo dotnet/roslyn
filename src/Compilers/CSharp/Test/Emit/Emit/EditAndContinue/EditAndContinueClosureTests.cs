@@ -137,6 +137,68 @@ class C
     {
         return o switch
         {
+            int i => <N:1>new Func<int>(() => <N:0>i + 1</N:0>)()</N:1>,
+            _ => 0
+        };
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    int F(object o)
+    {
+        return o switch
+        {
+            int i => <N:1>new Func<int>(() => <N:0>i + 2</N:0>)()</N:1>,
+            _ => 0
+        };
+    }
+}");
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c__DisplayClass0_0#0, <>c__DisplayClass0_1#0}",
+                "C.<>c__DisplayClass0_1#0: {<i>5__2, CS$<>8__locals2, <F>b__0}",
+                "C.<>c__DisplayClass0_0#0: {o, <>9__1, <F>b__1}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void MethodWithNestedSwitchExpression()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    int F(object o)
+    {
+        return o switch
+        {
             int i => new Func<int>(<N:0>() => i + (int)o + i switch
                 {
                     1 => 1,
