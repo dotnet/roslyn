@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
@@ -12,20 +13,6 @@ Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
     Friend Module EditAndContinueValidation
-
-        Friend Sub VerifyUnchangedDocument(
-            source As String,
-            description As ActiveStatementsDescription)
-#If TODO Then
-            Dim validator = New VisualBasicEditAndContinueTestHelpers()
-            validator.VerifyUnchangedDocument(
-                ActiveStatementsDescription.ClearTags(source),
-                description.OldStatements,
-                description.NewSpans,
-                description.NewRegions)
-#End If
-        End Sub
-
         <Extension>
         Friend Sub VerifyRudeDiagnostics(editScript As EditScript(Of SyntaxNode),
                                          ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
@@ -42,6 +29,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         <Extension>
         Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
                                    expectedLineEdits As IEnumerable(Of SourceLineUpdate),
+                                   expectedNodeUpdates As IEnumerable(Of String),
+                                   ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
+            Assert.NotEmpty(expectedLineEdits)
+
+            VerifyLineEdits(
+                editScript,
+                {New SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, expectedLineEdits.ToImmutableArray())},
+                expectedNodeUpdates,
+                expectedDiagnostics)
+        End Sub
+
+        <Extension>
+        Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
+                                   expectedLineEdits As IEnumerable(Of SequencePointUpdates),
                                    expectedNodeUpdates As IEnumerable(Of String),
                                    ParamArray expectedDiagnostics As RudeEditDiagnosticDescription())
             Dim validator = New VisualBasicEditAndContinueTestHelpers()

@@ -6,71 +6,36 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using System.IO;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     internal static class ActiveStatementTestHelpers
     {
-        internal static ImmutableArray<ManagedActiveStatementDebugInfo> GetActiveStatementDebugInfos(
+        public static ImmutableArray<ManagedActiveStatementDebugInfo> GetActiveStatementDebugInfosCSharp(
             string[] markedSources,
-            string extension = ".cs",
+            string[]? filePaths = null,
             int[]? methodRowIds = null,
             Guid[]? modules = null,
             int[]? methodVersions = null,
             int[]? ilOffsets = null,
             ActiveStatementFlags[]? flags = null)
         {
-            IEnumerable<(TextSpan Span, int Id, SourceText Text, string DocumentName, DocumentId DocumentId)> EnumerateAllSpans()
-            {
-                var sourceIndex = 0;
-                foreach (var markedSource in markedSources)
-                {
-                    var documentName = Path.Combine(TempRoot.Root, TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension));
-                    var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId(), documentName);
-                    var text = SourceText.From(markedSource);
+            return ActiveStatementsDescription.GetActiveStatementDebugInfos(
+                (source, path) => SyntaxFactory.ParseSyntaxTree(source, path: path),
+                markedSources,
+                filePaths,
+                extension: ".cs",
+                methodRowIds,
+                modules,
+                methodVersions,
+                ilOffsets,
+                flags);
 
-                    foreach (var (span, id) in ActiveStatementsDescription.GetActiveSpans(markedSource))
-                    {
-                        yield return (span, id, text, documentName, documentId);
-                    }
-
-                    sourceIndex++;
-                }
-            }
-
-            IEnumerable<ManagedActiveStatementDebugInfo> Enumerate()
-            {
-                var moduleId = new Guid("00000000-0000-0000-0000-000000000001");
-                var threadId = new Guid("00000000-0000-0000-0000-000000000010");
-
-                var index = 0;
-                foreach (var (span, id, text, documentName, documentId) in EnumerateAllSpans().OrderBy(s => s.Id))
-                {
-                    yield return new ManagedActiveStatementDebugInfo(
-                        new ManagedInstructionId(
-                            new ManagedMethodId(
-                                (modules != null) ? modules[index] : moduleId,
-                                new ManagedModuleMethodId(
-                                    token: 0x06000000 | (methodRowIds != null ? methodRowIds[index] : index + 1),
-                                    version: (methodVersions != null) ? methodVersions[index] : 1)),
-                            ilOffset: (ilOffsets != null) ? ilOffsets[index] : 0),
-                        documentName: documentName,
-                        sourceSpan: text.Lines.GetLinePositionSpan(span).ToSourceSpan(),
-                        flags: (flags != null) ? flags[index] : ((id == 0 ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame) | ActiveStatementFlags.MethodUpToDate));
-
-                    index++;
-                }
-            }
-
-            return Enumerate().ToImmutableArray();
         }
-
         public static string Delete(string src, string marker)
         {
             while (true)

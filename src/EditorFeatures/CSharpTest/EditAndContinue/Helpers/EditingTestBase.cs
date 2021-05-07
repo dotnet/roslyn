@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -53,8 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             RudeEditDiagnosticDescription[]? diagnostics = null)
             => new(activeStatements, semanticEdits, diagnostics);
 
-        private static SyntaxTree ParseSource(string source)
-            => new CSharpEditAndContinueTestHelpers().ParseText(ActiveStatementsDescription.ClearTags(source));
+        private static SyntaxTree ParseSource(string markedSource)
+            => SyntaxFactory.ParseSyntaxTree(
+                ActiveStatementsDescription.ClearTags(markedSource),
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+                path: "test.cs");
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2)
         {
@@ -151,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
              };
 
         internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource, ActiveStatementFlags[] flags = null, string path = "0")
-            => new(oldSource, SyntaxFactory.ParseSyntaxTree(oldSource, path: path), newSource, SyntaxFactory.ParseSyntaxTree(newSource, path: path), flags);
+            => new(oldSource, newSource, source => SyntaxFactory.ParseSyntaxTree(source, path: path), flags);
 
         internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
             => new(oldSource, newSource);

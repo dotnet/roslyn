@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
@@ -59,12 +61,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public ImmutableArray<ImmutableArray<SourceFileSpan>> ExceptionRegions { get; }
 
         /// <summary>
-        /// Line edits in the document, or null if the document has syntax errors, rude edits or has not changed.
+        /// Line edits in the document (or mapped documents), or null if the document has syntax errors, rude edits or has not changed.
         /// </summary>
         /// <remarks>
-        /// Sorted by <see cref="SourceLineUpdate.OldLine"/>
+        /// Grouped by file name and updates in each group are ordered by <see cref="SourceLineUpdate.OldLine"/>. 
+        /// Each entry in the group applies the delta of <see cref="SourceLineUpdate.NewLine"/> - <see cref="SourceLineUpdate.OldLine"/>
+        /// to all lines in range [<see cref="SourceLineUpdate.OldLine"/>, next entry's <see cref="SourceLineUpdate.OldLine"/>).
         /// </remarks>
-        public ImmutableArray<SourceLineUpdate> LineEdits { get; }
+        public ImmutableArray<SequencePointUpdates> LineEdits { get; }
 
         /// <summary>
         /// Document contains errors that block EnC analysis.
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             ImmutableArray<SemanticEditInfo> semanticEditsOpt,
             ImmutableArray<ImmutableArray<SourceFileSpan>> exceptionRegionsOpt,
-            ImmutableArray<SourceLineUpdate> lineEditsOpt,
+            ImmutableArray<SequencePointUpdates> lineEditsOpt,
             bool hasChanges,
             bool hasSyntaxErrors)
         {
@@ -110,6 +114,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Debug.Assert(!semanticEditsOpt.IsDefault);
                     Debug.Assert(!exceptionRegionsOpt.IsDefault);
                     Debug.Assert(!lineEditsOpt.IsDefault);
+
+                    // no duplicate files in line edits:
+                    Debug.Assert(lineEditsOpt.Select(edit => edit.FileName).Distinct().Count() == lineEditsOpt.Length);
+
+                    // line updates are sorted:
+                    Debug.Assert(lineEditsOpt.All(documentLineEdits => documentLineEdits.LineUpdates.IsSorted(Comparer<SourceLineUpdate>.Create(
+                        (x, y) => x.OldLine.CompareTo(y.OldLine)))));
 
                     Debug.Assert(exceptionRegionsOpt.Length == activeStatementsOpt.Length);
                 }

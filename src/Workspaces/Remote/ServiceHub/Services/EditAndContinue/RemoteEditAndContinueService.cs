@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var document = solution.GetRequiredDocument(documentId);
+                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
                 var diagnostics = await GetService().GetDocumentDiagnosticsAsync(document, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
                 return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(diagnostic, document));
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var document = solution.GetRequiredDocument(documentId);
+                var document = await solution.GetRequiredTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 return await GetService().GetAdjustedActiveStatementSpansAsync(document, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }

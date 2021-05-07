@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -42,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 kind,
                 symbolProvider,
                 If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
-                syntaxMap:=Nothing,
+                syntaxMap,
                 hasSyntaxMap:=syntaxMap IsNot Nothing)
         End Function
 
@@ -69,9 +70,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Return New DocumentAnalysisResultsDescription(activeStatements, semanticEdits, diagnostics)
         End Function
 
-        Private Shared Function ParseSource(source As String) As SyntaxTree
-            Dim validator = New VisualBasicEditAndContinueTestHelpers()
-            Return validator.ParseText(ActiveStatementsDescription.ClearTags(source))
+        Private Shared Function ParseSource(markedSource As String) As SyntaxTree
+            Return SyntaxFactory.ParseSyntaxTree(
+                ActiveStatementsDescription.ClearTags(markedSource),
+                VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest),
+                path:="test.vb")
         End Function
 
         Friend Shared Function GetTopEdits(src1 As String, src2 As String) As EditScript(Of SyntaxNode)
@@ -155,12 +158,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             End Select
         End Function
 
-        Friend Shared Function GetActiveStatements(oldSource As String, newSource As String, Optional flags As ActiveStatementFlags() = Nothing) As ActiveStatementsDescription
-            Return New ActiveStatementsDescription(oldSource, SyntaxFactory.ParseSyntaxTree(oldSource), newSource, SyntaxFactory.ParseSyntaxTree(newSource), flags)
+        Friend Shared Function GetActiveStatements(oldSource As String, newSource As String, Optional flags As ActiveStatementFlags() = Nothing, Optional path As String = "0") As ActiveStatementsDescription
+            Return New ActiveStatementsDescription(oldSource, newSource, Function(source) SyntaxFactory.ParseSyntaxTree(source, path:=path), flags)
         End Function
 
         Friend Shared Function GetSyntaxMap(oldSource As String, newSource As String) As SyntaxMapDescription
             Return New SyntaxMapDescription(oldSource, newSource)
+        End Function
+
+        Friend Shared Function GetActiveStatementDebugInfos(
+            markedSources As String(),
+            Optional filePaths As String() = Nothing,
+            Optional methodRowIds As Integer() = Nothing,
+            Optional modules As Guid() = Nothing,
+            Optional methodVersions As Integer() = Nothing,
+            Optional ilOffsets As Integer() = Nothing,
+            Optional flags As ActiveStatementFlags() = Nothing) As ImmutableArray(Of ManagedActiveStatementDebugInfo)
+
+            Return ActiveStatementsDescription.GetActiveStatementDebugInfos(
+                Function(source, path) SyntaxFactory.ParseSyntaxTree(source, path:=path),
+                markedSources,
+                filePaths,
+                extension:=".vb",
+                methodRowIds,
+                modules,
+                methodVersions,
+                ilOffsets,
+                flags)
         End Function
     End Class
 End Namespace
