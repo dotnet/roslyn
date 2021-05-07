@@ -1711,4 +1711,8 @@ I agree to all of the foregoing:</value>
     <value>Value Tracking</value>
     <comment>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</comment>
   </data>
+  <data name="Calculating" xml:space="preserve">
+    <value>Calculating...</value>
+    <comment>Used in UI to represent progress in the context of loading items. </comment>
+  </data>
 </root>

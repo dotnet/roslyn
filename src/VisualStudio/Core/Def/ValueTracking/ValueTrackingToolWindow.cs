@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             ViewModel = viewModel;
         }
 
-        public ValueTrackingTreeItemViewModel? Root
+        public TreeViewItem? Root
         {
             get => ViewModel?.Roots.Single();
             set

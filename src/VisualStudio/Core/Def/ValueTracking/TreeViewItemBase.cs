@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
     internal class TreeViewItemBase : INotifyPropertyChanged
     {
         private bool _isExpanded = false;
-        public bool IsNodeExpanded
+        public virtual bool IsNodeExpanded
         {
             get => _isExpanded;
             set => SetProperty(ref _isExpanded, value);
@@ -22,6 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         {
             get => _isSelected;
             set => SetProperty(ref _isSelected, value);
+        }
+
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set => SetProperty(ref _isLoading, value);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

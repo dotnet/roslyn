@@ -13,13 +13,23 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal class ValueTrackedTreeItemViewModel : ValueTrackingTreeItemViewModel
+    internal class ValueTrackedTreeItemViewModel : TreeViewItem
     {
         private bool _childrenCalculated;
         private readonly Solution _solution;
         private readonly IGlyphService _glyphService;
         private readonly IValueTrackingService _valueTrackingService;
         private readonly ValueTrackedItem _trackedItem;
+
+        public override bool IsNodeExpanded
+        {
+            get => base.IsNodeExpanded;
+            set
+            {
+                base.IsNodeExpanded = value;
+                CalculateChildren();
+            }
+        }
 
         public ValueTrackedTreeItemViewModel(
             ValueTrackedItem trackedItem,
@@ -28,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IGlyphService glyphService,
             IValueTrackingService valueTrackingService,
             IThreadingContext threadingContext,
-            ImmutableArray<ValueTrackingTreeItemViewModel> children = default)
+            ImmutableArray<TreeViewItem> children = default)
             : base(
                   trackedItem.Document,
                   trackedItem.Span,
@@ -56,14 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 {
                     NotifyPropertyChanged(nameof(ChildItems));
                 };
-
-                PropertyChanged += (s, a) =>
-                {
-                    if (a.PropertyName == nameof(IsNodeExpanded))
-                    {
-                        CalculateChildren();
-                    }
-                };
             }
         }
 
@@ -71,13 +73,17 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (_childrenCalculated)
+            if (_childrenCalculated || IsLoading)
             {
                 return;
             }
 
             TreeViewModel.LoadingCount++;
-            _childrenCalculated = true;
+            IsLoading = true;
+            ChildItems.Clear();
+
+            var computingItem = new ComputingTreeViewItem();
+            ChildItems.Add(computingItem);
 
             System.Threading.Tasks.Task.Run(async () =>
             {
@@ -86,6 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                     var items = await _valueTrackingService.TrackValueSourceAsync(_trackedItem, ThreadingContext.DisposalToken).ConfigureAwait(false);
 
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
                     ChildItems.Clear();
 
                     foreach (var valueTrackedItem in items)
@@ -103,6 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                     TreeViewModel.LoadingCount--;
+                    _childrenCalculated = true;
+                    IsLoading = false;
                 }
             }, ThreadingContext.DisposalToken);
         }
