@@ -94,14 +94,7 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
         {
-            var builder = _state.StateTable.GetStateTable(SharedInputNodes.AdditionalTexts).ToBuilder(extraCapacity: additionalTexts.Length);
-            foreach (var text in additionalTexts)
-            {
-                builder.AddEntries(ImmutableArray.Create(text), EntryState.Added);
-            }
-            var stateTable = _state.StateTable.SetStateTable(SharedInputNodes.AdditionalTexts, builder.ToImmutableAndFree());
-
-            var newState = _state.With(additionalTexts: _state.AdditionalTexts.AddRange(additionalTexts), stateTable: stateTable);
+            var newState = _state.With(additionalTexts: _state.AdditionalTexts.AddRange(additionalTexts));
             return FromState(newState);
         }
 

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             var inputItems = graphState.GetInputValue(_inputSource);
 
             // create a mutable hashset of the new items we can check against
-            PooledHashSet<T> itemsSet = PooledHashSet<T>.GetInstance();
+            HashSet<T> itemsSet = new HashSet<T>(_comparer);
             foreach (var item in inputItems)
             {
                 itemsSet.Add(item);
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             {
                 builder.AddEntries(ImmutableArray.Create(newItem), EntryState.Added);
             }
-            itemsSet.Free();
+
             return builder.ToImmutableAndFree();
         }
 
