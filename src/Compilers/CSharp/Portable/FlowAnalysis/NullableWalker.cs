@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -4474,22 +4474,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (var consequence, var consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, originalConsequence);
             var consequenceConditionalState = PossiblyConditionalState.Create(this);
-            Unsplit();
-            consequenceState = this.State.Clone();
+            consequenceState = CloneAndUnsplit(ref consequenceConditionalState);
             var consequenceEndReachable = consequenceState.Reachable;
 
             (var alternative, var alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, originalAlternative);
-            if (IsConditionalState)
-            {
-                alternativeState = StateWhenTrue.Clone();
-                Join(ref alternativeState, ref StateWhenFalse);
-            }
-            else
-            {
-                alternativeState = this.State.Clone();
-            }
+            var alternativeConditionalState = PossiblyConditionalState.Create(this);
+            alternativeState = CloneAndUnsplit(ref alternativeConditionalState);
             var alternativeEndReachable = alternativeState.Reachable;
-            Join(ref consequenceConditionalState);
+
+            SetConditionalState(in consequenceConditionalState);
+            Join(ref alternativeConditionalState);
 
             TypeSymbol? resultType;
             bool wasTargetTyped = node is BoundConditionalOperator { WasTargetTyped: true };
@@ -9830,6 +9824,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!otherIsConditional);
                 Join(ref State, ref other.State);
+            }
+        }
+
+        private LocalState CloneAndUnsplit(ref PossiblyConditionalState conditionalState)
+        {
+            if (!conditionalState.IsConditionalState)
+            {
+                return conditionalState.State.Clone();
+            }
+
+            var state = conditionalState.StateWhenTrue.Clone();
+            Join(ref state, ref conditionalState.StateWhenFalse);
+            return state;
+        }
+
+        private void SetConditionalState(in PossiblyConditionalState conditionalState)
+        {
+            if (!conditionalState.IsConditionalState)
+            {
+                SetState(conditionalState.State);
+            }
+            else
+            {
+                SetConditionalState(conditionalState.StateWhenTrue, conditionalState.StateWhenFalse);
             }
         }
 
