@@ -135,6 +135,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static SyntaxNode AddAsyncModifier(AnonymousFunctionExpressionSyntax anonymous, SyntaxToken asyncToken)
             => anonymous.WithoutLeadingTrivia().WithAsyncKeyword(asyncToken.WithPrependedLeadingTrivia(anonymous.GetLeadingTrivia()));
-        }
     }
 }
