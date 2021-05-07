@@ -1210,9 +1210,8 @@ namespace System.Runtime.CompilerServices
     using System.Text;
     public ref struct InterpolatedStringBuilder
     {
-        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength)
+        public InterpolatedStringBuilder(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -1357,173 +1356,172 @@ value:1,alignment:2:format:Y";
             {
                 (useDefaultParameters: false, useBoolReturns: false) => @"
 {
-  // Code size       79 (0x4f)
+  // Code size       80 (0x50)
   .maxstack  4
   .locals init (int V_0, //a
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldc.i4.4
-  IL_0003:  ldc.i4.4
-  IL_0004:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  ldstr      ""base""
-  IL_0011:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
-  IL_0016:  ldloca.s   V_1
-  IL_0018:  ldloc.0
-  IL_0019:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
-  IL_001e:  ldloca.s   V_1
-  IL_0020:  ldloc.0
-  IL_0021:  ldc.i4.1
-  IL_0022:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int)""
-  IL_0027:  ldloca.s   V_1
-  IL_0029:  ldloc.0
-  IL_002a:  ldstr      ""X""
-  IL_002f:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, string)""
-  IL_0034:  ldloca.s   V_1
-  IL_0036:  ldloc.0
-  IL_0037:  ldc.i4.2
-  IL_0038:  ldstr      ""Y""
-  IL_003d:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
-  IL_0042:  ldloca.s   V_1
-  IL_0044:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_0049:  call       ""void System.Console.WriteLine(string)""
-  IL_004e:  ret
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.4
+  IL_0005:  ldc.i4.4
+  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldstr      ""base""
+  IL_0012:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldloc.0
+  IL_001a:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.0
+  IL_0022:  ldc.i4.1
+  IL_0023:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int)""
+  IL_0028:  ldloca.s   V_1
+  IL_002a:  ldloc.0
+  IL_002b:  ldstr      ""X""
+  IL_0030:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, string)""
+  IL_0035:  ldloca.s   V_1
+  IL_0037:  ldloc.0
+  IL_0038:  ldc.i4.2
+  IL_0039:  ldstr      ""Y""
+  IL_003e:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_0043:  ldloca.s   V_1
+  IL_0045:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_004a:  call       ""void System.Console.WriteLine(string)""
+  IL_004f:  ret
 }
 ",
                 (useDefaultParameters: true, useBoolReturns: false) => @"
-
 {
-  // Code size       83 (0x53)
+  // Code size       84 (0x54)
   .maxstack  4
   .locals init (int V_0, //a
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldc.i4.4
-  IL_0003:  ldc.i4.4
-  IL_0004:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  ldstr      ""base""
-  IL_0011:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
-  IL_0016:  ldloca.s   V_1
-  IL_0018:  ldloc.0
-  IL_0019:  ldc.i4.0
-  IL_001a:  ldnull
-  IL_001b:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
-  IL_0020:  ldloca.s   V_1
-  IL_0022:  ldloc.0
-  IL_0023:  ldc.i4.1
-  IL_0024:  ldnull
-  IL_0025:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
-  IL_002a:  ldloca.s   V_1
-  IL_002c:  ldloc.0
-  IL_002d:  ldc.i4.0
-  IL_002e:  ldstr      ""X""
-  IL_0033:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
-  IL_0038:  ldloca.s   V_1
-  IL_003a:  ldloc.0
-  IL_003b:  ldc.i4.2
-  IL_003c:  ldstr      ""Y""
-  IL_0041:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
-  IL_0046:  ldloca.s   V_1
-  IL_0048:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_004d:  call       ""void System.Console.WriteLine(string)""
-  IL_0052:  ret
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.4
+  IL_0005:  ldc.i4.4
+  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldstr      ""base""
+  IL_0012:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldloc.0
+  IL_001a:  ldc.i4.0
+  IL_001b:  ldnull
+  IL_001c:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_0021:  ldloca.s   V_1
+  IL_0023:  ldloc.0
+  IL_0024:  ldc.i4.1
+  IL_0025:  ldnull
+  IL_0026:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  ldloc.0
+  IL_002e:  ldc.i4.0
+  IL_002f:  ldstr      ""X""
+  IL_0034:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_0039:  ldloca.s   V_1
+  IL_003b:  ldloc.0
+  IL_003c:  ldc.i4.2
+  IL_003d:  ldstr      ""Y""
+  IL_0042:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_0047:  ldloca.s   V_1
+  IL_0049:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_004e:  call       ""void System.Console.WriteLine(string)""
+  IL_0053:  ret
 }
 ",
                 (useDefaultParameters: false, useBoolReturns: true) => @"
 {
-  // Code size       91 (0x5b)
+  // Code size       92 (0x5c)
   .maxstack  4
   .locals init (int V_0, //a
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldc.i4.4
-  IL_0003:  ldc.i4.4
-  IL_0004:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  ldstr      ""base""
-  IL_0011:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
-  IL_0016:  brfalse.s  IL_004c
-  IL_0018:  ldloca.s   V_1
-  IL_001a:  ldloc.0
-  IL_001b:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
-  IL_0020:  brfalse.s  IL_004c
-  IL_0022:  ldloca.s   V_1
-  IL_0024:  ldloc.0
-  IL_0025:  ldc.i4.1
-  IL_0026:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int)""
-  IL_002b:  brfalse.s  IL_004c
-  IL_002d:  ldloca.s   V_1
-  IL_002f:  ldloc.0
-  IL_0030:  ldstr      ""X""
-  IL_0035:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, string)""
-  IL_003a:  brfalse.s  IL_004c
-  IL_003c:  ldloca.s   V_1
-  IL_003e:  ldloc.0
-  IL_003f:  ldc.i4.2
-  IL_0040:  ldstr      ""Y""
-  IL_0045:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
-  IL_004a:  br.s       IL_004d
-  IL_004c:  ldc.i4.0
-  IL_004d:  pop
-  IL_004e:  ldloca.s   V_1
-  IL_0050:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_0055:  call       ""void System.Console.WriteLine(string)""
-  IL_005a:  ret
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.4
+  IL_0005:  ldc.i4.4
+  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldstr      ""base""
+  IL_0012:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0017:  brfalse.s  IL_004d
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  ldloc.0
+  IL_001c:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
+  IL_0021:  brfalse.s  IL_004d
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldloc.0
+  IL_0026:  ldc.i4.1
+  IL_0027:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int)""
+  IL_002c:  brfalse.s  IL_004d
+  IL_002e:  ldloca.s   V_1
+  IL_0030:  ldloc.0
+  IL_0031:  ldstr      ""X""
+  IL_0036:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, string)""
+  IL_003b:  brfalse.s  IL_004d
+  IL_003d:  ldloca.s   V_1
+  IL_003f:  ldloc.0
+  IL_0040:  ldc.i4.2
+  IL_0041:  ldstr      ""Y""
+  IL_0046:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_004b:  br.s       IL_004e
+  IL_004d:  ldc.i4.0
+  IL_004e:  pop
+  IL_004f:  ldloca.s   V_1
+  IL_0051:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0056:  call       ""void System.Console.WriteLine(string)""
+  IL_005b:  ret
 }
 ",
                 (useDefaultParameters: true, useBoolReturns: true) => @"
 {
-  // Code size       95 (0x5f)
+  // Code size       96 (0x60)
   .maxstack  4
   .locals init (int V_0, //a
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldc.i4.4
-  IL_0003:  ldc.i4.4
-  IL_0004:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  ldstr      ""base""
-  IL_0011:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
-  IL_0016:  brfalse.s  IL_0050
-  IL_0018:  ldloca.s   V_1
-  IL_001a:  ldloc.0
-  IL_001b:  ldc.i4.0
-  IL_001c:  ldnull
-  IL_001d:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
-  IL_0022:  brfalse.s  IL_0050
-  IL_0024:  ldloca.s   V_1
-  IL_0026:  ldloc.0
-  IL_0027:  ldc.i4.1
-  IL_0028:  ldnull
-  IL_0029:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
-  IL_002e:  brfalse.s  IL_0050
-  IL_0030:  ldloca.s   V_1
-  IL_0032:  ldloc.0
-  IL_0033:  ldc.i4.0
-  IL_0034:  ldstr      ""X""
-  IL_0039:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
-  IL_003e:  brfalse.s  IL_0050
-  IL_0040:  ldloca.s   V_1
-  IL_0042:  ldloc.0
-  IL_0043:  ldc.i4.2
-  IL_0044:  ldstr      ""Y""
-  IL_0049:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
-  IL_004e:  br.s       IL_0051
-  IL_0050:  ldc.i4.0
-  IL_0051:  pop
-  IL_0052:  ldloca.s   V_1
-  IL_0054:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_0059:  call       ""void System.Console.WriteLine(string)""
-  IL_005e:  ret
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.4
+  IL_0005:  ldc.i4.4
+  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldstr      ""base""
+  IL_0012:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0017:  brfalse.s  IL_0051
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  ldloc.0
+  IL_001c:  ldc.i4.0
+  IL_001d:  ldnull
+  IL_001e:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_0023:  brfalse.s  IL_0051
+  IL_0025:  ldloca.s   V_1
+  IL_0027:  ldloc.0
+  IL_0028:  ldc.i4.1
+  IL_0029:  ldnull
+  IL_002a:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_002f:  brfalse.s  IL_0051
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  ldloc.0
+  IL_0034:  ldc.i4.0
+  IL_0035:  ldstr      ""X""
+  IL_003a:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_003f:  brfalse.s  IL_0051
+  IL_0041:  ldloca.s   V_1
+  IL_0043:  ldloc.0
+  IL_0044:  ldc.i4.2
+  IL_0045:  ldstr      ""Y""
+  IL_004a:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_004f:  br.s       IL_0052
+  IL_0051:  ldc.i4.0
+  IL_0052:  pop
+  IL_0053:  ldloca.s   V_1
+  IL_0055:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_005a:  call       ""void System.Console.WriteLine(string)""
+  IL_005f:  ret
 }
 ",
             };
@@ -1587,177 +1585,176 @@ value:1,alignment:2:format:Y";
             {
                 (useDefaultParameters: false, useBoolReturns: false) => @"
 {
-  // Code size       88 (0x58)
+  // Code size       89 (0x59)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
   IL_0000:  ldstr      ""1""
   IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
-  IL_000b:  ldc.i4.4
-  IL_000c:  ldc.i4.4
-  IL_000d:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0012:  stloc.1
-  IL_0013:  ldloca.s   V_1
-  IL_0015:  ldstr      ""base""
-  IL_001a:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
-  IL_001f:  ldloca.s   V_1
-  IL_0021:  ldloc.0
-  IL_0022:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
-  IL_0027:  ldloca.s   V_1
-  IL_0029:  ldloc.0
-  IL_002a:  ldc.i4.1
-  IL_002b:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int)""
-  IL_0030:  ldloca.s   V_1
-  IL_0032:  ldloc.0
-  IL_0033:  ldstr      ""X""
-  IL_0038:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, string)""
-  IL_003d:  ldloca.s   V_1
-  IL_003f:  ldloc.0
-  IL_0040:  ldc.i4.2
-  IL_0041:  ldstr      ""Y""
-  IL_0046:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_004b:  ldloca.s   V_1
-  IL_004d:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_0052:  call       ""void System.Console.WriteLine(string)""
-  IL_0057:  ret
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldc.i4.4
+  IL_000e:  ldc.i4.4
+  IL_000f:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  ldstr      ""base""
+  IL_001b:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
+  IL_0028:  ldloca.s   V_1
+  IL_002a:  ldloc.0
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int)""
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""X""
+  IL_0039:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, string)""
+  IL_003e:  ldloca.s   V_1
+  IL_0040:  ldloc.0
+  IL_0041:  ldc.i4.2
+  IL_0042:  ldstr      ""Y""
+  IL_0047:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_004c:  ldloca.s   V_1
+  IL_004e:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0053:  call       ""void System.Console.WriteLine(string)""
+  IL_0058:  ret
 }
 ",
                 (useDefaultParameters: true, useBoolReturns: false) => @"
 {
-  // Code size       92 (0x5c)
+  // Code size       93 (0x5d)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
   IL_0000:  ldstr      ""1""
   IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
-  IL_000b:  ldc.i4.4
-  IL_000c:  ldc.i4.4
-  IL_000d:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0012:  stloc.1
-  IL_0013:  ldloca.s   V_1
-  IL_0015:  ldstr      ""base""
-  IL_001a:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
-  IL_001f:  ldloca.s   V_1
-  IL_0021:  ldloc.0
-  IL_0022:  ldc.i4.0
-  IL_0023:  ldnull
-  IL_0024:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_0029:  ldloca.s   V_1
-  IL_002b:  ldloc.0
-  IL_002c:  ldc.i4.1
-  IL_002d:  ldnull
-  IL_002e:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_0033:  ldloca.s   V_1
-  IL_0035:  ldloc.0
-  IL_0036:  ldc.i4.0
-  IL_0037:  ldstr      ""X""
-  IL_003c:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_0041:  ldloca.s   V_1
-  IL_0043:  ldloc.0
-  IL_0044:  ldc.i4.2
-  IL_0045:  ldstr      ""Y""
-  IL_004a:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_004f:  ldloca.s   V_1
-  IL_0051:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_0056:  call       ""void System.Console.WriteLine(string)""
-  IL_005b:  ret
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldc.i4.4
+  IL_000e:  ldc.i4.4
+  IL_000f:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  ldstr      ""base""
+  IL_001b:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  ldc.i4.0
+  IL_0024:  ldnull
+  IL_0025:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_002a:  ldloca.s   V_1
+  IL_002c:  ldloc.0
+  IL_002d:  ldc.i4.1
+  IL_002e:  ldnull
+  IL_002f:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0034:  ldloca.s   V_1
+  IL_0036:  ldloc.0
+  IL_0037:  ldc.i4.0
+  IL_0038:  ldstr      ""X""
+  IL_003d:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0042:  ldloca.s   V_1
+  IL_0044:  ldloc.0
+  IL_0045:  ldc.i4.2
+  IL_0046:  ldstr      ""Y""
+  IL_004b:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0050:  ldloca.s   V_1
+  IL_0052:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0057:  call       ""void System.Console.WriteLine(string)""
+  IL_005c:  ret
 }
 ",
                 (useDefaultParameters: false, useBoolReturns: true) => @"
 {
-  // Code size      100 (0x64)
+  // Code size      101 (0x65)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
   IL_0000:  ldstr      ""1""
   IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
-  IL_000b:  ldc.i4.4
-  IL_000c:  ldc.i4.4
-  IL_000d:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0012:  stloc.1
-  IL_0013:  ldloca.s   V_1
-  IL_0015:  ldstr      ""base""
-  IL_001a:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
-  IL_001f:  brfalse.s  IL_0055
-  IL_0021:  ldloca.s   V_1
-  IL_0023:  ldloc.0
-  IL_0024:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
-  IL_0029:  brfalse.s  IL_0055
-  IL_002b:  ldloca.s   V_1
-  IL_002d:  ldloc.0
-  IL_002e:  ldc.i4.1
-  IL_002f:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int)""
-  IL_0034:  brfalse.s  IL_0055
-  IL_0036:  ldloca.s   V_1
-  IL_0038:  ldloc.0
-  IL_0039:  ldstr      ""X""
-  IL_003e:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, string)""
-  IL_0043:  brfalse.s  IL_0055
-  IL_0045:  ldloca.s   V_1
-  IL_0047:  ldloc.0
-  IL_0048:  ldc.i4.2
-  IL_0049:  ldstr      ""Y""
-  IL_004e:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_0053:  br.s       IL_0056
-  IL_0055:  ldc.i4.0
-  IL_0056:  pop
-  IL_0057:  ldloca.s   V_1
-  IL_0059:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_005e:  call       ""void System.Console.WriteLine(string)""
-  IL_0063:  ret
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldc.i4.4
+  IL_000e:  ldc.i4.4
+  IL_000f:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  ldstr      ""base""
+  IL_001b:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0020:  brfalse.s  IL_0056
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  ldloc.0
+  IL_0025:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
+  IL_002a:  brfalse.s  IL_0056
+  IL_002c:  ldloca.s   V_1
+  IL_002e:  ldloc.0
+  IL_002f:  ldc.i4.1
+  IL_0030:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int)""
+  IL_0035:  brfalse.s  IL_0056
+  IL_0037:  ldloca.s   V_1
+  IL_0039:  ldloc.0
+  IL_003a:  ldstr      ""X""
+  IL_003f:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, string)""
+  IL_0044:  brfalse.s  IL_0056
+  IL_0046:  ldloca.s   V_1
+  IL_0048:  ldloc.0
+  IL_0049:  ldc.i4.2
+  IL_004a:  ldstr      ""Y""
+  IL_004f:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0054:  br.s       IL_0057
+  IL_0056:  ldc.i4.0
+  IL_0057:  pop
+  IL_0058:  ldloca.s   V_1
+  IL_005a:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_005f:  call       ""void System.Console.WriteLine(string)""
+  IL_0064:  ret
 }
 ",
                 (useDefaultParameters: true, useBoolReturns: true) => @"
-
 {
-  // Code size      104 (0x68)
+  // Code size      105 (0x69)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
   IL_0000:  ldstr      ""1""
   IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
-  IL_000b:  ldc.i4.4
-  IL_000c:  ldc.i4.4
-  IL_000d:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0012:  stloc.1
-  IL_0013:  ldloca.s   V_1
-  IL_0015:  ldstr      ""base""
-  IL_001a:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
-  IL_001f:  brfalse.s  IL_0059
-  IL_0021:  ldloca.s   V_1
-  IL_0023:  ldloc.0
-  IL_0024:  ldc.i4.0
-  IL_0025:  ldnull
-  IL_0026:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_002b:  brfalse.s  IL_0059
-  IL_002d:  ldloca.s   V_1
-  IL_002f:  ldloc.0
-  IL_0030:  ldc.i4.1
-  IL_0031:  ldnull
-  IL_0032:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_0037:  brfalse.s  IL_0059
-  IL_0039:  ldloca.s   V_1
-  IL_003b:  ldloc.0
-  IL_003c:  ldc.i4.0
-  IL_003d:  ldstr      ""X""
-  IL_0042:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_0047:  brfalse.s  IL_0059
-  IL_0049:  ldloca.s   V_1
-  IL_004b:  ldloc.0
-  IL_004c:  ldc.i4.2
-  IL_004d:  ldstr      ""Y""
-  IL_0052:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_0057:  br.s       IL_005a
-  IL_0059:  ldc.i4.0
-  IL_005a:  pop
-  IL_005b:  ldloca.s   V_1
-  IL_005d:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_0062:  call       ""void System.Console.WriteLine(string)""
-  IL_0067:  ret
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldc.i4.4
+  IL_000e:  ldc.i4.4
+  IL_000f:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  ldstr      ""base""
+  IL_001b:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0020:  brfalse.s  IL_005a
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  ldloc.0
+  IL_0025:  ldc.i4.0
+  IL_0026:  ldnull
+  IL_0027:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_002c:  brfalse.s  IL_005a
+  IL_002e:  ldloca.s   V_1
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.1
+  IL_0032:  ldnull
+  IL_0033:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0038:  brfalse.s  IL_005a
+  IL_003a:  ldloca.s   V_1
+  IL_003c:  ldloc.0
+  IL_003d:  ldc.i4.0
+  IL_003e:  ldstr      ""X""
+  IL_0043:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0048:  brfalse.s  IL_005a
+  IL_004a:  ldloca.s   V_1
+  IL_004c:  ldloc.0
+  IL_004d:  ldc.i4.2
+  IL_004e:  ldstr      ""Y""
+  IL_0053:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0058:  br.s       IL_005b
+  IL_005a:  ldc.i4.0
+  IL_005b:  pop
+  IL_005c:  ldloca.s   V_1
+  IL_005e:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0063:  call       ""void System.Console.WriteLine(string)""
+  IL_0068:  ret
 }
 ",
             };
@@ -1796,25 +1793,81 @@ Task<int> Hole() => Task.FromResult(1);";
 
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"base1");
 
-            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+            verifier.VerifyIL("<Program>$.<<Main>$>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size       47 (0x2f)
-  .maxstack  2
-  .locals init (<Program>$.<<Main>$>d__0 V_0)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
-  IL_0007:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
-  IL_000c:  ldloca.s   V_0
-  IL_000e:  ldc.i4.m1
-  IL_000f:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
-  IL_0014:  ldloca.s   V_0
-  IL_0016:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
-  IL_001b:  ldloca.s   V_0
-  IL_001d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<<Program>$.<<Main>$>d__0>(ref <Program>$.<<Main>$>d__0)""
-  IL_0022:  ldloca.s   V_0
-  IL_0024:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
-  IL_0029:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
-  IL_002e:  ret
+  // Code size      164 (0xa4)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_003e
+    IL_000a:  call       ""System.Threading.Tasks.Task<int> <Program>$.<<Main>$>g__Hole|0_0()""
+    IL_000f:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0014:  stloc.2
+    IL_0015:  ldloca.s   V_2
+    IL_0017:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_001c:  brtrue.s   IL_005a
+    IL_001e:  ldarg.0
+    IL_001f:  ldc.i4.0
+    IL_0020:  dup
+    IL_0021:  stloc.0
+    IL_0022:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0027:  ldarg.0
+    IL_0028:  ldloc.2
+    IL_0029:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_002e:  ldarg.0
+    IL_002f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_0034:  ldloca.s   V_2
+    IL_0036:  ldarg.0
+    IL_0037:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, <Program>$.<<Main>$>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref <Program>$.<<Main>$>d__0)""
+    IL_003c:  leave.s    IL_00a3
+    IL_003e:  ldarg.0
+    IL_003f:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_0044:  stloc.2
+    IL_0045:  ldarg.0
+    IL_0046:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> <Program>$.<<Main>$>d__0.<>u__1""
+    IL_004b:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0051:  ldarg.0
+    IL_0052:  ldc.i4.m1
+    IL_0053:  dup
+    IL_0054:  stloc.0
+    IL_0055:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_005a:  ldloca.s   V_2
+    IL_005c:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0061:  stloc.1
+    IL_0062:  ldstr      ""base{0}""
+    IL_0067:  ldloc.1
+    IL_0068:  box        ""int""
+    IL_006d:  call       ""string string.Format(string, object)""
+    IL_0072:  call       ""void System.Console.WriteLine(string)""
+    IL_0077:  leave.s    IL_0090
+  }
+  catch System.Exception
+  {
+    IL_0079:  stloc.3
+    IL_007a:  ldarg.0
+    IL_007b:  ldc.i4.s   -2
+    IL_007d:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+    IL_0082:  ldarg.0
+    IL_0083:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+    IL_0088:  ldloc.3
+    IL_0089:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_008e:  leave.s    IL_00a3
+  }
+  IL_0090:  ldarg.0
+  IL_0091:  ldc.i4.s   -2
+  IL_0093:  stfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
+  IL_0098:  ldarg.0
+  IL_0099:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder <Program>$.<<Main>$>d__0.<>t__builder""
+  IL_009e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00a3:  ret
 }
 ");
         }
@@ -1888,7 +1941,7 @@ value:1");
     IL_0061:  stloc.1
     IL_0062:  ldc.i4.4
     IL_0063:  ldc.i4.1
-    IL_0064:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
+    IL_0064:  newobj     ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
     IL_0069:  stloc.3
     IL_006a:  ldloca.s   V_3
     IL_006c:  ldstr      ""base""
@@ -2009,7 +2062,7 @@ value:2");
     IL_0079:  ldarg.0
     IL_007a:  ldc.i4.4
     IL_007b:  ldc.i4.1
-    IL_007c:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
+    IL_007c:  newobj     ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
     IL_0081:  stloc.3
     IL_0082:  ldloca.s   V_3
     IL_0084:  ldstr      ""base""
@@ -2100,7 +2153,6 @@ namespace System.Runtime.CompilerServices
 {
     public ref struct InterpolatedStringBuilder
     {
-        public InterpolatedStringBuilder(int literalLength) => throw null;
         public override string ToString() => throw null;
         public void Dispose() => throw null;
         public void AppendLiteral(string value) => throw null;
@@ -2111,12 +2163,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(new[] { code, interpolatedStringBuilder });
             comp.VerifyDiagnostics(
-                // (1,5): error CS0117: 'InterpolatedStringBuilder' does not contain a definition for 'Create'
+                // (1,5): error CS1729: 'InterpolatedStringBuilder' does not contain a constructor that takes 2 arguments
                 // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_NoSuchMember, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder", "Create").WithLocation(1, 5),
-                // (1,5): error CS9003: Interpolated string builder type 'InterpolatedStringBuilder' does not have a valid 'Create' method.
-                // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderInvalidCreateMethod, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder", "2").WithLocation(1, 5)
             );
         }
 
@@ -2130,7 +2179,6 @@ namespace System.Runtime.CompilerServices
 {
     public ref struct InterpolatedStringBuilder
     {
-        public static InterpolatedStringBuilder Create(int literalLength) => throw null;
         public InterpolatedStringBuilder(int literalLength) => throw null;
         public override string ToString() => throw null;
         public void Dispose() => throw null;
@@ -2142,9 +2190,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(new[] { code, interpolatedStringBuilder });
             comp.VerifyDiagnostics(
-                // (1,5): error CS1501: No overload for method 'Create' takes 2 arguments
+                // (1,5): error CS1729: 'InterpolatedStringBuilder' does not contain a constructor that takes 2 arguments
                 // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_BadArgCount, @"$""{(object)1}""").WithArguments("Create", "2").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder", "2").WithLocation(1, 5)
             );
         }
 
@@ -2158,8 +2206,7 @@ namespace System.Runtime.CompilerServices
 {
     public ref struct InterpolatedStringBuilder
     {
-        public static void Create(int literalLength) => throw null;
-        public InterpolatedStringBuilder(int literalLength) => throw null;
+        public InterpolatedStringBuilder(ref int literalLength, int formattedCount) => throw null;
         public override string ToString() => throw null;
         public void Dispose() => throw null;
         public void AppendLiteral(string value) => throw null;
@@ -2169,41 +2216,11 @@ namespace System.Runtime.CompilerServices
 ";
 
             var comp = CreateCompilation(new[] { code, interpolatedStringBuilder });
+            // PROTOTYPE(interp-string): Better error here?
             comp.VerifyDiagnostics(
-                // (1,5): error CS1501: No overload for method 'Create' takes 2 arguments
+                // (1,5): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_BadArgCount, @"$""{(object)1}""").WithArguments("Create", "2").WithLocation(1, 5),
-                // (1,5): error CS9003: Interpolated string builder type 'InterpolatedStringBuilder' does not have a valid 'Create' method.
-                // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderInvalidCreateMethod, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder").WithLocation(1, 5)
-            );
-        }
-
-        [ConditionalFact(typeof(NoIOperationValidation))]
-        public void MissingCreate_04()
-        {
-            var code = @"_ = $""{(object)1}"";";
-
-            var interpolatedStringBuilder = @"
-namespace System.Runtime.CompilerServices
-{
-    public ref struct InterpolatedStringBuilder
-    {
-        public InterpolatedStringBuilder Create(int literalLength, int formattedCount) => throw null;
-        public InterpolatedStringBuilder(int literalLength) => throw null;
-        public override string ToString() => throw null;
-        public void Dispose() => throw null;
-        public void AppendLiteral(string value) => throw null;
-        public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
-    }
-}
-";
-
-            var comp = CreateCompilation(new[] { code, interpolatedStringBuilder });
-            comp.VerifyDiagnostics(
-                // (1,5): error CS0120: An object reference is required for the non-static field, method, or property 'InterpolatedStringBuilder.Create(int, int)'
-                // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_ObjectRequired, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_BadArgRef, @"$""{(object)1}""").WithArguments("1", "ref").WithLocation(1, 5)
             );
         }
 
@@ -2221,8 +2238,7 @@ namespace System.Runtime.CompilerServices
 {
     public ref struct InterpolatedStringBuilder
     {
-        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => throw null;
-        public InterpolatedStringBuilder(int literalLength) => throw null;
+        public InterpolatedStringBuilder(int literalLength, int formattedCount) => throw null;
         " + toStringAndClearMethod + @"
         public override string ToString() => throw null;
         public void AppendLiteral(string value) => throw null;
@@ -2240,8 +2256,6 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        // PROTOTYPE(interp-string): Should we hard error on malformed Append... methods in the well-known InterpolatedStringBuilder as well?
-
         [ConditionalFact(typeof(NoIOperationValidation))]
         public void ObsoleteCreateMethod()
         {
@@ -2252,9 +2266,8 @@ namespace System.Runtime.CompilerServices
 {
     public ref struct InterpolatedStringBuilder
     {
-        [System.Obsolete(""Create is obsolete"", error: true)]
-        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => throw null;
-        public InterpolatedStringBuilder(int baseLength) => throw null;
+        [System.Obsolete(""Constructor is obsolete"", error: true)]
+        public InterpolatedStringBuilder(int literalLength, int formattedCount) => throw null;
         public void Dispose() => throw null;
         public override string ToString() => throw null;
         public void AppendLiteral(string value) => throw null;
@@ -2265,9 +2278,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(new[] { code, interpolatedStringBuilder });
             comp.VerifyDiagnostics(
-                // (1,5): error CS0619: 'InterpolatedStringBuilder.Create(int, int)' is obsolete: 'Create is obsolete'
+                // (1,5): error CS0619: 'InterpolatedStringBuilder.InterpolatedStringBuilder(int, int)' is obsolete: 'Constructor is obsolete'
                 // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)", "Create is obsolete").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.InterpolatedStringBuilder(int, int)", "Constructor is obsolete").WithLocation(1, 5)
             );
         }
 
@@ -2281,8 +2294,7 @@ namespace System.Runtime.CompilerServices
 {
     public ref struct InterpolatedStringBuilder
     {
-        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => throw null;
-        public InterpolatedStringBuilder(int literalLength) => throw null;
+        public InterpolatedStringBuilder(int literalLength, int formattedCount) => throw null;
         public void Dispose() => throw null;
         public override string ToString() => throw null;
         [System.Obsolete(""AppendLiteral is obsolete"", error: true)]
@@ -2310,8 +2322,7 @@ namespace System.Runtime.CompilerServices
 {
     public ref struct InterpolatedStringBuilder
     {
-        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => throw null;
-        public InterpolatedStringBuilder(int literalLength) => throw null;
+        public InterpolatedStringBuilder(int literalLength, int formattedCount) => throw null;
         public void Dispose() => throw null;
         public override string ToString() => throw null;
         public void AppendLiteral(string value) => throw null;
@@ -2326,49 +2337,6 @@ namespace System.Runtime.CompilerServices
                 // (1,11): error CS0619: 'InterpolatedStringBuilder.AppendFormatted<T>(T, int, string)' is obsolete: 'AppendFormatted is obsolete'
                 // _ = $"base{(object)1}";
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{(object)1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<T>(T, int, string)", "AppendFormatted is obsolete").WithLocation(1, 11)
-            );
-        }
-
-        [ConditionalFact(typeof(NoIOperationValidation))]
-        public void UnmanagedCallersOnlyCreateMethod()
-        {
-            var code = @"_ = $""{(object)1}"";";
-
-            var interpolatedStringBuilder = @"
-namespace System.Runtime.CompilerServices
-{
-    public ref struct InterpolatedStringBuilder
-    {
-        [System.Runtime.InteropServices.UnmanagedCallersOnly]
-        public static InterpolatedStringBuilder Create(int baseLength, int numFormatHoles) => throw null;
-        public InterpolatedStringBuilder(int baseLength) => throw null;
-        public string ToStringAndClear() => throw null;
-        public void AppendLiteral(string value) => throw null;
-        public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
-    }
-}
-namespace System.Runtime.InteropServices
-{
-    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
-    public sealed class UnmanagedCallersOnlyAttribute : Attribute
-    {
-        public UnmanagedCallersOnlyAttribute()
-        {
-        }
-
-        public Type[] CallConvs;
-        public string EntryPoint;
-    }
-}
-";
-
-            var comp1 = CreateCompilation(interpolatedStringBuilder, targetFramework: TargetFramework.NetCoreApp);
-
-            var comp = CreateCompilation(new[] { code }, references: new[] { comp1.EmitToImageReference() });
-            comp.VerifyDiagnostics(
-                // (1,5): error CS8901: 'InterpolatedStringBuilder.Create(int, int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
-                // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)").WithLocation(1, 5)
             );
         }
 
@@ -2413,24 +2381,10 @@ namespace System.Runtime.InteropServices
     .pack 0
     .size 1
 
-    // Methods
-    .method public hidebysig static 
-        valuetype System.Runtime.CompilerServices.InterpolatedStringBuilder Create (
-            int32 literalLength,
-            int32 formattedCount
-        ) cil managed 
-    {
-        .locals init (
-            [0] valuetype System.Runtime.CompilerServices.InterpolatedStringBuilder
-        )
-
-        ldnull
-        throw
-    }
-
     .method public hidebysig specialname rtspecialname 
         instance void .ctor (
-            int32 literalLength
+            int32 literalLength,
+            int32 formattedCount
         ) cil managed 
     {
         ldnull
@@ -2510,24 +2464,10 @@ namespace System.Runtime.InteropServices
     .pack 0
     .size 1
 
-    // Methods
-    .method public hidebysig static 
-        valuetype System.Runtime.CompilerServices.InterpolatedStringBuilder Create (
-            int32 literalLength,
-            int32 formattedCount
-        ) cil managed 
-    {
-        .locals init (
-            [0] valuetype System.Runtime.CompilerServices.InterpolatedStringBuilder
-        )
-
-        ldnull
-        throw
-    }
-
     .method public hidebysig specialname rtspecialname 
         instance void .ctor (
-            int32 literalLength
+            int32 literalLength,
+            int32 formattedCount
         ) cil managed 
     {
         ldnull
@@ -2620,46 +2560,46 @@ value:");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       80 (0x50)
-  .maxstack  2
+  // Code size       81 (0x51)
+  .maxstack  3
   .locals init (bool V_0, //b
                 object V_1,
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldc.i4.0
-  IL_0003:  ldc.i4.4
-  IL_0004:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0009:  stloc.2
-  IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_0016
-  IL_000d:  ldc.i4.1
-  IL_000e:  box        ""int""
-  IL_0013:  stloc.1
-  IL_0014:  br.s       IL_0018
-  IL_0016:  ldnull
-  IL_0017:  stloc.1
-  IL_0018:  ldloca.s   V_2
-  IL_001a:  ldloc.1
-  IL_001b:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)""
-  IL_0020:  ldloca.s   V_2
-  IL_0022:  ldloc.0
-  IL_0023:  brfalse.s  IL_002d
-  IL_0025:  ldc.i4.2
-  IL_0026:  box        ""int""
-  IL_002b:  br.s       IL_002e
-  IL_002d:  ldnull
-  IL_002e:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)""
-  IL_0033:  ldloca.s   V_2
-  IL_0035:  ldnull
-  IL_0036:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(string)""
-  IL_003b:  ldloca.s   V_2
-  IL_003d:  ldnull
-  IL_003e:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(string)""
-  IL_0043:  ldloca.s   V_2
-  IL_0045:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_004a:  call       ""void System.Console.WriteLine(string)""
-  IL_004f:  ret
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldc.i4.4
+  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_000b:  ldloc.0
+  IL_000c:  brfalse.s  IL_0017
+  IL_000e:  ldc.i4.1
+  IL_000f:  box        ""int""
+  IL_0014:  stloc.1
+  IL_0015:  br.s       IL_0019
+  IL_0017:  ldnull
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  ldloc.1
+  IL_001c:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)""
+  IL_0021:  ldloca.s   V_2
+  IL_0023:  ldloc.0
+  IL_0024:  brfalse.s  IL_002e
+  IL_0026:  ldc.i4.2
+  IL_0027:  box        ""int""
+  IL_002c:  br.s       IL_002f
+  IL_002e:  ldnull
+  IL_002f:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)""
+  IL_0034:  ldloca.s   V_2
+  IL_0036:  ldnull
+  IL_0037:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(string)""
+  IL_003c:  ldloca.s   V_2
+  IL_003e:  ldnull
+  IL_003f:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(string)""
+  IL_0044:  ldloca.s   V_2
+  IL_0046:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_004b:  call       ""void System.Console.WriteLine(string)""
+  IL_0050:  ret
 }
 ");
         }
@@ -2712,32 +2652,32 @@ System.Console.WriteLine($""{$""{i}""}"");";
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       53 (0x35)
-  .maxstack  3
+  // Code size       55 (0x37)
+  .maxstack  4
   .locals init (int V_0, //i
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_1,
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldc.i4.0
-  IL_0003:  ldc.i4.1
-  IL_0004:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  ldc.i4.0
-  IL_000d:  ldc.i4.1
-  IL_000e:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0013:  stloc.2
-  IL_0014:  ldloca.s   V_2
-  IL_0016:  ldloc.0
-  IL_0017:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
-  IL_001c:  ldloca.s   V_2
-  IL_001e:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_0023:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(string)""
-  IL_0028:  ldloca.s   V_1
-  IL_002a:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_002f:  call       ""void System.Console.WriteLine(string)""
-  IL_0034:  ret
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0016:  ldloca.s   V_2
+  IL_0018:  ldloc.0
+  IL_0019:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
+  IL_001e:  ldloca.s   V_2
+  IL_0020:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0025:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(string)""
+  IL_002a:  ldloca.s   V_1
+  IL_002c:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0031:  call       ""void System.Console.WriteLine(string)""
+  IL_0036:  ret
 }
 ");
         }
@@ -2774,8 +2714,8 @@ Caught");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       94 (0x5e)
-  .maxstack  3
+  // Code size       95 (0x5f)
+  .maxstack  4
   .locals init (int V_0, //i
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
   IL_0000:  ldc.i4.1
@@ -2797,30 +2737,30 @@ Caught");
     IL_001f:  brtrue.s   IL_0025
     IL_0021:  pop
     IL_0022:  ldc.i4.0
-    IL_0023:  br.s       IL_004e
+    IL_0023:  br.s       IL_004f
     IL_0025:  callvirt   ""string object.ToString()""
-    IL_002a:  ldc.i4.0
-    IL_002b:  ldc.i4.1
-    IL_002c:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-    IL_0031:  stloc.1
-    IL_0032:  ldloca.s   V_1
-    IL_0034:  ldloc.0
-    IL_0035:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
-    IL_003a:  ldloca.s   V_1
-    IL_003c:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-    IL_0041:  callvirt   ""string string.Trim()""
-    IL_0046:  call       ""bool string.op_Equality(string, string)""
-    IL_004b:  ldc.i4.0
-    IL_004c:  cgt.un
-    IL_004e:  endfilter
+    IL_002a:  ldloca.s   V_1
+    IL_002c:  ldc.i4.0
+    IL_002d:  ldc.i4.1
+    IL_002e:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+    IL_0033:  ldloca.s   V_1
+    IL_0035:  ldloc.0
+    IL_0036:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
+    IL_003b:  ldloca.s   V_1
+    IL_003d:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+    IL_0042:  callvirt   ""string string.Trim()""
+    IL_0047:  call       ""bool string.op_Equality(string, string)""
+    IL_004c:  ldc.i4.0
+    IL_004d:  cgt.un
+    IL_004f:  endfilter
   }  // end filter
   {  // handler
-    IL_0050:  pop
-    IL_0051:  ldstr      ""Caught""
-    IL_0056:  call       ""void System.Console.WriteLine(string)""
-    IL_005b:  leave.s    IL_005d
+    IL_0051:  pop
+    IL_0052:  ldstr      ""Caught""
+    IL_0057:  call       ""void System.Console.WriteLine(string)""
+    IL_005c:  leave.s    IL_005e
   }
-  IL_005d:  ret
+  IL_005e:  ret
 }
 ");
         }
@@ -2858,7 +2798,7 @@ Caught");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size      121 (0x79)
+  // Code size      122 (0x7a)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //s
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
@@ -2889,30 +2829,30 @@ Caught");
     IL_003a:  brtrue.s   IL_0040
     IL_003c:  pop
     IL_003d:  ldc.i4.0
-    IL_003e:  br.s       IL_0069
+    IL_003e:  br.s       IL_006a
     IL_0040:  callvirt   ""string object.ToString()""
-    IL_0045:  ldc.i4.0
-    IL_0046:  ldc.i4.1
-    IL_0047:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-    IL_004c:  stloc.1
-    IL_004d:  ldloca.s   V_1
-    IL_004f:  ldloc.0
-    IL_0050:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
-    IL_0055:  ldloca.s   V_1
-    IL_0057:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-    IL_005c:  callvirt   ""string string.Trim()""
-    IL_0061:  call       ""bool string.op_Equality(string, string)""
-    IL_0066:  ldc.i4.0
-    IL_0067:  cgt.un
-    IL_0069:  endfilter
+    IL_0045:  ldloca.s   V_1
+    IL_0047:  ldc.i4.0
+    IL_0048:  ldc.i4.1
+    IL_0049:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+    IL_004e:  ldloca.s   V_1
+    IL_0050:  ldloc.0
+    IL_0051:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
+    IL_0056:  ldloca.s   V_1
+    IL_0058:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+    IL_005d:  callvirt   ""string string.Trim()""
+    IL_0062:  call       ""bool string.op_Equality(string, string)""
+    IL_0067:  ldc.i4.0
+    IL_0068:  cgt.un
+    IL_006a:  endfilter
   }  // end filter
   {  // handler
-    IL_006b:  pop
-    IL_006c:  ldstr      ""Caught""
-    IL_0071:  call       ""void System.Console.WriteLine(string)""
-    IL_0076:  leave.s    IL_0078
+    IL_006c:  pop
+    IL_006d:  ldstr      ""Caught""
+    IL_0072:  call       ""void System.Console.WriteLine(string)""
+    IL_0077:  leave.s    IL_0079
   }
-  IL_0078:  ret
+  IL_0079:  ret
 }
 ");
         }
@@ -2947,8 +2887,8 @@ value:C");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       56 (0x38)
-  .maxstack  2
+  // Code size       57 (0x39)
+  .maxstack  3
   .locals init (S V_0, //s
                 C V_1, //c
                 System.Runtime.CompilerServices.InterpolatedStringBuilder V_2)
@@ -2956,21 +2896,21 @@ value:C");
   IL_0002:  initobj    ""S""
   IL_0008:  newobj     ""C..ctor()""
   IL_000d:  stloc.1
-  IL_000e:  ldc.i4.0
-  IL_000f:  ldc.i4.2
-  IL_0010:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0015:  stloc.2
-  IL_0016:  ldloca.s   V_2
-  IL_0018:  ldloc.0
-  IL_0019:  call       ""System.ReadOnlySpan<char> S.op_Implicit(S)""
-  IL_001e:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
-  IL_0023:  ldloca.s   V_2
-  IL_0025:  ldloc.1
-  IL_0026:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<C>(C)""
-  IL_002b:  ldloca.s   V_2
-  IL_002d:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
+  IL_000e:  ldloca.s   V_2
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldc.i4.2
+  IL_0012:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0017:  ldloca.s   V_2
+  IL_0019:  ldloc.0
+  IL_001a:  call       ""System.ReadOnlySpan<char> S.op_Implicit(S)""
+  IL_001f:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
+  IL_0024:  ldloca.s   V_2
+  IL_0026:  ldloc.1
+  IL_0027:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<C>(C)""
+  IL_002c:  ldloca.s   V_2
+  IL_002e:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0033:  call       ""void System.Console.WriteLine(string)""
+  IL_0038:  ret
 }
 ");
         }
@@ -3019,9 +2959,8 @@ namespace System.Runtime.CompilerServices
     using System.Text;
     public ref struct InterpolatedStringBuilder
     {
-        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength)
+        public InterpolatedStringBuilder(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -3036,25 +2975,25 @@ literal:Text
 value:1");
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       51 (0x33)
-  .maxstack  2
+  // Code size       52 (0x34)
+  .maxstack  3
   .locals init (System.Runtime.CompilerServices.InterpolatedStringBuilder V_0)
-  IL_0000:  ldc.i4.4
-  IL_0001:  ldc.i4.1
-  IL_0002:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder System.Runtime.CompilerServices.InterpolatedStringBuilder.Create(int, int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldstr      ""Text""
-  IL_000f:  call       ""CustomStruct CustomStruct.op_Implicit(string)""
-  IL_0014:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(CustomStruct)""
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  ldc.i4.1
-  IL_001c:  box        ""int""
-  IL_0021:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)""
-  IL_0026:  ldloca.s   V_0
-  IL_0028:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_002d:  call       ""void System.Console.WriteLine(string)""
-  IL_0032:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.4
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldstr      ""Text""
+  IL_0010:  call       ""CustomStruct CustomStruct.op_Implicit(string)""
+  IL_0015:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(CustomStruct)""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  ldc.i4.1
+  IL_001d:  box        ""int""
+  IL_0022:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)""
+  IL_0027:  ldloca.s   V_0
+  IL_0029:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_002e:  call       ""void System.Console.WriteLine(string)""
+  IL_0033:  ret
 }
 ");
         }
@@ -3079,9 +3018,8 @@ namespace System.Runtime.CompilerServices
     using System.Text;
     public ref struct InterpolatedStringBuilder
     {
-        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength)
+        public InterpolatedStringBuilder(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -3112,9 +3050,8 @@ namespace System.Runtime.CompilerServices
     using System.Text;
     public ref struct InterpolatedStringBuilder
     {
-        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength)
+        public InterpolatedStringBuilder(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -3149,9 +3086,8 @@ namespace System.Runtime.CompilerServices
     using System.Text;
     public ref struct InterpolatedStringBuilder
     {
-        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength)
+        public InterpolatedStringBuilder(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -3186,9 +3122,8 @@ namespace System.Runtime.CompilerServices
     using System.Text;
     public ref struct InterpolatedStringBuilder
     {
-        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength)
+        public InterpolatedStringBuilder(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -3222,9 +3157,8 @@ namespace System.Runtime.CompilerServices
     using System.Text;
     public ref struct InterpolatedStringBuilder
     {
-        public static InterpolatedStringBuilder Create(int literalLength, int formattedCount) => new InterpolatedStringBuilder(literalLength);
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength)
+        public InterpolatedStringBuilder(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }

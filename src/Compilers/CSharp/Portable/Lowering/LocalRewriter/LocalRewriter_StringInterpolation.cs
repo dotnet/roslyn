@@ -50,9 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builderTempSymbol = _factory.InterpolatedStringBuilderLocal(data.BuilderType, data.ScopeOfContainingExpression, node.Syntax);
             var builderTemp = _factory.Local(builderTempSymbol);
 
-            // PROTOTYPE(interp-string): Support optional out param for whether the builder was created successfully and passing in other required args
-            // var builder = Construction(baseStringLength, numFormatHoles);
-            var builderConstruction = _factory.AssignmentExpression(builderTemp, (BoundExpression)VisitCall(data.Construction));
+            // PROTOTYPE(interp-string): Support dynamic creation
+            // var builder = new BuilderType(baseStringLength, numFormatHoles);
+            Debug.Assert(data.Construction is BoundObjectCreationExpression);
+            var builderConstruction = _factory.AssignmentExpression(builderTemp, (BoundExpression)VisitObjectCreationExpression((BoundObjectCreationExpression)data.Construction));
 
             var usesBoolReturn = data.UsesBoolReturns;
             var builderPatternExpressions = ArrayBuilder<BoundExpression>.GetInstance(usesBoolReturn ? 2 : node.Parts.Length);

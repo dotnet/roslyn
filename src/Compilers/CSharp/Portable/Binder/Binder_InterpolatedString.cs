@@ -261,7 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new BoundLiteral(unconvertedInterpolatedString.Syntax, ConstantValue.Create(baseStringLength), intType) { WasCompilerGenerated = true },
                     new BoundLiteral(unconvertedInterpolatedString.Syntax, ConstantValue.Create(numFormatHoles), intType) { WasCompilerGenerated = true });
 
-                BoundCall? createExpression = BindCreateCall(unconvertedInterpolatedString.Syntax, interpolatedStringBuilderType, arguments, diagnostics);
+            // PROTOTYPE(interp-string): Support optional out param for whether the builder was created successfully and passing in other required args
+                BoundExpression? createExpression = MakeClassCreationExpression(interpolatedStringBuilderType, arguments, unconvertedInterpolatedString.Syntax, diagnostics);
 
                 result = constructWithData(
                     appendCalls,
@@ -378,7 +379,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var call = MakeInvocationExpression(part.Syntax, implicitBuilderReceiver, methodName, arguments, diagnostics, names: parameterNamesAndLocations, searchExtensionMethodsIfNecessary: false);
-                call.WasCompilerGenerated = true;
                 builderAppendCalls.Add(call);
 
                 // PROTOTYPE(interp-string): Handle dynamic
@@ -408,21 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             argumentsBuilder.Free();
             parameterNamesAndLocationsBuilder.Free();
             return (builderAppendCalls.ToImmutableAndFree(), builderPatternExpectsBool ?? false);
-        }
-
-        private BoundCall? BindCreateCall(SyntaxNode syntax, TypeSymbol builderType, ImmutableArray<BoundExpression> args, BindingDiagnosticBag diagnostics)
-        {
-            var typeExpression = new BoundTypeExpression(syntax, aliasOpt: null, boundContainingTypeOpt: null, TypeWithAnnotations.Create(builderType)) { WasCompilerGenerated = true };
-
-            var expression = MakeInvocationExpression(syntax, typeExpression, "Create", args, diagnostics);
-            if (expression is BoundCall call && call.Type.Equals(builderType, TypeCompareKind.AllIgnoreOptions))
-            {
-                call.WasCompilerGenerated = true;
-                return call;
-            }
-
-            diagnostics.Add(ErrorCode.ERR_InterpolatedStringBuilderInvalidCreateMethod, syntax.Location, builderType);
-            return null;
         }
     }
 }
