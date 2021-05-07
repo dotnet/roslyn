@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// a candidate using CamelCase matching. i.e. this code is responsible for finding the
         /// match between "cofipro" and "CodeFixProvider". 
         /// </summary>
-        private ref struct AllLowerCamelCaseMatcher
+        private readonly struct AllLowerCamelCaseMatcher
         {
             private readonly bool _includeMatchedSpans;
             private readonly string _candidate;
