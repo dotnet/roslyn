@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
-    internal partial class ValueTrackingService
+    internal static partial class ValueTracker
     {
         private class OperationCollector
         {
@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     IMethodBodyOperation methodBodyOperation => VisitReturnDescendentsAsync(methodBodyOperation, allowImplicit: true, cancellationToken),
                     IBlockOperation blockOperation => VisitReturnDescendentsAsync(blockOperation, allowImplicit: false, cancellationToken),
 
-                    // Default to reporting if there is symbol information available
-                    _ => VisitDefaultAsync(operation, cancellationToken)
+                // Default to reporting if there is symbol information available
+                _ => VisitDefaultAsync(operation, cancellationToken)
                 };
 
             private async Task VisitReturnDescendentsAsync(IOperation operation, bool allowImplicit, CancellationToken cancellationToken)
