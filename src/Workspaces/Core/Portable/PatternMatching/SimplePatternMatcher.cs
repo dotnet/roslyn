@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
     {
         private sealed partial class SimplePatternMatcher : PatternMatcher
         {
-            private PatternSegment _fullPatternSegment;
+            private readonly PatternSegment _fullPatternSegment;
 
             public SimplePatternMatcher(
                 string pattern,
