@@ -34,7 +34,7 @@
   <ValueType Name="NullableAnnotation"/>
   <ValueType Name="ErrorCode"/>
   <ValueType Name="ImmutableBindingDiagnostic"/>
-  <ValueType Name="InterpolatedStringBuilderData"/>
+  <ValueType Name="InterpolatedStringHandlerData"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -2015,17 +2015,17 @@
   </Node>
 
   <Node Name="BoundInterpolatedString" Base="BoundInterpolatedStringBase">
-    <Field Name="InterpolationData" Type="InterpolatedStringBuilderData?"/>
+    <Field Name="InterpolationData" Type="InterpolatedStringHandlerData?"/>
   </Node>
 
-  <Node Name="BoundInterpolatedStringBuilderPlaceholder" Base="BoundValuePlaceholderBase"/>
+  <Node Name="BoundInterpolatedStringHandlerPlaceholder" Base="BoundValuePlaceholderBase"/>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Alignment" Type="BoundExpression?"/>
     <Field Name="Format" Type="BoundLiteral?"/>
-    <Field Name="IsInterpolatedStringBuilderAppendCall" Type="bool"/>
+    <Field Name="IsInterpolatedStringHandlerAppendCall" Type="bool"/>
   </Node>
   
     <!-- An 'is pattern'. The fields DecisionDag, WhenTrueLabel, and WhenFalseLabel represent the inner pattern

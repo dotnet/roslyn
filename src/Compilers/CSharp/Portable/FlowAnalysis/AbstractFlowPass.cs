@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitInterpolatedStringBuilderPlaceholder(BoundInterpolatedStringBuilderPlaceholder node)
+        public override BoundNode VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
         {
             // PROTOTYPE(interp-string): handle if necessary
             return null;

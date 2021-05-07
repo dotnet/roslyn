@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis
         /// The interpoled string builder, when the interpolated string is being lowered through the builder pattern
         /// or the interpolated string expression is being converted directly to System.String.
         /// </summary>
-        InterpolatedStringBuilder = 0x102,
+        InterpolatedStringHandler = 0x102,
     }
 
     internal static class SynthesizedLocalKindExtensions

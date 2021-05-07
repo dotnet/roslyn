@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NameOfOperator,
         UnconvertedInterpolatedString,
         InterpolatedString,
-        InterpolatedStringBuilderPlaceholder,
+        InterpolatedStringHandlerPlaceholder,
         StringInsert,
         IsPatternExpression,
         ConstantPattern,
@@ -7211,7 +7211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundInterpolatedString : BoundInterpolatedStringBase
     {
-        public BoundInterpolatedString(SyntaxNode syntax, InterpolatedStringBuilderData? interpolationData, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors = false)
+        public BoundInterpolatedString(SyntaxNode syntax, InterpolatedStringHandlerData? interpolationData, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors = false)
             : base(BoundKind.InterpolatedString, syntax, parts, constantValueOpt, type, hasErrors || parts.HasErrors())
         {
 
@@ -7221,11 +7221,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public InterpolatedStringBuilderData? InterpolationData { get; }
+        public InterpolatedStringHandlerData? InterpolationData { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitInterpolatedString(this);
 
-        public BoundInterpolatedString Update(InterpolatedStringBuilderData? interpolationData, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type)
+        public BoundInterpolatedString Update(InterpolatedStringHandlerData? interpolationData, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type)
         {
             if (interpolationData.Equals(this.InterpolationData) || parts != this.Parts || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -7237,26 +7237,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundInterpolatedStringBuilderPlaceholder : BoundValuePlaceholderBase
+    internal sealed partial class BoundInterpolatedStringHandlerPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundInterpolatedStringBuilderPlaceholder(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
-            : base(BoundKind.InterpolatedStringBuilderPlaceholder, syntax, type, hasErrors)
+        public BoundInterpolatedStringHandlerPlaceholder(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.InterpolatedStringHandlerPlaceholder, syntax, type, hasErrors)
         {
         }
 
-        public BoundInterpolatedStringBuilderPlaceholder(SyntaxNode syntax, TypeSymbol? type)
-            : base(BoundKind.InterpolatedStringBuilderPlaceholder, syntax, type)
+        public BoundInterpolatedStringHandlerPlaceholder(SyntaxNode syntax, TypeSymbol? type)
+            : base(BoundKind.InterpolatedStringHandlerPlaceholder, syntax, type)
         {
         }
 
         [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitInterpolatedStringBuilderPlaceholder(this);
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitInterpolatedStringHandlerPlaceholder(this);
 
-        public BoundInterpolatedStringBuilderPlaceholder Update(TypeSymbol? type)
+        public BoundInterpolatedStringHandlerPlaceholder Update(TypeSymbol? type)
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundInterpolatedStringBuilderPlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundInterpolatedStringHandlerPlaceholder(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7266,7 +7266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundStringInsert : BoundExpression
     {
-        public BoundStringInsert(SyntaxNode syntax, BoundExpression value, BoundExpression? alignment, BoundLiteral? format, bool isInterpolatedStringBuilderAppendCall, bool hasErrors = false)
+        public BoundStringInsert(SyntaxNode syntax, BoundExpression value, BoundExpression? alignment, BoundLiteral? format, bool isInterpolatedStringHandlerAppendCall, bool hasErrors = false)
             : base(BoundKind.StringInsert, syntax, null, hasErrors || value.HasErrors() || alignment.HasErrors() || format.HasErrors())
         {
 
@@ -7275,7 +7275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Value = value;
             this.Alignment = alignment;
             this.Format = format;
-            this.IsInterpolatedStringBuilderAppendCall = isInterpolatedStringBuilderAppendCall;
+            this.IsInterpolatedStringHandlerAppendCall = isInterpolatedStringHandlerAppendCall;
         }
 
 
@@ -7287,15 +7287,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLiteral? Format { get; }
 
-        public bool IsInterpolatedStringBuilderAppendCall { get; }
+        public bool IsInterpolatedStringHandlerAppendCall { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitStringInsert(this);
 
-        public BoundStringInsert Update(BoundExpression value, BoundExpression? alignment, BoundLiteral? format, bool isInterpolatedStringBuilderAppendCall)
+        public BoundStringInsert Update(BoundExpression value, BoundExpression? alignment, BoundLiteral? format, bool isInterpolatedStringHandlerAppendCall)
         {
-            if (value != this.Value || alignment != this.Alignment || format != this.Format || isInterpolatedStringBuilderAppendCall != this.IsInterpolatedStringBuilderAppendCall)
+            if (value != this.Value || alignment != this.Alignment || format != this.Format || isInterpolatedStringHandlerAppendCall != this.IsInterpolatedStringHandlerAppendCall)
             {
-                var result = new BoundStringInsert(this.Syntax, value, alignment, format, isInterpolatedStringBuilderAppendCall, this.HasErrors);
+                var result = new BoundStringInsert(this.Syntax, value, alignment, format, isInterpolatedStringHandlerAppendCall, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8400,8 +8400,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitUnconvertedInterpolatedString((BoundUnconvertedInterpolatedString)node, arg);
                 case BoundKind.InterpolatedString:
                     return VisitInterpolatedString((BoundInterpolatedString)node, arg);
-                case BoundKind.InterpolatedStringBuilderPlaceholder:
-                    return VisitInterpolatedStringBuilderPlaceholder((BoundInterpolatedStringBuilderPlaceholder)node, arg);
+                case BoundKind.InterpolatedStringHandlerPlaceholder:
+                    return VisitInterpolatedStringHandlerPlaceholder((BoundInterpolatedStringHandlerPlaceholder)node, arg);
                 case BoundKind.StringInsert:
                     return VisitStringInsert((BoundStringInsert)node, arg);
                 case BoundKind.IsPatternExpression:
@@ -8633,7 +8633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitNameOfOperator(BoundNameOfOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitInterpolatedString(BoundInterpolatedString node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitInterpolatedStringBuilderPlaceholder(BoundInterpolatedStringBuilderPlaceholder node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitStringInsert(BoundStringInsert node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitIsPatternExpression(BoundIsPatternExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConstantPattern(BoundConstantPattern node, A arg) => this.DefaultVisit(node, arg);
@@ -8840,7 +8840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitNameOfOperator(BoundNameOfOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitInterpolatedString(BoundInterpolatedString node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitInterpolatedStringBuilderPlaceholder(BoundInterpolatedStringBuilderPlaceholder node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitStringInsert(BoundStringInsert node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConstantPattern(BoundConstantPattern node) => this.DefaultVisit(node);
@@ -9680,7 +9680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.VisitList(node.Parts);
             return null;
         }
-        public override BoundNode? VisitInterpolatedStringBuilderPlaceholder(BoundInterpolatedStringBuilderPlaceholder node) => null;
+        public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node) => null;
         public override BoundNode? VisitStringInsert(BoundStringInsert node)
         {
             this.Visit(node.Value);
@@ -10845,7 +10845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.InterpolationData, parts, node.ConstantValueOpt, type);
         }
-        public override BoundNode? VisitInterpolatedStringBuilderPlaceholder(BoundInterpolatedStringBuilderPlaceholder node)
+        public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(type);
@@ -10856,7 +10856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? alignment = (BoundExpression?)this.Visit(node.Alignment);
             BoundLiteral? format = (BoundLiteral?)this.Visit(node.Format);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(value, alignment, format, node.IsInterpolatedStringBuilderAppendCall);
+            return node.Update(value, alignment, format, node.IsInterpolatedStringHandlerAppendCall);
         }
         public override BoundNode? VisitIsPatternExpression(BoundIsPatternExpression node)
         {
@@ -13129,14 +13129,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitInterpolatedStringBuilderPlaceholder(BoundInterpolatedStringBuilderPlaceholder node)
+        public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
         {
             if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
                 return node;
             }
 
-            BoundInterpolatedStringBuilderPlaceholder updatedNode = node.Update(infoAndType.Type);
+            BoundInterpolatedStringHandlerPlaceholder updatedNode = node.Update(infoAndType.Type);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -13150,12 +13150,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(value, alignment, format, node.IsInterpolatedStringBuilderAppendCall);
+                updatedNode = node.Update(value, alignment, format, node.IsInterpolatedStringHandlerAppendCall);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(value, alignment, format, node.IsInterpolatedStringBuilderAppendCall);
+                updatedNode = node.Update(value, alignment, format, node.IsInterpolatedStringHandlerAppendCall);
             }
             return updatedNode;
         }
@@ -15060,7 +15060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
-        public override TreeDumperNode VisitInterpolatedStringBuilderPlaceholder(BoundInterpolatedStringBuilderPlaceholder node, object? arg) => new TreeDumperNode("interpolatedStringBuilderPlaceholder", null, new TreeDumperNode[]
+        public override TreeDumperNode VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node, object? arg) => new TreeDumperNode("interpolatedStringHandlerPlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
@@ -15072,7 +15072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("alignment", null, new TreeDumperNode[] { Visit(node.Alignment, null) }),
             new TreeDumperNode("format", null, new TreeDumperNode[] { Visit(node.Format, null) }),
-            new TreeDumperNode("isInterpolatedStringBuilderAppendCall", node.IsInterpolatedStringBuilderAppendCall, null),
+            new TreeDumperNode("isInterpolatedStringHandlerAppendCall", node.IsInterpolatedStringHandlerAppendCall, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

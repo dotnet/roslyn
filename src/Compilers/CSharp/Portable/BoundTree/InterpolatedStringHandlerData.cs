@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal readonly struct InterpolatedStringBuilderData
+    internal readonly struct InterpolatedStringHandlerData
     {
         public readonly TypeSymbol BuilderType;
         public readonly BoundExpression? Construction;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public readonly uint ScopeOfContainingExpression;
 
-        public InterpolatedStringBuilderData(TypeSymbol builderType, BoundExpression? construction, bool usesBoolReturns, uint scopeOfContainingExpression)
+        public InterpolatedStringHandlerData(TypeSymbol builderType, BoundExpression? construction, bool usesBoolReturns, uint scopeOfContainingExpression)
         {
             Debug.Assert(construction is BoundObjectCreationExpression or BoundDynamicObjectCreationExpression or BoundBadExpression);
             BuilderType = builderType;

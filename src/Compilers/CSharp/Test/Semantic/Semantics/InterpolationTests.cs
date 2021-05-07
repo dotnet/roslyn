@@ -1199,7 +1199,7 @@ static class C
         }
 
         // PROTOTYPE(interp-string): Define how these are represented in IOperation
-        private string GetInterpolatedStringBuilderDefinition(bool includeSpanOverloads, bool useDefaultParameters, bool useBoolReturns, string returnExpression = null)
+        private string GetInterpolatedStringHandlerDefinition(bool includeSpanOverloads, bool useDefaultParameters, bool useBoolReturns, string returnExpression = null)
         {
             Debug.Assert(returnExpression == null || useBoolReturns);
 
@@ -1208,10 +1208,10 @@ static class C
 namespace System.Runtime.CompilerServices
 {
     using System.Text;
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength, int formattedCount)
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -1318,13 +1318,13 @@ namespace System.Runtime.CompilerServices
 
         [ConditionalTheory(typeof(NoIOperationValidation))]
         [CombinatorialData]
-        public void InterpolatedStringBuilder_OverloadsAndBoolReturns(bool useDefaultParameters, bool useBoolReturns)
+        public void InterpolatedStringHandler_OverloadsAndBoolReturns(bool useDefaultParameters, bool useBoolReturns)
         {
             var source =
 @"int a = 1;
 System.Console.WriteLine($""base{a}{a,1}{a:X}{a,2:Y}"");";
 
-            string interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: false, useDefaultParameters, useBoolReturns);
+            string interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters, useBoolReturns);
 
             string expectedOutput = useDefaultParameters ?
 @"base
@@ -1359,34 +1359,34 @@ value:1,alignment:2:format:Y";
   // Code size       80 (0x50)
   .maxstack  4
   .locals init (int V_0, //a
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
   IL_0004:  ldc.i4.4
   IL_0005:  ldc.i4.4
-  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldstr      ""base""
-  IL_0012:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0012:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
   IL_0017:  ldloca.s   V_1
   IL_0019:  ldloc.0
-  IL_001a:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
+  IL_001a:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
   IL_001f:  ldloca.s   V_1
   IL_0021:  ldloc.0
   IL_0022:  ldc.i4.1
-  IL_0023:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int)""
+  IL_0023:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int)""
   IL_0028:  ldloca.s   V_1
   IL_002a:  ldloc.0
   IL_002b:  ldstr      ""X""
-  IL_0030:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, string)""
+  IL_0030:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, string)""
   IL_0035:  ldloca.s   V_1
   IL_0037:  ldloc.0
   IL_0038:  ldc.i4.2
   IL_0039:  ldstr      ""Y""
-  IL_003e:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_003e:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
   IL_0043:  ldloca.s   V_1
-  IL_0045:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0045:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_004a:  call       ""void System.Console.WriteLine(string)""
   IL_004f:  ret
 }
@@ -1396,38 +1396,38 @@ value:1,alignment:2:format:Y";
   // Code size       84 (0x54)
   .maxstack  4
   .locals init (int V_0, //a
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
   IL_0004:  ldc.i4.4
   IL_0005:  ldc.i4.4
-  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldstr      ""base""
-  IL_0012:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0012:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
   IL_0017:  ldloca.s   V_1
   IL_0019:  ldloc.0
   IL_001a:  ldc.i4.0
   IL_001b:  ldnull
-  IL_001c:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_001c:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
   IL_0021:  ldloca.s   V_1
   IL_0023:  ldloc.0
   IL_0024:  ldc.i4.1
   IL_0025:  ldnull
-  IL_0026:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_0026:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
   IL_002b:  ldloca.s   V_1
   IL_002d:  ldloc.0
   IL_002e:  ldc.i4.0
   IL_002f:  ldstr      ""X""
-  IL_0034:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_0034:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
   IL_0039:  ldloca.s   V_1
   IL_003b:  ldloc.0
   IL_003c:  ldc.i4.2
   IL_003d:  ldstr      ""Y""
-  IL_0042:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_0042:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
   IL_0047:  ldloca.s   V_1
-  IL_0049:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0049:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_004e:  call       ""void System.Console.WriteLine(string)""
   IL_0053:  ret
 }
@@ -1437,41 +1437,41 @@ value:1,alignment:2:format:Y";
   // Code size       92 (0x5c)
   .maxstack  4
   .locals init (int V_0, //a
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
   IL_0004:  ldc.i4.4
   IL_0005:  ldc.i4.4
-  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldstr      ""base""
-  IL_0012:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0012:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
   IL_0017:  brfalse.s  IL_004d
   IL_0019:  ldloca.s   V_1
   IL_001b:  ldloc.0
-  IL_001c:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
+  IL_001c:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
   IL_0021:  brfalse.s  IL_004d
   IL_0023:  ldloca.s   V_1
   IL_0025:  ldloc.0
   IL_0026:  ldc.i4.1
-  IL_0027:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int)""
+  IL_0027:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int)""
   IL_002c:  brfalse.s  IL_004d
   IL_002e:  ldloca.s   V_1
   IL_0030:  ldloc.0
   IL_0031:  ldstr      ""X""
-  IL_0036:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, string)""
+  IL_0036:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, string)""
   IL_003b:  brfalse.s  IL_004d
   IL_003d:  ldloca.s   V_1
   IL_003f:  ldloc.0
   IL_0040:  ldc.i4.2
   IL_0041:  ldstr      ""Y""
-  IL_0046:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_0046:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
   IL_004b:  br.s       IL_004e
   IL_004d:  ldc.i4.0
   IL_004e:  pop
   IL_004f:  ldloca.s   V_1
-  IL_0051:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0051:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_0056:  call       ""void System.Console.WriteLine(string)""
   IL_005b:  ret
 }
@@ -1481,45 +1481,45 @@ value:1,alignment:2:format:Y";
   // Code size       96 (0x60)
   .maxstack  4
   .locals init (int V_0, //a
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
   IL_0004:  ldc.i4.4
   IL_0005:  ldc.i4.4
-  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldstr      ""base""
-  IL_0012:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_0012:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
   IL_0017:  brfalse.s  IL_0051
   IL_0019:  ldloca.s   V_1
   IL_001b:  ldloc.0
   IL_001c:  ldc.i4.0
   IL_001d:  ldnull
-  IL_001e:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_001e:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
   IL_0023:  brfalse.s  IL_0051
   IL_0025:  ldloca.s   V_1
   IL_0027:  ldloc.0
   IL_0028:  ldc.i4.1
   IL_0029:  ldnull
-  IL_002a:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_002a:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
   IL_002f:  brfalse.s  IL_0051
   IL_0031:  ldloca.s   V_1
   IL_0033:  ldloc.0
   IL_0034:  ldc.i4.0
   IL_0035:  ldstr      ""X""
-  IL_003a:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_003a:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
   IL_003f:  brfalse.s  IL_0051
   IL_0041:  ldloca.s   V_1
   IL_0043:  ldloc.0
   IL_0044:  ldc.i4.2
   IL_0045:  ldstr      ""Y""
-  IL_004a:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int, int, string)""
+  IL_004a:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
   IL_004f:  br.s       IL_0052
   IL_0051:  ldc.i4.0
   IL_0052:  pop
   IL_0053:  ldloca.s   V_1
-  IL_0055:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0055:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_005a:  call       ""void System.Console.WriteLine(string)""
   IL_005f:  ret
 }
@@ -1535,11 +1535,11 @@ using System;
 ReadOnlySpan<char> span = stackalloc char[1];
 Console.WriteLine($""{span}"");";
 
-            var comp = CreateCompilation(new[] { source, GetInterpolatedStringBuilderDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false) }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { source, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false) }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (4,22): error CS8652: The feature 'interpolated string builders' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,22): error CS8652: The feature 'interpolated string handlers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // Console.WriteLine($"{span}");
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "span").WithArguments("interpolated string builders").WithLocation(4, 22)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "span").WithArguments("interpolated string handlers").WithLocation(4, 22)
                 );
         }
 
@@ -1553,7 +1553,7 @@ using System;
 ReadOnlySpan<char> a = ""1"";
 System.Console.WriteLine($""base{a}{a,1}{a:X}{a,2:Y}"");";
 
-            string interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: true, useDefaultParameters, useBoolReturns);
+            string interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters, useBoolReturns);
 
             string expectedOutput = useDefaultParameters ?
 @"base
@@ -1588,35 +1588,35 @@ value:1,alignment:2:format:Y";
   // Code size       89 (0x59)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
   IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
   IL_000e:  ldc.i4.4
-  IL_000f:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_000f:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_0014:  ldloca.s   V_1
   IL_0016:  ldstr      ""base""
-  IL_001b:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_001b:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
   IL_0020:  ldloca.s   V_1
   IL_0022:  ldloc.0
-  IL_0023:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
+  IL_0023:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
   IL_0028:  ldloca.s   V_1
   IL_002a:  ldloc.0
   IL_002b:  ldc.i4.1
-  IL_002c:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int)""
+  IL_002c:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int)""
   IL_0031:  ldloca.s   V_1
   IL_0033:  ldloc.0
   IL_0034:  ldstr      ""X""
-  IL_0039:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, string)""
+  IL_0039:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, string)""
   IL_003e:  ldloca.s   V_1
   IL_0040:  ldloc.0
   IL_0041:  ldc.i4.2
   IL_0042:  ldstr      ""Y""
-  IL_0047:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0047:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
   IL_004c:  ldloca.s   V_1
-  IL_004e:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_004e:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_0053:  call       ""void System.Console.WriteLine(string)""
   IL_0058:  ret
 }
@@ -1626,39 +1626,39 @@ value:1,alignment:2:format:Y";
   // Code size       93 (0x5d)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
   IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
   IL_000e:  ldc.i4.4
-  IL_000f:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_000f:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_0014:  ldloca.s   V_1
   IL_0016:  ldstr      ""base""
-  IL_001b:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_001b:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
   IL_0020:  ldloca.s   V_1
   IL_0022:  ldloc.0
   IL_0023:  ldc.i4.0
   IL_0024:  ldnull
-  IL_0025:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0025:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
   IL_002a:  ldloca.s   V_1
   IL_002c:  ldloc.0
   IL_002d:  ldc.i4.1
   IL_002e:  ldnull
-  IL_002f:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_002f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
   IL_0034:  ldloca.s   V_1
   IL_0036:  ldloc.0
   IL_0037:  ldc.i4.0
   IL_0038:  ldstr      ""X""
-  IL_003d:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_003d:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
   IL_0042:  ldloca.s   V_1
   IL_0044:  ldloc.0
   IL_0045:  ldc.i4.2
   IL_0046:  ldstr      ""Y""
-  IL_004b:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_004b:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
   IL_0050:  ldloca.s   V_1
-  IL_0052:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0052:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_0057:  call       ""void System.Console.WriteLine(string)""
   IL_005c:  ret
 }
@@ -1668,42 +1668,42 @@ value:1,alignment:2:format:Y";
   // Code size      101 (0x65)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
   IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
   IL_000e:  ldc.i4.4
-  IL_000f:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_000f:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_0014:  ldloca.s   V_1
   IL_0016:  ldstr      ""base""
-  IL_001b:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_001b:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
   IL_0020:  brfalse.s  IL_0056
   IL_0022:  ldloca.s   V_1
   IL_0024:  ldloc.0
-  IL_0025:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
+  IL_0025:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
   IL_002a:  brfalse.s  IL_0056
   IL_002c:  ldloca.s   V_1
   IL_002e:  ldloc.0
   IL_002f:  ldc.i4.1
-  IL_0030:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int)""
+  IL_0030:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int)""
   IL_0035:  brfalse.s  IL_0056
   IL_0037:  ldloca.s   V_1
   IL_0039:  ldloc.0
   IL_003a:  ldstr      ""X""
-  IL_003f:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, string)""
+  IL_003f:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, string)""
   IL_0044:  brfalse.s  IL_0056
   IL_0046:  ldloca.s   V_1
   IL_0048:  ldloc.0
   IL_0049:  ldc.i4.2
   IL_004a:  ldstr      ""Y""
-  IL_004f:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_004f:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
   IL_0054:  br.s       IL_0057
   IL_0056:  ldc.i4.0
   IL_0057:  pop
   IL_0058:  ldloca.s   V_1
-  IL_005a:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_005a:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_005f:  call       ""void System.Console.WriteLine(string)""
   IL_0064:  ret
 }
@@ -1713,46 +1713,46 @@ value:1,alignment:2:format:Y";
   // Code size      105 (0x69)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
   IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
   IL_000e:  ldc.i4.4
-  IL_000f:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_000f:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_0014:  ldloca.s   V_1
   IL_0016:  ldstr      ""base""
-  IL_001b:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+  IL_001b:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
   IL_0020:  brfalse.s  IL_005a
   IL_0022:  ldloca.s   V_1
   IL_0024:  ldloc.0
   IL_0025:  ldc.i4.0
   IL_0026:  ldnull
-  IL_0027:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0027:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
   IL_002c:  brfalse.s  IL_005a
   IL_002e:  ldloca.s   V_1
   IL_0030:  ldloc.0
   IL_0031:  ldc.i4.1
   IL_0032:  ldnull
-  IL_0033:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0033:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
   IL_0038:  brfalse.s  IL_005a
   IL_003a:  ldloca.s   V_1
   IL_003c:  ldloc.0
   IL_003d:  ldc.i4.0
   IL_003e:  ldstr      ""X""
-  IL_0043:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0043:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
   IL_0048:  brfalse.s  IL_005a
   IL_004a:  ldloca.s   V_1
   IL_004c:  ldloc.0
   IL_004d:  ldc.i4.2
   IL_004e:  ldstr      ""Y""
-  IL_0053:  call       ""bool System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
+  IL_0053:  call       ""bool System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
   IL_0058:  br.s       IL_005b
   IL_005a:  ldc.i4.0
   IL_005b:  pop
   IL_005c:  ldloca.s   V_1
-  IL_005e:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_005e:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_0063:  call       ""void System.Console.WriteLine(string)""
   IL_0068:  ret
 }
@@ -1770,7 +1770,7 @@ Console.Write($""base{Throw()}{a = 2}"");
 Console.WriteLine(a);
 string Throw() => throw new Exception();";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true, returnExpression: "false");
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true, returnExpression: "false");
 
             CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"
 base
@@ -1780,7 +1780,7 @@ base
         [ConditionalFact(typeof(NoIOperationValidation))]
         public void AwaitInHoles_UsesFormat()
         {
-            // PROTOTYPE(interp-string): We could make this case use the builder as well by evaluating the holes ahead of time. For InterpolatedStringBuilder,
+            // PROTOTYPE(interp-string): We could make this case use the builder as well by evaluating the holes ahead of time. For DefaultInterpolatedStringHandler,
             // we know that the framework is never going to ship a version that short circuits, so it would be a valid optimization for us to make.
             var source = @"
 using System;
@@ -1789,7 +1789,7 @@ using System.Threading.Tasks;
 Console.WriteLine($""base{await Hole()}"");
 Task<int> Hole() => Task.FromResult(1);";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"base1");
 
@@ -1883,7 +1883,7 @@ var hole = await Hole();
 Console.WriteLine($""base{hole}"");
 Task<int> Hole() => Task.FromResult(1);";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"
 base
@@ -1896,7 +1896,7 @@ value:1");
   .locals init (int V_0,
                 int V_1, //hole
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_3,
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3,
                 System.Exception V_4)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
@@ -1941,16 +1941,16 @@ value:1");
     IL_0061:  stloc.1
     IL_0062:  ldc.i4.4
     IL_0063:  ldc.i4.1
-    IL_0064:  newobj     ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+    IL_0064:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
     IL_0069:  stloc.3
     IL_006a:  ldloca.s   V_3
     IL_006c:  ldstr      ""base""
-    IL_0071:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+    IL_0071:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
     IL_0076:  ldloca.s   V_3
     IL_0078:  ldloc.1
-    IL_0079:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
+    IL_0079:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
     IL_007e:  ldloca.s   V_3
-    IL_0080:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+    IL_0080:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
     IL_0085:  call       ""void System.Console.WriteLine(string)""
     IL_008a:  leave.s    IL_00a5
   }
@@ -1993,7 +1993,7 @@ Task<int> M(int i)
     return Task.FromResult(1);
 }";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"
 1
@@ -2008,7 +2008,7 @@ value:2");
   .locals init (int V_0,
                 int V_1,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_3,
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_3,
                 System.Exception V_4)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int <Program>$.<<Main>$>d__0.<>1__state""
@@ -2062,17 +2062,17 @@ value:2");
     IL_0079:  ldarg.0
     IL_007a:  ldc.i4.4
     IL_007b:  ldc.i4.1
-    IL_007c:  newobj     ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+    IL_007c:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
     IL_0081:  stloc.3
     IL_0082:  ldloca.s   V_3
     IL_0084:  ldstr      ""base""
-    IL_0089:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)""
+    IL_0089:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
     IL_008e:  ldloca.s   V_3
     IL_0090:  ldarg.0
     IL_0091:  ldfld      ""int <Program>$.<<Main>$>d__0.<hole>5__2""
-    IL_0096:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
+    IL_0096:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
     IL_009b:  ldloca.s   V_3
-    IL_009d:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+    IL_009d:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
     IL_00a2:  stfld      ""string <Program>$.<<Main>$>d__0.<>7__wrap3""
     IL_00a7:  ldc.i4.3
     IL_00a8:  call       ""System.Threading.Tasks.Task<int> <Program>$.<<Main>$>g__M|0_1(int)""
@@ -2151,7 +2151,7 @@ value:2");
             var interpolatedStringBuilder = @"
 namespace System.Runtime.CompilerServices
 {
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
         public override string ToString() => throw null;
         public void Dispose() => throw null;
@@ -2163,9 +2163,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(new[] { code, interpolatedStringBuilder });
             comp.VerifyDiagnostics(
-                // (1,5): error CS1729: 'InterpolatedStringBuilder' does not contain a constructor that takes 2 arguments
+                // (1,5): error CS1729: 'DefaultInterpolatedStringHandler' does not contain a constructor that takes 2 arguments
                 // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder", "2").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler", "2").WithLocation(1, 5)
             );
         }
 
@@ -2177,9 +2177,9 @@ namespace System.Runtime.CompilerServices
             var interpolatedStringBuilder = @"
 namespace System.Runtime.CompilerServices
 {
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
-        public InterpolatedStringBuilder(int literalLength) => throw null;
+        public DefaultInterpolatedStringHandler(int literalLength) => throw null;
         public override string ToString() => throw null;
         public void Dispose() => throw null;
         public void AppendLiteral(string value) => throw null;
@@ -2190,9 +2190,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(new[] { code, interpolatedStringBuilder });
             comp.VerifyDiagnostics(
-                // (1,5): error CS1729: 'InterpolatedStringBuilder' does not contain a constructor that takes 2 arguments
+                // (1,5): error CS1729: 'DefaultInterpolatedStringHandler' does not contain a constructor that takes 2 arguments
                 // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder", "2").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler", "2").WithLocation(1, 5)
             );
         }
 
@@ -2204,9 +2204,9 @@ namespace System.Runtime.CompilerServices
             var interpolatedStringBuilder = @"
 namespace System.Runtime.CompilerServices
 {
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
-        public InterpolatedStringBuilder(ref int literalLength, int formattedCount) => throw null;
+        public DefaultInterpolatedStringHandler(ref int literalLength, int formattedCount) => throw null;
         public override string ToString() => throw null;
         public void Dispose() => throw null;
         public void AppendLiteral(string value) => throw null;
@@ -2236,9 +2236,9 @@ namespace System.Runtime.CompilerServices
             var interpolatedStringBuilder = @"
 namespace System.Runtime.CompilerServices
 {
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
-        public InterpolatedStringBuilder(int literalLength, int formattedCount) => throw null;
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount) => throw null;
         " + toStringAndClearMethod + @"
         public override string ToString() => throw null;
         public void AppendLiteral(string value) => throw null;
@@ -2250,9 +2250,9 @@ namespace System.Runtime.CompilerServices
             var comp = CreateCompilation(new[] { code, interpolatedStringBuilder });
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (1,5): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear'
+                // (1,5): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear'
                 // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder", "ToStringAndClear").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler", "ToStringAndClear").WithLocation(1, 5)
             );
         }
 
@@ -2264,10 +2264,10 @@ namespace System.Runtime.CompilerServices
             var interpolatedStringBuilder = @"
 namespace System.Runtime.CompilerServices
 {
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
         [System.Obsolete(""Constructor is obsolete"", error: true)]
-        public InterpolatedStringBuilder(int literalLength, int formattedCount) => throw null;
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount) => throw null;
         public void Dispose() => throw null;
         public override string ToString() => throw null;
         public void AppendLiteral(string value) => throw null;
@@ -2278,9 +2278,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(new[] { code, interpolatedStringBuilder });
             comp.VerifyDiagnostics(
-                // (1,5): error CS0619: 'InterpolatedStringBuilder.InterpolatedStringBuilder(int, int)' is obsolete: 'Constructor is obsolete'
+                // (1,5): error CS0619: 'DefaultInterpolatedStringHandler.DefaultInterpolatedStringHandler(int, int)' is obsolete: 'Constructor is obsolete'
                 // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.InterpolatedStringBuilder(int, int)", "Constructor is obsolete").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.DefaultInterpolatedStringHandler(int, int)", "Constructor is obsolete").WithLocation(1, 5)
             );
         }
 
@@ -2292,9 +2292,9 @@ namespace System.Runtime.CompilerServices
             var interpolatedStringBuilder = @"
 namespace System.Runtime.CompilerServices
 {
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
-        public InterpolatedStringBuilder(int literalLength, int formattedCount) => throw null;
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount) => throw null;
         public void Dispose() => throw null;
         public override string ToString() => throw null;
         [System.Obsolete(""AppendLiteral is obsolete"", error: true)]
@@ -2306,9 +2306,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(new[] { code, interpolatedStringBuilder });
             comp.VerifyDiagnostics(
-                // (1,7): error CS0619: 'InterpolatedStringBuilder.AppendLiteral(string)' is obsolete: 'AppendLiteral is obsolete'
+                // (1,7): error CS0619: 'DefaultInterpolatedStringHandler.AppendLiteral(string)' is obsolete: 'AppendLiteral is obsolete'
                 // _ = $"base{(object)1}";
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "base").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)", "AppendLiteral is obsolete").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "base").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)", "AppendLiteral is obsolete").WithLocation(1, 7)
             );
         }
 
@@ -2320,9 +2320,9 @@ namespace System.Runtime.CompilerServices
             var interpolatedStringBuilder = @"
 namespace System.Runtime.CompilerServices
 {
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
-        public InterpolatedStringBuilder(int literalLength, int formattedCount) => throw null;
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount) => throw null;
         public void Dispose() => throw null;
         public override string ToString() => throw null;
         public void AppendLiteral(string value) => throw null;
@@ -2334,9 +2334,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(new[] { code, interpolatedStringBuilder });
             comp.VerifyDiagnostics(
-                // (1,11): error CS0619: 'InterpolatedStringBuilder.AppendFormatted<T>(T, int, string)' is obsolete: 'AppendFormatted is obsolete'
+                // (1,11): error CS0619: 'DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)' is obsolete: 'AppendFormatted is obsolete'
                 // _ = $"base{(object)1}";
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{(object)1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<T>(T, int, string)", "AppendFormatted is obsolete").WithLocation(1, 11)
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{(object)1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)", "AppendFormatted is obsolete").WithLocation(1, 11)
             );
         }
 
@@ -2364,7 +2364,7 @@ namespace System.Runtime.CompilerServices
             var code = @"_ = $""{(object)1}"";";
 
             var interpolatedStringBuilder = @"
-.class public sequential ansi sealed beforefieldinit System.Runtime.CompilerServices.InterpolatedStringBuilder
+.class public sequential ansi sealed beforefieldinit System.Runtime.CompilerServices.DefaultInterpolatedStringHandler
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
@@ -2434,9 +2434,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilationWithIL(code, ilSource: interpolatedStringBuilder + UnmanagedCallersOnlyIl);
             comp.VerifyDiagnostics(
-                // (1,7): error CS0570: 'InterpolatedStringBuilder.AppendFormatted<T>(T, int, string)' is not supported by the language
+                // (1,7): error CS0570: 'DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)' is not supported by the language
                 // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_BindToBogus, "{(object)1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<T>(T, int, string)").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "{(object)1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)").WithLocation(1, 7)
             );
         }
 
@@ -2447,7 +2447,7 @@ namespace System.Runtime.CompilerServices
 
             var interpolatedStringBuilder = @"
 
-.class public sequential ansi sealed beforefieldinit System.Runtime.CompilerServices.InterpolatedStringBuilder
+.class public sequential ansi sealed beforefieldinit System.Runtime.CompilerServices.DefaultInterpolatedStringHandler
     extends [mscorlib]System.ValueType
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
@@ -2510,9 +2510,9 @@ namespace System.Runtime.CompilerServices
             var comp = CreateCompilationWithIL(code, ilSource: interpolatedStringBuilder + UnmanagedCallersOnlyIl);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (1,5): error CS0570: 'InterpolatedStringBuilder.ToStringAndClear()' is not supported by the language
+                // (1,5): error CS0570: 'DefaultInterpolatedStringHandler.ToStringAndClear()' is not supported by the language
                 // _ = $"{(object)1}";
-                Diagnostic(ErrorCode.ERR_BindToBogus, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()").WithLocation(1, 5)
+                Diagnostic(ErrorCode.ERR_BindToBogus, @"$""{(object)1}""").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()").WithLocation(1, 5)
             );
         }
 
@@ -2530,7 +2530,7 @@ ref struct S
 {
 }";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: true, useDefaultParameters: true, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: true, useBoolReturns: false);
 
             var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
@@ -2550,7 +2550,7 @@ ref struct S
 bool b = true;
 System.Console.WriteLine($""{b switch { true => 1, false => null }}{(!b ? null : 2)}{default}{null}"");";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"
 value:1
@@ -2564,13 +2564,13 @@ value:");
   .maxstack  3
   .locals init (bool V_0, //b
                 object V_1,
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_2)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_2
   IL_0004:  ldc.i4.0
   IL_0005:  ldc.i4.4
-  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_000b:  ldloc.0
   IL_000c:  brfalse.s  IL_0017
   IL_000e:  ldc.i4.1
@@ -2581,7 +2581,7 @@ value:");
   IL_0018:  stloc.1
   IL_0019:  ldloca.s   V_2
   IL_001b:  ldloc.1
-  IL_001c:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)""
+  IL_001c:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)""
   IL_0021:  ldloca.s   V_2
   IL_0023:  ldloc.0
   IL_0024:  brfalse.s  IL_002e
@@ -2589,15 +2589,15 @@ value:");
   IL_0027:  box        ""int""
   IL_002c:  br.s       IL_002f
   IL_002e:  ldnull
-  IL_002f:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)""
+  IL_002f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)""
   IL_0034:  ldloca.s   V_2
   IL_0036:  ldnull
-  IL_0037:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(string)""
+  IL_0037:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
   IL_003c:  ldloca.s   V_2
   IL_003e:  ldnull
-  IL_003f:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(string)""
+  IL_003f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
   IL_0044:  ldloca.s   V_2
-  IL_0046:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0046:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_004b:  call       ""void System.Console.WriteLine(string)""
   IL_0050:  ret
 }
@@ -2609,15 +2609,15 @@ value:");
         {
             var source = @"System.Console.WriteLine($""{(null, default)}{new()}"");";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
             var comp = CreateCompilation(new[] { source, interpolatedStringBuilder });
             comp.VerifyDiagnostics(
                 // (1,29): error CS1503: Argument 1: cannot convert from '(<null>, default)' to 'object'
                 // System.Console.WriteLine($"{(null, default)}");
                 Diagnostic(ErrorCode.ERR_BadArgType, "(null, default)").WithArguments("1", "(<null>, default)", "object").WithLocation(1, 29),
-                // (1,29): error CS8652: The feature 'interpolated string builders' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,29): error CS8652: The feature 'interpolated string handlers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // System.Console.WriteLine($"{(null, default)}");
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(null, default)").WithArguments("interpolated string builders").WithLocation(1, 29),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(null, default)").WithArguments("interpolated string handlers").WithLocation(1, 29),
                 // (1,46): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 // System.Console.WriteLine($"{(null, default)}{new()}");
                 // PROTOTYPE(interp-string): This is technically a break. Should we special case this?
@@ -2633,7 +2633,7 @@ bool b = true;
 int i = 1;
 System.Console.WriteLine($""{(!b ? ref i : ref i)}"");";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
             CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"value:1");
         }
@@ -2646,7 +2646,7 @@ System.Console.WriteLine($""{(!b ? ref i : ref i)}"");";
 int i = 1;
 System.Console.WriteLine($""{$""{i}""}"");";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"value:value:1");
 
@@ -2655,27 +2655,27 @@ System.Console.WriteLine($""{$""{i}""}"");";
   // Code size       55 (0x37)
   .maxstack  4
   .locals init (int V_0, //i
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_1,
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_2)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
   IL_0004:  ldc.i4.0
   IL_0005:  ldc.i4.1
-  IL_0006:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldloca.s   V_2
   IL_000f:  ldc.i4.0
   IL_0010:  ldc.i4.1
-  IL_0011:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0011:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_0016:  ldloca.s   V_2
   IL_0018:  ldloc.0
-  IL_0019:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
+  IL_0019:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
   IL_001e:  ldloca.s   V_2
-  IL_0020:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
-  IL_0025:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(string)""
+  IL_0020:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_0025:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
   IL_002a:  ldloca.s   V_1
-  IL_002c:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_002c:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_0031:  call       ""void System.Console.WriteLine(string)""
   IL_0036:  ret
 }
@@ -2694,7 +2694,7 @@ try
     Console.WriteLine(""Starting try"");
     throw new MyException { Prop = i };
 }
-// Test InterpolatedStringBuilder renders specially, so we're actually comparing to ""value:Prop"" plus some whitespace
+// Test DefaultInterpolatedStringHandler renders specially, so we're actually comparing to ""value:Prop"" plus some whitespace
 catch (MyException e) when (e.ToString() == $""{i}"".Trim())
 {
     Console.WriteLine(""Caught"");
@@ -2706,7 +2706,7 @@ class MyException : Exception
     public override string ToString() => ""value:"" + Prop.ToString();
 }";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"
 Starting try
@@ -2717,7 +2717,7 @@ Caught");
   // Code size       95 (0x5f)
   .maxstack  4
   .locals init (int V_0, //i
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   .try
@@ -2742,12 +2742,12 @@ Caught");
     IL_002a:  ldloca.s   V_1
     IL_002c:  ldc.i4.0
     IL_002d:  ldc.i4.1
-    IL_002e:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+    IL_002e:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
     IL_0033:  ldloca.s   V_1
     IL_0035:  ldloc.0
-    IL_0036:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<int>(int)""
+    IL_0036:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
     IL_003b:  ldloca.s   V_1
-    IL_003d:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+    IL_003d:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
     IL_0042:  callvirt   ""string string.Trim()""
     IL_0047:  call       ""bool string.op_Equality(string, string)""
     IL_004c:  ldc.i4.0
@@ -2777,7 +2777,7 @@ try
     Console.WriteLine(""Starting try"");
     throw new MyException { Prop = s.ToString() };
 }
-// Test InterpolatedStringBuilder renders specially, so we're actually comparing to ""value:Prop"" plus some whitespace
+// Test DefaultInterpolatedStringHandler renders specially, so we're actually comparing to ""value:Prop"" plus some whitespace
 catch (MyException e) when (e.ToString() == $""{s}"".Trim())
 {
     Console.WriteLine(""Caught"");
@@ -2789,7 +2789,7 @@ class MyException : Exception
     public override string ToString() => ""value:"" + Prop.ToString();
 }";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false);
 
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp, expectedOutput: @"
 Starting try
@@ -2801,7 +2801,7 @@ Caught");
   // Code size      122 (0x7a)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //s
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_1)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  newarr     ""char""
   IL_0006:  dup
@@ -2834,12 +2834,12 @@ Caught");
     IL_0045:  ldloca.s   V_1
     IL_0047:  ldc.i4.0
     IL_0048:  ldc.i4.1
-    IL_0049:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+    IL_0049:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
     IL_004e:  ldloca.s   V_1
     IL_0050:  ldloc.0
-    IL_0051:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
+    IL_0051:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
     IL_0056:  ldloca.s   V_1
-    IL_0058:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+    IL_0058:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
     IL_005d:  callvirt   ""string string.Trim()""
     IL_0062:  call       ""bool string.op_Equality(string, string)""
     IL_0067:  ldc.i4.0
@@ -2876,7 +2876,7 @@ class C
     public static implicit operator ReadOnlySpan<char>(C s) => ""C converted"";
 }";
 
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false);
 
             var comp = CreateCompilation(new[] { source, interpolatedStringBuilder },
                 targetFramework: TargetFramework.NetCoreApp,
@@ -2891,7 +2891,7 @@ value:C");
   .maxstack  3
   .locals init (S V_0, //s
                 C V_1, //c
-                System.Runtime.CompilerServices.InterpolatedStringBuilder V_2)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""S""
   IL_0008:  newobj     ""C..ctor()""
@@ -2899,16 +2899,16 @@ value:C");
   IL_000e:  ldloca.s   V_2
   IL_0010:  ldc.i4.0
   IL_0011:  ldc.i4.2
-  IL_0012:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0012:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_0017:  ldloca.s   V_2
   IL_0019:  ldloc.0
   IL_001a:  call       ""System.ReadOnlySpan<char> S.op_Implicit(S)""
-  IL_001f:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(System.ReadOnlySpan<char>)""
+  IL_001f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>)""
   IL_0024:  ldloca.s   V_2
   IL_0026:  ldloc.1
-  IL_0027:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted<C>(C)""
+  IL_0027:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<C>(C)""
   IL_002c:  ldloca.s   V_2
-  IL_002e:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_002e:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_0033:  call       ""void System.Console.WriteLine(string)""
   IL_0038:  ret
 }
@@ -2929,7 +2929,7 @@ ref struct S
     public static explicit operator ReadOnlySpan<char>(S s) => ""S converted"";
 }
 ";
-            var interpolatedStringBuilder = GetInterpolatedStringBuilderDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false);
+            var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false);
 
             var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -2957,10 +2957,10 @@ public struct CustomStruct
 namespace System.Runtime.CompilerServices
 {
     using System.Text;
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength, int formattedCount)
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -2977,21 +2977,21 @@ value:1");
 {
   // Code size       52 (0x34)
   .maxstack  3
-  .locals init (System.Runtime.CompilerServices.InterpolatedStringBuilder V_0)
+  .locals init (System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_0)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.4
   IL_0003:  ldc.i4.1
-  IL_0004:  call       ""System.Runtime.CompilerServices.InterpolatedStringBuilder..ctor(int, int)""
+  IL_0004:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_0009:  ldloca.s   V_0
   IL_000b:  ldstr      ""Text""
   IL_0010:  call       ""CustomStruct CustomStruct.op_Implicit(string)""
-  IL_0015:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(CustomStruct)""
+  IL_0015:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(CustomStruct)""
   IL_001a:  ldloca.s   V_0
   IL_001c:  ldc.i4.1
   IL_001d:  box        ""int""
-  IL_0022:  call       ""void System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)""
+  IL_0022:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)""
   IL_0027:  ldloca.s   V_0
-  IL_0029:  call       ""string System.Runtime.CompilerServices.InterpolatedStringBuilder.ToStringAndClear()""
+  IL_0029:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
   IL_002e:  call       ""void System.Console.WriteLine(string)""
   IL_0033:  ret
 }
@@ -3016,10 +3016,10 @@ public struct CustomStruct
 namespace System.Runtime.CompilerServices
 {
     using System.Text;
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength, int formattedCount)
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -3048,10 +3048,10 @@ Console.WriteLine($""Text{1}"");
 namespace System.Runtime.CompilerServices
 {
     using System.Text;
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength, int formattedCount)
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -3063,12 +3063,12 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,21): error CS9001: Interpolated string builder method 'InterpolatedStringBuilder.AppendLiteral(string)' is malformed. It does not return 'void' or 'bool'.
+                // (4,21): error CS9001: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendLiteral(string)' is malformed. It does not return 'void' or 'bool'.
                 // Console.WriteLine($"Text{1}");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnMalformed, "Text").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)").WithLocation(4, 21),
-                // (4,25): error CS9001: Interpolated string builder method 'InterpolatedStringBuilder.AppendFormatted(object)' is malformed. It does not return 'void' or 'bool'.
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "Text").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)").WithLocation(4, 21),
+                // (4,25): error CS9001: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' is malformed. It does not return 'void' or 'bool'.
                 // Console.WriteLine($"Text{1}");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnMalformed, "{1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)").WithLocation(4, 25)
             );
         }
 
@@ -3084,10 +3084,10 @@ Console.WriteLine($""{1}Text"");
 namespace System.Runtime.CompilerServices
 {
     using System.Text;
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength, int formattedCount)
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -3099,12 +3099,12 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,25): error CS9002: Interpolated string builder method 'InterpolatedStringBuilder.AppendFormatted(object)' has inconsistent return type. Expected to return 'bool'.
+                // (4,25): error CS9002: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' has inconsistent return type. Expected to return 'bool'.
                 // Console.WriteLine($"Text{1}");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)", "bool").WithLocation(4, 25),
-                // (5,24): error CS9002: Interpolated string builder method 'InterpolatedStringBuilder.AppendLiteral(string)' has inconsistent return type. Expected to return 'void'.
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)", "bool").WithLocation(4, 25),
+                // (5,24): error CS9002: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendLiteral(string)' has inconsistent return type. Expected to return 'void'.
                 // Console.WriteLine($"{1}Text");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)", "void").WithLocation(5, 24)
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)", "void").WithLocation(5, 24)
             );
         }
 
@@ -3120,10 +3120,10 @@ Console.WriteLine($""{1}Text"");
 namespace System.Runtime.CompilerServices
 {
     using System.Text;
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength, int formattedCount)
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
@@ -3135,12 +3135,12 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,25): error CS9002: Interpolated string builder method 'InterpolatedStringBuilder.AppendFormatted(object)' has inconsistent return type. Expected to return 'void'.
+                // (4,25): error CS9002: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' has inconsistent return type. Expected to return 'void'.
                 // Console.WriteLine($"Text{1}");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendFormatted(object)", "void").WithLocation(4, 25),
-                // (5,24): error CS9002: Interpolated string builder method 'InterpolatedStringBuilder.AppendLiteral(string)' has inconsistent return type. Expected to return 'bool'.
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)", "void").WithLocation(4, 25),
+                // (5,24): error CS9002: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendLiteral(string)' has inconsistent return type. Expected to return 'bool'.
                 // Console.WriteLine($"{1}Text");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.InterpolatedStringBuilder.AppendLiteral(string)", "bool").WithLocation(5, 24)
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)", "bool").WithLocation(5, 24)
             );
         }
 
@@ -3155,10 +3155,10 @@ Console.WriteLine($""{1}"");
 namespace System.Runtime.CompilerServices
 {
     using System.Text;
-    public ref struct InterpolatedStringBuilder
+    public ref struct DefaultInterpolatedStringHandler
     {
         private readonly StringBuilder _builder;
-        public InterpolatedStringBuilder(int literalLength, int formattedCount)
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount)
         {
             _builder = new StringBuilder();
         }
