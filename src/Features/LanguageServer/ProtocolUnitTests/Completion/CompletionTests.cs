@@ -490,6 +490,63 @@ partial class C
             Assert.Null(results.Items.First().InsertText);
         }
 
+        [Fact]
+        public async Task TestDoesTriggerInArgumentCompletionWithCapabilityAsync()
+        {
+            var markup =
+@"class A
+{
+    public A(string someString)
+    {
+    }
+
+    void M()
+    {
+        new A({|caret:|}
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(),
+                invokeKind: LSP.VSCompletionInvokeKind.Typing,
+                triggerCharacter: "(",
+                triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams, new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true }).ConfigureAwait(false);
+            Assert.NotNull(results);
+            Assert.NotEmpty(results.Items);
+        }
+
+        [Fact]
+        public async Task TestDoesNotTriggerInArgumentCompletionWithoutCapabilityAsync()
+        {
+            var markup =
+@"class A
+{
+    public A(string someString)
+    {
+    }
+
+    void M()
+    {
+        new A({|caret:|}
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(),
+                invokeKind: LSP.VSCompletionInvokeKind.Typing,
+                triggerCharacter: "(",
+                triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams, new LSP.VSClientCapabilities()).ConfigureAwait(false);
+            Assert.Null(results);
+        }
+
         private static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
         {
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };

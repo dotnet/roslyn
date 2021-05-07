@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -73,8 +74,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
+            var lspVSClientCapability = context.ClientCapabilities.HasVisualStudioLspCapability() == true;
+
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-            var completionOptions = await GetCompletionOptionsAsync(document, cancellationToken).ConfigureAwait(false);
+            var completionOptions = await GetCompletionOptionsAsync(document, lspVSClientCapability, cancellationToken).ConfigureAwait(false);
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
 
             // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
@@ -87,7 +90,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var lspVSClientCapability = context.ClientCapabilities.HasVisualStudioLspCapability() == true;
             var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]>(CommitCharacterArrayComparer.Instance);
 
@@ -396,8 +398,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return ImmutableHashSet<char>.Empty;
         }
 
-        internal static async Task<OptionSet> GetCompletionOptionsAsync(Document document, CancellationToken cancellationToken)
+        internal static async Task<OptionSet> GetCompletionOptionsAsync(Document document, bool isUsingVSExtensions, CancellationToken cancellationToken)
         {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            // Non-VS clients do not support soft selection.  This is bad for automatically triggering
+            // in argument lists as then typing any commit character will commit whatever random item is first
+            // in the completion list.
+            if (!isUsingVSExtensions)
+            {
+                options = options.WithChangedOption(CompletionOptions.TriggerInArgumentLists, false);
+            }
+
             // Filter out snippets as they are not supported in the LSP client
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1139740
             // Filter out unimported types for now as there are two issues with providing them:
@@ -406,12 +418,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
             //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
             // 3.  LSP client should support completion filters / expanders
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var completionOptions = documentOptions
+            var completionOptions = options
                 .WithChangedOption(CompletionOptions.SnippetsBehavior, SnippetsRule.NeverInclude)
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, false)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false)
                 .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, true);
+
             return completionOptions;
         }
 
