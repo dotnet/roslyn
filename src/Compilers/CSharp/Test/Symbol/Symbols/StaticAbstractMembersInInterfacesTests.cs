@@ -18235,7 +18235,7 @@ public class C1<T> : I1<T>
                                                  targetFramework: TargetFramework.NetCoreApp,
                                                  references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
 
-            Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers(). OfType<PropertySymbol>().Where(m => m.Name.Contains("M01")).Count());
+            Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<PropertySymbol>().Where(m => m.Name.Contains("M01")).Count());
 
             compilation1.VerifyDiagnostics();
 
