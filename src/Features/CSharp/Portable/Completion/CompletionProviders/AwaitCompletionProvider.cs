@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return method.WithModifiers(method.Modifiers.Add(asyncToken));
 
             var modifiers = SyntaxFactory.TokenList(asyncToken.WithLeadingTrivia(method.ReturnType.GetLeadingTrivia()));
-            return method.WithModifiers(result).WithReturnType(method.ReturnType.WithoutLeadingTrivia());
+            return method.WithModifiers(modifiers).WithReturnType(method.ReturnType.WithoutLeadingTrivia());
         }
 
         private static SyntaxNode AddAsyncModifier(LocalFunctionStatementSyntax local, SyntaxToken asyncToken)
