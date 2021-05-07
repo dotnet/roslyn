@@ -2191,9 +2191,6 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
 
         private static void GenerateSource(GeneratorExecutionContext context)
         {
-            const string OpeningMarker = "/* GENERATE:";
-            const string ClosingMarker = "*/";
-
             foreach (var syntaxTree in context.Compilation.SyntaxTrees)
             {
                 var fileName = PathUtilities.GetFileName(syntaxTree.FilePath);
@@ -2213,14 +2210,28 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
 
             void Generate(string source, string fileName)
             {
-                var index = source.IndexOf(OpeningMarker);
-                if (index > 0)
+                var generatedSource = GetGeneratedCodeFromMarkedSource(source);
+                if (generatedSource != null)
                 {
-                    index += OpeningMarker.Length;
-                    var closing = source.IndexOf(ClosingMarker, index);
-                    context.AddSource($"Generated_{fileName}", source[index..closing].Trim());
+                    context.AddSource($"Generated_{fileName}", generatedSource);
                 }
             }
+        }
+
+        private static string GetGeneratedCodeFromMarkedSource(string markedSource)
+        {
+            const string OpeningMarker = "/* GENERATE:";
+            const string ClosingMarker = "*/";
+
+            var index = markedSource.IndexOf(OpeningMarker);
+            if (index > 0)
+            {
+                index += OpeningMarker.Length;
+                var closing = markedSource.IndexOf(ClosingMarker, index);
+                return markedSource[index..closing].Trim();
+            }
+
+            return null;
         }
 
         [Fact]
@@ -2250,7 +2261,7 @@ class C { int Y => 2; }
             EnterBreakState(service);
             var editSession = service.GetTestAccessor().GetEditSession();
 
-            // change the source (valid edit):oding.UTF8));
+            // change the source (valid edit)
             solution = solution.WithDocumentText(document1.Id, SourceText.From(sourceV2, Encoding.UTF8));
 
             // validate solution update status and emit:
@@ -2950,7 +2961,7 @@ class C { int Y => 1; }
             var module2 = Guid.NewGuid();
             var module4 = Guid.NewGuid();
 
-            var debugInfos = GetActiveStatementDebugInfos(
+            var debugInfos = GetActiveStatementDebugInfosCSharp(
                 markedSources,
                 methodRowIds: new[] { 1, 2, 1 },
                 modules: new[] { module4, module2, module1 });
@@ -3068,7 +3079,7 @@ class C { int Y => 1; }
 
             // Thread1 stack trace: F (AS:0 leaf)
 
-            var debugInfos = GetActiveStatementDebugInfos(
+            var debugInfos = GetActiveStatementDebugInfosCSharp(
                 markedSources,
                 methodRowIds: new[] { 1 },
                 ilOffsets: new[] { 1 },
@@ -3125,6 +3136,86 @@ class C { int Y => 1; }
             Assert.True(await service.IsActiveStatementInExceptionRegionAsync(solution, activeStatement1.InstructionId, CancellationToken.None));
         }
 
+        [Fact]
+        public async Task ActiveStatements_SourceGeneratedDocuments_LineDirectives()
+        {
+            var markedSource1 = @"
+/* GENERATE:
+class C
+{
+    void F()
+    {
+#line 1 ""a.razor""
+       <AS:0>F();</AS:0>
+#line default
+    }
+}
+*/
+";
+            var markedSource2 = @"
+/* GENERATE:
+class C
+{
+    void F()
+    {
+#line 2 ""a.razor""
+       <AS:0>F();</AS:0>
+#line default
+    }
+}
+*/
+";
+            var source1 = ActiveStatementsDescription.ClearTags(markedSource1);
+            var source2 = ActiveStatementsDescription.ClearTags(markedSource2);
+
+            var additionalFileSourceV1 = @"
+       xxxxxxxxxxxxxxxxx
+";
+
+            var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
+
+            using var _ = CreateWorkspace(out var solution, out var service);
+            (solution, var document1) = AddDefaultTestProject(solution, source1, generator, additionalFileText: additionalFileSourceV1);
+
+            var generatedDocument1 = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync().ConfigureAwait(false)).Single();
+
+            var moduleId = EmitLibrary(source1, generator: generator, additionalFileText: additionalFileSourceV1);
+            LoadLibraryToDebuggee(moduleId);
+
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            EnterBreakState(service, GetActiveStatementDebugInfosCSharp(
+                new[] { GetGeneratedCodeFromMarkedSource(markedSource1) },
+                filePaths: new[] { generatedDocument1.FilePath },
+                modules: new[] { moduleId },
+                methodRowIds: new[] { 1 },
+                methodVersions: new[] { 1 },
+                flags: new[]
+                {
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame
+                }));
+
+            var editSession = service.GetTestAccessor().GetEditSession();
+
+            // change the source (valid edit)
+            solution = solution.WithDocumentText(document1.Id, SourceText.From(source2, Encoding.UTF8));
+
+            // validate solution update status and emit:
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(service, solution);
+            Assert.Empty(emitDiagnostics);
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+
+            // check emitted delta:
+            var delta = updates.Updates.Single();
+            Assert.Empty(delta.ActiveStatements);
+            Assert.NotEmpty(delta.ILDelta);
+            Assert.NotEmpty(delta.MetadataDelta);
+            Assert.NotEmpty(delta.PdbDelta);
+            Assert.Equal(2, delta.UpdatedMethods.Length);
+
+            EndDebuggingSession(service);
+        }
+
         /// <summary>
         /// Scenario:
         /// F5 a program that has function F that calls G. G has a long-running loop, which starts executing.
@@ -3169,7 +3260,7 @@ class C { int Y => 1; }
 
             // EnC update F v1 -> v2
 
-            EnterBreakState(service, GetActiveStatementDebugInfos(
+            EnterBreakState(service, GetActiveStatementDebugInfosCSharp(
                 new[] { markedSourceV1 },
                 modules: new[] { moduleId, moduleId },
                 methodRowIds: new[] { 2, 3 },
@@ -3214,7 +3305,7 @@ class C { int Y => 1; }
 
             // EnC update F v3 -> v4
 
-            EnterBreakState(service, GetActiveStatementDebugInfos(
+            EnterBreakState(service, GetActiveStatementDebugInfosCSharp(
                 new[] { markedSourceV1 },       // matches F v1    
                 modules: new[] { moduleId, moduleId },
                 methodRowIds: new[] { 2, 3 },
@@ -3306,7 +3397,7 @@ class C { int Y => 1; }
 
             // EnC update F v2 -> v3
 
-            EnterBreakState(service, GetActiveStatementDebugInfos(
+            EnterBreakState(service, GetActiveStatementDebugInfosCSharp(
                 new[] { markedSource1 },
                 modules: new[] { moduleId, moduleId },
                 methodRowIds: new[] { 2, 3 },
@@ -3420,7 +3511,7 @@ class C { int Y => 1; }
 
             // Break
 
-            EnterBreakState(service, GetActiveStatementDebugInfos(
+            EnterBreakState(service, GetActiveStatementDebugInfosCSharp(
                 new[] { markedSource1 },
                 modules: new[] { moduleId, moduleId },
                 methodRowIds: new[] { 2, 3 },

@@ -5,23 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Xunit;
 using static Microsoft.CodeAnalysis.EditAndContinue.AbstractEditAndContinueAnalyzer;
 
@@ -38,7 +32,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
         public abstract SyntaxNode FindNode(SyntaxNode root, TextSpan span);
-        public abstract SyntaxTree ParseText(string source);
         public abstract ImmutableArray<SyntaxNode> GetDeclarators(ISymbol method);
         public abstract string LanguageName { get; }
         public abstract TreeComparer<SyntaxNode> TopSyntaxComparer { get; }
@@ -82,25 +75,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal void VerifyLineEdits(
             EditScript<SyntaxNode> editScript,
-            IEnumerable<SourceLineUpdate> expectedLineEdits,
+            IEnumerable<SequencePointUpdates> expectedLineEdits,
             IEnumerable<string> expectedNodeUpdates,
             RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            var newSource = editScript.Match.NewRoot.SyntaxTree.ToString();
-            var oldSource = editScript.Match.OldRoot.SyntaxTree.ToString();
-
-            var oldText = SourceText.From(oldSource);
-            var newText = SourceText.From(newSource);
+            var newText = SourceText.From(editScript.Match.NewRoot.SyntaxTree.ToString());
 
             var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
             var editMap = BuildEditMap(editScript);
 
             var triviaEdits = new ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-            var actualLineEdits = new ArrayBuilder<SourceLineUpdate>();
+            var actualLineEdits = new ArrayBuilder<SequencePointUpdates>();
 
             Analyzer.GetTestAccessor().AnalyzeTrivia(
-                oldText,
-                newText,
                 editScript.Match,
                 editMap,
                 triviaEdits,
@@ -110,7 +97,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             VerifyDiagnostics(expectedDiagnostics, diagnostics, newText);
 
-            AssertEx.Equal(expectedLineEdits, actualLineEdits, itemSeparator: ",\r\n");
+            // check files are matching:
+            AssertEx.Equal(
+                expectedLineEdits.Select(e => e.FileName),
+                actualLineEdits.Select(e => e.FileName),
+                itemSeparator: ",\r\n");
+
+            // check lines are matching:
+            _ = expectedLineEdits.Zip(actualLineEdits, (expected, actual) =>
+            {
+                AssertEx.Equal(
+                    expected.LineUpdates,
+                    actual.LineUpdates,
+                    itemSeparator: ",\r\n",
+                    itemInspector: s => $"new({s.OldLine}, {s.NewLine})");
+
+                return true;
+            }).ToArray();
 
             var actualNodeUpdates = triviaEdits.Select(e => e.NewNode.ToString().ToLines().First());
             AssertEx.Equal(expectedNodeUpdates, actualNodeUpdates, itemSeparator: ",\r\n");

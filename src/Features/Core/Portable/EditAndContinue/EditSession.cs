@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 using var _1 = ArrayBuilder<SemanticEditInfo>.GetInstance(out var allEdits);
-                using var _2 = ArrayBuilder<(DocumentId, ImmutableArray<SourceLineUpdate>)>.GetInstance(out var allLineEdits);
+                using var _2 = ArrayBuilder<SequencePointUpdates>.GetInstance(out var allLineEdits);
                 using var _3 = ArrayBuilder<DocumentActiveStatementChanges>.GetInstance(out var activeStatementsInChangedDocuments);
 
                 var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
@@ -467,11 +467,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Contract.ThrowIfTrue(analysis.ActiveStatements.IsDefault);
 
                     allEdits.AddRange(analysis.SemanticEdits);
-
-                    if (analysis.LineEdits.Length > 0)
-                    {
-                        allLineEdits.Add((analysis.DocumentId, analysis.LineEdits));
-                    }
+                    allLineEdits.AddRange(analysis.LineEdits);
 
                     if (analysis.ActiveStatements.Length > 0)
                     {
@@ -731,14 +727,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldActiveStatementsMap = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     var projectChanges = await GetProjectChangesAsync(oldActiveStatementsMap, oldCompilation, newCompilation, oldProject, newProject, changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
 
-                    var lineEdits = await projectChanges.LineChanges.SelectAsArrayAsync(async (lineChange, cancellationToken) =>
-                    {
-                        var document = await newProject.GetDocumentAsync(lineChange.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                        Contract.ThrowIfNull(document);
-                        Contract.ThrowIfNull(document.FilePath);
-                        return new SequencePointUpdates(document.FilePath, lineChange.Changes);
-                    }, cancellationToken).ConfigureAwait(false);
-
                     using var pdbStream = SerializableBytes.CreateWritableStream();
                     using var metadataStream = SerializableBytes.CreateWritableStream();
                     using var ilStream = SerializableBytes.CreateWritableStream();
@@ -779,7 +767,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             ilStream.ToImmutableArray(),
                             metadataStream.ToImmutableArray(),
                             pdbStream.ToImmutableArray(),
-                            lineEdits,
+                            projectChanges.LineChanges,
                             updatedMethodTokens,
                             updatedTypes: ImmutableArray<int>.Empty,
                             activeStatementsInUpdatedMethods,

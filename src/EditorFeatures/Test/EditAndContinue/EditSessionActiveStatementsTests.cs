@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var module3 = new Guid("33333333-3333-3333-3333-333333333333");
             var module4 = new Guid("44444444-4444-4444-4444-444444444444");
 
-            var activeStatements = GetActiveStatementDebugInfos(
+            var activeStatements = GetActiveStatementDebugInfosCSharp(
                 markedSources,
                 methodRowIds: new[] { 1, 2, 3, 4, 5 },
                 ilOffsets: new[] { 1, 1, 1, 2, 3 },
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var baseText = SourceText.From(baseSource);
             var updatedText = SourceText.From(updatedSource);
 
-            var baseActiveStatementInfos = GetActiveStatementDebugInfos(
+            var baseActiveStatementInfos = GetActiveStatementDebugInfosCSharp(
                 new[] { baseSource },
                 modules: new[] { module1, module1 },
                 methodVersions: new[] { 1, 1 },
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var sourceTextV2 = SourceText.From(markedSourceV2);
             var sourceTextV3 = SourceText.From(markedSourceV3);
 
-            var activeStatementsPreRemap = GetActiveStatementDebugInfos(new[] { markedSourceV1 },
+            var activeStatementsPreRemap = GetActiveStatementDebugInfosCSharp(new[] { markedSourceV1 },
                 modules: new[] { module1, module1, module1, module1 },
                 methodVersions: new[] { 2, 2, 1, 1 }, // method F3 and F4 were not remapped
                 flags: new[]
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     ActiveStatementFlags.None | ActiveStatementFlags.IsNonLeafFrame,           // F4
                 });
 
-            var exceptionSpans = ActiveStatementsDescription.GetExceptionRegions(markedSourceV1, activeStatementsPreRemap.Length);
+            var exceptionSpans = ActiveStatementsDescription.GetExceptionRegions(markedSourceV1);
 
             var filePath = activeStatementsPreRemap[0].DocumentName;
             var spanPreRemap2 = new SourceFileSpan(filePath, activeStatementsPreRemap[2].SourceSpan.ToLinePositionSpan());
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // Thread1 stack trace: F (AS:0), M (AS:1 leaf)
             // Thread2 stack trace: F (AS:0), M (AS:1), M (AS:1 leaf)
 
-            var activeStatements = GetActiveStatementDebugInfos(
+            var activeStatements = GetActiveStatementDebugInfosCSharp(
                 markedSources,
                 methodRowIds: new[] { 1, 2 },
                 ilOffsets: new[] { 1, 1 },

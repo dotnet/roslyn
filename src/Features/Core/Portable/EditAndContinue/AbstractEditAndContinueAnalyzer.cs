@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -514,15 +515,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray<RudeEditDiagnostic>.Empty, hasChanges);
                 }
 
-                var oldActiveStatements = (oldTree == null) ? ImmutableArray<UnmappedActiveStatement>.Empty :
-                    oldActiveStatementMap.GetOldActiveStatements(this, oldTree, oldText, oldRoot, cancellationToken);
-
-                var newActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(oldActiveStatements.Length);
-                newActiveStatements.Count = oldActiveStatements.Length;
-
-                var newExceptionRegions = ImmutableArray.CreateBuilder<ImmutableArray<SourceFileSpan>>(oldActiveStatements.Length);
-                newExceptionRegions.Count = oldActiveStatements.Length;
-
                 if (!hasChanges)
                 {
                     // The document might have been closed and reopened, which might have triggered analysis. 
@@ -577,7 +569,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 cancellationToken.ThrowIfCancellationRequested();
 
                 using var _3 = ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)>.GetInstance(out var triviaEdits);
-                using var _4 = ArrayBuilder<SourceLineUpdate>.GetInstance(out var lineEdits);
+                using var _4 = ArrayBuilder<SequencePointUpdates>.GetInstance(out var lineEdits);
 
                 // Do not analyze trivia in presence of syntactic rude edits.
                 // The implementation depends on edit map capturing all updates and inserts,
@@ -585,8 +577,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (diagnostics.Count == 0)
                 {
                     AnalyzeTrivia(
-                        oldText,
-                        newText,
                         topMatch,
                         editMap,
                         triviaEdits,
@@ -602,6 +592,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     cancellationToken.ThrowIfCancellationRequested();
                 }
+
+                var oldActiveStatements = (oldTree == null) ? ImmutableArray<UnmappedActiveStatement>.Empty :
+                    oldActiveStatementMap.GetOldActiveStatements(this, oldTree, oldText, oldRoot, cancellationToken);
+
+                var newActiveStatements = ImmutableArray.CreateBuilder<ActiveStatement>(oldActiveStatements.Length);
+                newActiveStatements.Count = oldActiveStatements.Length;
+
+                var newExceptionRegions = ImmutableArray.CreateBuilder<ImmutableArray<SourceFileSpan>>(oldActiveStatements.Length);
+                newExceptionRegions.Count = oldActiveStatements.Length;
 
                 var semanticEdits = await AnalyzeSemanticsAsync(
                     syntacticEdits,
@@ -621,7 +620,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                AnalyzeUnchangedMemberBodies(diagnostics, syntacticEdits.Match, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, cancellationToken);
+                AnalyzeUnchangedActiveMemberBodies(diagnostics, syntacticEdits.Match, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, cancellationToken);
                 Debug.Assert(newActiveStatements.All(a => a != null));
 
                 if (diagnostics.Count > 0 && !hasRudeEdits)
@@ -709,7 +708,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Syntax Analysis
 
-        private void AnalyzeUnchangedMemberBodies(
+        private void AnalyzeUnchangedActiveMemberBodies(
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> topMatch,
             SourceText newText,
@@ -1944,20 +1943,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         /// <summary>
         /// Top-level edit script does not contain edits for a member if only trivia changed in its body.
+        /// It also does not reflect changes in line mapping directives.
         /// Members that are unchanged but their location in the file changes are not considered updated.
-        /// This method calculates line and trivia edits for both of these cases.
+        /// This method calculates line and trivia edits for all these cases.
+        /// 
+        /// The resulting line edits are grouped by mapped document path and sorted by <see cref="SourceLineUpdate.OldLine"/> in each group.
         /// </summary>
         private void AnalyzeTrivia(
-            SourceText oldSource,
-            SourceText newSource,
             Match<SyntaxNode> topMatch,
             IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
             [Out] ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-            [Out] ArrayBuilder<SourceLineUpdate> lineEdits,
+            [Out] ArrayBuilder<SequencePointUpdates> lineEdits,
             [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.Count == 0);
+
+            var oldTree = topMatch.OldRoot.SyntaxTree;
+            var newTree = topMatch.NewRoot.SyntaxTree;
+
+            // note: range [oldStartLine, oldEndLine] is end-inclusive
+            using var _ = ArrayBuilder<(string filePath, int oldStartLine, int oldEndLine, int delta, SyntaxNode oldNode, SyntaxNode newNode)>.GetInstance(out var segments);
 
             foreach (var (oldNode, newNode) in topMatch.Matches)
             {
@@ -1988,31 +1994,63 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var newTokensEnum = newTokens.GetEnumerator();
                 var oldTokensEnum = oldTokens.GetEnumerator();
 
-                var oldLines = oldSource.Lines;
-                var newLines = newSource.Lines;
+                // We enumerate tokens of the body and split them into segments.
+                // Each segment has sequence points mapped to the same file and also all lines the segment covers map to the same line delta.
+                // The first token of a segment must be the first token that starts on the line. If the first segment token was in the middle line 
+                // the previous token on the same line would have different line delta and we wouldn't be able to map both of them at the same time.
+                // All segments are included in the segments list regardless of their line delta (even when it's 0 - i.e. the lines did not change).
+                // This is necessary as we need to detect collisions of multiple segments with different deltas later on.
 
-                // If line and column position of all tokens in the body change by the same delta
-                // we add a line delta to the line edits. Otherwise we assume that some sequence points 
-                // in the body might have changed their source spans and thus require recompilation 
-                // of the method. 
-                // 
-                // This approach requires recompilation for more methods then really necessary. 
-                // The debugger APIs allow to pass line deltas for each sequence point that moved.
-                // Whenever we detect a change in line position we can check if it actually affects any 
-                // sequence point (breakpoint span). If not we can insert a line delta for that change.
-                // However to the user it would seem arbitrary that a trivia edit in otherwise uneditable method
-                // (e.g. generic method) sometimes succeeds. 
-                //
-                // We could still consider checking sequence points as an optimization to avoid recompiling 
-                // editable methods just because some trivia was changed in between breakpoint spans.
-
-                var previousNewToken = default(SyntaxToken);
+                var lastNewToken = default(SyntaxToken);
+                var lastOldStartLine = -1;
+                var lastOldFilePath = (string?)null;
                 var requiresUpdate = false;
-                var isFirstToken = true;
-                var firstTokenLineDelta = 0;
-                SourceLineUpdate firstTokenLineChange = default;
+
+                var firstSegmentIndex = segments.Count;
+                var currentSegment = (path: (string?)null, oldStartLine: 0, delta: 0, firstOldNode: (SyntaxNode?)null, firstNewNode: (SyntaxNode?)null);
+                var rudeEditSpan = default(TextSpan);
+
+                // Check if the breakpoint span that covers the first node of the segment can be translated from the old to the new by adding a line delta.
+                // If not we need to recompile the containing member since we are not able to produce line update for it.
+                // The first node of the segment can be the first node on its line but the breakpoint span might start on the previous line.
+                bool IsCurrentSegmentBreakpointSpanMappable()
+                {
+                    var oldNode = currentSegment.firstOldNode;
+                    var newNode = currentSegment.firstNewNode;
+                    Contract.ThrowIfNull(oldNode);
+                    Contract.ThrowIfNull(newNode);
+
+                    // Some nodes (e.g. const local declaration) may not be covered by a breakpoint span.
+                    if (!TryGetEnclosingBreakpointSpan(oldNode, oldNode.SpanStart, out var oldBreakpointSpan) ||
+                        !TryGetEnclosingBreakpointSpan(newNode, newNode.SpanStart, out var newBreakpointSpan))
+                    {
+                        return true;
+                    }
+
+                    var oldMappedBreakpointSpan = (SourceFileSpan)oldTree.GetMappedLineSpan(oldBreakpointSpan, cancellationToken);
+                    var newMappedBreakpointSpan = (SourceFileSpan)newTree.GetMappedLineSpan(newBreakpointSpan, cancellationToken);
+
+                    if (oldMappedBreakpointSpan.AddLineDelta(currentSegment.delta) == newMappedBreakpointSpan)
+                    {
+                        return true;
+                    }
+
+                    rudeEditSpan = newBreakpointSpan;
+                    return false;
+                }
+
+                void AddCurrentSegment()
+                {
+                    Debug.Assert(currentSegment.path != null);
+                    Debug.Assert(lastOldStartLine >= 0);
+
+                    // segment it ends on the line where the previous token starts (lastOldStartLine)
+                    segments.Add((currentSegment.path, currentSegment.oldStartLine, lastOldStartLine, currentSegment.delta, oldNode, newNode));
+                }
+
                 bool oldHasToken;
                 bool newHasToken;
+
                 while (true)
                 {
                     oldHasToken = oldTokensEnum.MoveNext();
@@ -2023,60 +2061,183 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (!oldHasToken)
                     {
+                        if (!IsCurrentSegmentBreakpointSpanMappable())
+                        {
+                            requiresUpdate = true;
+                        }
+                        else
+                        {
+                            // add last segment of the method body:
+                            AddCurrentSegment();
+                        }
+
                         break;
                     }
 
-                    var oldStart = oldTokensEnum.Current.SpanStart;
-                    var newStart = newTokensEnum.Current.SpanStart;
+                    var oldSpan = oldTokensEnum.Current.Span;
+                    var newSpan = newTokensEnum.Current.Span;
 
-                    var oldPosition = oldLines.GetLinePosition(oldStart);
-                    var newPosition = newLines.GetLinePosition(newStart);
+                    var oldMappedSpan = oldTree.GetMappedLineSpan(oldSpan, cancellationToken);
+                    var newMappedSpan = newTree.GetMappedLineSpan(newSpan, cancellationToken);
 
-                    if (oldPosition.Character != newPosition.Character)
+                    var oldStartLine = oldMappedSpan.Span.Start.Line;
+                    var newStartLine = newMappedSpan.Span.Start.Line;
+                    var lineDelta = newStartLine - oldStartLine;
+
+                    // If any tokens in the method change their mapped column or mapped path the method must be recompiled 
+                    // since the Debugger/SymReader does not support these updates.
+                    if (oldMappedSpan.Span.Start.Character != newMappedSpan.Span.Start.Character)
                     {
                         requiresUpdate = true;
                         break;
                     }
 
-                    var lineDelta = oldPosition.Line - newPosition.Line;
-                    if (isFirstToken)
+                    if (currentSegment.path != oldMappedSpan.Path || currentSegment.delta != lineDelta)
                     {
-                        isFirstToken = false;
-                        firstTokenLineDelta = lineDelta;
-                        firstTokenLineChange = (lineDelta != 0) ? new SourceLineUpdate(oldPosition.Line, newPosition.Line) : default;
-                    }
-                    else if (firstTokenLineDelta != lineDelta)
-                    {
-                        requiresUpdate = true;
-                        break;
+                        // end of segment:
+                        if (currentSegment.path != null)
+                        {
+                            // Previous token start line is the same as this token start line, but the previous token line delta is not the same.
+                            // We can't therefore map the old start line to a new one using line delta since that would affect both tokens the same.
+                            if (lastOldStartLine == oldStartLine && string.Equals(lastOldFilePath, oldMappedSpan.Path))
+                            {
+                                requiresUpdate = true;
+                                break;
+                            }
+
+                            if (!IsCurrentSegmentBreakpointSpanMappable())
+                            {
+                                requiresUpdate = true;
+                                break;
+                            }
+
+                            // add current segment:
+                            AddCurrentSegment();
+                        }
+
+                        // start new segment:
+                        currentSegment = (oldMappedSpan.Path, oldStartLine, lineDelta, oldTokensEnum.Current.Parent, newTokensEnum.Current.Parent);
                     }
 
-                    previousNewToken = newTokensEnum.Current;
+                    lastNewToken = newTokensEnum.Current;
+                    lastOldStartLine = oldStartLine;
+                    lastOldFilePath = oldMappedSpan.Path;
                 }
 
+                // All tokens of a member body has been processed now.
                 if (requiresUpdate)
                 {
                     triviaEdits.Add((oldNode, newNode));
 
-                    var currentToken = newTokensEnum.Current;
+                    // report the rude edit for the span of tokens that forced recompilation:
+                    if (rudeEditSpan.IsEmpty)
+                    {
+                        rudeEditSpan = TextSpan.FromBounds(
+                            lastNewToken.HasTrailingTrivia ? lastNewToken.Span.End : newTokensEnum.Current.FullSpan.Start,
+                            newTokensEnum.Current.SpanStart);
+                    }
 
-                    var triviaSpan = TextSpan.FromBounds(
-                        previousNewToken.HasTrailingTrivia ? previousNewToken.Span.End : currentToken.FullSpan.Start,
-                        currentToken.SpanStart);
+                    ReportMemberUpdateRudeEdits(diagnostics, newNode, rudeEditSpan);
 
-                    ReportMemberUpdateRudeEdits(diagnostics, newNode, triviaSpan);
-                }
-                else if (firstTokenLineDelta != 0)
-                {
-                    lineEdits.Add(firstTokenLineChange);
+                    // remove all segments added for the current member body:
+                    segments.Count = firstSegmentIndex;
                 }
             }
 
-            lineEdits.Sort(CompareLineUpdates);
+            if (segments.Count == 0)
+            {
+                return;
+            }
+
+            // sort segments by file and then by start line:
+            segments.Sort((x, y) =>
+            {
+                var result = string.CompareOrdinal(x.filePath, y.filePath);
+                return (result != 0) ? result : x.oldStartLine.CompareTo(y.oldStartLine);
+            });
+
+            // Calculate line updates based on segments.
+            // If two segments with different line deltas overlap we need to recompile all overlapping members except for the first one.
+            // The debugger does not apply line deltas to recompiled methods and hence we can chose to recompile either of the overlapping segments
+            // and apply line delta to the others.
+            // 
+            // The line delta is applied to the start line of a sequence point. If start lines of two sequence points mapped to the same location
+            // before the delta is applied then they will point to the same location after the delta is applied. But that wouldn't be correct
+            // if two different mappings required applying different deltas and thus different locations.
+            // This also applies when two methods are on the same line in the old version and they move by different deltas.
+
+            using var _1 = ArrayBuilder<SourceLineUpdate>.GetInstance(out var documentLineEdits);
+
+            var currentDocumentPath = segments[0].filePath;
+            var previousOldEndLine = -1;
+            var previousLineDelta = 0;
+            foreach (var segment in segments)
+            {
+                if (segment.filePath != currentDocumentPath)
+                {
+                    // store results for the previous document:
+                    if (documentLineEdits.Count > 0)
+                    {
+                        lineEdits.Add(new SequencePointUpdates(currentDocumentPath, documentLineEdits.ToImmutableAndClear()));
+                    }
+
+                    // switch to the next document:
+                    currentDocumentPath = segment.filePath;
+                    previousOldEndLine = -1;
+                    previousLineDelta = 0;
+                }
+                else if (segment.oldStartLine <= previousOldEndLine && segment.delta != previousLineDelta)
+                {
+                    // The segment overlaps the previous one that has a different line delta. We need to recompile the method.
+                    // The debugger filters out line deltas that correspond to recompiled methods so we don't need to.
+                    triviaEdits.Add((segment.oldNode, segment.newNode));
+                    ReportMemberUpdateRudeEdits(diagnostics, segment.newNode, span: null);
+                    continue;
+                }
+
+                // If the segment being added does not start on the line immediately following the previous segment end line
+                // we need to insert another line update that resets the delta to 0 for the lines following the end line.
+                if (documentLineEdits.Count > 0 && segment.oldStartLine > previousOldEndLine + 1)
+                {
+                    Debug.Assert(previousOldEndLine >= 0);
+                    documentLineEdits.Add(CreateZeroDeltaSourceLineUpdate(previousOldEndLine + 1));
+                    previousLineDelta = 0;
+                }
+
+                // Skip segment that doesn't change line numbers - the line edit would have no effect.
+                // It was only added to facilitate detection of overlap with other segments.
+                // Also skip the segment if the last line update has the same line delta as
+                // consecutive same line deltas has the same effect as a single one.
+                if (segment.delta != 0 && segment.delta != previousLineDelta)
+                {
+                    documentLineEdits.Add(new SourceLineUpdate(segment.oldStartLine, segment.oldStartLine + segment.delta));
+                }
+
+                previousOldEndLine = segment.oldEndLine;
+                previousLineDelta = segment.delta;
+            }
+
+            if (currentDocumentPath != null && documentLineEdits.Count > 0)
+            {
+                lineEdits.Add(new SequencePointUpdates(currentDocumentPath, documentLineEdits.ToImmutable()));
+            }
         }
 
-        private static int CompareLineUpdates(SourceLineUpdate x, SourceLineUpdate y)
-            => x.OldLine.CompareTo(y.OldLine);
+        // TODO: Currently the constructor SourceLineUpdate does not allow update with zero delta.
+        // Workaround until the debugger updates.
+        internal static SourceLineUpdate CreateZeroDeltaSourceLineUpdate(int line)
+        {
+            var result = new SourceLineUpdate();
+
+            // TODO: Currently the constructor SourceLineUpdate does not allow update with zero delta.
+            // Workaround until the debugger updates.
+            unsafe
+            {
+                Unsafe.Write(&result, ((long)line << 32) | (long)line);
+            }
+
+            return result;
+        }
 
         #endregion
 
@@ -4272,16 +4433,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             internal void AnalyzeTrivia(
-                SourceText oldSource,
-                SourceText newSource,
                 Match<SyntaxNode> topMatch,
                 IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
                 [Out] ArrayBuilder<(SyntaxNode OldNode, SyntaxNode NewNode)> triviaEdits,
-                [Out] ArrayBuilder<SourceLineUpdate> lineEdits,
+                [Out] ArrayBuilder<SequencePointUpdates> lineEdits,
                 [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics,
                 CancellationToken cancellationToken)
             {
-                _abstractEditAndContinueAnalyzer.AnalyzeTrivia(oldSource, newSource, topMatch, editMap, triviaEdits, lineEdits, diagnostics, cancellationToken);
+                _abstractEditAndContinueAnalyzer.AnalyzeTrivia(topMatch, editMap, triviaEdits, lineEdits, diagnostics, cancellationToken);
             }
         }
 

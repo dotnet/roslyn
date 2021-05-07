@@ -14,6 +14,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -5144,26 +5145,26 @@ class C
             var src1 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		<AS:1>if (B())</AS:1>
-		{
-			System.Console.WriteLine(0);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        <AS:1>if (B())</AS:1>
+        {
+            System.Console.WriteLine(0);
         }
     }
 }";
             var src2 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		<AS:1>if (B())</AS:1>
-		{
-			System.Console.WriteLine(1);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        <AS:1>if (B())</AS:1>
+        {
+            System.Console.WriteLine(1);
         }
     }
 }";
@@ -5179,26 +5180,26 @@ class C
             var src1 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		<AS:1>if (B())</AS:1>
-		{
-			System.Console.WriteLine(0);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        <AS:1>if (B())</AS:1>
+        {
+            System.Console.WriteLine(0);
         }
     }
 }";
             var src2 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		<AS:1>if (!B())</AS:1>
-		{
-			System.Console.WriteLine(0);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        <AS:1>if (!B())</AS:1>
+        {
+            System.Console.WriteLine(0);
         }
     }
 }";
@@ -5215,26 +5216,26 @@ class C
             var src1 = @"
 class C
 {
-	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
-	
-	public static void Main()
-	{
-		<AS:1>if (B(() => 1))</AS:1>
-		{
-			System.Console.WriteLine(0);
+    public static bool B(Func<int> a) => <AS:0>false</AS:0>;
+    
+    public static void Main()
+    {
+        <AS:1>if (B(() => 1))</AS:1>
+        {
+            System.Console.WriteLine(0);
         }
     }
 }";
             var src2 = @"
 class C
 {
-	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
-	
-	public static void Main()
-	{
-		<AS:1>if (B(() => 2))</AS:1>
-		{
-			System.Console.WriteLine(0);
+    public static bool B(Func<int> a) => <AS:0>false</AS:0>;
+    
+    public static void Main()
+    {
+        <AS:1>if (B(() => 2))</AS:1>
+        {
+            System.Console.WriteLine(0);
         }
     }
 }";
@@ -5250,26 +5251,26 @@ class C
             var src1 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		<AS:1>while (B())</AS:1>
-		{
-			System.Console.WriteLine(0);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        <AS:1>while (B())</AS:1>
+        {
+            System.Console.WriteLine(0);
         }
     }
 }";
             var src2 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		<AS:1>while (B())</AS:1>
-		{
-			System.Console.WriteLine(1);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        <AS:1>while (B())</AS:1>
+        {
+            System.Console.WriteLine(1);
         }
     }
 }";
@@ -5285,26 +5286,26 @@ class C
             var src1 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		<AS:1>while (B())</AS:1>
-		{
-			System.Console.WriteLine(0);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        <AS:1>while (B())</AS:1>
+        {
+            System.Console.WriteLine(0);
         }
     }
 }";
             var src2 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		<AS:1>while (!B())</AS:1>
-		{
-			System.Console.WriteLine(1);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        <AS:1>while (!B())</AS:1>
+        {
+            System.Console.WriteLine(1);
         }
     }
 }";
@@ -5321,26 +5322,26 @@ class C
             var src1 = @"
 class C
 {
-	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
-	
-	public static void Main()
-	{
-		<AS:1>while (B(() => 1))</AS:1>
-		{
-			System.Console.WriteLine(0);
+    public static bool B(Func<int> a) => <AS:0>false</AS:0>;
+    
+    public static void Main()
+    {
+        <AS:1>while (B(() => 1))</AS:1>
+        {
+            System.Console.WriteLine(0);
         }
     }
 }";
             var src2 = @"
 class C
 {
-	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
-	
-	public static void Main()
-	{
-		<AS:1>while (B(() => 2))</AS:1>
-		{
-			System.Console.WriteLine(1);
+    public static bool B(Func<int> a) => <AS:0>false</AS:0>;
+    
+    public static void Main()
+    {
+        <AS:1>while (B(() => 2))</AS:1>
+        {
+            System.Console.WriteLine(1);
         }
     }
 }";
@@ -5356,13 +5357,13 @@ class C
             var src1 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		do
-		{
-			System.Console.WriteLine(0);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        do
+        {
+            System.Console.WriteLine(0);
         }
         <AS:1>while (B());</AS:1>
     }
@@ -5370,15 +5371,15 @@ class C
             var src2 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		do
-		{
-			System.Console.WriteLine(1);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        do
+        {
+            System.Console.WriteLine(1);
         }
-		<AS:1>while (B());</AS:1>
+        <AS:1>while (B());</AS:1>
     }
 }";
             var edits = GetTopEdits(src1, src2);
@@ -5393,13 +5394,13 @@ class C
             var src1 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		do
-		{
-			System.Console.WriteLine(0);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        do
+        {
+            System.Console.WriteLine(0);
         }
         <AS:1>while (B());</AS:1>
     }
@@ -5407,15 +5408,15 @@ class C
             var src2 = @"
 class C
 {
-	public static bool B() <AS:0>{</AS:0> return false; }
-	
-	public static void Main()
-	{
-		do
-		{
-			System.Console.WriteLine(1);
+    public static bool B() <AS:0>{</AS:0> return false; }
+    
+    public static void Main()
+    {
+        do
+        {
+            System.Console.WriteLine(1);
         }
-		<AS:1>while (!B());</AS:1>
+        <AS:1>while (!B());</AS:1>
     }
 }";
             var edits = GetTopEdits(src1, src2);
@@ -5431,13 +5432,13 @@ class C
             var src1 = @"
 class C
 {
-	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
-	
-	public static void Main()
-	{
-		do
-		{
-			System.Console.WriteLine(0);
+    public static bool B(Func<int> a) => <AS:0>false</AS:0>;
+    
+    public static void Main()
+    {
+        do
+        {
+            System.Console.WriteLine(0);
         }
         <AS:1>while (B(() => 1));</AS:1>
     }
@@ -5445,15 +5446,15 @@ class C
             var src2 = @"
 class C
 {
-	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
-	
-	public static void Main()
-	{
-		do
-		{
-			System.Console.WriteLine(1);
+    public static bool B(Func<int> a) => <AS:0>false</AS:0>;
+    
+    public static void Main()
+    {
+        do
+        {
+            System.Console.WriteLine(1);
         }
-		<AS:1>while (B(() => 2));</AS:1>
+        <AS:1>while (B(() => 2));</AS:1>
     }
 }";
             var edits = GetTopEdits(src1, src2);
@@ -5495,28 +5496,28 @@ class C
             var src1 = @"
 class C
 {
-	public static string F() <AS:0>{</AS:0> return null; }
-	
-	public static void Main()
-	{
-		<AS:1>switch (F())</AS:1>
-		{
-			case ""a"": System.Console.WriteLine(0); break;
-			case ""b"": System.Console.WriteLine(1); break;
+    public static string F() <AS:0>{</AS:0> return null; }
+    
+    public static void Main()
+    {
+        <AS:1>switch (F())</AS:1>
+        {
+            case ""a"": System.Console.WriteLine(0); break;
+            case ""b"": System.Console.WriteLine(1); break;
         }
     }
 }";
             var src2 = @"
 class C
 {
-	public static string F() <AS:0>{</AS:0> return null; }
-	
-	public static void Main()
-	{
-		<AS:1>switch (F())</AS:1>
-		{
-			case ""a"": System.Console.WriteLine(0); break;
-			case ""b"": System.Console.WriteLine(2); break;
+    public static string F() <AS:0>{</AS:0> return null; }
+    
+    public static void Main()
+    {
+        <AS:1>switch (F())</AS:1>
+        {
+            case ""a"": System.Console.WriteLine(0); break;
+            case ""b"": System.Console.WriteLine(2); break;
         }
     }
 }";
@@ -5532,28 +5533,28 @@ class C
             var src1 = @"
 class C
 {
-	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
-	
-	public static void Main()
-	{
-		<AS:1>switch (B(() => 1))</AS:1>
-		{
-			case ""a"": System.Console.WriteLine(0); break;
-			case ""b"": System.Console.WriteLine(1); break;
+    public static bool B(Func<int> a) => <AS:0>false</AS:0>;
+    
+    public static void Main()
+    {
+        <AS:1>switch (B(() => 1))</AS:1>
+        {
+            case ""a"": System.Console.WriteLine(0); break;
+            case ""b"": System.Console.WriteLine(1); break;
         }
     }
 }";
             var src2 = @"
 class C
 {
-	public static bool B(Func<int> a) => <AS:0>false</AS:0>;
-	
-	public static void Main()
-	{
-		<AS:1>switch (B(() => 2))</AS:1>
-		{
-			case ""a"": System.Console.WriteLine(0); break;
-			case ""b"": System.Console.WriteLine(2); break;
+    public static bool B(Func<int> a) => <AS:0>false</AS:0>;
+    
+    public static void Main()
+    {
+        <AS:1>switch (B(() => 2))</AS:1>
+        {
+            case ""a"": System.Console.WriteLine(0); break;
+            case ""b"": System.Console.WriteLine(2); break;
         }
     }
 }";
@@ -5573,11 +5574,11 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
-			case int a1 when G1(a1):
+    public static int Main()
+    {
+        switch (F())
+        {
+            case int a1 when G1(a1):
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
                 
@@ -5600,11 +5601,11 @@ class C
             var src2 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
-			case int a1 when G1(a1):
+    public static int Main()
+    {
+        switch (F())
+        {
+            case int a1 when G1(a1):
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
                 
@@ -5637,10 +5638,10 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
+    public static int Main()
+    {
+        switch (F())
+        {
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5651,11 +5652,11 @@ class C
             var src2 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
-			case int a1 when G1(a1):
+    public static int Main()
+    {
+        switch (F())
+        {
+            case int a1 when G1(a1):
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5676,11 +5677,11 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
-			case int a1 when G1(a1):
+    public static int Main()
+    {
+        switch (F())
+        {
+            case int a1 when G1(a1):
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5691,10 +5692,10 @@ class C
             var src2 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
+    public static int Main()
+    {
+        switch (F())
+        {
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5715,11 +5716,11 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
-			case byte a1 when G1(a1):
+    public static int Main()
+    {
+        switch (F())
+        {
+            case byte a1 when G1(a1):
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5730,11 +5731,11 @@ class C
             var src2 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
-			case byte a1:
+    public static int Main()
+    {
+        switch (F())
+        {
+            case byte a1:
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5755,11 +5756,11 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
-			case byte a1:
+    public static int Main()
+    {
+        switch (F())
+        {
+            case byte a1:
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5770,11 +5771,11 @@ class C
             var src2 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
-			case byte a1 when G1(a1):
+    public static int Main()
+    {
+        switch (F())
+        {
+            case byte a1 when G1(a1):
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5795,11 +5796,11 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
-			case byte a1 when G1(a1):
+    public static int Main()
+    {
+        switch (F())
+        {
+            case byte a1 when G1(a1):
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5810,11 +5811,11 @@ class C
             var src2 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F())
-		{
-			case byte a1 when G1(a1 * 2):
+    public static int Main()
+    {
+        switch (F())
+        {
+            case byte a1 when G1(a1 * 2):
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5834,11 +5835,11 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F(1))
-		{
-			case int a1 when G1(a1):
+    public static int Main()
+    {
+        switch (F(1))
+        {
+            case int a1 when G1(a1):
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5849,11 +5850,11 @@ class C
             var src2 = @"
 class C
 {
-	public static int Main()
-	{
-		switch (F(2))
-		{
-			case int a1 when G1(a1):
+    public static int Main()
+    {
+        switch (F(2))
+        {
+            case int a1 when G1(a1):
             case int a2 <AS:0>when G1(a2)</AS:0>:
                 return 10;
         }
@@ -5876,11 +5877,11 @@ class C
 {
     public int X { get => <AS:0>1</AS:0>; }
 
-	public static int F(object obj)
-	{
-		<AS:1>switch (obj)</AS:1>
-		{
-			case C { X: 1 }:
+    public static int F(object obj)
+    {
+        <AS:1>switch (obj)</AS:1>
+        {
+            case C { X: 1 }:
                 return 1;
         }
 
@@ -5892,11 +5893,11 @@ class C
 {
     public int X { get => <AS:0>1</AS:0>; }
 
-	public static int F(object obj)
-	{
-		<AS:1>switch (obj)</AS:1>
-		{
-			case C { X: 2 }:
+    public static int F(object obj)
+    {
+        <AS:1>switch (obj)</AS:1>
+        {
+            case C { X: 2 }:
                 return 1;
         }
 
@@ -5918,11 +5919,11 @@ class C
 {
     public void Deconstruct(out int x) => <AS:0>x = X</AS:0>;
 
-	public static int F(object obj)
-	{
-		<AS:1>switch (obj)</AS:1>
-		{
-			case C ( x: 1 ):
+    public static int F(object obj)
+    {
+        <AS:1>switch (obj)</AS:1>
+        {
+            case C ( x: 1 ):
                 return 1;
         }
 
@@ -5934,11 +5935,11 @@ class C
 {
     public void Deconstruct(out int x) => <AS:0>x = X</AS:0>;
 
-	public static int F(object obj)
-	{
-		<AS:1>switch (obj)</AS:1>
-		{
-			case C ( x: 2 ):
+    public static int F(object obj)
+    {
+        <AS:1>switch (obj)</AS:1>
+        {
+            case C ( x: 2 ):
                 return 1;
         }
 
@@ -5959,15 +5960,15 @@ class C
 class C
 {
     public static object G() => <AS:0>null</AS:0>;
-	
+    
     public static int F(object obj)
-	{
-		<AS:1>switch (G())</AS:1>
-		{
-			case var (x, y):
+    {
+        <AS:1>switch (G())</AS:1>
+        {
+            case var (x, y):
                 return 1;
 
-			case 2:
+            case 2:
                 return 2;
         }
 
@@ -5980,13 +5981,13 @@ class C
     public static object G() => <AS:0>null</AS:0>;
 
     public static int F(object obj)
-	{
-		<AS:1>switch (G())</AS:1>
-		{
-			case var (x, y):
+    {
+        <AS:1>switch (G())</AS:1>
+        {
+            case var (x, y):
                 return 1;
 
-			case 3:
+            case 3:
                 return 2;
         }
 
@@ -6007,12 +6008,12 @@ class C
 class C
 {
     public static object G() => <AS:0>null</AS:0>;
-	
+    
     public static int F(object obj)
-	{
-		<AS:1>switch (G())</AS:1>
-		{
-			case bool _:
+    {
+        <AS:1>switch (G())</AS:1>
+        {
+            case bool _:
                 return 1;
         }
 
@@ -6024,11 +6025,11 @@ class C
 {
     public static object G() => <AS:0>null</AS:0>;
 
-	public static int F(object obj)
-	{
-		<AS:1>switch (G())</AS:1>
-		{
-			case int _:
+    public static int F(object obj)
+    {
+        <AS:1>switch (G())</AS:1>
+        {
+            case int _:
                 return 1;
         }
 
@@ -6049,12 +6050,12 @@ class C
 class C
 {
     public static object G() => <AS:0>null</AS:0>;
-	
+
     public static int F(object obj)
-	{
-		<AS:1>switch (G())</AS:1>
-		{
-			case 1:
+    {
+        <AS:1>switch (G())</AS:1>
+        {
+            case 1:
                 return 1;
         }
 
@@ -6066,11 +6067,11 @@ class C
 {
     public static object G() => <AS:0>null</AS:0>;
 
-	public static int F(object obj)
-	{
-		<AS:1>switch (G())</AS:1>
-		{
-			case 2:
+    public static int F(object obj)
+    {
+        <AS:1>switch (G())</AS:1>
+        {
+            case 2:
                 return 1;
         }
 
@@ -6093,8 +6094,8 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main()
-	{
+    public static int Main()
+    {
         Console.WriteLine(1);
 
         <AS:4>return F() switch
@@ -6175,12 +6176,12 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main() => <AS:0>F() switch { 0 => 1, _ => 2}</AS:0>;
+    public static int Main() => <AS:0>F() switch { 0 => 1, _ => 2}</AS:0>;
 }";
             var src2 = @"
 class C
 {
-	public static int Main() => <AS:0>G() switch { 0 => 10, _ => 20}</AS:0>;
+    public static int Main() => <AS:0>G() switch { 0 => 10, _ => 20}</AS:0>;
 }";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
@@ -6195,12 +6196,12 @@ class C
             var src1 = @"
 class C
 {
-	public static Func<int> M() => () => <AS:0>F() switch { 0 => 1, _ => 2}</AS:0>;
+    public static Func<int> M() => () => <AS:0>F() switch { 0 => 1, _ => 2}</AS:0>;
 }";
             var src2 = @"
 class C
 {
-	public static Func<int> M() => () => <AS:0>G() switch { 0 => 10, _ => 20}</AS:0>;
+    public static Func<int> M() => () => <AS:0>G() switch { 0 => 10, _ => 20}</AS:0>;
 }";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
@@ -6215,7 +6216,7 @@ class C
             var src1 = @"
 class C
 {
-	public static IEnumerable<int> M()
+    public static IEnumerable<int> M()
     {
         return 
            from a in new[] { 1 }
@@ -6226,7 +6227,7 @@ class C
             var src2 = @"
 class C
 {
-	public static IEnumerable<int> M()
+    public static IEnumerable<int> M()
     {
         return 
            from a in new[] { 2 }
@@ -6247,12 +6248,12 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main() => <AS:1>(F() switch { 0 => 1, _ => 2 }) switch { 1 => <AS:0>10</AS:0>, _ => 20 }</AS:1>;
+    public static int Main() => <AS:1>(F() switch { 0 => 1, _ => 2 }) switch { 1 => <AS:0>10</AS:0>, _ => 20 }</AS:1>;
 }";
             var src2 = @"
 class C
 {
-	public static int Main() => <AS:1>(G() switch { 0 => 10, _ => 20 }) switch { 10 => <AS:0>100</AS:0>, _ => 200 }</AS:1>;
+    public static int Main() => <AS:1>(G() switch { 0 => 10, _ => 20 }) switch { 10 => <AS:0>100</AS:0>, _ => 200 }</AS:1>;
 }";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
@@ -6267,7 +6268,7 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main() => F1() switch
+    public static int Main() => F1() switch
     {
         1 when F2() <AS:0>switch { 0 => true, _ => false }</AS:0> => F3() <AS:1>switch { 0 => 1, _ => 2 }</AS:1>, 
         _ => 20
@@ -6276,7 +6277,7 @@ class C
             var src2 = @"
 class C
 {
-	public static int Main() => F1() switch
+    public static int Main() => F1() switch
     {
         1 when F2() <AS:0>switch { 0 => true, _ => false }</AS:0> => F3() <AS:1>switch { 0 => 1, _ => 2 }</AS:1>,
         _ => 20
@@ -6295,7 +6296,7 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main()
+    public static int Main()
     {
         return Method() switch { true => G(), _ => F2() switch { 1 => <AS:0>0</AS:0>, _ => 2 } };
     }
@@ -6303,7 +6304,7 @@ class C
             var src2 = @"
 class C
 {
-	public static int Main()
+    public static int Main()
     {
         return Method() switch { true => G(), _ => <AS:0>1</AS:0> };
     }
@@ -6321,7 +6322,7 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main()
+    public static int Main()
     {
         return F1() switch { 1 => 0, _ => F2() switch { 1 => <AS:0>0</AS:0>, _ => 2 } };
     }
@@ -6329,7 +6330,7 @@ class C
             var src2 = @"
 class C
 {
-	public static int Main()
+    public static int Main()
     {
         return F1() switch { 1 => <AS:0>0</AS:0>, _ => 1 };
     }
@@ -6347,7 +6348,7 @@ class C
             var src1 = @"
 class C
 {
-	public static int Main()
+    public static int Main()
     {
         return F1() switch { 1 when F2() switch { 1 => <AS:0>true</AS:0>, _ => false } => 0, _ => 2 };
     }
@@ -6355,7 +6356,7 @@ class C
             var src2 = @"
 class C
 {
-	public static int Main()
+    public static int Main()
     {
         return F1() switch { 1 <AS:0>when F3()</AS:0> => 0, _ => 1 };
     }
@@ -10044,97 +10045,6 @@ class C
 
         #endregion
 
-        #region Unmodified Documents
-
-        [Fact]
-        public void UnmodifiedDocument1()
-        {
-            var src1 = @"
-class C
-{
-    static void Main(string[] args)
-    {
-        try
-        {            
-        }
-        catch (IOException e) if (e == null)
-        {
-            Goo<AS:1>(</AS:1>);
-        }
-    }
-
-    static void Goo()
-    {
-        Console.WriteLine(<AS:0>1</AS:0>);
-    }
-}";
-            var src2 = @"
-class C
-{
-    static void Main(string[] args)
-    {
-        try
-        {            
-        }
-        <ER:1.0>catch (IOException e) when (e == null)
-        {
-            <AS:1>Goo();</AS:1>
-        }</ER:1.0>
-    }
-
-    static void Goo()
-    {
-        <AS:0>Console.WriteLine(1);</AS:0>
-    }
-}";
-
-            var active = GetActiveStatements(src1, src2);
-            EditAndContinueValidation.VerifyUnchangedDocument(src2, active);
-        }
-
-        [Fact]
-        public void UnmodifiedDocument_BadSpans1()
-        {
-            var src1 = @"
-class C
-{
-    <AS:2>const int a = 1;</AS:2>
- 
-    static void Main(string[] args)
-    {
-        Goo();
-    }
-<AS:1>
-    static</AS:1> void Goo()
-    {
-        <AS:3>Console.WriteLine(1);</AS:3>
-    }
-}
-
-<AS:0></AS:0>
-";
-            var src2 = @"
-class C
-{
-    const int a = 1;
-
-    static void Main(string[] args)
-    {
-       Goo();
-    }
-
-    static void Goo()
-    <AS:1>{</AS:1>
-        <AS:3>Console.WriteLine(1);</AS:3>
-    }
-}";
-
-            var active = GetActiveStatements(src1, src2);
-            EditAndContinueValidation.VerifyUnchangedDocument(src2, active);
-        }
-
-        #endregion
-
         #region C# 7.0
 
         [Fact]
@@ -10723,8 +10633,11 @@ record C(int X)
 
         #region Line Mapping
 
+        /// <summary>
+        /// Validates that changes in #line directives produce semantic updates of the containing method.
+        /// </summary>
         [Fact]
-        public void LineMapping_ChangeLineNumber()
+        public void LineMapping_ChangeLineNumber_WithinMethod()
         {
             var src1 = @"
 class C
@@ -10755,7 +10668,7 @@ class C
 #line 5 ""b""
         B(2);
         <AS:1>B();</AS:1>
-#line 20 ""c""
+#line 9 ""c""
         <AS:2>C();</AS:2>
         <AS:3>C();</AS:3>
 #line hidden

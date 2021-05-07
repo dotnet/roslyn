@@ -2,34 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     internal static class EditAndContinueValidation
     {
-        internal static void VerifyUnchangedDocument(
-            string source,
-            ActiveStatementsDescription description)
-        {
-#if TODO
-            new CSharpEditAndContinueTestHelpers().VerifyUnchangedDocument(
-                ActiveStatementsDescription.ClearTags(source),
-                description.OldStatements,
-                description.NewSpans,
-                description.NewRegions);
-#endif
-        }
-
         internal static void VerifyRudeDiagnostics(
             this EditScript<SyntaxNode> editScript,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
@@ -68,6 +53,21 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static void VerifyLineEdits(
             this EditScript<SyntaxNode> editScript,
             IEnumerable<SourceLineUpdate> expectedLineEdits,
+            IEnumerable<string> expectedNodeUpdates,
+            params RudeEditDiagnosticDescription[] expectedDiagnostics)
+        {
+            Assert.NotEmpty(expectedLineEdits);
+
+            VerifyLineEdits(
+                editScript,
+                new[] { new SequencePointUpdates(editScript.Match.OldRoot.SyntaxTree.FilePath, expectedLineEdits.ToImmutableArray()) },
+                expectedNodeUpdates,
+                expectedDiagnostics);
+        }
+
+        internal static void VerifyLineEdits(
+            this EditScript<SyntaxNode> editScript,
+            IEnumerable<SequencePointUpdates> expectedLineEdits,
             IEnumerable<string> expectedNodeUpdates,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
