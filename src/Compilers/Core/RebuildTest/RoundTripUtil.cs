@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 rebuildPdbStream,
                 rebuildArtifactResolver,
                 cancellationToken);
+
             Assert.True(emitResult.Success);
             Assert.Equal(peStream.ToArray(), rebuildPeStream.ToArray());
             Assert.Equal(pdbStream?.ToArray(), rebuildPdbStream?.ToArray());
