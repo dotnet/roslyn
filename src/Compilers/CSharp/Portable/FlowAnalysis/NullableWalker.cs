@@ -4482,7 +4482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             alternativeState = CloneAndUnsplit(ref alternativeConditionalState);
             var alternativeEndReachable = alternativeState.Reachable;
 
-            SetConditionalState(in consequenceConditionalState);
+            SetPossiblyConditionalState(in consequenceConditionalState);
             Join(ref alternativeConditionalState);
 
             TypeSymbol? resultType;
@@ -9839,7 +9839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return state;
         }
 
-        private void SetConditionalState(in PossiblyConditionalState conditionalState)
+        private void SetPossiblyConditionalState(in PossiblyConditionalState conditionalState)
         {
             if (!conditionalState.IsConditionalState)
             {
