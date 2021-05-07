@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
@@ -17,5 +18,11 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
         Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(ValueTrackedItem previousTrackedItem, CancellationToken cancellationToken);
         Task TrackValueSourceAsync(ValueTrackedItem previousTrackedItem, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken);
+    }
+
+    internal interface IRemoteValueTrackingService
+    {
+        ValueTask<ImmutableArray<SerializableValueTrackedItem>> TrackValueSourceAsync(PinnedSolutionInfo solutionInfo, TextSpan selection, DocumentId document, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<SerializableValueTrackedItem>> TrackValueSourceAsync(PinnedSolutionInfo solutionInfo, SerializableValueTrackedItem previousTrackedItem, CancellationToken cancellationToken);
     }
 }

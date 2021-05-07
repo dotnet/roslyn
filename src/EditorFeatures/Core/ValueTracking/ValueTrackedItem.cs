@@ -47,18 +47,23 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             return subText.ToString();
         }
 
-        public static async Task<ValueTrackedItem?> TryCreateAsync(Solution solution, Location location, ISymbol symbol, ValueTrackedItem? parent = null, CancellationToken cancellationToken = default)
+        public static Task<ValueTrackedItem?> TryCreateAsync(Solution solution, Location location, ISymbol symbol, ValueTrackedItem? parent = null, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfNull(location.SourceTree);
 
             var document = solution.GetRequiredDocument(location.SourceTree);
+            return TryCreateAsync(document, location.SourceSpan, symbol, parent, cancellationToken);
+        }
+
+        public static async Task<ValueTrackedItem?> TryCreateAsync(Document document, TextSpan textSpan, ISymbol symbol, ValueTrackedItem? parent = null, CancellationToken cancellationToken = default)
+        {
             var excerptService = document.Services.GetService<IDocumentExcerptService>();
             SourceText? sourceText = null;
             ImmutableArray<ClassifiedSpan> classifiedSpans = default;
 
             if (excerptService != null)
             {
-                var result = await excerptService.TryExcerptAsync(document, location.SourceSpan, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
+                var result = await excerptService.TryExcerptAsync(document, textSpan, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
                 if (result.HasValue)
                 {
                     var value = result.Value;
@@ -68,17 +73,18 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             if (sourceText is null)
             {
-                var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
+                var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, cancellationToken).ConfigureAwait(false);
                 classifiedSpans = classificationResult.ClassifiedSpans;
-                sourceText = await location.SourceTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return new ValueTrackedItem(
                         symbol,
                         sourceText,
                         classifiedSpans,
-                        location.SourceSpan,
+                        textSpan,
                         document,
                         parent: parent);
         }
