@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return namespacesInScope;
         }
 
-        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem completionItem, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
+        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem completionItem, TextSpan completionListSpan, char? commitKey, CancellationToken cancellationToken)
         {
             LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
-                if (!IsAddingImportsSupported(document, disallowAddingImports))
+                if (!IsAddingImportsSupported(document))
                 {
                     return true;
                 }
@@ -218,13 +218,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 && !IsFinalSemicolonOfUsingOrExtern(node, leftToken);
         }
 
-        protected static bool IsAddingImportsSupported(Document document, bool disallowAddingImports)
+        protected static bool IsAddingImportsSupported(Document document)
         {
-            if (disallowAddingImports)
-            {
-                return false;
-            }
-
             var workspace = document.Project.Solution.Workspace;
 
             // Certain types of workspace don't support document change, e.g. DebuggerIntelliSenseWorkspace

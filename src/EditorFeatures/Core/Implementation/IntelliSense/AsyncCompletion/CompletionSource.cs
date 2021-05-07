@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string RoslynItem = nameof(RoslynItem);
         internal const string TriggerLocation = nameof(TriggerLocation);
         internal const string CompletionListSpan = nameof(CompletionListSpan);
-        internal const string DisallowAddingImports = nameof(DisallowAddingImports);
         internal const string InsertionText = nameof(InsertionText);
         internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
         internal const string Description = nameof(Description);
@@ -272,8 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 options = options
                     .WithChangedOption(CompletionControllerOptions.FilterOutOfScopeLocals, false)
-                    .WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, false)
-                    .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, true);
+                    .WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, false);
             }
 
             var (completionList, expandItemsAvailable) = await completionService.GetCompletionsInternalAsync(
@@ -317,11 +315,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // to pass this value in when we're committing a completion list item.
                 // It's OK to overwrite this value when expanded items are requested.
                 session.Properties[CompletionListSpan] = completionList.Span;
-
-                if (_isDebuggerTextView)
-                {
-                    session.Properties[DisallowAddingImports] = true;
-                }
 
                 // This is a code supporting original completion scenarios: 
                 // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
