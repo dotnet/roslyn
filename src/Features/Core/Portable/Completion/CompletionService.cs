@@ -184,7 +184,6 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItem item,
             TextSpan completionListSpan,
             char? commitCharacter = null,
-            bool disallowAddingImports = false,
             CancellationToken cancellationToken = default)
         {
             return GetChangeAsync(document, item, commitCharacter, cancellationToken);

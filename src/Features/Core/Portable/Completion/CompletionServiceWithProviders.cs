@@ -581,12 +581,11 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItem item,
             TextSpan completionListSpan,
             char? commitKey,
-            bool disallowAddingImports,
             CancellationToken cancellationToken)
         {
             var provider = GetProvider(item);
             return provider != null
-                ? await provider.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false)
+                ? await provider.GetChangeAsync(document, item, completionListSpan, commitKey, cancellationToken).ConfigureAwait(false)
                 : CompletionChange.Create(new TextChange(completionListSpan, item.DisplayText));
         }
 
