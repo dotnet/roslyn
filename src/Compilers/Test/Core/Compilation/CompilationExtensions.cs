@@ -4,7 +4,8 @@
 
 #nullable disable
 // Uncomment to enable the IOperation test hook on all test runs. Do not commit this uncommented.
-//#define ROSLYN_TEST_IOPERATION
+#define ROSLYN_TEST_IOPERATION
+// TODO2 restore comment
 
 using System;
 using System.Collections.Generic;
