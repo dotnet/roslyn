@@ -209,6 +209,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
                 else
                 {
+                    // Pattern was all lowercase.  This can lead to lots of hits.  For example, "bin" in
+                    // "CombineUnits".  Instead, we want it to match "Operator[|Bin|]ary" first rather than
+                    // Com[|bin|]eUnits
+
                     // If the lowercase search string matched what looks to be the start of a word then that's a
                     // reasonable hit. This is equivalent to 'bin' matching 'Operator[|Bin|]ary'
                     if (char.IsUpper(candidate[caseInsensitiveIndex]))
