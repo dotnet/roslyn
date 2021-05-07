@@ -7949,7 +7949,7 @@ public class SomeClass
     }
 }", 2);
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
         public async Task DoNotIntroduceConstantForConstant_Local()
