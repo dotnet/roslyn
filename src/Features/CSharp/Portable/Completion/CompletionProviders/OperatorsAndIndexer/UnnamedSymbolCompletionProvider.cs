@@ -149,10 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        internal override Task<CompletionChange> GetChangeAsync(
+        public override Task<CompletionChange> GetChangeAsync(
             Document document,
             CompletionItem item,
-            TextSpan completionListSpan,
             char? commitKey,
             CancellationToken cancellationToken)
         {
