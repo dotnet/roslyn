@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Peek;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 }
                 else
                 {
-                    var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
                     var symbol = SymbolFinder.GetSemanticInfoAtPositionAsync(
                         semanticModel,
                         triggerPoint.Value.Position,

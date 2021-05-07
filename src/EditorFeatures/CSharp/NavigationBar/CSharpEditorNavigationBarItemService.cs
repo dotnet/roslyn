@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 {
-    [ExportLanguageService(typeof(INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.CSharp), Shared]
     internal class CSharpEditorNavigationBarItemService : AbstractEditorNavigationBarItemService
     {
         [ImportingConstructor]

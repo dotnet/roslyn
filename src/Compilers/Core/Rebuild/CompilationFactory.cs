@@ -6,10 +6,12 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Rebuild
@@ -134,12 +136,14 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 pdbFilePath = codeView.Path ?? throw new InvalidOperationException("Could not get PDB file path");
             }
 
+            var rebuildData = new RebuildData(
+                OptionsReader.GetMetadataCompilationOptionsBlobReader(),
+                getNonSourceFileDocumentNames(OptionsReader.PdbReader, OptionsReader.GetSourceFileCount()));
             var emitResult = rebuildCompilation.Emit(
                 peStream: rebuildPeStream,
                 pdbStream: rebuildPdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: win32ResourceStream,
-                useRawWin32Resources: true,
                 manifestResources: OptionsReader.GetManifestResources(),
                 options: new EmitOptions(
                     debugInformationFormat: debugInformationFormat,
@@ -148,12 +152,25 @@ namespace Microsoft.CodeAnalysis.Rebuild
                     subsystemVersion: SubsystemVersion.Create(peHeader.MajorSubsystemVersion, peHeader.MinorSubsystemVersion)),
                 debugEntryPoint: debugEntryPoint,
                 metadataPEStream: null,
-                pdbOptionsBlobReader: OptionsReader.GetMetadataCompilationOptionsBlobReader(),
+                rebuildData: rebuildData,
                 sourceLinkStream: sourceLink != null ? new MemoryStream(sourceLink) : null,
                 embeddedTexts: embeddedTexts,
                 cancellationToken: cancellationToken);
 
             return emitResult;
+
+            static ImmutableArray<string> getNonSourceFileDocumentNames(MetadataReader pdbReader, int sourceFileCount)
+            {
+                var count = pdbReader.Documents.Count - sourceFileCount;
+                var builder = ArrayBuilder<string>.GetInstance(count);
+                foreach (var documentHandle in pdbReader.Documents.Skip(sourceFileCount))
+                {
+                    var document = pdbReader.GetDocument(documentHandle);
+                    var name = pdbReader.GetString(document.Name);
+                    builder.Add(name);
+                }
+                return builder.ToImmutableAndFree();
+            }
 
             IMethodSymbol? getDebugEntryPoint()
             {
