@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
             char? commitCharacter = null,
             bool disallowAddingImports = false,
             CancellationToken cancellationToken = default)
-            => completionService.GetChangeAsync(document, item, completionListSpan, commitCharacter, disallowAddingImports, cancellationToken);
+            => completionService.GetChangeAsync(document, item, commitCharacter, cancellationToken);
 
         public static string GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
 
