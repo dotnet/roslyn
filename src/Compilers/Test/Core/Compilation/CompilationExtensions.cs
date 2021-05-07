@@ -72,13 +72,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: null,
-                useRawWin32Resources: false,
                 manifestResources: manifestResources,
                 options: options,
                 debugEntryPoint: debugEntryPoint,
                 sourceLinkStream: sourceLinkStream,
                 embeddedTexts: embeddedTexts,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 testData: testData,
                 cancellationToken: default(CancellationToken));
 
