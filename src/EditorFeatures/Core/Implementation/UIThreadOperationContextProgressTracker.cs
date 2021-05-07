@@ -5,7 +5,7 @@
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
+namespace Microsoft.CodeAnalysis.Editor.Implementation
 {
     internal class UIThreadOperationContextProgressTracker : IProgressTracker
     {

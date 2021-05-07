@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         }
 
         private CodeAction CreateAction(CodeRefactoringContext context, Scope scope, bool isRecord)
-            => new MyCodeAction(GetTitle(scope), c => ConvertToStructAsync(context.Document, context.Span, scope, isRecord, c));
+            => new MyCodeAction(GetTitle(scope), c => ConvertToStructAsync(context.Document, context.Span, scope, isRecord, c), scope.ToString());
 
         private static string GetTitle(Scope scope)
             => scope switch
@@ -940,8 +940,11 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+            public MyCodeAction(
+                string title,
+                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                string equivalenceKey)
+                : base(title, createChangedSolution, equivalenceKey)
             {
             }
         }

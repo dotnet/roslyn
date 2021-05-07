@@ -1710,4 +1710,7 @@ I agree to all of the foregoing:</value>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
   </data>
+  <data name="Error_updating_suppressions_0" xml:space="preserve">
+    <value>Error updating suppressions: {0}</value>
+  </data>
 </root>
