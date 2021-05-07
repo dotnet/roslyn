@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             builder = previousTable.ToBuilderWithABetterName();
             builder.AddEntries(ImmutableArray.Create(10, 11), EntryState.Added);
-            builder.AddEntriesFromPreviousTable(EntryState.Cached); // ((2, EntryState.Cached), (3, EntryState.Cached))
+            builder.TryUseCachedEntries(); // ((2, EntryState.Cached), (3, EntryState.Cached))
             builder.AddEntries(ImmutableArray.Create(20, 21, 22), EntryState.Modified);
-            builder.AddEntriesFromPreviousTable(EntryState.Removed); //((6, EntryState.Removed))); 
+            builder.RemoveEntries(); //((6, EntryState.Removed))); 
             var newTable = builder.ToImmutableAndFree();
 
             var expected = ImmutableArray.Create((10, EntryState.Added), (11, EntryState.Added), (2, EntryState.Cached), (3, EntryState.Cached), (20, EntryState.Modified), (21, EntryState.Modified), (22, EntryState.Modified), (6, EntryState.Removed));

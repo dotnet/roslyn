@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions);
 
         //only used for back compat in the adaptor
-        internal IncrementalValueSource<ISyntaxContextReceiver> CreateSyntaxReceiver() => new IncrementalValueSource<ISyntaxContextReceiver>(_perGeneratorBuilder.GetOrCreateReceiverNode());
+        internal IncrementalValueSource<ISyntaxContextReceiver?> CreateSyntaxReceiver() => new IncrementalValueSource<ISyntaxContextReceiver?>(_perGeneratorBuilder.GetOrCreateReceiverNode());
     }
 
     /// <summary>

@@ -75,8 +75,9 @@ namespace Microsoft.CodeAnalysis
             public void AddFilterFromPreviousTable(SemanticModel? model, EntryState state)
             {
                 Debug.Assert(model is object || state == EntryState.Removed);
-                var nodes = _filterTable.AddEntriesFromPreviousTable(state);
-                UpdateTransformTable(nodes, model, state);
+                // FIX ME
+               // var nodes = _filterTable.AddEntriesFromPreviousTable(state);
+                //UpdateTransformTable(nodes, model, state);
             }
 
             public void AddFilterEntries(ImmutableArray<SyntaxNode> nodes, SemanticModel model)
@@ -91,20 +92,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (state == EntryState.Removed)
                     {
-                        _transformTable.AddEntriesFromPreviousTable(EntryState.Removed);
+                        _transformTable.RemoveEntries();
                     }
                     else
                     {
                         Debug.Assert(model is object);
                         var value = new GeneratorSyntaxContext(node, model);
                         var transformed = ImmutableArray.Create(_owner._func(value));
-                        if (_previousTransformTable.IsEmpty || state == EntryState.Added)
+
+                        if (state != EntryState.Added)
                         {
-                            _transformTable.AddEntries(transformed, EntryState.Added);
+                            if (!_transformTable.TryModifyEntries(transformed, _owner._comparer))
+                            {
+                                _transformTable.AddEntries(transformed, EntryState.Added);
+                            }
                         }
                         else
                         {
-                            _transformTable.ModifyEntriesFromPreviousTable(transformed, _owner._comparer);
+                            _transformTable.AddEntries(transformed, EntryState.Added);
                         }
                     }
                 }

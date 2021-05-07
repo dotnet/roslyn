@@ -174,7 +174,6 @@ namespace Microsoft.CodeAnalysis
                 // as it can't have any effect on downstream tables
                 if (_previous._states.Length > _states.Count)
                 {
-                    UpdateCompactedState(EntryState.Removed);
                     var previousEntries = _previous._states[_states.Count].SelectAsArray(s => (s.item, EntryState.Removed));
                     _states.Add(previousEntries);
                 }
@@ -182,41 +181,23 @@ namespace Microsoft.CodeAnalysis
 
             public bool TryUseCachedEntries()
             {
-                return false;
+                if (_previous._states.Length <= _states.Count)
+                {
+                    return false;
+                }
+
+                var previousEntries = _previous._states[_states.Count].SelectAsArray(s => (s.item, EntryState.Cached));
+                _states.Add(previousEntries);
+                return true;
             }
 
             public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer)
             {
-                return false;
-            }
+                if (_previous._states.Length <= _states.Count)
+                {
+                    return false;
+                }
 
-            public void AddEntries(ImmutableArray<T> values, EntryState state)
-            {
-                _states.Add(values.SelectAsArray(v => (v, state)));
-            }
-
-            public ImmutableArray<T> AddEntriesFromPreviousTable(EntryState newState)
-            {
-                Debug.Assert(_previous._states.Length > _states.Count);
-                var previousEntries = _previous._states[_states.Count].SelectAsArray(s => (s.item, newState));
-                _states.Add(previousEntries);
-
-                // PROTOTYPE(source-generators): this is mostly unused, so wastes cycles.
-                // if we refactor the way we store states as noted above though, it will become essentially free
-                return previousEntries.SelectAsArray(e => e.item);
-            }
-
-            public void ModifyEntriesFromPreviousTable(ImmutableArray<T> outputs, IEqualityComparer<T> comparer)
-            {
-
-                // Semantics:
-                // For every slot in the previous table, we compare the new value.
-                // - Cached when the same
-                // - Modified when different
-                // - Removed when i > outputs.length
-                // - Added when i < previousTable.length
-
-                Debug.Assert(_previous._states.Length > _states.Count);
                 var previousEntries = _previous._states[_states.Count];
                 var modifiedEntries = ArrayBuilder<(T item, EntryState state)>.GetInstance();
 
@@ -254,6 +235,12 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 _states.Add(modifiedEntries.ToImmutableAndFree());
+                return true;
+            }
+
+            public void AddEntries(ImmutableArray<T> values, EntryState state)
+            {
+                _states.Add(values.SelectAsArray(v => (v, state)));
             }
 
             public void SetFaulted(Exception e)

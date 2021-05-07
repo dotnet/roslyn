@@ -59,15 +59,11 @@ namespace Microsoft.CodeAnalysis
 
             // update the table 
             var newTable = previousTable.ToBuilderWithABetterName();
-            if (previousTable.IsEmpty)
+            if (!newTable.TryModifyEntries(transformed, _comparer))
             {
                 newTable.AddEntries(transformed, EntryState.Added);
             }
-            else
-            {
-                Debug.Assert(previousTable.Count == 1);
-                newTable.ModifyEntriesFromPreviousTable(transformed, _comparer);
-            }
+
             return newTable.ToImmutableAndFree();
         }
     }

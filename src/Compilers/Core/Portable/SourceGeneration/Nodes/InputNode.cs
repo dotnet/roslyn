@@ -42,8 +42,15 @@ namespace Microsoft.CodeAnalysis
             // for each item in the previous table, check if its still in the new items
             foreach ((var oldItem, _) in previousTable)
             {
-                bool inItemSet = itemsSet.Remove(oldItem);
-                builder.AddEntriesFromPreviousTable(inItemSet ? EntryState.Cached : EntryState.Removed);
+                if (itemsSet.Remove(oldItem))
+                {
+                    // we're iterating the table, so know that it has entries
+                    builder.TryUseCachedEntries();
+                }
+                else
+                {
+                    builder.RemoveEntries();
+                }
             }
 
             // any remaining new items are added

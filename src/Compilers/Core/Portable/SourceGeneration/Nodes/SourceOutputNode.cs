@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis
             var nodeTable = previousTable.ToBuilderWithABetterName();
             foreach (var entry in sourceTable)
             {
-                if (entry.state == EntryState.Cached || entry.state == EntryState.Removed)
+                if (entry.state == EntryState.Removed)
                 {
-                    nodeTable.AddEntriesFromPreviousTable(entry.state);
+                    nodeTable.RemoveEntries();
                 }
-                else if (entry.state == EntryState.Added || entry.state == EntryState.Modified)
+                else if (entry.state != EntryState.Cached || !nodeTable.TryUseCachedEntries())
                 {
                     // we don't currently handle modified any differently than added at the output
                     // we just run the action and mark the new source as added. In theory we could compare
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis
                         sourcesBuilder.Free();
                         diagnostics.Free();
                     }
+
                 }
             }
 
