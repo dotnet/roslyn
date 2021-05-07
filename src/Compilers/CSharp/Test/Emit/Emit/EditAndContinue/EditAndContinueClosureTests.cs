@@ -125,7 +125,7 @@ class C
                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43099")]
+        [Fact]
         public void MethodWithSwitchExpression()
         {
             var source0 = MarkedSource(@"
@@ -179,45 +179,14 @@ class C
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
-            // TODO: Below is incorrect and needs updating once compiler bugs are fixed
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<>c__DisplayClass0_0#1, <>c__DisplayClass0_1#1}",
-                "C.<>c__DisplayClass0_1#1: {<i>5__2, CS$<>8__locals2, <F>b__0}",
-                "C.<>c__DisplayClass0_0#1: {o, <>9__1, <F>b__1}");
+                "C: {<>c__DisplayClass0_0#0, <>c__DisplayClass0_1#0}",
+                "C.<>c__DisplayClass0_1#0: {<i>5__2, CS$<>8__locals2, <F>b__0}",
+                "C.<>c__DisplayClass0_0#0: {o, <>9__1, <F>b__1}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
-
-            /* TODO: Below is incorrect and needs updating once compiler bugs are fixed.
-             * Leaving it here to show that new helper classes are being defined, which is undesirable:
-
-                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(5, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(6, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(7, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                Row(8, TableIndex.Field, EditAndContinueOperation.Default),
-                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(3, TableIndex.NestedClass, EditAndContinueOperation.Default),
-                Row(4, TableIndex.NestedClass, EditAndContinueOperation.Default)
-            */
 
             // Method updates
             CheckEncLogDefinitions(reader1,
