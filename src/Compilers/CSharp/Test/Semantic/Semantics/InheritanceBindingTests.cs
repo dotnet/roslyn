@@ -181,8 +181,15 @@ abstract class AbstractGoo : IGoo
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property9").WithArguments("protected internal"),
                 // (32,22): error CS0106: The modifier 'private' is not valid for this item
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property10").WithArguments("private"),
-                // (35,21): error CS0106: The modifier 'static' is not valid for this item
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property12").WithArguments("static"),
+                // (35,21): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     static int IGoo.Property12 { set { } }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "Property12").WithArguments("static", "9.0", "preview").WithLocation(35, 21),
+                // (35,21): error CS0539: 'AbstractGoo.Property12' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static int IGoo.Property12 { set { } }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Property12").WithArguments("AbstractGoo.Property12").WithLocation(35, 21),
+                // (18,30): error CS0535: 'AbstractGoo' does not implement interface member 'IGoo.Property12'
+                // abstract class AbstractGoo : IGoo
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IGoo").WithArguments("AbstractGoo", "IGoo.Property12").WithLocation(18, 30),
                 // (34,34): warning CS0626: Method, operator, or accessor 'AbstractGoo.IGoo.Property11.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("AbstractGoo.IGoo.Property11.set"));
         }

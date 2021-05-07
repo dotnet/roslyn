@@ -11515,18 +11515,17 @@ public class C3 : C2, I1
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                     parseOptions: parseOptions,
+                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     references: new[] { reference });
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -11622,6 +11621,8 @@ public class C5 : C2, I1
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
+            compilation1.VerifyDiagnostics();
+
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
             var m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
 
@@ -11642,6 +11643,12 @@ public class C5 : C2, I1
             var c5 = compilation1.GlobalNamespace.GetTypeMember("C5");
 
             Assert.Equal("void C2.M01()", c5.FindImplementationForInterfaceMember(m01).ToTestDisplayString());
+
+            compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
         }
 
         [Fact]
@@ -11679,6 +11686,12 @@ public class C1 : I1
 
             Assert.Null(c1.FindImplementationForInterfaceMember(m01));
             Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+
+            compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyEmitDiagnostics();
 
             var source2 =
 @"
@@ -11754,6 +11767,9 @@ public class C1 : I2
 
             Assert.Null(c1.FindImplementationForInterfaceMember(m01));
             Assert.Null(i2.FindImplementationForInterfaceMember(m01));
+
+            var i2M01 = i2.GetMembers().OfType<MethodSymbol>().Single();
+            Assert.Same(m01, i2M01.ExplicitInterfaceImplementations.Single());
         }
 
         [Fact]
@@ -11813,6 +11829,7 @@ class C2 : C1, I1
                     Assert.False(c1M01.IsMetadataFinal);
                     Assert.False(c1M01.IsMetadataNewSlot());
                     Assert.Equal(MethodKind.Ordinary, c1M01.MethodKind);
+                    Assert.Empty(c1M01.ExplicitInterfaceImplementations);
                 }
                 else
                 {
@@ -11946,6 +11963,7 @@ class C2 : I1
 public interface I1
 {
     abstract static void M01();
+    abstract static void M02();
 }
 
 public class C1
@@ -11955,6 +11973,7 @@ public class C1
 
 public class C2 : C1, I1
 {
+    static void I1.M02() {}
 }
 ";
 
@@ -11971,23 +11990,24 @@ public class C3 : C2, I1
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                         parseOptions: parseOptions,
+                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         references: new[] { reference });
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
                 var c3 = module.GlobalNamespace.GetTypeMember("C3");
-                var m01 = c3.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+                Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
+
+                var m01 = c3.Interfaces().Single().GetMembers("M01").OfType<MethodSymbol>().Single();
 
                 var c1M01 = c3.BaseType().BaseType().GetMember<MethodSymbol>("M01");
                 Assert.Equal("void C1.M01()", c1M01.ToTestDisplayString());
@@ -12011,6 +12031,12 @@ public class C3 : C2, I1
                 {
                     Assert.Same(c1M01, c3.FindImplementationForInterfaceMember(m01));
                 }
+
+                var m02 = c3.Interfaces().Single().GetMembers("M02").OfType<MethodSymbol>().Single();
+
+                var c2M02 = c3.BaseType().GetMember<MethodSymbol>("I1.M02");
+                Assert.Equal("void C2.I1.M02()", c2M02.ToTestDisplayString());
+                Assert.Same(c2M02, c3.FindImplementationForInterfaceMember(m02));
             }
         }
 
@@ -12050,13 +12076,17 @@ public class C3 : C2, I1
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
-            var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                         parseOptions: parseOptions,
+                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         references: new[] { reference });
+                    var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("C3.I1.M01()",
+                    verifier.VerifyIL("C3.I1.M01()",
 @"
 {
   // Code size        6 (0x6)
@@ -12065,23 +12095,8 @@ public class C3 : C2, I1
   IL_0005:  ret
 }
 ");
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            verifier.VerifyIL("C3.I1.M01()",
-@"
-{
-  // Code size        6 (0x6)
-  .maxstack  0
-  IL_0000:  call       ""void C2.M01()""
-  IL_0005:  ret
-}
-");
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -12155,19 +12170,18 @@ public class C2 : C1<int>, I1
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: parseOptions,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
+                                                 references: new[] { reference });
 
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -12239,19 +12253,18 @@ public class C2 : C1<int>, I1<int>
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: parseOptions,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
+                                                 references: new[] { reference });
 
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -12321,19 +12334,18 @@ public class C2 : C1<int>, I1
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: parseOptions,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
+                                                 references: new[] { reference });
 
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -12392,18 +12404,18 @@ public class C2 : C1<int>, I1<int>
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: parseOptions,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
+                                                 references: new[] { reference });
 
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -12465,19 +12477,18 @@ public class C2 : C11<int>, I1
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: parseOptions,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
+                                                 references: new[] { reference });
 
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -12552,19 +12563,18 @@ public class C2 : C11<int>, I1<int>
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: parseOptions,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
+                                                 references: new[] { reference });
 
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -14015,18 +14025,18 @@ public class C3 : C2, I1
 ";
 
             var opName = UnaryOperatorName(op);
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                     parseOptions: parseOptions,
+                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     references: new[] { reference });
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -14088,18 +14098,18 @@ public class C3 : C2, I1
 ";
 
             var opName = UnaryOperatorName(op);
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                     parseOptions: parseOptions,
+                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     references: new[] { reference });
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -14164,18 +14174,18 @@ public class C3 : C2, I1
 ";
 
             var opName = BinaryOperatorName(op);
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                     parseOptions: parseOptions,
+                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     references: new[] { reference });
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -14278,6 +14288,8 @@ public class C5 : C2, I1
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
+            compilation1.VerifyDiagnostics();
+
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
             var m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
 
@@ -14304,6 +14316,12 @@ public class C5 : C2, I1
             var c2M01 = (MethodSymbol)c5.FindImplementationForInterfaceMember(m01);
             Assert.Equal("I1 C2." + opName + "(I1 x)", c2M01.ToTestDisplayString());
             Assert.Equal(MethodKind.UserDefinedOperator, c2M01.MethodKind);
+
+            compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
         }
 
         [Theory]
@@ -14395,6 +14413,8 @@ public class C5 : C2, I1
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
+            compilation1.VerifyDiagnostics();
+
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
             var m01 = c1.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
 
@@ -14421,6 +14441,12 @@ public class C5 : C2, I1
             var c2M01 = (MethodSymbol)c5.FindImplementationForInterfaceMember(m01);
             Assert.Equal("I1 C2." + opName + "(I1 x, System.Int32 y)", c2M01.ToTestDisplayString());
             Assert.Equal(MethodKind.UserDefinedOperator, c2M01.MethodKind);
+
+            compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
         }
 
         [Theory]
@@ -14465,6 +14491,12 @@ public class C1 : I1
             Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
             Assert.Null(c1.FindImplementationForInterfaceMember(m01));
             Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+
+            compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyEmitDiagnostics();
 
             var source2 =
 @"
@@ -14534,6 +14566,12 @@ public class C1 : I1
             Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
             Assert.Null(c1.FindImplementationForInterfaceMember(m01));
             Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+
+            compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyEmitDiagnostics();
 
             var source2 =
 @"
@@ -14617,6 +14655,9 @@ public class C1 : I2
             Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
             Assert.Null(c1.FindImplementationForInterfaceMember(m01));
             Assert.Null(i2.FindImplementationForInterfaceMember(m01));
+
+            var i2M01 = i2.GetMembers().OfType<MethodSymbol>().Single();
+            Assert.Same(m01, i2M01.ExplicitInterfaceImplementations.Single());
         }
 
         [Theory]
@@ -14677,6 +14718,9 @@ public class C1 : I2
             Assert.Equal(MethodKind.UserDefinedOperator, m01.MethodKind);
             Assert.Null(c1.FindImplementationForInterfaceMember(m01));
             Assert.Null(i2.FindImplementationForInterfaceMember(m01));
+
+            var i2M01 = i2.GetMembers().OfType<MethodSymbol>().Single();
+            Assert.Same(m01, i2M01.ExplicitInterfaceImplementations.Single());
         }
 
         [Theory]
@@ -14761,6 +14805,7 @@ public partial class C1
                     Assert.Equal(MethodKind.UserDefinedOperator, c1M01.MethodKind);
                     Assert.False(c1M01.HasRuntimeSpecialName);
                     Assert.True(c1M01.HasSpecialName);
+                    Assert.Empty(c1M01.ExplicitInterfaceImplementations);
                 }
                 else
                 {
@@ -15136,6 +15181,129 @@ class C2 : I1<C2>
 
         [Theory]
         [CombinatorialData]
+        public void ImplementAbstractStaticUnaryOperator_15([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op)
+        {
+            // A forwarding method isn't created if base class implements interface exactly the same way. 
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x);
+}
+
+public partial class C2 : I1
+{
+    static I1 I1.operator " + op + @"(I1 x) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C3 : C2, I1
+{
+}
+";
+
+            var opName = UnaryOperatorName(op);
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                         parseOptions: parseOptions,
+                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         references: new[] { reference });
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
+
+                var m02 = c3.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().Single();
+
+                var c2M02 = c3.BaseType().GetMembers("I1." + opName).OfType<MethodSymbol>().Single();
+                Assert.Equal("I1 C2.I1." + opName + "(I1 x)", c2M02.ToTestDisplayString());
+                Assert.Same(c2M02, c3.FindImplementationForInterfaceMember(m02));
+            }
+        }
+
+        [Fact]
+        public void ImplementAbstractStaticUnaryTrueFalseOperator_15()
+        {
+            // A forwarding method isn't created if base class implements interface exactly the same way. 
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static bool operator true(I1 x);
+    abstract static bool operator false(I1 x);
+}
+
+public partial class C2 : I1
+{
+    static bool I1.operator true(I1 x) => default;
+    static bool I1.operator false(I1 x) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C3 : C2, I1
+{
+}
+";
+
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                         parseOptions: parseOptions,
+                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         references: new[] { reference });
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
+
+                var m01 = c3.Interfaces().Single().GetMembers("op_True").OfType<MethodSymbol>().Single();
+                var m02 = c3.Interfaces().Single().GetMembers("op_False").OfType<MethodSymbol>().Single();
+
+                var c2M01 = c3.BaseType().GetMembers("I1.op_True").OfType<MethodSymbol>().Single();
+                Assert.Equal("System.Boolean C2.I1.op_True(I1 x)", c2M01.ToTestDisplayString());
+                Assert.Same(c2M01, c3.FindImplementationForInterfaceMember(m01));
+
+                var c2M02 = c3.BaseType().GetMembers("I1.op_False").OfType<MethodSymbol>().Single();
+                Assert.Equal("System.Boolean C2.I1.op_False(I1 x)", c2M02.ToTestDisplayString());
+                Assert.Same(c2M02, c3.FindImplementationForInterfaceMember(m02));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void ImplementAbstractStaticBinaryOperator_15([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op)
         {
             // A forwarding method isn't created if base class implements interface exactly the same way. 
@@ -15145,6 +15313,7 @@ class C2 : I1<C2>
 public partial interface I1<T> where T : I1<T>
 {
     abstract static T operator " + op + @"(T x, C1 y);
+    abstract static T operator " + op + @"(T x, C2 y);
 }
 
 public partial class C1
@@ -15152,8 +15321,9 @@ public partial class C1
     public static C2 operator " + op + @"(C2 x, C1 y) => default;
 }
 
-public class C2 : C1, I1<C2>
+public partial class C2 : C1, I1<C2>
 {
+    static C2 I1<C2>.operator " + op + @"(C2 x, C2 y) => default;
 }
 ";
 
@@ -15166,11 +15336,17 @@ public class C2 : C1, I1<C2>
 public partial interface I1<T>
 {
     abstract static T operator " + matchingOp + @"(T x, C1 y);
+    abstract static T operator " + matchingOp + @"(T x, C2 y);
 }
 
 public partial class C1
 {
     public static C2 operator " + matchingOp + @"(C2 x, C1 y) => default;
+}
+
+public partial class C2
+{
+    static C2 I1<C2>.operator " + matchingOp + @"(C2 x, C2 y) => default;
 }
 ";
             }
@@ -15190,23 +15366,24 @@ public class C3 : C2, I1<C2>
 
             var opName = BinaryOperatorName(op);
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                         parseOptions: parseOptions,
+                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         references: new[] { reference });
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
                 var c3 = module.GlobalNamespace.GetTypeMember("C3");
-                var m01 = c3.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().Single();
+                Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
+
+                var m01 = c3.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().First();
 
                 var c1M01 = c3.BaseType().BaseType().GetMember<MethodSymbol>(opName);
                 Assert.Equal("C2 C1." + opName + "(C2 x, C1 y)", c1M01.ToTestDisplayString());
@@ -15230,6 +15407,12 @@ public class C3 : C2, I1<C2>
                 {
                     Assert.Same(c1M01, c3.FindImplementationForInterfaceMember(m01));
                 }
+
+                var m02 = c3.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().ElementAt(1);
+
+                var c2M02 = c3.BaseType().GetMembers("I1<C2>." + opName).OfType<MethodSymbol>().First();
+                Assert.Equal("C2 C2.I1<C2>." + opName + "(C2 x, C2 y)", c2M02.ToTestDisplayString());
+                Assert.Same(c2M02, c3.FindImplementationForInterfaceMember(m02));
             }
         }
 
@@ -15294,13 +15477,17 @@ public class C3 : C2, I1<C2>
 
             var opName = BinaryOperatorName(op);
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
-            var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                     parseOptions: parseOptions,
+                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     references: new[] { reference });
+                    var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
 
-            verifier.VerifyIL("C3.I1<C2>." + opName + "(C2, C1)",
+                    verifier.VerifyIL("C3.I1<C2>." + opName + "(C2, C1)",
 @"
 {
   // Code size        8 (0x8)
@@ -15311,25 +15498,8 @@ public class C3 : C2, I1<C2>
   IL_0007:  ret
 }
 ");
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            verifier.VerifyIL("C3.I1<C2>." + opName + "(C2, C1)",
-@"
-{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  call       ""C2 C2." + opName + @"(C2, C1)""
-  IL_0007:  ret
-}
-");
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -15424,19 +15594,18 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: parseOptions,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
+                                                 references: new[] { reference });
 
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -15526,19 +15695,18 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: parseOptions,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
+                                                 references: new[] { reference });
 
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -15621,19 +15789,18 @@ public class C2 : C11<int, int>, I1<C11<int, int>, C1<int, int>>
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: parseOptions,
                                                  targetFramework: TargetFramework.NetCoreApp,
-                                                 references: new[] { compilation1.ToMetadataReference() });
+                                                 references: new[] { reference });
 
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
-
-            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                             parseOptions: TestOptions.RegularPreview,
-                                             targetFramework: TargetFramework.NetCoreApp,
-                                             references: new[] { compilation1.EmitToImageReference() });
-
-            CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
 
             void validate(ModuleSymbol module)
             {
@@ -16050,6 +16217,2060 @@ struct C2 : I1<C2>
                 //     static I1<C2> I1<C2>.operator %(I1<C2> x, int y) => default;
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "x").WithArguments("I1<T>", "T", "C2").WithLocation(14, 44 + op.Length - 1)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_01(bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C1 : I1
+{}
+
+" + typeKeyword + @"
+    C2 : I1
+{
+    public int M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C3 : I1
+{
+    static int M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C4 : I1
+{
+    int I1.M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C5 : I1
+{
+    public static long M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C6 : I1
+{
+    static long I1.M01 { get; set; }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01'
+                //     C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01").WithLocation(8, 10),
+                // (12,10): error CS9109: 'C2' does not implement static interface member 'I1.M01'. 'C2.M01' cannot implement the interface member because it is not static.
+                //     C2 : I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1").WithArguments("C2", "I1.M01", "C2.M01").WithLocation(12, 10),
+                // (18,10): error CS0737: 'C3' does not implement interface member 'I1.M01'. 'C3.M01' cannot implement an interface member because it is not public.
+                //     C3 : I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1").WithArguments("C3", "I1.M01", "C3.M01").WithLocation(18, 10),
+                // (24,10): error CS0535: 'C4' does not implement interface member 'I1.M01'
+                //     C4 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C4", "I1.M01").WithLocation(24, 10),
+                // (26,12): error CS0539: 'C4.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01").WithLocation(26, 12),
+                // (30,10): error CS0738: 'C5' does not implement interface member 'I1.M01'. 'C5.M01' cannot implement 'I1.M01' because it does not have the matching return type of 'int'.
+                //     C5 : I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("C5", "I1.M01", "C5.M01", "int").WithLocation(30, 10),
+                // (36,10): error CS0535: 'C6' does not implement interface member 'I1.M01'
+                //     C6 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01").WithLocation(36, 10),
+                // (38,20): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static long I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 20)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_02(bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract int M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C1 : I1
+{}
+
+" + typeKeyword + @"
+    C2 : I1
+{
+    public static int M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C3 : I1
+{
+    int M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C4 : I1
+{
+    static int I1.M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C5 : I1
+{
+    public long M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C6 : I1
+{
+    long I1.M01 { get; set; }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01'
+                //     C1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01").WithLocation(8, 10),
+                // (12,10): error CS0736: 'C2' does not implement instance interface member 'I1.M01'. 'C2.M01' cannot implement the interface member because it is static.
+                //     C2 : I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "I1").WithArguments("C2", "I1.M01", "C2.M01").WithLocation(12, 10),
+                // (18,10): error CS0737: 'C3' does not implement interface member 'I1.M01'. 'C3.M01' cannot implement an interface member because it is not public.
+                //     C3 : I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1").WithArguments("C3", "I1.M01", "C3.M01").WithLocation(18, 10),
+                // (24,10): error CS0535: 'C4' does not implement interface member 'I1.M01'
+                //     C4 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C4", "I1.M01").WithLocation(24, 10),
+                // (26,19): error CS0539: 'C4.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static int I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C4.M01").WithLocation(26, 19),
+                // (30,10): error CS0738: 'C5' does not implement interface member 'I1.M01'. 'C5.M01' cannot implement 'I1.M01' because it does not have the matching return type of 'int'.
+                //     C5 : I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("C5", "I1.M01", "C5.M01", "int").WithLocation(30, 10),
+                // (36,10): error CS0535: 'C6' does not implement interface member 'I1.M01'
+                //     C6 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C6", "I1.M01").WithLocation(36, 10),
+                // (38,13): error CS0539: 'C6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     long I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C6.M01").WithLocation(38, 13)
+                );
+        }
+
+        [Fact]
+        public void ImplementAbstractStaticProperty_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+}
+
+interface I2 : I1
+{}
+
+interface I3 : I1
+{
+    public virtual int M01 { get => 0; set{} }
+}
+
+interface I4 : I1
+{
+    static int M01 { get; set; }
+}
+
+interface I5 : I1
+{
+    int I1.M01 { get => 0; set{} }
+}
+
+interface I6 : I1
+{
+    static int I1.M01 { get => 0; set{} }
+}
+
+interface I7 : I1
+{
+    abstract static int M01 { get; set; }
+}
+
+interface I8 : I1
+{
+    abstract static int I1.M01 { get; set; }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (12,24): warning CS0108: 'I3.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
+                //     public virtual int M01 { get => 0; set{} }
+                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I3.M01", "I1.M01").WithLocation(12, 24),
+                // (17,16): warning CS0108: 'I4.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
+                //     static int M01 { get; set; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I4.M01", "I1.M01").WithLocation(17, 16),
+                // (22,12): error CS0539: 'I5.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     int I1.M01 { get => 0; set{} }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I5.M01").WithLocation(22, 12),
+                // (27,19): error CS0106: The modifier 'static' is not valid for this item
+                //     static int I1.M01 { get => 0; set{} }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(27, 19),
+                // (27,19): error CS0539: 'I6.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static int I1.M01 { get => 0; set{} }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I6.M01").WithLocation(27, 19),
+                // (32,25): warning CS0108: 'I7.M01' hides inherited member 'I1.M01'. Use the new keyword if hiding was intended.
+                //     abstract static int M01 { get; set; }
+                Diagnostic(ErrorCode.WRN_NewRequired, "M01").WithArguments("I7.M01", "I1.M01").WithLocation(32, 25),
+                // (37,28): error CS0106: The modifier 'static' is not valid for this item
+                //     abstract static int I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("static").WithLocation(37, 28),
+                // (37,28): error CS0539: 'I8.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     abstract static int I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("I8.M01").WithLocation(37, 28)
+                );
+
+            foreach (var m01 in compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers())
+            {
+                Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I2").FindImplementationForInterfaceMember(m01));
+                Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I3").FindImplementationForInterfaceMember(m01));
+                Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I4").FindImplementationForInterfaceMember(m01));
+                Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I5").FindImplementationForInterfaceMember(m01));
+                Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I6").FindImplementationForInterfaceMember(m01));
+                Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I7").FindImplementationForInterfaceMember(m01));
+                Assert.Null(compilation1.GlobalNamespace.GetTypeMember("I8").FindImplementationForInterfaceMember(m01));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_04(bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+    abstract static int M02 { get; set; }
+}
+";
+            var source2 =
+typeKeyword + @"
+    Test: I1
+{
+    static int I1.M01 { get; set; }
+    public static int M02 { get; set; }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     static int I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "9.0", "preview").WithLocation(4, 19)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (4,19): error CS8703: The modifier 'static' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     static int I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("static", "9.0", "preview").WithLocation(4, 19),
+                // (10,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static int M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(10, 25),
+                // (11,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static int M02 { get; set; }
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M02").WithArguments("abstract", "9.0", "preview").WithLocation(11, 25)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_05(bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+}
+";
+            var source2 =
+typeKeyword + @"
+    Test1: I1
+{
+    public static int M01 { get; set; }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (2,12): error CS9110: 'Test1.M01.set' cannot implement interface member 'I1.M01.set' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     Test1: I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.set", "I1.M01.set", "Test1").WithLocation(2, 12),
+                // (2,12): error CS9110: 'Test1.M01.get' cannot implement interface member 'I1.M01.get' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     Test1: I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.get", "I1.M01.get", "Test1").WithLocation(2, 12),
+                // (2,12): error CS9110: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     Test1: I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(2, 12)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.VerifyDiagnostics(
+                // (2,12): error CS9110: 'Test1.M01.set' cannot implement interface member 'I1.M01.set' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     Test1: I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.set", "I1.M01.set", "Test1").WithLocation(2, 12),
+                // (2,12): error CS9110: 'Test1.M01.get' cannot implement interface member 'I1.M01.get' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     Test1: I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.get", "I1.M01.get", "Test1").WithLocation(2, 12),
+                // (2,12): error CS9110: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                //     Test1: I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(2, 12),
+                // (9,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static int M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(9, 31),
+                // (9,36): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static int M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(9, 36)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_06(bool structure)
+        {
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+}
+";
+            var source2 =
+typeKeyword + @"
+    Test1: I1
+{
+    static int I1.M01 { get; set; }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (4,19): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     static int I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 19)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.VerifyDiagnostics(
+                // (4,19): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     static int I1.M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 19),
+                // (9,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static int M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(9, 31),
+                // (9,36): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static int M01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(9, 36)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_07(bool structure)
+        {
+            // Basic implicit implementation scenario, MethodImpl is emitted
+
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C : I1
+{
+    public static int M01 { get => 0; set {} }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped,
+                             emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+                var m01Get = m01.GetMethod;
+                var m01Set = m01.SetMethod;
+                var c = module.GlobalNamespace.GetTypeMember("C");
+
+                Assert.Equal(1, c.GetMembers().OfType<PropertySymbol>().Count());
+                Assert.Equal(2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                var cM01 = (PropertySymbol)c.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(cM01.IsStatic);
+                Assert.False(cM01.IsAbstract);
+                Assert.False(cM01.IsVirtual);
+
+                Assert.Equal("System.Int32 C.M01 { get; set; }", cM01.ToTestDisplayString());
+
+                var cM01Get = cM01.GetMethod;
+                Assert.Same(cM01Get, c.FindImplementationForInterfaceMember(m01Get));
+
+                Assert.True(cM01Get.IsStatic);
+                Assert.False(cM01Get.IsAbstract);
+                Assert.False(cM01Get.IsVirtual);
+                Assert.False(cM01Get.IsMetadataVirtual());
+                Assert.False(cM01Get.IsMetadataFinal);
+                Assert.False(cM01Get.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.PropertyGet, cM01Get.MethodKind);
+
+                Assert.Equal("System.Int32 C.M01.get", cM01Get.ToTestDisplayString());
+
+                var cM01Set = cM01.SetMethod;
+                Assert.Same(cM01Set, c.FindImplementationForInterfaceMember(m01Set));
+
+                Assert.True(cM01Set.IsStatic);
+                Assert.False(cM01Set.IsAbstract);
+                Assert.False(cM01Set.IsVirtual);
+                Assert.False(cM01Set.IsMetadataVirtual());
+                Assert.False(cM01Set.IsMetadataFinal);
+                Assert.False(cM01Set.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.PropertySet, cM01Set.MethodKind);
+
+                Assert.Equal("void C.M01.set", cM01Set.ToTestDisplayString());
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+                    Assert.Same(m01Get, cM01Get.ExplicitInterfaceImplementations.Single());
+                    Assert.Same(m01Set, cM01Set.ExplicitInterfaceImplementations.Single());
+                }
+                else
+                {
+                    Assert.Empty(cM01.ExplicitInterfaceImplementations);
+                    Assert.Empty(cM01Get.ExplicitInterfaceImplementations);
+                    Assert.Empty(cM01Set.ExplicitInterfaceImplementations);
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticReadonlyProperty_07(bool structure)
+        {
+            // Basic implicit implementation scenario, MethodImpl is emitted
+
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; }
+}
+
+" + typeKeyword + @"
+    C : I1
+{
+    public static int M01 { get; set; }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped,
+                             emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+                var m01Get = m01.GetMethod;
+                Assert.Null(m01.SetMethod);
+
+                var c = module.GlobalNamespace.GetTypeMember("C");
+
+                Assert.Equal(1, c.GetMembers().OfType<PropertySymbol>().Count());
+                Assert.Equal(2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                var cM01 = (PropertySymbol)c.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(cM01.IsStatic);
+                Assert.False(cM01.IsAbstract);
+                Assert.False(cM01.IsVirtual);
+
+                Assert.Equal("System.Int32 C.M01 { get; set; }", cM01.ToTestDisplayString());
+
+                var cM01Get = cM01.GetMethod;
+                Assert.Same(cM01Get, c.FindImplementationForInterfaceMember(m01Get));
+
+                Assert.True(cM01Get.IsStatic);
+                Assert.False(cM01Get.IsAbstract);
+                Assert.False(cM01Get.IsVirtual);
+                Assert.False(cM01Get.IsMetadataVirtual());
+                Assert.False(cM01Get.IsMetadataFinal);
+                Assert.False(cM01Get.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.PropertyGet, cM01Get.MethodKind);
+
+                Assert.Equal("System.Int32 C.M01.get", cM01Get.ToTestDisplayString());
+
+                var cM01Set = cM01.SetMethod;
+
+                Assert.True(cM01Set.IsStatic);
+                Assert.False(cM01Set.IsAbstract);
+                Assert.False(cM01Set.IsVirtual);
+                Assert.False(cM01Set.IsMetadataVirtual());
+                Assert.False(cM01Set.IsMetadataFinal);
+                Assert.False(cM01Set.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.PropertySet, cM01Set.MethodKind);
+
+                Assert.Equal("void C.M01.set", cM01Set.ToTestDisplayString());
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+                    Assert.Same(m01Get, cM01Get.ExplicitInterfaceImplementations.Single());
+                }
+                else
+                {
+                    Assert.Empty(cM01.ExplicitInterfaceImplementations);
+                    Assert.Empty(cM01Get.ExplicitInterfaceImplementations);
+                }
+
+                Assert.Empty(cM01Set.ExplicitInterfaceImplementations);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_08(bool structure)
+        {
+            // Basic explicit implementation scenario
+
+            var typeKeyword = structure ? "struct" : "class";
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+}
+
+" + typeKeyword + @"
+    C : I1
+{
+    static int I1.M01 { get => 0; set {} }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped,
+                             emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+                var m01Get = m01.GetMethod;
+                var m01Set = m01.SetMethod;
+                var c = module.GlobalNamespace.GetTypeMember("C");
+
+                Assert.Equal(1, c.GetMembers().OfType<PropertySymbol>().Count());
+                Assert.Equal(2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                var cM01 = (PropertySymbol)c.FindImplementationForInterfaceMember(m01);
+
+                Assert.True(cM01.IsStatic);
+                Assert.False(cM01.IsAbstract);
+                Assert.False(cM01.IsVirtual);
+
+                Assert.Equal("System.Int32 C.I1.M01 { get; set; }", cM01.ToTestDisplayString());
+
+                var cM01Get = cM01.GetMethod;
+                Assert.Same(cM01Get, c.FindImplementationForInterfaceMember(m01Get));
+
+                Assert.True(cM01Get.IsStatic);
+                Assert.False(cM01Get.IsAbstract);
+                Assert.False(cM01Get.IsVirtual);
+                Assert.False(cM01Get.IsMetadataVirtual());
+                Assert.False(cM01Get.IsMetadataFinal);
+                Assert.False(cM01Get.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.PropertyGet, cM01Get.MethodKind);
+
+                Assert.Equal("System.Int32 C.I1.M01.get", cM01Get.ToTestDisplayString());
+
+                var cM01Set = cM01.SetMethod;
+                Assert.Same(cM01Set, c.FindImplementationForInterfaceMember(m01Set));
+
+                Assert.True(cM01Set.IsStatic);
+                Assert.False(cM01Set.IsAbstract);
+                Assert.False(cM01Set.IsVirtual);
+                Assert.False(cM01Set.IsMetadataVirtual());
+                Assert.False(cM01Set.IsMetadataFinal);
+                Assert.False(cM01Set.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.PropertySet, cM01Set.MethodKind);
+
+                Assert.Equal("System.Int32 C.I1.M01.get", cM01Get.ToTestDisplayString());
+
+                Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+                Assert.Same(m01Get, cM01Get.ExplicitInterfaceImplementations.Single());
+                Assert.Same(m01Set, cM01Set.ExplicitInterfaceImplementations.Single());
+            }
+        }
+
+        [Fact]
+        public void ImplementAbstractStaticProperty_09()
+        {
+            // Explicit implementation from base is treated as an implementation
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+}
+
+public class C1
+{
+    public static void M01() {}
+}
+
+public class C2 : C1, I1
+{
+    static int I1.M01 { get; set; }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C3 : C2, I1
+{
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                     parseOptions: parseOptions,
+                                                     targetFramework: TargetFramework.NetCoreApp,
+                                                     references: new[] { reference });
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                Assert.Empty(c3.GetMembers().OfType<PropertySymbol>());
+                Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
+                var m01 = c3.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
+
+                var cM01 = (PropertySymbol)c3.FindImplementationForInterfaceMember(m01);
+
+                Assert.Equal("System.Int32 C2.I1.M01 { get; set; }", cM01.ToTestDisplayString());
+
+                Assert.Same(cM01.GetMethod, c3.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Same(cM01.SetMethod, c3.FindImplementationForInterfaceMember(m01.SetMethod));
+
+                Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+                Assert.Same(m01.GetMethod, cM01.GetMethod.ExplicitInterfaceImplementations.Single());
+                Assert.Same(m01.SetMethod, cM01.SetMethod.ExplicitInterfaceImplementations.Single());
+            }
+        }
+
+        [Fact]
+        public void ImplementAbstractStaticProperty_10()
+        {
+            // Implicit implementation is considered only for types implementing interface in source.
+            // In metadata, only explicit implementations are considered
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig specialname abstract virtual static 
+        int32 get_M01 () cil managed 
+    {
+    }
+
+    .method public hidebysig specialname abstract virtual static 
+        void set_M01 (
+            int32 'value'
+        ) cil managed 
+    {
+    }
+
+    .property int32 M01()
+    {
+        .get int32 I1::get_M01()
+        .set void I1::set_M01(int32)
+    }
+}
+
+.class public auto ansi beforefieldinit C1
+    extends System.Object
+    implements I1
+{
+    .method private hidebysig specialname static
+        int32 I1.get_M01 () cil managed 
+    {
+        .override method int32 I1::get_M01()
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method private hidebysig specialname static
+        void I1.set_M01 (
+            int32 'value'
+        ) cil managed 
+    {
+        .override method void I1::set_M01(int32)
+        IL_0000: ret
+    }
+
+    .property instance int32 I1.M01()
+    {
+        .get int32 C1::I1.get_M01()
+        .set void C1::I1.set_M01(int32)
+    }
+
+    .method public hidebysig specialname static 
+        int32 get_M01 () cil managed 
+    {
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname static 
+        void set_M01 (
+            int32 'value'
+        ) cil managed 
+    {
+        IL_0000: ret
+    }
+
+    .property int32 M01()
+    {
+        .get int32 C1::get_M01()
+        .set void C1::set_M01(int32)
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi beforefieldinit C2
+    extends C1
+    implements I1
+{
+    .method public hidebysig specialname static 
+        int32 get_M01 () cil managed 
+    {
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname static 
+        void set_M01 (
+            int32 'value'
+        ) cil managed 
+    {
+        IL_0000: ret
+    }
+
+    .property int32 M01()
+    {
+        .get int32 C2::get_M01()
+        .set void C2::set_M01(int32)
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void C1::.ctor()
+        IL_0006: ret
+    }
+}
+";
+            var source1 =
+@"
+public class C3 : C2
+{
+}
+
+public class C4 : C1, I1
+{
+}
+
+public class C5 : C2, I1
+{
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+            var m01 = c1.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
+
+            var c1M01 = (PropertySymbol)c1.FindImplementationForInterfaceMember(m01);
+
+            Assert.Equal("System.Int32 C1.I1.M01 { get; set; }", c1M01.ToTestDisplayString());
+
+            Assert.Same(c1M01.GetMethod, c1.FindImplementationForInterfaceMember(m01.GetMethod));
+            Assert.Same(c1M01.SetMethod, c1.FindImplementationForInterfaceMember(m01.SetMethod));
+            Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
+            Assert.Same(m01.GetMethod, c1M01.GetMethod.ExplicitInterfaceImplementations.Single());
+            Assert.Same(m01.SetMethod, c1M01.SetMethod.ExplicitInterfaceImplementations.Single());
+
+            var c2 = compilation1.GlobalNamespace.GetTypeMember("C2");
+            Assert.Same(c1M01, c2.FindImplementationForInterfaceMember(m01));
+            Assert.Same(c1M01.GetMethod, c2.FindImplementationForInterfaceMember(m01.GetMethod));
+            Assert.Same(c1M01.SetMethod, c2.FindImplementationForInterfaceMember(m01.SetMethod));
+
+            var c3 = compilation1.GlobalNamespace.GetTypeMember("C3");
+            Assert.Same(c1M01, c3.FindImplementationForInterfaceMember(m01));
+            Assert.Same(c1M01.GetMethod, c3.FindImplementationForInterfaceMember(m01.GetMethod));
+            Assert.Same(c1M01.SetMethod, c3.FindImplementationForInterfaceMember(m01.SetMethod));
+
+            var c4 = compilation1.GlobalNamespace.GetTypeMember("C4");
+            Assert.Same(c1M01, c4.FindImplementationForInterfaceMember(m01));
+            Assert.Same(c1M01.GetMethod, c4.FindImplementationForInterfaceMember(m01.GetMethod));
+            Assert.Same(c1M01.SetMethod, c4.FindImplementationForInterfaceMember(m01.SetMethod));
+
+            var c5 = compilation1.GlobalNamespace.GetTypeMember("C5");
+
+            var c2M01 = (PropertySymbol)c5.FindImplementationForInterfaceMember(m01);
+            Assert.Equal("System.Int32 C2.M01 { get; set; }", c2M01.ToTestDisplayString());
+            Assert.Same(c2M01.GetMethod, c5.FindImplementationForInterfaceMember(m01.GetMethod));
+            Assert.Same(c2M01.SetMethod, c5.FindImplementationForInterfaceMember(m01.SetMethod));
+
+            compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementAbstractStaticProperty_11()
+        {
+            // Ignore invalid metadata (non-abstract static virtual method). 
+            scenario1();
+            scenario2();
+
+            void scenario1()
+            {
+                var ilSource = @"
+.class interface public auto ansi abstract I1
+{
+    .method private hidebysig specialname static virtual
+        int32 get_M01 () cil managed 
+    {
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method private hidebysig specialname static virtual
+        void set_M01 (
+            int32 'value'
+        ) cil managed 
+    {
+        IL_0000: ret
+    }
+
+    .property int32 M01()
+    {
+        .get int32 I1::get_M01()
+        .set void I1::set_M01(int32)
+    }
+}
+";
+
+                var source1 =
+@"
+public class C1 : I1
+{
+}
+";
+
+                var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+
+                compilation1.VerifyEmitDiagnostics();
+
+                var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+                var i1 = c1.Interfaces().Single();
+                var m01 = i1.GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.SetMethod));
+
+                compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular9,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+
+                compilation1.VerifyEmitDiagnostics();
+
+                var source2 =
+@"
+public class C1 : I1
+{
+   static int I1.M01 { get; set; }
+}
+";
+
+                var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+
+                compilation2.VerifyEmitDiagnostics(
+                    // (4,18): error CS0539: 'C1.M01' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //    static int I1.M01 { get; set; }
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M01").WithArguments("C1.M01").WithLocation(4, 18)
+                    );
+
+                c1 = compilation2.GlobalNamespace.GetTypeMember("C1");
+                m01 = c1.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.SetMethod));
+            }
+
+            void scenario2()
+            {
+                var ilSource = @"
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig specialname abstract virtual static 
+        int32 get_M01 () cil managed 
+    {
+    }
+
+    .method private hidebysig specialname static virtual
+        void set_M01 (
+            int32 'value'
+        ) cil managed 
+    {
+        IL_0000: ret
+    }
+
+    .property int32 M01()
+    {
+        .get int32 I1::get_M01()
+        .set void I1::set_M01(int32)
+    }
+}
+";
+
+                var source1 =
+@"
+public class C1 : I1
+{
+}
+";
+
+                var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+
+                compilation1.VerifyDiagnostics(
+                    // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01'
+                    // public class C1 : I1
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01").WithLocation(2, 19)
+                    );
+
+                var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+                var i1 = c1.Interfaces().Single();
+                var m01 = i1.GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Null(i1.FindImplementationForInterfaceMember(m01.SetMethod));
+
+                var source2 =
+@"
+public class C1 : I1
+{
+   static int I1.M01 { get; }
+}
+";
+
+                var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+
+                CompileAndVerify(compilation2, sourceSymbolValidator: validate2, symbolValidator: validate2, verify: Verification.Skipped).VerifyDiagnostics();
+
+                void validate2(ModuleSymbol module)
+                {
+                    var c = module.GlobalNamespace.GetTypeMember("C1");
+                    var m01 = c.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
+                    var m01Get = m01.GetMethod;
+                    var m01Set = m01.SetMethod;
+
+                    Assert.Equal(1, c.GetMembers().OfType<PropertySymbol>().Count());
+                    Assert.Equal(1, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                    var cM01 = (PropertySymbol)c.FindImplementationForInterfaceMember(m01);
+
+                    Assert.True(cM01.IsStatic);
+                    Assert.False(cM01.IsAbstract);
+                    Assert.False(cM01.IsVirtual);
+
+                    Assert.Equal("System.Int32 C1.I1.M01 { get; }", cM01.ToTestDisplayString());
+
+                    var cM01Get = cM01.GetMethod;
+                    Assert.Same(cM01Get, c.FindImplementationForInterfaceMember(m01Get));
+
+                    Assert.True(cM01Get.IsStatic);
+                    Assert.False(cM01Get.IsAbstract);
+                    Assert.False(cM01Get.IsVirtual);
+                    Assert.False(cM01Get.IsMetadataVirtual());
+                    Assert.False(cM01Get.IsMetadataFinal);
+                    Assert.False(cM01Get.IsMetadataNewSlot());
+                    Assert.Equal(MethodKind.PropertyGet, cM01Get.MethodKind);
+
+                    Assert.Equal("System.Int32 C1.I1.M01.get", cM01Get.ToTestDisplayString());
+
+                    Assert.Null(cM01.SetMethod);
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01Set));
+
+                    Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+                    Assert.Same(m01Get, cM01Get.ExplicitInterfaceImplementations.Single());
+                }
+
+                var source3 =
+@"
+public class C1 : I1
+{
+   public static int M01 { get; set; }
+}
+";
+
+                var compilation3 = CreateCompilationWithIL(source3, ilSource, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+
+                CompileAndVerify(compilation3, sourceSymbolValidator: validate3, symbolValidator: validate3, verify: Verification.Skipped).VerifyDiagnostics();
+
+                void validate3(ModuleSymbol module)
+                {
+                    var c = module.GlobalNamespace.GetTypeMember("C1");
+
+                    var m01 = c.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
+                    var m01Get = m01.GetMethod;
+
+                    Assert.Equal(1, c.GetMembers().OfType<PropertySymbol>().Count());
+                    Assert.Equal(2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                    var cM01 = (PropertySymbol)c.FindImplementationForInterfaceMember(m01);
+
+                    Assert.True(cM01.IsStatic);
+                    Assert.False(cM01.IsAbstract);
+                    Assert.False(cM01.IsVirtual);
+
+                    Assert.Equal("System.Int32 C1.M01 { get; set; }", cM01.ToTestDisplayString());
+
+                    var cM01Get = cM01.GetMethod;
+                    Assert.Same(cM01Get, c.FindImplementationForInterfaceMember(m01Get));
+
+                    Assert.True(cM01Get.IsStatic);
+                    Assert.False(cM01Get.IsAbstract);
+                    Assert.False(cM01Get.IsVirtual);
+                    Assert.False(cM01Get.IsMetadataVirtual());
+                    Assert.False(cM01Get.IsMetadataFinal);
+                    Assert.False(cM01Get.IsMetadataNewSlot());
+                    Assert.Equal(MethodKind.PropertyGet, cM01Get.MethodKind);
+
+                    Assert.Equal("System.Int32 C1.M01.get", cM01Get.ToTestDisplayString());
+
+                    var cM01Set = cM01.SetMethod;
+
+                    Assert.True(cM01Set.IsStatic);
+                    Assert.False(cM01Set.IsAbstract);
+                    Assert.False(cM01Set.IsVirtual);
+                    Assert.False(cM01Set.IsMetadataVirtual());
+                    Assert.False(cM01Set.IsMetadataFinal);
+                    Assert.False(cM01Set.IsMetadataNewSlot());
+                    Assert.Equal(MethodKind.PropertySet, cM01Set.MethodKind);
+
+                    Assert.Equal("void C1.M01.set", cM01Set.ToTestDisplayString());
+
+                    Assert.Null(c.FindImplementationForInterfaceMember(m01.SetMethod));
+
+                    if (module is PEModuleSymbol)
+                    {
+                        Assert.Same(m01, cM01.ExplicitInterfaceImplementations.Single());
+                        Assert.Same(m01Get, cM01Get.ExplicitInterfaceImplementations.Single());
+                    }
+                    else
+                    {
+                        Assert.Empty(cM01.ExplicitInterfaceImplementations);
+                        Assert.Empty(cM01Get.ExplicitInterfaceImplementations);
+                    }
+
+                    Assert.Empty(cM01Set.ExplicitInterfaceImplementations);
+                }
+
+                var source4 =
+@"
+public class C1 : I1
+{
+   static int I1.M01 { get; set; }
+}
+";
+
+                var compilation4 = CreateCompilationWithIL(source4, ilSource, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+
+                compilation4.VerifyDiagnostics(
+                    // (4,29): error CS0550: 'C1.I1.M01.set' adds an accessor not found in interface member 'I1.M01'
+                    //    static int I1.M01 { get; set; }
+                    Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("C1.I1.M01.set", "I1.M01").WithLocation(4, 29)
+                    );
+
+                c1 = compilation4.GlobalNamespace.GetTypeMember("C1");
+                i1 = c1.Interfaces().Single();
+                m01 = i1.GetMembers().OfType<PropertySymbol>().Single();
+                var c1M01 = c1.GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.Same(c1M01, c1.FindImplementationForInterfaceMember(m01));
+                Assert.Same(c1M01.GetMethod, c1.FindImplementationForInterfaceMember(m01.GetMethod));
+                Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
+                Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
+                Assert.Same(m01.GetMethod, c1M01.GetMethod.ExplicitInterfaceImplementations.Single());
+                Assert.Same(m01.SetMethod, c1M01.SetMethod.ExplicitInterfaceImplementations.Single());
+            }
+        }
+
+        [Fact]
+        public void ImplementAbstractStaticProperty_12()
+        {
+            // Ignore invalid metadata (default interface implementation for a static method)
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig specialname abstract virtual static 
+        int32 get_M01 () cil managed 
+    {
+    }
+
+    .method public hidebysig specialname abstract virtual static 
+        void set_M01 (
+            int32 'value'
+        ) cil managed 
+    {
+    }
+
+    .property int32 M01()
+    {
+        .get int32 I1::get_M01()
+        .set void I1::set_M01(int32)
+    }
+}
+
+.class interface public auto ansi abstract I2
+    implements I1
+{
+    .method private hidebysig specialname static
+        int32 I1.get_M01 () cil managed 
+    {
+        .override method int32 I1::get_M01()
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method private hidebysig specialname static
+        void I1.set_M01 (
+            int32 'value'
+        ) cil managed 
+    {
+        .override method void I1::set_M01(int32)
+        IL_0000: ret
+    }
+
+    .property instance int32 I1.M01()
+    {
+        .get int32 I2::I1.get_M01()
+        .set void I2::I1.set_M01(int32)
+    }
+}
+";
+
+            var source1 =
+@"
+public class C1 : I2
+{
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyEmitDiagnostics(
+                // (2,19): error CS0535: 'C1' does not implement interface member 'I1.M01'
+                // public class C1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.M01").WithLocation(2, 19)
+                );
+
+            var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
+            var i2 = c1.Interfaces().Single();
+            var i1 = i2.Interfaces().Single();
+            var m01 = i1.GetMembers().OfType<PropertySymbol>().Single();
+
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01.GetMethod));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01.GetMethod));
+            Assert.Null(c1.FindImplementationForInterfaceMember(m01.SetMethod));
+            Assert.Null(i2.FindImplementationForInterfaceMember(m01.SetMethod));
+
+            var i2M01 = i2.GetMembers().OfType<PropertySymbol>().Single();
+            Assert.Same(m01, i2M01.ExplicitInterfaceImplementations.Single());
+            Assert.Same(m01.GetMethod, i2M01.GetMethod.ExplicitInterfaceImplementations.Single());
+            Assert.Same(m01.SetMethod, i2M01.SetMethod.ExplicitInterfaceImplementations.Single());
+        }
+
+        [Fact]
+        public void ImplementAbstractStaticProperty_13()
+        {
+            // A forwarding method is added for an implicit implementation declared in base class. 
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+}
+
+class C1
+{
+    public static int M01 { get; set; }
+}
+
+class C2 : C1, I1
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+
+                var c2M01 = (PropertySymbol)c2.FindImplementationForInterfaceMember(m01);
+                var c2M01Get = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01.GetMethod);
+                var c2M01Set = (MethodSymbol)c2.FindImplementationForInterfaceMember(m01.SetMethod);
+
+                Assert.True(c2M01Get.IsStatic);
+                Assert.False(c2M01Get.IsAbstract);
+                Assert.False(c2M01Get.IsVirtual);
+                Assert.False(c2M01Get.IsMetadataVirtual());
+                Assert.False(c2M01Get.IsMetadataFinal);
+                Assert.False(c2M01Get.IsMetadataNewSlot());
+
+                Assert.True(c2M01Set.IsStatic);
+                Assert.False(c2M01Set.IsAbstract);
+                Assert.False(c2M01Set.IsVirtual);
+                Assert.False(c2M01Set.IsMetadataVirtual());
+                Assert.False(c2M01Set.IsMetadataFinal);
+                Assert.False(c2M01Set.IsMetadataNewSlot());
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c2M01Get.MethodKind);
+                    Assert.Equal("System.Int32 C2.I1.get_M01()", c2M01Get.ToTestDisplayString());
+                    Assert.Same(m01.GetMethod, c2M01Get.ExplicitInterfaceImplementations.Single());
+
+                    Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c2M01Set.MethodKind);
+                    Assert.Equal("void C2.I1.set_M01(System.Int32 value)", c2M01Set.ToTestDisplayString());
+                    Assert.Same(m01.SetMethod, c2M01Set.ExplicitInterfaceImplementations.Single());
+
+                    // Forwarding methods for accessors aren't tied to a property
+                    Assert.Null(c2M01);
+
+                    var c1M01 = module.GlobalNamespace.GetMember<PropertySymbol>("C1.M01");
+                    var c1M01Get = c1M01.GetMethod;
+                    var c1M01Set = c1M01.SetMethod;
+
+                    Assert.True(c1M01.IsStatic);
+                    Assert.False(c1M01.IsAbstract);
+                    Assert.False(c1M01.IsVirtual);
+                    Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+
+                    Assert.True(c1M01Get.IsStatic);
+                    Assert.False(c1M01Get.IsAbstract);
+                    Assert.False(c1M01Get.IsVirtual);
+                    Assert.False(c1M01Get.IsMetadataVirtual());
+                    Assert.False(c1M01Get.IsMetadataFinal);
+                    Assert.False(c1M01Get.IsMetadataNewSlot());
+                    Assert.Equal(MethodKind.PropertyGet, c1M01Get.MethodKind);
+                    Assert.Empty(c1M01Get.ExplicitInterfaceImplementations);
+
+                    Assert.True(c1M01Set.IsStatic);
+                    Assert.False(c1M01Set.IsAbstract);
+                    Assert.False(c1M01Set.IsVirtual);
+                    Assert.False(c1M01Set.IsMetadataVirtual());
+                    Assert.False(c1M01Set.IsMetadataFinal);
+                    Assert.False(c1M01Set.IsMetadataNewSlot());
+                    Assert.Equal(MethodKind.PropertySet, c1M01Set.MethodKind);
+                    Assert.Empty(c1M01Set.ExplicitInterfaceImplementations);
+                }
+                else
+                {
+                    Assert.True(c2M01.IsStatic);
+                    Assert.False(c2M01.IsAbstract);
+                    Assert.False(c2M01.IsVirtual);
+
+                    Assert.Equal("System.Int32 C1.M01 { get; set; }", c2M01.ToTestDisplayString());
+                    Assert.Empty(c2M01.ExplicitInterfaceImplementations);
+
+                    Assert.Equal(MethodKind.PropertyGet, c2M01Get.MethodKind);
+                    Assert.Same(c2M01.GetMethod, c2M01Get);
+                    Assert.Empty(c2M01Get.ExplicitInterfaceImplementations);
+
+                    Assert.Equal(MethodKind.PropertySet, c2M01Set.MethodKind);
+                    Assert.Same(c2M01.SetMethod, c2M01Set);
+                    Assert.Empty(c2M01Set.ExplicitInterfaceImplementations);
+                }
+            }
+
+            verifier.VerifyIL("C2.I1.get_M01",
+@"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  call       ""int C1.M01.get""
+  IL_0005:  ret
+}
+");
+
+            verifier.VerifyIL("C2.I1.set_M01",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void C1.M01.set""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ImplementAbstractStaticProperty_14()
+        {
+            // A forwarding method is added for an implicit implementation with modopt mismatch. 
+
+            var ilSource = @"
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig specialname abstract virtual static 
+        int32 get_M01 () cil managed 
+    {
+    }
+
+    .method public hidebysig specialname abstract virtual static 
+        void modopt(I1) set_M01 (
+            int32 'value'
+        ) cil managed 
+    {
+    }
+
+    .property int32 M01()
+    {
+        .get int32 I1::get_M01()
+        .set void modopt(I1) I1::set_M01(int32)
+    }
+}
+
+.class interface public auto ansi abstract I2
+{
+    .method public hidebysig specialname abstract virtual static 
+        int32 modopt(I2) get_M01 () cil managed 
+    {
+    }
+
+    .method public hidebysig specialname abstract virtual static 
+        void set_M01 (
+            int32 modopt(I2) 'value'
+        ) cil managed 
+    {
+    }
+
+    .property int32 modopt(I2) M01()
+    {
+        .get int32 modopt(I2) I2::get_M01()
+        .set void I2::set_M01(int32 modopt(I2))
+    }
+}
+";
+
+            var source1 =
+@"
+class C1 : I1
+{
+    public static int M01 { get; set; }
+}
+
+class C2 : I1
+{
+    static int I1.M01 { get; set; }
+}
+
+class C3 : I2
+{
+    static int I2.M01 { get; set; }
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var c1 = module.GlobalNamespace.GetTypeMember("C1");
+                var m01 = c1.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
+
+                var c1M01 = (PropertySymbol)c1.FindImplementationForInterfaceMember(m01);
+                var c1M01Get = c1M01.GetMethod;
+                var c1M01Set = c1M01.SetMethod;
+
+                Assert.Equal("System.Int32 C1.M01 { get; set; }", c1M01.ToTestDisplayString());
+                Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+                Assert.True(c1M01.IsStatic);
+                Assert.False(c1M01.IsAbstract);
+                Assert.False(c1M01.IsVirtual);
+
+                Assert.Equal(MethodKind.PropertyGet, c1M01Get.MethodKind);
+                Assert.Equal("System.Int32 C1.M01.get", c1M01Get.ToTestDisplayString());
+                Assert.True(c1M01Get.IsStatic);
+                Assert.False(c1M01Get.IsAbstract);
+                Assert.False(c1M01Get.IsVirtual);
+                Assert.False(c1M01Get.IsMetadataVirtual());
+                Assert.False(c1M01Get.IsMetadataFinal);
+                Assert.False(c1M01Get.IsMetadataNewSlot());
+                Assert.Same(c1M01Get, c1.FindImplementationForInterfaceMember(m01.GetMethod));
+
+                Assert.Equal(MethodKind.PropertySet, c1M01Set.MethodKind);
+                Assert.Equal("void C1.M01.set", c1M01Set.ToTestDisplayString());
+                Assert.Empty(c1M01Set.ExplicitInterfaceImplementations);
+                Assert.True(c1M01Set.IsStatic);
+                Assert.False(c1M01Set.IsAbstract);
+                Assert.False(c1M01Set.IsVirtual);
+                Assert.False(c1M01Set.IsMetadataVirtual());
+                Assert.False(c1M01Set.IsMetadataFinal);
+                Assert.False(c1M01Set.IsMetadataNewSlot());
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Same(m01.GetMethod, c1M01Get.ExplicitInterfaceImplementations.Single());
+
+                    c1M01Set = (MethodSymbol)c1.FindImplementationForInterfaceMember(m01.SetMethod);
+                    Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c1M01Set.MethodKind);
+                    Assert.Equal("void modopt(I1) C1.I1.set_M01(System.Int32 value)", c1M01Set.ToTestDisplayString());
+                    Assert.Same(m01.SetMethod, c1M01Set.ExplicitInterfaceImplementations.Single());
+
+                    Assert.True(c1M01Set.IsStatic);
+                    Assert.False(c1M01Set.IsAbstract);
+                    Assert.False(c1M01Set.IsVirtual);
+                    Assert.False(c1M01Set.IsMetadataVirtual());
+                    Assert.False(c1M01Set.IsMetadataFinal);
+                    Assert.False(c1M01Set.IsMetadataNewSlot());
+                }
+                else
+                {
+                    Assert.Empty(c1M01Get.ExplicitInterfaceImplementations);
+                    Assert.Same(c1M01Set, c1.FindImplementationForInterfaceMember(m01.SetMethod));
+                }
+
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+
+                var c2M01 = (PropertySymbol)c2.FindImplementationForInterfaceMember(m01);
+                var c2M01Get = c2M01.GetMethod;
+                var c2M01Set = c2M01.SetMethod;
+
+                Assert.Equal("System.Int32 C2.I1.M01 { get; set; }", c2M01.ToTestDisplayString());
+
+                Assert.True(c2M01.IsStatic);
+                Assert.False(c2M01.IsAbstract);
+                Assert.False(c2M01.IsVirtual);
+                Assert.Same(m01, c2M01.ExplicitInterfaceImplementations.Single());
+
+                Assert.True(c2M01Get.IsStatic);
+                Assert.False(c2M01Get.IsAbstract);
+                Assert.False(c2M01Get.IsVirtual);
+                Assert.False(c2M01Get.IsMetadataVirtual());
+                Assert.False(c2M01Get.IsMetadataFinal);
+                Assert.False(c2M01Get.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.PropertyGet, c2M01Get.MethodKind);
+                Assert.Equal("System.Int32 C2.I1.M01.get", c2M01Get.ToTestDisplayString());
+                Assert.Same(m01.GetMethod, c2M01Get.ExplicitInterfaceImplementations.Single());
+                Assert.Same(c2M01Get, c2.FindImplementationForInterfaceMember(m01.GetMethod));
+
+
+                Assert.True(c2M01Set.IsStatic);
+                Assert.False(c2M01Set.IsAbstract);
+                Assert.False(c2M01Set.IsVirtual);
+                Assert.False(c2M01Set.IsMetadataVirtual());
+                Assert.False(c2M01Set.IsMetadataFinal);
+                Assert.False(c2M01Set.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.PropertySet, c2M01Set.MethodKind);
+                Assert.Equal("void modopt(I1) C2.I1.M01.set", c2M01Set.ToTestDisplayString());
+                Assert.Same(m01.SetMethod, c2M01Set.ExplicitInterfaceImplementations.Single());
+                Assert.Same(c2M01Set, c2.FindImplementationForInterfaceMember(m01.SetMethod));
+
+                Assert.Same(c2M01, c2.GetMembers().OfType<PropertySymbol>().Single());
+                Assert.Equal(2, c2.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                m01 = c3.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
+
+                var c3M01 = (PropertySymbol)c3.FindImplementationForInterfaceMember(m01);
+                var c3M01Get = c3M01.GetMethod;
+                var c3M01Set = c3M01.SetMethod;
+
+                Assert.Equal("System.Int32 modopt(I2) C3.I2.M01 { get; set; }", c3M01.ToTestDisplayString());
+
+                Assert.True(c3M01.IsStatic);
+                Assert.False(c3M01.IsAbstract);
+                Assert.False(c3M01.IsVirtual);
+                Assert.Same(m01, c3M01.ExplicitInterfaceImplementations.Single());
+
+                Assert.True(c3M01Get.IsStatic);
+                Assert.False(c3M01Get.IsAbstract);
+                Assert.False(c3M01Get.IsVirtual);
+                Assert.False(c3M01Get.IsMetadataVirtual());
+                Assert.False(c3M01Get.IsMetadataFinal);
+                Assert.False(c3M01Get.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.PropertyGet, c3M01Get.MethodKind);
+                Assert.Equal("System.Int32 modopt(I2) C3.I2.M01.get", c3M01Get.ToTestDisplayString());
+                Assert.Same(m01.GetMethod, c3M01Get.ExplicitInterfaceImplementations.Single());
+                Assert.Same(c3M01Get, c3.FindImplementationForInterfaceMember(m01.GetMethod));
+
+
+                Assert.True(c3M01Set.IsStatic);
+                Assert.False(c3M01Set.IsAbstract);
+                Assert.False(c3M01Set.IsVirtual);
+                Assert.False(c3M01Set.IsMetadataVirtual());
+                Assert.False(c3M01Set.IsMetadataFinal);
+                Assert.False(c3M01Set.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.PropertySet, c3M01Set.MethodKind);
+                Assert.Equal("void C3.I2.M01.set", c3M01Set.ToTestDisplayString());
+                Assert.Equal("System.Int32 modopt(I2) value", c3M01Set.Parameters.Single().ToTestDisplayString());
+                Assert.Same(m01.SetMethod, c3M01Set.ExplicitInterfaceImplementations.Single());
+                Assert.Same(c3M01Set, c3.FindImplementationForInterfaceMember(m01.SetMethod));
+
+                Assert.Same(c3M01, c3.GetMembers().OfType<PropertySymbol>().Single());
+                Assert.Equal(2, c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+            }
+
+            verifier.VerifyIL("C1.I1.set_M01",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void C1.M01.set""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ImplementAbstractStatiProperty_15()
+        {
+            // A forwarding method isn't created if base class implements interface exactly the same way. 
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+    abstract static int M02 { get; set; }
+}
+
+public class C1
+{
+    public static int M01 { get; set; }
+}
+
+public class C2 : C1, I1
+{
+    static int I1.M02 { get; set; }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C3 : C2, I1
+{
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.Regular9 })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                         parseOptions: parseOptions,
+                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         references: new[] { reference });
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                Assert.Empty(c3.GetMembers().OfType<PropertySymbol>());
+                Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
+
+                var m01 = c3.Interfaces().Single().GetMembers("M01").OfType<PropertySymbol>().Single();
+
+                var c1M01 = c3.BaseType().BaseType().GetMember<PropertySymbol>("M01");
+                Assert.Equal("System.Int32 C1.M01 { get; set; }", c1M01.ToTestDisplayString());
+
+                Assert.True(c1M01.IsStatic);
+                Assert.False(c1M01.IsAbstract);
+                Assert.False(c1M01.IsVirtual);
+
+                Assert.Empty(c1M01.ExplicitInterfaceImplementations);
+
+                var c1M01Get = c1M01.GetMethod;
+                Assert.True(c1M01Get.IsStatic);
+                Assert.False(c1M01Get.IsAbstract);
+                Assert.False(c1M01Get.IsVirtual);
+                Assert.False(c1M01Get.IsMetadataVirtual());
+                Assert.False(c1M01Get.IsMetadataFinal);
+                Assert.False(c1M01Get.IsMetadataNewSlot());
+
+                Assert.Empty(c1M01Get.ExplicitInterfaceImplementations);
+
+                var c1M01Set = c1M01.SetMethod;
+                Assert.True(c1M01Set.IsStatic);
+                Assert.False(c1M01Set.IsAbstract);
+                Assert.False(c1M01Set.IsVirtual);
+                Assert.False(c1M01Set.IsMetadataVirtual());
+                Assert.False(c1M01Set.IsMetadataFinal);
+                Assert.False(c1M01Set.IsMetadataNewSlot());
+
+                Assert.Empty(c1M01Set.ExplicitInterfaceImplementations);
+
+                if (c1M01.ContainingModule is PEModuleSymbol)
+                {
+                    var c2M01Get = c3.FindImplementationForInterfaceMember(m01.GetMethod);
+                    Assert.Equal("System.Int32 C2.I1.get_M01()", c2M01Get.ToTestDisplayString());
+
+                    var c2M01Set = c3.FindImplementationForInterfaceMember(m01.SetMethod);
+                    Assert.Equal("void C2.I1.set_M01(System.Int32 value)", c2M01Set.ToTestDisplayString());
+
+                    // Forwarding methods for accessors aren't tied to a property
+                    Assert.Null(c3.FindImplementationForInterfaceMember(m01));
+                }
+                else
+                {
+                    Assert.Same(c1M01, c3.FindImplementationForInterfaceMember(m01));
+                    Assert.Same(c1M01.GetMethod, c3.FindImplementationForInterfaceMember(m01.GetMethod));
+                    Assert.Same(c1M01.SetMethod, c3.FindImplementationForInterfaceMember(m01.SetMethod));
+                }
+
+                var m02 = c3.Interfaces().Single().GetMembers("M02").OfType<PropertySymbol>().Single();
+
+                var c2M02 = c3.BaseType().GetMember<PropertySymbol>("I1.M02");
+                Assert.Equal("System.Int32 C2.I1.M02 { get; set; }", c2M02.ToTestDisplayString());
+                Assert.Same(c2M02, c3.FindImplementationForInterfaceMember(m02));
+                Assert.Same(c2M02.GetMethod, c3.FindImplementationForInterfaceMember(m02.GetMethod));
+                Assert.Same(c2M02.SetMethod, c3.FindImplementationForInterfaceMember(m02.SetMethod));
+            }
+        }
+
+        [Fact]
+        public void ImplementAbstractStaticProperty_16()
+        {
+            // A new implicit implementation is properly considered.
+
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+}
+
+public class C1 : I1
+{
+    public static int M01 { get; set; }
+}
+
+public class C2 : C1
+{
+    new public static int M01 { get; set; }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C3 : C2, I1
+{
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                         parseOptions: parseOptions,
+                                                         targetFramework: TargetFramework.NetCoreApp,
+                                                         references: new[] { reference });
+                    var verifier = CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+                    verifier.VerifyIL("C3.I1.get_M01",
+@"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  call       ""int C2.M01.get""
+  IL_0005:  ret
+}
+");
+
+                    verifier.VerifyIL("C3.I1.set_M01",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void C2.M01.set""
+  IL_0006:  ret
+}
+");
+                }
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                var m01 = c3.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
+
+                var c2M01 = c3.BaseType().GetMember<PropertySymbol>("M01");
+                var c2M01Get = c2M01.GetMethod;
+                var c2M01Set = c2M01.SetMethod;
+                Assert.Equal("System.Int32 C2.M01 { get; set; }", c2M01.ToTestDisplayString());
+
+                Assert.True(c2M01.IsStatic);
+                Assert.False(c2M01.IsAbstract);
+                Assert.False(c2M01.IsVirtual);
+                Assert.Empty(c2M01.ExplicitInterfaceImplementations);
+
+                Assert.True(c2M01Get.IsStatic);
+                Assert.False(c2M01Get.IsAbstract);
+                Assert.False(c2M01Get.IsVirtual);
+                Assert.False(c2M01Get.IsMetadataVirtual());
+                Assert.False(c2M01Get.IsMetadataFinal);
+                Assert.False(c2M01Get.IsMetadataNewSlot());
+                Assert.Empty(c2M01Get.ExplicitInterfaceImplementations);
+
+                Assert.True(c2M01Set.IsStatic);
+                Assert.False(c2M01Set.IsAbstract);
+                Assert.False(c2M01Set.IsVirtual);
+                Assert.False(c2M01Set.IsMetadataVirtual());
+                Assert.False(c2M01Set.IsMetadataFinal);
+                Assert.False(c2M01Set.IsMetadataNewSlot());
+                Assert.Empty(c2M01Set.ExplicitInterfaceImplementations);
+
+                if (module is PEModuleSymbol)
+                {
+                    var c3M01 = (PropertySymbol)c3.FindImplementationForInterfaceMember(m01);
+                    // Forwarding methods for accessors aren't tied to a property
+                    Assert.Null(c3M01);
+
+                    var c3M01Get = (MethodSymbol)c3.FindImplementationForInterfaceMember(m01.GetMethod);
+                    Assert.Equal("System.Int32 C3.I1.get_M01()", c3M01Get.ToTestDisplayString());
+                    Assert.Same(m01.GetMethod, c3M01Get.ExplicitInterfaceImplementations.Single());
+
+                    var c3M01Set = (MethodSymbol)c3.FindImplementationForInterfaceMember(m01.SetMethod);
+                    Assert.Equal("void C3.I1.set_M01(System.Int32 value)", c3M01Set.ToTestDisplayString());
+                    Assert.Same(m01.SetMethod, c3M01Set.ExplicitInterfaceImplementations.Single());
+                }
+                else
+                {
+                    Assert.Same(c2M01, c3.FindImplementationForInterfaceMember(m01));
+                    Assert.Same(c2M01Get, c3.FindImplementationForInterfaceMember(m01.GetMethod));
+                    Assert.Same(c2M01Set, c3.FindImplementationForInterfaceMember(m01.SetMethod));
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_19(bool genericFirst)
+        {
+            // An "ambiguity" in implicit/explicit implementation declared in generic base class.
+
+            var generic =
+@"
+    public static T M01 { get; set; }
+";
+            var nonGeneric =
+@"
+    static int I1.M01 { get; set; }
+";
+            var source1 =
+@"
+public interface I1
+{
+    abstract static int M01 { get; set; }
+}
+
+public class C1<T> : I1
+{
+" + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+
+            Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers().OfType<PropertySymbol>().Where(m => m.Name.Contains("M01")).Count());
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C2 : C1<int>, I1
+{
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: parseOptions,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { reference });
+
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                var m01 = c2.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.True(m01.ContainingModule is RetargetingModuleSymbol or PEModuleSymbol);
+
+                var c1M01 = (PropertySymbol)c2.FindImplementationForInterfaceMember(m01);
+                Assert.Equal("System.Int32 C1<T>.I1.M01 { get; set; }", c1M01.OriginalDefinition.ToTestDisplayString());
+                Assert.Same(m01, c1M01.ExplicitInterfaceImplementations.Single());
+                Assert.Same(c1M01, c2.BaseType().FindImplementationForInterfaceMember(m01));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplementAbstractStaticProperty_20(bool genericFirst)
+        {
+            // Same as ImplementAbstractStaticProperty_19 only interface is generic too.
+
+            var generic =
+@"
+    static T I1<T>.M01 { get; set; }
+";
+            var nonGeneric =
+@"
+    public static int M01 { get; set; }
+";
+            var source1 =
+@"
+public interface I1<T>
+{
+    abstract static T M01 { get; set; }
+}
+
+public class C1<T> : I1<T>
+{
+" + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { CreateCompilation("", targetFramework: TargetFramework.NetCoreApp).ToMetadataReference() });
+
+            Assert.Equal(2, compilation1.GlobalNamespace.GetTypeMember("C1").GetMembers(). OfType<PropertySymbol>().Where(m => m.Name.Contains("M01")).Count());
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public class C2 : C1<int>, I1<int>
+{
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
+                {
+                    var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: parseOptions,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { reference });
+
+                    CompileAndVerify(compilation2, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+                }
+            }
+
+            void validate(ModuleSymbol module)
+            {
+                var c2 = module.GlobalNamespace.GetTypeMember("C2");
+                var m01 = c2.Interfaces().Single().GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.True(m01.ContainingModule is RetargetingModuleSymbol or PEModuleSymbol);
+
+                var c1M01 = (PropertySymbol)c2.FindImplementationForInterfaceMember(m01);
+                Assert.Equal("T C1<T>.I1<T>.M01 { get; set; }", c1M01.OriginalDefinition.ToTestDisplayString());
+                Assert.Equal(m01, c1M01.ExplicitInterfaceImplementations.Single());
+                Assert.Same(c1M01, c2.BaseType().FindImplementationForInterfaceMember(m01));
+            }
         }
     }
 }

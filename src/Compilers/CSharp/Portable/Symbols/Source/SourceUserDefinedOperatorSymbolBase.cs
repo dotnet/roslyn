@@ -273,7 +273,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        protected sealed override TypeSymbol ExplicitInterfaceType => _explicitInterfaceType;
+#nullable enable
+        protected sealed override TypeSymbol? ExplicitInterfaceType => _explicitInterfaceType;
+#nullable disable
 
         private void CheckValueParameters(BindingDiagnosticBag diagnostics)
         {

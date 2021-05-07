@@ -307,10 +307,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                DeclarationModifiers.AccessibilityMask;
                 }
             }
-            else if (isInterface)
+            else
             {
                 Debug.Assert(isExplicitInterfaceImplementation);
-                allowedModifiers |= DeclarationModifiers.Abstract;
+
+                if (isInterface)
+                {
+                    allowedModifiers |= DeclarationModifiers.Abstract;
+                }
+                else if (!isIndexer)
+                {
+                    allowedModifiers |= DeclarationModifiers.Static;
+                }
             }
 
             if (containingType.IsStructType())
@@ -321,6 +329,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             allowedModifiers |= DeclarationModifiers.Extern;
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+
+            if (isExplicitInterfaceImplementation && (mods & DeclarationModifiers.Static) != 0)
+            {
+                Debug.Assert(location.SourceTree is not null);
+
+                LanguageVersion availableVersion = ((CSharpParseOptions)location.SourceTree.Options).LanguageVersion;
+                LanguageVersion requiredVersion = MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.RequiredVersion();
+                if (availableVersion < requiredVersion)
+                {
+                    ModifierUtils.ReportUnsupportedModifiersForLanguageVersion(mods, DeclarationModifiers.Static, location, diagnostics, availableVersion, requiredVersion);
+                }
+            }
 
             containingType.CheckUnsafeModifier(mods, location, diagnostics);
 
