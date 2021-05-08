@@ -505,7 +505,17 @@ namespace Microsoft.CodeAnalysis
 
         private static bool AreIdentical(in SyntaxNodeOrToken node1, in SyntaxNodeOrToken node2)
         {
-            return node1.UnderlyingNode == node2.UnderlyingNode;
+            if (node1.UnderlyingNode == null && node2.UnderlyingNode == null)
+            {
+                return true;
+            }
+
+            if (node1.UnderlyingNode == null && node2.UnderlyingNode != null)
+            {
+                return false;
+            }
+
+            return node1.UnderlyingNode!.IsEquivalentTo(node2.UnderlyingNode);
         }
 
         private static bool AreSimilar(in SyntaxNodeOrToken node1, in SyntaxNodeOrToken node2)
