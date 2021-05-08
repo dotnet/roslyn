@@ -2304,11 +2304,13 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         var constantValue = field.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
                         return new FieldReferenceOperation(field.GetPublicSymbol(), isDeclaration: false,
+                            // PROTOTYPE(extended-property-patterns) We shouldn't use StrippedType here, maybe only if this is a nested member?
                             createReceiver(), _semanticModel, member.Syntax, field.Type.StrippedType().GetPublicSymbol(), constantValue, isImplicit: false);
                     }
                 case PropertySymbol property:
                     {
                         return new PropertyReferenceOperation(property.GetPublicSymbol(), ImmutableArray<IArgumentOperation>.Empty,
+                            // PROTOTYPE(extended-property-patterns) We shouldn't use StrippedType here, maybe only if this is a nested member?
                             createReceiver(), _semanticModel, member.Syntax, property.Type.StrippedType().GetPublicSymbol(), isImplicit: false);
                     }
                 default:

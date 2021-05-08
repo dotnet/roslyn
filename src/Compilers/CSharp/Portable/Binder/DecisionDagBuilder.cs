@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (tryMakeSubpatternMemberTests(member.Receiver, ref input))
                 {
-                    // If this is not the last member, add null test, unwrap nullables, and continue.
+                    // If this is not the first member, add null test, unwrap nullables, and continue.
                     input = MakeConvertToType(input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
                 }
 
