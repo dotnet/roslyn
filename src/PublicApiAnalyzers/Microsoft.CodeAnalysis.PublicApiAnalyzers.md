@@ -1,6 +1,6 @@
 # Microsoft.CodeAnalysis.PublicApiAnalyzers
 
-## [RS0016](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Add public types and members to the declared API
+## [RS0016](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Add public types and members to the declared API
 
 All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.
 
@@ -12,7 +12,7 @@ All public types and members should be declared in PublicAPI.txt. This draws att
 |CodeFix|True|
 ---
 
-## [RS0017](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Remove deleted types and members from the declared API
+## [RS0017](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Remove deleted types and members from the declared API
 
 When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.
 
@@ -24,7 +24,7 @@ When removing a public type or member the corresponding entry in PublicAPI.txt s
 |CodeFix|False|
 ---
 
-## [RS0022](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Constructor make noninheritable base class inheritable
+## [RS0022](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Constructor make noninheritable base class inheritable
 
 Constructor makes its noninheritable base class inheritable, thereby exposing its protected members
 
@@ -36,7 +36,7 @@ Constructor makes its noninheritable base class inheritable, thereby exposing it
 |CodeFix|False|
 ---
 
-## [RS0024](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): The contents of the public API files are invalid
+## [RS0024](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): The contents of the public API files are invalid
 
 The contents of the public API files are invalid: {0}
 
@@ -48,7 +48,7 @@ The contents of the public API files are invalid: {0}
 |CodeFix|False|
 ---
 
-## [RS0025](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Do not duplicate symbols in public API files
+## [RS0025](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Do not duplicate symbols in public API files
 
 The symbol '{0}' appears more than once in the public API files
 
@@ -60,7 +60,7 @@ The symbol '{0}' appears more than once in the public API files
 |CodeFix|False|
 ---
 
-## [RS0026](https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md): Do not add multiple public overloads with optional parameters
+## [RS0026](https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md): Do not add multiple public overloads with optional parameters
 
 Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.
 
@@ -72,7 +72,7 @@ Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads
 |CodeFix|False|
 ---
 
-## [RS0027](https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md): Public API with optional parameter(s) should have the most parameters amongst its public overloads
+## [RS0027](https://github.com/dotnet/roslyn/blob/main/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md): Public API with optional parameter(s) should have the most parameters amongst its public overloads
 
 Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.
 
@@ -84,7 +84,7 @@ Symbol '{0}' violates the backcompat requirement: 'Public API with optional para
 |CodeFix|False|
 ---
 
-## [RS0036](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Annotate nullability of public types and members in the declared API
+## [RS0036](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Annotate nullability of public types and members in the declared API
 
 All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.
 
@@ -96,7 +96,7 @@ All public types and members should be declared with nullability annotations in 
 |CodeFix|True|
 ---
 
-## [RS0037](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Enable tracking of nullability of reference types in the declared API
+## [RS0037](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Enable tracking of nullability of reference types in the declared API
 
 PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).
 
@@ -108,7 +108,7 @@ PublicAPI.txt files should have `#nullable enable` to track nullability informat
 |CodeFix|True|
 ---
 
-## [RS0041](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Public members should not use oblivious types
+## [RS0041](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Public members should not use oblivious types
 
 All public members should use either nullable or non-nullable reference types, but no oblivious reference types.
 
@@ -120,9 +120,21 @@ All public members should use either nullable or non-nullable reference types, b
 |CodeFix|False|
 ---
 
-## [RS0048](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Missing shipped or unshipped public API file
+## [RS0048](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Missing shipped or unshipped public API file
 
 Public API file '{0}' is missing or not marked as an additional analyzer file
+
+|Item|Value|
+|-|-|
+|Category|ApiDesign|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|False|
+---
+
+## [RS0050](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Public API is marked as removed but it exists in source code
+
+Symbol '{0}' is marked as removed but it isn't deleted in source code
 
 |Item|Value|
 |-|-|

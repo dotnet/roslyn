@@ -111,6 +111,7 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericDictionary2 = "System.Collections.Generic.Dictionary`2";
         public const string SystemCollectionsGenericHashSet1 = "System.Collections.Generic.HashSet`1";
         public const string SystemCollectionsGenericICollection1 = "System.Collections.Generic.ICollection`1";
+        public const string SystemCollectionsGenericIDictionary2 = "System.Collections.Generic.IDictionary`2";
         public const string SystemCollectionsGenericIEnumerable1 = "System.Collections.Generic.IEnumerable`1";
         public const string SystemCollectionsGenericIEnumerator1 = "System.Collections.Generic.IEnumerator`1";
         public const string SystemCollectionsGenericIEqualityComparer1 = "System.Collections.Generic.IEqualityComparer`1";
@@ -177,6 +178,7 @@ namespace Analyzer.Utilities
         public const string SystemDiagnosticsDebuggerNonUserCode = "System.Diagnostics.DebuggerNonUserCodeAttribute";
         public const string SystemDiagnosticsDebuggerTypeProxyAttribute = "System.Diagnostics.DebuggerTypeProxyAttribute";
         public const string SystemDiagnosticsProcess = "System.Diagnostics.Process";
+        public const string SystemDiagnosticsProcessModule = "System.Diagnostics.ProcessModule";
         public const string SystemDiagnosticsProcessStartInfo = "System.Diagnostics.ProcessStartInfo";
         public const string SystemDiagnosticsTraceListener = "System.Diagnostics.TraceListener";
         public const string SystemDiagnosticsTracingEventSource = "System.Diagnostics.Tracing.EventSource";
@@ -255,6 +257,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesCallerLineNumberAttribute = "System.Runtime.CompilerServices.CallerLineNumberAttribute";
         public const string SystemRuntimeCompilerServicesCallerMemberNameAttribute = "System.Runtime.CompilerServices.CallerMemberNameAttribute";
         public const string SystemRuntimeCompilerServicesCompilerGeneratedAttribute = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
+        public const string SystemRuntimeCompilerServicesConfiguredAsyncDisposable = "System.Runtime.CompilerServices.ConfiguredAsyncDisposable";
         public const string SystemRuntimeCompilerServicesConfiguredValueTaskAwaitable1 = "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable`1";
         public const string SystemRuntimeCompilerServicesICriticalNotifyCompletion = "System.Runtime.CompilerServices.ICriticalNotifyCompletion";
         public const string SystemRuntimeCompilerServicesINotifyCompletion = "System.Runtime.CompilerServices.INotifyCompletion";
@@ -295,6 +298,8 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeSerializationOnSerializingAttribute = "System.Runtime.Serialization.OnSerializingAttribute";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemRuntimeSerializationStreamingContext = "System.Runtime.Serialization.StreamingContext";
+        public const string SystemRuntimeVersioningSupportedOSPlatformAttribute = "System.Runtime.Versioning.SupportedOSPlatformAttribute";
+        public const string SystemRuntimeVersioningUnsupportedOSPlatformAttribute = "System.Runtime.Versioning.UnsupportedOSPlatformAttribute";
         public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
         public const string SystemSecurityCryptographyAesCcm = "System.Security.Cryptography.AesCcm";
         public const string SystemSecurityCryptographyAesGcm = "System.Security.Cryptography.AesGcm";

@@ -3,8 +3,10 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
@@ -31,6 +33,46 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             return Task.CompletedTask;
         }
 
-        protected abstract Task<Document> ConvertKindToIsKindAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken);
+        private async Task<Document> ConvertKindToIsKindAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        {
+            var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            if (TryGetNodeToFix(editor.OriginalRoot, sourceSpan) is { } nodeToFix)
+            {
+                FixDiagnostic(editor, nodeToFix);
+            }
+
+            return editor.GetChangedDocument();
+        }
+
+        protected abstract SyntaxNode? TryGetNodeToFix(SyntaxNode root, TextSpan span);
+
+        protected abstract void FixDiagnostic(DocumentEditor editor, SyntaxNode nodeToFix);
+
+        private sealed class CustomFixAllProvider : DocumentBasedFixAllProvider
+        {
+            private readonly PreferIsKindFix _fixer;
+
+            public CustomFixAllProvider(PreferIsKindFix fixer)
+            {
+                _fixer = fixer;
+            }
+
+            protected override string CodeActionTitle => CodeAnalysisDiagnosticsResources.PreferIsKindFix;
+
+            protected override async Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+            {
+                var editor = await DocumentEditor.CreateAsync(document, fixAllContext.CancellationToken).ConfigureAwait(false);
+                foreach (var diagnostic in diagnostics)
+                {
+                    var nodeToFix = _fixer.TryGetNodeToFix(editor.OriginalRoot, diagnostic.Location.SourceSpan);
+                    if (nodeToFix is null)
+                        continue;
+
+                    _fixer.FixDiagnostic(editor, nodeToFix);
+                }
+
+                return editor.GetChangedRoot();
+            }
+        }
     }
 }

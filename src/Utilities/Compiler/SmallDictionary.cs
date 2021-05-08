@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Analyzer.Utilities
 {
     /// <summary>
-    /// Copied from https://github.com/dotnet/roslyn/blob/master/src/Compilers/Core/Portable/Collections/SmallDictionary.cs
+    /// Copied from https://github.com/dotnet/roslyn/blob/main/src/Compilers/Core/Portable/Collections/SmallDictionary.cs
     /// Dictionary designed to hold small number of items.
     /// Compared to the regular Dictionary, average overhead per-item is roughly the same, but
     /// unlike regular dictionary, this one is based on an AVL tree and as such does not require
@@ -35,7 +35,6 @@ namespace Analyzer.Utilities
         where K : notnull
     {
         private AvlNode? _root;
-
         public readonly IEqualityComparer<K> Comparer;
 
         // https://github.com/dotnet/roslyn/issues/40344
@@ -210,7 +209,7 @@ namespace Analyzer.Utilities
 
         public bool ContainsKey(K key)
         {
-            return TryGetValue(key, out V _);
+            return TryGetValue(key, out _);
         }
 
 #pragma warning disable CA1822
@@ -623,9 +622,9 @@ namespace Analyzer.Utilities
 
             public struct Enumerator
             {
-                private readonly Stack<AvlNode> _stack;
+                private readonly Stack<AvlNode>? _stack;
                 private Node? _next;
-                private Node _current;
+                private Node? _current;
 
                 public Enumerator(SmallDictionary<K, V> dict)
                     : this()
@@ -646,7 +645,7 @@ namespace Analyzer.Utilities
                     }
                 }
 
-                public K Current => _current.Key;
+                public K Current => _current!.Key;
 
                 public bool MoveNext()
                 {
@@ -676,7 +675,7 @@ namespace Analyzer.Utilities
                 {
                     if (child != null)
                     {
-                        _stack.Push(child);
+                        _stack!.Push(child);
                     }
                 }
             }
@@ -739,9 +738,9 @@ namespace Analyzer.Utilities
 
             public struct Enumerator
             {
-                private readonly Stack<AvlNode> _stack;
+                private readonly Stack<AvlNode>? _stack;
                 private Node? _next;
-                private Node _current;
+                private Node? _current;
 
                 public Enumerator(SmallDictionary<K, V> dict)
                     : this()
@@ -764,7 +763,7 @@ namespace Analyzer.Utilities
                     }
                 }
 
-                public V Current => _current.Value;
+                public V Current => _current!.Value;
 
                 public bool MoveNext()
                 {
@@ -794,7 +793,7 @@ namespace Analyzer.Utilities
                 {
                     if (child != null)
                     {
-                        _stack.Push(child);
+                        _stack!.Push(child);
                     }
                 }
             }
@@ -845,9 +844,9 @@ namespace Analyzer.Utilities
 
         public struct Enumerator
         {
-            private readonly Stack<AvlNode> _stack;
+            private readonly Stack<AvlNode>? _stack;
             private Node? _next;
-            private Node _current;
+            private Node? _current;
 
             public Enumerator(SmallDictionary<K, V> dict)
                 : this()
@@ -870,7 +869,7 @@ namespace Analyzer.Utilities
                 }
             }
 
-            public KeyValuePair<K, V> Current => new(_current.Key, _current.Value);
+            public KeyValuePair<K, V> Current => new(_current!.Key, _current!.Value);
 
             public bool MoveNext()
             {
@@ -900,7 +899,7 @@ namespace Analyzer.Utilities
             {
                 if (child != null)
                 {
-                    _stack.Push(child);
+                    _stack!.Push(child);
                 }
             }
         }

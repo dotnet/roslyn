@@ -116,12 +116,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(
+            return RoslynHashCode.Combine(
                 this.ContainingTypeName.GetHashCodeOrDefault(),
-                HashUtilities.Combine(this.MethodName.GetHashCodeOrDefault(),
-                HashUtilities.Combine(this.ParameterNameOfPropertySetObject.GetHashCodeOrDefault(),
-                 HashUtilities.Combine(this.DerivedClass.GetHashCodeOrDefault(),
-                this.InvocationEvaluator.GetHashCodeOrDefault()))));
+                this.MethodName.GetHashCodeOrDefault(),
+                this.ParameterNameOfPropertySetObject.GetHashCodeOrDefault(),
+                this.DerivedClass.GetHashCode(),
+                this.InvocationEvaluator.GetHashCodeOrDefault());
         }
 
         public override bool Equals(object obj)
