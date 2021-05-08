@@ -377,8 +377,7 @@ End Class</a>
                 If useDebuggerOptions Then
                     options = options.
                         WithChangedOption(CompletionControllerOptions.FilterOutOfScopeLocals, False).
-                        WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, False).
-                        WithChangedOption(CompletionServiceOptions.DisallowAddingImports, True)
+                        WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, False)
                 End If
 
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)

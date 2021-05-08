@@ -183,13 +183,12 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
-                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 testData: new CompilationTestData() { SymWriterFactory = _ => new MockSymUnmanagedWriter() });
 
             result.Diagnostics.Verify(
@@ -216,13 +215,12 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
-                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 testData: new CompilationTestData() { SymWriterFactory = SymWriterTestUtilities.ThrowingFactory });
 
             result.Diagnostics.Verify(
@@ -249,13 +247,12 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
-                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 testData: new CompilationTestData() { SymWriterFactory = SymWriterTestUtilities.ThrowingFactory });
 
             result.Diagnostics.Verify(
@@ -282,13 +279,12 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
-                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 testData: new CompilationTestData() { SymWriterFactory = _ => throw new DllNotFoundException("xxx") });
 
             result.Diagnostics.Verify(
@@ -12618,10 +12614,9 @@ class Program
                 var compilation = CreateCompilation("");
                 var result = compilation.Emit(outStream, options: new EmitOptions(pdbFilePath: "test\\?.pdb", debugInformationFormat: DebugInformationFormat.Embedded));
 
-                Assert.False(result.Success);
-                result.Diagnostics.Verify(
-                    // error CS2021: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1));
+                // This is fine because EmitOptions just controls what is written into the PE file and it's 
+                // valid for this to be an illegal file name (path map can easily create these).
+                Assert.True(result.Success);
             }
         }
 
