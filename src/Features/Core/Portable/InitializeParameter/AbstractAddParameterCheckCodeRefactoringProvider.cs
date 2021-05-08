@@ -237,8 +237,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected bool ParameterValidForNullCheck(Document document, IParameterSymbol parameter, SemanticModel semanticModel,
             IBlockOperation blockStatementOpt, CancellationToken cancellationToken)
         {
-            if (!parameter.Type.IsReferenceType &&
-                !parameter.Type.IsNullable())
+            if (parameter.Type.IsReferenceType)
+            {
+                // Don't add null checks to things explicitly declared nullable
+                if (parameter.Type.NullableAnnotation == NullableAnnotation.Annotated)
+                {
+                    return false;
+                }
+            }
+            else if (!parameter.Type.IsNullable())
             {
                 return false;
             }
