@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -70,6 +71,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 vsCompletionItem.Description = new ClassifiedTextElement(description.TaggedParts
                     .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
             }
+            else
+            {
+                completionItem.Documentation = ProtocolConversions.GetDocumentationMarkdown(description.TaggedParts);
+            }
 
             // We compute the TextEdit resolves for complex text edits (e.g. override and partial
             // method completions) here. Lazily resolving TextEdits is technically a violation of
@@ -87,7 +92,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     document, completionService, selectedItem, snippetsSupported, cancellationToken).ConfigureAwait(false);
             }
 
-            completionItem.Detail = description.TaggedParts.GetFullText();
             return completionItem;
         }
 
@@ -98,12 +102,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return false;
             }
 
-            if (!lspCompletionItem.Label.EndsWith(completionItem.DisplayTextSuffix, StringComparison.Ordinal))
+            // The prefix matches, consume the matching prefix from the lsp completion item label.
+            var originalDisplayText = lspCompletionItem.Label.Substring(completionItem.DisplayTextPrefix.Length, lspCompletionItem.Label.Length);
+
+            if (!originalDisplayText.EndsWith(completionItem.DisplayTextSuffix, StringComparison.Ordinal))
             {
                 return false;
             }
 
-            if (string.Compare(lspCompletionItem.Label, completionItem.DisplayTextPrefix.Length, completionItem.DisplayText, 0, completionItem.DisplayText.Length, StringComparison.Ordinal) != 0)
+            // The suffix matches, consume the matching suffix from the lsp completion item label.
+            originalDisplayText = originalDisplayText.Substring(0, originalDisplayText.Length - completionItem.DisplayTextSuffix.Length);
+
+            // Now we're left with what should be the original display text for the lsp completion item.
+            // Check to make sure it matches the cached completion item label.
+            if (string.Compare(originalDisplayText, completionItem.DisplayText) != 0)
             {
                 return false;
             }

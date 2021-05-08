@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -610,6 +611,67 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
                 .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
             return updatedOptions;
+        }
+
+        public static LSP.MarkupContent GetDocumentationMarkdown(ImmutableArray<TaggedText> tags)
+        {
+            var builder = new StringBuilder();
+            var isInCodeBlock = false;
+            foreach (var taggedText in tags)
+            {
+                switch (taggedText.Tag)
+                {
+                    case TextTags.CodeBlockStart:
+                        builder.Append($"```csharp{Environment.NewLine}");
+                        builder.Append(taggedText.Text);
+                        isInCodeBlock = true;
+                        break;
+                    case TextTags.CodeBlockEnd:
+                        builder.Append($"{Environment.NewLine}```{Environment.NewLine}");
+                        builder.Append(taggedText.Text);
+                        isInCodeBlock = false;
+                        break;
+                    case TextTags.LineBreak:
+                        // A line ending with double space and a new line indicates to markdown
+                        // to render a single-spaced line break.
+                        builder.Append("  ");
+                        builder.Append(Environment.NewLine);
+                        break;
+                    default:
+                        builder.Append(GetStyledText(taggedText, isInCodeBlock));
+                        break;
+                }
+            }
+
+            return new LSP.MarkupContent
+            {
+                Kind = LSP.MarkupKind.Markdown,
+                Value = builder.ToString(),
+            };
+
+            static string GetStyledText(TaggedText taggedText, bool isInCodeBlock)
+            {
+                // For non-cref links, the URI is present in both the hint and target.
+                if (!string.IsNullOrEmpty(taggedText.NavigationHint) && taggedText.NavigationHint == taggedText.NavigationTarget)
+                    return $"[{taggedText.Text}]({taggedText.NavigationHint})";
+
+                var text = taggedText.Text;
+
+                // Markdown ignores spaces at the start of lines outside of code blocks, 
+                // so to get indented lines we replace the spaces with these.
+                if (!isInCodeBlock)
+                    text = text.Replace(" ", "&nbsp;");
+
+                return taggedText.Style switch
+                {
+                    TaggedTextStyle.None => text,
+                    TaggedTextStyle.Strong => $"**{text}**",
+                    TaggedTextStyle.Emphasis => $"_{text}_",
+                    TaggedTextStyle.Underline => $"<u>{text}</u>",
+                    TaggedTextStyle.Code => $"`{text}`",
+                    _ => text,
+                };
+            }
         }
 
         private static async Task<ImmutableArray<MappedSpanResult>?> GetMappedSpanResultAsync(TextDocument textDocument, ImmutableArray<TextSpan> textSpans, CancellationToken cancellationToken)

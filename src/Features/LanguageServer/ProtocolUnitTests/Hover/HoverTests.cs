@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
 
-            VerifyContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Returns_colon}|  |a string");
+            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Returns_colon}|  |a string");
         }
 
         [Fact]
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
             var expectedLocation = locations["caret"].Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
-            VerifyContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException");
+            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException");
         }
 
         [Fact]
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
             var expectedLocation = locations["caret"].Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
-            VerifyContent(results, "string A.Method(int i)|A great method|Remarks are cool too.");
+            VerifyVSContent(results, "string A.Method(int i)|A great method|Remarks are cool too.");
         }
 
         [Fact]
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
             var expectedLocation = locations["caret"].Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
-            VerifyContent(results, "string A.Method(int i)|A great method|• |Item 1.|• |Item 2.");
+            VerifyVSContent(results, "string A.Method(int i)|A great method|• |Item 1.|• |Item 2.");
         }
 
         [Fact]
@@ -187,19 +187,93 @@ $@"<Workspace>
                 var result = await RunGetHoverAsync(testLspServer, location, project.Id);
 
                 var expectedConstant = project.Name == "Net472" ? "Target in net472" : "Target in netcoreapp3.1";
-                VerifyContent(result, $"({FeaturesResources.constant}) string WithConstant.Target = \"{expectedConstant}\"");
+                VerifyVSContent(result, $"({FeaturesResources.constant}) string WithConstant.Target = \"{expectedConstant}\"");
             }
         }
 
-        private static async Task<LSP.VSHover> RunGetHoverAsync(TestLspServer testLspServer, LSP.Location caret, ProjectId projectContext = null)
+        [Fact]
+        public async Task TestGetHoverAsync_UsingMarkupContent()
         {
-            return (LSP.VSHover)await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
-                           CreateTextDocumentPositionParams(caret, projectContext), new LSP.ClientCapabilities(), null, CancellationToken.None);
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// A cref <see cref=""AMethod""/>
+    /// <br/>
+    /// <strong>strong text</strong>
+    /// <br/>
+    /// <em>italic text</em>
+    /// <br/>
+    /// <u>underline text</u>
+    /// <para>
+    /// <list type='bullet'>
+    /// <item>
+    /// <description>Item 1.</description>
+    /// </item>
+    /// <item>
+    /// <description>Item 2.</description>
+    /// </item>
+    /// </list>
+    /// <a href = ""https://google.com"" > link text</a>
+    /// </para>
+    /// </summary>
+    /// <exception cref='System.NullReferenceException'>
+    /// Oh no!
+    /// </exception>
+    /// <param name='i'>an int</param>
+    /// <returns>a string</returns>
+    /// <remarks>
+    /// Remarks are cool too.
+    /// </remarks>
+    void {|caret:AMethod|}(int i)
+    {
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var expectedLocation = locations["caret"].Single();
+
+            var expectedMarkdown = @"```csharp
+void A.AMethod(int i)
+```
+  
+A&nbsp;cref&nbsp;A.AMethod(int)  
+**strong&nbsp;text**  
+_italic&nbsp;text_  
+<u>underline&nbsp;text</u>  
+  
+•&nbsp;Item&nbsp;1.  
+•&nbsp;Item&nbsp;2.  
+  
+[link text](https://google.com)  
+  
+Remarks&nbsp;are&nbsp;cool&nbsp;too.  
+  
+Returns:  
+&nbsp;&nbsp;a&nbsp;string  
+  
+Exceptions:  
+&nbsp;&nbsp;System.NullReferenceException  
+";
+
+            var results = await RunGetHoverAsync(testLspServer, expectedLocation, clientCapabilities: new LSP.ClientCapabilities()).ConfigureAwait(false);
+            Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
         }
 
-        private void VerifyContent(LSP.VSHover result, string expectedContent)
+        private static async Task<LSP.Hover> RunGetHoverAsync(
+            TestLspServer testLspServer,
+            LSP.Location caret,
+            ProjectId projectContext = null,
+            LSP.ClientCapabilities clientCapabilities = null)
         {
-            var containerElement = (ContainerElement)result.RawContent;
+            clientCapabilities ??= new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
+            return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
+                           CreateTextDocumentPositionParams(caret, projectContext), clientCapabilities, null, CancellationToken.None);
+        }
+
+        private void VerifyVSContent(LSP.Hover hover, string expectedContent)
+        {
+            var vsHover = Assert.IsType<LSP.VSHover>(hover);
+            var containerElement = (ContainerElement)vsHover.RawContent;
             using var _ = ArrayBuilder<ClassifiedTextElement>.GetInstance(out var classifiedTextElements);
             GetClassifiedTextElements(containerElement, classifiedTextElements);
             Assert.False(classifiedTextElements.SelectMany(classifiedTextElements => classifiedTextElements.Runs).Any(run => run.NavigationAction != null));
