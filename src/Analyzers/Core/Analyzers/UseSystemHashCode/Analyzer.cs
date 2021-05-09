@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return default;
 
             // Owning symbol has to be an override of Object.GetHashCode.
-            if (!(owningSymbol is IMethodSymbol { Name: nameof(GetHashCode) } method))
+            if (owningSymbol is not IMethodSymbol { Name: nameof(GetHashCode) } method)
                 return default;
 
             if (method.Locations.Length != 1 || method.DeclaringSyntaxReferences.Length != 1)
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return null;
             }
 
-            if (!(statements[0] is IReturnOperation { ReturnedValue: { } returnedValue }))
+            if (statements[0] is not IReturnOperation { ReturnedValue: { } returnedValue })
             {
                 return null;
             }

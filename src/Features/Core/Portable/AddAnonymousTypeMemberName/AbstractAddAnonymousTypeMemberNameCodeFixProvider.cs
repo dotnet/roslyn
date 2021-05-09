@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
                 return null;
             }
 
-            if (!(declarator.Parent is TAnonymousObjectInitializer))
+            if (declarator.Parent is not TAnonymousObjectInitializer)
             {
                 return null;
             }

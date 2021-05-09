@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 return ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => GetAndTestFixableDiagnosticIds(f));
             }
-            catch (Exception e) when (!(e is OperationCanceledException))
+            catch (Exception e) when (e is not OperationCanceledException)
             {
                 foreach (var logger in _errorLoggers)
                 {
