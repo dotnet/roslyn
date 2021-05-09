@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var property = await GetPropertyAsync(context).ConfigureAwait(false);
             if (property == null)
