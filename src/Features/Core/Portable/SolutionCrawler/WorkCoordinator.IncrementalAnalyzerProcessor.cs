@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         await RunAnalyzersAsync(analyzers, textDocument, workItem, (a, d, c) => AnalyzeSyntaxAsync(a, d, reasons, c), cancellationToken).ConfigureAwait(false);
                     }
 
-                    if (!(textDocument is Document document))
+                    if (textDocument is not Document document)
                     {
                         // Semantic analysis is not supported for non-source documents.
                         return;

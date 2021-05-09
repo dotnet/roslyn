@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
                 return null;
             }
 
-            if (!(node.Parent is TAnonymousObjectMemberDeclaratorSyntax declarator))
+            if (node.Parent is not TAnonymousObjectMemberDeclaratorSyntax declarator)
             {
                 return null;
             }

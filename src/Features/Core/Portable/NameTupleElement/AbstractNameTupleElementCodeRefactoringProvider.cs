@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             var tuple = (TTupleExpressionSyntax)argument.Parent;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (!(semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType is INamedTypeSymbol tupleType))
+            if (semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType is not INamedTypeSymbol tupleType)
             {
                 return default;
             }

@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var compilation = semanticModel.Compilation;
 
                 // We couldn't resolve this field. skip it
-                if (!(field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol is IFieldSymbol currentField))
+                if (field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol is not IFieldSymbol currentField)
                     continue;
 
                 var nextSolution = await EncapsulateFieldAsync(document, currentField, updateReferences, cancellationToken).ConfigureAwait(false);

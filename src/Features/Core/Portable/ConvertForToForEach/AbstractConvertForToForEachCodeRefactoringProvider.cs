@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             // NOTE: we could potentially update this if we saw that the variable was not used
             // after the for-loop.  But, for now, we'll just be conservative and assume this means
             // the user wanted the 'i' for some other purpose and we should keep things as is.
-            if (!(semanticModel.GetOperation(forStatement, cancellationToken) is ILoopOperation operation) || operation.Locals.Length != 1)
+            if (semanticModel.GetOperation(forStatement, cancellationToken) is not ILoopOperation operation || operation.Locals.Length != 1)
             {
                 return;
             }
