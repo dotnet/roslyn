@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsQueryKeyword(SyntaxToken token);
         bool IsThrowExpression(SyntaxNode node);
         bool IsElementAccessExpression([NotNullWhen(true)] SyntaxNode? node);
-        bool IsIndexerMemberCRef(SyntaxNode node);
+        bool IsIndexerMemberCRef([NotNullWhen(true)] SyntaxNode? node);
         bool IsIdentifierStartCharacter(char c);
         bool IsIdentifierPartCharacter(char c);
         bool IsIdentifierEscapeCharacter(char c);
