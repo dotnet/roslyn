@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         protected static Accessibility ComputeAccessibility(Accessibility accessibility, ITypeSymbol type)
         {
             var computedAccessibility = accessibility;
-            if (accessibility == Accessibility.NotApplicable || accessibility == Accessibility.Private)
+            if (accessibility is Accessibility.NotApplicable or Accessibility.Private)
             {
                 computedAccessibility = Accessibility.Public;
             }

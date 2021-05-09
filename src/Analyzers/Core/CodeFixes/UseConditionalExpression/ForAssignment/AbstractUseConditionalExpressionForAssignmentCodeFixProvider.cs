@@ -230,8 +230,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 var unwrapped = UnwrapImplicitConversion(variableInitializer.Value);
                 // the variable has to either not have an initializer, or it needs to be basic
                 // literal/default expression.
-                if (!(unwrapped is ILiteralOperation) &&
-                    !(unwrapped is IDefaultValueOperation))
+                if (unwrapped is not ILiteralOperation and
+                    not IDefaultValueOperation)
                 {
                     return false;
                 }

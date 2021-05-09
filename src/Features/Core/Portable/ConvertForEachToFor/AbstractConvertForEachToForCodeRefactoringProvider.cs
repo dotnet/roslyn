@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
         }
 
         private static bool IsNullOrErrorType(ITypeSymbol type)
-            => type == null || type is IErrorTypeSymbol;
+            => type is null or IErrorTypeSymbol;
 
         private static IMethodSymbol GetInterfaceMember(ITypeSymbol interfaceType, string memberName)
         {

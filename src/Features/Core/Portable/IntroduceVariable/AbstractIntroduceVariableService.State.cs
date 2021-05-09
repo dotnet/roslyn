@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                if (Expression is TTypeSyntax && !(Expression is TNameSyntax))
+                if (Expression is TTypeSyntax and not TNameSyntax)
                 {
                     // name syntax can introduce variables, but not other type syntaxes
                     return false;

@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            if (trigger.Kind == CompletionTriggerKind.Invoke ||
-                trigger.Kind == CompletionTriggerKind.InvokeAndCommitIfUnique)
+            if (trigger.Kind is CompletionTriggerKind.Invoke or
+                CompletionTriggerKind.InvokeAndCommitIfUnique)
             {
                 return true;
             }
@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
 
-            if (context.Trigger.Kind != CompletionTriggerKind.Invoke &&
-                context.Trigger.Kind != CompletionTriggerKind.InvokeAndCommitIfUnique &&
-                context.Trigger.Kind != CompletionTriggerKind.Insertion)
+            if (context.Trigger.Kind is not CompletionTriggerKind.Invoke and
+                not CompletionTriggerKind.InvokeAndCommitIfUnique and
+                not CompletionTriggerKind.Insertion)
             {
                 return;
             }
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             if (index >= 2 && tree.Text[index - 2] == '\\')
             {
                 var escapeChar = tree.Text[index - 1];
-                if (escapeChar == 'p' || escapeChar == 'P')
+                if (escapeChar.Value is 'p' or 'P')
                 {
                     var token = FindToken(tree.Root, escapeChar);
                     if (token?.parent is RegexEscapeNode)
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 return;
             }
 
-            if (parentOpt != null && !(parentOpt is RegexGroupingNode))
+            if (parentOpt is not null and not RegexGroupingNode)
             {
                 return;
             }
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private static void ProvideBackslashCompletions(
             EmbeddedCompletionContext context, bool inCharacterClass, RegexNode parentOpt)
         {
-            if (parentOpt != null && !(parentOpt is RegexEscapeNode))
+            if (parentOpt is not null and not RegexEscapeNode)
             {
                 return;
             }
