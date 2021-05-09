@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         // Always soft-select these completion items.  Also, never filter down.
         private static readonly CompletionItemRules s_rules =
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
-                                       .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
+                                       .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, Array.Empty<char>()));
 
         private readonly RegexEmbeddedLanguage _language;
 
