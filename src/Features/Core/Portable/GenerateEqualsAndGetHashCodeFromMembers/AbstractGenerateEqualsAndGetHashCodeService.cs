@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         public async Task<IMethodSymbol> GenerateEqualsMethodAsync(
             Document document, INamedTypeSymbol namedType, ImmutableArray<ISymbol> members,
-            string localNameOpt, CancellationToken cancellationToken)
+            string? localNameOpt, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
