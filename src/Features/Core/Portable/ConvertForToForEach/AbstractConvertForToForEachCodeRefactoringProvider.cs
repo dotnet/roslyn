@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             syntaxFacts.GetPartsOfMemberAccessExpression(memberAccess,
                 out var collectionExpressionNode, out var memberAccessNameNode);
 
@@ -77,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Make sure it's a single-variable for loop and that we're not a loop where we're
             // referencing some previously declared symbol.  i.e
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             // NOTE: we could potentially update this if we saw that the variable was not used
             // after the for-loop.  But, for now, we'll just be conservative and assume this means
             // the user wanted the 'i' for some other purpose and we should keep things as is.
-            if (!(semanticModel.GetOperation(forStatement, cancellationToken) is ILoopOperation operation) || operation.Locals.Length != 1)
+            if (semanticModel.GetOperation(forStatement, cancellationToken) is not ILoopOperation operation || operation.Locals.Length != 1)
             {
                 return;
             }
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             var collectionType = semanticModel.GetTypeInfo(collectionExpression, cancellationToken);
-            if (collectionType.Type == null && collectionType.Type.TypeKind == TypeKind.Error)
+            if (collectionType.Type == null || collectionType.Type.TypeKind == TypeKind.Error)
             {
                 return;
             }
@@ -168,7 +166,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                         // list[i]
 
                         if (!syntaxFacts.IsSimpleArgument(current.Parent) ||
-                            !syntaxFacts.IsElementAccessExpression(current.Parent.Parent.Parent))
+                            !syntaxFacts.IsElementAccessExpression(current.Parent?.Parent?.Parent))
                         {
                             // used in something other than accessing into a collection.
                             // can't convert this for-loop.
@@ -198,7 +196,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 {
                     if (child.IsNode)
                     {
-                        if (IterationVariableIsUsedForMoreThanCollectionIndex(child.AsNode()))
+                        if (IterationVariableIsUsedForMoreThanCollectionIndex(child.AsNode()!))
                         {
                             return true;
                         }
