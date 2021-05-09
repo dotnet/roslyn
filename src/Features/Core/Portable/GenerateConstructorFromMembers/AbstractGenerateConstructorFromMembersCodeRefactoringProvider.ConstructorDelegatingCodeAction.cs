@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var factory = languageServices.GetRequiredService<SyntaxGenerator>();
                 var codeGenerationService = languageServices.GetRequiredService<ICodeGenerationService>();
 
+                Contract.ThrowIfNull(_state.DelegatedConstructor);
                 var thisConstructorArguments = factory.CreateArguments(
                     _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
 
