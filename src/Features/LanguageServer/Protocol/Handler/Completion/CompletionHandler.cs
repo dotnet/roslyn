@@ -128,7 +128,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             };
             var stringBuilder = new StringBuilder();
             using var _ = ArrayBuilder<LSP.CompletionItem>.GetInstance(out var lspCompletionItems);
-
             foreach (var item in list.Items)
             {
                 var completionItemResolveData = supportsCompletionListData ? null : completionResolveData;
