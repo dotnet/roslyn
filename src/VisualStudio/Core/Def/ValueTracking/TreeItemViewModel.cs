@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal class TreeViewItem : TreeViewItemBase
+    internal class TreeItemViewModel : TreeViewItemBase
     {
         private readonly SourceText _sourceText;
         private readonly ISymbol _symbol;
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
         }
 
-        public TreeViewItem(
+        public TreeItemViewModel(
             Document document,
             TextSpan textSpan,
             SourceText sourceText,
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             ValueTrackingTreeViewModel treeViewModel,
             IGlyphService glyphService,
             IThreadingContext threadingContext,
-            ImmutableArray<TreeViewItem> children = default)
+            ImmutableArray<TreeItemViewModel> children = default)
         {
             Document = document;
             TextSpan = textSpan;

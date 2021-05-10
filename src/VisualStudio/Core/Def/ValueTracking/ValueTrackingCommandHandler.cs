@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
             var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, cancellationToken).ConfigureAwait(false);
 
-            var root = new TreeViewItem(
+            var root = new TreeItemViewModel(
                 document,
                 location.SourceSpan,
                 sourceText,
@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             await ShowToolWindowAsync(cancellationToken).ConfigureAwait(true);
 
-            TreeViewItem CreateViewModel(ValueTrackedItem valueTrackedItem, ImmutableArray<TreeViewItem> children = default)
+            TreeItemViewModel CreateViewModel(ValueTrackedItem valueTrackedItem, ImmutableArray<TreeItemViewModel> children = default)
                 => new ValueTrackedTreeItemViewModel(
                    valueTrackedItem,
                    solution,

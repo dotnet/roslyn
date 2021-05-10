@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal class ValueTrackedTreeItemViewModel : TreeViewItem
+    internal class ValueTrackedTreeItemViewModel : TreeItemViewModel
     {
         private bool _childrenCalculated;
         private readonly Solution _solution;
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IGlyphService glyphService,
             IValueTrackingService valueTrackingService,
             IThreadingContext threadingContext,
-            ImmutableArray<TreeViewItem> children = default)
+            ImmutableArray<TreeItemViewModel> children = default)
             : base(
                   trackedItem.Document,
                   trackedItem.Span,

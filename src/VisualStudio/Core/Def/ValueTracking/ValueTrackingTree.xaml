@@ -47,7 +47,7 @@
                     </Style>
                 </TreeView.ItemContainerStyle>
                 <TreeView.Resources>
-                    <HierarchicalDataTemplate DataType="{x:Type local:TreeViewItem}" ItemsSource="{Binding ChildItems}">
+                    <HierarchicalDataTemplate DataType="{x:Type local:TreeItemViewModel}" ItemsSource="{Binding ChildItems}">
                         <StackPanel Orientation="Horizontal">
                             <Image Source="{Binding GlyphImage}" />
                             <local:BindableTextBlock InlineCollection="{Binding Inlines}" Margin="0 0 5 0" />
