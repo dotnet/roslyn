@@ -514,8 +514,8 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
             var declarationService = startingDocument.GetRequiredLanguageService<ISymbolDeclarationService>();
             foreach (var group in declarationService.GetDeclarations(typeSymbol).GroupBy(r => r.SyntaxTree))
             {
-                var document = solution.GetDocument(group.Key);
-                var nodes = group.SelectAsArray<SyntaxReference, SyntaxNode>(r => r.GetSyntax(cancellationToken));
+                var document = solution.GetRequiredDocument(group.Key);
+                var nodes = group.SelectAsArray(r => r.GetSyntax(cancellationToken));
 
                 result.Add(new DocumentToUpdate(document, nodes));
             }
