@@ -326,11 +326,11 @@ namespace Microsoft.CodeAnalysis.CodeLens
                             actualBuilder.Append(part);
                         }
 
-                        previousWasClass = part.Kind == SymbolDisplayPartKind.ClassName ||
-                                           part.Kind == SymbolDisplayPartKind.RecordClassName ||
-                                           part.Kind == SymbolDisplayPartKind.InterfaceName ||
-                                           part.Kind == SymbolDisplayPartKind.StructName ||
-                                           part.Kind == SymbolDisplayPartKind.RecordStructName;
+                        previousWasClass = part.Kind is SymbolDisplayPartKind.ClassName or
+                                           SymbolDisplayPartKind.RecordClassName or
+                                           SymbolDisplayPartKind.InterfaceName or
+                                           SymbolDisplayPartKind.StructName or
+                                           SymbolDisplayPartKind.RecordStructName;
                     }
 
                     return actualBuilder.ToString();

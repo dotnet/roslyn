@@ -107,8 +107,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     if (!ParseIfStatementSequence(operations[1..], sections, out defaultBodyOpt))
                     {
                         var nextStatement = operations[1];
-                        if (nextStatement is IReturnOperation { ReturnedValue: { } } ||
-                            nextStatement is IThrowOperation { Exception: { } })
+                        if (nextStatement is IReturnOperation { ReturnedValue: { } } or
+                            IThrowOperation { Exception: { } })
                         {
                             defaultBodyOpt = nextStatement;
                         }

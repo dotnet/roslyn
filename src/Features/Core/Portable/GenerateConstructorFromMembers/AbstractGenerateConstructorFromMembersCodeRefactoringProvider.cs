@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // Only supported on classes/structs.
             var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken: cancellationToken) as INamedTypeSymbol;
-            if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
+            if (containingType?.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
                 return null;
             }

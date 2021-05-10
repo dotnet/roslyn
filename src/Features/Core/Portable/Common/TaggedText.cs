@@ -266,8 +266,8 @@ namespace Microsoft.CodeAnalysis
             if (includeLeftToRightMarker)
             {
                 var classificationTypeName = part.Tag.ToClassificationTypeName();
-                if (classificationTypeName == ClassificationTypeNames.Punctuation ||
-                    classificationTypeName == ClassificationTypeNames.WhiteSpace)
+                if (classificationTypeName is ClassificationTypeNames.Punctuation or
+                    ClassificationTypeNames.WhiteSpace)
                 {
                     text = LeftToRightMarkerPrefix + text;
                 }
