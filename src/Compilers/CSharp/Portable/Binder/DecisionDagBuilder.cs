@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <see cref="BoundUnconvertedSwitchExpression"/>) and is used for semantic analysis and lowering.
     /// </para>
     /// </summary>
-    internal sealed class DecisionDagBuilder
+    internal sealed partial class DecisionDagBuilder
     {
         private readonly CSharpCompilation _compilation;
         private readonly Conversions _conversions;
@@ -275,7 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MakeTestsAndBindingsForDeclarationPattern(input, declaration, out output, bindings);
                 case BoundConstantPattern constant:
                     return MakeTestsForConstantPattern(input, constant, out output);
-                case BoundDiscardPattern _:
+                case BoundDiscardPattern:
+                case BoundSlicePattern:
                     output = input;
                     return Tests.True.Instance;
                 case BoundRecursivePattern recursive:
@@ -326,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var getItemPropertyInput = OriginalInput(valueAsITuple, getItemProperty);
             for (int i = 0; i < patternLength; i++)
             {
-                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, getItemPropertyInput);
+                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, lengthTemp, i, getItemPropertyInput);
                 tests.Add(new Tests.One(indexEvaluation));
                 var indexTemp = new BoundDagTemp(syntax, objectType, indexEvaluation);
                 tests.Add(MakeTestsAndBindings(indexTemp, pattern.Subpatterns[i].Pattern, bindings));
@@ -551,6 +552,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var element = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType().Type, evaluation);
                     tests.Add(MakeTestsAndBindings(element, pattern, bindings));
                 }
+            }
+            if (recursive.ListPattern is not null)
+            {
+                tests.Add(recursive.ListPattern switch
+                {
+                    BoundListPatternWithArray list => MakeTestsAndBindingsForListPattern(input, list, recursive.LengthPattern, bindings),
+                    BoundListPatternWithRangeIndexerPattern list => MakeTestsAndBindingsForListPattern(input, list, recursive.LengthPattern, bindings),
+                    var v => throw ExceptionUtilities.UnexpectedValue(v.Kind)
+                });
+            }
+            else if (recursive.LengthPattern is not null)
+            {
+                throw new System.NotImplementedException();
             }
 
             if (recursive.VariableAccess != null)

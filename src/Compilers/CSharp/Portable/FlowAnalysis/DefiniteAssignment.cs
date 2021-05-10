@@ -1600,7 +1600,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 case BoundKind.DiscardPattern:
+                case BoundKind.TypePattern:
                     break;
+                case BoundKind.SlicePattern:
+                    {
+                        var pat = (BoundSlicePattern)pattern;
+                        if (pat.Pattern != null)
+                        {
+                            AssignPatternVariables(pat.Pattern);
+                        }
+                        break;
+                    }
                 case BoundKind.ConstantPattern:
                     {
                         var pat = (BoundConstantPattern)pattern;
@@ -1624,6 +1634,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignPatternVariables(sub.Pattern, definitely);
                             }
                         }
+                        if (pat.LengthPattern is not null)
+                        {
+                            AssignPatternVariables(pat.LengthPattern, definitely);
+                        }
+                        if (pat.ListPattern is not null)
+                        {
+                            if (!pat.ListPattern.Subpatterns.IsDefaultOrEmpty)
+                            {
+                                foreach (BoundPattern p in pat.ListPattern.Subpatterns)
+                                {
+                                    AssignPatternVariables(p, definitely);
+                                }
+                            }
+                        }
                         if (definitely)
                             Assign(pat, null, false, false);
                         break;
@@ -1637,8 +1661,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
-                case BoundKind.TypePattern:
-                    break;
                 case BoundKind.RelationalPattern:
                     {
                         var pat = (BoundRelationalPattern)pattern;

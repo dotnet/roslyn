@@ -1378,7 +1378,7 @@
   </Node>
 
   <AbstractNode Name="BoundDagTest" Base="BoundNode">
-    Input is the input to the decision point.
+    <!-- Input is the input to the decision point. -->
     <Field Name="Input" Type="BoundDagTemp"/>
   </AbstractNode>
   <Node Name="BoundDagTemp" Base="BoundNode">
@@ -1421,10 +1421,20 @@
   </Node>
   <Node Name="BoundDagPropertyEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="Index" Type="int"/>
   </Node>
   <Node Name="BoundDagIndexEvaluation" Base="BoundDagEvaluation">
-    <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+    <!-- This will be null if input type is an array -->
+    <Field Name="Property" Type="PropertySymbol?"/>
+    <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="Index" Type="int"/>
+  </Node>
+  <Node Name="BoundDagSliceEvaluation" Base="BoundDagEvaluation">
+    <!-- This will be null if input type is an array -->
+    <Field Name="SliceMethod" Type="MethodSymbol?"/>
+    <Field Name="LengthTemp" Type="BoundDagTemp"/>
+    <Field Name="StartIndex" Type="int"/>
+    <Field Name="EndIndex" Type="int"/>
   </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
@@ -2069,8 +2079,10 @@
     <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
     <Field Name="Properties" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
+    <Field Name="LengthPattern" Type="BoundPattern?"/>
+    <Field Name="ListPattern" Type="BoundListPattern?"/>
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
-         a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
+         a field that is a member of the script class. Variable is null if `_` is used  or if the identifier is omitted. -->
     <Field Name="Variable" Type="Symbol?"/>
     <!-- VariableAccess is an access to the declared variable, suitable for use
          in the lowered form in either an lvalue or rvalue position. We maintain it separately
@@ -2081,6 +2093,24 @@
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression?"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
+  </Node>
+
+  <AbstractNode Name="BoundListPattern" Base="BoundNode">
+    <Field Name="ElementType" Type="TypeSymbol"/>
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
+    <Field Name="HasSlice" Type="bool"/>
+  </AbstractNode>
+  <Node Name="BoundListPatternWithArray" Base="BoundListPattern">
+  </Node>
+  <Node Name="BoundListPatternWithRangeIndexerPattern" Base="BoundListPattern">
+    <Field Name="GetLengthProperty" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="GetItemProperty" Type="PropertySymbol" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundSlicePattern" Base="BoundPattern">
+    <!-- This will be null if input type is an array -->
+    <Field Name="SliceMethod" Type="MethodSymbol?"/>
+    <Field Name="Pattern" Type="BoundPattern?"/>
   </Node>
 
   <Node Name="BoundITuplePattern" Base="BoundPattern">

@@ -710,4 +710,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Update(operatorKind, operand, methodOpt, operandConversion, resultConversion, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
         }
     }
+
+    partial class BoundDagPropertyEvaluation
+    {
+        public BoundDagPropertyEvaluation(SyntaxNode syntax, PropertySymbol property, BoundDagTemp input, bool hasErrors = false)
+            : this(syntax, property, index: 0, input, hasErrors)
+        {
+        }
+    }
 }
