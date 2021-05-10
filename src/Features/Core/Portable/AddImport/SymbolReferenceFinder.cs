@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         {
                             // Check if the expression before the dot binds to a property or field.
                             var symbol = _semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
-                            if (symbol?.Kind is (SymbolKind?)SymbolKind.Property or (SymbolKind?)SymbolKind.Field)
+                            if (symbol?.Kind is SymbolKind.Property or SymbolKind.Field)
                             {
                                 // Check if we have the 'Color Color' case.
                                 var propertyOrFieldType = symbol.GetSymbolType();
