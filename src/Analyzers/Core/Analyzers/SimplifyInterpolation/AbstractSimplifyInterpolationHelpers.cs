@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                 HasNonImplicitInstance(invocation))
             {
                 var targetName = invocation.TargetMethod.Name;
-                if (targetName is (nameof(string.PadLeft)) or (nameof(string.PadRight)))
+                if (targetName is nameof(string.PadLeft) or nameof(string.PadRight))
                 {
                     var argCount = invocation.Arguments.Length;
                     if (argCount is 1 or 2)
