@@ -358,7 +358,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private (SyntaxNode Lower, SyntaxNode Higher) GetRangeBounds(IBinaryOperation op)
             {
-                if (!(op is { LeftOperand: IBinaryOperation left, RightOperand: IBinaryOperation right }))
+                if (op is not
+                    { LeftOperand: IBinaryOperation left, RightOperand: IBinaryOperation right })
                 {
                     return default;
                 }

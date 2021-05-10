@@ -10,8 +10,10 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -421,23 +423,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        private static ImmutableArray<string> PartListToSubstrings(string identifier, ArrayBuilder<TextSpan> parts)
+        private static ImmutableArray<string> PartListToSubstrings(string identifier, in TemporaryArray<TextSpan> parts)
         {
-            using var resultDisposer = ArrayBuilder<string>.GetInstance(out var result);
+            using var result = TemporaryArray<string>.Empty;
             foreach (var span in parts)
-            {
                 result.Add(identifier.Substring(span.Start, span.Length));
-            }
 
-            parts.Free();
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private static ImmutableArray<string> BreakIntoCharacterParts(string identifier)
-            => PartListToSubstrings(identifier, StringBreaker.GetCharacterParts(identifier));
+        {
+            using var parts = TemporaryArray<TextSpan>.Empty;
+            StringBreaker.AddCharacterParts(identifier, ref parts.AsRef());
+            return PartListToSubstrings(identifier, parts);
+        }
 
         private static ImmutableArray<string> BreakIntoWordParts(string identifier)
-            => PartListToSubstrings(identifier, StringBreaker.GetWordParts(identifier));
+        {
+            using var parts = TemporaryArray<TextSpan>.Empty;
+            StringBreaker.AddWordParts(identifier, ref parts.AsRef());
+            return PartListToSubstrings(identifier, parts);
+        }
 
         private static PatternMatch? TestNonFuzzyMatchCore(string candidate, string pattern)
         {
@@ -462,8 +469,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
         {
             MarkupTestFile.GetSpans(candidate, out candidate, out ImmutableArray<TextSpan> expectedSpans);
 
-            using var matchesDisposer = ArrayBuilder<PatternMatch>.GetInstance(out var matches);
-            PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, matches);
+            using var matches = TemporaryArray<PatternMatch>.Empty;
+            PatternMatcher.CreatePatternMatcher(pattern, includeMatchedSpans: true).AddMatches(candidate, ref matches.AsRef());
 
             if (matches.Count == 0)
             {
@@ -472,9 +479,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
             else
             {
-                var actualSpans = matches.SelectMany(m => m.MatchedSpans).OrderBy(s => s.Start).ToList();
+                var flattened = new List<TextSpan>();
+                foreach (var match in matches)
+                    flattened.AddRange(match.MatchedSpans);
+
+                var actualSpans = flattened.OrderBy(s => s.Start).ToList();
                 Assert.Equal(expectedSpans, actualSpans);
-                return matches.ToImmutable();
+                return matches.ToImmutableAndClear();
             }
         }
     }

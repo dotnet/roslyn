@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public static bool IsAnyMemberAccessExpression(
-            this ISyntaxFacts syntaxFacts, SyntaxNode node)
+            this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         {
             return syntaxFacts.IsSimpleMemberAccessExpression(node) || syntaxFacts.IsPointerMemberAccessExpression(node);
         }

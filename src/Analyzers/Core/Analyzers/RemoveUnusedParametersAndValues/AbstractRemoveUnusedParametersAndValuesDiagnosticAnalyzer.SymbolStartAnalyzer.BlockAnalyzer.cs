@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (notImplementedExceptionType == null)
                             return false;
 
-                        if (!(firstBlock is IBlockOperation block))
+                        if (firstBlock is not IBlockOperation block)
                             return false;
 
                         if (block.Operations.Length == 0)
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         SymbolUsageResult resultFromFlowAnalysis,
                         out ImmutableDictionary<string, string>? properties)
                     {
-                        Debug.Assert(!(symbol is ILocalSymbol local) || !local.IsRef);
+                        Debug.Assert(symbol is not ILocalSymbol local || !local.IsRef);
 
                         properties = null;
 
@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
 
                     // 2. Report unused parameters only for method symbols.
-                    if (!(context.OwningSymbol is IMethodSymbol method))
+                    if (context.OwningSymbol is not IMethodSymbol method)
                     {
                         return;
                     }

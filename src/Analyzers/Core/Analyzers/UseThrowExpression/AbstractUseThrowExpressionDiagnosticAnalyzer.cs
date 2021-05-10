@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            if (!(ifOperation.Parent is IBlockOperation containingBlock))
+            if (ifOperation.Parent is not IBlockOperation containingBlock)
             {
                 return;
             }
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             localOrParameter = null;
 
             var condition = ifStatement.Condition;
-            if (!(condition is IBinaryOperation binaryOperator))
+            if (condition is not IBinaryOperation binaryOperator)
             {
                 return false;
             }
