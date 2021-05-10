@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Completion
 {
     internal static class OmniSharpCompletionProviderNames
     {
-        internal const string ObjectCreationCompletionProvider = "Microsoft.CodeAnalysis.CSharp.Completion.Providers.ObjectCreationCompletionProvider";
-        internal const string OverrideCompletionProvider = "Microsoft.CodeAnalysis.CSharp.Completion.Providers.OverrideCompletionProvider";
-        internal const string PartialMethodCompletionProvider = "Microsoft.CodeAnalysis.CSharp.Completion.Providers.PartialMethodCompletionProvider";
-        internal const string InternalsVisibleToCompletionProvider = "Microsoft.CodeAnalysis.CSharp.Completion.Providers.InternalsVisibleToCompletionProvider";
-        internal const string TypeImportCompletionProvider = "Microsoft.CodeAnalysis.CSharp.Completion.Providers.TypeImportCompletionProvider";
-        internal const string ExtensionMethodImportCompletionProvider = "Microsoft.CodeAnalysis.CSharp.Completion.Providers.ExtensionMethodImportCompletionProvider";
+        internal static string ObjectCreationCompletionProvider = typeof(ObjectCreationCompletionProvider).FullName;
+        internal static string OverrideCompletionProvider = typeof(OverrideCompletionProvider).FullName;
+        internal static string PartialMethodCompletionProvider = typeof(PartialMethodCompletionProvider).FullName;
+        internal static string InternalsVisibleToCompletionProvider = typeof(InternalsVisibleToCompletionProvider).FullName;
+        internal static string TypeImportCompletionProvider = typeof(TypeImportCompletionProvider).FullName;
+        internal static string ExtensionMethodImportCompletionProvider = typeof(ExtensionMethodImportCompletionProvider).FullName;
     }
 }
