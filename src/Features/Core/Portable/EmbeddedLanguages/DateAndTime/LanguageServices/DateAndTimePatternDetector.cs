@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
 
             var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(invocationOrCreation);
             var name = GetNameOfInvokedExpression(syntaxFacts, invokedExpression);
-            if (name is not (nameof(ToString)) and not (nameof(System.DateTime.ParseExact)) and not (nameof(System.DateTime.TryParseExact)))
+            if (name is not nameof(ToString) and not nameof(DateTime.ParseExact) and not nameof(DateTime.TryParseExact))
                 return false;
 
             // We have a string literal passed to a method called ToString/ParseExact/TryParseExact.
