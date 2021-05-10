@@ -55,7 +55,7 @@
     <EnvDTE80Version>$(MicrosoftVisualStudioShellPackagesVersion)</EnvDTE80Version>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
-    <ICSharpCodeDecompilerVersion>6.1.0.5902</ICSharpCodeDecompilerVersion>
+    <ICSharpCodeDecompilerVersion>7.0.0.6488</ICSharpCodeDecompilerVersion>
     <MicrosoftBuildVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildFrameworkVersion>
     <MicrosoftBuildLocatorVersion>1.2.6</MicrosoftBuildLocatorVersion>
