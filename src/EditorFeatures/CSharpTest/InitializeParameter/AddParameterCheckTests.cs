@@ -4,16 +4,10 @@
 
 #nullable disable
 
-using System.Globalization;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddParameter;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -161,6 +155,24 @@ using System;
 interface I
 {
     void M([||]string s);
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnNullableParameter()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    void M([||]string? s)
+    {
+    }
 }";
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
@@ -468,6 +480,47 @@ class C
         if (string.IsNullOrEmpty(c))
         {{
             throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("\"", "\\\"")}"", nameof(c));
+        }}
+    }}
+}}",
+                CodeActionIndex = 3,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableParametersSomeNullableReferenceTypes()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    public C([||]string a, string b, string? c)
+    {
+    }
+}",
+                FixedCode = @$"
+#nullable enable
+
+using System;
+
+class C
+{{
+    public C(string a, string b, string? c)
+    {{
+        if (string.IsNullOrEmpty(a))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("\"", "\\\"")}"", nameof(a));
+        }}
+
+        if (string.IsNullOrEmpty(b))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("\"", "\\\"")}"", nameof(b));
         }}
     }}
 }}",

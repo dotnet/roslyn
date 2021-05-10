@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 SyntaxKind.ClassDeclaration,
                 SyntaxKind.RecordDeclaration,
                 SyntaxKind.StructDeclaration,
+                SyntaxKind.RecordStructDeclaration,
                 SyntaxKind.InterfaceDeclaration,
                 SyntaxKind.DelegateDeclaration,
                 SyntaxKind.EnumDeclaration);

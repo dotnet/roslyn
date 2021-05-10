@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
-            if (!(instanceOperation.Syntax is TSimpleNameSyntax simpleName))
+            if (instanceOperation.Syntax is not TSimpleNameSyntax simpleName)
             {
                 return;
             }

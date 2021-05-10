@@ -4611,9 +4611,9 @@ End Class"
                 Dim Compilation = CreateEmptyCompilation("")
                 Dim result = Compilation.Emit(outStream, options:=New EmitOptions(pdbFilePath:="test\\?.pdb", debugInformationFormat:=DebugInformationFormat.Embedded))
 
-                Assert.False(result.Success)
-                ' // error BC2032: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                result.Diagnostics.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1))
+                ' This is fine because EmitOptions just controls what is written into the PE file and it's 
+                ' valid for this to be an illegal file name (path map can easily create these).
+                Assert.True(result.Success)
             End Using
         End Sub
 

@@ -516,7 +516,7 @@ RETRY:
             if (importString.Length >= 2 && importString[0] == '@')
             {
                 var ch1 = importString[1];
-                if ('0' <= ch1 && ch1 <= '9')
+                if (ch1 is >= '0' and <= '9')
                 {
                     if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out var tempMethodToken))
                     {

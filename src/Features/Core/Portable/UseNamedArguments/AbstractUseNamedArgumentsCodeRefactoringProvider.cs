@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     return;
                 }
 
-                if (!(argument.Parent is TArgumentListSyntax argumentList))
+                if (argument.Parent is not TArgumentListSyntax argumentList)
                 {
                     return;
                 }

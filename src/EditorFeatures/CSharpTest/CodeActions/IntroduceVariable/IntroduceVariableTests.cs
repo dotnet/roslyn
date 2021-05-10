@@ -7912,5 +7912,74 @@ class B
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        public async Task DoNotIntroduceConstantForConstant_Local()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M()
+    {
+        const int foo = [|10|];
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        public async Task DoNotIntroduceConstantForConstant_Member()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    const int foo = [|10|];
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        public async Task DoNotIntroduceConstantForConstant_Parentheses()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    const int foo = ([|10|]);
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        public async Task DoNotIntroduceConstantForConstant_NotForSubExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        const int foo = [|10|] + 10;
+    }
+}
+",
+@"
+class C
+{
+    void M()
+    {
+        const int {|Rename:V|} = 10;
+        const int foo = V + 10;
+    }
+}
+",
+            index: 2);
+        }
     }
 }
