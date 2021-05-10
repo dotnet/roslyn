@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
@@ -15,11 +11,9 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
-using static Microsoft.CodeAnalysis.CSharp.BraceCompletion.CurlyBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
@@ -1348,7 +1342,76 @@ $$
             CheckReturn(session.Session, 4, result: "class C\r{\r\r}");
         }
 
-        internal static Holder CreateSession(string code, Dictionary<OptionKey2, object> optionSet = null)
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void WithInitializer_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"
+record R
+{
+    public void man(R r)
+    {
+        var r2 = r with $$
+    }
+}";
+
+            var expected = @"
+record R
+{
+    public void man(R r)
+    {
+        var r2 = r with {
+
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void WithInitializer_OpenBraceOnNewLine_Enter()
+        {
+            var code = @"
+record R
+{
+    public void man(R r)
+    {
+        var r2 = r with $$
+    }
+}";
+
+            var expected = @"
+record R
+{
+    public void man(R r)
+    {
+        var r2 = r with
+        {
+
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, true }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        internal static Holder CreateSession(string code, Dictionary<OptionKey2, object>? optionSet = null)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
