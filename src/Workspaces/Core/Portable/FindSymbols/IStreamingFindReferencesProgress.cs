@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public SymbolGroup(ImmutableArray<ISymbol> symbols)
         {
-            Contract.ThrowIfTrue(symbols.IsDefaultOrEmpty);
+            Contract.ThrowIfTrue(symbols.IsDefaultOrEmpty, "Symbols should be non empty");
 
             // We should only get an actual group of symbols if these were from source.
             // Metadata symbols never form a group.
-            Contract.ThrowIfTrue(symbols.Length >= 2 && symbols.Any(s => s.Locations.Any(loc => loc.IsInMetadata)));
+            Contract.ThrowIfTrue(symbols.Length >= 2 && symbols.Any(s => s.Locations.Any(loc => loc.IsInMetadata)), "Found a linked symbol that came from metadata");
 
             Symbols = ImmutableHashSet.CreateRange(
                 MetadataUnifyingEquivalenceComparer.Instance, symbols);

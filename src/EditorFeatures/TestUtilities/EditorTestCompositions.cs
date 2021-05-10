@@ -64,9 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(TextEditorResources).Assembly,
                 typeof(EditorFeaturesResources).Assembly,
                 typeof(CSharp.CSharpEditorResources).Assembly,
-                typeof(VisualBasic.VBEditorResources).Assembly)
-            .AddParts(
-                typeof(TestWaitIndicator));
+                typeof(VisualBasic.VBEditorResources).Assembly);
 
         public static readonly TestComposition EditorFeaturesWpf = EditorFeatures
             .AddAssemblies(
@@ -76,7 +74,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             .AddAssemblies(
                 typeof(IInteractiveWindow).Assembly)
             .AddParts(
-                typeof(TestInteractiveWindowEditorFactoryService));
+                typeof(TestInteractiveWindowEditorFactoryService),
+#pragma warning disable CS0618 // Type or member is obsolete
+                typeof(TestWaitIndicator));
+#pragma warning restore CS0618 // Type or member is obsolete
 
         public static readonly TestComposition LanguageServerProtocol = EditorFeatures
             .AddAssemblies(

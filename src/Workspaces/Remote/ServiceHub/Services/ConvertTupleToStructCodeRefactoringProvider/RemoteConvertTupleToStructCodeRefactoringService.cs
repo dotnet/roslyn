@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentId documentId,
             TextSpan span,
             Scope scope,
+            bool isRecord,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var document = solution.GetDocument(documentId);
 
                 var service = document.GetLanguageService<IConvertTupleToStructCodeRefactoringProvider>();
-                var updatedSolution = await service.ConvertToStructAsync(document, span, scope, cancellationToken).ConfigureAwait(false);
+                var updatedSolution = await service.ConvertToStructAsync(document, span, scope, isRecord, cancellationToken).ConfigureAwait(false);
 
                 var cleanedSolution = await CleanupAsync(solution, updatedSolution, cancellationToken).ConfigureAwait(false);
 
