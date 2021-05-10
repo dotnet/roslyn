@@ -1617,6 +1617,8 @@ class C
             var reader1 = md1.Reader;
             var readers = new[] { reader0, reader1 };
 
+            diff1.VerifyUpdatedTypes("0x02000002", "0x02000003");
+
             CheckNames(readers, reader1.GetTypeDefNames(), "C`1");
             Assert.Equal(1, reader1.GetTableRowCount(TableIndex.NestedClass));
 
@@ -6196,7 +6198,7 @@ class C
   IL_0021:  br.s       IL_0023
  -IL_0023:  ldloc.s    V_6
   IL_0025:  ret
-}", methodToken: diff1.UpdatedMethods.Single());
+}", methodToken: diff1.EmitResult.UpdatedMethods.Single());
         }
 
         /// <summary>
@@ -7399,8 +7401,6 @@ class C
                 var method1F = compilation1.GetMember<MethodSymbol>("C.F");
 
                 using MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream();
-                var updatedMethods = new List<MethodDefinitionHandle>();
-                var updatedTypes = new List<TypeDefinitionHandle>();
                 var isAddedSymbol = new Func<ISymbol, bool>(s => false);
 
                 var badStream = new BrokenStream();
@@ -7413,8 +7413,6 @@ class C
                     badStream,
                     ilStream,
                     pdbStream,
-                    updatedMethods,
-                    updatedTypes,
                     new CompilationTestData(),
                     default);
                 Assert.False(result.Success);
@@ -7430,8 +7428,6 @@ class C
                     mdStream,
                     badStream,
                     pdbStream,
-                    updatedMethods,
-                    updatedTypes,
                     new CompilationTestData(),
                     default);
                 Assert.False(result.Success);
@@ -7447,8 +7443,6 @@ class C
                     mdStream,
                     ilStream,
                     badStream,
-                    updatedMethods,
-                    updatedTypes,
                     new CompilationTestData(),
                     default);
                 Assert.False(result.Success);
@@ -7492,8 +7486,6 @@ class C
                 var method1F = compilation1.GetMember<MethodSymbol>("C.F");
 
                 using MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream();
-                var updatedMethods = new List<MethodDefinitionHandle>();
-                var updatedTypes = new List<TypeDefinitionHandle>();
                 var isAddedSymbol = new Func<ISymbol, bool>(s => false);
 
                 var badStream = new BrokenStream();
@@ -7506,8 +7498,6 @@ class C
                     mdStream,
                     ilStream,
                     badStream,
-                    updatedMethods,
-                    updatedTypes,
                     new CompilationTestData(),
                     default);
                 Assert.False(result.Success);
@@ -9404,6 +9394,8 @@ public class C : Base
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
+            diff1.VerifyUpdatedTypes("0x02000002", "0x02000004");
+
             diff1.VerifySynthesizedMembers(
                 "C: {<>c__DisplayClass0_0}",
                 "C.<>c__DisplayClass0_0: {x, <.ctor>b__0}");
@@ -9446,6 +9438,8 @@ public class C : Base
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, ctor1, ctor2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
+
+            diff1.VerifyUpdatedTypes("0x02000002", "0x02000004");
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c__DisplayClass0_0}",
