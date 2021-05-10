@@ -282,8 +282,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var variableToUseAsReturnValue = AnalyzerResult.VariableToUseAsReturnValue;
 
-                Contract.ThrowIfFalse(variableToUseAsReturnValue.ReturnBehavior == ReturnBehavior.Assignment ||
-                                      variableToUseAsReturnValue.ReturnBehavior == ReturnBehavior.Initialization);
+                Contract.ThrowIfFalse(variableToUseAsReturnValue.ReturnBehavior is ReturnBehavior.Assignment or
+                                      ReturnBehavior.Initialization);
 
                 return statements.Concat(CreateReturnStatement(AnalyzerResult.VariableToUseAsReturnValue.Name));
             }
@@ -295,9 +295,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 foreach (var variable in variables)
                 {
-                    Contract.ThrowIfFalse(variable.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut ||
-                                          variable.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn ||
-                                          variable.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.Delete);
+                    Contract.ThrowIfFalse(variable.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.MoveOut or
+                                          DeclarationBehavior.MoveIn or
+                                          DeclarationBehavior.Delete);
 
                     variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
                 }
