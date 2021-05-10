@@ -135,11 +135,11 @@ class C
 {
     int F(object o)
     {
-        return o switch
+        <N:0>return o switch
         {
-            int i => <N:1>new Func<int>(() => <N:0>i + 1</N:0>)()</N:1>,
+            int i => new Func<int>(<N:1>() => i + 1</N:1>)(),
             _ => 0
-        };
+        }</N:0>;
     }
 }");
             var source1 = MarkedSource(@"
@@ -149,11 +149,11 @@ class C
 {
     int F(object o)
     {
-        return o switch
+        <N:0>return o switch
         {
-            int i => <N:1>new Func<int>(() => <N:0>i + 2</N:0>)()</N:1>,
+            int i => new Func<int>(<N:1>() => i + 2</N:1>)(),
             _ => 0
-        };
+        }</N:0>;
     }
 }");
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -173,18 +173,19 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<>c__DisplayClass0_0#0, <>c__DisplayClass0_1#0}",
-                "C.<>c__DisplayClass0_1#0: {<i>5__2, CS$<>8__locals2, <F>b__0}",
-                "C.<>c__DisplayClass0_0#0: {o, <>9__1, <F>b__1}");
+                "C.<>c__DisplayClass0_0: {<i>5__2, <F>b__0}",
+                "C: {<>c__DisplayClass0_0}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
+
+            var x = Visualize(generation0.OriginalMetadata, md1);
 
             // Method updates
             CheckEncLogDefinitions(reader1,
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -196,17 +197,17 @@ using System;
 class C
 {
     int F(object o)
-    {
-        return o switch
+    <N:0>{
+        <N:1>return o switch
         {
-            int i => new Func<int>(<N:0>() => i + (int)o + i switch
+            int i => new Func<int>(<N:2>() => i + (int)o + i switch
                 {
                     1 => 1,
-                    _ => new Func<int>(<N:1>() => (int)o + 1</N:1>)()
-                }</N:0>)(),
+                    _ => new Func<int>(<N:3>() => (int)o + 1</N:3>)()
+                }</N:2>)(),
             _ => 0
-        };
-    }
+        }</N:1>;
+    }</N:0>
 }");
             var source1 = MarkedSource(@"
 using System;
@@ -214,17 +215,17 @@ using System;
 class C
 {
     int F(object o)
-    {
-        return o switch
+    <N:0>{
+        <N:1>return o switch
         {
-            int i => new Func<int>(<N:0>() => i + (int)o + i switch
+            int i => new Func<int>(<N:2>() => i + (int)o + i switch
                 {
                     1 => 1,
-                    _ => new Func<int>(<N:1>() => (int)o + 2</N:1>)()
-                }</N:0>)(),
+                    _ => new Func<int>(<N:3>() => (int)o + 2</N:3>)()
+                }</N:2>)(),
             _ => 0
-        };
-    }
+        }</N:1>;
+    }</N:0>
 }");
             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
@@ -243,18 +244,20 @@ class C
 
             // no new synthesized members generated (with #1 in names):
             diff1.VerifySynthesizedMembers(
-                "C: {<>c__DisplayClass0_0#0, <>c__DisplayClass0_1#0}",
-                "C.<>c__DisplayClass0_1#0: {<i>5__2, CS$<>8__locals2, <F>b__0}",
-                "C.<>c__DisplayClass0_0#0: {o, <>9__1, <F>b__1}");
+                "C: {<>c__DisplayClass0_0, <>c__DisplayClass0_1}",
+                "C.<>c__DisplayClass0_1: {<i>5__2, CS$<>8__locals2, <F>b__0}",
+                "C.<>c__DisplayClass0_0: {o, <>9__1, <F>b__1}");
 
             var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
             // Method updates
             CheckEncLogDefinitions(reader1,
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
 
         [Fact]
