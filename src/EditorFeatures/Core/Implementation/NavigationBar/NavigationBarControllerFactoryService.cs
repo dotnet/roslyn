@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 {
@@ -18,18 +19,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     internal class NavigationBarControllerFactoryService : INavigationBarControllerFactoryService
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uIThreadOperationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public NavigationBarControllerFactoryService(
             IThreadingContext threadingContext,
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uIThreadOperationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
-            _waitIndicator = waitIndicator;
+            _uIThreadOperationExecutor = uIThreadOperationExecutor;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigationBar);
         }
 
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 _threadingContext,
                 presenter,
                 textBuffer,
-                _waitIndicator,
+                _uIThreadOperationExecutor,
                 _asyncListener);
         }
     }

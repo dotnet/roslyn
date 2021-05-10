@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class GlobalAssemblyCacheTests
     {
-        [MonoOnlyFact("https://github.com/dotnet/roslyn/issues/6179")]
+        [Fact]
         public void GetAssemblyIdentities()
         {
             var gac = GlobalAssemblyCache.Instance;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(0, names.Length);
         }
 
-        [MonoOnlyFact("https://github.com/dotnet/roslyn/pull/39369")]
+        [Fact]
         public void GetFacadeAssemblyIdentities()
         {
             var gac = GlobalAssemblyCache.Instance;

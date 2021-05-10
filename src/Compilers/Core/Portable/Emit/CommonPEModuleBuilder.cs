@@ -965,7 +965,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     throw ExceptionUtilities.UnexpectedValue(platformType);
 
                 default:
-                    return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+                    return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxNode, context.Diagnostics);
             }
         }
     }

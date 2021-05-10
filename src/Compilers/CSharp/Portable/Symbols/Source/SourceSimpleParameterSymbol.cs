@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -21,16 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            int ordinal,
            RefKind refKind,
            string name,
-           bool isDiscard,
            ImmutableArray<Location> locations)
            : base(owner, parameterType, ordinal, refKind, name, locations)
         {
-            IsDiscard = isDiscard;
         }
 
-        public override bool IsDiscard { get; }
+        public override bool IsDiscard => false;
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        internal override ConstantValue? ExplicitDefaultConstantValue
         {
             get { return null; }
         }
@@ -55,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
-        internal override SyntaxReference SyntaxReference
+        internal override SyntaxReference? SyntaxReference
         {
             get { return null; }
         }
@@ -97,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get { return null; }
         }

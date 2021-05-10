@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
 
             var invokedExpression = syntaxFacts.GetExpressionOfInvocationExpression(invocationOrCreation);
             var name = GetNameOfInvokedExpression(syntaxFacts, invokedExpression);
-            if (name != nameof(ToString) && name != nameof(System.DateTime.ParseExact) && name != nameof(System.DateTime.TryParseExact))
+            if (name is not nameof(ToString) and not nameof(DateTime.ParseExact) and not nameof(DateTime.TryParseExact))
                 return false;
 
             // We have a string literal passed to a method called ToString/ParseExact/TryParseExact.
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
 
                 // If we had a specified arg name and it isn't 'format', then it's not a DateTime
                 // 'format' param we care about.
-                if (argName != null && argName != FormatName)
+                if (argName is not null and not FormatName)
                     return false;
 
                 var symbolInfo = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken);
