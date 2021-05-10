@@ -490,6 +490,60 @@ partial class C
             Assert.Null(results.Items.First().InsertText);
         }
 
+        [Fact]
+        public async Task TestAlwaysHasCommitCharactersWithoutVSCapabilityAsync()
+        {
+            var markup =
+@"using System;
+class A
+{
+    void M()
+    {
+        {|caret:|}
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(),
+                invokeKind: LSP.VSCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams, new LSP.VSClientCapabilities()).ConfigureAwait(false);
+            Assert.NotNull(results);
+            Assert.NotEmpty(results.Items);
+            Assert.All(results.Items, (item) => Assert.NotNull(item.CommitCharacters));
+        }
+
+        [Fact]
+        public async Task TestSoftSelectedItemsHaveNoCommitCharactersWithoutVSCapabilityAsync()
+        {
+            var markup =
+@"using System.Text.RegularExpressions;
+class A
+{
+    void M()
+    {
+        new Regex(""[{|caret:|}"")
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(),
+                invokeKind: LSP.VSCompletionInvokeKind.Typing,
+                triggerCharacter: "[",
+                triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams, new LSP.VSClientCapabilities()).ConfigureAwait(false);
+            Assert.NotNull(results);
+            Assert.NotEmpty(results.Items);
+            Assert.All(results.Items, (item) => Assert.True(item.CommitCharacters.Length == 0));
+        }
+
         private static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
         {
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
