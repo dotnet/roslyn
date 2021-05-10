@@ -181,6 +181,35 @@ public static class Test
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnWithExpressionInitializer_AnonymousType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void M()
+    {
+        var a = new { Property = 1 };
+        _ = a $$
+    }
+}
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=False)
+                state.SendTab()
+                state.SendTypeChars(" { ")
+                Await state.AssertSelectedCompletionItem(displayText:="Property", isHardSelected:=False)
+                state.SendTypeChars("P")
+                Await state.AssertSelectedCompletionItem(displayText:="Property", isHardSelected:=True)
+                state.SendTypeChars(" = 2")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("with { Property = 2", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WorkItem(44921, "https://github.com/dotnet/roslyn/issues/44921")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
