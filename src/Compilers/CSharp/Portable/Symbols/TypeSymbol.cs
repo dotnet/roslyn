@@ -1503,7 +1503,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return true;
                     }
                 }
-
             }
 
             associated = null;
