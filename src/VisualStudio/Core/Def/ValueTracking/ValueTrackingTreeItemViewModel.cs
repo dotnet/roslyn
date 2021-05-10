@@ -22,22 +22,23 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
     internal class ValueTrackingTreeItemViewModel : TreeViewItemBase
     {
-        private readonly SourceText _sourceText;
-        private readonly ISymbol _symbol;
+        private readonly string _sourceText;
+        private readonly Glyph _glyph;
         private readonly IGlyphService _glyphService;
 
         protected ValueTrackingTreeViewModel TreeViewModel { get; }
         protected TextSpan TextSpan { get; }
         protected LineSpan LineSpan { get; }
-        protected Document Document { get; }
         protected IThreadingContext ThreadingContext { get; }
+        protected DocumentId DocumentId { get; }
+        protected Workspace Workspace { get; }
 
         public int LineNumber => LineSpan.Start + 1; // LineSpan is 0 indexed, editors are not
         public ObservableCollection<TreeViewItemBase> ChildItems { get; } = new();
 
-        public string FileName => Document.FilePath ?? Document.Name;
+        public string FileName { get; }
 
-        public ImageSource GlyphImage => _symbol.GetGlyph().GetImageSource(_glyphService);
+        public ImageSource GlyphImage => _glyph.GetImageSource(_glyphService);
 
         public ImmutableArray<ClassifiedSpan> ClassifiedSpans { get; }
 
@@ -51,7 +52,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 }
 
                 var classifiedTexts = ClassifiedSpans.SelectAsArray(
-                   cs => new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan)));
+                   cs =>
+                   {
+                       var adjustedStart = cs.TextSpan.Start - TextSpan.Start;
+                       return new ClassifiedText(cs.ClassificationType, _sourceText.Substring(adjustedStart, cs.TextSpan.Length));
+                   });
 
                 var spanStartPosition = TextSpan.Start - ClassifiedSpans[0].TextSpan.Start;
                 var spanEndPosition = TextSpan.End - ClassifiedSpans[0].TextSpan.End;
@@ -75,26 +80,30 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         }
 
         public ValueTrackingTreeItemViewModel(
-            Document document,
             TextSpan textSpan,
             SourceText sourceText,
-            ISymbol symbol,
+            DocumentId documentId,
+            string fileName,
+            Glyph glyph,
             ImmutableArray<ClassifiedSpan> classifiedSpans,
             ValueTrackingTreeViewModel treeViewModel,
             IGlyphService glyphService,
             IThreadingContext threadingContext,
+            Workspace workspace,
             ImmutableArray<ValueTrackingTreeItemViewModel> children = default)
         {
-            Document = document;
+            FileName = fileName;
             TextSpan = textSpan;
 
             ClassifiedSpans = classifiedSpans;
             TreeViewModel = treeViewModel;
             ThreadingContext = threadingContext;
 
-            _sourceText = sourceText;
-            _symbol = symbol;
+            _sourceText = sourceText.ToString(TextSpan);
+            _glyph = glyph;
             _glyphService = glyphService;
+            Workspace = workspace;
+            DocumentId = documentId;
 
             if (!children.IsDefaultOrEmpty)
             {
@@ -111,19 +120,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         public virtual void Select()
         {
-            var workspace = Document.Project.Solution.Workspace;
-            var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+            var navigationService = Workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService is null)
             {
                 return;
             }
 
             // While navigating do not activate the tab, which will change focus from the tool window
-            var options = workspace.Options
+            var options = Workspace.Options
                 .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
                 .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
 
-            navigationService.TryNavigateToLineAndOffset(workspace, Document.Id, LineSpan.Start, 0, options, ThreadingContext.DisposalToken);
+            navigationService.TryNavigateToLineAndOffset(Workspace, DocumentId, LineSpan.Start, 0, options, ThreadingContext.DisposalToken);
         }
     }
 }

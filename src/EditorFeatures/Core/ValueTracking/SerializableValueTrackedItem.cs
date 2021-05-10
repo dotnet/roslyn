@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
     internal sealed class SerializableValueTrackedItem
     {
         [DataMember(Order = 0)]
-        public SerializableSymbolAndProjectId SymbolAndProjectId { get; }
+        public SymbolKey SymbolKey { get; }
 
         [DataMember(Order = 1)]
         public SerializableValueTrackedItem? Parent { get; }
@@ -29,35 +29,35 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         public DocumentId DocumentId { get; }
 
         public SerializableValueTrackedItem(
-            SerializableSymbolAndProjectId symbolAndProjectId,
+            SymbolKey symbolKey,
             TextSpan textSpan,
             DocumentId documentId,
             SerializableValueTrackedItem? parent = null)
         {
-            SymbolAndProjectId = symbolAndProjectId;
+            SymbolKey = symbolKey;
             Parent = parent;
             TextSpan = textSpan;
             DocumentId = documentId;
         }
 
-        public static SerializableValueTrackedItem Dehydrate(ValueTrackedItem valueTrackedItem, CancellationToken cancellationToken)
+        public static SerializableValueTrackedItem Dehydrate(Solution solution, ValueTrackedItem valueTrackedItem, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var symbolAndProjectId = SerializableSymbolAndProjectId.Dehydrate(valueTrackedItem.Document.Project.Solution, valueTrackedItem.Symbol, cancellationToken);
             var parent = valueTrackedItem.Parent is null
                 ? null
-                : Dehydrate(valueTrackedItem.Parent, cancellationToken);
+                : Dehydrate(solution, valueTrackedItem.Parent, cancellationToken);
 
-            return new SerializableValueTrackedItem(symbolAndProjectId, valueTrackedItem.Span, valueTrackedItem.Document.Id, parent);
+            return new SerializableValueTrackedItem(valueTrackedItem.SymbolKey, valueTrackedItem.Span, valueTrackedItem.DocumentId, parent);
         }
 
         public async Task<ValueTrackedItem?> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
             var document = solution.GetRequiredDocument(DocumentId);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var symbolResolution = SymbolKey.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken);
 
-            var symbol = await SymbolAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            if (symbol is null)
+            if (symbolResolution.Symbol is null)
             {
                 return null;
             }
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             cancellationToken.ThrowIfCancellationRequested();
             var parent = Parent is null ? null : await Parent.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-            return await ValueTrackedItem.TryCreateAsync(document, TextSpan, symbol, parent, cancellationToken).ConfigureAwait(false);
+            return await ValueTrackedItem.TryCreateAsync(document, TextSpan, symbolResolution.Symbol, parent, cancellationToken).ConfigureAwait(false);
         }
     }
 }

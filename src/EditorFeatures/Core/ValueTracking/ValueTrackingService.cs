@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
@@ -28,45 +30,73 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             CancellationToken cancellationToken)
         {
             using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
-            var progressTracker = new ValueTrackingProgressCollector();
-            await ValueTracker.TrackValueSourceInternalAsync(selection, document, progressTracker, cancellationToken).ConfigureAwait(false);
-            return progressTracker.GetItems();
-        }
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var solution = document.Project.Solution;
 
-        public async Task TrackValueSourceAsync(
-            TextSpan selection,
-            Document document,
-            ValueTrackingProgressCollector progressCollector,
-            CancellationToken cancellationToken)
-        {
-            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
-            await ValueTracker.TrackValueSourceInternalAsync(
-                selection,
-                document,
-                progressCollector,
-                cancellationToken).ConfigureAwait(false);
+                var result = await client.TryInvokeAsync<IRemoteValueTrackingService, ImmutableArray<SerializableValueTrackedItem>>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) => service.TrackValueSourceAsync(solutionInfo, selection, document.Id, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (!result.HasValue)
+                {
+                    return ImmutableArray<ValueTrackedItem>.Empty;
+                }
+
+                _ = PooledObjects.ArrayBuilder<ValueTrackedItem>.GetInstance(out var builder);
+
+                foreach (var item in result.Value)
+                {
+                    var rehydratedItem = await item.RehydrateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                    builder.Add(rehydratedItem);
+                }
+            }
+
+            var progressTracker = new ValueTrackingProgressCollector();
+            await ValueTracker.TrackValueSourceAsync(selection, document, progressTracker, cancellationToken).ConfigureAwait(false);
+            return progressTracker.GetItems();
         }
 
         public async Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
+            Solution solution,
             ValueTrackedItem previousTrackedItem,
             CancellationToken cancellationToken)
         {
             using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
-            var progressTracker = new ValueTrackingProgressCollector();
-            await ValueTracker.TrackValueSourceInternalAsync(previousTrackedItem, progressTracker, cancellationToken).ConfigureAwait(false);
-            return progressTracker.GetItems();
-        }
+            var project = solution.GetRequiredProject(previousTrackedItem.DocumentId.ProjectId);
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var dehydratedItem = SerializableValueTrackedItem.Dehydrate(solution, previousTrackedItem, cancellationToken);
+                var result = await client.TryInvokeAsync<IRemoteValueTrackingService, ImmutableArray<SerializableValueTrackedItem>>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) => service.TrackValueSourceAsync(solutionInfo, dehydratedItem, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
-        public async Task TrackValueSourceAsync(
-            ValueTrackedItem previousTrackedItem,
-            ValueTrackingProgressCollector progressCollector,
-            CancellationToken cancellationToken)
-        {
-            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
-            await ValueTracker.TrackValueSourceInternalAsync(
-                previousTrackedItem,
-                progressCollector,
-                cancellationToken).ConfigureAwait(false);
+                if (!result.HasValue)
+                {
+                    return ImmutableArray<ValueTrackedItem>.Empty;
+                }
+
+                _ = PooledObjects.ArrayBuilder<ValueTrackedItem>.GetInstance(out var builder);
+
+                foreach (var item in result.Value)
+                {
+                    var rehydratedItem = await item.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                    if (rehydratedItem is null)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    builder.Add(rehydratedItem);
+                }
+            }
+
+            var progressTracker = new ValueTrackingProgressCollector();
+            await ValueTracker.TrackValueSourceAsync(solution, previousTrackedItem, progressTracker, cancellationToken).ConfigureAwait(false);
+            return progressTracker.GetItems();
         }
     }
 }

@@ -16,29 +16,31 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 {
     internal class ValueTrackedItem
     {
-        public ISymbol Symbol { get; }
+        public SymbolKey SymbolKey { get; }
         public ValueTrackedItem? Parent { get; }
 
-        public Document Document { get; }
+        public DocumentId DocumentId { get; }
         public TextSpan Span { get; }
         public ImmutableArray<ClassifiedSpan> ClassifiedSpans { get; }
         public SourceText SourceText { get; }
+        public Glyph Glyph { get; }
 
         private ValueTrackedItem(
-            ISymbol symbol,
+            SymbolKey symbolKey,
             SourceText sourceText,
             ImmutableArray<ClassifiedSpan> classifiedSpans,
             TextSpan textSpan,
-            Document document,
+            DocumentId documentId,
+            Glyph glyph,
             ValueTrackedItem? parent = null)
         {
-            Symbol = symbol;
+            SymbolKey = symbolKey;
             Parent = parent;
-
+            Glyph = glyph;
             Span = textSpan;
             ClassifiedSpans = classifiedSpans;
             SourceText = sourceText;
-            Document = document;
+            DocumentId = documentId;
         }
 
         public override string ToString()
@@ -81,11 +83,12 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             }
 
             return new ValueTrackedItem(
-                        symbol,
+                        SymbolKey.Create(symbol, cancellationToken),
                         sourceText,
                         classifiedSpans,
                         textSpan,
-                        document,
+                        document.Id,
+                        symbol.GetGlyph(),
                         parent: parent);
         }
     }

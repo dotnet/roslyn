@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 {
     internal static partial class ValueTracker
     {
-        public static async Task TrackValueSourceInternalAsync(
+        public static async Task TrackValueSourceAsync(
             TextSpan selection,
             Document document,
             ValueTrackingProgressCollector progressCollector,
@@ -71,29 +71,31 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             }
         }
 
-        public static async Task TrackValueSourceInternalAsync(
+        public static async Task TrackValueSourceAsync(
+            Solution solution,
             ValueTrackedItem previousTrackedItem,
             ValueTrackingProgressCollector progressCollector,
             CancellationToken cancellationToken)
         {
             progressCollector.Parent = previousTrackedItem;
-            var operationCollector = new OperationCollector(progressCollector, previousTrackedItem.Document.Project.Solution);
+            var operationCollector = new OperationCollector(progressCollector, solution);
+            var symbol = await GetSymbolAsync(previousTrackedItem, solution, cancellationToken).ConfigureAwait(false);
 
-            switch (previousTrackedItem.Symbol)
+            switch (symbol)
             {
                 case ILocalSymbol:
                 case IPropertySymbol:
                 case IFieldSymbol:
                     {
                         // The "output" is a variable assignment, track places where it gets assigned and defined
-                        await TrackVariableDefinitionsAsync(previousTrackedItem.Symbol, operationCollector, cancellationToken).ConfigureAwait(false);
-                        await TrackVariableReferencesAsync(previousTrackedItem.Symbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                        await TrackVariableDefinitionsAsync(symbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                        await TrackVariableReferencesAsync(symbol, operationCollector, cancellationToken).ConfigureAwait(false);
                     }
                     break;
 
                 case IParameterSymbol parameterSymbol:
                     {
-                        var previousSymbol = previousTrackedItem.Parent?.Symbol;
+                        var previousSymbol = await GetSymbolAsync(previousTrackedItem.Parent, solution, cancellationToken).ConfigureAwait(false);
 
                         // If the current parameter is a parameter symbol for the previous tracked method it should be treated differently.
                         // For example: 
@@ -308,6 +310,18 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     await collector.VisitAsync(initializer, cancellationToken).ConfigureAwait(false);
                 }
             }
+        }
+
+        private static async Task<ISymbol?> GetSymbolAsync(ValueTrackedItem? item, Solution solution, CancellationToken cancellationToken)
+        {
+            if (item is null)
+            {
+                return null;
+            }
+
+            var document = solution.GetRequiredDocument(item.DocumentId);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return item.SymbolKey.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
         }
     }
 }
