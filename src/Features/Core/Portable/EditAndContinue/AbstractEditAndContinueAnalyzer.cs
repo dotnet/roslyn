@@ -3802,8 +3802,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static (SyntaxNode? Node, int Ordinal) GetParameterKey(IParameterSymbol parameter, CancellationToken cancellationToken)
         {
             var containingLambda = parameter.ContainingSymbol as IMethodSymbol;
-            if (containingLambda?.MethodKind is (MethodKind?)MethodKind.LambdaMethod or
-                (MethodKind?)MethodKind.LocalFunction)
+            if (containingLambda?.MethodKind is MethodKind.LambdaMethod or MethodKind.LocalFunction)
             {
                 var oldContainingLambdaSyntax = containingLambda.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
                 return (oldContainingLambdaSyntax, parameter.Ordinal);
