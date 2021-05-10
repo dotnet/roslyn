@@ -28,25 +28,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public readonly ImmutableArray<byte> PdbDelta;
         internal readonly CompilationTestData TestData;
         public readonly EmitDifferenceResult EmitResult;
-        public readonly ImmutableArray<MethodDefinitionHandle> UpdatedMethods;
-        public readonly ImmutableArray<TypeDefinitionHandle> UpdatedTypes;
 
         internal CompilationDifference(
             ImmutableArray<byte> metadata,
             ImmutableArray<byte> il,
             ImmutableArray<byte> pdb,
             CompilationTestData testData,
-            EmitDifferenceResult result,
-            ImmutableArray<MethodDefinitionHandle> methodHandles,
-            ImmutableArray<TypeDefinitionHandle> typeHandles)
+            EmitDifferenceResult result)
         {
             MetadataDelta = metadata;
             ILDelta = il;
             PdbDelta = pdb;
             TestData = testData;
             EmitResult = result;
-            UpdatedMethods = methodHandles;
-            UpdatedTypes = typeHandles;
         }
 
         public EmitBaseline NextGeneration
@@ -153,14 +147,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             AssertEx.Equal(
                 expectedMethodTokens,
-                UpdatedMethods.Select(methodHandle => $"0x{MetadataTokens.GetToken(methodHandle):X8}"));
+                EmitResult.UpdatedMethods.Select(methodHandle => $"0x{MetadataTokens.GetToken(methodHandle):X8}"));
         }
 
         public void VerifyUpdatedTypes(params string[] expecedTypeTokens)
         {
             AssertEx.Equal(
                 expecedTypeTokens,
-                UpdatedTypes.Select(typeHandle => $"0x{MetadataTokens.GetToken(typeHandle):X8}"));
+                EmitResult.UpdatedTypes.Select(typeHandle => $"0x{MetadataTokens.GetToken(typeHandle):X8}"));
         }
     }
 }

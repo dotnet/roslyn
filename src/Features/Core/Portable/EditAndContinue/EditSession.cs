@@ -895,16 +895,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         metadataStream,
                         ilStream,
                         pdbStream,
-                        updatedMethods,
-                        updatedTypes,
                         cancellationToken);
 
                     if (emitResult.Success)
                     {
                         Contract.ThrowIfNull(emitResult.Baseline);
 
-                        var updatedMethodTokens = updatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
-                        var updatedTypeTokens = updatedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        var updatedTypeTokens = emitResult.UpdatedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
 
                         // Determine all active statements whose span changed and exception region span deltas.
                         GetActiveStatementAndExceptionRegionSpans(
