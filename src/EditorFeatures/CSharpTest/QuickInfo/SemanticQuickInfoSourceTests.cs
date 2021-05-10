@@ -7310,9 +7310,7 @@ interface IGoo {  }";
                 MainDescription("interface IGoo"),
                 Documentation(@"summary for interface IGoo
 
-
-List<string> y = null;
-"));
+List<string> y = null;"));
         }
 
         [WorkItem(37503, "https://github.com/dotnet/roslyn/issues/37503")]
@@ -7334,10 +7332,8 @@ interface IGoo {  }";
                 MainDescription("interface IGoo"),
                 Documentation(@"Normalize this, but Not        this
 
-
 line 1
-line     2
-"));
+line     2"));
         }
     }
 }

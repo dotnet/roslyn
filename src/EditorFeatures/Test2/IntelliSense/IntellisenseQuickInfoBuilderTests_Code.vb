@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "summary for MyClass"))),
                 New ClassifiedTextElement(
-                    New ClassifiedTextRun(ClassificationTypeNames.Text, $"{vbCrLf}List<string> y = null;{vbCrLf}", ClassifiedTextRunStyle.UseClassificationFont)))
+                    New ClassifiedTextRun(ClassificationTypeNames.Text, "List<string> y = null;", ClassifiedTextRunStyle.UseClassificationFont)))
 
             ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
         End Function
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "Not        this", ClassifiedTextRunStyle.UseClassificationFont))),
                 New ClassifiedTextElement(
-                    New ClassifiedTextRun(ClassificationTypeNames.Text, $"{vbCrLf}line 1{vbCrLf}line     2{vbCrLf}", ClassifiedTextRunStyle.UseClassificationFont)),
+                    New ClassifiedTextRun(ClassificationTypeNames.Text, $"line 1{vbCrLf}line     2", ClassifiedTextRunStyle.UseClassificationFont)),
                 New ClassifiedTextElement(
                     New ClassifiedTextRun(ClassificationTypeNames.Text, "Extra text after code.")))
 

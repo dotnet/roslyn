@@ -558,8 +558,8 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var rawText = element.Value;
             if (state.Style == TaggedTextStyle.Code)
             {
-                // Don't normalize code.
-                state.AppendString(rawText);
+                // Don't normalize code from middle. Only trim leading/trailing new lines.
+                state.AppendString(rawText.Trim('\n'));
                 return;
             }
 
