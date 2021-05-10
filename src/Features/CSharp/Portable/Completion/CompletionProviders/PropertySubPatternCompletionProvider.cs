@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // Find the members that can be tested.
-            var members = GetCandidatePropertiesAndFields(document, position, semanticModel, type);
+            var members = GetCandidatePropertiesAndFields(document, semanticModel, position, type);
 
             if (propertyPatternClause is not null)
             {
@@ -116,31 +116,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             static ITypeSymbol GetMemberType(ITypeSymbol type, string name, Document document, SemanticModel semanticModel, int position)
             {
-                var members = GetCandidatePropertiesAndFields(document, position, semanticModel, type);
+                var members = GetCandidatePropertiesAndFields(document, semanticModel, position, type);
                 var matches = members.Where(m => m.Name == name).ToArray();
                 if (matches.Length is 0 or > 1)
                 {
                     return null;
                 }
 
-                type = matches[0] switch
+                return matches[0] switch
                 {
                     IPropertySymbol property => property.Type,
                     IFieldSymbol field => field.Type,
                     _ => null
                 };
-                return type;
             }
 
-            static IEnumerable<ISymbol> GetCandidatePropertiesAndFields(Document document, int position, SemanticModel semanticModel, ITypeSymbol type)
+            static IEnumerable<ISymbol> GetCandidatePropertiesAndFields(Document document, SemanticModel semanticModel, int position, ITypeSymbol type)
             {
-                IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, type);
-                members = members.Where(m => m.CanBeReferencedByName &&
+                var members = semanticModel.LookupSymbols(position, type);
+                return members.Where(m => m.CanBeReferencedByName &&
                     IsFieldOrReadableProperty(m) &&
                     !m.IsImplicitlyDeclared &&
                     !m.IsStatic &&
                     m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
-                return members;
             }
         }
 
