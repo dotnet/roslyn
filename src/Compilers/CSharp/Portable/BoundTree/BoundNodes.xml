@@ -2082,7 +2082,7 @@
     <Field Name="LengthPattern" Type="BoundPattern?"/>
     <Field Name="ListPattern" Type="BoundListPattern?"/>
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
-         a field that is a member of the script class. Variable is null if `_` is used  or if the identifier is omitted. -->
+         a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
     <Field Name="Variable" Type="Symbol?"/>
     <!-- VariableAccess is an access to the declared variable, suitable for use
          in the lowered form in either an lvalue or rvalue position. We maintain it separately
