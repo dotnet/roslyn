@@ -3128,9 +3128,9 @@ namespace Microsoft.CodeAnalysis
                         (nativePdbWriter == null) ? pdbStream : null,
                         out MetadataSizes metadataSizes);
 
-                    writer.GetMethodTokens(updatedMethods);
+                    writer.GetUpdatedMethodTokens(updatedMethods);
 
-                    writer.GetTypeTokens(updatedTypes);
+                    writer.GetUpdatedTypeTokens(updatedTypes);
 
                     nativePdbWriter?.WriteTo(pdbStream);
 

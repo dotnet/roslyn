@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// Return tokens for all modified debuggable methods.
         /// </summary>
-        public void GetMethodTokens(ICollection<MethodDefinitionHandle> methods)
+        public void GetUpdatedMethodTokens(ICollection<MethodDefinitionHandle> methods)
         {
             foreach (var def in _methodDefs.GetRows())
             {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// Return tokens for all modified debuggable types.
         /// </summary>
-        public void GetTypeTokens(ICollection<TypeDefinitionHandle> types)
+        public void GetUpdatedTypeTokens(ICollection<TypeDefinitionHandle> types)
         {
             foreach (var def in _updatedTypeDefs)
             {
