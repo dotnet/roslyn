@@ -24,6 +24,53 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
     public class CompletionResolveTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
+        public async Task TestResolveCompletionItemFromListAsync()
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        {|caret:|}
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var tags = new string[] { "Class", "Internal" };
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(), LSP.VSCompletionInvokeKind.Explicit, "\0", LSP.CompletionTriggerKind.Invoked);
+
+            var clientCapabilities = new LSP.VSClientCapabilities
+            {
+                SupportsVisualStudioExtensions = true,
+                TextDocument = new TextDocumentClientCapabilities()
+                {
+                    Completion = new VSCompletionSetting()
+                    {
+                        CompletionList = new VSCompletionListSetting()
+                        {
+                            Data = true,
+                        }
+                    }
+                }
+            };
+            var completionList = await RunGetCompletionsAsync(testLspServer, completionParams, clientCapabilities);
+            var serverCompletionItem = completionList.Items.FirstOrDefault(item => item.Label == "A");
+            var completionResultId = ((CompletionResolveData)serverCompletionItem.Data).ResultId.Value;
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+            var clientCompletionItem = ConvertToClientCompletionItem(serverCompletionItem);
+
+            var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
+
+            var expected = CreateResolvedCompletionItem(clientCompletionItem, description, "class A", null);
+
+            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(
+                testLspServer, clientCompletionItem, clientCapabilities).ConfigureAwait(false);
+            AssertJsonEquals(expected, results);
+            var vsCompletionList = Assert.IsAssignableFrom<VSCompletionList>(completionList);
+            Assert.NotNull(vsCompletionList.Data);
+        }
+
+        [Fact]
         public async Task TestResolveCompletionItemAsync()
         {
             var markup =
@@ -205,11 +252,33 @@ class B : A
                 new ClassifiedTextRun("class name", className)
             };
 
-        private static async Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
+        private static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
         {
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
-            return await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName,
+            return RunGetCompletionsAsync(testLspServer, completionParams, clientCapabilities);
+        }
+
+        private static async Task<LSP.CompletionList> RunGetCompletionsAsync(
+            TestLspServer testLspServer,
+            LSP.CompletionParams completionParams,
+            LSP.VSClientCapabilities clientCapabilities)
+        {
+            var completionList = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName,
                 completionParams, clientCapabilities, null, CancellationToken.None);
+
+            // Emulate client behavior of promoting "Data" completion list properties onto completion items.
+            if (clientCapabilities.HasCompletionListDataCapability() &&
+                completionList is VSCompletionList vsCompletionList &&
+                vsCompletionList.Data != null)
+            {
+                foreach (var completionItem in completionList.Items)
+                {
+                    Assert.Null(completionItem.Data);
+                    completionItem.Data = vsCompletionList.Data;
+                }
+            }
+
+            return completionList;
         }
 
         private static LSP.VSCompletionItem ConvertToClientCompletionItem(LSP.CompletionItem serverCompletionItem)

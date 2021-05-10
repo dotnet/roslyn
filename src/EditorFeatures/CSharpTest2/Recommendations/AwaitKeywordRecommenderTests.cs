@@ -51,6 +51,10 @@ class Program
         public async Task TestUsingDirective()
             => await VerifyAbsenceAsync("using $$");
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestGlobalUsingDirective()
+            => await VerifyAbsenceAsync("global using $$");
+
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
         public async Task TestForeachStatement(bool topLevelStatement)

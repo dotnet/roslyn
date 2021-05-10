@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override bool Equals(object? obj)
         {
-            if (!(obj is LiveDiagnosticUpdateArgsId other))
+            if (obj is not LiveDiagnosticUpdateArgsId other)
             {
                 return false;
             }

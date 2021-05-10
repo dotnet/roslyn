@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 else
                 {
                     AppendMatchingData(source, workspace, projectId, documentId, id, buffer);
-                    Debug.Assert(buffer.Count == 0 || buffer.Count == 1);
+                    Debug.Assert(buffer.Count is 0 or 1);
 
                     if (buffer.Count == 1)
                     {
