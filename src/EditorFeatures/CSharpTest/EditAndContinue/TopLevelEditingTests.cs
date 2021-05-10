@@ -1705,6 +1705,44 @@ partial record C { }";
         }
 
         [Fact]
+        public void RecordStruct_AddField()
+        {
+            var src1 = @"
+record struct C(int X)
+{
+}";
+            var src2 = @"
+record struct C(int X)
+{
+    private int _y = 0;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                 Diagnostic(RudeEditKind.InsertIntoStruct, "_y = 0", FeaturesResources.field, CSharpFeaturesResources.record_struct));
+        }
+
+        [Fact]
+        public void RecordStruct_AddProperty()
+        {
+            var src1 = @"
+record struct C(int X)
+{
+}";
+            var src2 = @"
+record struct C(int X)
+{
+    public int Y { get; set; } = 0;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                 Diagnostic(RudeEditKind.InsertIntoStruct, "public int Y { get; set; } = 0;", FeaturesResources.auto_property, CSharpFeaturesResources.record_struct));
+        }
+
+        [Fact]
         public void Record_NoModifiers_Insert()
         {
             var src1 = "";
