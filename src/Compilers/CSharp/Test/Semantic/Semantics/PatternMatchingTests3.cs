@@ -20,13 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternMatchingTests3 : PatternMatchingTestBase
     {
-        private static void AssertEmpty(SymbolInfo info)
-        {
-            Assert.NotEqual(default, info);
-            Assert.Null(info.Symbol);
-            Assert.Equal(CandidateReason.None, info.CandidateReason);
-        }
-
         [Fact]
         public void PropertyPatternSymbolInfo_01()
         {
