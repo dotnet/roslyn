@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public static bool IsAnyMemberAccessExpression(
-            this ISyntaxFacts syntaxFacts, SyntaxNode node)
+            this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         {
             return syntaxFacts.IsSimpleMemberAccessExpression(node) || syntaxFacts.IsPointerMemberAccessExpression(node);
         }
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #endregion
 
-        #region
+        #region expressions
 
         public static bool IsAwaitExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.AwaitExpression;
@@ -462,8 +462,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsVariableDeclarator(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.VariableDeclarator;
 
+        public static bool IsFieldDeclaration(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.FieldDeclaration;
+
         public static bool IsTypeArgumentList(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TypeArgumentList;
+
+        #endregion
+
+        #region clauses
+
+        public static bool IsEqualsValueClause(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.EqualsValueClause;
 
         #endregion
 

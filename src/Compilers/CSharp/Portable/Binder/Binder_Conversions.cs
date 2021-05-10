@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -110,7 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.Kind == ConversionKind.SwitchExpression)
             {
-
                 var convertedSwitch = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, conversionIfTargetTyped: conversion, diagnostics);
                 return new BoundConversion(
                     syntax,
@@ -503,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return finalConversion;
         }
 
-        private static BoundExpression CreateAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
+        private BoundExpression CreateAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
         {
             // We have a successful anonymous function conversion; rather than producing a node
             // which is a conversion on top of an unbound lambda, replace it with the bound
@@ -513,19 +511,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
-            var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination);
-            diagnostics.AddRange(boundLambda.Diagnostics);
+            if (destination.SpecialType == SpecialType.System_Delegate || destination.IsNonGenericExpressionType())
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var delegateType = unboundLambda.InferDelegateType(ref useSiteInfo);
+                BoundLambda boundLambda;
+                if (delegateType is { })
+                {
+                    if (destination.IsNonGenericExpressionType())
+                    {
+                        delegateType = Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T).Construct(delegateType);
+                        delegateType.AddUseSiteInfo(ref useSiteInfo);
+                    }
+                    boundLambda = unboundLambda.Bind(delegateType);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_CannotInferDelegateType, syntax.GetLocation());
+                    delegateType = CreateErrorType();
+                    boundLambda = unboundLambda.BindForErrorRecovery();
+                }
+                diagnostics.AddRange(boundLambda.Diagnostics);
+                var expr = createAnonymousFunctionConversion(syntax, source, boundLambda, conversion, isCast, conversionGroup, delegateType);
+                conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
+                diagnostics.Add(syntax, useSiteInfo);
+                return CreateConversion(syntax, expr, conversion, isCast, conversionGroup, destination, diagnostics);
+            }
+            else
+            {
+#if DEBUG
+                // Test inferring a delegate type for all callers.
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                _ = unboundLambda.InferDelegateType(ref discardedUseSiteInfo);
+#endif
+                var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination);
+                diagnostics.AddRange(boundLambda.Diagnostics);
+                return createAnonymousFunctionConversion(syntax, source, boundLambda, conversion, isCast, conversionGroup, destination);
+            }
 
-            return new BoundConversion(
-                syntax,
-                boundLambda,
-                conversion,
-                @checked: false,
-                explicitCastInCode: isCast,
-                conversionGroup,
-                constantValueOpt: ConstantValue.NotAvailable,
-                type: destination)
-            { WasCompilerGenerated = source.WasCompilerGenerated };
+            static BoundConversion createAnonymousFunctionConversion(SyntaxNode syntax, BoundExpression source, BoundLambda boundLambda, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination)
+            {
+                return new BoundConversion(
+                    syntax,
+                    boundLambda,
+                    conversion,
+                    @checked: false,
+                    explicitCastInCode: isCast,
+                    conversionGroup,
+                    constantValueOpt: ConstantValue.NotAvailable,
+                    type: destination)
+                { WasCompilerGenerated = source.WasCompilerGenerated };
+            }
         }
 
         private BoundExpression CreateMethodGroupConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
@@ -544,7 +581,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
+            if (destination.SpecialType == SpecialType.System_Delegate)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureInferredDelegateType, diagnostics);
+                // https://github.com/dotnet/roslyn/issues/52869: Avoid calculating the delegate type multiple times during conversion.
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var delegateType = GetMethodGroupDelegateType(group, ref useSiteInfo);
+                var expr = createMethodGroupConversion(syntax, group, conversion, isCast, conversionGroup, delegateType!, hasErrors);
+                conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
+                diagnostics.Add(syntax, useSiteInfo);
+                return CreateConversion(syntax, expr, conversion, isCast, conversionGroup, destination, diagnostics);
+            }
+
+#if DEBUG
+            // Test inferring a delegate type for all callers.
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            _ = GetMethodGroupDelegateType(group, ref discardedUseSiteInfo);
+#endif
+            return createMethodGroupConversion(syntax, group, conversion, isCast, conversionGroup, destination, hasErrors);
+
+            static BoundConversion createMethodGroupConversion(SyntaxNode syntax, BoundMethodGroup group, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, bool hasErrors)
+            {
+                return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = group.WasCompilerGenerated };
+            }
         }
 
         private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
@@ -1121,16 +1180,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol delegateOrFuncPtrType,
             BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(delegateOrFuncPtrType.TypeKind == TypeKind.Delegate || delegateOrFuncPtrType.TypeKind == TypeKind.FunctionPointer);
+            Debug.Assert(delegateOrFuncPtrType.SpecialType == SpecialType.System_Delegate || delegateOrFuncPtrType.TypeKind == TypeKind.Delegate || delegateOrFuncPtrType.TypeKind == TypeKind.FunctionPointer);
 
             Debug.Assert(conversion.Method is object);
             MethodSymbol selectedMethod = conversion.Method;
 
             var location = syntax.Location;
-            if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, location, diagnostics) ||
-                MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
+            if (delegateOrFuncPtrType.SpecialType != SpecialType.System_Delegate)
             {
-                return true;
+                if (!MethodIsCompatibleWithDelegateOrFunctionPointer(receiverOpt, isExtensionMethod, selectedMethod, delegateOrFuncPtrType, location, diagnostics) ||
+                    MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod))
+                {
+                    return true;
+                }
             }
 
             if (selectedMethod.IsConditional)

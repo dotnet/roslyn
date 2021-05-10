@@ -103,9 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureDiscards = MessageBase + 12688,
 
-        // PROTOTYPE(extended-property-patterns) Move
-        IDS_FeatureExtendedPropertyPatterns = MessageBase + 12800,
-
         IDS_FeatureDefaultTypeParameterConstraint = MessageBase + 12689,
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
         IDS_FeatureExpressionBodiedMethod = MessageBase + 12691,
@@ -219,7 +216,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureVarianceSafetyForStaticInterfaceMembers = MessageBase + 12791,
         IDS_FeatureConstantInterpolatedStrings = MessageBase + 12792,
         IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction = MessageBase + 12793,
-        IDS_FeatureSealedToStringInRecord = MessageBase + 12794
+        IDS_FeatureSealedToStringInRecord = MessageBase + 12794,
+        IDS_FeatureRecordStructs = MessageBase + 12795,
+        IDS_FeatureWithOnStructs = MessageBase + 12796,
+        IDS_FeaturePositionalFieldsInRecords = MessageBase + 12797,
+        IDS_FeatureGlobalUsing = MessageBase + 12798,
+        IDS_FeatureInferredDelegateType = MessageBase + 12799,
+        IDS_FeatureLambdaAttributes = MessageBase + 12800,
+        IDS_FeatureExtendedPropertyPatterns = MessageBase + 12801,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -327,9 +331,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // C# preview features.
-                case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction:
+                case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction: // semantic check
                 case MessageID.IDS_FeatureSealedToStringInRecord: // semantic check
+                case MessageID.IDS_FeatureRecordStructs:
+                case MessageID.IDS_FeatureWithOnStructs: // semantic check
+                case MessageID.IDS_FeaturePositionalFieldsInRecords: // semantic check
+                case MessageID.IDS_FeatureGlobalUsing:
+                case MessageID.IDS_FeatureInferredDelegateType: // semantic check
+                case MessageID.IDS_FeatureLambdaAttributes: // semantic check
                     return LanguageVersion.Preview;
+
                 // C# 9.0 features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                 case MessageID.IDS_FeatureFunctionPointers:

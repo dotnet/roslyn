@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Peek;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
@@ -23,18 +23,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         private readonly ITextBuffer _textBuffer;
         private readonly IPeekableItemFactory _peekableItemFactory;
         private readonly IPeekResultFactory _peekResultFactory;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         public PeekableItemSource(
             ITextBuffer textBuffer,
             IPeekableItemFactory peekableItemFactory,
             IPeekResultFactory peekResultFactory,
-            IWaitIndicator waitIndicator)
+            IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             _textBuffer = textBuffer;
             _peekableItemFactory = peekableItemFactory;
             _peekResultFactory = peekResultFactory;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
         public void AugmentPeekSession(IPeekSession session, IList<IPeekableItem> peekableItems)
@@ -56,9 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 return;
             }
 
-            _waitIndicator.Wait(EditorFeaturesResources.Peek, EditorFeaturesResources.Loading_Peek_information, allowCancel: true, action: context =>
+            _uiThreadOperationExecutor.Execute(EditorFeaturesResources.Peek, EditorFeaturesResources.Loading_Peek_information, allowCancellation: true, showProgress: false, action: context =>
             {
-                var cancellationToken = context.CancellationToken;
+                var cancellationToken = context.UserCancellationToken;
 
                 IEnumerable<IPeekableItem> results;
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 }
                 else
                 {
-                    var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
                     var symbol = SymbolFinder.GetSemanticInfoAtPositionAsync(
                         semanticModel,
                         triggerPoint.Value.Position,

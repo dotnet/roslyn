@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var (oldDocument, oldDocumentState) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, document, cancellationToken).ConfigureAwait(false);
-                if (oldDocumentState == CommittedSolution.DocumentState.OutOfSync ||
-                    oldDocumentState == CommittedSolution.DocumentState.Indeterminate ||
-                    oldDocumentState == CommittedSolution.DocumentState.DesignTimeOnly)
+                if (oldDocumentState is CommittedSolution.DocumentState.OutOfSync or
+                    CommittedSolution.DocumentState.Indeterminate or
+                    CommittedSolution.DocumentState.DesignTimeOnly)
                 {
                     // Do not report diagnostics for existing out-of-sync documents or design-time-only documents.
                     return ImmutableArray<Diagnostic>.Empty;

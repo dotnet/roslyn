@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InlineMethod
 {
@@ -444,6 +445,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             foreach (var argument in arguments)
             {
                 var parameterSymbol = argument.Parameter;
+                Contract.ThrowIfNull(parameterSymbol, "We filtered out varags methods earlier.");
                 var allReferences = await SymbolFinder
                     .FindReferencesAsync(parameterSymbol, document.Project.Solution, ImmutableHashSet<Document>.Empty.Add(document), cancellationToken).ConfigureAwait(false);
                 // Need to check if the node is in CalleeMethodNode, because for this case

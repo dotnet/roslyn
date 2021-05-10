@@ -1653,6 +1653,9 @@ I agree to all of the foregoing:</value>
   <data name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental" xml:space="preserve">
     <value>Show "Remove Unused References" command in Solution Explorer (experimental)</value>
   </data>
+  <data name="Enable_file_logging_for_diagnostics" xml:space="preserve">
+    <value>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</value>
+  </data>
   <data name="This_action_cannot_be_undone_Do_you_wish_to_continue" xml:space="preserve">
     <value>This action cannot be undone. Do you wish to continue?</value>
   </data>
@@ -1706,5 +1709,8 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
+  </data>
+  <data name="Error_updating_suppressions_0" xml:space="preserve">
+    <value>Error updating suppressions: {0}</value>
   </data>
 </root>

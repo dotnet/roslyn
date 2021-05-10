@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return (outputs.ReadAssemblyModuleVersionId(), Error: null);
                 }
-                catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
+                catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
                 {
                     return (Mvid: Guid.Empty, Error: null);
                 }

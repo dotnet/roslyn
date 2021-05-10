@@ -4547,8 +4547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                     var otherBinder = scope.Binder;
-                    otherBinder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace,
-                                                             extensionMethods,
+                    otherBinder.GetCandidateExtensionMethods(extensionMethods,
                                                              name,
                                                              arity,
                                                              options,

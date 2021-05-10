@@ -126,9 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // new { - Object Initialization, or with { - Record with initializer
+            // new { - Object Initialization, or with { - Record with initializer, or is { - property pattern clauses
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-                (currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) || currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression)))
+                (currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause)))
             {
                 if (!_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
@@ -313,10 +315,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // new MyObject { - Object Initialization
             // new List<int> { - Collection Initialization
             // with { - Record with initializer
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken &&
-                (currentToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.CollectionInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.WithInitializerExpression))
+            // is { - property pattern clauses
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+                (currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause)))
             {
                 if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
@@ -437,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // Wrapping - Leave statements on same line (false): 
+            // Wrapping - Leave statements on same line (false):
             // Insert a newline between the previous statement and this one.
             // ; *
             if (previousToken.Kind() == SyntaxKind.SemicolonToken
