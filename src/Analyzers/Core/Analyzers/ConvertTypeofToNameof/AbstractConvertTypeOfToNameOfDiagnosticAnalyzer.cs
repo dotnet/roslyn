@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         {
             // Cast to a typeof operation & check parent is a property reference and member access
             var typeofOperation = (ITypeOfOperation)operation;
-            if (!(operation.Parent is IPropertyReferenceOperation))
+            if (operation.Parent is not IPropertyReferenceOperation)
             {
                 return false;
             }

@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 if (parameter.IsImplicitlyDeclared ||
                     parameter.Name == DiscardVariableName ||
-                    !(parameter.ContainingSymbol is IMethodSymbol method) ||
+                    parameter.ContainingSymbol is not IMethodSymbol method ||
                     method.IsImplicitlyDeclared ||
                     method.IsExtern ||
                     method.IsAbstract ||

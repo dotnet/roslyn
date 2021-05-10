@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var type = semanticModel.GetTypeInfo(conditionalExpression).Type;
             if (type?.IsValueType == true)
             {
-                if (!(type is INamedTypeSymbol namedType) || namedType.ConstructedFrom.SpecialType != SpecialType.System_Nullable_T)
+                if (type is not INamedTypeSymbol namedType || namedType.ConstructedFrom.SpecialType != SpecialType.System_Nullable_T)
                 {
                     // User has something like:  If(str is nothing, nothing, str.Length)
                     // In this case, converting to str?.Length changes the type of this from

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 SyntaxNode node,
                 CancellationToken cancellationToken)
             {
-                if (!(node is TSimpleNameSyntax))
+                if (node is not TSimpleNameSyntax)
                 {
                     return false;
                 }

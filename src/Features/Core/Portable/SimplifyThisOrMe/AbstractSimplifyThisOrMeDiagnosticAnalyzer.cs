@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             var syntaxFacts = GetSyntaxFacts();
             var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(node);
-            if (!(expr is TThisExpressionSyntax))
+            if (expr is not TThisExpressionSyntax)
             {
                 return;
             }
