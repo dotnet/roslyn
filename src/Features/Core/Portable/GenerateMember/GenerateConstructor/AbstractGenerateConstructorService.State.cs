@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var definition = await SymbolFinder.FindSourceDefinitionAsync(original, _document.Project.Solution, cancellationToken).ConfigureAwait(false);
                 TypeToGenerateIn = definition as INamedTypeSymbol;
 
-                return TypeToGenerateIn?.TypeKind == TypeKind.Class || TypeToGenerateIn?.TypeKind == TypeKind.Struct;
+                return TypeToGenerateIn?.TypeKind is (TypeKind?)TypeKind.Class or (TypeKind?)TypeKind.Struct;
             }
 
             private void GetParameters(

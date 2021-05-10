@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbols), location);
         }
 
-        private void ReportDuplicateNamedArgument(MemberResolutionResult<TMember> result, BindingDiagnosticBag diagnostics, AnalyzedArguments arguments)
+        private static void ReportDuplicateNamedArgument(MemberResolutionResult<TMember> result, BindingDiagnosticBag diagnostics, AnalyzedArguments arguments)
         {
             Debug.Assert(result.Result.BadArgumentsOpt.Length == 1);
             Debug.Assert(arguments.Names[result.Result.BadArgumentsOpt[0]].HasValue);
@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private void ReportBadArgumentError(
+        private static void ReportBadArgumentError(
             BindingDiagnosticBag diagnostics,
             Binder binder,
             string name,
@@ -1184,7 +1184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ((UnboundLambda)argument).GenerateAnonymousFunctionConversionError(diagnostics, parameterType);
                 }
                 else if (argument.Kind == BoundKind.MethodGroup && parameterType.TypeKind == TypeKind.Delegate &&
-                        Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(binder, (BoundMethodGroup)argument, parameterType, diagnostics))
+                        binder.Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(binder, (BoundMethodGroup)argument, parameterType, diagnostics))
                 {
                     // a diagnostic has been reported by ReportDelegateOrFunctionPointerMethodGroupDiagnostics
                 }
@@ -1193,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_MissingAddressOf, sourceLocation);
                 }
                 else if (argument.Kind == BoundKind.UnconvertedAddressOfOperator &&
-                        Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(binder, ((BoundUnconvertedAddressOfOperator)argument).Operand, parameterType, diagnostics))
+                        binder.Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(binder, ((BoundUnconvertedAddressOfOperator)argument).Operand, parameterType, diagnostics))
                 {
                     // a diagnostic has been reported by ReportDelegateOrFunctionPointerMethodGroupDiagnostics
                 }

@@ -297,6 +297,11 @@
         <target state="new">Enable all features in opened files from source generators (experimental)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_file_logging_for_diagnostics">
+        <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
+        <target state="new">Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="translated">'풀' 진단 사용(실험적, 다시 시작 필요)</target>
@@ -325,6 +330,11 @@
       <trans-unit id="Error">
         <source>Error</source>
         <target state="new">Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_updating_suppressions_0">
+        <source>Error updating suppressions: {0}</source>
+        <target state="new">Error updating suppressions: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">

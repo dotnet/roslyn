@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 type = typeParameterSymbol.GetNamedTypeSymbolConstraint();
             }
 
-            if (!(type is INamedTypeSymbol initializedType))
+            if (type is not INamedTypeSymbol initializedType)
             {
                 return;
             }

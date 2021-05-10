@@ -481,6 +481,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsRecord => false;
 
+        internal override bool IsRecordStruct => false;
+
         /// <summary>
         /// Represents SZARRAY - zero-based one-dimensional array 
         /// </summary>

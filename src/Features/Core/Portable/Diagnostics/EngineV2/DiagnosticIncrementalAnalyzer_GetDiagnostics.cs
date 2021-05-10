@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
-            if (!(id is LiveDiagnosticUpdateArgsId argsId))
+            if (id is not LiveDiagnosticUpdateArgsId argsId)
             {
                 return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
             }
