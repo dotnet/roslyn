@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             // - Added: perform transform and add
             // - Modified: perform transform and do element wise comparison with previous results
 
-            var newTable = previousTable.ToBuilderWithABetterName();
+            var newTable = previousTable.ToBuilder();
 
             foreach (var entry in sourceTable)
             {

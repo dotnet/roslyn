@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                 return NodeStateTable<TOutput>.FromFaultedTable(sourceTable);
             }
 
-            var nodeTable = previousTable.ToBuilderWithABetterName();
+            var nodeTable = previousTable.ToBuilder();
             foreach (var entry in sourceTable)
             {
                 if (entry.state == EntryState.Removed)

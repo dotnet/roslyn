@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis
                 _owner = owner;
 
                 _previousFilterTable = previousFilter;
-                _filterTable = _previousFilterTable.ToBuilderWithABetterName();
+                _filterTable = _previousFilterTable.ToBuilder();
 
                 _previousTransformTable = previousTransform;
-                _transformTable = _previousTransformTable.ToBuilderWithABetterName();
+                _transformTable = _previousTransformTable.ToBuilder();
             }
 
             public bool Filter(SyntaxNode syntaxNode) => _owner._filterFunc(syntaxNode);

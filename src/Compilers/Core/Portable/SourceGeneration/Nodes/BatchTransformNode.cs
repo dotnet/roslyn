@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
             var transformed = _func(source);
 
             // update the table 
-            var newTable = previousTable.ToBuilderWithABetterName();
+            var newTable = previousTable.ToBuilder();
             if (!newTable.TryModifyEntries(transformed, _comparer))
             {
                 newTable.AddEntries(transformed, EntryState.Added);

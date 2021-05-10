@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Input nodes don't actually do anything. They are just placeholders for the value sources
+    /// Input nodes are the 'root' nodes in the graph, and get their values from the inputs of the driver state table
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of the input</typeparam>
     internal sealed class InputNode<T> : IIncrementalGeneratorNode<T>
     {
         private readonly InputNode<T> _inputSource;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
                 itemsSet.Add(item);
             }
 
-            var builder = previousTable.ToBuilderWithABetterName();
+            var builder = previousTable.ToBuilder();
 
             // for each item in the previous table, check if its still in the new items
             foreach ((var oldItem, _) in previousTable)

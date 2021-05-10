@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                 return NodeStateTable<(TInput1, ImmutableArray<TInput2>)>.FromFaultedTable(input2Table);
             }
 
-            var builder = previousTable.ToBuilderWithABetterName();
+            var builder = previousTable.ToBuilder();
 
             // Semantics of a join:
             //

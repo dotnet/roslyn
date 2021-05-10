@@ -124,14 +124,7 @@ namespace Microsoft.CodeAnalysis
             return sourceBuilder.ToImmutableAndFree();
         }
 
-        public Builder ToBuilder(int? extraCapacity = null)
-        {
-            Debug.Assert(!this.IsFaulted);
-            int? capacity = extraCapacity.HasValue ? this._states.Length + extraCapacity.Value : null;
-            return new Builder(this, copyPrevious: true, capacity);
-        }
-
-        public Builder ToBuilderWithABetterName()
+        public Builder ToBuilder()
         {
             Debug.Assert(!this.IsFaulted);
             return new Builder(this, copyPrevious: false);
@@ -143,30 +136,21 @@ namespace Microsoft.CodeAnalysis
             return new NodeStateTable<T>(Empty._states, isCompacted: true, table._exception);
         }
 
-        public static NodeStateTable<T> WithSingleItem(T item, EntryState state)
-        {
-            return new NodeStateTable<T>(ImmutableArray.Create(ImmutableArray.Create((item, state))), isCompacted: false, exception: null);
-        }
-
         public sealed class Builder
         {
             private readonly ArrayBuilder<ImmutableArray<(T, EntryState)>> _states;
             private readonly NodeStateTable<T> _previous;
             private Exception? _exception = null;
 
-            internal Builder(NodeStateTable<T> previous, bool copyPrevious = false, int? capacity = null)
+            internal Builder(NodeStateTable<T> previous, bool copyPrevious = false)
             {
-                _states = capacity.HasValue
-                          ? ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance(capacity.Value)
-                          : ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
-
+                _states = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
+                _previous = previous;
                 if (copyPrevious)
                 {
                     _states.AddRange(previous._states);
                 }
-                _previous = previous;
             }
-
 
             public void RemoveEntries()
             {
