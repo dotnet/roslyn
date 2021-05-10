@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         {
         }
 
-        protected internal sealed override bool IsEnabled => true;
-
         protected internal sealed override ITagSpan<TTag>? CreateTagSpan(
             Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
         {

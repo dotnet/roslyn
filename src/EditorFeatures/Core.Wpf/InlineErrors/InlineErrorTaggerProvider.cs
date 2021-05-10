@@ -3,70 +3,54 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
+namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
-    [TagType(typeof(IErrorTag))]
-    internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
+    [TagType(typeof(InlineErrorTag))]
+    internal partial class InlineErrorTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineErrorTag>
     {
-        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
-            ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
-
-        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
+        protected internal override bool IsEnabled => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DiagnosticsSquiggleTaggerProvider(
+        public InlineErrorTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, diagnosticService, listenerProvider)
         {
         }
-
-        protected internal override bool IsEnabled => true;
-
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
-            var isUnnecessary = diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
-
             return
-                (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error || isUnnecessary) &&
+                (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error) &&
                 !string.IsNullOrWhiteSpace(diagnostic.Message);
         }
 
-        protected override IErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
+        protected override InlineErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));
             var errorType = GetErrorTypeFromDiagnostic(diagnostic);
-            if (errorType == null)
+            if (errorType is null)
             {
-                // unknown diagnostic kind.
-                // we don't provide tagging for unknown diagnostic kind. 
-                //
-                // it should be provided by the one who introduced the new diagnostic kind.
                 return null;
             }
 
-            return new ErrorTag(errorType, CreateToolTipContent(workspace, diagnostic));
+            return new InlineErrorTag(errorType, diagnostic);
         }
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
@@ -100,23 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return PredefinedErrorTypeNames.SyntaxError;
                 case DiagnosticSeverity.Warning:
                     return PredefinedErrorTypeNames.Warning;
-                case DiagnosticSeverity.Info:
-                    return null;
-                case DiagnosticSeverity.Hidden:
-                    if (diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
-                    {
-                        // This ensures that we have an 'invisible' squiggle (which will in turn
-                        // display Quick Info on mouse hover) for the hidden diagnostics that we
-                        // report for 'Remove Unnecessary Usings' and 'Simplify Type Name'. The
-                        // presence of Quick Info pane for such squiggles allows platform
-                        // to display Light Bulb for the corresponding fixes (per their current
-                        // design platform can only display light bulb if Quick Info pane is present).
-                        return PredefinedErrorTypeNames.Suggestion;
-                    }
-
-                    return null;
                 default:
-                    return PredefinedErrorTypeNames.OtherError;
+                    return null;
             }
         }
     }
