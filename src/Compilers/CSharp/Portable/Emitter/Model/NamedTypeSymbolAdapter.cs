@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach ((MethodSymbol body, MethodSymbol implemented) in container.GetSynthesizedExplicitImplementations(cancellationToken: default).MethodImpls)
                 {
                     Debug.Assert(body.ContainingType == (object)container);
-                    yield return new Microsoft.Cci.MethodImplementation(body.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
+                    yield return new Microsoft.Cci.MethodImplementation(body.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
                 }
             }
 
