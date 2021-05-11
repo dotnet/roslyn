@@ -865,6 +865,8 @@ namespace N
 
             diff1.VerifyUpdatedTypes("0x02000002");
 
+            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
+
             CheckNames(readers, reader1.GetTypeDefNames());
             CheckNames(readers, reader1.GetFieldDefNames(), "G");
             CheckNames(readers, reader1.GetMethodDefNames(), ".ctor");
@@ -1619,6 +1621,8 @@ class C
 
             diff1.VerifyUpdatedTypes("0x02000002", "0x02000003");
 
+            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "A", "B`1");
+
             CheckNames(readers, reader1.GetTypeDefNames(), "C`1");
             Assert.Equal(1, reader1.GetTableRowCount(TableIndex.NestedClass));
 
@@ -2052,6 +2056,8 @@ interface I
 
             diff1.VerifyUpdatedTypes("0x02000002");
 
+            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "I");
+
             CheckNames(readers, reader1.GetTypeDefNames(), "J");
             CheckNames(readers, reader1.GetFieldDefNames(), "X", "Y");
             CheckNames(readers, reader1.GetMethodDefNames(), "add_Y", "remove_Y", "M", "N", "get_P", "set_P", "get_Q", "set_Q", "add_E", "remove_E", "add_F", "remove_F", ".cctor");
@@ -2078,6 +2084,8 @@ interface I
             readers = new[] { reader0, reader1, reader2 };
 
             diff2.VerifyUpdatedTypes("0x02000002");
+
+            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "I");
 
             CheckNames(readers, reader2.GetTypeDefNames());
             CheckNames(readers, reader2.GetFieldDefNames(), "X");
@@ -2216,6 +2224,8 @@ delegate void D();
             var readers = new[] { reader0, reader1 };
 
             diff1.VerifyUpdatedTypes("0x02000004");
+
+            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
 
             CheckNames(readers, reader1.GetTypeDefNames());
             CheckNames(readers, reader1.GetMethodDefNames(), "M2", "get_P2", "add_E2", "remove_E2");
@@ -2365,6 +2375,8 @@ class C
 
             diff1.VerifyUpdatedTypes("0x02000002");
 
+            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
+
             CheckNames(readers, md1.Reader.GetTypeDefNames());
             CheckNames(readers, md1.Reader.GetMethodDefNames(), "M");
             CheckEncLog(md1.Reader,
@@ -2438,6 +2450,8 @@ class C
 
             diff1.VerifyUpdatedTypes("0x02000003");
 
+            CheckNames(readers, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
+
             CheckNames(readers, reader1.GetTypeDefNames());
             CheckNames(readers, reader1.GetEventDefNames());
             CheckNames(readers, reader1.GetFieldDefNames());
@@ -2469,6 +2483,8 @@ class C
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
 
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 ModuleMetadata.CreateFromImage(bytes0),
@@ -2482,6 +2498,8 @@ class C
             var reader1 = md1.Reader;
 
             diff1.VerifyUpdatedTypes("0x02000002");
+
+            CheckNames(reader0, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
 
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
@@ -2572,12 +2590,16 @@ class C
             var compilation1 = compilation0.WithSource(source1);
             var bytes0 = compilation0.EmitToArray();
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider);
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.puts"))));
 
             diff1.VerifyUpdatedTypes("0x02000002");
+
+            var reader0 = md0.MetadataReader;
+            CheckNames(reader0, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C");
 
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
@@ -9396,6 +9418,9 @@ public class C : Base
 
             diff1.VerifyUpdatedTypes("0x02000002", "0x02000004");
 
+            var reader0 = md0.MetadataReader;
+            CheckNames(reader0, reader0.GetUpdatedTypeDefNames(diff1.EmitResult), "C", "<>c__DisplayClass0_0");
+
             diff1.VerifySynthesizedMembers(
                 "C: {<>c__DisplayClass0_0}",
                 "C.<>c__DisplayClass0_0: {x, <.ctor>b__0}");
@@ -9439,7 +9464,9 @@ public class C : Base
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, ctor1, ctor2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
 
-            diff1.VerifyUpdatedTypes("0x02000002", "0x02000004");
+            diff2.VerifyUpdatedTypes("0x02000002", "0x02000004");
+
+            CheckNames(reader0, reader0.GetUpdatedTypeDefNames(diff2.EmitResult), "C", "<>c__DisplayClass0_0");
 
             diff2.VerifySynthesizedMembers(
                 "C: {<>c__DisplayClass0_0}",
