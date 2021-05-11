@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     continue;
                 }
 
-                TypeParameterConstraintSyntax constraint = null;
+                TypeParameterConstraintSyntax constraint;
                 if (typeParameter.HasReferenceTypeConstraint)
                 {
                     constraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint);

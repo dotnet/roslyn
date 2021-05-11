@@ -8997,5 +8997,38 @@ class D : I
     }
 }", index: 1);
         }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter_ExplicitInterfaceImplementationWithClassConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) where T1 : class;
+}
+
+class D : [|I|]
+{
+}",
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) where T1 : class;
+}
+
+class D : I
+{
+    void I.M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+        where T1 : class
+        where T3 : default
+    {
+        throw new System.NotImplementedException();
+    }
+}", index: 1);
+        }
     }
 }
