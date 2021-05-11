@@ -314,6 +314,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // VSCode does not have the concept of soft selection, the list is always hard selected.
                 // In order to emulate soft selection behavior for things like argument completion, regex completion, datetime completion, etc
                 // we create a completion item without any specific commit characters.  This means only tab / enter will commit.
+                // VS supports soft selection, so we only do this for non-VS clients.
                 if (!supportsVSExtensions && item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.SoftSelection)
                 {
                     return Array.Empty<string>();
