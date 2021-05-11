@@ -236,23 +236,23 @@ $@"<Workspace>
 void A.AMethod(int i)
 ```
   
-A&nbsp;cref&nbsp;A.AMethod(int)  
+A&nbsp;cref&nbsp;A\.AMethod\(int\)  
 **strong&nbsp;text**  
 _italic&nbsp;text_  
 <u>underline&nbsp;text</u>  
   
-•&nbsp;Item&nbsp;1.  
-•&nbsp;Item&nbsp;2.  
+•&nbsp;Item&nbsp;1\.  
+•&nbsp;Item&nbsp;2\.  
   
 [link text](https://google.com)  
   
-Remarks&nbsp;are&nbsp;cool&nbsp;too.  
+Remarks&nbsp;are&nbsp;cool&nbsp;too\.  
   
 Returns:  
 &nbsp;&nbsp;a&nbsp;string  
   
 Exceptions:  
-&nbsp;&nbsp;System.NullReferenceException  
+&nbsp;&nbsp;System\.NullReferenceException  
 ";
 
             var results = await RunGetHoverAsync(
@@ -331,6 +331,60 @@ Exceptions:
                 expectedLocation,
                 clientCapabilities: new LSP.ClientCapabilities()).ConfigureAwait(false);
             Assert.Equal(expectedText, results.Contents.Third.Value);
+        }
+
+        [Fact]
+        public async Task TestGetHoverAsync_UsingMarkupContentProperlyEscapes()
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// Some {curly} [braces] and (parens)
+    /// <br/>
+    /// #Hashtag
+    /// <br/>
+    /// 1 + 1 - 1
+    /// <br/>
+    /// Period.
+    /// <br/>
+    /// Exclaim!
+    /// <br/>
+    /// <strong>strong\** text</strong>
+    /// <br/>
+    /// <em>italic_ **text**</em>
+    /// <br/>
+    /// <a href = ""https://google.com""> closing] link</a>
+    /// </summary>
+    void {|caret:AMethod|}(int i)
+    {
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var expectedLocation = locations["caret"].Single();
+
+            var expectedMarkdown = @"```csharp
+void A.AMethod(int i)
+```
+  
+Some&nbsp;\{curly\}&nbsp;\[braces\]&nbsp;and&nbsp;\(parens\)  
+\#Hashtag  
+1&nbsp;\+&nbsp;1&nbsp;\-&nbsp;1  
+Period\.  
+Exclaim\!  
+**strong\\\*\*&nbsp;text**  
+_italic\_&nbsp;\*\*text\*\*_  
+[closing\] link](https://google.com)  
+";
+
+            var results = await RunGetHoverAsync(
+                testLspServer,
+                expectedLocation,
+                clientCapabilities: new LSP.ClientCapabilities
+                {
+                    TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
+                }).ConfigureAwait(false);
+            Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
         }
 
         private static async Task<LSP.Hover> RunGetHoverAsync(

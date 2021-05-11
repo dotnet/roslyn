@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -29,6 +30,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
+
+        private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
         // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same way
         // which can confuse users
@@ -675,11 +678,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             static string GetStyledText(TaggedText taggedText, bool isInCodeBlock)
             {
+                var text = isInCodeBlock ? taggedText.Text : s_markdownEscapeRegex.Replace(taggedText.Text, @"\$1");
+
                 // For non-cref links, the URI is present in both the hint and target.
                 if (!string.IsNullOrEmpty(taggedText.NavigationHint) && taggedText.NavigationHint == taggedText.NavigationTarget)
-                    return $"[{taggedText.Text}]({taggedText.NavigationHint})";
-
-                var text = taggedText.Text;
+                    return $"[{text}]({taggedText.NavigationHint})";
 
                 // Markdown ignores spaces at the start of lines outside of code blocks, 
                 // so to get indented lines we replace the spaces with these.

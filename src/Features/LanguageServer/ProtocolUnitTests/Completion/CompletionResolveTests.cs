@@ -236,13 +236,13 @@ class A
 void A.AMethod(int i)
 ```
   
-A&nbsp;cref&nbsp;A.AMethod(int)  
+A&nbsp;cref&nbsp;A\.AMethod\(int\)  
 **strong&nbsp;text**  
 _italic&nbsp;text_  
 <u>underline&nbsp;text</u>  
   
-•&nbsp;Item&nbsp;1.  
-•&nbsp;Item&nbsp;2.  
+•&nbsp;Item&nbsp;1\.  
+•&nbsp;Item&nbsp;2\.  
   
 [link text](https://google.com)";
 
