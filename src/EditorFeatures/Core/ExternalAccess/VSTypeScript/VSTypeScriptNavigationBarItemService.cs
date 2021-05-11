@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    [ExportLanguageService(typeof(INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.FSharp), Shared]
+    [ExportLanguageService(typeof(INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess), InternalLanguageNames.TypeScript), Shared]
     internal class VSTypeScriptNavigationBarItemService : INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess
     {
         private readonly IThreadingContext _threadingContext;
