@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// - Regions group blocks together and represent the lifetime of locals and captures, loosely similar to scopes in C#.
     ///   There are different kinds of regions, <see cref="ControlFlowRegionKind"/>.
     /// - <see cref="ControlFlowGraphBuilder.SpillEvalStack"/> converts values on the stack into captures.
+    /// - Error scenarios from initial binding need to be handled.
     /// </summary>
     internal sealed partial class ControlFlowGraphBuilder : OperationVisitor<int?, IOperation>
     {
@@ -7186,10 +7188,10 @@ oneMoreTime:
 
                 var properties = operation.Type.GetMembers()
                     .Where(m => m.Kind == SymbolKind.Property)
-                    .SelectAsArray(m => (IPropertySymbol)m);
+                    .Select(m => (IPropertySymbol)m);
 
                 int oldValueCaptureId;
-                if (setAllProperties(initializers, properties))
+                if (setsAllProperties(initializers, properties))
                 {
                     // Avoid capturing the old value since we won't need it
                     oldValueCaptureId = -1;
@@ -7209,25 +7211,23 @@ oneMoreTime:
                 // Visit and capture all the values, and construct assignments using capture references
                 foreach (IOperation initializer in initializers)
                 {
-                    var simpleAssignment = (ISimpleAssignmentOperation)initializer;
+                    if (initializer is not ISimpleAssignmentOperation simpleAssignment)
+                    {
+                        AddStatement(VisitRequired(initializer));
+                        continue;
+                    }
+
+                    if (simpleAssignment.Target is InvalidOperation)
+                    {
+                        AddStatement(VisitRequired(simpleAssignment.Value));
+                        continue;
+                    }
 
                     int valueCaptureId = GetNextCaptureId(outerCaptureRegion);
                     VisitAndCapture(simpleAssignment.Value, valueCaptureId);
                     LeaveRegionsUpTo(innerCaptureRegion);
                     var valueCaptureRef = new FlowCaptureReferenceOperation(valueCaptureId, operation.Operand.Syntax,
                         operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
-
-                    if (simpleAssignment.Target is InvalidOperation)
-                    {
-                        var badTarget = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, simpleAssignment.Target.Syntax,
-                            type: null, constantValue: null, isImplicit: true);
-
-                        var badAssignment = new SimpleAssignmentOperation(isRef: false, badTarget, valueCaptureRef,
-                            semanticModel: null, operation.Syntax, valueCaptureRef.Type, constantValue: null, isImplicit: true);
-
-                        initializerBuilder.Add(badAssignment);
-                        continue;
-                    }
 
                     var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
 
@@ -7266,7 +7266,6 @@ oneMoreTime:
                         int extraValueCaptureId = GetNextCaptureId(outerCaptureRegion);
                         AddStatement(new FlowCaptureOperation(extraValueCaptureId, operation.Syntax, visitedValue));
 
-                        LeaveRegionsUpTo(innerCaptureRegion);
                         var extraValueCaptureRef = new FlowCaptureReferenceOperation(extraValueCaptureId, operation.Operand.Syntax,
                             operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
 
@@ -7297,7 +7296,7 @@ oneMoreTime:
                     semanticModel: null, operation.Syntax, property.Type, constantValue: null, isImplicit: true);
             }
 
-            static bool setAllProperties(ImmutableArray<IOperation> initializers, ImmutableArray<IPropertySymbol> properties)
+            static bool setsAllProperties(ImmutableArray<IOperation> initializers, IEnumerable<IPropertySymbol> properties)
             {
                 var set = PooledHashSet<string>.GetInstance();
                 foreach (var property in properties)
@@ -7307,13 +7306,12 @@ oneMoreTime:
 
                 foreach (var initializer in initializers)
                 {
-                    var simpleAssignment = (ISimpleAssignmentOperation)initializer;
-                    if (simpleAssignment.Target is InvalidOperation)
+                    if (initializer is ISimpleAssignmentOperation simpleAssignment &&
+                        simpleAssignment.Target is not InvalidOperation)
                     {
-                        continue;
+                        var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                        _ = set.Remove(propertyReference.Property.Name);
                     }
-                    var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
-                    _ = set.Remove(propertyReference.Property.Name);
                 }
 
                 bool setAllProperties = set.Count == 0;

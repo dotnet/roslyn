@@ -1369,12 +1369,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             foreach (var initializer in operation.Initializers)
             {
                 var simpleAssignment = (ISimpleAssignmentOperation)initializer;
-                if (simpleAssignment.Target is InvalidOperation)
-                {
-                    // We construct such nodes for `with` expressions on anonymous types
-                    continue;
-                }
-
                 var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
                 Assert.Empty(propertyReference.Arguments);
                 Assert.Equal(OperationKind.InstanceReference, propertyReference.Instance.Kind);

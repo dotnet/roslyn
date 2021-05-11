@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isForNewInstance: true,
                 diagnostics);
 
-            // N.B. Since we only don't parse nested initializers in syntax there should be no extra
+            // N.B. Since we don't parse nested initializers in syntax there should be no extra
             // errors we need to check for here.
 
             return new BoundWithExpression(

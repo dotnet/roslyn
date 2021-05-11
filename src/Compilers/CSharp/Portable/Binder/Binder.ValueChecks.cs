@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var containing = this.ContainingMemberOrLambda;
                     if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing)
-                        && !isAllowedReadonlyOnlySet(receiver))
+                        && !isAllowedDespiteReadonly(receiver))
                     {
                         Error(diagnostics, ErrorCode.ERR_AssgReadonlyProp, node, propertySymbol);
                         return false;
@@ -1204,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            static bool isAllowedReadonlyOnlySet(BoundExpression receiver)
+            static bool isAllowedDespiteReadonly(BoundExpression receiver)
             {
                 // ok: anonymousType with { Property = ... }
                 if (receiver is BoundObjectOrCollectionValuePlaceholder && receiver.Type.IsAnonymousType)
