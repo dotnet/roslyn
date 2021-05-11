@@ -217,15 +217,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var listOfClauses = new List<TypeParameterConstraintClauseSyntax>(method.TypeParameters.Length);
             foreach (var parameter in method.Parameters)
             {
-                if (parameter.Type is not { TypeKind: TypeKind.TypeParameter, NullableAnnotation: NullableAnnotation.Annotated } ||
+                if (parameter.Type is not ITypeParameterSymbol { NullableAnnotation: NullableAnnotation.Annotated } typeParameter ||
                     !seenTypeParameters.Add(parameter.Type.Name))
                 {
                     continue;
                 }
 
+                TypeParameterConstraintSyntax constraint = null;
+                if (typeParameter.HasReferenceTypeConstraint)
+                {
+                    constraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint);
+                }
+                else if (typeParameter.HasValueTypeConstraint)
+                {
+                    constraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint);
+                }
+                else
+                {
+                    constraint = SyntaxFactory.DefaultConstraint();
+                }
+
                 listOfClauses.Add(SyntaxFactory.TypeParameterConstraintClause(
-                    name: SyntaxFactory.IdentifierName(parameter.Type.Name),
-                    constraints: SyntaxFactory.SingletonSeparatedList((TypeParameterConstraintSyntax)SyntaxFactory.DefaultConstraint())));
+                    name: parameter.Type.Name.ToIdentifierName(),
+                    constraints: SyntaxFactory.SingletonSeparatedList(constraint)));
             }
 
             return SyntaxFactory.List(listOfClauses);
