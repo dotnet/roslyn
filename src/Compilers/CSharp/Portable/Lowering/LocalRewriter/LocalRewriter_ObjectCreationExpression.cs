@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // for a with expression of the form
             //
-            //      receiver with { P1 = e1, P2 = e2 }
+            //      receiver with { P1 = e1, P2 = e2 } // P3 is copied implicitly
             //
             // if the receiver is a struct, duplicate the value, then set the given struct properties:
             //
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // if the receiver is an anonymous type, then invoke its constructor:
             //
-            //     new Type(e1, receiver.P2);
+            //     new Type(e1, e2, receiver.P3);
             //
             // otherwise the receiver is a record class and we want to lower it to a call to its `Clone` method, then
             // set the given record properties. i.e.

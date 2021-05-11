@@ -7720,7 +7720,11 @@ public class C
         System.Console.Write(b);
     }/*</bind>*/
 
-    static T Identity<T>(T t) => t;
+    static T Identity<T>(T t)
+    {
+        System.Console.Write($""Identity({t}) "");
+        return t;
+    }
 }";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
@@ -7731,7 +7735,7 @@ public class C
 
             comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "{ A = 30, B = 40 }");
+            var verifier = CompileAndVerify(comp, expectedOutput: "Identity({ A = 10, B = 20 }) Identity(30) Identity(40) { A = 30, B = 40 }");
             verifier.VerifyIL("C.M", @"
 {
   // Code size       42 (0x2a)
@@ -7898,12 +7902,16 @@ public class C
         System.Console.Write(b);
     }/*</bind>*/
 
-    static T Identity<T>(T t) => t;
+    static T Identity<T>(T t)
+    {
+        System.Console.Write($""Identity({t}) "");
+        return t;
+    }
 }";
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "{ A = 30, B = 40 }");
+            var verifier = CompileAndVerify(comp, expectedOutput: "Identity({ A = 10, B = 20 }) Identity(40) Identity(30) { A = 30, B = 40 }");
             verifier.VerifyIL("C.M", @"
 {
   // Code size       42 (0x2a)
