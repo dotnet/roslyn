@@ -217,6 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureConstantInterpolatedStrings = MessageBase + 12792,
         IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction = MessageBase + 12793,
         IDS_FeatureSealedToStringInRecord = MessageBase + 12794,
+        IDS_FeatureRecordStructs = MessageBase + 12795,
+        IDS_FeatureWithOnStructs = MessageBase + 12796,
+        IDS_FeaturePositionalFieldsInRecords = MessageBase + 12797,
+        IDS_FeatureGlobalUsing = MessageBase + 12798,
+        IDS_FeatureInferredDelegateType = MessageBase + 12799,
+        IDS_FeatureLambdaAttributes = MessageBase + 12800,
 
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 13000, // PROTOTYPE(interp-string): condense
     }
@@ -326,9 +332,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // C# preview features.
-                case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction:
+                case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction: // semantic check
                 case MessageID.IDS_FeatureSealedToStringInRecord: // semantic check
                 case MessageID.IDS_FeatureImprovedInterpolatedStrings: // semantic check
+                case MessageID.IDS_FeatureRecordStructs:
+                case MessageID.IDS_FeatureWithOnStructs: // semantic check
+                case MessageID.IDS_FeaturePositionalFieldsInRecords: // semantic check
+                case MessageID.IDS_FeatureGlobalUsing:
+                case MessageID.IDS_FeatureInferredDelegateType: // semantic check
+                case MessageID.IDS_FeatureLambdaAttributes: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 9.0 features.

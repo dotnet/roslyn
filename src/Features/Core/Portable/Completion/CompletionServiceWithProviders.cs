@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 ? optionsRule
                 : GetRules().SnippetsRule;
 
-            if (snippetsRule == SnippetsRule.Default ||
-                snippetsRule == SnippetsRule.NeverInclude)
+            if (snippetsRule is SnippetsRule.Default or
+                SnippetsRule.NeverInclude)
             {
                 return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
             }
@@ -574,20 +574,6 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 return CompletionChange.Create(new TextChange(item.Span, item.DisplayText));
             }
-        }
-
-        internal override async Task<CompletionChange> GetChangeAsync(
-            Document document,
-            CompletionItem item,
-            TextSpan completionListSpan,
-            char? commitKey,
-            bool disallowAddingImports,
-            CancellationToken cancellationToken)
-        {
-            var provider = GetProvider(item);
-            return provider != null
-                ? await provider.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false)
-                : CompletionChange.Create(new TextChange(completionListSpan, item.DisplayText));
         }
 
         bool IEqualityComparer<ImmutableHashSet<string>>.Equals(ImmutableHashSet<string> x, ImmutableHashSet<string> y)

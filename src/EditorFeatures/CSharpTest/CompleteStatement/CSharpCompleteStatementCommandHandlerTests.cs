@@ -55,6 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         [InlineData("public record C(int X, $$int Y)", "public record C(int X, int Y)")]
         [InlineData("public record C(int X, int$$ Y)", "public record C(int X, int Y)")]
         [InlineData("public record C(int X, int Y$$)", "public record C(int X, int Y)")]
+        [InlineData("public record class C(int X, int Y$$)", "public record class C(int X, int Y)")]
+        [InlineData("public record struct C(int X, int Y$$)", "public record struct C(int X, int Y)")]
         public void ParameterList_CouldBeHandled(string signature, string expectedSignature)
         {
             var code = $@"

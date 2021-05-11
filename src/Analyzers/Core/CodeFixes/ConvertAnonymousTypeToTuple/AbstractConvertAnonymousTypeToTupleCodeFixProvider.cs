@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
                 {
                     // Use the callback form as anonymous types may be nested, and we want to
                     // properly replace them even in that case.
-                    if (!(current is TAnonymousObjectCreationExpressionSyntax anonCreation))
+                    if (current is not TAnonymousObjectCreationExpressionSyntax anonCreation)
                     {
                         return current;
                     }

@@ -570,6 +570,18 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
+        protected const string UnmanagedCallersOnlyAttributeDefinition =
+@"namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute() { }
+        public Type[] CallConvs;
+        public string EntryPoint;
+    }
+}";
+
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions options = null)
         {
             return WithNullable(options, NullableContextOptions.Enable);

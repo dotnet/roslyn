@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat
 
             // Skip all local things that cannot escape outside of a single file: downstream consumers simply treat this as meaning a references/definition result
             // doesn't need to be stitched together across files or multiple projects or repositories.
-            if (symbol.Kind == SymbolKind.Local ||
-                symbol.Kind == SymbolKind.RangeVariable ||
-                symbol.Kind == SymbolKind.Label ||
-                symbol.Kind == SymbolKind.Alias)
+            if (symbol.Kind is SymbolKind.Local or
+                SymbolKind.RangeVariable or
+                SymbolKind.Label or
+                SymbolKind.Alias)
             {
                 return null;
             }
