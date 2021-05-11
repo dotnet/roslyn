@@ -540,12 +540,12 @@ breaks
             // no space between this and (
             TestNormalizeDeclaration(
                 "class C { C() : this () { } }",
-                "class C\r\n{\r\n  C(): this()\r\n  {\r\n  }\r\n}");
+                "class C\r\n{\r\n  C() : this()\r\n  {\r\n  }\r\n}");
 
             // no space between base and (
             TestNormalizeDeclaration(
                 "class C { C() : base () { } }",
-                "class C\r\n{\r\n  C(): base()\r\n  {\r\n  }\r\n}");
+                "class C\r\n{\r\n  C() : base()\r\n  {\r\n  }\r\n}");
 
             // no space between checked and (
             TestNormalizeExpression("checked (a)", "checked(a)");
