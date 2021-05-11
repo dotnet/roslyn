@@ -232,7 +232,7 @@ $@"<Workspace>
             using var testLspServer = CreateTestLspServer(markup, out var locations);
             var expectedLocation = locations["caret"].Single();
 
-            var expectedMarkdown = @"```csharp
+            var expectedMarkdown = @$"```csharp
 void A.AMethod(int i)
 ```
   
@@ -248,10 +248,10 @@ _italic&nbsp;text_
   
 Remarks&nbsp;are&nbsp;cool&nbsp;too\.  
   
-Returns:  
+{FeaturesResources.Returns_colon}  
 &nbsp;&nbsp;a&nbsp;string  
   
-Exceptions:  
+{FeaturesResources.Exceptions_colon}  
 &nbsp;&nbsp;System\.NullReferenceException  
 ";
 
@@ -306,7 +306,7 @@ Exceptions:
             using var testLspServer = CreateTestLspServer(markup, out var locations);
             var expectedLocation = locations["caret"].Single();
 
-            var expectedText = @"void A.AMethod(int i)
+            var expectedText = @$"void A.AMethod(int i)
 A cref A.AMethod(int)
 strong text
 italic text
@@ -319,10 +319,10 @@ link text
 
 Remarks are cool too.
 
-Returns:
+{FeaturesResources.Returns_colon}
   a string
 
-Exceptions:
+{FeaturesResources.Exceptions_colon}
   System.NullReferenceException
 ";
 
