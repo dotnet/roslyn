@@ -2759,7 +2759,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (editKind == SemanticEditKind.Update)
                     {
-                        ReportAttributeEdits(oldSymbol, newSymbol, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+                        AnalyzeCustomAttributes(oldSymbol, newSymbol, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
 
                         // The only updates to a field that need an edit is an initializer update which is deferred to the constructor edit
                         // or an attribute change which is reported with the above method
@@ -2890,7 +2890,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return semanticEdits.ToImmutable();
         }
 
-        private void ReportAttributeEdits(ISymbol? oldSymbol, ISymbol newSymbol, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, ArrayBuilder<SemanticEditInfo>? semanticEdits, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        private void AnalyzeCustomAttributes(ISymbol? oldSymbol, ISymbol newSymbol, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, ArrayBuilder<SemanticEditInfo>? semanticEdits, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
         {
             var needsEdit = false;
             var attributesHaveChanged = false;
@@ -2919,7 +2919,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (newType.DelegateInvokeMethod is not null)
                 {
                     // If this is a delegate with attributes on its return type for example, they are found on the DelegateInvokeMethod
-                    ReportAttributeEdits(oldType?.DelegateInvokeMethod, newType.DelegateInvokeMethod, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+                    AnalyzeCustomAttributes(oldType?.DelegateInvokeMethod, newType.DelegateInvokeMethod, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
                 }
             }
 
@@ -4296,7 +4296,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
             var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
 
-            ReportAttributeEdits(oldLambdaSymbol, newLambdaSymbol, capabilities, diagnostics, null, null, cancellationToken);
+            AnalyzeCustomAttributes(oldLambdaSymbol, newLambdaSymbol, capabilities, diagnostics, null, null, cancellationToken);
 
             RudeEditKind rudeEdit;
 
