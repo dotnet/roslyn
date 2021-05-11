@@ -7188,13 +7188,28 @@ oneMoreTime:
                 var innerCaptureRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
                 EnterRegion(innerCaptureRegion);
 
-                int oldValueCaptureId = GetNextCaptureId(innerCaptureRegion);
-                VisitAndCapture(operation.Operand, oldValueCaptureId);
-                // calls to VisitAndCapture may enter regions, so we reset things
+                var initializers = operation.Initializer.Initializers;
+
+                var properties = operation.Type.GetMembers()
+                    .Where(m => m.Kind == SymbolKind.Property)
+                    .SelectAsArray(m => (IPropertySymbol)m);
+
+                int oldValueCaptureId;
+                if (setAllProperties(initializers, properties))
+                {
+                    // Avoid capturing the old value since we won't need it
+                    oldValueCaptureId = -1;
+                    AddStatement(VisitRequired(operation.Operand));
+                }
+                else
+                {
+                    oldValueCaptureId = GetNextCaptureId(innerCaptureRegion);
+                    VisitAndCapture(operation.Operand, oldValueCaptureId);
+                }
+                // calls to Visit may enter regions, so we reset things
                 LeaveRegionsUpTo(innerCaptureRegion);
 
                 var explicitProperties = PooledDictionary<string, IOperation>.GetInstance();
-                var initializers = operation.Initializer.Initializers;
                 var initializerBuilder = ArrayBuilder<IOperation>.GetInstance(initializers.Length);
 
                 // Visit and capture all the values, and construct assignments using capture references
@@ -7236,7 +7251,7 @@ oneMoreTime:
 
                 // Make a sequence for all properties (in order), constructing assignments for the implicitly set properties
                 var type = (INamedTypeSymbol)operation.Type;
-                foreach (IPropertySymbol property in operation.Type.GetMembers().Where(m => m.Kind == SymbolKind.Property))
+                foreach (IPropertySymbol property in properties)
                 {
                     if (explicitProperties.TryGetValue(property.Name, out var assignment))
                     {
@@ -7244,6 +7259,8 @@ oneMoreTime:
                     }
                     else
                     {
+                        Debug.Assert(oldValueCaptureId >= 0);
+
                         // `oldInstance`
                         var oldInstance = new FlowCaptureReferenceOperation(oldValueCaptureId, operation.Operand.Syntax,
                             operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
@@ -7284,6 +7301,30 @@ oneMoreTime:
                 // <implicitReceiver>.Property = <capturedValue>
                 return new SimpleAssignmentOperation(isRef: false, target, capturedValue,
                     semanticModel: null, operation.Syntax, property.Type, constantValue: null, isImplicit: true);
+            }
+
+            static bool setAllProperties(ImmutableArray<IOperation> initializers, ImmutableArray<IPropertySymbol> properties)
+            {
+                var set = PooledHashSet<string>.GetInstance();
+                foreach (var property in properties)
+                {
+                    _ = set.Add(property.Name);
+                }
+
+                foreach (var initializer in initializers)
+                {
+                    var simpleAssignment = (ISimpleAssignmentOperation)initializer;
+                    if (simpleAssignment.Target is InvalidOperation)
+                    {
+                        continue;
+                    }
+                    var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                    _ = set.Remove(propertyReference.Property.Name);
+                }
+
+                bool setAllProperties = set.Count == 0;
+                set.Free();
+                return setAllProperties;
             }
         }
     }

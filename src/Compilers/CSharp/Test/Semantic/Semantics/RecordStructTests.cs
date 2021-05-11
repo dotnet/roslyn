@@ -7270,19 +7270,19 @@ C.M();
 public class C
 {
     public static void M()
-    {
+    /*<bind>*/{
         var a = new { A = 10, B = 20 };
-        var b = a with { A = Identity(30), B = Identity(40) };
+        var b = Identity(a) with { A = Identity(30), B = Identity(40) };
         System.Console.Write(b);
-    }
+    }/*</bind>*/
 
     static T Identity<T>(T t) => t;
 }";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
                 // (9,17): error CS8652: The feature 'with on anonymous types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var b = a with { A = Identity(30), B = Identity(40) };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a with { A = Identity(30), B = Identity(40) }").WithArguments("with on anonymous types").WithLocation(9, 17)
+                //         var b = Identity(a) with { A = Identity(30), B = Identity(40) };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Identity(a) with { A = Identity(30), B = Identity(40) }").WithArguments("with on anonymous types").WithLocation(9, 17)
                 );
 
             comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
@@ -7290,24 +7290,153 @@ public class C
             var verifier = CompileAndVerify(comp, expectedOutput: "{ A = 30, B = 40 }");
             verifier.VerifyIL("C.M", @"
 {
-  // Code size       37 (0x25)
+  // Code size       42 (0x2a)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldc.i4.s   10
   IL_0002:  ldc.i4.s   20
   IL_0004:  newobj     ""<>f__AnonymousType0<int, int>..ctor(int, int)""
-  IL_0009:  pop
-  IL_000a:  ldc.i4.s   30
-  IL_000c:  call       ""int C.Identity<int>(int)""
-  IL_0011:  ldc.i4.s   40
-  IL_0013:  call       ""int C.Identity<int>(int)""
-  IL_0018:  stloc.0
-  IL_0019:  ldloc.0
-  IL_001a:  newobj     ""<>f__AnonymousType0<int, int>..ctor(int, int)""
-  IL_001f:  call       ""void System.Console.Write(object)""
-  IL_0024:  ret
+  IL_0009:  call       ""<anonymous type: int A, int B> C.Identity<<anonymous type: int A, int B>>(<anonymous type: int A, int B>)""
+  IL_000e:  pop
+  IL_000f:  ldc.i4.s   30
+  IL_0011:  call       ""int C.Identity<int>(int)""
+  IL_0016:  ldc.i4.s   40
+  IL_0018:  call       ""int C.Identity<int>(int)""
+  IL_001d:  stloc.0
+  IL_001e:  ldloc.0
+  IL_001f:  newobj     ""<>f__AnonymousType0<int, int>..ctor(int, int)""
+  IL_0024:  call       ""void System.Console.Write(object)""
+  IL_0029:  ret
 }
 ");
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    Locals: [<anonymous type: System.Int32 A, System.Int32 B> a] [<anonymous type: System.Int32 A, System.Int32 B> b]
+    .locals {R2}
+    {
+        CaptureIds: [0] [1]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (3)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '10')
+                  Value:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '20')
+                  Value:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'a = new { A ... 0, B = 20 }')
+                  Left:
+                    ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'a = new { A ... 0, B = 20 }')
+                  Right:
+                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 A, System.Int32 B>) (Syntax: 'new { A = 10, B = 20 }')
+                      Initializers(2):
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 10) (Syntax: 'A = 10')
+                            Left:
+                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A, System.Int32 B>.A { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'A')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'new { A = 10, B = 20 }')
+                            Right:
+                              IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 10, IsImplicit) (Syntax: '10')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 20) (Syntax: 'B = 20')
+                            Left:
+                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A, System.Int32 B>.B { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'B')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'new { A = 10, B = 20 }')
+                            Right:
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 20, IsImplicit) (Syntax: '20')
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+                Entering: {R3}
+    }
+    .locals {R3}
+    {
+        CaptureIds: [2] [3]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (4)
+                IInvocationOperation (<anonymous type: System.Int32 A, System.Int32 B> C.Identity<<anonymous type: System.Int32 A, System.Int32 B>>(<anonymous type: System.Int32 A, System.Int32 B> t)) (OperationKind.Invocation, Type: <anonymous type: System.Int32 A, System.Int32 B>) (Syntax: 'Identity(a)')
+                  Instance Receiver:
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null) (Syntax: 'a')
+                        ILocalReferenceOperation: a (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A, System.Int32 B>) (Syntax: 'a')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Identity(30)')
+                  Value:
+                    IInvocationOperation (System.Int32 C.Identity<System.Int32>(System.Int32 t)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Identity(30)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null) (Syntax: '30')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 30) (Syntax: '30')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Identity(40)')
+                  Value:
+                    IInvocationOperation (System.Int32 C.Identity<System.Int32>(System.Int32 t)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Identity(40)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null) (Syntax: '40')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 40) (Syntax: '40')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'b = Identit ... ntity(40) }')
+                  Left:
+                    ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'b = Identit ... ntity(40) }')
+                  Right:
+                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 A, System.Int32 B>) (Syntax: 'Identity(a) ... ntity(40) }')
+                      Initializers(2):
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'Identity(a) ... ntity(40) }')
+                            Left:
+                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A, System.Int32 B>.A { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'Identity(a) ... ntity(40) }')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'Identity(a) ... ntity(40) }')
+                            Right:
+                              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'Identity(a)')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'Identity(a) ... ntity(40) }')
+                            Left:
+                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A, System.Int32 B>.B { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'Identity(a) ... ntity(40) }')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'Identity(a) ... ntity(40) }')
+                            Right:
+                              IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'Identity(a)')
+            Next (Regular) Block[B3]
+                Leaving: {R3}
+    }
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(b);')
+              Expression:
+                IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(b)')
+                  Instance Receiver:
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'b')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'b')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitReference)
+                          Operand:
+                            ILocalReferenceOperation: b (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A, System.Int32 B>) (Syntax: 'b')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact]
@@ -7319,11 +7448,11 @@ C.M();
 public class C
 {
     public static void M()
-    {
+    /*<bind>*/{
         var a = new { A = 10, B = 20 };
-        var b = a with { B = Identity(40), A = Identity(30) };
+        var b = Identity(a) with { B = Identity(40), A = Identity(30) };
         System.Console.Write(b);
-    }
+    }/*</bind>*/
 
     static T Identity<T>(T t) => t;
 }";
@@ -7333,24 +7462,153 @@ public class C
             var verifier = CompileAndVerify(comp, expectedOutput: "{ A = 30, B = 40 }");
             verifier.VerifyIL("C.M", @"
 {
-  // Code size       37 (0x25)
+  // Code size       42 (0x2a)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldc.i4.s   10
   IL_0002:  ldc.i4.s   20
   IL_0004:  newobj     ""<>f__AnonymousType0<int, int>..ctor(int, int)""
-  IL_0009:  pop
-  IL_000a:  ldc.i4.s   40
-  IL_000c:  call       ""int C.Identity<int>(int)""
-  IL_0011:  stloc.0
-  IL_0012:  ldc.i4.s   30
-  IL_0014:  call       ""int C.Identity<int>(int)""
-  IL_0019:  ldloc.0
-  IL_001a:  newobj     ""<>f__AnonymousType0<int, int>..ctor(int, int)""
-  IL_001f:  call       ""void System.Console.Write(object)""
-  IL_0024:  ret
+  IL_0009:  call       ""<anonymous type: int A, int B> C.Identity<<anonymous type: int A, int B>>(<anonymous type: int A, int B>)""
+  IL_000e:  pop
+  IL_000f:  ldc.i4.s   40
+  IL_0011:  call       ""int C.Identity<int>(int)""
+  IL_0016:  stloc.0
+  IL_0017:  ldc.i4.s   30
+  IL_0019:  call       ""int C.Identity<int>(int)""
+  IL_001e:  ldloc.0
+  IL_001f:  newobj     ""<>f__AnonymousType0<int, int>..ctor(int, int)""
+  IL_0024:  call       ""void System.Console.Write(object)""
+  IL_0029:  ret
 }
 ");
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    Locals: [<anonymous type: System.Int32 A, System.Int32 B> a] [<anonymous type: System.Int32 A, System.Int32 B> b]
+    .locals {R2}
+    {
+        CaptureIds: [0] [1]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (3)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '10')
+                  Value:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '20')
+                  Value:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'a = new { A ... 0, B = 20 }')
+                  Left:
+                    ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'a = new { A ... 0, B = 20 }')
+                  Right:
+                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 A, System.Int32 B>) (Syntax: 'new { A = 10, B = 20 }')
+                      Initializers(2):
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 10) (Syntax: 'A = 10')
+                            Left:
+                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A, System.Int32 B>.A { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'A')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'new { A = 10, B = 20 }')
+                            Right:
+                              IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 10, IsImplicit) (Syntax: '10')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 20) (Syntax: 'B = 20')
+                            Left:
+                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A, System.Int32 B>.B { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'B')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'new { A = 10, B = 20 }')
+                            Right:
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 20, IsImplicit) (Syntax: '20')
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+                Entering: {R3}
+    }
+    .locals {R3}
+    {
+        CaptureIds: [2] [3]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (4)
+                IInvocationOperation (<anonymous type: System.Int32 A, System.Int32 B> C.Identity<<anonymous type: System.Int32 A, System.Int32 B>>(<anonymous type: System.Int32 A, System.Int32 B> t)) (OperationKind.Invocation, Type: <anonymous type: System.Int32 A, System.Int32 B>) (Syntax: 'Identity(a)')
+                  Instance Receiver:
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null) (Syntax: 'a')
+                        ILocalReferenceOperation: a (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A, System.Int32 B>) (Syntax: 'a')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Identity(40)')
+                  Value:
+                    IInvocationOperation (System.Int32 C.Identity<System.Int32>(System.Int32 t)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Identity(40)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null) (Syntax: '40')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 40) (Syntax: '40')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Identity(30)')
+                  Value:
+                    IInvocationOperation (System.Int32 C.Identity<System.Int32>(System.Int32 t)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'Identity(30)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: t) (OperationKind.Argument, Type: null) (Syntax: '30')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 30) (Syntax: '30')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'b = Identit ... ntity(30) }')
+                  Left:
+                    ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'b = Identit ... ntity(30) }')
+                  Right:
+                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 A, System.Int32 B>) (Syntax: 'Identity(a) ... ntity(30) }')
+                      Initializers(2):
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'Identity(a) ... ntity(30) }')
+                            Left:
+                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A, System.Int32 B>.A { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'Identity(a) ... ntity(30) }')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'Identity(a) ... ntity(30) }')
+                            Right:
+                              IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'Identity(a)')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'Identity(a) ... ntity(30) }')
+                            Left:
+                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A, System.Int32 B>.B { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'Identity(a) ... ntity(30) }')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'Identity(a) ... ntity(30) }')
+                            Right:
+                              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: <anonymous type: System.Int32 A, System.Int32 B>, IsImplicit) (Syntax: 'Identity(a)')
+            Next (Regular) Block[B3]
+                Leaving: {R3}
+    }
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Console.Write(b);')
+              Expression:
+                IInvocationOperation (void System.Console.Write(System.Object value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Console.Write(b)')
+                  Instance Receiver:
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'b')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'b')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitReference)
+                          Operand:
+                            ILocalReferenceOperation: b (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A, System.Int32 B>) (Syntax: 'b')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
 
         [Fact]
