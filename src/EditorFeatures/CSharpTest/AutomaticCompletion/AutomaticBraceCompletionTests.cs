@@ -1411,6 +1411,436 @@ record R
             CheckReturn(session.Session, 12, expected);
         }
 
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void PropertyPatternClause_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        if (x is string $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void man()
+    {
+        if (x is string {
+
+            }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, false }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 16, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void PropertyPatternClause_OpenBraceOnNewLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        if (x is string $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void man()
+    {
+        if (x is string
+            {
+
+            }
+    }
+}";
+
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers, true }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 16, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Accessor_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public int I
+    {
+        get $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public int I
+    {
+        get {
+
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, false }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Accessor_OpenBraceOnNewLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public int I
+    {
+        get $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public int I
+    {
+        get
+        {
+
+        }
+    }
+}";
+
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInAccessors, true }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AnonymousMethod_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        Action a = delegate() $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void man()
+    {
+        Action a = delegate() {
+
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods, false }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AnonymousMethod_OpenBraceOnNewLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        Action a = delegate() $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void man()
+    {
+        Action a = delegate()
+        {
+
+        }
+    }
+}";
+
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousMethods, true }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AnonymousType_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        var x = new $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void man()
+    {
+        var x = new {
+
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes, false }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void AnonymousType_OpenBraceOnNewLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        var x = new $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void man()
+    {
+        var x = new
+        {
+
+        }
+    }
+}";
+
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInAnonymousTypes, true }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void If_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        if (true) $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void man()
+    {
+        if (true) {
+
+        }
+    }
+}";
+
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, false }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void If_OpenBraceOnNewLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        var x = new $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void man()
+    {
+        var x = new
+        {
+
+        }
+    }
+}";
+
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, true }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Else_OpenBraceOnSameLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        if (true) {
+        }
+        else $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void man()
+    {
+        if (true) {
+        }
+        else {
+
+        }
+    }
+}";
+
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, false }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
+        [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Else_OpenBraceOnNewLine_Enter()
+        {
+            var code = @"
+class C
+{
+    public void man()
+    {
+        if (true) {
+        }
+        else $$
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void man()
+    {
+        if (true) {
+        }
+        else
+        {
+
+        }
+    }
+}";
+
+            var optionSet = new Dictionary<OptionKey2, object>
+                            {
+                                { CSharpFormattingOptions2.NewLinesForBracesInControlBlocks, true }
+                            };
+            using var session = CreateSession(code, optionSet);
+            Assert.NotNull(session);
+
+            CheckStart(session.Session);
+            CheckReturn(session.Session, 12, expected);
+        }
+
         internal static Holder CreateSession(string code, Dictionary<OptionKey2, object>? optionSet = null)
         {
             return CreateSession(
