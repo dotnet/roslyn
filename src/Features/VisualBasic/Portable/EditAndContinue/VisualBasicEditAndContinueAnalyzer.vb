@@ -1219,6 +1219,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     isAmbiguous = variableDeclarator.Names.Count > 1
                     node = variableDeclarator.Names.First
 
+                Case SyntaxKind.FieldDeclaration
+                    If editKind = EditKind.Update Then
+                        ' If attributes on a field change then we get the field declaration here, but GetDeclaredSymbol needs an actual variable name
+                        ' Fortunately attributes are shared across all of them, so we don't need to be too fancy
+                        Dim field = CType(node, FieldDeclarationSyntax)
+                        Dim declaration = field.Declarators.First().Names.First()
+                        Return model.GetDeclaredSymbol(declaration, cancellationToken)
+                    End If
+
             End Select
 
             Dim symbol = model.GetDeclaredSymbol(node, cancellationToken)
@@ -1231,24 +1240,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             Return symbol
-        End Function
-
-        Protected Overrides Function GetFieldDeclarationSymbols(oldModel As SemanticModel, oldNode As SyntaxNode, newModel As SemanticModel, newNode As SyntaxNode, cancellationToken As CancellationToken) As (oldSymbol As ISymbol, newSymbol As ISymbol)
-            '
-            Dim newField = TryCast(newNode, FieldDeclarationSyntax)
-            Dim oldField = TryCast(oldNode, FieldDeclarationSyntax)
-            If newField Is Nothing OrElse oldField Is Nothing Then
-                Return (Nothing, Nothing)
-            End If
-
-            ' Since any attribute applied to a field applies to all declarators and names, we only need to grab the first one
-            Dim newDeclaration = newField.Declarators.First().Names.First()
-            Dim oldDeclaration = oldField.Declarators.First().Names.First()
-
-            Dim oldSymbol = oldModel?.GetDeclaredSymbol(oldDeclaration, cancellationToken)
-            Dim newSymbol = newModel.GetDeclaredSymbol(newDeclaration, cancellationToken)
-
-            Return (oldSymbol, newSymbol)
         End Function
 
         Friend Overrides Function ContainsLambda(declaration As SyntaxNode) As Boolean

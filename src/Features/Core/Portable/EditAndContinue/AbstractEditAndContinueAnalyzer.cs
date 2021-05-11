@@ -281,8 +281,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             out bool isAmbiguous,
             CancellationToken cancellationToken);
 
-        protected abstract (ISymbol? oldSymbol, ISymbol? newSymbol) GetFieldDeclarationSymbols(SemanticModel? oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken);
-
         /// <summary>
         /// Analyzes data flow in the member body represented by the specified node and returns all captured variables and parameters (including "this").
         /// If the body is a field/property initializer analyzes the initializer expression only.
@@ -2691,9 +2689,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 newSymbol = GetSymbolForEdit(newModel, edit.NewNode, edit.Kind, editMap, out var newIsAmbiguous, cancellationToken);
                                 if (newSymbol == null || !processedSymbols.Add(newSymbol))
                                 {
-                                    // Field declarations have attributes applied to them, but wont return symbols from the above, so need special handling.
-                                    ReportFieldAttributeRudeEdits(diagnostics, capabilities, oldModel, newModel, edit, semanticEdits, cancellationToken);
-
                                     // node doesn't represent a symbol or the symbol has already been processed
                                     continue;
                                 }
@@ -2765,6 +2760,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (editKind == SemanticEditKind.Update)
                     {
                         ReportAttributeEdits(oldSymbol, newSymbol, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+
+                        // The only updates to a field that need an edit is an initializer update which is deferred to the constructor edit
+                        // or an attribute change which is reported with the above method
+                        if (newSymbol is IFieldSymbol)
+                        {
+                            continue;
+                        }
 
                         // The only update to the type itself that's supported is an addition or removal of the partial modifier,
                         // which does not have impact on the emitted type metadata.
@@ -2888,17 +2890,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return semanticEdits.ToImmutable();
         }
 
-        private void ReportFieldAttributeRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditAndContinueCapabilities capabilities, SemanticModel? oldModel, SemanticModel newModel, Edit<SyntaxNode> edit, ArrayBuilder<SemanticEditInfo> semanticEdits, CancellationToken cancellationToken)
-        {
-            // We have to get symbols for the individual fields declared within them to check for attribute rude edits.
-            // The attributes apply to all fields in the declaration.
-            var (oldFieldSymbol, newFieldSymbol) = GetFieldDeclarationSymbols(oldModel, edit.OldNode, newModel, edit.NewNode, cancellationToken);
-            if (newFieldSymbol is not null)
-            {
-                ReportAttributeEdits(oldFieldSymbol, newFieldSymbol, capabilities, diagnostics, semanticEdits, null, cancellationToken);
-            }
-        }
-
         private void ReportAttributeEdits(ISymbol? oldSymbol, ISymbol newSymbol, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, ArrayBuilder<SemanticEditInfo>? semanticEdits, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
         {
             var needsEdit = false;
@@ -2958,7 +2949,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // Most symbol types will automatically have an edit added, so we just need to handle a few
-            if (newSymbol is INamedTypeSymbol)
+            if (newSymbol is INamedTypeSymbol or IFieldSymbol)
             {
                 var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
                 semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));

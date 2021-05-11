@@ -1198,6 +1198,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var propertyOrIndexer = model.GetRequiredDeclaredSymbol(node, cancellationToken);
                     return ((IPropertySymbol)propertyOrIndexer).GetMethod;
                 }
+
+                if (node is FieldDeclarationSyntax field)
+                {
+                    // If attributes on a field change then we get the field declaration here, but GetDeclaredSymbol needs an actual variable declaration
+                    // Fortunately attributes are shared across all of them, so we don't need to be too fancy
+                    return model.GetDeclaredSymbol(field.Declaration.Variables.First(), cancellationToken);
+                }
             }
 
             if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter, SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
@@ -1221,27 +1228,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return symbol;
-        }
-
-        protected override (ISymbol? oldSymbol, ISymbol? newSymbol) GetFieldDeclarationSymbols(SemanticModel? oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken)
-        {
-            if (newNode is not FieldDeclarationSyntax newField || oldNode is not FieldDeclarationSyntax oldField)
-            {
-                return (null, null);
-            }
-
-            // Since each declaration in a field shares the same attributes, we don't need to worry about them all
-            // and it doesn't matter if the user reorders them, we can just take one from new and old and be done.
-            // This also neatly avoids duplicate diagnostics.
-            var newDeclaration = newField.Declaration.Variables.First();
-            var oldDeclaration = oldField.Declaration.Variables.First();
-
-            var oldSymbol = oldDeclaration is not null ? oldModel?.GetDeclaredSymbol(oldDeclaration, cancellationToken) : null;
-            var newSymbol = newModel.GetDeclaredSymbol(newDeclaration, cancellationToken);
-
-            Contract.ThrowIfNull(newSymbol);
-
-            return (oldSymbol, newSymbol);
         }
 
         protected override void GetUpdatedDeclarationBodies(SyntaxNode oldDeclaration, SyntaxNode newDeclaration, out SyntaxNode? oldBody, out SyntaxNode? newBody)
