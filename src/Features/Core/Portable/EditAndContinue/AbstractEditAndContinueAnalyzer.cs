@@ -3018,8 +3018,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (SymbolEquivalenceComparer.Instance.Equals(match.AttributeClass, attribute.AttributeClass))
                     {
                         if (SymbolEquivalenceComparer.Instance.Equals(match.AttributeConstructor, attribute.AttributeConstructor) &&
-                            match.ConstructorArguments.SequenceEqual(attribute.ConstructorArguments) &&
-                            match.NamedArguments.SequenceEqual(attribute.NamedArguments))
+                            match.ConstructorArguments.SequenceEqual(attribute.ConstructorArguments, TypedConstantComparer.Instance) &&
+                            match.NamedArguments.SequenceEqual(attribute.NamedArguments, NamedArgumentComparer.Instance))
                         {
                             return match;
                         }
@@ -4517,6 +4517,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 _abstractEditAndContinueAnalyzer.AnalyzeTrivia(oldSource, newSource, topMatch, editMap, triviaEdits, lineEdits, diagnostics, cancellationToken);
             }
+        }
+
+        #endregion
+
+        #region Comparers
+
+        private class TypedConstantComparer : IEqualityComparer<TypedConstant>
+        {
+            public static TypedConstantComparer Instance = new TypedConstantComparer();
+
+            public bool Equals(TypedConstant x, TypedConstant y)
+                => x.Kind.Equals(y.Kind) &&
+                   x.IsNull.Equals(y.IsNull) &&
+                   SymbolEquivalenceComparer.Instance.Equals(x.Type, y.Type) &&
+                   x.Kind switch
+                   {
+                       TypedConstantKind.Array => x.Values.SequenceEqual(y.Values, TypedConstantComparer.Instance),
+                       _ => object.Equals(x.Value, y.Value)
+                   };
+
+            public int GetHashCode(TypedConstant obj)
+                => obj.GetHashCode();
+        }
+
+        private class NamedArgumentComparer : IEqualityComparer<KeyValuePair<string, TypedConstant>>
+        {
+            public static NamedArgumentComparer Instance = new NamedArgumentComparer();
+
+            public bool Equals(KeyValuePair<string, TypedConstant> x, KeyValuePair<string, TypedConstant> y)
+                => x.Key.Equals(y.Key) &&
+                   TypedConstantComparer.Instance.Equals(x.Value, y.Value);
+
+            public int GetHashCode(KeyValuePair<string, TypedConstant> obj)
+                 => obj.GetHashCode();
         }
 
         #endregion

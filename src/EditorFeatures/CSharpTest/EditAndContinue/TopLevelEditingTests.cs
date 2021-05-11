@@ -6152,6 +6152,83 @@ class Test
         }
 
         [Fact]
+        public void MethodUpdate_Attribute_ArrayParameter()
+        {
+            var src1 = @"
+class AAttribute : System.Attribute
+{
+    public AAttribute(int[] nums) { }
+}
+
+class C
+{
+    [A(new int[] { 1, 2, 3})]
+    void M()
+    {
+    }
+}";
+            var src2 = @"
+class AAttribute : System.Attribute
+{
+    public AAttribute(int[] nums) { }
+}
+
+class C
+{
+    [A(new int[] { 4, 5, 6})]
+    void M()
+    {
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) },
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+        }
+
+        [Fact]
+        public void MethodUpdate_Attribute_ArrayParameter_NoChange()
+        {
+            var src1 = @"
+class AAttribute : System.Attribute
+{
+    public AAttribute(int[] nums) { }
+}
+
+class C
+{
+    [A(new int[] { 1, 2, 3})]
+    void M()
+    {
+        var x = 1;
+    }
+}";
+            var src2 = @"
+class AAttribute : System.Attribute
+{
+    public AAttribute(int[] nums) { }
+}
+
+class C
+{
+    [A(new int[] { 1, 2, 3})]
+    void M()
+    {
+        var x = 2;
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) });
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
         public void MethodUpdate_AddAttribute2()
         {
             var src1 = @"
