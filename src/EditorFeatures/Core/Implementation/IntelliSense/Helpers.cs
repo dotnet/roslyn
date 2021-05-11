@@ -49,6 +49,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             while (index < taggedTexts.Length)
             {
                 var part = taggedTexts[index];
+
+                // These tags can be ignored - they are for markdown formatting only.
+                if (part.Tag is TextTags.CodeBlockStart or TextTags.CodeBlockEnd)
+                {
+                    index++;
+                    continue;
+                }
+
                 if (part.Tag == TextTags.ContainerStart)
                 {
                     if (currentRuns.Count > 0)
