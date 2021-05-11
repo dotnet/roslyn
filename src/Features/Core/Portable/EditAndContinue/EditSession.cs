@@ -882,9 +882,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     using var metadataStream = SerializableBytes.CreateWritableStream();
                     using var ilStream = SerializableBytes.CreateWritableStream();
 
-                    var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
-                    var updatedTypes = ImmutableArray.CreateBuilder<TypeDefinitionHandle>();
-
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(newCompilation);
 
@@ -901,6 +898,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         Contract.ThrowIfNull(emitResult.Baseline);
 
+                        // TODO: Pass these to ManagedModuleUpdate in the new debugger contracts API
                         var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
                         var updatedTypeTokens = emitResult.UpdatedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
 
