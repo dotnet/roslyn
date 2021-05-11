@@ -2913,14 +2913,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
             }
-            else if (newSymbol is INamedTypeSymbol newType)
+            else if (newSymbol is INamedTypeSymbol { DelegateInvokeMethod: not null } newType)
             {
                 var oldType = oldSymbol as INamedTypeSymbol;
-                if (newType.DelegateInvokeMethod is not null)
-                {
-                    // If this is a delegate with attributes on its return type for example, they are found on the DelegateInvokeMethod
-                    AnalyzeCustomAttributes(oldType?.DelegateInvokeMethod, newType.DelegateInvokeMethod, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
-                }
+                // If this is a delegate with attributes on its return type for example, they are found on the DelegateInvokeMethod
+                AnalyzeCustomAttributes(oldType?.DelegateInvokeMethod, newType.DelegateInvokeMethod, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
             }
 
             foreach (var parameter in newSymbol.GetParameters())
