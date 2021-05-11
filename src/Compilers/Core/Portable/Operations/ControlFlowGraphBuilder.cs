@@ -7205,7 +7205,7 @@ oneMoreTime:
                 // calls to Visit may enter regions, so we reset things
                 LeaveRegionsUpTo(innerCaptureRegion);
 
-                var explicitProperties = PooledDictionary<string, IOperation>.GetInstance();
+                var explicitProperties = new Dictionary<IPropertySymbol, IOperation>(SymbolEqualityComparer.IgnoreAll);
                 var initializerBuilder = ArrayBuilder<IOperation>.GetInstance(initializers.Length);
 
                 // Visit and capture all the values, and construct assignments using capture references
@@ -7223,12 +7223,6 @@ oneMoreTime:
                         continue;
                     }
 
-                    int valueCaptureId = GetNextCaptureId(outerCaptureRegion);
-                    VisitAndCapture(simpleAssignment.Value, valueCaptureId);
-                    LeaveRegionsUpTo(innerCaptureRegion);
-                    var valueCaptureRef = new FlowCaptureReferenceOperation(valueCaptureId, operation.Operand.Syntax,
-                        operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
-
                     var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
 
                     Debug.Assert(propertyReference != null);
@@ -7238,16 +7232,28 @@ oneMoreTime:
                     Debug.Assert(((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind == InstanceReferenceKind.ImplicitReceiver);
 
                     var property = propertyReference.Property;
+                    if (explicitProperties.ContainsKey(property))
+                    {
+                        AddStatement(VisitRequired(simpleAssignment.Value));
+                        continue;
+                    }
+
+                    int valueCaptureId = GetNextCaptureId(outerCaptureRegion);
+                    VisitAndCapture(simpleAssignment.Value, valueCaptureId);
+                    LeaveRegionsUpTo(innerCaptureRegion);
+                    var valueCaptureRef = new FlowCaptureReferenceOperation(valueCaptureId, operation.Operand.Syntax,
+                        operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
+
                     var assignment = makeAssignment(property, valueCaptureRef, operation);
 
-                    explicitProperties.Add(property.Name, assignment);
+                    explicitProperties.Add(property, assignment);
                 }
 
                 // Make a sequence for all properties (in order), constructing assignments for the implicitly set properties
                 var type = (INamedTypeSymbol)operation.Type;
                 foreach (IPropertySymbol property in properties)
                 {
-                    if (explicitProperties.TryGetValue(property.Name, out var assignment))
+                    if (explicitProperties.TryGetValue(property, out var assignment))
                     {
                         initializerBuilder.Add(assignment);
                     }
@@ -7275,8 +7281,6 @@ oneMoreTime:
                 }
                 LeaveRegionsUpTo(outerCaptureRegion);
 
-                explicitProperties.Free();
-
                 return new AnonymousObjectCreationOperation(initializerBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.IsImplicit);
             }
 
@@ -7298,10 +7302,10 @@ oneMoreTime:
 
             static bool setsAllProperties(ImmutableArray<IOperation> initializers, IEnumerable<IPropertySymbol> properties)
             {
-                var set = PooledHashSet<string>.GetInstance();
+                var set = new HashSet<IPropertySymbol>(SymbolEqualityComparer.IgnoreAll);
                 foreach (var property in properties)
                 {
-                    _ = set.Add(property.Name);
+                    _ = set.Add(property);
                 }
 
                 foreach (var initializer in initializers)
@@ -7310,12 +7314,11 @@ oneMoreTime:
                         simpleAssignment.Target is not InvalidOperation)
                     {
                         var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
-                        _ = set.Remove(propertyReference.Property.Name);
+                        _ = set.Remove(propertyReference.Property);
                     }
                 }
 
                 bool setAllProperties = set.Count == 0;
-                set.Free();
                 return setAllProperties;
             }
         }
