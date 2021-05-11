@@ -204,9 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
             IMethodSymbol method)
         {
-            return !method.ExplicitInterfaceImplementations.Any() && !method.IsOverride
-                ? method.TypeParameters.GenerateConstraintClauses()
-                : default;
+                return method.TypeParameters.GenerateConstraintClauses();
         }
 
         private static TypeParameterListSyntax GenerateTypeParameterList(
