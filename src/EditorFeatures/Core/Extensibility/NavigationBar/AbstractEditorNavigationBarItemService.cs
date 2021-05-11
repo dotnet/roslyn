@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
-    internal abstract class AbstractEditorNavigationBarItemService : ForegroundThreadAffinitizedObject, INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess
+    internal abstract class AbstractEditorNavigationBarItemService : ForegroundThreadAffinitizedObject, INavigationBarItemService
     {
         protected AbstractEditorNavigationBarItemService(IThreadingContext threadingContext)
             : base(threadingContext, assertIsForeground: false)

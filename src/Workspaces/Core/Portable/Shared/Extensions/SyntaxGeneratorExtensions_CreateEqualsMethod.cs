@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -312,7 +314,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var name = containingType.Name;
             if (name.Length > 0)
             {
-                var parts = StringBreaker.GetWordParts(name);
+                using var parts = TemporaryArray<TextSpan>.Empty;
+                StringBreaker.AddWordParts(name, ref parts.AsRef());
                 for (var i = parts.Count - 1; i >= 0; i--)
                 {
                     var p = parts[i];

@@ -711,8 +711,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public bool IsElementAccessExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.ElementAccessExpression;
+        public bool IsElementAccessExpression(SyntaxNode? node)
+            => node.IsKind(SyntaxKind.ElementAccessExpression);
 
         [return: NotNullIfNotNull("node")]
         public SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false)
@@ -727,8 +727,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             closeParen = parenthesizedExpression.CloseParenToken;
         }
 
-        public bool IsIndexerMemberCRef(SyntaxNode node)
-            => node.Kind() == SyntaxKind.IndexerMemberCref;
+        public bool IsIndexerMemberCRef(SyntaxNode? node)
+            => node.IsKind(SyntaxKind.IndexerMemberCref);
 
         public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true)
         {
