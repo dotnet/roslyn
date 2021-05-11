@@ -865,7 +865,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                if (((object)currType != implementingType || !currType.IsDefinition) && interfaceMember is MethodSymbol interfaceMethod)
+                bool checkPendingExplicitImplementations = ((object)currType != implementingType || !currType.IsDefinition);
+
+                if (checkPendingExplicitImplementations && interfaceMember is MethodSymbol interfaceMethod &&
+                    currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).ContainsKey(interfaceType))
                 {
                     // Check for implementations that are going to be explicit once types are emitted
                     MethodSymbol bodyOfSynthesizedMethodImpl = currType.GetBodyOfSynthesizedInterfaceMethodImpl(interfaceMethod);
@@ -877,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (IsExplicitlyImplementedViaAccessors(interfaceMember, currType, out Symbol currTypeExplicitImpl))
+                if (IsExplicitlyImplementedViaAccessors(checkPendingExplicitImplementations, interfaceMember, currType, ref useSiteInfo, out Symbol currTypeExplicitImpl))
                 {
                     // We are looking for a property or event implementation and found an explicit implementation
                     // for its accessor(s) in this type. Stop the process and return event/property associated
@@ -1435,15 +1438,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// even if it is null.  That is, never attempt to find an implicit implementation for an interface property or event with an
         /// explicitly implemented accessor.
         /// </summary>
-        private static bool IsExplicitlyImplementedViaAccessors(Symbol interfaceMember, TypeSymbol currType, out Symbol implementingMember)
+        private static bool IsExplicitlyImplementedViaAccessors(bool checkPendingExplicitImplementations, Symbol interfaceMember, TypeSymbol currType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out Symbol implementingMember)
         {
             (MethodSymbol interfaceAccessor1, MethodSymbol interfaceAccessor2) = GetImplementableAccessors(interfaceMember);
 
             Symbol associated1;
             Symbol associated2;
 
-            if (TryGetExplicitImplementationAssociatedPropertyOrEvent(interfaceAccessor1, currType, out associated1) |  // NB: not ||
-                TryGetExplicitImplementationAssociatedPropertyOrEvent(interfaceAccessor2, currType, out associated2))
+            if (TryGetExplicitImplementationAssociatedPropertyOrEvent(checkPendingExplicitImplementations, interfaceAccessor1, currType, ref useSiteInfo, out associated1) |  // NB: not ||
+                TryGetExplicitImplementationAssociatedPropertyOrEvent(checkPendingExplicitImplementations, interfaceAccessor2, currType, ref useSiteInfo, out associated2))
             {
                 // If there's more than one associated property/event, don't do anything special - just let the algorithm
                 // fail in the usual way.
@@ -1455,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // If we haven't then there is no implementation.  We need this check to match dev11 in some edge cases
                     // (e.g. IndexerTests.AmbiguousExplicitIndexerImplementation).  Such cases already fail
                     // to roundtrip correctly, so it's not important to check for a particular compilation.
-                    if ((object)implementingMember != null && implementingMember.OriginalDefinition.ContainingModule is not PEModuleSymbol)
+                    if ((object)implementingMember != null && implementingMember.OriginalDefinition.ContainingModule is not PEModuleSymbol && implementingMember.IsExplicitInterfaceImplementation())
                     {
                         implementingMember = null;
                     }
@@ -1472,7 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private static bool TryGetExplicitImplementationAssociatedPropertyOrEvent(MethodSymbol interfaceAccessor, TypeSymbol currType, out Symbol associated)
+        private static bool TryGetExplicitImplementationAssociatedPropertyOrEvent(bool checkPendingExplicitImplementations, MethodSymbol interfaceAccessor, TypeSymbol currType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out Symbol associated)
         {
             if ((object)interfaceAccessor != null)
             {
@@ -1486,6 +1489,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ? ((MethodSymbol)implementation).AssociatedSymbol
                         : null;
                     return true;
+                }
+
+                if (checkPendingExplicitImplementations &&
+                    currType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo).ContainsKey(interfaceAccessor.ContainingType))
+                {
+                    // Check for implementations that are going to be explicit once types are emitted
+                    MethodSymbol bodyOfSynthesizedMethodImpl = currType.GetBodyOfSynthesizedInterfaceMethodImpl(interfaceAccessor);
+
+                    if (bodyOfSynthesizedMethodImpl is object)
+                    {
+                        associated = bodyOfSynthesizedMethodImpl.AssociatedSymbol;
+                        return true;
+                    }
                 }
             }
 
@@ -1674,6 +1690,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (member.DeclaredAccessibility != Accessibility.Public || member.IsStatic || member == implicitImpl)
                     {
                         //do nothing - not an ambiguous implementation
+
+                        // PROTOTYPE(StaticAbstractMembersInInterfaces): We likely need to do something here for static members.
                     }
                     else if (MemberSignatureComparer.RuntimeImplicitImplementationComparer.Equals(interfaceMember, member) && !member.IsAccessor())
                     {

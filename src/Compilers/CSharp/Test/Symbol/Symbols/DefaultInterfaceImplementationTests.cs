@@ -51809,6 +51809,9 @@ class Test1 : I2
                 // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
                 //     event System.Action P1 {add => throw null;}
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
+                // (9,37): error CS0550: 'I2.I1.P1.remove' adds an accessor not found in interface member 'I1.P1'
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "P1").WithArguments("I2.I1.P1.remove", "I1.P1").WithLocation(9, 37),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -51845,6 +51848,9 @@ class Test1 : I2
                 // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
+                // (12,9): error CS0550: 'I2.I1.P1.remove' adds an accessor not found in interface member 'I1.P1'
+                //         remove {}
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "remove").WithArguments("I2.I1.P1.remove", "I1.P1").WithLocation(12, 9),
                 // (16,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(16, 15)
@@ -51874,6 +51880,9 @@ class Test1 : I2
                 // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
                 //     event System.Action P1 {remove => throw null;}
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
+                // (9,37): error CS0550: 'I2.I1.P1.add' adds an accessor not found in interface member 'I1.P1'
+                //     abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "P1").WithArguments("I2.I1.P1.add", "I1.P1").WithLocation(9, 37),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -51910,6 +51919,9 @@ class Test1 : I2
                 // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
+                // (11,9): error CS0550: 'I2.I1.P1.add' adds an accessor not found in interface member 'I1.P1'
+                //         add {}
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "add").WithArguments("I2.I1.P1.add", "I1.P1").WithLocation(11, 9),
                 // (16,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(16, 15)

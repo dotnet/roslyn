@@ -2375,7 +2375,7 @@ tryAgain:
 
                 try
                 {
-                    // Try as a regualr statement rather than a member declaration, if appropriate.
+                    // Try as a regular statement rather than a member declaration, if appropriate.
                     if ((!haveAttributes || !IsScript) && !haveModifiers && (type.Kind == SyntaxKind.RefType || !IsOperatorStart(out _, advanceParser: false)))
                     {
                         this.Reset(ref afterAttributesPoint);

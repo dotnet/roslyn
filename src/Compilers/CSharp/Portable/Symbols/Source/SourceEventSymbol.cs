@@ -14,6 +14,7 @@ using Roslyn.Utilities;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -468,10 +469,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                DeclarationModifiers.AccessibilityMask;
                 }
             }
-            else if (isInterface)
+            else
             {
                 Debug.Assert(explicitInterfaceImplementation);
-                allowedModifiers |= DeclarationModifiers.Abstract;
+
+                if (isInterface)
+                {
+                    allowedModifiers |= DeclarationModifiers.Abstract;
+                }
+                else
+                {
+                    allowedModifiers |= DeclarationModifiers.Static;
+                }
             }
 
             if (this.ContainingType.IsStructType())
@@ -485,6 +494,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+
+            ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, explicitInterfaceImplementation, location, diagnostics);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
@@ -747,6 +758,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeWithAnnotations.NeedsNullableAttribute())
             {
                 compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();
+
+            if (explicitlyImplementedEvent is object)
+            {
+                CheckExplicitImplementationAccessor(AddMethod, explicitlyImplementedEvent.AddMethod, explicitlyImplementedEvent, diagnostics);
+                CheckExplicitImplementationAccessor(RemoveMethod, explicitlyImplementedEvent.RemoveMethod, explicitlyImplementedEvent, diagnostics);
+            }
+        }
+
+        private void CheckExplicitImplementationAccessor(MethodSymbol? thisAccessor, MethodSymbol? otherAccessor, EventSymbol explicitlyImplementedEvent, BindingDiagnosticBag diagnostics)
+        {
+            if (!otherAccessor.IsImplementable() && thisAccessor is object)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitPropertyAddingAccessor, thisAccessor.Locations[0], thisAccessor, explicitlyImplementedEvent);
             }
         }
     }
