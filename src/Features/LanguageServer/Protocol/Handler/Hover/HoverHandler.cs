@@ -51,13 +51,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var supportsVSExtensions = context.ClientCapabilities.HasVisualStudioLspCapability() == true;
-
-            var hover = await GetHoverAsync(info, document, supportsVSExtensions, cancellationToken).ConfigureAwait(false);
+            var hover = await GetHoverAsync(info, document, context.ClientCapabilities, cancellationToken).ConfigureAwait(false);
             return hover;
 
-            static async Task<Hover> GetHoverAsync(QuickInfoItem info, Document document, bool supportsVSExtensions, CancellationToken cancellationToken)
+            static async Task<Hover> GetHoverAsync(QuickInfoItem info, Document document, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             {
+                var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
+
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (supportsVSExtensions)
                 {
@@ -76,16 +76,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     return new Hover
                     {
                         Range = ProtocolConversions.TextSpanToRange(info.Span, text),
-                        Contents = GetContents(info),
+                        Contents = GetContents(info, document, clientCapabilities),
                     };
                 }
             }
 
-            static MarkupContent GetContents(QuickInfoItem info)
+            static MarkupContent GetContents(QuickInfoItem info, Document document, ClientCapabilities clientCapabilities)
             {
+                var clientSupportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat.Contains(MarkupKind.Markdown) == true;
                 // Insert line breaks in between sections to ensure we get double spacing between sections.
-                var tags = info.Sections.SelectMany(section => section.TaggedParts.Add(new TaggedText(TextTags.LineBreak, Environment.NewLine))).ToImmutableArray();
-                return ProtocolConversions.GetDocumentationMarkdown(tags);
+                var tags = info.Sections
+                    .SelectMany(section => section.TaggedParts.Add(new TaggedText(TextTags.LineBreak, Environment.NewLine)))
+                    .ToImmutableArray();
+                return ProtocolConversions.GetDocumentationMarkupContent(tags, document, clientSupportsMarkdown);
             }
         }
     }

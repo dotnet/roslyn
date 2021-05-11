@@ -27,6 +27,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class ProtocolConversions
     {
+        private const string CSharpMarkdownLanguageName = "csharp";
+        private const string VisualBasicMarkdownLanguageName = "vb";
+
         // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same way
         // which can confuse users
         public static readonly Dictionary<string, LSP.CompletionItemKind> RoslynTagToCompletionItemKind = new Dictionary<string, LSP.CompletionItemKind>()
@@ -613,8 +616,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return updatedOptions;
         }
 
-        public static LSP.MarkupContent GetDocumentationMarkdown(ImmutableArray<TaggedText> tags)
+        public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)
         {
+            if (!featureSupportsMarkdown)
+            {
+                return new LSP.MarkupContent
+                {
+                    Kind = LSP.MarkupKind.PlainText,
+                    Value = tags.GetFullText(),
+                };
+            }
+
             var builder = new StringBuilder();
             var isInCodeBlock = false;
             foreach (var taggedText in tags)
@@ -622,7 +634,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 switch (taggedText.Tag)
                 {
                     case TextTags.CodeBlockStart:
-                        builder.Append($"```csharp{Environment.NewLine}");
+                        var codeBlockLanguageName = GetCodeBlockLanguageName(document);
+                        builder.Append($"```{codeBlockLanguageName}{Environment.NewLine}");
                         builder.Append(taggedText.Text);
                         isInCodeBlock = true;
                         break;
@@ -638,7 +651,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         builder.Append(Environment.NewLine);
                         break;
                     default:
-                        builder.Append(GetStyledText(taggedText, isInCodeBlock));
+                        var styledText = GetStyledText(taggedText, isInCodeBlock);
+                        builder.Append(styledText);
                         break;
                 }
             }
@@ -648,6 +662,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Kind = LSP.MarkupKind.Markdown,
                 Value = builder.ToString(),
             };
+
+            static string GetCodeBlockLanguageName(Document document)
+            {
+                return document.Project.Language switch
+                {
+                    (LanguageNames.CSharp) => CSharpMarkdownLanguageName,
+                    (LanguageNames.VisualBasic) => VisualBasicMarkdownLanguageName,
+                    _ => throw new InvalidOperationException($"{document.Project.Language} is not supported"),
+                };
+            }
 
             static string GetStyledText(TaggedText taggedText, bool isInCodeBlock)
             {

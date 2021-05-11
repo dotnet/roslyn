@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     if (group == SymbolDescriptionGroups.MainDescription)
                     {
                         // Mark the main description as a code block.
-                        taggedText = parts.ToTaggedText(_getNavigationHint)
+                        taggedText = taggedText
                             .Insert(0, new TaggedText(TextTags.CodeBlockStart, string.Empty))
                             .Add(new TaggedText(TextTags.CodeBlockEnd, string.Empty));
                     }

@@ -255,8 +255,82 @@ Exceptions:
 &nbsp;&nbsp;System.NullReferenceException  
 ";
 
-            var results = await RunGetHoverAsync(testLspServer, expectedLocation, clientCapabilities: new LSP.ClientCapabilities()).ConfigureAwait(false);
+            var results = await RunGetHoverAsync(
+                testLspServer,
+                expectedLocation,
+                clientCapabilities: new LSP.ClientCapabilities
+                {
+                    TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = new LSP.MarkupKind[] { LSP.MarkupKind.Markdown } } }
+                }).ConfigureAwait(false);
             Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
+        }
+
+        [Fact]
+        public async Task TestGetHoverAsync_WithoutMarkdownClientSupport()
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// A cref <see cref=""AMethod""/>
+    /// <br/>
+    /// <strong>strong text</strong>
+    /// <br/>
+    /// <em>italic text</em>
+    /// <br/>
+    /// <u>underline text</u>
+    /// <para>
+    /// <list type='bullet'>
+    /// <item>
+    /// <description>Item 1.</description>
+    /// </item>
+    /// <item>
+    /// <description>Item 2.</description>
+    /// </item>
+    /// </list>
+    /// <a href = ""https://google.com"" > link text</a>
+    /// </para>
+    /// </summary>
+    /// <exception cref='System.NullReferenceException'>
+    /// Oh no!
+    /// </exception>
+    /// <param name='i'>an int</param>
+    /// <returns>a string</returns>
+    /// <remarks>
+    /// Remarks are cool too.
+    /// </remarks>
+    void {|caret:AMethod|}(int i)
+    {
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var expectedLocation = locations["caret"].Single();
+
+            var expectedText = @"void A.AMethod(int i)
+A cref A.AMethod(int)
+strong text
+italic text
+underline text
+
+• Item 1.
+• Item 2.
+
+link text
+
+Remarks are cool too.
+
+Returns:
+  a string
+
+Exceptions:
+  System.NullReferenceException
+";
+
+            var results = await RunGetHoverAsync(
+                testLspServer,
+                expectedLocation,
+                clientCapabilities: new LSP.ClientCapabilities()).ConfigureAwait(false);
+            Assert.Equal(expectedText, results.Contents.Third.Value);
         }
 
         private static async Task<LSP.Hover> RunGetHoverAsync(

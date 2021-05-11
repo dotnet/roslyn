@@ -188,7 +188,6 @@ class B : A
     }", textEdit.NewText);
         }
 
-        
         [Fact]
         public async Task TestResolveCompletionItemWithMarkupContentAsync()
         {
@@ -248,7 +247,83 @@ _italic&nbsp;text_
 [link text](https://google.com)";
 
             var results = await RunResolveCompletionItemAsync(
-                testLspServer, clientCompletionItem, new ClientCapabilities()).ConfigureAwait(false);
+                testLspServer,
+                clientCompletionItem,
+                new ClientCapabilities
+                {
+                    TextDocument = new TextDocumentClientCapabilities
+                    {
+                        Completion = new CompletionSetting
+                        {
+                            CompletionItem = new CompletionItemSetting
+                            {
+                                DocumentationFormat = new MarkupKind[] { MarkupKind.Markdown }
+                            }
+                        }
+                    }
+                }).ConfigureAwait(false);
+            Assert.Equal(expected, results.Documentation.Value.Second.Value);
+        }
+
+        [Fact]
+        public async Task TestResolveCompletionItemWithPlainTextAsync()
+        {
+            var markup =
+@"
+class A
+{
+    /// <summary>
+    /// A cref <see cref=""AMethod""/>
+    /// <br/>
+    /// <strong>strong text</strong>
+    /// <br/>
+    /// <em>italic text</em>
+    /// <br/>
+    /// <u>underline text</u>
+    /// <para>
+    /// <list type='bullet'>
+    /// <item>
+    /// <description>Item 1.</description>
+    /// </item>
+    /// <item>
+    /// <description>Item 2.</description>
+    /// </item>
+    /// </list>
+    /// <a href = ""https://google.com"" > link text</a>
+    /// </para>
+    /// </summary>
+    void AMethod(int i)
+    {
+    }
+
+    void M()
+    {
+        AMet{|caret:|}
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var clientCompletionItem = await GetCompletionItemToResolveAsync<LSP.CompletionItem>(
+                testLspServer,
+                locations,
+                label: "AMethod",
+                new ClientCapabilities()).ConfigureAwait(false);
+            Assert.True(clientCompletionItem is not VSCompletionItem);
+
+            var expected = @"void A.AMethod(int i)
+A cref A.AMethod(int)
+strong text
+italic text
+underline text
+
+• Item 1.
+• Item 2.
+
+link text";
+
+            var results = await RunResolveCompletionItemAsync(
+                testLspServer,
+                clientCompletionItem,
+                new ClientCapabilities()).ConfigureAwait(false);
             Assert.Equal(expected, results.Documentation.Value.Second.Value);
         }
 
