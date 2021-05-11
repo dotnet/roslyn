@@ -362,7 +362,7 @@ link text";
                 new ClassifiedTextRun("class name", className)
             };
 
-        private async Task<T> GetCompletionItemToResolveAsync<T>(
+        private static async Task<T> GetCompletionItemToResolveAsync<T>(
             TestLspServer testLspServer,
             Dictionary<string, IList<LSP.Location>> locations,
             string label,
