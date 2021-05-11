@@ -1233,7 +1233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return symbol
         End Function
 
-        Protected Overrides Function GetSymbolsForField(oldModel As SemanticModel, oldNode As SyntaxNode, newModel As SemanticModel, newNode As SyntaxNode, cancellationToken As CancellationToken) As (oldSymbol As ISymbol, newSymbol As ISymbol)
+        Protected Overrides Function GetFieldDeclarationSymbols(oldModel As SemanticModel, oldNode As SyntaxNode, newModel As SemanticModel, newNode As SyntaxNode, cancellationToken As CancellationToken) As (oldSymbol As ISymbol, newSymbol As ISymbol)
             '
             Dim newField = TryCast(newNode, FieldDeclarationSyntax)
             Dim oldField = TryCast(oldNode, FieldDeclarationSyntax)

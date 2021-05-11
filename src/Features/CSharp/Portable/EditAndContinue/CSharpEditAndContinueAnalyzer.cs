@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return symbol;
         }
 
-        protected override (ISymbol? oldSymbol, ISymbol? newSymbol) GetSymbolsForField(SemanticModel? oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken)
+        protected override (ISymbol? oldSymbol, ISymbol? newSymbol) GetFieldDeclarationSymbols(SemanticModel? oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken)
         {
             if (newNode is not FieldDeclarationSyntax newField || oldNode is not FieldDeclarationSyntax oldField)
             {
