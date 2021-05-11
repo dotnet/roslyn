@@ -767,9 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    return methodMainNode is BoundConstructorMethodBody ctorBody
-                        && ctorBody.Initializer?.Expression.ExpressionSymbol is MethodSymbol delegatedCtor
-                        && delegatedCtor.IsDefaultValueTypeConstructor();
+                    return method.IncludeFieldInitializersInBody();
                 }
             }
 
