@@ -8941,5 +8941,61 @@ class C : IGoo<string>
 }
 ");
         }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : [|I|]
+{
+}",
+@"interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : I
+{
+    public void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter_ExplicitInterfaceImplementation()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : [|I|]
+{
+}",
+@"interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : I
+{
+    void I.M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+        where T1 : default
+        where T3 : default
+    {
+        throw new System.NotImplementedException();
+    }
+}", index: 1);
+        }
     }
 }

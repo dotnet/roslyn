@@ -5,6 +5,8 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -206,7 +208,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return !method.ExplicitInterfaceImplementations.Any() && !method.IsOverride
                 ? method.TypeParameters.GenerateConstraintClauses()
-                : default;
+                : GenerateDefaultConstraints(method);
+        }
+
+        private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateDefaultConstraints(IMethodSymbol method)
+        {
+            Debug.Assert(method.ExplicitInterfaceImplementations.Any() || method.IsOverride);
+            var seenTypeParameters = new HashSet<string>();
+            var listOfClauses = new List<TypeParameterConstraintClauseSyntax>(method.TypeParameters.Length);
+            foreach (var parameter in method.Parameters)
+            {
+                if (parameter.Type is not { TypeKind: TypeKind.TypeParameter, NullableAnnotation: NullableAnnotation.Annotated } ||
+                    !seenTypeParameters.Add(parameter.Type.Name))
+                {
+                    continue;
+                }
+
+                listOfClauses.Add(SyntaxFactory.TypeParameterConstraintClause(
+                    name: SyntaxFactory.IdentifierName(parameter.Type.Name),
+                    constraints: SyntaxFactory.SingletonSeparatedList((TypeParameterConstraintSyntax)SyntaxFactory.DefaultConstraint())));
+            }
+
+            return SyntaxFactory.List(listOfClauses);
         }
 
         private static TypeParameterListSyntax GenerateTypeParameterList(
