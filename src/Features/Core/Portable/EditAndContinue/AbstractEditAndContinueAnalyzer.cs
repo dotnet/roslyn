@@ -2897,15 +2897,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (newSymbol is IMethodSymbol newMethod)
             {
-                var oldMethod = oldSymbol as IMethodSymbol;
+                if (oldSymbol is not IMethodSymbol oldMethod)
+                {
+                    return;
+                }
 
-                ReportAttributeRudeEdits(oldMethod?.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), newMethod, capabilities, diagnostics, out attributesHaveChanged);
+                ReportAttributeRudeEdits(oldMethod.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), newMethod, capabilities, diagnostics, out attributesHaveChanged);
                 needsEdit |= attributesHaveChanged;
 
                 // For properties, we only get called for the get methods, but we want to check the property itself for attribute changes
                 if (newMethod.AssociatedSymbol is not null)
                 {
-                    ReportAttributeRudeEdits(oldMethod?.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), newMethod.AssociatedSymbol, capabilities, diagnostics, out var propertyAttributesChanged);
+                    ReportAttributeRudeEdits(oldMethod.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), newMethod.AssociatedSymbol, capabilities, diagnostics, out var propertyAttributesChanged);
                     if (propertyAttributesChanged && semanticEdits is not null)
                     {
                         var symbolKey = SymbolKey.Create(newMethod.AssociatedSymbol, cancellationToken);
