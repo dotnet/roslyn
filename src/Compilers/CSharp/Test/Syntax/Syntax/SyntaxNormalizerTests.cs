@@ -921,6 +921,35 @@ $"  ///  </summary>{Environment.NewLine}" +
         }
 
         [Fact]
+        [WorkItem(53254, "https://github.com/dotnet/roslyn/issues/53254")]
+        public void TestNormalizeColonInConstructorInitializer()
+        {
+            var content =
+@"class Base
+{
+}
+
+class Derived : Base
+{
+  public Derived():base(){}
+}";
+
+            var expected =
+@"class Base
+{
+}
+
+class Derived : Base
+{
+  public Derived() : base()
+  {
+  }
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
         [WorkItem(49732, "https://github.com/dotnet/roslyn/issues/49732")]
         public void TestNormalizeXmlInDocComment()
         {
