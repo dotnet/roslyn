@@ -58,7 +58,6 @@ class C
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
-            var x = Visualize(generation0.OriginalMetadata, diff1.GetMetadata());
             diff1.VerifyUpdatedTypes("0x02000002");
 
             CheckEncLog(reader1,
