@@ -2692,7 +2692,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 if (newSymbol == null || !processedSymbols.Add(newSymbol))
                                 {
                                     // Field declarations have attributes applied to them, but wont return symbols from the above, so need special handling.
-                                    TryReportFieldAttributeRudeEdits(diagnostics, capabilities, oldModel, newModel, edit, semanticEdits, cancellationToken);
+                                    ReportFieldAttributeRudeEdits(diagnostics, capabilities, oldModel, newModel, edit, semanticEdits, cancellationToken);
 
                                     // node doesn't represent a symbol or the symbol has already been processed
                                     continue;
@@ -2888,7 +2888,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return semanticEdits.ToImmutable();
         }
 
-        private void TryReportFieldAttributeRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditAndContinueCapabilities capabilities, SemanticModel? oldModel, SemanticModel newModel, Edit<SyntaxNode> edit, ArrayBuilder<SemanticEditInfo> semanticEdits, CancellationToken cancellationToken)
+        private void ReportFieldAttributeRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditAndContinueCapabilities capabilities, SemanticModel? oldModel, SemanticModel newModel, Edit<SyntaxNode> edit, ArrayBuilder<SemanticEditInfo> semanticEdits, CancellationToken cancellationToken)
         {
             // We have to get symbols for the individual fields declared within them to check for attribute rude edits.
             // The attributes apply to all fields in the declaration.
