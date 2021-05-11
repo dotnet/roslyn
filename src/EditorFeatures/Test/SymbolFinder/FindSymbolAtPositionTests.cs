@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -15,6 +16,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
     [UseExportProvider]
     public class FindSymbolAtPositionTests
     {
+        private static Task<ISymbol> FindSymbolAtPositionAsync(TestWorkspace workspace)
+        {
+            var position = workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition!.Value;
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.Single().Id);
+            return SymbolFinder.FindSymbolAtPositionAsync(document, position);
+        }
+
         [Fact]
         public async Task PositionOnLeadingTrivia()
         {
@@ -29,12 +37,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                         #pragma warning restore 612
                     }
                 }");
-            var position = workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition!.Value;
-
-            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.Single().Id);
-
-            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position);
+            var symbol = await FindSymbolAtPositionAsync(workspace);
             Assert.Null(symbol);
+        }
+
+        [Fact]
+        [WorkItem(53269, "https://github.com/dotnet/roslyn/issues/53269")]
+        public async Task PositionInCaseLabel()
+        {
+            using var workspace = TestWorkspace.CreateCSharp(
+                @"using System;
+                enum E { A, B }
+                class Program
+                {
+                    static void Main()
+                    {
+                        E e = default;
+                        switch (e)
+                        {
+                            case E.$$A: break;
+                        }
+                    }
+                }");
+
+            var fieldSymbol = Assert.IsAssignableFrom<IFieldSymbol>(await FindSymbolAtPositionAsync(workspace));
+            Assert.Equal(TypeKind.Enum, fieldSymbol.ContainingType.TypeKind);
         }
     }
 }
