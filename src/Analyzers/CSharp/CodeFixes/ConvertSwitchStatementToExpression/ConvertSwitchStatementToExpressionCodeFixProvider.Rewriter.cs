@@ -37,6 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 bool shouldMoveNextStatementToSwitchExpression,
                 bool generateDeclaration)
             {
+                if (switchStatement.ContainsDirectives)
+                {
+                    // Do not rewrite statements with preprocessor directives
+                    return switchStatement;
+                }
+
                 var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
 
                 // Rewrite the switch statement as a switch expression.

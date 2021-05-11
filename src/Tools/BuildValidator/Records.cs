@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.CodeAnalysis.Text;
 
 namespace BuildValidator
@@ -28,12 +29,16 @@ namespace BuildValidator
         bool Debug,
         string DebugPath);
 
-    internal record ResolvedSource(
-        string? OnDiskPath,
-        SourceText SourceText,
-        SourceFileInfo SourceFileInfo)
+    /// <summary>An entry in the source-link.json dictionary.</summary>
+    public record SourceLinkEntry
     {
-        public string DisplayPath => OnDiskPath ?? ("[embedded]" + SourceFileInfo.SourceFilePath);
-        public SyntaxTreeInfo SyntaxTreeInfo => new SyntaxTreeInfo(SourceFileInfo.SourceFilePath, SourceText);
+        public string Prefix { get; }
+        public string Replace { get; }
+
+        public SourceLinkEntry(string prefix, string replace)
+        {
+            Prefix = prefix;
+            Replace = replace;
+        }
     }
 }

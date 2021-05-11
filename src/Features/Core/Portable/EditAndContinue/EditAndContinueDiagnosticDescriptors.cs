@@ -145,6 +145,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.SourceFileTooBig, nameof(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big));
             AddRudeEdit(RudeEditKind.InsertIntoGenericType, nameof(FeaturesResources.Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing));
 
+            AddRudeEdit(RudeEditKind.ImplementRecordParameterAsReadOnly, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ImplementRecordParameterWithSet, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.AddRecordPositionalParameter, nameof(FeaturesResources.Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.DeleteRecordPositionalParameter, nameof(FeaturesResources.Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, nameof(FeaturesResources.Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0));
+
+            AddRudeEdit(RudeEditKind.NotSupportedByRuntime, nameof(FeaturesResources.Edit_and_continue_is_not_supported_by_the_runtime));
+            AddRudeEdit(RudeEditKind.MakeMethodAsync, nameof(FeaturesResources.Making_a_method_async_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.MakeMethodIterator, nameof(FeaturesResources.Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.InsertNotSupportedByRuntime, nameof(FeaturesResources.Adding_0_will_prevent_the_debug_session_from_continuing));
+
             // VB specific
             AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ImplementsClauseUpdate, nameof(FeaturesResources.Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing));
@@ -161,7 +172,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddGeneralDiagnostic(EditAndContinueErrorCode.ErrorReadingFile, nameof(FeaturesResources.ErrorReadingFile));
             AddGeneralDiagnostic(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError, nameof(FeaturesResources.CannotApplyChangesUnexpectedError));
             AddGeneralDiagnostic(EditAndContinueErrorCode.ChangesDisallowedWhileStoppedAtException, nameof(FeaturesResources.ChangesDisallowedWhileStoppedAtException));
-            AddGeneralDiagnostic(EditAndContinueErrorCode.ChangesNotAppliedWhileRunning, nameof(FeaturesResources.ChangesNotAppliedWhileRunning), DiagnosticSeverity.Warning);
             AddGeneralDiagnostic(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee, nameof(FeaturesResources.DocumentIsOutOfSyncWithDebuggee), DiagnosticSeverity.Warning);
             AddGeneralDiagnostic(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb, nameof(FeaturesResources.UnableToReadSourceFileOrPdb), DiagnosticSeverity.Warning);
 

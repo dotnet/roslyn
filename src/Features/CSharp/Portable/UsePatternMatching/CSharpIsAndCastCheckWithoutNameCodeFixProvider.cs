@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpAnalyzersResources.Use_pattern_matching))
+                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpIsAndCastCheckWithoutNameCodeFixProvider))
             {
             }
 

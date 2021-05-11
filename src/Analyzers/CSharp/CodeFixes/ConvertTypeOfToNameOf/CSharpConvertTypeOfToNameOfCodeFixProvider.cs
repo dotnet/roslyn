@@ -4,6 +4,7 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -24,11 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
         protected override string GetCodeFixTitle()
             => CSharpCodeFixesResources.Convert_typeof_to_nameof;
 
-        protected override SyntaxNode? GetSymbolTypeExpression(SemanticModel model, SyntaxNode node)
+        protected override SyntaxNode? GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
             if (node is MemberAccessExpressionSyntax { Expression: TypeOfExpressionSyntax typeOfExpression })
             {
-                var typeSymbol = model.GetSymbolInfo(typeOfExpression.Type).Symbol.GetSymbolType();
+                var typeSymbol = model.GetSymbolInfo(typeOfExpression.Type, cancellationToken).Symbol.GetSymbolType();
                 return typeSymbol?.GenerateTypeSyntax();
             }
 

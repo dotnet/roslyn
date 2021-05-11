@@ -52,6 +52,11 @@
         <target state="translated">참조 같음 검사에 대해 'Is Nothing' 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_simplified_object_creation">
+        <source>Prefer simplified object creation</source>
+        <target state="new">Prefer simplified object creation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports">
         <source>Remove unnecessary Imports</source>
         <target state="new">Remove unnecessary Imports</target>

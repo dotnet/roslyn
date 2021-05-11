@@ -230,6 +230,9 @@ namespace Microsoft.CodeAnalysis
                 case TextTags.Record:
                     return ClassificationTypeNames.RecordClassName;
 
+                case TextTags.RecordStruct:
+                    return ClassificationTypeNames.RecordStructName;
+
                 case TextTags.ContainerStart:
                 case TextTags.ContainerEnd:
                     // These tags are not visible so classify them as whitespace
@@ -263,8 +266,8 @@ namespace Microsoft.CodeAnalysis
             if (includeLeftToRightMarker)
             {
                 var classificationTypeName = part.Tag.ToClassificationTypeName();
-                if (classificationTypeName == ClassificationTypeNames.Punctuation ||
-                    classificationTypeName == ClassificationTypeNames.WhiteSpace)
+                if (classificationTypeName is ClassificationTypeNames.Punctuation or
+                    ClassificationTypeNames.WhiteSpace)
                 {
                     text = LeftToRightMarkerPrefix + text;
                 }

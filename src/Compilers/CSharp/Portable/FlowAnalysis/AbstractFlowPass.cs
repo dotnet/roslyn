@@ -1047,13 +1047,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
+        protected BoundNode VisitInterpolatedStringBase(BoundInterpolatedStringBase node)
         {
             foreach (var expr in node.Parts)
             {
                 VisitRvalue(expr);
             }
             return null;
+        }
+
+        public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
+        {
+            return VisitInterpolatedStringBase(node);
+        }
+
+        public override BoundNode VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
+        {
+            return VisitInterpolatedStringBase(node);
         }
 
         public override BoundNode VisitStringInsert(BoundStringInsert node)

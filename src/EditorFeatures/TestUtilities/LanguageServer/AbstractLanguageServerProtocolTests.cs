@@ -246,8 +246,7 @@ namespace Roslyn.Test.Utilities
             string? insertText = null,
             string? sortText = null,
             string? filterText = null,
-            string? displayText = null,
-            int resultId = 0)
+            long resultId = 0)
         {
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -265,10 +264,6 @@ namespace Roslyn.Test.Utilities
                 Kind = kind,
                 Data = JObject.FromObject(new CompletionResolveData()
                 {
-                    DisplayText = displayText ?? label,
-                    TextDocument = request.TextDocument,
-                    Position = request.Position,
-                    CompletionTrigger = completionTrigger,
                     ResultId = resultId,
                 }),
                 Preselect = preselect

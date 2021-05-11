@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -43,15 +45,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static Document GetRequiredDocument(this Solution solution, DocumentId documentId)
-        {
-            var document = solution.GetDocument(documentId);
-            if (document == null)
-            {
-                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
-            }
+            => solution.GetDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
 
-            return document;
-        }
+#if !CODE_STYLE
+
+        public static async Task<Document> GetRequiredDocumentAsync(this Solution solution, DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
+            => (await solution.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken).ConfigureAwait(false)) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+
+#endif
 
         public static TextDocument GetRequiredAdditionalDocument(this Solution solution, DocumentId documentId)
         {

@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
+namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToClass
 {
     internal abstract class AbstractConvertAnonymousTypeToClassCodeRefactoringProvider<
         TExpressionSyntax,

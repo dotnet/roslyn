@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -594,6 +595,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProjectId.CreateFromSerialized(
                 Guid.Parse(projectContext.Id.Substring(0, delimiter)),
                 debugName: projectContext.Id.Substring(delimiter + 1));
+        }
+
+        public static async Task<DocumentOptionSet> FormattingOptionsToDocumentOptionsAsync(
+            LSP.FormattingOptions options,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            // LSP doesn't currently support indent size as an option. However, except in special
+            // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
+            var updatedOptions = documentOptions
+                .WithChangedOption(Formatting.FormattingOptions.UseTabs, !options.InsertSpaces)
+                .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
+                .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
+            return updatedOptions;
         }
 
         private static async Task<ImmutableArray<MappedSpanResult>?> GetMappedSpanResultAsync(TextDocument textDocument, ImmutableArray<TextSpan> textSpans, CancellationToken cancellationToken)

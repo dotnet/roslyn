@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     await ComputeAnalyzerDiagnosticsAsync(pendingAnalysisScope, getPendingEventsOpt: null, taskToken, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     FreeDriver(driver);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1008,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     await WaitForExecutingTaskAsync(executingTreeTask.Item1, alwaysYield: true).ConfigureAwait(false);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var executionTime = GetAnalyzerExecutionTime(analyzer);
                 return new AnalyzerTelemetryInfo(actionCounts, suppressionActionCounts, executionTime);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

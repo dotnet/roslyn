@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                            <Out> ByRef issueSpan As TextSpan,
                                            cancellationToken As CancellationToken) As Boolean
             If memberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) Then
-                Dim symbolForMemberAccess = semanticModel.GetSymbolInfo(DirectCast(memberAccess.Parent, MemberAccessExpressionSyntax)).Symbol
+                Dim symbolForMemberAccess = semanticModel.GetSymbolInfo(DirectCast(memberAccess.Parent, MemberAccessExpressionSyntax), cancellationToken).Symbol
                 If symbolForMemberAccess.IsModuleMember Then
                     replacementNode = memberAccess.Expression.WithLeadingTrivia(memberAccess.GetLeadingTrivia())
                     issueSpan = memberAccess.Name.Span

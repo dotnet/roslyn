@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
                                         int outputSlot = -1;
                                         var originalTupleElement = e.Input.IsOriginalInput && !originalInputElementSlots.IsDefault
-                                            ? field as TupleFieldSymbol
+                                            ? field
                                             : null;
                                         if (originalTupleElement is not null)
                                         {

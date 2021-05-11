@@ -45,21 +45,21 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             foreach (var diagnostic in diagnostics)
             {
                 var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
-                ConvertTypeOfToNameOf(semanticModel, editor, node);
+                ConvertTypeOfToNameOf(semanticModel, editor, node, cancellationToken);
             }
         }
 
         /// <Summary>
         ///  Method converts typeof(...).Name to nameof(...)
         /// </Summary>
-        public void ConvertTypeOfToNameOf(SemanticModel semanticModel, SyntaxEditor editor, SyntaxNode nodeToReplace)
+        public void ConvertTypeOfToNameOf(SemanticModel semanticModel, SyntaxEditor editor, SyntaxNode nodeToReplace, CancellationToken cancellationToken)
         {
-            var typeExpression = GetSymbolTypeExpression(semanticModel, nodeToReplace);
+            var typeExpression = GetSymbolTypeExpression(semanticModel, nodeToReplace, cancellationToken);
             var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
             editor.ReplaceNode(nodeToReplace, nameOfSyntax);
         }
 
-        protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, SyntaxNode node);
+        protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
 
         protected abstract string GetCodeFixTitle();
 

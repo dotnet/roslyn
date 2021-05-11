@@ -7,9 +7,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
@@ -61,32 +61,31 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         /// </summary>
         /// <param name="solution">Solution that represents sources that match the built binaries on disk.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns></returns>
         public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
-            => await _encService.StartDebuggingSessionAsync(solution, captureMatchingDocuments: true, cancellationToken).ConfigureAwait(false);
+            => await _encService.StartDebuggingSessionAsync(solution, DebuggerService.Instance, captureMatchingDocuments: true, cancellationToken).ConfigureAwait(false);
 
+        /// <summary>
+        /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call or 
+        /// the one passed to <see cref="StartSessionAsync(Solution, CancellationToken)"/> for the first invocation.
+        /// </summary>
+        /// <param name="solution">Solution snapshot.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>
+        /// Updates (one for each changed project) and Rude Edit diagnostics. Does not include syntax or semantic diagnostics.
+        /// </returns>
         public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            _encService.StartEditSession(DebuggerService.Instance, out _);
-
             var results = await _encService.EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
-                _encService.CommitSolutionUpdate();
-            }
-
-            _encService.EndEditSession(out _);
-
-            if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Blocked)
-            {
-                return default;
+                _encService.CommitSolutionUpdate(out _);
             }
 
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
                 update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta));
 
-            var diagnostics = results.Diagnostics.SelectMany(d => d.Diagnostic).ToImmutableArray();
+            var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
 
             return (updates, diagnostics);
         }

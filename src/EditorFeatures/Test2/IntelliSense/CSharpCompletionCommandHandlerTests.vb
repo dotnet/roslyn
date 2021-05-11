@@ -2570,7 +2570,7 @@ public class Goo
         End Function
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/47610"), CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function LocalFunctionAttributeNamedPropertyCompletionCommitWithTab(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3272,7 +3272,7 @@ class C
 }
             ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
-                state.SendTypeChars("var @this = ""goo""")
+                state.SendTypeChars("var @this = ""goo"";")
                 state.SendReturn()
                 state.SendTypeChars("string str = this.ToString();")
                 state.SendReturn()
@@ -5277,7 +5277,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/49861")>
+        <WpfTheory>
         <InlineData("r")>
         <InlineData("load")>
         <WorkItem(49861, "https://github.com/dotnet/roslyn/issues/49861")>

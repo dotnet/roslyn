@@ -15,20 +15,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> EmitBaselines;
         public readonly ImmutableArray<ManagedModuleUpdate> Deltas;
         public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)> Regions)> NonRemappableRegions;
-        public readonly ImmutableArray<IDisposable> ModuleReaders;
 
         public PendingSolutionUpdate(
             Solution solution,
             ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> emitBaselines,
             ImmutableArray<ManagedModuleUpdate> deltas,
-            ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
-            ImmutableArray<IDisposable> moduleReaders)
+            ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions)
         {
             Solution = solution;
             EmitBaselines = emitBaselines;
             Deltas = deltas;
             NonRemappableRegions = nonRemappableRegions;
-            ModuleReaders = moduleReaders;
         }
     }
 }

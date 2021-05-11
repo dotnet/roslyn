@@ -37,5 +37,6 @@ namespace Microsoft.Cci
         public const string OptionInfer = "option-infer";
         public const string OptionExplicit = "option-explicit";
         public const string OptionCompareText = "option-compare-text";
+        public const string OutputKind = "output-kind";
     }
 }
