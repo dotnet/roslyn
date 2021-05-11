@@ -2290,7 +2290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
 
-                        // Unless the attribute is a top level attribute (ie, assembly attribute)
+                        // Unless the attribute is a module/assembly attribute
                         if (node.IsParentKind(SyntaxKind.CompilationUnit) || node.Parent.IsParentKind(SyntaxKind.CompilationUnit))
                         {
                             ReportError(RudeEditKind.Insert);
@@ -2371,7 +2371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
 
-                        // Unless the attribute is a top level attribute (ie, assembly attribute)
+                        // Unless the attribute is a module/assembly attribute
                         if (oldNode.IsParentKind(SyntaxKind.CompilationUnit) || oldNode.Parent.IsParentKind(SyntaxKind.CompilationUnit))
                         {
                             ReportError(RudeEditKind.Delete);
@@ -2525,7 +2525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
 
-                        // Unless the attribute is a top level attribute (ie, assembly attribute)
+                        // Unless the attribute is a module/assembly attribute
                         if (newNode.IsParentKind(SyntaxKind.CompilationUnit) || newNode.Parent.IsParentKind(SyntaxKind.CompilationUnit))
                         {
                             ReportError(RudeEditKind.Update);

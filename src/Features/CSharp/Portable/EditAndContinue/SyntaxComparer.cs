@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.FieldVariableDeclarator;
 
                 case SyntaxKind.AttributeList:
-                    // Only top level attributes are labelled
+                    // Only module/assembly attributes are labelled
                     if (node is not null && node.IsParentKind(SyntaxKind.CompilationUnit))
                     {
                         return Label.AttributeList;
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     break;
 
                 case SyntaxKind.Attribute:
-                    // Only top level attributes are labelled
+                    // Only module/assembly attributes are labelled
                     if (node is { Parent: { } parent } && parent.IsParentKind(SyntaxKind.CompilationUnit))
                     {
                         isLeaf = true;

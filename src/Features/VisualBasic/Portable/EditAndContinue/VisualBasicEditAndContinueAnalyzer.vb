@@ -2175,14 +2175,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case SyntaxKind.Attribute
-                        ' Only top level are rude
+                        ' Only module/assembly attributes are rude
                         If node.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
                             ReportError(RudeEditKind.Insert)
                         End If
                         Return
 
                     Case SyntaxKind.AttributeList
-                        ' Only top level are rude
+                        ' Only module/assembly attributes are rude
                         If node.IsParentKind(SyntaxKind.AttributesStatement) Then
                             ReportError(RudeEditKind.Insert)
                         End If
@@ -2257,14 +2257,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case SyntaxKind.AttributeList
-                        ' Only top level attributes are rude edits
+                        ' Only module/assembly attributes are rude edits
                         If oldNode.IsParentKind(SyntaxKind.AttributesStatement) Then
                             ReportError(RudeEditKind.Insert)
                         End If
                         Return
 
                     Case SyntaxKind.Attribute
-                        ' Only top level attributes are rude edits
+                        ' Only module/assembly attributes are rude edits
                         If oldNode.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
                             ReportError(RudeEditKind.Insert)
                         End If
@@ -2459,7 +2459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case SyntaxKind.Attribute
-                        ' Only top level attributes are rude edits
+                        ' Only module/assembly attributes are rude edits
                         If newNode.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
                             ReportError(RudeEditKind.Update)
                         End If
