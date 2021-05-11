@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Document document,
                 CompletionItem item,
                 CompletionResolveData? completionResolveData,
-                bool useVSCompletionItem,
+                bool supportsVSExtensions,
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> commitCharacterRulesCache,
                 CompletionService completionService,
@@ -191,10 +191,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 LSP.Range? defaultRange,
                 CancellationToken cancellationToken)
             {
-                if (useVSCompletionItem)
+                if (supportsVSExtensions)
                 {
                     var vsCompletionItem = await CreateCompletionItemAsync<LSP.VSCompletionItem>(
-                        request, document, item, completionResolveData, useVSCompletionItem, completionTrigger, commitCharacterRulesCache,
+                        request, document, item, completionResolveData, supportsVSExtensions, completionTrigger, commitCharacterRulesCache,
                         completionService, clientName, returnTextEdits, snippetsSupported, stringBuilder,
                         documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                     vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 else
                 {
                     var roslynCompletionItem = await CreateCompletionItemAsync<LSP.CompletionItem>(
-                        request, document, item, completionResolveData, useVSCompletionItem, completionTrigger, commitCharacterRulesCache,
+                        request, document, item, completionResolveData, supportsVSExtensions, completionTrigger, commitCharacterRulesCache,
                         completionService, clientName, returnTextEdits, snippetsSupported, stringBuilder,
                         documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                     return roslynCompletionItem;
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Document document,
                 CompletionItem item,
                 CompletionResolveData? completionResolveData,
-                bool useVSCompletionItem,
+                bool supportsVSExtensions,
                 CompletionTrigger completionTrigger,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> commitCharacterRulesCache,
                 CompletionService completionService,
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     completionItem.InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : completeDisplayText;
                 }
 
-                var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache, useVSCompletionItem);
+                var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache, supportsVSExtensions);
                 if (commitCharacters != null)
                 {
                     completionItem.CommitCharacters = commitCharacters;
@@ -309,12 +309,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             static string[]? GetCommitCharacters(
                 CompletionItem item,
                 Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]> currentRuleCache,
-                bool useVSCompletionItem)
+                bool supportsVSExtensions)
             {
                 // VSCode does not have the concept of soft selection, the list is always hard selected.
                 // In order to emulate soft selection behavior for things like argument completion, regex completion, datetime completion, etc
                 // we create a completion item without any specific commit characters.  This means only tab / enter will commit.
-                if (!useVSCompletionItem && item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.SoftSelection)
+                if (!supportsVSExtensions && item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.SoftSelection)
                 {
                     return Array.Empty<string>();
                 }
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // VS will use the default commit characters if no items are specified on the completion item.
                 // However, other clients like VSCode do not support this behavior so we must specify
                 // commit characters on every completion item - https://github.com/microsoft/vscode/issues/90987
-                if (useVSCompletionItem && commitCharacterRules.IsEmpty)
+                if (supportsVSExtensions && commitCharacterRules.IsEmpty)
                 {
                     return null;
                 }
