@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     ///   allowed is at the end of the basic block.
     /// - Regions group blocks together and represent the lifetime of locals and captures, loosely similar to scopes in C#.
     ///   There are different kinds of regions, <see cref="ControlFlowRegionKind"/>.
-    /// - <see cref="ControlFlowGraphBuilder.SpillEvalStack"/> converts values on the stack into captures. It should be
-    ///   called before entering a new region (to avoid doing it later thus giving those captures an incorrect lifetime).
+    /// - <see cref="ControlFlowGraphBuilder.SpillEvalStack"/> converts values on the stack into captures.
     /// </summary>
     internal sealed partial class ControlFlowGraphBuilder : OperationVisitor<int?, IOperation>
     {
@@ -5633,12 +5632,7 @@ oneMoreTime:
 
         public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(operation.Parent is SimpleAssignmentOperation assignment
-                && assignment.Value == (object)operation
-                && assignment.Parent is AnonymousObjectCreationOperation);
-
-            return new FlowCaptureReferenceOperation(((FlowCaptureReferenceOperation)operation).Id, semanticModel: null,
-                operation.Syntax, operation.Type, operation.GetConstantValue(), operation.IsImplicit);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitIsNull(IIsNullOperation operation, int? captureIdForResult)
