@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
     internal class ValueTrackingTreeItemViewModel : TreeViewItemBase
     {
-        private readonly string _sourceText;
+        private readonly SourceText _sourceText;
         private readonly Glyph _glyph;
         private readonly IGlyphService _glyphService;
 
@@ -42,42 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         public ImmutableArray<ClassifiedSpan> ClassifiedSpans { get; }
 
-        public IList<Inline> Inlines
-        {
-            get
-            {
-                if (ClassifiedSpans.IsDefaultOrEmpty)
-                {
-                    return new List<Inline>();
-                }
-
-                var classifiedTexts = ClassifiedSpans.SelectAsArray(
-                   cs =>
-                   {
-                       var adjustedStart = cs.TextSpan.Start - TextSpan.Start;
-                       return new ClassifiedText(cs.ClassificationType, _sourceText.Substring(adjustedStart, cs.TextSpan.Length));
-                   });
-
-                var spanStartPosition = TextSpan.Start - ClassifiedSpans[0].TextSpan.Start;
-                var spanEndPosition = TextSpan.End - ClassifiedSpans[0].TextSpan.End;
-
-                return classifiedTexts.ToInlines(
-                    TreeViewModel.ClassificationFormatMap,
-                    TreeViewModel.ClassificationTypeMap,
-                    (run, classifiedText, position) =>
-                    {
-                        if (TreeViewModel.HighlightBrush is not null)
-                        {
-                            if (position >= spanStartPosition && position <= spanEndPosition)
-                            {
-                                run.SetValue(
-                                    TextElement.BackgroundProperty,
-                                    TreeViewModel.HighlightBrush);
-                            }
-                        }
-                    });
-            }
-        }
+        public ImmutableArray<Inline> Inlines => CalculateInlines();
 
         public ValueTrackingTreeItemViewModel(
             TextSpan textSpan,
@@ -94,12 +59,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         {
             FileName = fileName;
             TextSpan = textSpan;
-
+            _sourceText = sourceText;
             ClassifiedSpans = classifiedSpans;
             TreeViewModel = treeViewModel;
             ThreadingContext = threadingContext;
 
-            _sourceText = sourceText.ToString(TextSpan);
             _glyph = glyph;
             _glyphService = glyphService;
             Workspace = workspace;
@@ -132,6 +96,39 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
 
             navigationService.TryNavigateToLineAndOffset(Workspace, DocumentId, LineSpan.Start, 0, options, ThreadingContext.DisposalToken);
+        }
+
+        private ImmutableArray<Inline> CalculateInlines()
+        {
+            if (ClassifiedSpans.IsDefaultOrEmpty)
+            {
+                return ImmutableArray<Inline>.Empty;
+            }
+
+            var classifiedTexts = ClassifiedSpans.SelectAsArray(
+               cs =>
+               {
+                   return new ClassifiedText(cs.ClassificationType, _sourceText.ToString(cs.TextSpan));
+               });
+
+            var spanStartPosition = TextSpan.Start - ClassifiedSpans[0].TextSpan.Start;
+            var spanEndPosition = TextSpan.End - ClassifiedSpans[0].TextSpan.End;
+
+            return classifiedTexts.ToInlines(
+                TreeViewModel.ClassificationFormatMap,
+                TreeViewModel.ClassificationTypeMap,
+                (run, classifiedText, position) =>
+                {
+                    if (TreeViewModel.HighlightBrush is not null)
+                    {
+                        if (position >= spanStartPosition && position <= spanEndPosition)
+                        {
+                            run.SetValue(
+                                TextElement.BackgroundProperty,
+                                TreeViewModel.HighlightBrush);
+                        }
+                    }
+                }).ToImmutableArray();
         }
     }
 }
