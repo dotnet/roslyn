@@ -3,10 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -19,37 +15,47 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 {
-    internal class InlineErrorTag : ITag
+    internal class InlineErrorTag : GraphicsTag
     {
         protected string _errorType;
         protected DiagnosticData _diagnostic;
+        protected IEditorFormatMap _editorFormatMap;
 
-        public InlineErrorTag(string errorType, DiagnosticData diagnostic)
+        public InlineErrorTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap)
+            : base(editorFormatMap)
         {
             _errorType = errorType;
             _diagnostic = diagnostic;
+            _editorFormatMap = editorFormatMap;
         }
 
-        public FrameworkElement GetGraphics(IWpfTextView view)
+        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)
         {
             var block = new TextBlock
             {
                 FontStyle = FontStyles.Normal,
-                Text = _diagnostic.Description,
+                Text = _diagnostic.Message,
                 // Adds a little bit of padding to the left of the text relative to the border to make the text seem
                 // more balanced in the border
                 Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
+            var color = GetColor(view, _editorFormatMap) ?? Colors.Gray;
             var border = new Border
             {
-                Background = new SolidColorBrush(GetColor()),
+                Background = new SolidColorBrush(color),
                 Child = block,
                 CornerRadius = new CornerRadius(2),
+                Width = _diagnostic.Message.Length,
                 // Highlighting lines are 2px buffer.  So shift us up by one from the bottom so we feel centered between them.
-                Margin = new Thickness(1, top: 0, 1, bottom: 1),
+                Margin = new Thickness(2, top: 0, 1, bottom: 1),
             };
+
+            void viewportWidthChangedHandler(object s, EventArgs e)
+            {
+                border.Width = view.ViewportWidth;
+            }
 
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
             // affect layout
@@ -59,22 +65,26 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-            return border;
+            Canvas.SetTop(border, bounds.Bounds.Bottom);
+            Canvas.SetLeft(border, bounds.Bounds.Left);
+
+            return new GraphicsResult(border,
+                () => view.ViewportWidthChanged -= viewportWidthChangedHandler);
         }
 
-        private Color GetColor()
+        protected override Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap)
         {
             if (_errorType is PredefinedErrorTypeNames.SyntaxError)
             {
-                return new Color();
+                return Colors.Red;
             }
             else if (_errorType is PredefinedErrorTypeNames.Warning)
             {
-                return new Color();
+                return Colors.Green;
             }
             else
             {
-                return new Color();
+                return Colors.Purple;
             }
         }
     }
