@@ -363,12 +363,12 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             else if (name is DocumentationCommentXmlNames.CElementName or "tt")
             {
                 needPopStyle = true;
-                state.PushStyle(TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace);
+                state.PushStyle(TaggedTextStyle.Code);
             }
             else if (name == DocumentationCommentXmlNames.CodeElementName)
             {
                 needPopStyle = true;
-                state.PushStyle(TaggedTextStyle.Code);
+                state.PushStyle(TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace);
             }
             else if (name == "em" || name == "i")
             {
