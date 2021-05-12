@@ -85,7 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeLens.Tagger
             var workspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
             var guid = workspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
 
-            var span = spanToTag.SnapshotSpan.Span;
+            var snapshotSpan = spanToTag.SnapshotSpan;
+            var snapshot = snapshotSpan.Snapshot;
+            var span = snapshotSpan.Span;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var info in ComputeNodeInfo(root, span.ToTextSpan(), cancellationToken))
@@ -93,11 +95,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeLens.Tagger
                 if (info.Identifier.Span.IsEmpty)
                     continue;
 
-                var descriptor = new CodeLensDescriptor(guid, document, info);
-                context.AddTag(new TagSpan<ICodeLensTag>(
-                    new SnapshotSpan(spanToTag.SnapshotSpan.Snapshot, new Span(info.Identifier.SpanStart, 0)),
-                    new CodeLensTag(descriptor)));
+                // HACK: move the codelens tag one line down so it doesn't collide with teh platform tag.
+                // Remove once we find a way to disalbe the platform side.
+                var start = info.Identifier.SpanStart;
+                var lineNumber = snapshot.GetLineNumberFromPosition(start);
+                if (lineNumber + 1 < snapshot.LineCount)
+                {
+                    start = snapshot.GetLineFromLineNumber(lineNumber + 1).Start;
+                    var descriptor = new CodeLensDescriptor(guid, document, info);
+                    context.AddTag(new TagSpan<ICodeLensTag>(
+                        new SnapshotSpan(spanToTag.SnapshotSpan.Snapshot, new Span(start, 0)),
+                        new CodeLensTag(descriptor)));
+                }
             }
+        }
+
+        protected override bool TagEquals(ICodeLensTag previousTag, ICodeLensTag currentTag)
+        {
+            if (!previousTag.Equals(currentTag))
+                return false;
+
+            return true;
         }
     }
 }

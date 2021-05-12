@@ -207,6 +207,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
             => Task.CompletedTask;
 
+        protected virtual bool TagEquals(TTag previousTag, TTag currentTag)
+        {
+            return EqualityComparer<TTag>.Default.Equals(currentTag, previousTag);
+        }
+
         internal TestAccessor GetTestAccessor()
             => new(this);
 

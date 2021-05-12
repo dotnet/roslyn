@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeLens.Tagger
 {
-    internal class CodeLensDescriptor : ICodeLensDescriptor
+    internal class CodeLensDescriptor : ICodeLensDescriptor, IEquatable<CodeLensDescriptor>
     {
         public Document Document { get; }
 
@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeLens.Tagger
         public Guid ProjectGuid { get; }
 
         public CodeLensNodeInfo Info { get; }
+
         public SyntaxNode SyntaxNode => Info.Node;
         public CodeElementKinds Kind => Info.Kind;
         public FileLinePositionSpan LineSpan => SyntaxNode.GetLocation().GetLineSpan();
@@ -54,6 +55,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeLens.Tagger
             }
 
             return base.ToString();
+        }
+
+        public override bool Equals(object obj)
+            => obj is CodeLensDescriptor descriptor && Equals(descriptor);
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(this.FilePath,
+                   Hash.Combine(this.OutputFilePath,
+                   Hash.Combine(this.ProjectGuid.GetHashCode(),
+                                this.Info.GetHashCode())));
+        }
+
+        public bool Equals(CodeLensDescriptor other)
+        {
+            var result = this.FilePath == other.FilePath &&
+                         this.OutputFilePath == other.OutputFilePath &&
+                         this.ProjectGuid == other.ProjectGuid &&
+                         this.Info == other.Info;
+
+            return result;
         }
     }
 }

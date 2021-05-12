@@ -12,10 +12,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.CodeLens;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeLens.Tagger
 {
-    internal partial class CodeLensTag : ICodeLensTag2, ICodeLensDescriptorContextProvider
+    internal partial class CodeLensTag : ICodeLensTag2, ICodeLensDescriptorContextProvider, IEquatable<CodeLensTag>
     {
         private static readonly int VisualStudioProcessId = Process.GetCurrentProcess().Id;
 
@@ -109,5 +110,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeLens.Tagger
 
             return builder.ToString();
         }
+
+        public override bool Equals(object obj)
+            => obj is CodeLensTag tag && Equals(tag);
+
+        public bool Equals(CodeLensTag other)
+            => _descriptor.Equals(other._descriptor);
+
+        public override int GetHashCode()
+            => _descriptor.GetHashCode();
     }
 }

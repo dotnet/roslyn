@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeLens
 {
     [Export(typeof(IViewTaggerProvider))]
-    [TagType(typeof(Microsoft.VisualStudio.Language.CodeLens.ICodeLensTag))]
+    [TagType(typeof(ICodeLensTag))]
     [VisualStudio.Utilities.ContentType("CSharp")]
     internal class CSharpCodeLensViewTaggerProvider : AbstractCodeLensViewTaggerProvider
     {

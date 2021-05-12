@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     : _dataSource.ProduceTagsAsync(context);
             }
 
-            private static Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
+            private Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
                 ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// <summary>
             /// Return all the spans that appear in only one of <paramref name="latestTree"/> or <paramref name="previousTree"/>.
             /// </summary>
-            private static DiffResult ComputeDifference(
+            private DiffResult ComputeDifference(
                 ITextSnapshot snapshot,
                 TagSpanIntervalTree<TTag> latestTree,
                 TagSpanIntervalTree<TTag> previousTree)
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         }
                         else
                         {
-                            if (!EqualityComparer<TTag>.Default.Equals(latest.Tag, previous.Tag))
+                            if (!_dataSource.TagEquals(snapshot, previous.Tag, latest.Tag))
                                 added.Add(latestSpan);
 
                             latest = NextOrNull(latestEnumerator);
