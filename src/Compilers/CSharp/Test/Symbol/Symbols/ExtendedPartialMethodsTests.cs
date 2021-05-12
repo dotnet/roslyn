@@ -2650,7 +2650,7 @@ partial class C
     public partial int M();
     public partial long M() => 42; // 1
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (5,25): error CS8817: Both partial method declarations must have the same return type.
                 //     public partial long M() => 42; // 1
@@ -2694,7 +2694,7 @@ partial class C
     public partial IEnumerable<string?> M2();
     public partial IEnumerable<string> M2() => null!;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
@@ -2722,7 +2722,7 @@ partial class C
     public partial IEnumerable<string> M2();
     public partial IEnumerable<string?> M2() => null!; // 2
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (8,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
                 //     public partial string? M1() => null; // 1
@@ -2920,9 +2920,15 @@ partial class C
                 // (5,24): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial int M1() => throw null!; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M1").WithLocation(5, 24),
+                // (5,24): warning CS8826: Partial method declarations 'ref int C.M1()' and 'int C.M1()' have differences in parameter names, parameter types, or return types.
+                //     public partial int M1() => throw null!; // 1
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("ref int C.M1()", "int C.M1()").WithLocation(5, 24),
                 // (8,28): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref int M2() => throw null!; // 2
-                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28));
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28),
+                // (8,28): warning CS8826: Partial method declarations 'int C.M2()' and 'ref int C.M2()' have differences in parameter names, parameter types, or return types.
+                //     public partial ref int M2() => throw null!; // 2
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("int C.M2()", "ref int C.M2()").WithLocation(8, 28));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -3010,7 +3016,7 @@ partial class C
     public partial dynamic M2();
     public partial object M2() => null;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
@@ -3037,7 +3043,7 @@ partial class C
     public partial nint M2();
     public partial IntPtr M2() => default;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
@@ -3067,9 +3073,15 @@ partial class C
                 // (5,37): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref readonly int M1() => throw null!; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M1").WithLocation(5, 37),
+                // (5,37): warning CS8826: Partial method declarations 'ref int C.M1()' and 'ref readonly int C.M1()' have differences in parameter names, parameter types, or return types.
+                //     public partial ref readonly int M1() => throw null!; // 1
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("ref int C.M1()", "ref readonly int C.M1()").WithLocation(5, 37),
                 // (8,28): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref int M2() => throw null!; // 2
-                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28));
+                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28),
+                // (8,28): warning CS8826: Partial method declarations 'ref readonly int C.M2()' and 'ref int C.M2()' have differences in parameter names, parameter types, or return types.
+                //     public partial ref int M2() => throw null!; // 2
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("ref readonly int C.M2()", "ref int C.M2()").WithLocation(8, 28));
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]
@@ -3112,7 +3124,7 @@ partial class C
     public partial string? M11() => null; // 8
     public partial string? M12(); // 9
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (6,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
                 //     public partial string? M1() => null; // 1
@@ -3197,9 +3209,12 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (4,31): error CS8818: Partial method declarations must have matching ref return values.
-                //     public partial (int, int) F1() => default;
-                Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 31));
+                    // (4,31): error CS8818: Partial method declarations must have matching ref return values.
+                    //     public partial (int, int) F1() => default;
+                    Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 31),
+                    // (4,31): warning CS8826: Partial method declarations 'ref (int x, int y) C.F1()' and '(int, int) C.F1()' have differences in parameter names, parameter types, or return types.
+                    //     public partial (int, int) F1() => default;
+                    Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("ref (int x, int y) C.F1()", "(int, int) C.F1()").WithLocation(4, 31));
         }
 
         [Fact]
@@ -3216,7 +3231,7 @@ partial class C
     internal partial dynamic F3();
     internal partial object F3() => null; // 3
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5));
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
@@ -3254,7 +3269,7 @@ partial class C
     internal partial IEnumerable<string> F6();
     internal partial IEnumerable<string?> F6() => null!; // 6
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5));
             comp.VerifyDiagnostics(
                 // (6,18): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
                 //     partial void F1(string s) { } // 1
@@ -3315,7 +3330,7 @@ partial class C
     internal partial (T, U) F6<T, U>() => default; // 4
     internal partial (T x, U y) F6<T, U>();
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5));
             verifyDiagnostics(comp);
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
@@ -3356,7 +3371,7 @@ partial class C
     internal partial IEnumerable<System.IntPtr> F4();
     internal partial IEnumerable<nint> F4() => null; // 4
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5));
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
