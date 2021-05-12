@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         bool SupportsMappingImportDirectives { get; }
 
-        Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(
+        Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
             Document oldDocument,
             Document newDocument,
             CancellationToken cancellationToken);
@@ -83,6 +83,4 @@ namespace Microsoft.CodeAnalysis.Host
 
         public bool IsDefault => FilePath == null;
     }
-
-    internal record MappedTextChange(string FilePath, TextChange TextChange);
 }

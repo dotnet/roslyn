@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 /// </summary>
                 public override bool SupportsMappingImportDirectives => false;
 
-                public override async Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(
+                public override async Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
                     Document oldDocument,
                     Document newDocument,
                     CancellationToken cancellationToken)

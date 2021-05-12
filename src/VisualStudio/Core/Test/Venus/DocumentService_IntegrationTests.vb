@@ -293,7 +293,7 @@ class { }
                 End Function
 
                 Public Function GetMappedTextChangesAsync(oldDocument As Document, newDocument As Document, cancellationToken As CancellationToken) _
-                    As Task(Of ImmutableArray(Of MappedTextChange)) _
+                    As Task(Of ImmutableArray(Of (mappedFilePath As String, mappedTextChange As Microsoft.CodeAnalysis.Text.TextChange))) _
                     Implements ISpanMappingService.GetMappedTextChangesAsync
                     Throw New NotImplementedException()
                 End Function

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Host
     {
         public abstract bool SupportsMappingImportDirectives { get; }
 
-        public abstract Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(
+        public abstract Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
             Document oldDocument,
             Document newDocument,
             CancellationToken cancellationToken);
@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.Host
             IEnumerable<TextSpan> spans,
             CancellationToken cancellationToken);
 
-        protected static ImmutableArray<MappedTextChange> MatchMappedSpansToTextChanges(
+        protected static ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)> MatchMappedSpansToTextChanges(
             ImmutableArray<TextChange> textChanges,
             ImmutableArray<MappedSpanResult> mappedSpanResults)
         {
             Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
 
-            using var _ = ArrayBuilder<MappedTextChange>.GetInstance(out var mappedFilePathAndTextChange);
+            using var _ = ArrayBuilder<(string, TextChange)>.GetInstance(out var mappedFilePathAndTextChange);
             for (var i = 0; i < mappedSpanResults.Length; i++)
             {
                 // Only include changes that could be mapped.
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Host
                 if (!mappedSpanResults[i].IsDefault && newText != null)
                 {
                     var newTextChange = new TextChange(mappedSpanResults[i].Span, newText);
-                    mappedFilePathAndTextChange.Add(new MappedTextChange(mappedSpanResults[i].FilePath, newTextChange));
+                    mappedFilePathAndTextChange.Add((mappedSpanResults[i].FilePath, newTextChange));
                 }
             }
 

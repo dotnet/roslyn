@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public bool SupportsMappingImportDirectives { get; }
 
-            public Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(
+            public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
                 Document oldDocument,
                 Document newDocument,
                 CancellationToken cancellationToken)
