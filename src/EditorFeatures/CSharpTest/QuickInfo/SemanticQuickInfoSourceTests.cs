@@ -7320,7 +7320,7 @@ List<string> y = null;"));
             var markup =
 @"using I$$ = IGoo;
 /// <summary>
-/// Normalize    this, but <c>Not        this</c>
+/// Normalize    this, and <c>Also        this</c>
 /// <code>
 /// line 1
 /// line     2
@@ -7330,7 +7330,7 @@ interface IGoo {  }";
 
             await TestAsync(markup,
                 MainDescription("interface IGoo"),
-                Documentation(@"Normalize this, but Not        this
+                Documentation(@"Normalize this, and Also this
 
 line 1
 line     2"));

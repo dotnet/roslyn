@@ -65,7 +65,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         <Document>
                             class MyClass {
                                 /// &lt;summary&gt;
-                                /// Normalize    this, but &lt;c&gt;Not        this&lt;/c&gt;
+                                /// Normalize    this, &lt;c&gt;and             also
+                                /// this&lt;/c&gt;
                                 /// &lt;code&gt;
                                 /// line 1
                                 /// line     2
@@ -98,9 +99,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
                    New ClassifiedTextElement(
-                       New ClassifiedTextRun(ClassificationTypeNames.Text, "Normalize this, but"),
+                       New ClassifiedTextRun(ClassificationTypeNames.Text, "Normalize this,"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "Not        this", ClassifiedTextRunStyle.UseClassificationFont))),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "and also this", ClassifiedTextRunStyle.UseClassificationFont))),
                 New ClassifiedTextElement(
                     New ClassifiedTextRun(ClassificationTypeNames.Text, $"line 1{vbCrLf}line     2", ClassifiedTextRunStyle.UseClassificationFont)),
                 New ClassifiedTextElement(

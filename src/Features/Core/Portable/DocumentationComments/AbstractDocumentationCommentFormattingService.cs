@@ -360,9 +360,12 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
                 return;
             }
-            else if (name == DocumentationCommentXmlNames.CElementName
-                || name == DocumentationCommentXmlNames.CodeElementName
-                || name == "tt")
+            else if (name is DocumentationCommentXmlNames.CElementName or "tt")
+            {
+                needPopStyle = true;
+                state.PushStyle(TaggedTextStyle.InlineCode);
+            }
+            else if (name == DocumentationCommentXmlNames.CodeElementName)
             {
                 needPopStyle = true;
                 state.PushStyle(TaggedTextStyle.Code);
