@@ -31,8 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeLens
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCodeLensViewTaggerProvider(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener)
-            : base(threadingContext, asyncListener)
+            IAsynchronousOperationListenerProvider asyncListenerProvider)
+            : base(threadingContext, asyncListenerProvider)
         {
         }
 

@@ -29,8 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeLens.Tagger
     {
         protected AbstractCodeLensViewTaggerProvider(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener)
-            : base(threadingContext, asyncListener)
+            IAsynchronousOperationListenerProvider asyncListenerProvider)
+            : base(threadingContext, asyncListenerProvider.GetListener(FeatureAttribute.CodeLens))
         {
         }
 
