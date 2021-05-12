@@ -131,25 +131,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 Return False
             End If
 
-            Select Case node.Kind()
-                Case SyntaxKind.ClassBlock
-                    Dim classDecl = CType(node, ClassBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
+            Dim kind = node.Kind()
+            Select Case kind
+                Case SyntaxKind.ClassBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock
+                    Dim typeBlock = CType(node, TypeBlockSyntax)
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
-                        classDecl.ClassStatement.Identifier.ValueText,
-                        GetTypeParameterSuffix(classDecl.ClassStatement.TypeParameterList),
+                        typeDecl.BlockStatement.Identifier.ValueText,
+                        GetTypeParameterSuffix(typeBlock.BlockStatement.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent, rootNamespace),
-                        classDecl.ClassStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Class,
-                        GetAccessibility(classDecl, classDecl.ClassStatement.Modifiers),
-                        classDecl.ClassStatement.Identifier.Span,
-                        GetInheritanceNames(stringTable, classDecl),
-                        IsNestedType(classDecl))
+                        typeBlock.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        If(kind = SyntaxKind.ClassBlock, DeclaredSymbolInfoKind.Class,
+                        If(kind = SyntaxKind.InterfaceBlock, DeclaredSymbolInfoKind.Interface,
+                        If(kind = SyntaxKind.ModuleBlock, DeclaredSymbolInfoKind.Module,
+                        DeclaredSymbolInfoKind.Struct))),
+                        GetAccessibility(typeBlock, typeBlock.BlockStatement.Modifiers),
+                        typeBlock.BlockStatement.Identifier.Span,
+                        GetInheritanceNames(stringTable, typeBlock),
+                        IsNestedType(typeBlock))
                     Return True
                 Case SyntaxKind.EnumBlock
                     Dim enumDecl = CType(node, EnumBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         enumDecl.EnumStatement.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(node.Parent),
@@ -161,56 +165,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         ImmutableArray(Of String).Empty,
                         IsNestedType(enumDecl))
                     Return True
-                Case SyntaxKind.InterfaceBlock
-                    Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
-                        stringTable,
-                        interfaceDecl.InterfaceStatement.Identifier.ValueText,
-                        GetTypeParameterSuffix(interfaceDecl.InterfaceStatement.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
-                        interfaceDecl.InterfaceStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Interface,
-                        GetAccessibility(interfaceDecl, interfaceDecl.InterfaceStatement.Modifiers),
-                        interfaceDecl.InterfaceStatement.Identifier.Span,
-                        GetInheritanceNames(stringTable, interfaceDecl),
-                        IsNestedType(interfaceDecl))
-                    Return True
-                Case SyntaxKind.ModuleBlock
-                    Dim moduleDecl = CType(node, ModuleBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
-                        stringTable,
-                        moduleDecl.ModuleStatement.Identifier.ValueText,
-                        GetTypeParameterSuffix(moduleDecl.ModuleStatement.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
-                        moduleDecl.ModuleStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Module,
-                        GetAccessibility(moduleDecl, moduleDecl.ModuleStatement.Modifiers),
-                        moduleDecl.ModuleStatement.Identifier.Span,
-                        GetInheritanceNames(stringTable, moduleDecl),
-                        IsNestedType(moduleDecl))
-                    Return True
-                Case SyntaxKind.StructureBlock
-                    Dim structDecl = CType(node, StructureBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
-                        stringTable,
-                        structDecl.StructureStatement.Identifier.ValueText,
-                        GetTypeParameterSuffix(structDecl.StructureStatement.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
-                        structDecl.StructureStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Struct,
-                        GetAccessibility(structDecl, structDecl.StructureStatement.Modifiers),
-                        structDecl.StructureStatement.Identifier.Span,
-                        GetInheritanceNames(stringTable, structDecl),
-                        IsNestedType(structDecl))
-                    Return True
                 Case SyntaxKind.ConstructorBlock
                     Dim constructor = CType(node, ConstructorBlockSyntax)
                     Dim typeBlock = TryCast(constructor.Parent, TypeBlockSyntax)
                     If typeBlock IsNot Nothing Then
-                        declaredSymbolInfo = New DeclaredSymbolInfo(
+                        declaredSymbolInfo = DeclaredSymbolInfo.Create(
                             stringTable,
                             typeBlock.BlockStatement.Identifier.ValueText,
                             GetConstructorSuffix(constructor),
@@ -227,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     End If
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
                     Dim delegateDecl = CType(node, DelegateStatementSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
@@ -241,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Return True
                 Case SyntaxKind.EnumMemberDeclaration
                     Dim enumMember = CType(node, EnumMemberDeclarationSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         enumMember.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(node.Parent),
@@ -256,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Dim eventDecl = CType(node, EventStatementSyntax)
                     Dim statementOrBlock = If(TypeOf node.Parent Is EventBlockSyntax, node.Parent, node)
                     Dim eventParent = statementOrBlock.Parent
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         eventDecl.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(eventParent),
@@ -269,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Return True
                 Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
                     Dim funcDecl = CType(node, MethodBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         funcDecl.SubOrFunctionStatement.Identifier.ValueText,
                         GetMethodSuffix(funcDecl),
@@ -288,16 +247,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Dim variableDeclarator = TryCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
                     Dim fieldDecl = TryCast(variableDeclarator?.Parent, FieldDeclarationSyntax)
                     If fieldDecl IsNot Nothing Then
-                        Dim kind = If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
-                            DeclaredSymbolInfoKind.Constant,
-                            DeclaredSymbolInfoKind.Field)
-                        declaredSymbolInfo = New DeclaredSymbolInfo(
+                        declaredSymbolInfo = DeclaredSymbolInfo.Create(
                             stringTable,
                             modifiedIdentifier.Identifier.ValueText, Nothing,
                             GetContainerDisplayName(fieldDecl.Parent),
                             GetFullyQualifiedContainerName(fieldDecl.Parent, rootNamespace),
                             fieldDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                            kind,
+                            If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
+                                DeclaredSymbolInfoKind.Constant,
+                                DeclaredSymbolInfoKind.Field),
                             GetAccessibility(fieldDecl, fieldDecl.Modifiers),
                             modifiedIdentifier.Identifier.Span,
                             ImmutableArray(Of String).Empty)
@@ -307,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Dim propertyDecl = CType(node, PropertyStatementSyntax)
                     Dim statementOrBlock = If(TypeOf node.Parent Is PropertyBlockSyntax, node.Parent, node)
                     Dim propertyParent = statementOrBlock.Parent
-                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         propertyDecl.Identifier.ValueText,
                         GetPropertySuffix(propertyDecl),

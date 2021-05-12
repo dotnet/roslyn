@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             _spanProvider = new RemoteEditAndContinueServiceProxy(_workspace);
         }
 
-        public void StartTracking()
+        public async ValueTask StartTrackingAsync(Solution solution, CancellationToken cancellationToken)
         {
             var newSession = new TrackingSession(_workspace, _spanProvider);
             if (Interlocked.CompareExchange(ref _session, newSession, null) != null)
@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 Contract.Fail("Can only track active statements for a single edit session.");
             }
 
-            // fire and forget on a background thread:
-            _ = Task.Run(() => newSession.TrackActiveSpansAsync()).ReportNonFatalErrorAsync();
+            await newSession.TrackActiveSpansAsync(solution, cancellationToken).ConfigureAwait(false);
 
             TrackingChanged?.Invoke();
         }
@@ -164,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 }
             }
 
-            internal async Task TrackActiveSpansAsync()
+            internal async Task TrackActiveSpansAsync(Solution solution, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -174,8 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         return;
                     }
 
-                    var currentSolution = _workspace.CurrentSolution;
-                    var baseActiveStatementSpans = await _spanProvider.GetBaseActiveStatementSpansAsync(currentSolution, openDocumentIds, _cancellationSource.Token).ConfigureAwait(false);
+                    var baseActiveStatementSpans = await _spanProvider.GetBaseActiveStatementSpansAsync(solution, openDocumentIds, cancellationToken).ConfigureAwait(false);
                     if (baseActiveStatementSpans.IsDefault)
                     {
                         // Edit session not in progress.
@@ -187,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                     foreach (var id in openDocumentIds)
                     {
-                        documents.Add(await currentSolution.GetDocumentAsync(id, includeSourceGenerated: true, _cancellationSource.Token).ConfigureAwait(false));
+                        documents.Add(await solution.GetDocumentAsync(id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false));
                     }
 
                     lock (_trackingSpans)

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(method.ParameterCount > 0);
             Debug.Assert((object)receiverType != null);
 
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
 
             method = InferExtensionMethodTypeArguments(method, receiverType, compilation, ref useSiteInfo);
             if ((object)method == null)

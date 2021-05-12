@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionOptions.EnterKeyBehavior,
             CompletionOptions.SnippetsBehavior,
             CompletionOptions.ShowItemsFromUnimportedNamespaces,
-            CompletionOptions.TriggerInArgumentLists);
+            CompletionOptions.TriggerInArgumentLists,
+            CompletionOptions.EnableArgumentCompletionSnippets);
     }
 }

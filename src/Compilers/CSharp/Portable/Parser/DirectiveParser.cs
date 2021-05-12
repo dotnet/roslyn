@@ -325,8 +325,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (errorText.Equals("version", StringComparison.Ordinal))
                     {
                         string version = CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
+                        var specified = this.Options.SpecifiedLanguageVersion;
+                        var effective = specified.MapSpecifiedToEffectiveVersion();
+
+                        var displayLanguageVersion = specified == effective ? specified.ToDisplayString() : $"{specified.ToDisplayString()} ({effective.ToDisplayString()})";
+
                         eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
-                            this.Options.SpecifiedLanguageVersion.ToDisplayString());
+                            displayLanguageVersion);
                     }
                     else
                     {

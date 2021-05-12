@@ -749,18 +749,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private OleInterop.IOleUndoManager? TryGetUndoManager()
         {
-            var documentTrackingService = this.Services.GetService<IDocumentTrackingService>();
-            if (documentTrackingService != null)
+            var documentTrackingService = this.Services.GetRequiredService<IDocumentTrackingService>();
+            var documentId = documentTrackingService.TryGetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
+            if (documentId != null)
             {
-                var documentId = documentTrackingService.TryGetActiveDocument() ?? documentTrackingService.GetVisibleDocuments().FirstOrDefault();
-                if (documentId != null)
-                {
-                    var composition = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
-                    var exportProvider = composition.DefaultExportProvider;
-                    var editorAdaptersService = exportProvider.GetExportedValue<IVsEditorAdaptersFactoryService>();
+                var composition = (IComponentModel)ServiceProvider.GlobalProvider.GetService(typeof(SComponentModel));
+                var exportProvider = composition.DefaultExportProvider;
+                var editorAdaptersService = exportProvider.GetExportedValue<IVsEditorAdaptersFactoryService>();
 
-                    return editorAdaptersService.TryGetUndoManager(this, documentId, CancellationToken.None);
-                }
+                return editorAdaptersService.TryGetUndoManager(this, documentId, CancellationToken.None);
             }
 
             return null;
@@ -1400,6 +1397,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
+
+                if (_lazyExternalErrorDiagnosticUpdateSource.IsValueCreated)
+                {
+                    _lazyExternalErrorDiagnosticUpdateSource.Value.Dispose();
+                }
             }
 
             base.Dispose(finalize);

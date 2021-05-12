@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 {
@@ -24,18 +25,18 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
         {
             private readonly IThreadingContext _threadingContext;
             private readonly IStreamingFindUsagesPresenter _presenter;
-            private readonly IWaitIndicator _waitIndicator;
+            private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
             private bool _disposed;
 
             public NavigableSymbolSource(
                 IThreadingContext threadingContext,
                 IStreamingFindUsagesPresenter streamingPresenter,
-                IWaitIndicator waitIndicator)
+                IUIThreadOperationExecutor uiThreadOperationExecutor)
             {
                 _threadingContext = threadingContext;
                 _presenter = streamingPresenter;
-                _waitIndicator = waitIndicator;
+                _uiThreadOperationExecutor = uiThreadOperationExecutor;
             }
 
             public void Dispose()
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 }
 
                 var snapshotSpan = new SnapshotSpan(snapshot, context.Span.ToSpan());
-                return new NavigableSymbol(definitions.ToImmutableArray(), snapshotSpan, document, _threadingContext, _presenter, _waitIndicator);
+                return new NavigableSymbol(definitions.ToImmutableArray(), snapshotSpan, document, _threadingContext, _presenter, _uiThreadOperationExecutor);
             }
         }
     }

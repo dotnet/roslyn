@@ -85,8 +85,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(AddImportsOnPaste)}"));
 
         public static readonly Option2<bool?> OfferRemoveUnusedReferences = new(
-            nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: null,
+            nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
+
+        public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
+            nameof(FeatureOnOffOptions), nameof(AutomaticallyCompleteStatementOnSemicolon), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(AutomaticallyCompleteStatementOnSemicolon)}"));
+
     }
 
     [ExportOptionProvider, Shared]
@@ -117,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.NavigateToDecompiledSources,
             FeatureOnOffOptions.UseEnhancedColors,
             FeatureOnOffOptions.AddImportsOnPaste,
-            FeatureOnOffOptions.OfferRemoveUnusedReferences);
+            FeatureOnOffOptions.OfferRemoveUnusedReferences,
+            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
     }
 }

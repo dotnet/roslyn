@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Returns true if the completion item matches the pattern so far.  Returns 'true'
-        /// iff the completion item matches and should be included in the filtered completion
+        /// if and only if the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
         public bool MatchesPattern(string text, string pattern, CultureInfo culture)

@@ -183,10 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 _initialUnfilteredModel = result;
             }
 
-            if (updateController)
-            {
-                _controller.OnModelUpdated(result);
-            }
+            _controller.OnModelUpdated(result, updateController);
         }
     }
 }

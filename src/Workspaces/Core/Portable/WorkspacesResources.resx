@@ -573,4 +573,7 @@
     <value>CodeAction '{0}' did not produce a changed solution</value>
     <comment>"CodeAction" is a specific type, and {0} represents the title shown by the action.</comment>
   </data>
+  <data name="Predefined_conversion_from_0_to_1" xml:space="preserve">
+    <value>Predefined conversion from {0} to {1}.</value>
+  </data>
 </root>

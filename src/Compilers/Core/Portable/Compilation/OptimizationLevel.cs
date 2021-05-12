@@ -48,41 +48,45 @@ namespace Microsoft.CodeAnalysis
 
     internal static class OptimizationLevelFacts
     {
+        internal static (OptimizationLevel OptimizationLevel, bool DebugPlus) DefaultValues => (OptimizationLevel.Debug, false);
+
         public static string ToPdbSerializedString(this OptimizationLevel optimization, bool debugPlusMode)
-        => optimization switch
-        {
-            OptimizationLevel.Release => "release",
-            OptimizationLevel.Debug => debugPlusMode ? "debug-plus" : "debug",
-            _ => throw ExceptionUtilities.UnexpectedValue(optimization)
-        };
+            => (optimization, debugPlusMode) switch
+            {
+                (OptimizationLevel.Release, true) => "release-debug-plus",
+                (OptimizationLevel.Release, false) => "release",
+                (OptimizationLevel.Debug, true) => "debug-plus",
+                (OptimizationLevel.Debug, false) => "debug",
+                _ => throw ExceptionUtilities.UnexpectedValue(optimization)
+            };
 
         public static bool TryParsePdbSerializedString(string value, out OptimizationLevel optimizationLevel, out bool debugPlusMode)
         {
-            if (value == "release")
+            switch (value)
             {
-                optimizationLevel = OptimizationLevel.Release;
-                debugPlusMode = false;
-                return true;
+                case "release-debug-plus":
+                    optimizationLevel = OptimizationLevel.Release;
+                    debugPlusMode = true;
+                    return true;
+                case "release":
+                    optimizationLevel = OptimizationLevel.Release;
+                    debugPlusMode = false;
+                    return true;
+                case "debug-plus":
+                    optimizationLevel = OptimizationLevel.Debug;
+                    debugPlusMode = true;
+                    return true;
+                case "debug":
+                    optimizationLevel = OptimizationLevel.Debug;
+                    debugPlusMode = false;
+                    return true;
+                default:
+                    optimizationLevel = OptimizationLevel.Debug;
+                    debugPlusMode = false;
+                    return false;
             }
-            else if (value == "debug")
-            {
-                optimizationLevel = OptimizationLevel.Debug;
-                debugPlusMode = false;
-                return true;
-            }
-            else if (value == "debug-plus")
-            {
-                optimizationLevel = OptimizationLevel.Debug;
-                debugPlusMode = true;
-                return true;
-            }
-
-            optimizationLevel = default;
-            debugPlusMode = default;
-            return false;
         }
     }
-
 
     internal static partial class EnumBounds
     {

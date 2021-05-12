@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -219,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
                 workQueue.AddWork(new DocumentAndComments(documentId, infos));
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 // report NFW before returning back to the remote process
                 throw ExceptionUtilities.Unreachable;

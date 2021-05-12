@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
-using System;
-using System.IO.Pipelines;
-using Microsoft.VisualStudio.Threading;
-using System.Diagnostics;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, Checksum checksum, SolutionAsset asset, CancellationToken cancellationToken)
             {
+                Debug.Assert(asset.Kind != WellKnownSynchronizationKind.Null, "We should not be sending null assets");
                 checksum.WriteTo(writer);
                 writer.WriteInt32((int)asset.Kind);
 
@@ -186,8 +187,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // in service hub, cancellation means simply closed stream
                 var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
 
-                // we should not request null assets:
-                Debug.Assert(result != null);
+                Debug.Assert(result != null, "We should not be requesting null assets");
 
                 results.Add((responseChecksum, result));
             }

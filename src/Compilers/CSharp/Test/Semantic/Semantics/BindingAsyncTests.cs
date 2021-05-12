@@ -1239,7 +1239,7 @@ interface IInterface
             CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (4,16): error CS8503: The modifier 'async' is not valid for this item in C# 7. Please use language version 'preview' or greater.
                 //     async void F(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F").WithArguments("async", "7.0", "8.0").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F").WithArguments("async", "7.0", "8.0").WithLocation(4, 16),
                 // (4,16): error CS1994: The 'async' modifier can only be used in methods that have a body.
                 //     async void F(); 
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "F").WithLocation(4, 16)
@@ -3149,7 +3149,7 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (7,34): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or lambda expressions
+                // (7,34): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
                 //     async Task M1(TypedReference tr)
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "tr").WithArguments("System.TypedReference"));
         }
@@ -3170,7 +3170,7 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,9): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or lambda expressions
+                // (9,9): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
                 //         TypedReference tr;
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "TypedReference").WithArguments("System.TypedReference"),
                 // (9,24): warning CS0168: The variable 'tr' is declared but never used
@@ -3194,7 +3194,7 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (9,9): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or lambda expressions
+                // (9,9): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions
                 //         var tr = new TypedReference();
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.TypedReference"));
         }
@@ -3216,7 +3216,7 @@ public class MyClass
                 // (8,31): error CS0209: The type of a local declared in a fixed statement must be a pointer type
                 //         fixed (TypedReference tr) { }
                 Diagnostic(ErrorCode.ERR_BadFixedInitType, "tr"),
-                // (8,16): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or lambda expressions.
+                // (8,16): error CS4012: Parameters or locals of type 'System.TypedReference' cannot be declared in async methods or async lambda expressions.
                 //         fixed (TypedReference tr) { }
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "TypedReference").WithArguments("System.TypedReference"),
                 // (8,31): error CS0210: You must provide an initializer in a fixed or using statement declaration

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         private readonly ITestOutputHelper _logger;
 #pragma warning restore
 
-        public AbstractCodeActionOrUserDiagnosticTest(ITestOutputHelper logger = null)
+        protected AbstractCodeActionOrUserDiagnosticTest(ITestOutputHelper logger = null)
         {
             _logger = logger;
         }

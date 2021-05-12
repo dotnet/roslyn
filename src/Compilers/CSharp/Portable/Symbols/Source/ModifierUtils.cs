@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
                         Debug.Assert(oneError != DeclarationModifiers.None);
                         errorModifiers = errorModifiers & ~oneError;
-                        diagnostics.Add(ErrorCode.ERR_DefaultInterfaceImplementationModifier, errorLocation,
+                        diagnostics.Add(ErrorCode.ERR_InvalidModifierForLanguageVersion, errorLocation,
                                         ConvertSingleModifierToSyntaxText(oneError),
                                         availableVersionArgument,
                                         requiredVersionArgument);

@@ -33,7 +33,7 @@
     <RoslynPackageGuid>6cf2e545-6109-4730-8883-cf43d7aec3e1</RoslynPackageGuid>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefPackageRegistration Include="{$(RoslynPackageGuid)}" Name="RoslynPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage" AllowsBackgroundLoad="true"/>
+    <PkgDefPackageRegistration Include="{$(RoslynPackageGuid)}" Name="RoslynPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage" AllowsBackgroundLoad="true" />
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
     <None Include=".\ColorSchemes\VisualStudio2019.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
@@ -199,8 +199,7 @@
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 
-  <Target Name="GeneratePkgDefServiceRegistrations"
-          BeforeTargets="GeneratePkgDef">
+  <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="GeneratePkgDef">
     <ItemGroup>
       <!-- Add registrations for 32-bit, 64-bit, and 64-bit Server GC -->
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)')" Condition="'%(ServiceHubService.IsBrokered)' == 'true'" />

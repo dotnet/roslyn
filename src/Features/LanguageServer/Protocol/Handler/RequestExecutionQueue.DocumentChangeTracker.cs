@@ -78,14 +78,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public void StartTracking(Uri documentUri, SourceText initialText)
             {
-                Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(documentUri), "didOpen received for an already open document.");
+                Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(documentUri), $"didOpen received for {documentUri} which is already open.");
 
                 _trackedDocuments.Add(documentUri, initialText);
             }
 
             public void UpdateTrackedDocument(Uri documentUri, SourceText text)
             {
-                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), "didChange received for a document that isn't open.");
+                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), $"didChange received for {documentUri} which is not open.");
 
                 _trackedDocuments[documentUri] = text;
             }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public void StopTracking(Uri documentUri)
             {
-                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), "didClose received for a document that isn't open.");
+                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), $"didClose received for {documentUri} which is not open.");
 
                 _trackedDocuments.Remove(documentUri);
             }

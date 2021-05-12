@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private readonly Func<Symbol, RetargetingNamespaceSymbol> _createRetargetingNamespace;
         private readonly Func<Symbol, RetargetingTypeParameterSymbol> _createRetargetingTypeParameter;
         private readonly Func<Symbol, RetargetingNamedTypeSymbol> _createRetargetingNamedType;
-        private readonly Func<Symbol, RetargetingFieldSymbol> _createRetargetingField;
+        private readonly Func<Symbol, FieldSymbol> _createRetargetingField;
         private readonly Func<Symbol, RetargetingPropertySymbol> _createRetargetingProperty;
         private readonly Func<Symbol, RetargetingEventSymbol> _createRetargetingEvent;
 
@@ -57,9 +57,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return new RetargetingNamedTypeSymbol(this, (NamedTypeSymbol)symbol);
         }
 
-        private RetargetingFieldSymbol CreateRetargetingField(Symbol symbol)
+        private FieldSymbol CreateRetargetingField(Symbol symbol)
         {
             Debug.Assert(ReferenceEquals(symbol.ContainingModule, _underlyingModule));
+            if (symbol is TupleErrorFieldSymbol tupleErrorField)
+            {
+                var correspondingTupleField = tupleErrorField.CorrespondingTupleField;
+                Debug.Assert(correspondingTupleField is TupleErrorFieldSymbol);
+
+                var retargetedCorrespondingDefaultFieldOpt = (correspondingTupleField == (object)tupleErrorField)
+                    ? null
+                    : (TupleErrorFieldSymbol)RetargetingTranslator.Retarget(correspondingTupleField);
+
+                return new TupleErrorFieldSymbol(
+                    RetargetingTranslator.Retarget(tupleErrorField.ContainingType, RetargetOptions.RetargetPrimitiveTypesByName),
+                    tupleErrorField.Name,
+                    tupleErrorField.TupleElementIndex,
+                    tupleErrorField.Locations.IsEmpty ? null : tupleErrorField.Locations[0],
+                    this.RetargetingTranslator.Retarget(tupleErrorField.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
+                    tupleErrorField.GetUseSiteInfo().DiagnosticInfo,
+                    tupleErrorField.IsImplicitlyDeclared,
+                    retargetedCorrespondingDefaultFieldOpt);
+            }
+
             return new RetargetingFieldSymbol(this, (FieldSymbol)symbol);
         }
 

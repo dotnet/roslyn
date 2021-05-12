@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         attributesSyntaxList = ((TypeDeclarationSyntax)typeDecl).AttributeLists;
                         break;
 

@@ -17,11 +17,11 @@
     <PkgDefInstalledProduct Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
                             Name="Microsoft Visual Basic"
                             DisplayName="#113"
-                            ProductDetails="#114"/>
+                            ProductDetails="#114" />
     <PkgDefPackageRegistration Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
                                Name="VisualBasicPackage"
                                Class="Microsoft.VisualStudio.LanguageServices.VisualBasic.VisualBasicPackage"
-                               AllowsBackgroundLoad="true"/>
+                               AllowsBackgroundLoad="true" />
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup Label="Project References">

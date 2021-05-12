@@ -27,25 +27,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         }
 
         public bool IsEnabled(FunctionId functionId)
-            => true;
+            => _session.IsOptedIn;
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
-            if (!(logMessage is KeyValueLogMessage kvLogMessage))
+            if (logMessage.LogLevel < LogLevel.Information)
             {
                 return;
             }
 
             try
             {
-                // guard us from exception thrown by telemetry
-                if (!kvLogMessage.ContainsProperty)
+                if (logMessage is KeyValueLogMessage { ContainsProperty: false })
                 {
+                    // guard us from exception thrown by telemetry
                     _session.PostEvent(functionId.GetEventName());
                     return;
                 }
 
-                var telemetryEvent = CreateTelemetryEvent(functionId, kvLogMessage);
+                var telemetryEvent = CreateTelemetryEvent(functionId, logMessage);
                 _session.PostEvent(telemetryEvent);
             }
             catch
@@ -127,10 +127,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             };
         }
 
-        private static TelemetryEvent CreateTelemetryEvent(FunctionId functionId, KeyValueLogMessage logMessage)
+        private static TelemetryEvent CreateTelemetryEvent(FunctionId functionId, LogMessage logMessage)
         {
             var eventName = functionId.GetEventName();
-            return AppendProperties(new TelemetryEvent(eventName), functionId, logMessage);
+            var telemetryEvent = new TelemetryEvent(eventName);
+
+            if (logMessage is KeyValueLogMessage kvLogMessage)
+            {
+                telemetryEvent = AppendProperties(telemetryEvent, functionId, kvLogMessage);
+            }
+
+            return telemetryEvent;
         }
 
         private static T AppendProperties<T>(T @event, FunctionId functionId, KeyValueLogMessage logMessage)

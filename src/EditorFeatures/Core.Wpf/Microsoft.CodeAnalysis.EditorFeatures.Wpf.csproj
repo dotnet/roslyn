@@ -69,8 +69,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="EditorFeaturesWpfResources.resx" GenerateSource="true" />
   </ItemGroup>
 </Project>

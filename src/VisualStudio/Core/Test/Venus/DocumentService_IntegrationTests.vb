@@ -67,7 +67,8 @@ class {|Definition:C1|}
             Using workspace = TestWorkspace.Create(input, composition:=composition, documentServiceProvider:=TestDocumentServiceProvider.Instance)
 
                 Dim presenter = New StreamingFindUsagesPresenter(workspace, workspace.ExportProvider.AsExportProvider())
-                Dim context = presenter.StartSearch("test", supportsReferences:=True, CancellationToken.None)
+                Dim tuple = presenter.StartSearch("test", supportsReferences:=True)
+                Dim context = tuple.context
 
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
@@ -76,7 +77,7 @@ class {|Definition:C1|}
                 Assert.NotNull(startDocument)
 
                 Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
-                Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
+                Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context, CancellationToken.None)
 
                 Dim definitionDocument = workspace.Documents.First(Function(d) d.AnnotatedSpans.ContainsKey("Definition"))
                 Dim definitionText = Await workspace.CurrentSolution.GetDocument(definitionDocument.Id).GetTextAsync()

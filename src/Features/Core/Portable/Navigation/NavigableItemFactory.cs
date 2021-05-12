@@ -24,9 +24,6 @@ namespace Microsoft.CodeAnalysis.Navigation
                 solution, symbol, location, displayTaggedParts);
         }
 
-        public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
-            => new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
-
         public static ImmutableArray<INavigableItem> GetItemsFromPreferredSourceLocations(
             Solution solution,
             ISymbol symbol,

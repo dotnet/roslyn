@@ -3,18 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -41,20 +37,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ActiveStatementTaggerProvider(
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
         }
+
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             AssertIsForeground();
 
             return TaggerEventSources.Compose(
-                new EventSource(subjectBuffer, TaggerDelay.Short),
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
+                new EventSource(subjectBuffer),
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<ITextMarkerTag> context)
