@@ -250,5 +250,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     }
 }", offeredWhenRequireForClarityIsEnabled: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestAlwaysNecessaryForDiscard()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+class C
+{
+    void M(object o)
+    {
+        if (o is $$(_))
+        {
+        }
+    }
+}");
+        }
     }
 }
