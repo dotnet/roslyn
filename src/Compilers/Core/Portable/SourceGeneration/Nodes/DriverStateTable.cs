@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -34,6 +35,8 @@ namespace Microsoft.CodeAnalysis
 
             private readonly ImmutableDictionary<object, object>.Builder _inputBuilder = ImmutableDictionary.CreateBuilder<object, object>();
 
+            private readonly ArrayBuilder<ISyntaxTransformNode> _syntaxNodes = ArrayBuilder<ISyntaxTransformNode>.GetInstance();
+
             private readonly DriverStateTable _previousTable;
 
             private readonly CancellationToken _cancellationToken;
@@ -42,11 +45,6 @@ namespace Microsoft.CodeAnalysis
             {
                 _previousTable = previousTable;
                 _cancellationToken = cancellationToken;
-            }
-
-            public void SetTable<T>(IIncrementalGeneratorNode<T> source, NodeStateTable<T> table)
-            {
-                _tableBuilder[source] = table;
             }
 
             public void AddInput<T>(InputNode<T> source, T value)
@@ -59,11 +57,48 @@ namespace Microsoft.CodeAnalysis
                 _inputBuilder[source] = value.ToImmutableArray();
             }
 
+            public void AddSyntaxNodes(ImmutableArray<ISyntaxTransformNode> nodes)
+            {
+                _syntaxNodes.AddRange(nodes);
+            }
+
             public ImmutableArray<T> GetInputValue<T>(InputNode<T> source)
             {
                 return (ImmutableArray<T>)_inputBuilder[source];
             }
 
+            public NodeStateTable<T> GetSyntaxValue<T>(SyntaxTransformNode<T> syntaxTransform)
+            {
+                // if cached already, just return the cached value
+                if (!_tableBuilder.ContainsKey(syntaxTransform))
+                {
+                    // else, we need to walk over the syntax trees
+                    var compilation = GetInputValue(SharedInputNodes.Compilation).First();
+
+                    var builders = ArrayBuilder<ISyntaxTransformBuilder>.GetInstance(_syntaxNodes.Count);
+                    foreach (var node in _syntaxNodes)
+                    {
+                        builders.Add(node.GetBuilder(this._previousTable));
+                    }
+
+                    foreach ((var tree, var state) in GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
+                    {
+                        var root = tree.GetRoot(_cancellationToken);
+                        var model = state != EntryState.Removed ? compilation.GetSemanticModel(tree) : null;
+                        foreach (var builder in builders)
+                        {
+                            builder.VisitTree(root, state, model);
+                        }
+                    }
+
+                    foreach (var builder in builders)
+                    {
+                        builder.SaveInputsAndFree(this._tableBuilder);
+                    }
+                }
+
+                return (NodeStateTable<T>)_tableBuilder[syntaxTransform];
+            }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
             {

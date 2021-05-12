@@ -295,13 +295,16 @@ namespace Microsoft.CodeAnalysis
             driverStateBuilder.AddInput(SharedInputNodes.ParseOptions, _state.ParseOptions);
             driverStateBuilder.AddInput(SharedInputNodes.AdditionalTexts, _state.AdditionalTexts);
 
+            // PROTOTYPE(source-generators): we should probably just pass these at creation, and need to handle syntax rx's too
+            driverStateBuilder.AddSyntaxNodes(syntaxInputNodes.ToImmutable());
+
             // If we have syntax inputs, or receivers, bring them up to date
             if (syntaxInputNodes.Count > 0 || walkerCount > 0)
             {
                 var builders = ArrayBuilder<ISyntaxTransformBuilder>.GetInstance(syntaxInputNodes.Count);
                 foreach (var node in syntaxInputNodes)
                 {
-                    builders.Add(node.GetBuilder(_state.StateTable));
+                   // builders.Add(node.GetBuilder(_state.StateTable));
                 }
 
                 foreach ((var tree, var treeState) in driverStateBuilder.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
@@ -311,8 +314,7 @@ namespace Microsoft.CodeAnalysis
                         // we need to keep the removed tree entries, but can skip everything else
                         foreach (var b in builders)
                         {
-                            // PROTOTYPE(source-generators): we know we don't use the model in this case
-                            b.AddFilterFromPreviousTable(null!, EntryState.Removed);
+                          //  b.AddFilterFromPreviousTable(null, EntryState.Removed);
                         }
                         continue;
                     }
@@ -325,13 +327,13 @@ namespace Microsoft.CodeAnalysis
                     {
                         foreach (var b in builders)
                         {
-                            b.AddFilterFromPreviousTable(semanticModel, treeState);
+                           // b.AddFilterFromPreviousTable(semanticModel, treeState);
                         }
                     }
                     else
                     {
                         // run a walk for each filter and apply the results
-                        IncrementalGeneratorSyntaxWalker.VisitNodeForBuilders(tree.GetRoot(cancellationToken), semanticModel, builders);
+                        //IncrementalGeneratorSyntaxWalker.VisitNodeForBuilders(tree.GetRoot(cancellationToken), semanticModel, builders);
                     }
 
                     // back compat, run this tree over any ISyntaxContextReceivers
@@ -360,7 +362,7 @@ namespace Microsoft.CodeAnalysis
                 // add the updated nodes as inputs to the new graph
                 foreach (var builder in builders)
                 {
-                    builder.AddInputs(driverStateBuilder);
+                    //builder.AddInputs(driverStateBuilder);
                 }
 
                 builders.Free();

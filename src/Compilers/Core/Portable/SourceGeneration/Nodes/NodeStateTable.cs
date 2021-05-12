@@ -242,6 +242,11 @@ namespace Microsoft.CodeAnalysis
                 var hasNonCached = _states.Any(s => s.Any(i => i.Item2 != EntryState.Cached));
                 return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached, exception: _exception);
             }
+
+            internal ImmutableArray<T> GetLastEntries()
+            {
+                return _states[_states.Count - 1].SelectAsArray(t => t.Item1);
+            }
         }
     }
 }

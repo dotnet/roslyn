@@ -14,18 +14,14 @@ namespace Microsoft.CodeAnalysis
 {
     internal interface ISyntaxTransformNode
     {
-        ISyntaxTransformBuilder GetBuilder(DriverStateTable previousTable);
+        ISyntaxTransformBuilder GetBuilder(DriverStateTable previousStateTable);
     }
 
     internal interface ISyntaxTransformBuilder
     {
-        bool Filter(SyntaxNode node);
+        void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model);
 
-        void AddFilterFromPreviousTable(SemanticModel? model, EntryState state);
-
-        void AddFilterEntries(ImmutableArray<SyntaxNode> nodes, SemanticModel model);
-
-        void AddInputs(DriverStateTable.Builder builder);
+        void SaveInputsAndFree(ImmutableDictionary<object, IStateTable>.Builder builder);
     }
 
     internal sealed class SyntaxTransformNode<T> : IIncrementalGeneratorNode<T>, ISyntaxTransformNode
@@ -42,83 +38,71 @@ namespace Microsoft.CodeAnalysis
             _comparer = comparer ?? EqualityComparer<T>.Default;
         }
 
-        // this is an input node, so we don't perform any updates
-        public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken) => previousTable;
+        public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
+        {
+            return graphState.GetSyntaxValue(this);
+        }
 
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxTransformNode<T>(_filterFunc, _func, comparer);
 
-        public ISyntaxTransformBuilder GetBuilder(DriverStateTable previousStateTable) => new Builder(this, previousStateTable.GetStateTable(this._filterNode), previousStateTable.GetStateTable(this));
+        public ISyntaxTransformBuilder GetBuilder(DriverStateTable previousStateTable) => new Builder(this, previousStateTable.GetStateTable(this._filterNode).ToBuilder(), previousStateTable.GetStateTable(this).ToBuilder());
 
         private sealed class Builder : ISyntaxTransformBuilder
         {
             private readonly SyntaxTransformNode<T> _owner;
 
-            private readonly NodeStateTable<T> _previousTransformTable;
-            private readonly NodeStateTable<T>.Builder _transformTable;
-
-            private readonly NodeStateTable<SyntaxNode> _previousFilterTable;
             private readonly NodeStateTable<SyntaxNode>.Builder _filterTable;
 
-            public Builder(SyntaxTransformNode<T> owner, NodeStateTable<SyntaxNode> previousFilter, NodeStateTable<T> previousTransform)
+            private readonly NodeStateTable<T>.Builder _transformTable;
+
+            public Builder(SyntaxTransformNode<T> owner, NodeStateTable<SyntaxNode>.Builder filterTable, NodeStateTable<T>.Builder transformTable)
             {
                 _owner = owner;
-
-                _previousFilterTable = previousFilter;
-                _filterTable = _previousFilterTable.ToBuilder();
-
-                _previousTransformTable = previousTransform;
-                _transformTable = _previousTransformTable.ToBuilder();
+                _filterTable = filterTable;
+                _transformTable = transformTable;
             }
 
-            public bool Filter(SyntaxNode syntaxNode) => _owner._filterFunc(syntaxNode);
-
-            public void AddFilterFromPreviousTable(SemanticModel? model, EntryState state)
+            public void SaveInputsAndFree(ImmutableDictionary<object, IStateTable>.Builder builder)
             {
-                Debug.Assert(model is object || state == EntryState.Removed);
-                // FIX ME
-               // var nodes = _filterTable.AddEntriesFromPreviousTable(state);
-                //UpdateTransformTable(nodes, model, state);
+                builder[_owner._filterNode] = _filterTable.ToImmutableAndFree();
+                builder[_owner] = _transformTable.ToImmutableAndFree();
             }
 
-            public void AddFilterEntries(ImmutableArray<SyntaxNode> nodes, SemanticModel model)
+            public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model)
             {
-                _filterTable.AddEntries(nodes, EntryState.Added);
-                UpdateTransformTable(nodes, model, EntryState.Added);
-            }
-
-            private void UpdateTransformTable(ImmutableArray<SyntaxNode> nodes, SemanticModel? model, EntryState state)
-            {
-                foreach (var node in nodes)
+                if (state == EntryState.Removed)
                 {
-                    if (state == EntryState.Removed)
+                    // mark both syntax *and* transform nodes removed
+                    _filterTable.RemoveEntries();
+                    _transformTable.RemoveEntries();
+                }
+                else
+                {
+                    Debug.Assert(model is object);
+
+                    ImmutableArray<SyntaxNode> nodes;
+                    if (state == EntryState.Cached && _filterTable.TryUseCachedEntries())
                     {
-                        _transformTable.RemoveEntries();
+                        nodes = _filterTable.GetLastEntries();
                     }
                     else
                     {
-                        Debug.Assert(model is object);
+                        nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root, _owner._filterFunc);
+                        _filterTable.AddEntries(nodes, EntryState.Added);
+                    }
+
+                    // now, using the obtained nodes, run the transform on the regular node
+                    foreach (var node in nodes)
+                    {
                         var value = new GeneratorSyntaxContext(node, model);
                         var transformed = ImmutableArray.Create(_owner._func(value));
 
-                        if (state != EntryState.Added)
-                        {
-                            if (!_transformTable.TryModifyEntries(transformed, _owner._comparer))
-                            {
-                                _transformTable.AddEntries(transformed, EntryState.Added);
-                            }
-                        }
-                        else
+                        if (state == EntryState.Added || !_transformTable.TryModifyEntries(transformed, _owner._comparer))
                         {
                             _transformTable.AddEntries(transformed, EntryState.Added);
                         }
                     }
                 }
-            }
-
-            public void AddInputs(DriverStateTable.Builder builder)
-            {
-                builder.SetTable(_owner._filterNode, _filterTable.ToImmutableAndFree());
-                builder.SetTable(_owner, _transformTable.ToImmutableAndFree());
             }
         }
     }
