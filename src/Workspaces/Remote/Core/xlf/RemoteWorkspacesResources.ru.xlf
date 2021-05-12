@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../RemoteWorkspacesResources.resx">
     <body>
@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
         <source>Document highlights</source>
-        <target state="needs-review-translation">Выделения в документе</target>
+        <target state="translated">Основные моменты документа</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EditAndContinue">
         <source>Edit and Continue</source>
-        <target state="new">Edit and Continue</target>
+        <target state="translated">Изменить и продолжить</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
-        <target state="new">Inheritance margin</target>
+        <target state="translated">Граница наследования</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_NavigationBarItem">
         <source>Navigation bar</source>
-        <target state="new">Navigation bar</target>
+        <target state="translated">Панель навигации</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
