@@ -86,7 +86,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
 
             var runtimeCapabilities = await debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+
             var capabilities = ParseCapabilities(runtimeCapabilities);
+
+            // For now, runtimes aren't returning capabilities, we just fall back to a known set.
+            if (capabilities == EditAndContinueCapabilities.None)
+            {
+                capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition;
+            }
 
             var newSession = new DebuggingSession(solution, debuggerService, capabilities, _compilationOutputsProvider, initialDocumentStates, _debuggingSessionTelemetry, _editSessionTelemetry);
             var previousSession = Interlocked.CompareExchange(ref _debuggingSession, newSession, null);

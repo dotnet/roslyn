@@ -312,11 +312,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotSame(generatedTreeBeforeChange, generatedTreeAfterChange);
         }
 
-        [Fact]
-        public async Task ChangeToDocumentThatDoesNotImpactGeneratedDocumentReusesDeclarationTree()
+        [Theory, CombinatorialData]
+        public async Task ChangeToDocumentThatDoesNotImpactGeneratedDocumentReusesDeclarationTree(bool generatorProducesTree)
         {
             using var workspace = CreateWorkspace();
-            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent"));
+
+            // We'll use either a generator that produces a single tree, or no tree, to ensure we efficiently handle both cases
+            ISourceGenerator generator = generatorProducesTree ? new SingleFileTestGenerator("// StaticContent")
+                                                               : new CallbackGenerator(onInit: _ => { }, onExecute: _ => { });
+
+            var analyzerReference = new TestGeneratorReference(generator);
             var project = AddEmptyProject(workspace.CurrentSolution)
                 .AddAnalyzerReference(analyzerReference)
                 .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;

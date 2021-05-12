@@ -45,6 +45,9 @@
 
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
+
+                    <CheckBox x:Name="Enable_file_logging_for_diagnostics"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_file_logging_for_diagnostics}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"

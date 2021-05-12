@@ -629,6 +629,17 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     var compilationWithGenerators = state.CompilationWithGeneratedDocuments;
+
+                    // If compilationWithGenerators is the same as compilationWithoutGenerators, then it means a prior run of generators
+                    // didn't produce any files. In that case, we'll just make compilationWithGenerators null so we avoid doing any
+                    // transformations of it multiple times. Otherwise the transformations below and in FinalizeCompilationAsync will try
+                    // to update both at once, which is functionally fine but just unnecessary work. This function is always allowed to return
+                    // null for compilationWithGenerators in the end, so there's no harm there.
+                    if (compilationWithGenerators == compilationWithoutGenerators)
+                    {
+                        compilationWithGenerators = null;
+                    }
+
                     var intermediateProjects = state.IntermediateProjects;
 
                     while (intermediateProjects.Length > 0)
