@@ -553,18 +553,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     tests.Add(MakeTestsAndBindings(element, pattern, bindings));
                 }
             }
-            if (recursive.ListPattern is not null)
+
+            switch (recursive.ListPatternClause)
             {
-                tests.Add(recursive.ListPattern switch
-                {
-                    BoundListPatternWithArray list => MakeTestsAndBindingsForListPattern(input, list, recursive.LengthPattern, bindings),
-                    BoundListPatternWithRangeIndexerPattern list => MakeTestsAndBindingsForListPattern(input, list, recursive.LengthPattern, bindings),
-                    var v => throw ExceptionUtilities.UnexpectedValue(v.Kind)
-                });
-            }
-            else if (recursive.LengthPattern is not null)
-            {
-                throw new System.NotImplementedException();
+                case BoundListPatternWithArray list:
+                    MakeTestsAndBindingsForListPattern(input, list, bindings, tests);
+                    break;
+                case BoundListPatternWithRangeIndexerPattern list:
+                    MakeTestsAndBindingsForListPattern(input, list, bindings, tests);
+                    break;
             }
 
             if (recursive.VariableAccess != null)

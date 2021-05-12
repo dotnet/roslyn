@@ -16,7 +16,7 @@ public class X
     {
         switch (span)
         {
-            case {Length:0}:
+            case [0]:
             case {_}:
               return true;
             case {var first, ..var others, var last} when first == last:

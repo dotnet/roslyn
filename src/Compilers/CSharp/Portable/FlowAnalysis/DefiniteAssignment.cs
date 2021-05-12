@@ -1634,18 +1634,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignPatternVariables(sub.Pattern, definitely);
                             }
                         }
-                        if (pat.LengthPattern is not null)
+                        if (pat.ListPatternClause is not null)
                         {
-                            AssignPatternVariables(pat.LengthPattern, definitely);
-                        }
-                        if (pat.ListPattern is not null)
-                        {
-                            if (!pat.ListPattern.Subpatterns.IsDefaultOrEmpty)
+                            if (!pat.ListPatternClause.Subpatterns.IsDefaultOrEmpty)
                             {
-                                foreach (BoundPattern p in pat.ListPattern.Subpatterns)
+                                foreach (BoundPattern p in pat.ListPatternClause.Subpatterns)
                                 {
                                     AssignPatternVariables(p, definitely);
                                 }
+                            }
+                            if (pat.ListPatternClause.LengthPattern is not null)
+                            {
+                                AssignPatternVariables(pat.ListPatternClause.LengthPattern, definitely);
                             }
                         }
                         if (definitely)

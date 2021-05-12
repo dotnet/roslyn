@@ -2079,8 +2079,7 @@
     <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
     <Field Name="Properties" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
-    <Field Name="LengthPattern" Type="BoundPattern?"/>
-    <Field Name="ListPattern" Type="BoundListPattern?"/>
+    <Field Name="ListPatternClause" Type="BoundListPatternClause?"/>
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
          a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
     <Field Name="Variable" Type="Symbol?"/>
@@ -2095,16 +2094,17 @@
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
-  <AbstractNode Name="BoundListPattern" Base="BoundNode">
-    <Field Name="ElementType" Type="TypeSymbol"/>
-    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
+  <AbstractNode Name="BoundListPatternClause" Base="BoundNode">
+    <Field Name="ElementType" Type="TypeSymbol?"/>
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="allow"/>
     <Field Name="HasSlice" Type="bool"/>
+    <Field Name="LengthPattern" Type="BoundPattern?"/>
   </AbstractNode>
-  <Node Name="BoundListPatternWithArray" Base="BoundListPattern">
+  <Node Name="BoundListPatternWithArray" Base="BoundListPatternClause">
   </Node>
-  <Node Name="BoundListPatternWithRangeIndexerPattern" Base="BoundListPattern">
-    <Field Name="GetLengthProperty" Type="PropertySymbol" Null="disallow"/>
-    <Field Name="GetItemProperty" Type="PropertySymbol" Null="disallow"/>
+  <Node Name="BoundListPatternWithRangeIndexerPattern" Base="BoundListPatternClause">
+    <Field Name="GetLengthProperty" Type="PropertySymbol"/>
+    <Field Name="GetItemProperty" Type="PropertySymbol?"/>
   </Node>
 
   <Node Name="BoundSlicePattern" Base="BoundPattern">
