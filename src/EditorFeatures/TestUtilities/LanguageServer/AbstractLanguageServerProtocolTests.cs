@@ -103,7 +103,7 @@ namespace Roslyn.Test.Utilities
                 return Task.FromResult(mappedResult);
             }
 
-            public Task<ImmutableArray<(string filePath, TextChange mappedTextChange)>> GetTextChangesAsync(
+            public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetTextChangesAsync(
                 Document oldDocument,
                 Document newDocument,
                 CancellationToken cancellationToken)

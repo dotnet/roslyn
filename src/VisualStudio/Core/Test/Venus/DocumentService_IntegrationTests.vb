@@ -292,8 +292,10 @@ class { }
                     Return results.ToImmutableArray()
                 End Function
 
-                Public Function GetTextChangesAsync(oldDocument As Document, newDocument As Document, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (mappedFilePath As String, textChange As Microsoft.CodeAnalysis.Text.TextChange))) Implements ISpanMappingService.GetTextChangesAsync
-                    Throw New NotImplementedException()
+                Public Function GetTextChangesAsync(oldDocument As Document, newDocument As Document, cancellationToken As CancellationToken) _
+                    As Task(Of ImmutableArray(Of (mappedFilePath As String, mappedTextChange As Microsoft.CodeAnalysis.Text.TextChange))) _
+                    Implements ISpanMappingService.GetTextChangesAsync
+                    Return Tasks.Task.FromResult(ImmutableArray(Of (String, Microsoft.CodeAnalysis.Text.TextChange)).Empty)
                 End Function
             End Class
 
