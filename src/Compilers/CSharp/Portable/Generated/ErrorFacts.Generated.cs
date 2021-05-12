@@ -247,12 +247,9 @@
                 case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                 case ErrorCode.WRN_IsPatternAlways:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
-<<<<<<< HEAD
                 case ErrorCode.WRN_ParameterNotNullIfNotNull:
                 case ErrorCode.WRN_ReturnNotNullIfNotNull:
-=======
                 case ErrorCode.WRN_PartialMethodTypeDifference:
->>>>>>> parent of c785833f734 (Revert "Require partial method signatures to match" (47576) (#47879))
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_PrecedenceInversion:

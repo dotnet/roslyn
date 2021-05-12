@@ -642,17 +642,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!ReferenceEquals(definition, implementation));
 
-<<<<<<< HEAD
-            MethodSymbol constructedDefinition = definition.ConstructIfGeneric(TypeMap.TypeParametersAsTypeSymbolsWithIgnoredAnnotations(implementation.TypeParameters));
-            bool returnTypesEqual = constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
-            if (!returnTypesEqual
-                && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(implementation.ReturnType)
-                && !SourceMemberContainerTypeSymbol.IsOrContainsErrorType(definition.ReturnType))
-=======
             MethodSymbol constructedDefinition = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations);
             bool hasTypeDifferences = !constructedDefinition.ReturnTypeWithAnnotations.Equals(implementation.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
             if (hasTypeDifferences)
->>>>>>> parent of c785833f734 (Revert "Require partial method signatures to match" (47576) (#47879))
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMethodReturnTypeDifference, implementation.Locations[0]);
             }

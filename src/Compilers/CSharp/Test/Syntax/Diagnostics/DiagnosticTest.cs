@@ -416,14 +416,11 @@ class X
                     ErrorCode.WRN_ParameterIsStaticClass,
                     ErrorCode.WRN_ReturnTypeIsStaticClass,
                     ErrorCode.WRN_RecordNamedDisallowed,
-<<<<<<< HEAD
                     ErrorCode.WRN_RecordEqualsWithoutGetHashCode,
                     ErrorCode.WRN_AnalyzerReferencesFramework,
                     ErrorCode.WRN_UnreadRecordParameter,
                     ErrorCode.WRN_DoNotCompareFunctionPointers,
-=======
                     ErrorCode.WRN_PartialMethodTypeDifference,
->>>>>>> parent of c785833f734 (Revert "Require partial method signatures to match" (47576) (#47879))
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

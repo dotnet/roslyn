@@ -3059,13 +3059,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.Locations[0], method);
                     }
-<<<<<<< HEAD
-                    else if (method.OtherPartOfPartial is MethodSymbol otherPart && MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(method, otherPart))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentTupleNames, method.Locations[0], method, method.OtherPartOfPartial);
-                    }
-=======
->>>>>>> parent of c785833f734 (Revert "Require partial method signatures to match" (47576) (#47879))
                     else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
                     {
                         diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.Locations[0], method);
