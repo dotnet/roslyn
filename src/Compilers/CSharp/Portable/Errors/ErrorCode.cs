@@ -1835,8 +1835,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StaticAnonymousFunctionCannotCaptureThis = 8821,
         ERR_OverrideDefaultConstraintNotSatisfied = 8822,
         ERR_DefaultConstraintOverrideOnly = 8823,
+<<<<<<< HEAD
         WRN_ParameterNotNullIfNotNull = 8824,
         WRN_ReturnNotNullIfNotNull = 8825,
+=======
+        WRN_PartialMethodTypeDifference = 8824,
+>>>>>>> parent of c785833f734 (Revert "Require partial method signatures to match" (47576) (#47879))
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
