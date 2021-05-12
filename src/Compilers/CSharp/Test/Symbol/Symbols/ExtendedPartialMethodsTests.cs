@@ -2656,7 +2656,7 @@ partial class C
                 //     public partial long M() => 42; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M").WithLocation(5, 25));
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (5,25): error CS8817: Both partial method declarations must have the same return type.
                 //     public partial long M() => 42; // 1
@@ -2697,7 +2697,7 @@ partial class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (8,27): warning CS8825: Partial method declarations 'string? C.M1()' and 'string C.M1()' must have identical nullability for parameter types and return types.
                 //     public partial string M1() => "hello";
@@ -2731,7 +2731,7 @@ partial class C
                 //     public partial IEnumerable<string?> M2() => null!; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M2").WithLocation(11, 41));
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (8,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
                 //     public partial string? M1() => null; // 1
@@ -3013,7 +3013,7 @@ partial class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (5,28): warning CS8824: Partial method declarations 'object C.M1()' and 'dynamic C.M1()' have differences in parameter or return types.
                 //     public partial dynamic M1() => null;
@@ -3040,7 +3040,7 @@ partial class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (7,25): warning CS8824: Partial method declarations 'IntPtr C.M1()' and 'nint C.M1()' have differences in parameter or return types.
                 //     public partial nint M1() => 0;
@@ -3136,7 +3136,7 @@ partial class C
                 //     public partial string? M12(); // 9
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(36, 26));
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
                 // (6,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
                 //     public partial string? M1() => null; // 1
@@ -3219,7 +3219,7 @@ partial class C
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
             comp.VerifyDiagnostics(
                 // (4,18): warning CS8824: Partial method declarations 'void C.F1(object o)' and 'void C.F1(dynamic o)' have differences in parameter or return types.
                 //     partial void F1(dynamic o) { } // 1
@@ -3272,7 +3272,7 @@ partial class C
                 //     internal partial IEnumerable<string?> F6() => null!; // 6
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "F6").WithLocation(16, 43));
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
             comp.VerifyDiagnostics(
                 // (6,18): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
                 //     partial void F1(string s) { } // 1
@@ -3318,7 +3318,7 @@ partial class C
             var comp = CreateCompilation(source);
             verifyDiagnostics(comp);
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
             verifyDiagnostics(comp);
 
             static void verifyDiagnostics(CSharpCompilation comp)
@@ -3359,7 +3359,7 @@ partial class C
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
             comp.VerifyDiagnostics(
                 // (5,18): warning CS8824: Partial method declarations 'void C.F1(nint i)' and 'void C.F1(IntPtr i)' have differences in parameter or return types.
                 //     partial void F1(System.IntPtr i) { } // 1

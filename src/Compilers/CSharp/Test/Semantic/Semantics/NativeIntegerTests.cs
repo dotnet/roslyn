@@ -3319,7 +3319,7 @@ class C2 : IA, IB
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseDllWithWarningLevel5, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,25): warning CS8824: Partial method declarations 'void Program.F2(nuint x)' and 'void Program.F2(UIntPtr x)' have differences in parameter or return types.
                 //     static partial void F2(System.UIntPtr x) { }
