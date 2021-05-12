@@ -537,19 +537,19 @@
         <target state="translated">Si è verificato un errore interno nel compilatore C#.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterpolatedStringBuilderInvalidCreateMethod">
-        <source>Interpolated string builder type '{0}' does not have a valid 'Create' method.</source>
-        <target state="new">Interpolated string builder type '{0}' does not have a valid 'Create' method.</target>
+      <trans-unit id="ERR_InterpolatedStringHandlerInvalidCreateMethod">
+        <source>Interpolated string handler type '{0}' does not have a valid 'Create' method.</source>
+        <target state="new">Interpolated string handler type '{0}' does not have a valid 'Create' method.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterpolatedStringBuilderMethodReturnInconsistent">
-        <source>Interpolated string builder method '{0}' has inconsistent return type. Expected to return '{1}'.</source>
-        <target state="new">Interpolated string builder method '{0}' has inconsistent return type. Expected to return '{1}'.</target>
+      <trans-unit id="ERR_InterpolatedStringHandlerMethodReturnInconsistent">
+        <source>Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</source>
+        <target state="new">Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterpolatedStringBuilderMethodReturnMalformed">
-        <source>Interpolated string builder method '{0}' is malformed. It does not return 'void' or 'bool'.</source>
-        <target state="new">Interpolated string builder method '{0}' is malformed. It does not return 'void' or 'bool'.</target>
+      <trans-unit id="ERR_InterpolatedStringHandlerMethodReturnMalformed">
+        <source>Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.</source>
+        <target state="new">Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.</target>
         <note>void and bool are keywords</note>
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1023,8 +1023,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImprovedInterpolatedStrings">
-        <source>interpolated string builders</source>
-        <target state="new">interpolated string builders</target>
+        <source>interpolated string handlers</source>
+        <target state="new">interpolated string handlers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureInferredDelegateType">

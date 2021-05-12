@@ -167,13 +167,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookupResultKind and given symbols for GetSemanticInfo API,
         /// and the given bound children.
         /// </summary>
-        private BoundBadExpression BadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundExpression> childNodes)
+        private BoundBadExpression BadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundExpression> childNodes, bool wasCompilerGenerated = false)
         {
             return new BoundBadExpression(syntax,
                 resultKind,
                 symbols,
                 childNodes.SelectAsArray((e, self) => self.BindToTypeForErrorRecovery(e), this),
-                CreateErrorType());
+                CreateErrorType())
+            { WasCompilerGenerated = wasCompilerGenerated };
         }
 
         /// <summary>
@@ -4399,6 +4400,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+        /// <summary>
+        /// Helper method to create a synthesized constructor invocation.
+        /// </summary>
+        private BoundExpression MakeClassCreationExpression(
+            NamedTypeSymbol type,
+            ImmutableArray<BoundExpression> arguments,
+            SyntaxNode node,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+
+            try
+            {
+                analyzedArguments.Arguments.AddRange(arguments);
+
+                if (type.IsStatic)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InstantiatingStaticClass, node.Location, type);
+                    return MakeBadExpressionForObjectCreation(node, type, analyzedArguments, initializerOpt: null, typeSyntax: null, diagnostics, wasCompilerGenerated: true);
+                }
+
+                var creation = BindClassCreationExpression(node, type.Name, node, type, analyzedArguments, diagnostics);
+                creation.WasCompilerGenerated = true;
+                return creation;
+            }
+            finally
+            {
+                analyzedArguments.Free();
+            }
+        }
+
         internal BoundExpression BindObjectCreationForErrorRecovery(BoundUnconvertedObjectCreationExpression node, BindingDiagnosticBag diagnostics)
         {
             var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
@@ -4407,17 +4441,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundExpression MakeBadExpressionForObjectCreation(ObjectCreationExpressionSyntax node, TypeSymbol type, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)
+        private BoundExpression MakeBadExpressionForObjectCreation(ObjectCreationExpressionSyntax node, TypeSymbol type, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics, bool wasCompilerGenerated = false)
         {
-            return MakeBadExpressionForObjectCreation(node, type, analyzedArguments, node.Initializer, node.Type, diagnostics);
+            return MakeBadExpressionForObjectCreation(node, type, analyzedArguments, node.Initializer, node.Type, diagnostics, wasCompilerGenerated);
         }
 
-        private BoundExpression MakeBadExpressionForObjectCreation(SyntaxNode node, TypeSymbol type, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax initializerOpt, SyntaxNode typeSyntax, BindingDiagnosticBag diagnostics)
+        /// <param name="typeSyntax">If <paramref name="initializerOpt"/> is not null, this should not be null.</param>
+        private BoundExpression MakeBadExpressionForObjectCreation(SyntaxNode node, TypeSymbol type, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt, SyntaxNode? typeSyntax, BindingDiagnosticBag diagnostics, bool wasCompilerGenerated = false)
         {
             var children = ArrayBuilder<BoundExpression>.GetInstance();
             children.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
             if (initializerOpt != null)
             {
+                Debug.Assert(typeSyntax is not null);
                 var boundInitializer = BindInitializerExpression(syntax: initializerOpt,
                                                                  type: type,
                                                                  typeSyntax: typeSyntax,
@@ -4426,8 +4462,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 children.Add(boundInitializer);
             }
 
-            return new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol>(type), children.ToImmutableAndFree(), type);
+            return new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol?>(type), children.ToImmutableAndFree(), type) { WasCompilerGenerated = wasCompilerGenerated };
         }
+#nullable disable
 
         private BoundObjectInitializerExpressionBase BindInitializerExpression(
             InitializerExpressionSyntax syntax,

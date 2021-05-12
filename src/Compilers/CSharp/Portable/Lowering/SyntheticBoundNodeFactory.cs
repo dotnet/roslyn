@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
-        public LocalSymbol InterpolatedStringBuilderLocal(
+        public LocalSymbol InterpolatedStringHandlerLocal(
             TypeSymbol type,
             uint valEscapeScope,
             SyntaxNode syntax
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedLocalWithValEscape(
                 CurrentFunction,
                 TypeWithAnnotations.Create(type),
-                SynthesizedLocalKind.InterpolatedStringBuilder,
+                SynthesizedLocalKind.InterpolatedStringHandler,
                 valEscapeScope,
                 syntax
 #if DEBUG

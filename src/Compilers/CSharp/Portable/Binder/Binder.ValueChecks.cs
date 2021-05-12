@@ -2701,7 +2701,7 @@ moreArguments:
 
                 case BoundKind.ImplicitReceiver:
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
-                case BoundKind.InterpolatedStringBuilderPlaceholder: // PROTOTYPE(interp-string): we likely need to update this when custom builder types are supported
+                case BoundKind.InterpolatedStringHandlerPlaceholder: // PROTOTYPE(interp-string): we likely need to update this when custom builder types are supported
                     // binder uses this as a placeholder when binding members inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;

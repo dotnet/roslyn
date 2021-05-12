@@ -42,17 +42,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// local temp.
         /// </summary>
         /// <remarks>Caller is responsible for freeing the ArrayBuilder</remarks>
-        private (ArrayBuilder<BoundExpression> BuilderPatternExpressions, BoundLocal Result) RewriteToInterpolatedStringBuilderPattern(BoundInterpolatedString node)
+        private (ArrayBuilder<BoundExpression> BuilderPatternExpressions, BoundLocal Result) RewriteToInterpolatedStringHandlerPattern(BoundInterpolatedString node)
         {
             Debug.Assert(node.InterpolationData is { Construction: not null });
             Debug.Assert(node.Parts.All(static p => p is BoundCall or BoundStringInsert { Value: BoundCall }));
             var data = node.InterpolationData.Value;
-            var builderTempSymbol = _factory.InterpolatedStringBuilderLocal(data.BuilderType, data.ScopeOfContainingExpression, node.Syntax);
+            var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, data.ScopeOfContainingExpression, node.Syntax);
             var builderTemp = _factory.Local(builderTempSymbol);
 
-            // PROTOTYPE(interp-string): Support optional out param for whether the builder was created successfully and passing in other required args
-            // var builder = Construction(baseStringLength, numFormatHoles);
-            var builderConstruction = _factory.AssignmentExpression(builderTemp, (BoundExpression)VisitCall(data.Construction));
+            // PROTOTYPE(interp-string): Support dynamic creation
+            // var builder = new BuilderType(baseStringLength, numFormatHoles);
+            Debug.Assert(data.Construction is BoundObjectCreationExpression);
+            var builderConstruction = _factory.AssignmentExpression(builderTemp, (BoundExpression)VisitObjectCreationExpression((BoundObjectCreationExpression)data.Construction));
 
             var usesBoolReturn = data.UsesBoolReturns;
             var builderPatternExpressions = ArrayBuilder<BoundExpression>.GetInstance(usesBoolReturn ? 2 : node.Parts.Length);
@@ -176,10 +177,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.InterpolationData is not null)
             {
                 // If we can lower to the builder pattern, do so.
-                (ArrayBuilder<BoundExpression> builderPatternExpressions, BoundLocal builderTemp) = RewriteToInterpolatedStringBuilderPattern(node);
+                (ArrayBuilder<BoundExpression> builderPatternExpressions, BoundLocal builderTemp) = RewriteToInterpolatedStringHandlerPattern(node);
 
                 // resultTemp = builderTemp.ToStringAndClear();
-                var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_InterpolatedStringBuilder__ToStringAndClear, _diagnostics, syntax: node.Syntax);
+                var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear, _diagnostics, syntax: node.Syntax);
                 BoundExpression toStringAndClearCall = toStringAndClear is not null
                     ? BoundCall.Synthesized(node.Syntax, builderTemp, toStringAndClear)
                     : new BoundBadExpression(node.Syntax, LookupResultKind.Empty, symbols: ImmutableArray<Symbol?>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, node.Type);

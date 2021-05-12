@@ -6632,17 +6632,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The positional member '{0}' found corresponding to this parameter is hidden.</value>
   </data>
   <data name="IDS_FeatureImprovedInterpolatedStrings" xml:space="preserve">
-    <value>interpolated string builders</value>
+    <value>interpolated string handlers</value>
   </data>
-  <data name="ERR_InterpolatedStringBuilderMethodReturnMalformed" xml:space="preserve">
-    <value>Interpolated string builder method '{0}' is malformed. It does not return 'void' or 'bool'.</value>
+  <data name="ERR_InterpolatedStringHandlerMethodReturnMalformed" xml:space="preserve">
+    <value>Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.</value>
     <comment>void and bool are keywords</comment>
   </data>
-  <data name="ERR_InterpolatedStringBuilderMethodReturnInconsistent" xml:space="preserve">
-    <value>Interpolated string builder method '{0}' has inconsistent return type. Expected to return '{1}'.</value>
+  <data name="ERR_InterpolatedStringHandlerMethodReturnInconsistent" xml:space="preserve">
+    <value>Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</value>
   </data>
-  <data name="ERR_InterpolatedStringBuilderInvalidCreateMethod" xml:space="preserve">
-    <value>Interpolated string builder type '{0}' does not have a valid 'Create' method.</value>
+  <data name="ERR_InterpolatedStringHandlerInvalidCreateMethod" xml:space="preserve">
+    <value>Interpolated string handler type '{0}' does not have a valid 'Create' method.</value>
   </data> 
   <data name="IDS_FeatureGlobalUsing" xml:space="preserve">
     <value>global using directive</value>

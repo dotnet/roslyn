@@ -1939,9 +1939,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
         ERR_CannotInferDelegateType = 8917,
 
-        ERR_InterpolatedStringBuilderMethodReturnMalformed = 9001,
-        ERR_InterpolatedStringBuilderMethodReturnInconsistent = 9002,
-        ERR_InterpolatedStringBuilderInvalidCreateMethod = 9003,
+        ERR_InterpolatedStringHandlerMethodReturnMalformed = 9001,
+        ERR_InterpolatedStringHandlerMethodReturnInconsistent = 9002,
+        ERR_InterpolatedStringHandlerInvalidCreateMethod = 9003,
 
         #endregion diagnostics introduced for C# 10.0
 

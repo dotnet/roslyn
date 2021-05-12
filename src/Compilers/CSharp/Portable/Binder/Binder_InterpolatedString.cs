@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     format = new BoundLiteral(interpolation.FormatClause, ConstantValue.Create(text), stringType, hasErrors);
                                 }
 
-                                builder.Add(new BoundStringInsert(interpolation, value, alignment, format, isInterpolatedStringBuilderAppendCall: false));
+                                builder.Add(new BoundStringInsert(interpolation, value, alignment, format, isInterpolatedStringHandlerAppendCall: false));
                                 if (!isResultConstant ||
                                     value.ConstantValue == null ||
                                     !(interpolation is { FormatClause: null, AlignmentClause: null }) ||
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We have 4 possible lowering strategies, dependent on the contents of the string, in this order:
             //  1. The string is a constant value. We can just use the final value.
-            //  2. The WellKnownType InterpolatedStringBuilder is available, and none of the interpolation holes contain an await expression.
+            //  2. The WellKnownType DefaultInterpolatedStringHandler is available, and none of the interpolation holes contain an await expression.
             //     The builder is a ref struct, and we can guarantee the lifetime won't outlive the stack if the string doesn't contain any
             //     awaits, but if it does we cannot use it. This builder is the only way that ref structs can be directly used as interpolation
             //     hole components, which means that ref structs components and await expressions cannot be combined. It is already illegal for
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  3. The string is composed entirely of components that are strings themselves. We can turn this into a single call to string.Concat.
             //     We prefer the builder over this because the builder can use pooling to avoid new allocations, while this call will potentially
             //     need to allocate a param array.
-            //  4. The string has heterogeneous data and either InterpolatedStringBuilder is unavailable, or one of the holes contains an await
+            //  4. The string has heterogeneous data and either InterpolatedStringHandler is unavailable, or one of the holes contains an await
             //     expression. This is turned into a call to string.Format.
             //
             // We need to do the determination of 1, 2, or 3/4 up front, rather than in lowering, as it affects diagnostics (ref structs not being
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // object.
             return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
 
-            BoundInterpolatedString constructWithData(ImmutableArray<BoundExpression> parts, InterpolatedStringBuilderData? data)
+            BoundInterpolatedString constructWithData(ImmutableArray<BoundExpression> parts, InterpolatedStringHandlerData? data)
                 => new BoundInterpolatedString(
                     unconvertedInterpolatedString.Syntax,
                     data,
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var interpolatedStringBuilderType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_InterpolatedStringBuilder);
+                var interpolatedStringBuilderType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler);
                 if (interpolatedStringBuilderType is MissingMetadataTypeSymbol)
                 {
                     return false;
@@ -261,11 +261,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new BoundLiteral(unconvertedInterpolatedString.Syntax, ConstantValue.Create(baseStringLength), intType) { WasCompilerGenerated = true },
                     new BoundLiteral(unconvertedInterpolatedString.Syntax, ConstantValue.Create(numFormatHoles), intType) { WasCompilerGenerated = true });
 
-                BoundCall? createExpression = BindCreateCall(unconvertedInterpolatedString.Syntax, interpolatedStringBuilderType, arguments, diagnostics);
+                // PROTOTYPE(interp-string): Support optional out param for whether the builder was created successfully and passing in other required args
+                BoundExpression? createExpression = MakeClassCreationExpression(interpolatedStringBuilderType, arguments, unconvertedInterpolatedString.Syntax, diagnostics);
 
                 result = constructWithData(
                     appendCalls,
-                    new InterpolatedStringBuilderData(
+                    new InterpolatedStringHandlerData(
                         interpolatedStringBuilderType,
                         createExpression,
                         usesBoolReturn,
@@ -302,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             partsBuilder.AddRange(unconvertedInterpolatedString.Parts, i);
                         }
 
-                        partsBuilder.Add(insert.Update(newValue, insert.Alignment, insert.Format, isInterpolatedStringBuilderAppendCall: false));
+                        partsBuilder.Add(insert.Update(newValue, insert.Alignment, insert.Format, isInterpolatedStringHandlerAppendCall: false));
                     }
                     else
                     {
@@ -321,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private (ImmutableArray<BoundExpression> AppendFormatCalls, bool UsesBoolReturn) BindInterpolatedStringAppendCalls(BoundUnconvertedInterpolatedString source, TypeSymbol builderType, BindingDiagnosticBag diagnostics)
         {
-            // PROTOTYPE(interp-string): Update the spec with the rules around InterpolatedStringBuilderAttribute. For now, we assume that any
+            // PROTOTYPE(interp-string): Update the spec with the rules around InterpolatedStringHandlerAttribute. For now, we assume that any
             // type that makes it to this method is actually an interpolated string builder type, and we should fully report any binding errors
             // we encounter while doing this work.
 
@@ -330,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (ImmutableArray<BoundExpression>.Empty, false);
             }
 
-            var implicitBuilderReceiver = new BoundInterpolatedStringBuilderPlaceholder(source.Syntax, builderType) { WasCompilerGenerated = true };
+            var implicitBuilderReceiver = new BoundInterpolatedStringHandlerPlaceholder(source.Syntax, builderType) { WasCompilerGenerated = true };
             bool? builderPatternExpectsBool = null;
             var builderAppendCalls = ArrayBuilder<BoundExpression>.GetInstance(source.Parts.Length);
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(3);
@@ -378,7 +379,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var call = MakeInvocationExpression(part.Syntax, implicitBuilderReceiver, methodName, arguments, diagnostics, names: parameterNamesAndLocations, searchExtensionMethodsIfNecessary: false);
-                call.WasCompilerGenerated = true;
                 builderAppendCalls.Add(call);
 
                 // PROTOTYPE(interp-string): Handle dynamic
@@ -389,8 +389,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool methodReturnsBool = returnType.SpecialType == SpecialType.System_Boolean;
                     if (!methodReturnsBool && returnType.SpecialType != SpecialType.System_Void)
                     {
-                        // Interpolated string builder method '{0}' is malformed. It does not return 'void' or 'bool'.
-                        diagnostics.Add(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnMalformed, part.Syntax.Location, method);
+                        // Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.
+                        diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, part.Syntax.Location, method);
                     }
                     else if (builderPatternExpectsBool == null)
                     {
@@ -398,9 +398,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (builderPatternExpectsBool != methodReturnsBool)
                     {
-                        // Interpolated string builder method '{0}' has inconsistent return types. Expected to return '{1}'.
+                        // Interpolated string handler method '{0}' has inconsistent return types. Expected to return '{1}'.
                         var expected = builderPatternExpectsBool == true ? Compilation.GetSpecialType(SpecialType.System_Boolean) : Compilation.GetSpecialType(SpecialType.System_Void);
-                        diagnostics.Add(ErrorCode.ERR_InterpolatedStringBuilderMethodReturnInconsistent, part.Syntax.Location, method, expected);
+                        diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, part.Syntax.Location, method, expected);
                     }
                 }
             }
@@ -408,21 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             argumentsBuilder.Free();
             parameterNamesAndLocationsBuilder.Free();
             return (builderAppendCalls.ToImmutableAndFree(), builderPatternExpectsBool ?? false);
-        }
-
-        private BoundCall? BindCreateCall(SyntaxNode syntax, TypeSymbol builderType, ImmutableArray<BoundExpression> args, BindingDiagnosticBag diagnostics)
-        {
-            var typeExpression = new BoundTypeExpression(syntax, aliasOpt: null, boundContainingTypeOpt: null, TypeWithAnnotations.Create(builderType)) { WasCompilerGenerated = true };
-
-            var expression = MakeInvocationExpression(syntax, typeExpression, "Create", args, diagnostics);
-            if (expression is BoundCall call && call.Type.Equals(builderType, TypeCompareKind.AllIgnoreOptions))
-            {
-                call.WasCompilerGenerated = true;
-                return call;
-            }
-
-            diagnostics.Add(ErrorCode.ERR_InterpolatedStringBuilderInvalidCreateMethod, syntax.Location, builderType);
-            return null;
         }
     }
 }

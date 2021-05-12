@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis
         System_Text_StringBuilder__AppendObject,
         System_Text_StringBuilder__ctor,
 
-        System_Runtime_CompilerServices_InterpolatedStringBuilder__ToStringAndClear,
+        System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
 
         Count
 
