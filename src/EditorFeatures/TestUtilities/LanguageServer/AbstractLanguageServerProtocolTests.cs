@@ -103,12 +103,12 @@ namespace Roslyn.Test.Utilities
                 return Task.FromResult(mappedResult);
             }
 
-            public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetTextChangesAsync(
+            public Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(
                 Document oldDocument,
                 Document newDocument,
                 CancellationToken cancellationToken)
             {
-                return Task.FromResult(ImmutableArray<(string, TextChange)>.Empty);
+                throw new NotImplementedException();
             }
         }
 

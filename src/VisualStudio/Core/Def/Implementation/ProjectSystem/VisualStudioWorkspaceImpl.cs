@@ -693,10 +693,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         }
 
                         var newDocument = projectChanges.NewProject.GetRequiredDocument(changedDocumentId);
-                        var textChanges = await mappingService.GetTextChangesAsync(oldDocument, newDocument, CancellationToken.None).ConfigureAwait(false);
-                        foreach (var (mappedFilePath, textChange) in textChanges)
+                        var mappedTextChanges = await mappingService.GetMappedTextChangesAsync(
+                            oldDocument, newDocument, CancellationToken.None).ConfigureAwait(false);
+                        foreach (var (filePath, textChange) in mappedTextChanges)
                         {
-                            filePathToMappedTextChanges.Add(mappedFilePath, (textChange, projectChanges.ProjectId));
+                            filePathToMappedTextChanges.Add(filePath, (textChange, projectChanges.ProjectId));
                         }
                     }
                 }

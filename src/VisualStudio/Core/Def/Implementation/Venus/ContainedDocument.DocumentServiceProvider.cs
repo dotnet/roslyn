@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             private static ITextSnapshot GetRoslynSnapshot(SourceText sourceText)
                 => sourceText.FindCorrespondingEditorTextSnapshot();
 
-            private class SpanMapper : ISpanMappingService
+            private class SpanMapper : AbstractSpanMappingService
             {
                 private readonly ITextBuffer _primaryBuffer;
 
@@ -68,34 +68,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 /// <summary>
                 /// Legacy venus does not support us adding import directives and them mapping them to their own concepts.
                 /// </summary>
-                public bool SupportsMappingImportDirectives => false;
+                public override bool SupportsMappingImportDirectives => false;
 
-                public async Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetTextChangesAsync(
+                public override async Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(
                     Document oldDocument,
                     Document newDocument,
                     CancellationToken cancellationToken)
                 {
                     var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
                     var mappedSpanResults = await MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
-
-                    Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
-
-                    using var _ = ArrayBuilder<(string, TextChange)>.GetInstance(out var mappedFilePathToTextChange);
-                    for (var i = 0; i < mappedSpanResults.Length; i++)
-                    {
-                        // Only include changes that could be mapped.
-                        var newText = textChanges[i].NewText;
-                        if (!mappedSpanResults[i].IsDefault && newText != null)
-                        {
-                            var newTextChange = new TextChange(mappedSpanResults[i].Span, newText);
-                            mappedFilePathToTextChange.Add((mappedSpanResults[i].FilePath, newTextChange));
-                        }
-                    }
-
-                    return mappedFilePathToTextChange.ToImmutable();
+                    var mappedTextChanges = MatchMappedSpansToTextChanges(textChanges, mappedSpanResults);
+                    return mappedTextChanges;
                 }
 
-                public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+                public override async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(
+                    Document document,
+                    IEnumerable<TextSpan> spans,
+                    CancellationToken cancellationToken)
                 {
                     // REVIEW: for now, we keep document here due to open file case, otherwise, we need to create new SpanMappingService for every char user types.
                     var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

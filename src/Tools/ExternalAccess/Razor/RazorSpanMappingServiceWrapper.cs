@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal sealed class RazorSpanMappingServiceWrapper : ISpanMappingService
+    internal sealed class RazorSpanMappingServiceWrapper : AbstractSpanMappingService
     {
         private readonly IRazorSpanMappingService _razorSpanMappingService;
 
@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         /// Modern razor span mapping service can handle if we add imports.  Razor will then rewrite that
         /// to their own form.
         /// </summary>
-        public bool SupportsMappingImportDirectives => true;
+        public override bool SupportsMappingImportDirectives => true;
 
-        public async Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetTextChangesAsync(
+        public override async Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(
             Document oldDocument,
             Document newDocument,
             CancellationToken cancellationToken)
@@ -42,24 +42,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             var textChanges = await diffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
             var mappedSpanResults = await MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), cancellationToken).ConfigureAwait(false);
 
-            Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
-
-            using var _ = ArrayBuilder<(string, TextChange)>.GetInstance(out var mappedFilePathAndTextChange);
-            for (var i = 0; i < mappedSpanResults.Length; i++)
-            {
-                // Only include changes that could be mapped.
-                var newText = textChanges[i].NewText;
-                if (!mappedSpanResults[i].IsDefault && newText != null)
-                {
-                    var newTextChange = new TextChange(mappedSpanResults[i].Span, newText);
-                    mappedFilePathAndTextChange.Add((mappedSpanResults[i].FilePath, newTextChange));
-                }
-            }
-
-            return mappedFilePathAndTextChange.ToImmutable();
+            var mappedTextChanges = MatchMappedSpansToTextChanges(textChanges, mappedSpanResults);
+            return mappedTextChanges;
         }
 
-        public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(
+            Document document,
+            IEnumerable<TextSpan> spans,
+            CancellationToken cancellationToken)
         {
             var razorSpans = await _razorSpanMappingService.MapSpansAsync(document, spans, cancellationToken).ConfigureAwait(false);
             var roslynSpans = new MappedSpanResult[razorSpans.Length];
