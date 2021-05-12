@@ -7217,8 +7217,9 @@ oneMoreTime:
                         continue;
                     }
 
-                    if (simpleAssignment.Target is InvalidOperation)
+                    if (simpleAssignment.Target.Kind != OperationKind.PropertyReference)
                     {
+                        Debug.Assert(simpleAssignment.Target is InvalidOperation);
                         AddStatement(VisitRequired(simpleAssignment.Value));
                         continue;
                     }
@@ -7303,23 +7304,24 @@ oneMoreTime:
             static bool setsAllProperties(ImmutableArray<IOperation> initializers, IEnumerable<IPropertySymbol> properties)
             {
                 var set = new HashSet<IPropertySymbol>(SymbolEqualityComparer.IgnoreAll);
-                foreach (var property in properties)
-                {
-                    _ = set.Add(property);
-                }
-
                 foreach (var initializer in initializers)
                 {
-                    if (initializer is ISimpleAssignmentOperation simpleAssignment &&
-                        simpleAssignment.Target is not InvalidOperation)
+                    if (initializer is not ISimpleAssignmentOperation simpleAssignment)
                     {
-                        var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
-                        _ = set.Remove(propertyReference.Property);
+                        continue;
                     }
+                    if (simpleAssignment.Target.Kind != OperationKind.PropertyReference)
+                    {
+                        Debug.Assert(simpleAssignment.Target is InvalidOperation);
+                        continue;
+                    }
+
+                    var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                    Debug.Assert(properties.Contains(propertyReference.Property, SymbolEqualityComparer.IgnoreAll));
+                    set.Add(propertyReference.Property);
                 }
 
-                bool setAllProperties = set.Count == 0;
-                return setAllProperties;
+                return set.Count == properties.Count();
             }
         }
     }
