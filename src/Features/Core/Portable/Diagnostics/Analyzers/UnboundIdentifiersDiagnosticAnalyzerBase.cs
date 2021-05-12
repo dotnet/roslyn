@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         }
 
         private static bool IsQualifiedOrSimpleName(SyntaxNode n)
-            => n is TQualifiedNameSyntax || n is TSimpleNameSyntax;
+            => n is TQualifiedNameSyntax or TSimpleNameSyntax;
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;

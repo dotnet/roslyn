@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
             var collectionExpression = (TExpressionSyntax)collectionExpressionNode;
             syntaxFacts.GetNameAndArityOfSimpleName(memberAccessNameNode, out var memberAccessName, out _);
-            if (memberAccessName != nameof(Array.Length) && memberAccessName != nameof(IList.Count))
+            if (memberAccessName is not nameof(Array.Length) and not nameof(IList.Count))
             {
                 return;
             }

@@ -224,8 +224,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     }
 
                     //  4. Assignments, increment/decrement operations: value is actually being assigned.
-                    if (value is IAssignmentOperation ||
-                        value is IIncrementOrDecrementOperation)
+                    if (value is IAssignmentOperation or
+                        IIncrementOrDecrementOperation)
                     {
                         return;
                     }
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// </summary>
                 private static bool IsHandledDelegateCreationOrAnonymousFunctionTreeShape(IOperation operation)
                 {
-                    Debug.Assert(operation.Kind == OperationKind.DelegateCreation || operation.Kind == OperationKind.AnonymousFunction);
+                    Debug.Assert(operation.Kind is OperationKind.DelegateCreation or OperationKind.AnonymousFunction);
 
                     // 1. Delegate creation or anonymous function variable initializer is handled.
                     //    For example, for 'Action a = () => { ... };', the lambda is the variable initializer
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 /// </summary>
                 private static bool IsHandledLocalOrParameterReferenceTreeShape(IOperation operation)
                 {
-                    Debug.Assert(operation.Kind == OperationKind.LocalReference || operation.Kind == OperationKind.ParameterReference);
+                    Debug.Assert(operation.Kind is OperationKind.LocalReference or OperationKind.ParameterReference);
 
                     // 1. We are only interested in parameters or locals of delegate type.
                     if (!operation.Type.IsDelegateType())

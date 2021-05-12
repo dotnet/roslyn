@@ -298,8 +298,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 IsParameterReference(invocation.Arguments[0].Value, parameter))
             {
                 var targetMethod = invocation.TargetMethod;
-                if (targetMethod?.Name == nameof(string.IsNullOrEmpty) ||
-                    targetMethod?.Name == nameof(string.IsNullOrWhiteSpace))
+                if (targetMethod?.Name is nameof(string.IsNullOrEmpty) or nameof(string.IsNullOrWhiteSpace))
                 {
                     return targetMethod.ContainingType.SpecialType == SpecialType.System_String;
                 }

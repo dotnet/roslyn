@@ -315,8 +315,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                     return null;
                 }
 
-                if (current is TMemberAccessExpression ||
-                    current is TElementAccessExpression)
+                if (current is TMemberAccessExpression or
+                    TElementAccessExpression)
                 {
                     if (syntaxFacts.AreEquivalent(unwrapped, expressionToMatch))
                     {

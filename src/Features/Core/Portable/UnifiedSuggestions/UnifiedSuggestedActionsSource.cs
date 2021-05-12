@@ -333,8 +333,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                         }
                     }
 
-                    Debug.Assert(set.CategoryName == UnifiedPredefinedSuggestedActionCategoryNames.CodeFix ||
-                                 set.CategoryName == UnifiedPredefinedSuggestedActionCategoryNames.ErrorFix);
+                    Debug.Assert(set.CategoryName is UnifiedPredefinedSuggestedActionCategoryNames.CodeFix or
+                                 UnifiedPredefinedSuggestedActionCategoryNames.ErrorFix);
 
                     // If this set contains an error fix, then change the result category to ErrorFix
                     if (set.CategoryName == UnifiedPredefinedSuggestedActionCategoryNames.ErrorFix)

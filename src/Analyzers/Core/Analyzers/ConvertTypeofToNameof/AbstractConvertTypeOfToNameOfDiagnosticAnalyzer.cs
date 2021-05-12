@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             // Check Parent is a .Name access
             var operationParent = (IPropertyReferenceOperation)operation.Parent;
             var parentProperty = operationParent.Property.Name;
-            if (parentProperty != nameof(System.Type.Name) && parentProperty != "Name")
+            if (parentProperty is not nameof(System.Type.Name))
             {
                 return false;
             }
