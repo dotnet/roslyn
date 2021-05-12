@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpSecurityCodeFixVerifier<
@@ -1163,7 +1164,8 @@ class C
     }
 }"
                         , SymbolEqualityComparerStubCSharp
-                    }
+                    },
+                    ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31
                 }
             }.RunAsync();
         }
@@ -1240,7 +1242,8 @@ public class C
                         code, SymbolEqualityComparerStubCSharp
                     },
                     MarkupHandling = Testing.MarkupMode.Allow
-                }
+                },
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31
             }.RunAsync();
         }
     }
