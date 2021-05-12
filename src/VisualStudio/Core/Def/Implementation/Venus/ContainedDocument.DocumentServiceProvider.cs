@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 /// </summary>
                 public bool SupportsMappingImportDirectives => false;
 
-                public async Task<ImmutableArray<(string mappedFilePath, TextChange textChange)>> GetTextChangesAsync(
+                public async Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetTextChangesAsync(
                     Document oldDocument,
                     Document newDocument,
                     CancellationToken cancellationToken)

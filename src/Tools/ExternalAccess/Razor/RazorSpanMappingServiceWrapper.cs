@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         /// </summary>
         public bool SupportsMappingImportDirectives => true;
 
-        public async Task<ImmutableArray<(string mappedFilePath, TextChange textChange)>> GetTextChangesAsync(
+        public async Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetTextChangesAsync(
             Document oldDocument,
             Document newDocument,
             CancellationToken cancellationToken)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
 
-            using var _ = ArrayBuilder<(string, TextChange)>.GetInstance(out var mappedFilePathToTextChange);
+            using var _ = ArrayBuilder<(string, TextChange)>.GetInstance(out var mappedFilePathAndTextChange);
             for (var i = 0; i < mappedSpanResults.Length; i++)
             {
                 // Only include changes that could be mapped.
@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 if (!mappedSpanResults[i].IsDefault && newText != null)
                 {
                     var newTextChange = new TextChange(mappedSpanResults[i].Span, newText);
-                    mappedFilePathToTextChange.Add((mappedSpanResults[i].FilePath, newTextChange));
+                    mappedFilePathAndTextChange.Add((mappedSpanResults[i].FilePath, newTextChange));
                 }
             }
 
-            return mappedFilePathToTextChange.ToImmutable();
+            return mappedFilePathAndTextChange.ToImmutable();
         }
 
         public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)

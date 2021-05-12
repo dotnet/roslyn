@@ -28,7 +28,10 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         bool SupportsMappingImportDirectives { get; }
 
-        Task<ImmutableArray<(string mappedFilePath, TextChange textChange)>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
+        Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetTextChangesAsync(
+            Document oldDocument,
+            Document newDocument,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Map spans in the document to more appropriate locations
