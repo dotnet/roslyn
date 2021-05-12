@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
@@ -67,6 +69,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 /// Legacy venus does not support us adding import directives and them mapping them to their own concepts.
                 /// </summary>
                 public bool SupportsMappingImportDirectives => false;
+
+                public async Task<ImmutableArray<(string mappedFilePath, TextChange textChange)>> GetTextChangesAsync(
+                    Document oldDocument,
+                    Document newDocument,
+                    CancellationToken cancellationToken)
+                {
+                    var textChanges = (await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
+                    var mappedSpanResults = await MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), CancellationToken.None).ConfigureAwait(false);
+
+                    Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
+
+                    using var _ = ArrayBuilder<(string, TextChange)>.GetInstance(out var mappedFilePathToTextChange);
+                    for (var i = 0; i < mappedSpanResults.Length; i++)
+                    {
+                        // Only include changes that could be mapped.
+                        var newText = textChanges[i].NewText;
+                        if (!mappedSpanResults[i].IsDefault && newText != null)
+                        {
+                            var newTextChange = new TextChange(mappedSpanResults[i].Span, newText);
+                            mappedFilePathToTextChange.Add((mappedSpanResults[i].FilePath, newTextChange));
+                        }
+                    }
+
+                    return mappedFilePathToTextChange.ToImmutable();
+                }
 
                 public async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
                 {

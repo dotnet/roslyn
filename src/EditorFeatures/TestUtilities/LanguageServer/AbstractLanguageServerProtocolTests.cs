@@ -102,6 +102,11 @@ namespace Roslyn.Test.Utilities
 
                 return Task.FromResult(mappedResult);
             }
+
+            public Task<ImmutableArray<(string mappedFilePath, TextChange textChange)>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(ImmutableArray<(string, TextChange)>.Empty);
+            }
         }
 
         protected class OrderLocations : Comparer<LSP.Location>
