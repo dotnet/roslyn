@@ -218,8 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 result |= ClassifiedTextRunStyle.Underline;
             }
 
-            if ((style & TaggedTextStyle.Code) == TaggedTextStyle.Code ||
-                (style & TaggedTextStyle.InlineCode) == TaggedTextStyle.InlineCode)
+            if ((style & TaggedTextStyle.Code) == TaggedTextStyle.Code)
             {
                 result |= ClassifiedTextRunStyle.UseClassificationFont;
             }

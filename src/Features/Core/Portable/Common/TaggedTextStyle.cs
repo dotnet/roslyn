@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis
 
         Code = 1 << 3,
 
-        InlineCode = 1 << 4,
+        PreserveWhitespace = 1 << 4,
     }
 }

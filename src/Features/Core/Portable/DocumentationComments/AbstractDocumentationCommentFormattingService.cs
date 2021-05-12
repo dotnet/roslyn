@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             else if (name is DocumentationCommentXmlNames.CElementName or "tt")
             {
                 needPopStyle = true;
-                state.PushStyle(TaggedTextStyle.InlineCode);
+                state.PushStyle(TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace);
             }
             else if (name == DocumentationCommentXmlNames.CodeElementName)
             {
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         private static void AppendTextFromTextNode(FormatterState state, XText element)
         {
             var rawText = element.Value;
-            if (state.Style == TaggedTextStyle.Code)
+            if ((state.Style & TaggedTextStyle.PreserveWhitespace) == TaggedTextStyle.PreserveWhitespace)
             {
                 // Don't normalize code from middle. Only trim leading/trailing new lines.
                 state.AppendString(rawText.Trim('\n'));
