@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
@@ -1165,7 +1166,7 @@ class C
 }"
                         , SymbolEqualityComparerStubCSharp
                     },
-                    ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31
+                    ReferenceAssemblies = CreateNetCoreReferenceAssemblies()
                 }
             }.RunAsync();
         }
@@ -1243,8 +1244,17 @@ public class C
                     },
                     MarkupHandling = Testing.MarkupMode.Allow
                 },
-                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies()
             }.RunAsync();
         }
+
+        private static ReferenceAssemblies CreateNetCoreReferenceAssemblies()
+            => ReferenceAssemblies.NetCore.NetCoreApp31.AddPackages(ImmutableArray.Create(
+                new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0"),
+                new PackageIdentity("System.Runtime.Serialization.Formatters", "4.3.0"),
+                new PackageIdentity("System.Configuration.ConfigurationManager", "4.7.0"),
+                new PackageIdentity("System.Security.Cryptography.Cng", "4.7.0"),
+                new PackageIdentity("System.Security.Permissions", "4.7.0"),
+                new PackageIdentity("Microsoft.VisualBasic", "10.3.0")));
     }
 }
