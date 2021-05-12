@@ -41,25 +41,27 @@ namespace Microsoft.CodeAnalysis
 
             private readonly CancellationToken _cancellationToken;
 
-            public Builder(DriverStateTable previousTable, CancellationToken cancellationToken = default)
+            public Builder(DriverStateTable previousTable)
+            {
+                _previousTable = previousTable;
+            }
+
+            public Builder(DriverStateTable previousTable, Compilation compilation, GeneratorDriverState driverState, ImmutableArray<ISyntaxTransformNode> syntaxTransformNodes, ImmutableArray<(object, object)> otherInputs, CancellationToken cancellationToken = default)
             {
                 _previousTable = previousTable;
                 _cancellationToken = cancellationToken;
-            }
 
-            public void AddInput<T>(InputNode<T> source, T value)
-            {
-                _inputBuilder[source] = ImmutableArray.Create(value);
-            }
+                _inputBuilder[SharedInputNodes.Compilation] = ImmutableArray.Create(compilation);
+                _inputBuilder[SharedInputNodes.SyntaxTrees] = compilation.SyntaxTrees.ToImmutableArray();
+                _inputBuilder[SharedInputNodes.AdditionalTexts] = driverState.AdditionalTexts;
+                _inputBuilder[SharedInputNodes.AnalyzerConfigOptions] = ImmutableArray.Create(driverState.OptionsProvider);
+                _inputBuilder[SharedInputNodes.ParseOptions] = ImmutableArray.Create(driverState.ParseOptions);
+                foreach ((var key, var value) in otherInputs)
+                {
+                    _inputBuilder[key] = value;
+                }
 
-            public void AddInput<T>(InputNode<T> source, IEnumerable<T> value)
-            {
-                _inputBuilder[source] = value.ToImmutableArray();
-            }
-
-            public void AddSyntaxNodes(ImmutableArray<ISyntaxTransformNode> nodes)
-            {
-                _syntaxNodes.AddRange(nodes);
+                _syntaxNodes.AddRange(syntaxTransformNodes);
             }
 
             public ImmutableArray<T> GetInputValue<T>(InputNode<T> source)

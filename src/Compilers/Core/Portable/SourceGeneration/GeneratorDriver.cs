@@ -286,59 +286,23 @@ namespace Microsoft.CodeAnalysis
             constantSourcesBuilder.Free();
 
 
-            // PROTOTYPE(source-generators): we don't need to run at all if none of the inputs have changes.
-            var driverStateBuilder = new DriverStateTable.Builder(_state.StateTable, cancellationToken);
-
-            driverStateBuilder.AddInput(SharedInputNodes.Compilation, compilation);
-            driverStateBuilder.AddInput(SharedInputNodes.SyntaxTrees, compilation.SyntaxTrees);
-            driverStateBuilder.AddInput(SharedInputNodes.AnalyzerConfigOptions, _state.OptionsProvider);
-            driverStateBuilder.AddInput(SharedInputNodes.ParseOptions, _state.ParseOptions);
-            driverStateBuilder.AddInput(SharedInputNodes.AdditionalTexts, _state.AdditionalTexts);
-
-            // PROTOTYPE(source-generators): we should probably just pass these at creation, and need to handle syntax rx's too
-            driverStateBuilder.AddSyntaxNodes(syntaxInputNodes.ToImmutable());
+            var syntaxWalkers = stateBuilder.Where(s => s.Sources.ReceiverNode is object).SelectAsArray<GeneratorState, (object, object)>(s => (s.Sources.ReceiverNode!, ImmutableArray.Create(s.SyntaxReceiver)));
+            var driverStateBuilder = new DriverStateTable.Builder(_state.StateTable, compilation, _state, syntaxInputNodes.ToImmutable(), syntaxWalkers, cancellationToken);
 
             // If we have syntax inputs, or receivers, bring them up to date
-            if (syntaxInputNodes.Count > 0 || walkerCount > 0)
+            if (walkerCount > 0)
             {
-                var builders = ArrayBuilder<ISyntaxTransformBuilder>.GetInstance(syntaxInputNodes.Count);
-                foreach (var node in syntaxInputNodes)
-                {
-                   // builders.Add(node.GetBuilder(_state.StateTable));
-                }
-
                 foreach ((var tree, var treeState) in driverStateBuilder.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
                 {
                     if (treeState == EntryState.Removed)
                     {
-                        // we need to keep the removed tree entries, but can skip everything else
-                        foreach (var b in builders)
-                        {
-                          //  b.AddFilterFromPreviousTable(null, EntryState.Removed);
-                        }
                         continue;
-                    }
-
-                    // PROTOTYPE(source-generators): It would be nice to somehow collect all the results up front, then pass them to the builder
-                    //                               so we don't have to worry about the generic and have the extra interface.
-
-                    var semanticModel = compilation.GetSemanticModel(tree);
-                    if (treeState == EntryState.Cached)
-                    {
-                        foreach (var b in builders)
-                        {
-                           // b.AddFilterFromPreviousTable(semanticModel, treeState);
-                        }
-                    }
-                    else
-                    {
-                        // run a walk for each filter and apply the results
-                        //IncrementalGeneratorSyntaxWalker.VisitNodeForBuilders(tree.GetRoot(cancellationToken), semanticModel, builders);
                     }
 
                     // back compat, run this tree over any ISyntaxContextReceivers
                     if (walkerCount > 0)
                     {
+                        var semanticModel = compilation.GetSemanticModel(tree);
                         var root = tree.GetRoot(cancellationToken);
                         for (int i = 0; i < walkerBuilder.Count; i++)
                         {
@@ -358,14 +322,6 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
-
-                // add the updated nodes as inputs to the new graph
-                foreach (var builder in builders)
-                {
-                    //builder.AddInputs(driverStateBuilder);
-                }
-
-                builders.Free();
             }
             walkerBuilder.Free();
 
@@ -379,7 +335,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (generatorState.Sources.ReceiverNode is object)
                 {
-                    driverStateBuilder.AddInput(generatorState.Sources.ReceiverNode, generatorState.SyntaxReceiver);
+                    //driverStateBuilder.AddInput(generatorState.Sources.ReceiverNode, generatorState.SyntaxReceiver);
                 }
 
                 IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());
