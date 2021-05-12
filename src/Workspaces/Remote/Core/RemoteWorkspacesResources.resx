@@ -198,4 +198,7 @@
   <data name="FeatureName_NavigationBarItem" xml:space="preserve">
     <value>Navigation bar</value>
   </data>
+  <data name="FeatureName_ValueTracking" xml:space="preserve">
+    <value>Value Tracking</value>
+  </data>
 </root>
