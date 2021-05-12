@@ -3,7 +3,7 @@ $BinPath = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\..\bin\Packages\$env:
 $icv=@()
 if (Test-Path "$BinPath") {
     Get-ChildItem -Path "$BinPath\*.nupkg" -rec |% {
-        if ($_.Name -match "^(.*)\.(\d+\.\d+\.\d+(?:-.*?)?)(?:\.symbols)?\.nupkg$") {
+        if ($_.Name -match "^(.*?)\.(\d+\.\d+\.\d+(?:\.\d+)?(?:-.*?)?)(?:\.symbols)?\.nupkg$") {
             $id = $Matches[1]
             $version = $Matches[2]
             $icv += "$id=$version"
