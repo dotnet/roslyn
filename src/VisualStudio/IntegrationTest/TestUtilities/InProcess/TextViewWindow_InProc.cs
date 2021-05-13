@@ -277,7 +277,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var view = GetActiveTextView();
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
 
-                var session = broker.GetSession(view);
+                var session = Helper.Retry(() => broker.GetSession(view), Helper.HangMitigatingTimeout);
 
                 using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
                 while (session.State != QuickInfoSessionState.Visible)

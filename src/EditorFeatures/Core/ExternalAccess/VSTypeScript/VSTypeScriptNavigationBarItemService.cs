@@ -18,8 +18,8 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    [ExportLanguageService(typeof(INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess), InternalLanguageNames.TypeScript), Shared]
-    internal class VSTypeScriptNavigationBarItemService : INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess
+    [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.TypeScript), Shared]
+    internal class VSTypeScriptNavigationBarItemService : INavigationBarItemService
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IVSTypeScriptNavigationBarItemService _service;

@@ -118,7 +118,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 {
                     // Usually applying this code action pops up a dialog allowing the user to choose which options.
                     // We can't do that here, so instead we just take the defaults until we have more intent data.
-                    var options = new PickMembersResult(dialogAction.ViableMembers, dialogAction.PickMembersOptions);
+                    var options = new PickMembersResult(
+                        dialogAction.ViableMembers,
+                        dialogAction.PickMembersOptions,
+                        selectedAll: true);
                     var operations = await dialogAction.GetOperationsAsync(options: options, cancellationToken).ConfigureAwait(false);
                     return operations == null ? ImmutableArray<CodeActionOperation>.Empty : operations.ToImmutableArray();
                 }
@@ -179,7 +182,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // Only supported on classes/structs.
             var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken: cancellationToken) as INamedTypeSymbol;
-            if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
+            if (containingType?.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
                 return null;
             }

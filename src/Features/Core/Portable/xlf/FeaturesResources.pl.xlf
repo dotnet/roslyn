@@ -280,6 +280,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Konwertuj na rekord</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="new">Convert to record struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Konwertuj na strukturę</target>
@@ -578,6 +583,21 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Introduce_local">
         <source>Introduce local</source>
         <target state="translated">Wprowadź zmienną lokalną</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter">
+        <source>Introduce parameter</source>
+        <target state="new">Introduce parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_0">
+        <source>Introduce parameter for '{0}'</source>
+        <target state="new">Introduce parameter for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
+        <source>Introduce parameter for all occurrences of '{0}'</source>
+        <target state="new">Introduce parameter for all occurrences of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable">
@@ -2426,6 +2446,11 @@ Jeśli specyfikator formatu „H” zostanie użyty bez innych indywidualnych sp
         <target state="translated">Indywidualny specyfikator formatu „HH” (wraz z dowolną liczbą dodatkowych specyfikatorów „H”) reprezentuje godzinę jako liczbę z zakresu od 00 do 23; tzn. godzina jest reprezentowana przez 24-godzinny zegar zaczynający się od zera i liczący godziny od północy. Godzina 1-cyfrowa jest wyświetlana w formacie z wiodącym zerem.</target>
         <note />
       </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="new">and update call sites directly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="code">
         <source>code</source>
         <target state="new">code</target>
@@ -2565,6 +2590,16 @@ Standardowy specyfikator formatu „f” reprezentuje połączenie wzorców dłu
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">w źródle (atrybut)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="new">into extracted method to invoke at call sites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload">
+        <source>into new overload</source>
+        <target state="new">into new overload</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

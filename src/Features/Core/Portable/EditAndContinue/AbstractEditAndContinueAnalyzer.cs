@@ -694,12 +694,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 // do not include reorder and move edits
 
-                if (edit.Kind == EditKind.Delete || edit.Kind == EditKind.Update)
+                if (edit.Kind is EditKind.Delete or EditKind.Update)
                 {
                     map.Add(edit.OldNode, edit.Kind);
                 }
 
-                if (edit.Kind == EditKind.Insert || edit.Kind == EditKind.Update)
+                if (edit.Kind is EditKind.Insert or EditKind.Update)
                 {
                     map.Add(edit.NewNode, edit.Kind);
                 }
@@ -2002,7 +2002,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (editMap.ContainsKey(newNode))
                 {
                     // Updated or inserted members will be (re)generated and don't need line edits.
-                    Debug.Assert(editMap[newNode] == EditKind.Update || editMap[newNode] == EditKind.Insert);
+                    Debug.Assert(editMap[newNode] is EditKind.Update or EditKind.Insert);
                     continue;
                 }
 
@@ -3802,8 +3802,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static (SyntaxNode? Node, int Ordinal) GetParameterKey(IParameterSymbol parameter, CancellationToken cancellationToken)
         {
             var containingLambda = parameter.ContainingSymbol as IMethodSymbol;
-            if (containingLambda?.MethodKind == MethodKind.LambdaMethod ||
-                containingLambda?.MethodKind == MethodKind.LocalFunction)
+            if (containingLambda?.MethodKind is MethodKind.LambdaMethod or MethodKind.LocalFunction)
             {
                 var oldContainingLambdaSyntax = containingLambda.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
                 return (oldContainingLambdaSyntax, parameter.Ordinal);

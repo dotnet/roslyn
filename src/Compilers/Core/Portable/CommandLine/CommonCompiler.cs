@@ -1228,7 +1228,7 @@ namespace Microsoft.CodeAnalysis
                             // only report unused usings if we have success.
                             if (success)
                             {
-                                compilation.ReportUnusedImports(null, diagnostics, cancellationToken);
+                                compilation.ReportUnusedImports(diagnostics, cancellationToken);
                             }
                         }
 

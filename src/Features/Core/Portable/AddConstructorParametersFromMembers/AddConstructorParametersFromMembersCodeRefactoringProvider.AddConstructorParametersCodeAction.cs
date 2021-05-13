@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var workspace = _document.Project.Solution.Workspace;
-                var declarationService = _document.GetLanguageService<ISymbolDeclarationService>();
+                var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
                 var constructor = declarationService.GetDeclarations(
                     _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
             private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
             {
-                var factory = _document.GetLanguageService<SyntaxGenerator>();
+                var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
                 for (var i = 0; i < _missingParameters.Length; ++i)
                 {
                     var memberName = constructorCandidate.MissingMembers[i].Name;
@@ -101,6 +99,16 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     }
                 }
             }
+
+            /// <summary>
+            /// A metadata name used by telemetry to distinguish between the different kinds of this code action.
+            /// This code action will perform 2 different actions depending on if missing parameters can be optional.
+            /// 
+            /// In this case we don't want to use the title as it depends on the class name for the ctor.
+            /// </summary>
+            internal string ActionName => _missingParameters[0].IsOptional
+                ? nameof(FeaturesResources.Add_optional_parameters_to_0)
+                : nameof(FeaturesResources.Add_parameters_to_0);
         }
     }
 }
