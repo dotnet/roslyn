@@ -333,6 +333,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 semanticTokensRangeParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
+        // Temporary workaround to specify the actual public LSP method name until the LSP protocol package updates.
+        // Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1249055
+        [JsonRpcMethod("textDocument/semanticTokens/full", UseSingleObjectParameterDeserialization = true)]
+        public Task<SemanticTokens> GetTextDocumentSemanticTokensPublicAsync(SemanticTokensParams semanticTokensParams, CancellationToken cancellationToken)
+            => GetTextDocumentSemanticTokensAsync(semanticTokensParams, cancellationToken);
+
+        // Temporary workaround to specify the actual public LSP method name until the LSP protocol package updates.
+        // Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1249055
+        [JsonRpcMethod("textDocument/semanticTokens/full/delta", UseSingleObjectParameterDeserialization = true)]
+        public Task<SumType<SemanticTokens, SemanticTokensEdits>> GetTextDocumentSemanticTokensEditsPublicAsync(SemanticTokensEditsParams semanticTokensEditsParams, CancellationToken cancellationToken)
+            => GetTextDocumentSemanticTokensEditsAsync(semanticTokensEditsParams, cancellationToken);
+
         [JsonRpcMethod(Methods.TextDocumentDidChangeName, UseSingleObjectParameterDeserialization = true)]
         public Task<object> HandleDocumentDidChangeAsync(DidChangeTextDocumentParams didChangeParams, CancellationToken cancellationToken)
         {
