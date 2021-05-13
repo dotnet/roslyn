@@ -296,7 +296,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                         workspace, documentId, cancellationToken);
 
                     return TryInstallAndAddUndoAction(
-                        source, packageName, versionOpt, includePrerelease, dte, dteProject, undoManager);
+                        source, packageName, versionOpt, includePrerelease, projectId, dte, dteProject, undoManager);
                 }
             }
 
