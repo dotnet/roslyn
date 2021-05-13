@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public static ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(this IManagedEditAndContinueDebuggerService _1, CancellationToken _2)
         {
-            return new(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
+            return new(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition", 
+            // TODO: REMOVE
+            "UpdateCustomAttributes"));
         }
     }
 }

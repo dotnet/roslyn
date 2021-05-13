@@ -92,7 +92,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // For now, runtimes aren't returning capabilities, we just fall back to a known set.
             if (capabilities == EditAndContinueCapabilities.None)
             {
-                capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition;
+                capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition 
+                // TODO: REMOVE
+                | EditAndContinueCapabilities.UpdateCustomAttributes;
             }
 
             var newSession = new DebuggingSession(solution, debuggerService, capabilities, _compilationOutputsProvider, initialDocumentStates, _debuggingSessionTelemetry, _editSessionTelemetry);
@@ -114,6 +116,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     "AddStaticFieldToExistingType" => EditAndContinueCapabilities.AddStaticFieldToExistingType,
                     "AddInstanceFieldToExistingType" => EditAndContinueCapabilities.AddInstanceFieldToExistingType,
                     "NewTypeDefinition" => EditAndContinueCapabilities.NewTypeDefinition,
+                    "UpdateCustomAttributes" => EditAndContinueCapabilities.UpdateCustomAttributes,
 
                     // To make it eaiser for  runtimes to specify more broad capabilities
                     "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
