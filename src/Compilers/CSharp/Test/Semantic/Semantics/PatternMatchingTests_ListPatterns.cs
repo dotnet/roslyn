@@ -96,5 +96,82 @@ public class X
   IL_004b:  ret
 }");
         }
+
+        [Theory]
+        // Index
+        [InlineData("[Index i]")]
+        [InlineData("[Index i, int ignored = 0]")]
+        [InlineData("[Index i, params int[] ignored]")]
+        [InlineData("[params Index[] i]")]
+        // int
+        [InlineData("[int i]")]
+        [InlineData("[int i, int ignored = 0]")]
+        [InlineData("[int i, params int[] ignored]")]
+        [InlineData("[params int[] i]")]
+        // long
+        [InlineData("[long i]")]
+        [InlineData("[long i, int ignored = 0]")]
+        [InlineData("[long i, params int[] ignored]")]
+        [InlineData("[params long[] i]")]
+        public void ListPattern_IndexIndexerPattern(string indexer)
+        {
+            var source = @"
+using System;
+class X
+{
+    public int this" + indexer + @"
+    {
+        get
+        {
+            i.ToString(); // verify argument is usable
+            Console.Write(""this[] "");
+            return 1;
+        }
+    }
+    public int Length => 1;
+    public static void Main()
+    {
+        Console.Write(new X() is { 1 });
+    } 
+}
+";
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "this[] True");
+        }
+
+        [Theory]
+        // Range
+        [InlineData("[Range i]")]
+        [InlineData("[Range i, int ignored = 0]")]
+        [InlineData("[Range i, params int[] ignored]")]
+        [InlineData("[params Range[] i]")]
+        public void ListPattern_ExplicitRangeIndexerPattern(string indexer)
+        {
+            var source = @"
+using System;
+class X
+{
+    public int this" + indexer + @"
+    {
+        get
+        {
+            i.ToString(); // verify argument is usable
+            Console.Write(""this[] "");
+            return 1;
+        }
+    }
+    public int this[int i] => throw new();
+    public int Count => 1;
+    public static void Main()
+    {
+        Console.Write(new X() is { .. 1 });
+    } 
+}
+";
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "this[] True");
+        }
     }
 }

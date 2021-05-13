@@ -10,11 +10,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class DecisionDagBuilder
     {
-        private void MakeTestsAndBindingsForLengthAndListPattern(BoundDagTemp input, BoundRecursivePattern recursive, ArrayBuilder<BoundPatternBinding> bindings, ArrayBuilder<Tests> tests)
+        private void MakeTestsAndBindingsForLengthAndListPatterns(BoundDagTemp input, BoundRecursivePattern recursive, ArrayBuilder<BoundPatternBinding> bindings, ArrayBuilder<Tests> tests)
         {
-            var syntax = recursive.Syntax;
-
+            if (recursive.HasErrors)
+                return;
             Debug.Assert(recursive.LengthProperty is not null || input.Type.IsSZArray());
+            var syntax = recursive.Syntax;
             var lenthProperty = recursive.LengthProperty ?? (PropertySymbol)_compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length);
             var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, lenthProperty, input);
             tests.Add(new Tests.One(lengthEvaluation));
@@ -38,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (slice.Pattern is not null)
                         {
-                            var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slice.SliceMethod, clause.IndexerAccess, lengthTemp, startIndex: index, endIndex: index - (subpatterns.Length - 1), input);
+                            var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slice.SliceMethod, slice.IndexerAccess, slice.SliceType, lengthTemp, startIndex: index, endIndex: index - (subpatterns.Length - 1), input);
                             tests.Add(new Tests.One(sliceEvaluation));
-                            var sliceTemp = new BoundDagTemp(syntax, slice.SliceMethod is null ? input.Type : slice.SliceMethod.ReturnType, sliceEvaluation);
+                            var sliceTemp = new BoundDagTemp(syntax, slice.SliceType, sliceEvaluation);
                             tests.Add(MakeTestsAndBindings(sliceTemp, slice.Pattern, bindings));
                         }
 
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 void addIndexerTests(int index, BoundPattern subpattern)
                 {
-                    var indexEvaluation = new BoundDagIndexerEvaluation(syntax, clause.IndexerAccess, lengthTemp, index, input);
+                    var indexEvaluation = new BoundDagIndexerEvaluation(syntax, clause.IndexerAccess, clause.ElementType, lengthTemp, index, input);
                     tests.Add(new Tests.One(indexEvaluation));
                     var indexTemp = new BoundDagTemp(syntax, clause.ElementType, indexEvaluation);
                     tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));

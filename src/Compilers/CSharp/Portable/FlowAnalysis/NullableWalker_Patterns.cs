@@ -460,10 +460,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     addTemp(e, e.Property.Type);
                                     break;
                                 case BoundDagIndexerEvaluation e:
-                                    addTemp(e, e.IndexerAccess is null ? ((ArrayTypeSymbol)inputType).ElementType : e.IndexerAccess.Type);
+                                    addTemp(e, e.IndexerType);
                                     break;
                                 case BoundDagSliceEvaluation e:
-                                    addTemp(e, e.SliceMethod is null ? inputType : e.SliceMethod.ReturnType);
+                                    addTemp(e, e.SliceType);
                                     break;
                                 default:
                                     throw ExceptionUtilities.UnexpectedValue(p.Evaluation.Kind);

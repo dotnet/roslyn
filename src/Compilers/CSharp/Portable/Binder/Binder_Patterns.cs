@@ -198,19 +198,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? sliceMethod = null;
             BoundIndexerAccess? indexerAccess = null;
 
-            BoundPattern? pattern = node.Pattern is not null
-                ? BindPattern(node.Pattern, inputType, ExternalScope, permitDesignations, hasErrors, diagnostics)
-                : null;
-
-            if (!inputType.IsSZArray() &&
-                !TryFindRangeIndexerPatternForListPattern(node, inputType, out sliceMethod, out indexerAccess))
+            TypeSymbol sliceType;
+            if (inputType.IsSZArray())
+            {
+                sliceType = inputType;
+            }
+            else if (TryFindRangeIndexerPatternForListPattern(node, inputType, out sliceMethod, out indexerAccess))
+            {
+                sliceType = sliceMethod is not null ? sliceMethod.ReturnType :
+                            indexerAccess is not null ? indexerAccess.Type :
+                            throw ExceptionUtilities.Unreachable;
+            }
+            else
             {
                 if (!inputType.IsErrorType())
                     diagnostics.Add(ErrorCode.ERR_UnsupportedTypeForSlicePattern, node.Location, inputType.ToDisplayString());
                 hasErrors = true;
+                sliceType = CreateErrorType();
             }
 
-            return new BoundSlicePattern(node, sliceMethod, indexerAccess, pattern, inputType: inputType, narrowedType: inputType, hasErrors);
+            BoundPattern? pattern = node.Pattern is not null
+                ? BindPattern(node.Pattern, sliceType, ExternalScope, permitDesignations, hasErrors, diagnostics)
+                : null;
+
+            return new BoundSlicePattern(node, sliceMethod, indexerAccess, sliceType: sliceType, pattern, inputType: inputType, narrowedType: inputType, hasErrors);
         }
 
         private ImmutableArray<BoundPattern> BindListPatternSubpatterns(
@@ -272,7 +283,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (SyntaxNode errorNode, ErrorCode errorCode) = node.LengthPatternClause is not null
                             ? ((SyntaxNode)node.LengthPatternClause, ErrorCode.ERR_UnsupportedTypeForLengthPattern)
                             : ((SyntaxNode)node.PropertyPatternClause!, ErrorCode.ERR_UnsupportedTypeForListPattern);
-                        Error(diagnostics, errorCode, errorNode, inputType.ToDisplayString());
+                        if (!hasErrors)
+                            Error(diagnostics, errorCode, errorNode, inputType.ToDisplayString());
                     }
                     hasErrors = true;
                 }
@@ -306,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (!inputType.IsErrorType())
+                if (!hasErrors)
                     Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
                 hasErrors = true;
                 elementType = CreateErrorType();
@@ -318,11 +330,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryFindIndexIndexerPatternForListPattern(
             SyntaxNode syntax, TypeSymbol receiverType,
-            [NotNullWhen(true)] out BoundIndexerAccess? memberAccess)
+            [NotNullWhen(true)] out BoundIndexerAccess? indexerAccess)
         {
             var lookupResult = LookupResult.GetInstance();
-            var success = PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out memberAccess, Compilation.GetWellKnownType(WellKnownType.System_Index)) ||
-                          PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out memberAccess, Compilation.GetSpecialType(SpecialType.System_Int32));
+            var success = PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out indexerAccess, Compilation.GetWellKnownType(WellKnownType.System_Index)) ||
+                          PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out indexerAccess, Compilation.GetSpecialType(SpecialType.System_Int32));
             lookupResult.Free();
             return success;
         }
@@ -330,13 +342,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryFindRangeIndexerPatternForListPattern(
             SyntaxNode syntax, TypeSymbol receiverType,
             out MethodSymbol? sliceMethod,
-            out BoundIndexerAccess? memberAccess)
+            out BoundIndexerAccess? indexerAccess)
         {
             sliceMethod = null;
 
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             var lookupResult = LookupResult.GetInstance();
-            var success = PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out memberAccess, Compilation.GetWellKnownType(WellKnownType.System_Range)) ||
+            var success = PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out indexerAccess, Compilation.GetWellKnownType(WellKnownType.System_Range)) ||
                           TryFindImplicitRangeIndexerPattern(syntax, receiverOpt: null, receiverType, out sliceMethod, BindingDiagnosticBag.Discarded, lookupResult, ref useSiteInfo);
             lookupResult.Free();
             return success;
@@ -362,7 +374,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (lookupResult.IsMultiViable)
                 {
-
                     var indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance();
                     foreach (Symbol symbol in lookupResult.Symbols)
                     {

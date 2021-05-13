@@ -1429,6 +1429,7 @@
   <Node Name="BoundDagIndexerEvaluation" Base="BoundDagEvaluation">
     <!-- This will be null if input type is an array -->
     <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
+    <Field Name="IndexerType" Type="TypeSymbol"/>
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="Index" Type="int"/>
   </Node>
@@ -1436,6 +1437,7 @@
     <!-- This will be null if input type is an array or an indexer is available -->
     <Field Name="SliceMethod" Type="MethodSymbol?"/>
     <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
+    <Field Name="SliceType" Type="TypeSymbol"/>
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="StartIndex" Type="int"/>
     <Field Name="EndIndex" Type="int"/>
@@ -2112,6 +2114,7 @@
     <!-- This will be null if input type is an array or an indexer is available -->
     <Field Name="SliceMethod" Type="MethodSymbol?"/>
     <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
+    <Field Name="SliceType" Type="TypeSymbol"/>
     <Field Name="Pattern" Type="BoundPattern?"/>
   </Node>
 

@@ -254,22 +254,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             BoundExpression indexerArg = indexerAccess is null || indexerAccess.Indexer.Parameters[0].Type.SpecialType == SpecialType.System_Int32
                                 ? makeImplicitIndexArgument(e.Index, e.LengthTemp)
-                                : makeExplicitIndexArgument(e.Index);
+                                : makeExplicitIndexArgument(e.Index, e.Index < 0);
 
-                            BoundExpression access;
-                            TypeSymbol type;
-                            if (indexerAccess is null)
-                            {
-                                access = _factory.ArrayAccess(input, indexerArg);
-                                type = ((ArrayTypeSymbol)inputType).ElementType;
-                            }
-                            else
-                            {
-                                type = indexerAccess.Type;
-                                access = makeIndexerCall(indexerAccess, indexerArg);
-                            }
+                            BoundExpression access = indexerAccess is null
+                                ? _factory.ArrayAccess(input, indexerArg)
+                                : makeIndexerCall(indexerAccess, indexerArg);
 
-                            var outputTemp = new BoundDagTemp(e.Syntax, type, e);
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, access);
                         }
@@ -284,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression callExpr = _factory.Call(
                                 receiver: null,
                                 _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T)
-                                    .Construct(ImmutableArray.Create(((ArrayTypeSymbol)inputType).ElementType)),
+                                    .Construct(ImmutableArray.Create(e.SliceType)),
                                 ImmutableArray.Create(input, makeExplicitRangeArgument(e)));
 
                             var outputTemp = new BoundDagTemp(e.Syntax, inputType, e);
@@ -300,21 +291,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(sliceMethod.Parameters[1].Type.SpecialType == SpecialType.System_Int32);
                             Debug.Assert(e.StartIndex >= 0 && e.EndIndex <= 0);
 
-                            var type = sliceMethod.ReturnType;
                             var lengthArg = _factory.IntSubtract(_tempAllocator.GetTemp(e.LengthTemp), _factory.Literal(e.StartIndex - e.EndIndex));
                             var callExpr = _factory.Call(input, sliceMethod, _factory.Literal(e.StartIndex), lengthArg);
 
-                            var outputTemp = new BoundDagTemp(e.Syntax, type, e);
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, callExpr);
                         }
 
                     case BoundDagSliceEvaluation { IndexerAccess: BoundIndexerAccess indexerAccess } e:
                         {
-                            var type = indexerAccess.Type;
                             var callExpr = makeIndexerCall(indexerAccess, makeExplicitRangeArgument(e));
-
-                            var outputTemp = new BoundDagTemp(e.Syntax, type, e);
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, callExpr);
                         }
@@ -330,9 +318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : _factory.Literal(index);
                 }
 
-                BoundExpression makeExplicitIndexArgument(int index)
+                BoundExpression makeExplicitIndexArgument(int index, bool fromEnd)
                 {
-                    bool fromEnd = index < 0;
                     return _factory.New(
                         WellKnownMember.System_Index__ctor,
                         ImmutableArray.Create<BoundExpression>(
@@ -345,8 +332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.New(
                         WellKnownMember.System_Range__ctor,
                         ImmutableArray.Create(
-                            _factory.Literal(e.StartIndex),
-                            makeExplicitIndexArgument(e.EndIndex)));
+                            makeExplicitIndexArgument(e.StartIndex, fromEnd: false),
+                            makeExplicitIndexArgument(e.EndIndex, fromEnd: true)));
                 }
 
                 BoundExpression makeIndexerCall(BoundIndexerAccess indexerAccess, BoundExpression indexerArg)

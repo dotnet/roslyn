@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagTypeEvaluation e => e.Type,
                     BoundDagDeconstructEvaluation e => e.DeconstructMethod,
                     BoundDagIndexEvaluation e => e.Property,
-                    BoundDagSliceEvaluation e => e.SliceMethod,
+                    BoundDagSliceEvaluation e => (Symbol?)e.SliceMethod ?? e.IndexerAccess?.Indexer,
                     BoundDagIndexerEvaluation e => e.IndexerAccess?.Indexer,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool Equals(BoundDagEvaluation obj)
         {
             return this == obj ||
-                   base.Equals(obj) &&
-                   // base.Equals checks the kind field, so the following cast is safe
-                   this.Index == ((BoundDagIndexerEvaluation)obj).Index;
+                base.Equals(obj) &&
+                // base.Equals checks the kind field, so the following cast is safe
+                this.Index == ((BoundDagIndexerEvaluation)obj).Index;
         }
     }
 
