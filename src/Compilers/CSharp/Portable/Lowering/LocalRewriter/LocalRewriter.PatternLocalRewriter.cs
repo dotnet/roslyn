@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundIndexerAccess indexerAccess = e.IndexerAccess;
                             Debug.Assert(indexerAccess is not null || inputType.IsSZArray());
 
-                            BoundExpression indexerArg = indexerAccess is null || indexerAccess.Indexer.Parameters[0].Type.SpecialType == SpecialType.System_Int32
+                            BoundExpression indexerArg = isImplicit(indexerAccess)
                                 ? makeImplicitIndexArgument(e.Index, e.LengthTemp)
                                 : makeExplicitIndexArgument(e.Index, e.Index < 0);
 
@@ -275,10 +275,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression callExpr = _factory.Call(
                                 receiver: null,
                                 _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T)
-                                    .Construct(ImmutableArray.Create(e.SliceType)),
+                                    .Construct(ImmutableArray.Create(((ArrayTypeSymbol)inputType).ElementType)),
                                 ImmutableArray.Create(input, makeExplicitRangeArgument(e)));
 
-                            var outputTemp = new BoundDagTemp(e.Syntax, inputType, e);
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, callExpr);
                         }
@@ -340,6 +340,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ImmutableArray<RefKind> argumentRefKindsOpt = default;
                     MethodSymbol getMethod = indexerAccess.Indexer.GetMethod;
+                    var firstArg = indexerAccess.Arguments[0];
+                    if (firstArg is BoundConversion conv)
+                        indexerArg = conv.UpdateOperand(indexerArg);
                     ImmutableArray<BoundExpression> args = _localRewriter.MakeArguments(
                         syntax: indexerAccess.Syntax,
                         rewrittenArguments: indexerAccess.Arguments.SetItem(0, indexerArg),
@@ -351,6 +354,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         invokedAsExtensionMethod: false,
                         enableCallerInfo: ThreeState.Unknown);
                     return _factory.Call(input, getMethod, args);
+                }
+
+                bool isImplicit(BoundIndexerAccess indexerAccess)
+                {
+                    if (indexerAccess is null)
+                        return true;
+                    var type = indexerAccess.Indexer.Parameters[0].Type;
+                    return type.SpecialType == SpecialType.System_Int32 ||
+                        ConversionsBase.HasImplicitNumericConversion(
+                            source: _factory.SpecialType(SpecialType.System_Int32),
+                            destination: type is ArrayTypeSymbol array ? array.ElementType : type);
                 }
             }
 
