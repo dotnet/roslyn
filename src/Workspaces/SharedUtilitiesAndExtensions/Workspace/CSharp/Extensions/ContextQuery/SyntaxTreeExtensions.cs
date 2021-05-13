@@ -1427,6 +1427,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var originalLeftToken = leftToken;
             leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
+            // For instance:
+            // e is { A.$$ }
             if (leftToken.IsKind(SyntaxKind.DotToken))
             {
                 return false;

@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = context.CancellationToken;
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-            var (propertyPatternClause, memberNameAccess) = TryGetPropertyPatternClause(tree, position, cancellationToken);
+            var (propertyPatternClause, memberAccess) = TryGetPropertyPatternClause(tree, position, cancellationToken);
             if (propertyPatternClause is null)
             {
                 return;
@@ -54,13 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var pattern = (PatternSyntax)propertyPatternClause.Parent;
             var type = semanticModel.GetTypeInfo(pattern, cancellationToken).ConvertedType;
 
-            if (memberNameAccess is not null)
+            if (memberAccess is not null)
             {
                 // We have to figure out the type of the extended property ourselves, because
                 // the semantic model could not provide the answer we want in incomplete syntax:
                 // `c is { X. }`
 
-                type = GetMemberAccessType(type, memberNameAccess.Expression, document, semanticModel, position);
+                type = GetMemberAccessType(type, memberAccess.Expression, document, semanticModel, position);
             }
 
             if (type is null)
@@ -71,13 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Find the members that can be tested.
             var members = GetCandidatePropertiesAndFields(document, semanticModel, position, type);
 
-            if (propertyPatternClause is not null)
+            if (memberAccess is null)
             {
                 // Filter out those members that have already been typed as simple (not extended) properties
                 var alreadyTestedMembers = new HashSet<string>(propertyPatternClause.Subpatterns.Select(
                     p => p.NameColon?.Name.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s)));
 
-                members = members.Where(m => !alreadyTestedMembers.Contains(m.Name));
+                members = members.WhereAsArray(m => !alreadyTestedMembers.Contains(m.Name));
             }
 
             foreach (var member in members)
@@ -96,29 +97,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             static ITypeSymbol GetMemberAccessType(ITypeSymbol type, ExpressionSyntax expression, Document document, SemanticModel semanticModel, int position)
             {
-                string name;
                 if (expression is MemberAccessExpressionSyntax memberAccess)
                 {
                     type = GetMemberAccessType(type, memberAccess.Expression, document, semanticModel, position);
-                    name = memberAccess.Name.Identifier.ValueText;
+                    return GetMemberType(type, name: memberAccess.Name.Identifier.ValueText, document, semanticModel, position);
                 }
                 else if (expression is IdentifierNameSyntax identifier)
                 {
-                    name = identifier.Identifier.ValueText;
-                }
-                else
-                {
-                    return null;
+                    return GetMemberType(type, name: identifier.Identifier.ValueText, document, semanticModel, position);
                 }
 
-                return GetMemberType(type, name, document, semanticModel, position);
+                throw ExceptionUtilities.Unreachable;
             }
 
             static ITypeSymbol GetMemberType(ITypeSymbol type, string name, Document document, SemanticModel semanticModel, int position)
             {
                 var members = GetCandidatePropertiesAndFields(document, semanticModel, position, type);
-                var matches = members.Where(m => m.Name == name).ToArray();
-                if (matches.Length is 0 or > 1)
+                var matches = members.WhereAsArray(m => m.Name == name);
+                if (matches.Length != 1)
                 {
                     return null;
                 }
@@ -127,18 +123,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     IPropertySymbol property => property.Type,
                     IFieldSymbol field => field.Type,
-                    _ => null
+                    _ => throw ExceptionUtilities.Unreachable,
                 };
             }
 
-            static IEnumerable<ISymbol> GetCandidatePropertiesAndFields(Document document, SemanticModel semanticModel, int position, ITypeSymbol type)
+            static ImmutableArray<ISymbol> GetCandidatePropertiesAndFields(Document document, SemanticModel semanticModel, int position, ITypeSymbol type)
             {
                 var members = semanticModel.LookupSymbols(position, type);
                 return members.Where(m => m.CanBeReferencedByName &&
                     IsFieldOrReadableProperty(m) &&
                     !m.IsImplicitlyDeclared &&
                     !m.IsStatic &&
-                    m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
+                    m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)).AsImmutable();
             }
         }
 
@@ -179,33 +175,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (token.IsKind(SyntaxKind.CommaToken, SyntaxKind.OpenBraceToken))
             {
-                return token.Parent.IsKind(SyntaxKind.PropertyPatternClause) ? makeResult(token) : default;
+                return token.Parent is PropertyPatternClauseSyntax { Parent: PatternSyntax } propertyPatternClause
+                    ? (propertyPatternClause, null)
+                    : default;
             }
 
             if (token.IsKind(SyntaxKind.DotToken))
             {
-                var memberNameAccess = token.Parent;
-                if (!memberNameAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression)
-                    || !memberNameAccess.Parent.Parent.IsKind(SyntaxKind.Subpattern)
-                    || !memberNameAccess.Parent.Parent.Parent.IsKind(SyntaxKind.PropertyPatternClause))
-                {
-                    return default;
-                }
-
-                return ((PropertyPatternClauseSyntax)memberNameAccess.Parent.Parent.Parent, (MemberAccessExpressionSyntax)memberNameAccess);
+                return token.Parent is MemberAccessExpressionSyntax { Parent: { Parent: SubpatternSyntax { Parent: PropertyPatternClauseSyntax propertyPatternClause } } } memberAccess
+                    ? (propertyPatternClause, memberAccess)
+                    : default;
             }
 
             return default;
-
-            (PropertyPatternClauseSyntax, MemberAccessExpressionSyntax) makeResult(SyntaxToken token)
-            {
-                if (token.Parent.Parent is PatternSyntax)
-                {
-                    return ((PropertyPatternClauseSyntax)token.Parent, null);
-                }
-
-                return default;
-            }
         }
     }
 }
