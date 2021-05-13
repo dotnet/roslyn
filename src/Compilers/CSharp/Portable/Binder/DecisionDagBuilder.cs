@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var getItemPropertyInput = OriginalInput(valueAsITuple, getItemProperty);
             for (int i = 0; i < patternLength; i++)
             {
-                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, lengthTemp, i, getItemPropertyInput);
+                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, getItemPropertyInput);
                 tests.Add(new Tests.One(indexEvaluation));
                 var indexTemp = new BoundDagTemp(syntax, objectType, indexEvaluation);
                 tests.Add(MakeTestsAndBindings(indexTemp, pattern.Subpatterns[i].Pattern, bindings));
@@ -554,15 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            switch (recursive.ListPatternClause)
-            {
-                case BoundListPatternWithArray list:
-                    MakeTestsAndBindingsForListPattern(input, list, bindings, tests);
-                    break;
-                case BoundListPatternWithRangeIndexerPattern list:
-                    MakeTestsAndBindingsForListPattern(input, list, bindings, tests);
-                    break;
-            }
+            MakeTestsAndBindingsForLengthAndListPattern(input, recursive, bindings, tests);
 
             if (recursive.VariableAccess != null)
             {

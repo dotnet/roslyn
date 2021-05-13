@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Input.Equals(other.Input) &&
                 Symbol.Equals(this.Symbol, other.Symbol, TypeCompareKind.AllIgnoreOptions);
         }
+
         private Symbol? Symbol
         {
             get
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagDeconstructEvaluation e => e.DeconstructMethod,
                     BoundDagIndexEvaluation e => e.Property,
                     BoundDagSliceEvaluation e => e.SliceMethod,
+                    BoundDagIndexerEvaluation e => e.IndexerAccess?.Indexer,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
             }
@@ -52,6 +54,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    partial class BoundDagIndexerEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ this.Index;
+        public override bool Equals(BoundDagEvaluation obj)
+        {
+            return this == obj ||
+                   base.Equals(obj) &&
+                   // base.Equals checks the kind field, so the following cast is safe
+                   this.Index == ((BoundDagIndexerEvaluation)obj).Index;
+        }
+    }
+
     partial class BoundDagSliceEvaluation
     {
         public override int GetHashCode() => base.GetHashCode() ^ this.StartIndex ^ this.EndIndex;
@@ -62,18 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // base.Equals checks the kind field, so the following cast is safe
                 (BoundDagSliceEvaluation)obj is var e &&
                 this.StartIndex == e.StartIndex && this.EndIndex == e.EndIndex;
-        }
-    }
-
-    partial class BoundDagPropertyEvaluation
-    {
-        public override int GetHashCode() => base.GetHashCode() ^ this.Index;
-        public override bool Equals(BoundDagEvaluation obj)
-        {
-            return this == obj ||
-                base.Equals(obj) &&
-                // base.Equals checks the kind field, so the following cast is safe
-                this.Index == ((BoundDagPropertyEvaluation)obj).Index;
         }
     }
 }

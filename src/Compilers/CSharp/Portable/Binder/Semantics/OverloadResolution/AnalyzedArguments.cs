@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static AnalyzedArguments GetInstance(
             ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<RefKind> argumentRefKindsOpt,
-            ImmutableArray<IdentifierNameSyntax> argumentNamesOpt)
+            ImmutableArray<RefKind> argumentRefKindsOpt = default,
+            ImmutableArray<IdentifierNameSyntax> argumentNamesOpt = default)
         {
             var instance = GetInstance();
             instance.Arguments.AddRange(arguments);

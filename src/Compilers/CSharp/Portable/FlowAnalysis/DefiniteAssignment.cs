@@ -1643,9 +1643,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     AssignPatternVariables(p, definitely);
                                 }
                             }
-                            if (pat.ListPatternClause.LengthPattern is not null)
+                            if (pat.LengthPattern is not null)
                             {
-                                AssignPatternVariables(pat.ListPatternClause.LengthPattern, definitely);
+                                AssignPatternVariables(pat.LengthPattern, definitely);
                             }
                         }
                         if (definitely)

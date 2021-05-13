@@ -1421,17 +1421,21 @@
   </Node>
   <Node Name="BoundDagPropertyEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
-    <Field Name="Index" Type="int"/>
   </Node>
   <Node Name="BoundDagIndexEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="Index" Type="int"/>
+  </Node>
+  <Node Name="BoundDagIndexerEvaluation" Base="BoundDagEvaluation">
     <!-- This will be null if input type is an array -->
-    <Field Name="Property" Type="PropertySymbol?"/>
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="Index" Type="int"/>
   </Node>
   <Node Name="BoundDagSliceEvaluation" Base="BoundDagEvaluation">
-    <!-- This will be null if input type is an array -->
+    <!-- This will be null if input type is an array or an indexer is available -->
     <Field Name="SliceMethod" Type="MethodSymbol?"/>
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="StartIndex" Type="int"/>
     <Field Name="EndIndex" Type="int"/>
@@ -2079,6 +2083,8 @@
     <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
     <Field Name="Properties" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
+    <Field Name="LengthProperty" Type="PropertySymbol?"/>
+    <Field Name="LengthPattern" Type="BoundPattern?"/>
     <Field Name="ListPatternClause" Type="BoundListPatternClause?"/>
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
          a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
@@ -2094,22 +2100,18 @@
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
-  <AbstractNode Name="BoundListPatternClause" Base="BoundNode">
-    <Field Name="ElementType" Type="TypeSymbol?"/>
-    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="allow"/>
+  <Node Name="BoundListPatternClause" Base="BoundNode">
+    <Field Name="ElementType" Type="TypeSymbol"/>
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
-    <Field Name="LengthPattern" Type="BoundPattern?"/>
-  </AbstractNode>
-  <Node Name="BoundListPatternWithArray" Base="BoundListPatternClause">
-  </Node>
-  <Node Name="BoundListPatternWithRangeIndexerPattern" Base="BoundListPatternClause">
-    <Field Name="GetLengthProperty" Type="PropertySymbol"/>
-    <Field Name="GetItemProperty" Type="PropertySymbol?"/>
+    <!-- This will be null if input type is an array -->
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?" />
   </Node>
 
   <Node Name="BoundSlicePattern" Base="BoundPattern">
-    <!-- This will be null if input type is an array -->
+    <!-- This will be null if input type is an array or an indexer is available -->
     <Field Name="SliceMethod" Type="MethodSymbol?"/>
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
     <Field Name="Pattern" Type="BoundPattern?"/>
   </Node>
 

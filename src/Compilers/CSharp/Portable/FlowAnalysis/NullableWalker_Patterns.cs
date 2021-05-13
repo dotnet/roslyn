@@ -457,7 +457,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         break;
                                     }
                                 case BoundDagIndexEvaluation e:
-                                    addTemp(e, e.Property is null ? ((ArrayTypeSymbol)inputType).ElementType : e.Property.Type);
+                                    addTemp(e, e.Property.Type);
+                                    break;
+                                case BoundDagIndexerEvaluation e:
+                                    addTemp(e, e.IndexerAccess is null ? ((ArrayTypeSymbol)inputType).ElementType : e.IndexerAccess.Type);
                                     break;
                                 case BoundDagSliceEvaluation e:
                                     addTemp(e, e.SliceMethod is null ? inputType : e.SliceMethod.ReturnType);
