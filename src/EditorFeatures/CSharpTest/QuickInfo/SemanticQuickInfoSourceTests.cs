@@ -7230,6 +7230,32 @@ public class Student : Person { public Student() : $$base(0) { } }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoRecordClass()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"record class Person(string First, string Last)
+{
+    void M($$Person p)
+    {
+    }
+}", MainDescription("record Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoRecordStruct()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"record struct Person(string First, string Last)
+{
+    void M($$Person p)
+    {
+    }
+}", MainDescription("record struct Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(51615, "https://github.com/dotnet/roslyn/issues/51615")]
         public async Task TestVarPatternOnVarKeyword()
         {

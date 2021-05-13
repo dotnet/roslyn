@@ -565,6 +565,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        // Record structs get erased when emitted to metadata
+        internal override bool IsRecordStruct => false;
+
         public override Accessibility DeclaredAccessibility
         {
             get

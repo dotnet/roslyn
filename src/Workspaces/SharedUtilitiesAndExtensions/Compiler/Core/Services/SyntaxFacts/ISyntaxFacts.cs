@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsLocalFunctionDeclaration(ParseOptions options);
         bool SupportsNotPattern(ParseOptions options);
         bool SupportsRecord(ParseOptions options);
+        bool SupportsRecordStruct(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
 
         SyntaxToken ParseToken(string text);

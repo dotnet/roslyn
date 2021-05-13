@@ -258,9 +258,17 @@ breaks
             TestNormalizeDeclaration("using a.b;", "using a.b;");
             TestNormalizeDeclaration("using A; using B; class C {}", "using A;\r\nusing B;\r\n\r\nclass C\r\n{\r\n}");
 
+            TestNormalizeDeclaration("global  using  a;", "global using a;");
+            TestNormalizeDeclaration("global  using  a=b;", "global using a = b;");
+            TestNormalizeDeclaration("global  using  a.b;", "global using a.b;");
+            TestNormalizeDeclaration("global using A; global using B; class C {}", "global using A;\r\nglobal using B;\r\n\r\nclass C\r\n{\r\n}");
+            TestNormalizeDeclaration("global using A; using B; class C {}", "global using A;\r\nusing B;\r\n\r\nclass C\r\n{\r\n}");
+            TestNormalizeDeclaration("using A; global using B; class C {}", "using A;\r\nglobal using B;\r\n\r\nclass C\r\n{\r\n}");
+
             // namespace
             TestNormalizeDeclaration("namespace a{}", "namespace a\r\n{\r\n}");
             TestNormalizeDeclaration("namespace a{using b;}", "namespace a\r\n{\r\n  using b;\r\n}");
+            TestNormalizeDeclaration("namespace a{global  using  b;}", "namespace a\r\n{\r\n  global using b;\r\n}");
             TestNormalizeDeclaration("namespace a{namespace b{}}", "namespace a\r\n{\r\n  namespace b\r\n  {\r\n  }\r\n}");
             TestNormalizeDeclaration("namespace a{}namespace b{}", "namespace a\r\n{\r\n}\r\n\r\nnamespace b\r\n{\r\n}");
 
@@ -365,6 +373,13 @@ breaks
 
             // parameter attributes
             TestNormalizeDeclaration("class c{void M([a]int x,[b] [c,d]int y){}}", "class c\r\n{\r\n  void M([a] int x, [b][c, d] int y)\r\n  {\r\n  }\r\n}");
+        }
+
+        [Fact]
+        public void TestSpacingOnRecord()
+        {
+            TestNormalizeDeclaration("record  class  C(int I, int J);", "record class C(int I, int J);");
+            TestNormalizeDeclaration("record  struct  S(int I, int J);", "record struct S(int I, int J);");
         }
 
         [Fact]
