@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class DriverStateTable
     {
-        // PROTOTYPE(source-generators): should we make a non generic node interface that we can use as the key
-        //                               instead of just object?
         private readonly ImmutableDictionary<object, IStateTable> _tables;
 
         internal static DriverStateTable Empty { get; } = new DriverStateTable(ImmutableDictionary<object, IStateTable>.Empty);
@@ -25,17 +23,13 @@ namespace Microsoft.CodeAnalysis
             _tables = tables;
         }
 
-        internal NodeStateTable<T> GetStateTable<T>(IIncrementalGeneratorNode<T> input) => _tables.ContainsKey(input) ? (NodeStateTable<T>)_tables[input] : NodeStateTable<T>.Empty;
-
-        internal DriverStateTable SetStateTable<T>(IIncrementalGeneratorNode<T> input, NodeStateTable<T> table) => new DriverStateTable(_tables.SetItem(input, table));
-
         public sealed class Builder
         {
             private readonly ImmutableDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableDictionary.CreateBuilder<object, IStateTable>();
 
             private readonly ImmutableDictionary<object, object>.Builder _inputBuilder = ImmutableDictionary.CreateBuilder<object, object>();
 
-            private readonly ArrayBuilder<ISyntaxTransformNode> _syntaxNodes = ArrayBuilder<ISyntaxTransformNode>.GetInstance();
+            private readonly ArrayBuilder<ISyntaxInputNode> _syntaxNodes = ArrayBuilder<ISyntaxInputNode>.GetInstance();
 
             private readonly DriverStateTable _previousTable;
 
@@ -46,7 +40,7 @@ namespace Microsoft.CodeAnalysis
                 _previousTable = previousTable;
             }
 
-            public Builder(DriverStateTable previousTable, Compilation compilation, GeneratorDriverState driverState, ImmutableArray<ISyntaxTransformNode> syntaxTransformNodes, ImmutableArray<(object, object)> otherInputs, CancellationToken cancellationToken = default)
+            public Builder(DriverStateTable previousTable, Compilation compilation, GeneratorDriverState driverState, ImmutableArray<ISyntaxInputNode> syntaxTransformNodes, ImmutableArray<(object, object)> otherInputs, CancellationToken cancellationToken = default)
             {
                 _previousTable = previousTable;
                 _cancellationToken = cancellationToken;
@@ -69,20 +63,23 @@ namespace Microsoft.CodeAnalysis
                 return (ImmutableArray<T>)_inputBuilder[source];
             }
 
-            public NodeStateTable<T> GetSyntaxValue<T>(SyntaxTransformNode<T> syntaxTransform)
+            public NodeStateTable<T> GetSyntaxInputTable<T>(SyntaxInputNode<T> syntaxTransform)
             {
-                // if cached already, just return the cached value
+                // when we don't have values for this node, we update all the syntax inputs at once
                 if (!_tableBuilder.ContainsKey(syntaxTransform))
                 {
-                    // else, we need to walk over the syntax trees
                     var compilation = GetInputValue(SharedInputNodes.Compilation).First();
 
-                    var builders = ArrayBuilder<ISyntaxTransformBuilder>.GetInstance(_syntaxNodes.Count);
+                    // get a builder for each input node
+                    var builders = ArrayBuilder<ISyntaxInputBuilder>.GetInstance(_syntaxNodes.Count);
                     foreach (var node in _syntaxNodes)
                     {
-                        builders.Add(node.GetBuilder(this._previousTable));
+                        var syntax = GetValueOrEmpty<SyntaxNode, object>(_inputBuilder, node);
+                        var transform = GetValueOrEmpty<T, IStateTable>(_previousTable._tables, node);
+                        builders.Add(node.GetBuilder(syntax, transform));
                     }
 
+                    // update each tree for the builders, sharing the semantic model
                     foreach ((var tree, var state) in GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
                     {
                         var root = tree.GetRoot(_cancellationToken);
@@ -93,10 +90,14 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    foreach (var builder in builders)
+                    // save the updated inputs
+                    for (int i = 0; i < _syntaxNodes.Count; i++)
                     {
-                        builder.SaveInputsAndFree(this._tableBuilder);
+                        var tables = builders[i].ToImmutableAndFree();
+                        _inputBuilder[_syntaxNodes[i]] = tables.nodeTable;
+                        _tableBuilder[_syntaxNodes[i]] = tables.transformTable;
                     }
+                    builders.Free();
                 }
 
                 return (NodeStateTable<T>)_tableBuilder[syntaxTransform];
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // get the previous table, if there was one for this node
-                NodeStateTable<T> previousTable = _previousTable.GetStateTable(source);
+                NodeStateTable<T> previousTable = GetValueOrEmpty<T, IStateTable>(_previousTable._tables, source);
 
                 // request the node update its state based on the current driver table and store the new result
                 var newTable = source.UpdateStateTable(this, previousTable, _cancellationToken);
@@ -129,6 +130,15 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return new DriverStateTable(_tableBuilder.ToImmutable());
+            }
+
+            private NodeStateTable<T> GetValueOrEmpty<T, TValue>(IReadOnlyDictionary<object, TValue> lookup, object key) where TValue : notnull
+            {
+                if (lookup.TryGetValue(key, out var result))
+                {
+                    return (NodeStateTable<T>)(object)result;
+                }
+                return NodeStateTable<T>.Empty;
             }
         }
     }

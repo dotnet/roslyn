@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, fillWithValue: null); // we know there is at max 1 per generator
-            var syntaxInputNodes = ArrayBuilder<ISyntaxTransformNode>.GetInstance();
+            var syntaxInputNodes = ArrayBuilder<ISyntaxInputNode>.GetInstance();
             int walkerCount = 0;
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)

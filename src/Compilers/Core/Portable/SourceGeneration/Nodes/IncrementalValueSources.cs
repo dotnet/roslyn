@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class PerGeneratorInputNodes
     {
-        public static readonly PerGeneratorInputNodes Empty = new PerGeneratorInputNodes(receiverNode: null, ImmutableArray<ISyntaxTransformNode>.Empty);
+        public static readonly PerGeneratorInputNodes Empty = new PerGeneratorInputNodes(receiverNode: null, ImmutableArray<ISyntaxInputNode>.Empty);
 
-        private PerGeneratorInputNodes(InputNode<ISyntaxContextReceiver?>? receiverNode, ImmutableArray<ISyntaxTransformNode> transformNodes)
+        private PerGeneratorInputNodes(InputNode<ISyntaxContextReceiver?>? receiverNode, ImmutableArray<ISyntaxInputNode> transformNodes)
         {
             this.ReceiverNode = receiverNode;
             this.TransformNodes = transformNodes;
         }
 
-        public ImmutableArray<ISyntaxTransformNode> TransformNodes { get; }
+        public ImmutableArray<ISyntaxInputNode> TransformNodes { get; }
 
         public InputNode<ISyntaxContextReceiver?>? ReceiverNode { get; }
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         {
             private InputNode<ISyntaxContextReceiver?>? _receiverNode;
 
-            private ArrayBuilder<ISyntaxTransformNode>? _transformNodes;
+            private ArrayBuilder<ISyntaxInputNode>? _transformNodes;
 
             bool _disposed = false;
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
                 return _receiverNode;
             }
 
-            public ArrayBuilder<ISyntaxTransformNode> SyntaxTransformNodes
+            public ArrayBuilder<ISyntaxInputNode> SyntaxTransformNodes
             {
                 get
                 {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis
                         // but the rest of the structure isn't. We should decide if we want to support that or 
                         // just say this whole thing isn't thread safe.
 
-                        var newNodes = ArrayBuilder<ISyntaxTransformNode>.GetInstance();
+                        var newNodes = ArrayBuilder<ISyntaxInputNode>.GetInstance();
                         InterlockedOperations.Initialize(ref _transformNodes, newNodes);
 
                         // in the case another thread beat us to initialization, we will see that threads arraybuilder.
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(!_disposed);
                 return _receiverNode is null && _transformNodes is null
                     ? Empty
-                    : new PerGeneratorInputNodes(_receiverNode, _transformNodes?.ToImmutable() ?? ImmutableArray<ISyntaxTransformNode>.Empty);
+                    : new PerGeneratorInputNodes(_receiverNode, _transformNodes?.ToImmutable() ?? ImmutableArray<ISyntaxInputNode>.Empty);
             }
 
             public void Free()

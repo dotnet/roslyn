@@ -12,26 +12,25 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal interface ISyntaxTransformNode
+    internal interface ISyntaxInputNode
     {
-        ISyntaxTransformBuilder GetBuilder(DriverStateTable previousStateTable);
+        ISyntaxInputBuilder GetBuilder(NodeStateTable<SyntaxNode> filterTable, IStateTable transformNode);
     }
 
-    internal interface ISyntaxTransformBuilder
+    internal interface ISyntaxInputBuilder
     {
         void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model);
 
-        void SaveInputsAndFree(ImmutableDictionary<object, IStateTable>.Builder builder);
+        (NodeStateTable<SyntaxNode> nodeTable, IStateTable transformTable) ToImmutableAndFree();
     }
 
-    internal sealed class SyntaxTransformNode<T> : IIncrementalGeneratorNode<T>, ISyntaxTransformNode
+    internal sealed class SyntaxInputNode<T> : IIncrementalGeneratorNode<T>, ISyntaxInputNode
     {
         private readonly Func<GeneratorSyntaxContext, T> _func;
         private readonly IEqualityComparer<T> _comparer;
         private readonly Func<SyntaxNode, bool> _filterFunc;
-        private readonly InputNode<SyntaxNode> _filterNode = new InputNode<SyntaxNode>();
 
-        internal SyntaxTransformNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc, IEqualityComparer<T>? comparer = null)
+        internal SyntaxInputNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc, IEqualityComparer<T>? comparer = null)
         {
             _func = transformFunc;
             _filterFunc = filterFunc;
@@ -40,32 +39,31 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
-            return graphState.GetSyntaxValue(this);
+            return graphState.GetSyntaxInputTable(this);
         }
 
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxTransformNode<T>(_filterFunc, _func, comparer);
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _func, comparer);
 
-        public ISyntaxTransformBuilder GetBuilder(DriverStateTable previousStateTable) => new Builder(this, previousStateTable.GetStateTable(this._filterNode).ToBuilder(), previousStateTable.GetStateTable(this).ToBuilder());
+        public ISyntaxInputBuilder GetBuilder(NodeStateTable<SyntaxNode> filterTable, IStateTable transformNode) => new Builder(this, filterTable.ToBuilder(), ((NodeStateTable<T>)transformNode).ToBuilder());
 
-        private sealed class Builder : ISyntaxTransformBuilder
+        private sealed class Builder : ISyntaxInputBuilder
         {
-            private readonly SyntaxTransformNode<T> _owner;
+            private readonly SyntaxInputNode<T> _owner;
 
             private readonly NodeStateTable<SyntaxNode>.Builder _filterTable;
 
             private readonly NodeStateTable<T>.Builder _transformTable;
 
-            public Builder(SyntaxTransformNode<T> owner, NodeStateTable<SyntaxNode>.Builder filterTable, NodeStateTable<T>.Builder transformTable)
+            public Builder(SyntaxInputNode<T> owner, NodeStateTable<SyntaxNode>.Builder filterTable, NodeStateTable<T>.Builder transformTable)
             {
                 _owner = owner;
                 _filterTable = filterTable;
                 _transformTable = transformTable;
             }
 
-            public void SaveInputsAndFree(ImmutableDictionary<object, IStateTable>.Builder builder)
+            public (NodeStateTable<SyntaxNode> nodeTable, IStateTable transformTable) ToImmutableAndFree()
             {
-                builder[_owner._filterNode] = _filterTable.ToImmutableAndFree();
-                builder[_owner] = _transformTable.ToImmutableAndFree();
+                return (_filterTable.ToImmutableAndFree(), _transformTable.ToImmutableAndFree());
             }
 
             public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model)
