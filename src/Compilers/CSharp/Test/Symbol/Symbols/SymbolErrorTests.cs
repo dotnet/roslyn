@@ -10737,7 +10737,64 @@ namespace Globals.Errors.ResolveInheritance
         }
 
         [Fact]
-        public void CS0577ERR_ConditionalOnSpecialMethod()
+        public void CS0577ERR_ConditionalOnSpecialMethod_01()
+        {
+            var sourceA =
+@"#pragma warning disable 436
+using System.Diagnostics;
+class Program
+{
+    [Conditional("""")] Program() { }
+}";
+            var sourceB =
+@"namespace System.Diagnostics
+{
+    public class ConditionalAttribute : Attribute
+    {
+        public ConditionalAttribute(string s) { }
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            comp.VerifyDiagnostics(
+                // (5,6): error CS0577: The Conditional attribute is not valid on 'Program.Program()' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
+                //     [Conditional("")] Program() { }
+                Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional("""")").WithArguments("Program.Program()").WithLocation(5, 6));
+        }
+
+        [Fact]
+        public void CS0577ERR_ConditionalOnSpecialMethod_02()
+        {
+            var source =
+@"using System.Diagnostics;
+class Program
+{
+    [Conditional("""")] ~Program() { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,6): error CS0577: The Conditional attribute is not valid on 'Program.~Program()' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
+                //     [Conditional("")] ~Program() { }
+                Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional("""")").WithArguments("Program.~Program()").WithLocation(4, 6));
+        }
+
+        [Fact]
+        public void CS0577ERR_ConditionalOnSpecialMethod_03()
+        {
+            var source =
+@"using System.Diagnostics;
+class C
+{
+    [Conditional("""")] public static C operator !(C c) => c;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,6): error CS0577: The Conditional attribute is not valid on 'C.operator !(C)' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
+                //     [Conditional("")] public static C operator !(C c) => c;
+                Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional("""")").WithArguments("C.operator !(C)").WithLocation(4, 6));
+        }
+
+        [Fact]
+        public void CS0577ERR_ConditionalOnSpecialMethod_04()
         {
             var text = @"interface I
 {
@@ -10751,7 +10808,7 @@ public class MyClass : I
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (8,6): error CS0577: The Conditional attribute is not valid on 'MyClass.I.m()' because it is a constructor, destructor, operator, or explicit interface implementation
+                // (8,6): error CS0577: The Conditional attribute is not valid on 'MyClass.I.m()' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
                 //     [System.Diagnostics.Conditional("a")]   // CS0577
                 Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"System.Diagnostics.Conditional(""a"")").WithArguments("MyClass.I.m()").WithLocation(8, 6));
         }
