@@ -56,7 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private readonly Shell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
-        private readonly Lazy<IVsPackageInstallerServices>? _packageInstallerServices;
         private readonly Lazy<IVsPackageInstaller2>? _packageInstaller;
         private readonly Lazy<IVsPackageUninstaller>? _packageUninstaller;
         private readonly Lazy<IVsPackageSourceProvider>? _packageSourceProvider;
@@ -97,7 +96,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             SVsServiceProvider serviceProvider,
             [Import("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider")] object asyncServiceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            [Import(AllowDefault = true)] Lazy<IVsPackageInstallerServices>? packageInstallerServices,
             [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2>? packageInstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller>? packageUninstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider>? packageSourceProvider)
@@ -116,7 +114,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             _asyncServiceProvider = (Shell.IAsyncServiceProvider)asyncServiceProvider;
 
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
-            _packageInstallerServices = packageInstallerServices;
             _packageInstaller = packageInstaller;
             _packageUninstaller = packageUninstaller;
             _packageSourceProvider = packageSourceProvider;
@@ -180,7 +177,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return ImmutableArray<PackageSource>.Empty;
         }
 
-        [MemberNotNullWhen(true, nameof(_packageInstallerServices))]
         [MemberNotNullWhen(true, nameof(_packageInstaller))]
         [MemberNotNullWhen(true, nameof(_packageUninstaller))]
         [MemberNotNullWhen(true, nameof(_packageSourceProvider))]
@@ -188,8 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             get
             {
-                return _packageInstallerServices != null
-                    && _packageInstaller != null
+                return _packageInstaller != null
                     && _packageUninstaller != null
                     && _packageSourceProvider != null;
             }
