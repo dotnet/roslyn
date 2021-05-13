@@ -290,36 +290,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var projectId = documentId.ProjectId;
                 var dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(SDTE));
                 var dteProject = _workspace.TryGetDTEProject(projectId);
-                if (dteProject != null)
+                var projectGuid = _workspace.GetProjectGuid(projectId);
+                if (dteProject != null && projectGuid != Guid.Empty)
                 {
                     var undoManager = _editorAdaptersFactoryService.TryGetUndoManager(
                         workspace, documentId, cancellationToken);
 
                     return TryInstallAndAddUndoAction(
-                        source, packageName, versionOpt, includePrerelease, projectId, dte, dteProject, undoManager);
+                        source, packageName, versionOpt, includePrerelease, projectGuid, dte, dteProject, undoManager);
                 }
             }
 
             return false;
         }
 
-        private bool IsPackageInstalled(ProjectId projectId, string packageName)
+        private bool IsPackageInstalled(Guid projectGuid, string packageName)
         {
             var cancellationToken = CancellationToken.None;
 
-            return this.ThreadingContext.JoinableTaskFactory.Run(async () =>
+            return this.ThreadingContext.JoinableTaskFactory.Run(() =>
             {
-                return await this.PerformNuGetProjectServiceWorkAsync(async nugetService =>
+                return this.PerformNuGetProjectServiceWorkAsync(async nugetService =>
                 {
-                    var projectGuid = _workspace.GetProjectGuid(projectId);
-                    if (projectGuid != Guid.Empty)
-                    {
-                        var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
-                        return installedPackagesMap.ContainsKey(packageName);
-                    }
-
-                    return false;
-                }, cancellationToken).ConfigureAwait(false);
+                    var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
+                    return installedPackagesMap.ContainsKey(packageName);
+                }, cancellationToken);
             });
         }
 
@@ -328,7 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             string packageName,
             string versionOpt,
             bool includePrerelease,
-            ProjectId projectId,
+            Guid projectGuid,
             EnvDTE.DTE dte,
             EnvDTE.Project dteProject)
         {
@@ -337,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-                if (!IsPackageInstalled(projectId, packageName))
+                if (!IsPackageInstalled(projectGuid, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0, packageName);
 
@@ -380,14 +375,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             => installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
 
         private bool TryUninstallPackage(
-            string packageName, ProjectId projectId, EnvDTE.DTE dte, EnvDTE.Project dteProject)
+            string packageName, Guid projectGuid, EnvDTE.DTE dte, EnvDTE.Project dteProject)
         {
             this.AssertIsForeground();
             Contract.ThrowIfFalse(IsEnabled);
 
             try
             {
-                if (IsPackageInstalled(projectId, packageName))
+                if (IsPackageInstalled(projectGuid, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0, packageName);
                     var installedVersion = GetInstalledVersion(packageName, dteProject);
@@ -505,7 +500,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }, cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask<T?> PerformNuGetProjectServiceWorkAsync<T>(
+        private async Task<T?> PerformNuGetProjectServiceWorkAsync<T>(
             Func<INuGetProjectService, ValueTask<T?>> doWorkAsync, CancellationToken cancellationToken)
         {
             var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
