@@ -51,9 +51,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 renameTo As String,
                 host As RenameTestHost,
                 Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
-                Optional expectFailure As Boolean = False) As RenameEngineResult
+                Optional expectFailure As Boolean = False,
+                Optional sourceGenerator As ISourceGenerator = Nothing) As RenameEngineResult
             Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions)))
             workspace.SetTestLogger(AddressOf helper.WriteLine)
+
+            If sourceGenerator IsNot Nothing Then
+                workspace.OnAnalyzerReferenceAdded(workspace.CurrentSolution.ProjectIds.Single(), New TestGeneratorReference(sourceGenerator))
+            End If
 
             Dim engineResult As RenameEngineResult = Nothing
             Try
