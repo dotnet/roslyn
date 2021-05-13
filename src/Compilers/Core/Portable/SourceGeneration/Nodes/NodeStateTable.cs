@@ -188,6 +188,13 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
+                // Semantics:
+                // For every slot in the previous table, we compare the new value.
+                // - Cached when the same
+                // - Modified when different
+                // - Removed when i > outputs.length
+                // - Added when i < previousTable.length
+
                 var previousEntries = _previous._states[_states.Count];
                 var modifiedEntries = ArrayBuilder<(T item, EntryState state)>.GetInstance();
 
@@ -230,7 +237,7 @@ namespace Microsoft.CodeAnalysis
 
             public void AddEntries(ImmutableArray<T> values, EntryState state)
             {
-                _states.Add(values.SelectAsArray(v => (v, state)));
+                _states.Add(values.SelectAsArray((v, state) => (v, state), state));
             }
 
             public void SetFaulted(Exception e)

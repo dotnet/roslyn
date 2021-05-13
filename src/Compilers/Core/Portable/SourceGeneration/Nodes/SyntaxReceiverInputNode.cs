@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
 
         public IIncrementalGeneratorNode<ISyntaxContextReceiver> WithComparer(IEqualityComparer<ISyntaxContextReceiver> comparer)
         {
-            // we don't publically expose this node to end users
+            // we don't expose this node to end users
             throw ExceptionUtilities.Unreachable;
         }
 
