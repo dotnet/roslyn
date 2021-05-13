@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
+using System.Threading;
 using Analyzer.Utilities;
-using Analyzer.Utilities.PooledObjects;
 
 #pragma warning disable CA2002
 
@@ -17,7 +14,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     public abstract class CacheBasedEquatable<T> : IEquatable<T?>
         where T : class
     {
-        private ImmutableArray<int> _lazyHashCodeParts;
         private int _lazyHashCode;
 
         protected CacheBasedEquatable()
@@ -26,34 +22,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private int GetOrComputeHashCode()
         {
-            if (_lazyHashCodeParts.IsDefault)
+            if (_lazyHashCode == 0)
             {
-                var hashCodeParts = ComputeHashCodeParts();
-                var hashCode = HashUtilities.Combine(hashCodeParts, GetType().GetHashCode());
-
-                if (_lazyHashCodeParts.IsDefault)
-                {
-#pragma warning disable CA2002 // Do not lock on objects with weak identity
-                    lock (this)
-#pragma warning restore CA2002 // Do not lock on objects with weak identity
-                    {
-                        _lazyHashCode = hashCode;
-                        _lazyHashCodeParts = hashCodeParts;
-                    }
-                }
+                var hashCode = new RoslynHashCode();
+                ComputeHashCodeParts(ref hashCode);
+                var result = hashCode.ToHashCode();
+                Interlocked.CompareExchange(ref _lazyHashCode, result, 0);
             }
 
             return _lazyHashCode;
         }
 
-        private ImmutableArray<int> ComputeHashCodeParts()
-        {
-            var builder = ArrayBuilder<int>.GetInstance();
-            ComputeHashCodeParts(builder.Add);
-            return builder.ToImmutableAndFree();
-        }
+        protected abstract void ComputeHashCodeParts(ref RoslynHashCode hashCode);
 
-        protected abstract void ComputeHashCodeParts(Action<int> addPart);
+        protected abstract bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<T> obj);
 
         public sealed override int GetHashCode() => GetOrComputeHashCode();
 
@@ -67,15 +49,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             var otherEquatable = other as CacheBasedEquatable<T>;
-            if (otherEquatable == null || GetHashCode() != otherEquatable.GetHashCode())
+            if (otherEquatable == null
+                || GetType() != otherEquatable.GetType()
+                || GetHashCode() != otherEquatable.GetHashCode())
             {
                 return false;
             }
 
             // Now perform slow check that compares individual hash code parts sequences.
-            Debug.Assert(!_lazyHashCodeParts.IsDefault);
-            Debug.Assert(!otherEquatable._lazyHashCodeParts.IsDefault);
-            return _lazyHashCodeParts.SequenceEqual(otherEquatable._lazyHashCodeParts);
+            return ComputeEqualsByHashCodeParts(otherEquatable);
         }
 
         public static bool operator ==(CacheBasedEquatable<T>? value1, CacheBasedEquatable<T>? value2)

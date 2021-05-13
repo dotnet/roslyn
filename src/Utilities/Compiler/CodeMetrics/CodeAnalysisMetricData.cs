@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 builder.Append($", DepthInherit: {DepthOfInheritance}");
             }
 
-            builder.Append($")");
+            builder.Append(')');
             appendChildren(indent: "   ");
             return builder.ToString();
 

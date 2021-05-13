@@ -1108,5 +1108,38 @@ public class C
                 },
             }.RunAsync();
         }
+
+        [Fact, WorkItem(4413, "https://github.com/dotnet/roslyn-analyzers/issues/4413")]
+        public async Task RS1024_SourceCollectionIsSymbolButLambdaIsNot()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+
+public class C
+{
+    public void M1(IFieldSymbol[] fields)
+    {
+        var result = fields.ToLookup(f => f.Name);
+    }
+
+    public void M2(IEnumerable<IPropertySymbol> source, IEnumerable<IPropertySymbol> destination)
+    {
+        var result = source.Join(destination, p => (p.Name, p.Type.Name), p => (p.Name, p.Type.Name), (p1, p2) => p1.Name);
+    }
+}",
+                        SymbolEqualityComparerStubCSharp,
+                    },
+                },
+            }.RunAsync();
+        }
     }
 }

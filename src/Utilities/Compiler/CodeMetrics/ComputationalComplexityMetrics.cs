@@ -329,8 +329,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 distinctOperatorKindsBuilder.Add(operation.Kind);
             }
 
-            void countOperand(ISymbol symbol)
+            void countOperand(ISymbol? symbol)
             {
+                if (symbol is null)
+                    return;
+
                 symbolUsageCounts++;
                 distinctReferencedSymbolsBuilder ??= ImmutableHashSet.CreateBuilder<ISymbol>();
                 distinctReferencedSymbolsBuilder.Add(symbol);

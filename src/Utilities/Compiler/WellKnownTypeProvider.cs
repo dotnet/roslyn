@@ -11,6 +11,7 @@ using System.Threading;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {
@@ -83,7 +84,20 @@ namespace Analyzer.Utilities
         /// <param name="fullTypeName">Namespace + type name, e.g. "System.Exception".</param>
         /// <param name="namedTypeSymbol">Named type symbol, if any.</param>
         /// <returns>True if found in the compilation, false otherwise.</returns>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn-analyzers/issues/4893", AllowCaptures = false)]
         public bool TryGetOrCreateTypeByMetadataName(
+            string fullTypeName,
+            [NotNullWhen(returnValue: true)] out INamedTypeSymbol? namedTypeSymbol)
+        {
+            if (_fullNameToTypeMap.TryGetValue(fullTypeName, out namedTypeSymbol))
+            {
+                return namedTypeSymbol is not null;
+            }
+
+            return TryGetOrCreateTypeByMetadataNameSlow(fullTypeName, out namedTypeSymbol);
+        }
+
+        private bool TryGetOrCreateTypeByMetadataNameSlow(
             string fullTypeName,
             [NotNullWhen(returnValue: true)] out INamedTypeSymbol? namedTypeSymbol)
         {

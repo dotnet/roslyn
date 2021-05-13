@@ -137,7 +137,7 @@
         "RS1016": {
           "id": "RS1016",
           "shortDescription": "Code fix providers should provide FixAll support",
-          "fullDescription": "A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.",
+          "fullDescription": "A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.",
           "defaultLevel": "warning",
           "properties": {
             "category": "Correctness",
@@ -447,7 +447,7 @@
           "shortDescription": "Add analyzer diagnostic IDs to analyzer release",
           "fullDescription": "All supported analyzer diagnostic IDs should be part of an analyzer release.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisReleaseTracking",
             "isEnabledByDefault": true,
@@ -466,7 +466,7 @@
           "shortDescription": "Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release",
           "fullDescription": "Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisReleaseTracking",
             "isEnabledByDefault": true,
@@ -485,7 +485,7 @@
           "shortDescription": "Do not add removed analyzer diagnostic IDs to unshipped analyzer release",
           "fullDescription": "Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisReleaseTracking",
             "isEnabledByDefault": true,
@@ -505,7 +505,7 @@
           "shortDescription": "Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file",
           "fullDescription": "Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisReleaseTracking",
             "isEnabledByDefault": true,
@@ -525,7 +525,7 @@
           "shortDescription": "Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers",
           "fullDescription": "Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisReleaseTracking",
             "isEnabledByDefault": true,
@@ -544,7 +544,7 @@
           "shortDescription": "Remove duplicate entries for diagnostic ID in the same analyzer release",
           "fullDescription": "Remove duplicate entries for diagnostic ID in the same analyzer release.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisReleaseTracking",
             "isEnabledByDefault": true,
@@ -564,7 +564,7 @@
           "shortDescription": "Remove duplicate entries for diagnostic ID between analyzer releases",
           "fullDescription": "Remove duplicate entries for diagnostic ID between analyzer releases.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisReleaseTracking",
             "isEnabledByDefault": true,
@@ -584,7 +584,7 @@
           "shortDescription": "Invalid entry in analyzer release file",
           "fullDescription": "Invalid entry in analyzer release file.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisReleaseTracking",
             "isEnabledByDefault": true,
@@ -602,9 +602,9 @@
         "RS2008": {
           "id": "RS2008",
           "shortDescription": "Enable analyzer release tracking",
-          "fullDescription": "Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.",
+          "fullDescription": "Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
           "properties": {
             "category": "MicrosoftCodeAnalysisReleaseTracking",
             "isEnabledByDefault": true,

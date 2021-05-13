@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
@@ -94,16 +93,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         public bool IsAnalysisEntityDefaultLocation => AnalysisEntity != null;
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(Creation.GetHashCodeOrDefault());
-            addPart(HashUtilities.Combine(CreationCallStack));
-            addPart(Symbol.GetHashCodeOrDefault());
-            addPart(CaptureId.GetHashCodeOrDefault());
-            addPart(AnalysisEntity.GetHashCodeOrDefault());
-            addPart(LocationType.GetHashCodeOrDefault());
-            addPart(_isSpecialSingleton.GetHashCode());
-            addPart(IsNull.GetHashCode());
+            hashCode.Add(Creation.GetHashCodeOrDefault());
+            hashCode.Add(HashUtilities.Combine(CreationCallStack));
+            hashCode.Add(Symbol.GetHashCodeOrDefault());
+            hashCode.Add(CaptureId.GetHashCodeOrDefault());
+            hashCode.Add(AnalysisEntity.GetHashCodeOrDefault());
+            hashCode.Add(LocationType.GetHashCodeOrDefault());
+            hashCode.Add(_isSpecialSingleton.GetHashCode());
+            hashCode.Add(IsNull.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<AbstractLocation> obj)
+        {
+            var other = (AbstractLocation)obj;
+            return Creation.GetHashCodeOrDefault() == other.Creation.GetHashCodeOrDefault()
+                && HashUtilities.Combine(CreationCallStack) == HashUtilities.Combine(other.CreationCallStack)
+                && Symbol.GetHashCodeOrDefault() == other.Symbol.GetHashCodeOrDefault()
+                && CaptureId.GetHashCodeOrDefault() == other.CaptureId.GetHashCodeOrDefault()
+                && AnalysisEntity.GetHashCodeOrDefault() == other.AnalysisEntity.GetHashCodeOrDefault()
+                && LocationType.GetHashCodeOrDefault() == other.LocationType.GetHashCodeOrDefault()
+                && _isSpecialSingleton.GetHashCode() == other._isSpecialSingleton.GetHashCode()
+                && IsNull.GetHashCode() == other.IsNull.GetHashCode();
         }
 
         /// <summary>

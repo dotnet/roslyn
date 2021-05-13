@@ -35,15 +35,11 @@ namespace Test.Utilities
             {
             }
 
-            protected override Project ApplyCompilationOptions(Project project)
+            protected override ParseOptions CreateParseOptions()
             {
-                var newProject = base.ApplyCompilationOptions(project);
-
-                var parseOptions = newProject.ParseOptions!.WithFeatures(
-                    newProject.ParseOptions.Features.Concat(
-                        new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
-
-                return newProject.WithParseOptions(parseOptions);
+                var parseOptions = base.CreateParseOptions();
+                return parseOptions.WithFeatures(parseOptions.Features.Concat(
+                    new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
             }
         }
     }

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         public override int GetHashCode()
-            => HashUtilities.Combine(IsTryCast, AlwaysSucceed, AlwaysFail, IsBoxing, IsUnboxing);
+            => RoslynHashCode.Combine(IsTryCast, AlwaysSucceed, AlwaysFail, IsBoxing, IsUnboxing);
 
         public static bool operator ==(ConversionInference left, ConversionInference right)
             => left.Equals(right);

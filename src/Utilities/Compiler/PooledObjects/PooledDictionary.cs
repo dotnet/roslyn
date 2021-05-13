@@ -45,6 +45,7 @@ namespace Analyzer.Utilities.PooledObjects
 
         public ImmutableDictionary<TKey, TValue> ToImmutableDictionaryAndFree<TKey, TValue>(
            Func<KeyValuePair<K, V>, TKey> keySelector, Func<KeyValuePair<K, V>, TValue> elementSelector, IEqualityComparer<TKey> comparer)
+            where TKey : notnull
         {
             ImmutableDictionary<TKey, TValue> result;
             if (Count == 0)

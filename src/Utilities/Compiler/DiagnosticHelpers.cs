@@ -6,7 +6,7 @@ namespace Analyzer.Utilities
 {
     internal static partial class DiagnosticHelpers
     {
-        public static bool TryConvertToUInt64(object value, SpecialType specialType, out ulong convertedValue)
+        public static bool TryConvertToUInt64(object? value, SpecialType specialType, out ulong convertedValue)
         {
             bool success = false;
             convertedValue = 0;

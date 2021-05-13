@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Analyzer.Utilities.Extensions
 {
-    internal static class SyntaxNodeExtensions
+    internal static partial class SyntaxNodeExtensions
     {
         public static SyntaxList<AttributeListSyntax> GetAttributeLists(this SyntaxNode declaration)
             => declaration switch

@@ -241,7 +241,7 @@ public class OtherClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only one property being tracked, this is straightforward.
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -258,7 +258,7 @@ public class OtherClass
 
                             // With only one property being tracked, this is straightforward.
 
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -275,7 +275,7 @@ public class OtherClass
 
                             // With only one property being tracked, this is straightforward.
 
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -437,7 +437,7 @@ class TestClass
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                         // With only one property being tracked, this is straightforward.
-                        return (abstractValue[0]) switch
+                        return abstractValue[0] switch
                         {
                             PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                             PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -536,7 +536,7 @@ class TestClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only one property being tracked, this is straightforward.
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -609,7 +609,7 @@ class TestClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only one property being tracked, this is straightforward.
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -869,7 +869,7 @@ class TestClass
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                         // With only one property being tracked, this is straightforward.
-                        return (abstractValue[0]) switch
+                        return abstractValue[0] switch
                         {
                             PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                             PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -973,7 +973,7 @@ class TestClass
                         // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                         // With only one property being tracked, this is straightforward.
-                        return (abstractValue[0]) switch
+                        return abstractValue[0] switch
                         {
                             PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                             PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -1053,7 +1053,7 @@ class TestClass
                         (PropertySetAbstractValue abstractValue) =>
                         {
                             // With only one property being tracked, this is straightforward.
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,
@@ -1173,7 +1173,7 @@ class TestClass
                             // When doing this for reals, need to examine the method to make sure we're looking at the right method and arguments.
 
                             // With only underlying value (from the two "aliased" properties) being tracked, this is straightforward.
-                            return (abstractValue[0]) switch
+                            return abstractValue[0] switch
                             {
                                 PropertySetAbstractValueKind.Flagged => HazardousUsageEvaluationResult.Flagged,
                                 PropertySetAbstractValueKind.MaybeFlagged => HazardousUsageEvaluationResult.MaybeFlagged,

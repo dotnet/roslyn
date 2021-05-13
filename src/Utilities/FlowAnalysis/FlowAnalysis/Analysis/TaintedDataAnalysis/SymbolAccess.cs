@@ -46,11 +46,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public ISymbol AccessingMethod { get; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(Location.GetHashCode());
-            addPart(Symbol.GetHashCode());
-            addPart(AccessingMethod.GetHashCode());
+            hashCode.Add(Location.GetHashCode());
+            hashCode.Add(Symbol.GetHashCode());
+            hashCode.Add(AccessingMethod.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<SymbolAccess> obj)
+        {
+            var other = (SymbolAccess)obj;
+            return Location.GetHashCode() == other.Location.GetHashCode()
+                && Symbol.GetHashCode() == other.Symbol.GetHashCode()
+                && AccessingMethod.GetHashCode() == other.AccessingMethod.GetHashCode();
         }
     }
 }

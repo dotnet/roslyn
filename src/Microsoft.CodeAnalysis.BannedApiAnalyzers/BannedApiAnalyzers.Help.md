@@ -21,7 +21,7 @@ To add a symbol to banned list, just add an entry in the format below to the Ban
 {Documentation Comment ID string for the symbol}[;Description Text]
 ```
 
-For details on ID string format, please refer to ["Documentation comments"](https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format).
+For details on ID string format, please refer to ["Documentation comments"](https://github.com/dotnet/csharplang/blob/main/spec/documentation-comments.md#id-string-format).
 
 Examples of BannedSymbols.txt entries for symbols declared in the source below:
 

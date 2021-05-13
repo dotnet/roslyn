@@ -18,24 +18,24 @@ namespace Test.Utilities
             public Test()
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.Default;
-
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
-                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
-                    compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(NullableWarnings));
-                    solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
-
-                    return solution;
-                });
             }
 
             private static ImmutableDictionary<string, ReportDiagnostic> NullableWarnings
                 => CSharpCodeFixVerifier<EmptyDiagnosticAnalyzer, EmptyCodeFixProvider>.Test.NullableWarnings;
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp7_3;
+
+            protected override CompilationOptions CreateCompilationOptions()
+            {
+                var compilationOptions = base.CreateCompilationOptions();
+                return compilationOptions.WithSpecificDiagnosticOptions(
+                    compilationOptions.SpecificDiagnosticOptions.SetItems(NullableWarnings));
+            }
+
+            protected override ParseOptions CreateParseOptions()
+            {
+                return ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
+            }
         }
     }
 }

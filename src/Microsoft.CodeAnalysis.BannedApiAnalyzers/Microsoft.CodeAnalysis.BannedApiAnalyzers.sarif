@@ -23,7 +23,7 @@
           "shortDescription": "Do not used banned APIs",
           "fullDescription": "The symbol has been marked as banned in this project, and an alternate should be used instead.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
           "properties": {
             "category": "ApiDesign",
             "isEnabledByDefault": true,
@@ -41,7 +41,7 @@
           "shortDescription": "The list of banned symbols contains a duplicate",
           "fullDescription": "The list of banned symbols contains a duplicate.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
           "properties": {
             "category": "ApiDesign",
             "isEnabledByDefault": true,
@@ -86,7 +86,7 @@
           "shortDescription": "Do not used banned APIs",
           "fullDescription": "The symbol has been marked as banned in this project, and an alternate should be used instead.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
           "properties": {
             "category": "ApiDesign",
             "isEnabledByDefault": true,
@@ -104,7 +104,7 @@
           "shortDescription": "The list of banned symbols contains a duplicate",
           "fullDescription": "The list of banned symbols contains a duplicate.",
           "defaultLevel": "warning",
-          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
           "properties": {
             "category": "ApiDesign",
             "isEnabledByDefault": true,

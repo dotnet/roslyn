@@ -18,6 +18,27 @@
         "language": "en-US"
       },
       "rules": {
+        "CA1704": {
+          "id": "CA1704",
+          "shortDescription": "Identifiers should be spelled correctly",
+          "fullDescription": "The name of an externally visible identifier contains one or more words that are not recognized by the Microsoft spelling checker library.",
+          "defaultLevel": "warning",
+          "helpUri": "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1704",
+          "properties": {
+            "category": "Naming",
+            "isEnabledByDefault": true,
+            "typeName": "IdentifiersShouldBeSpelledCorrectlyAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "PortedFromFxCop",
+              "Telemetry",
+              "EnabledRuleInAggressiveMode"
+            ]
+          }
+        },
         "CA1714": {
           "id": "CA1714",
           "shortDescription": "Flags enums should have plural names",

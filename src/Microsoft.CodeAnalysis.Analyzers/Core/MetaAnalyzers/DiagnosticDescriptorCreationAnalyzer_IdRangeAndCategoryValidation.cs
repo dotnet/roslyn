@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1018 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeInSpecifiedFormatTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DiagnosticIdMustBeInSpecifiedFormatRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DiagnosticIdMustBeInSpecifiedFormatRule = new(
             DiagnosticIds.DiagnosticIdMustBeInSpecifiedFormatRuleId,
             s_localizableDiagnosticIdMustBeInSpecifiedFormatTitle,
             s_localizableDiagnosticIdMustBeInSpecifiedFormatMessage,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1020 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseCategoriesFromSpecifiedRangeTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor UseCategoriesFromSpecifiedRangeRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UseCategoriesFromSpecifiedRangeRule = new(
             DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId,
             s_localizableUseCategoriesFromSpecifiedRangeTitle,
             s_localizableUseCategoriesFromSpecifiedRangeMessage,
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         /// <summary>
         /// RS1021 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor AnalyzerCategoryAndIdRangeFileInvalidRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor AnalyzerCategoryAndIdRangeFileInvalidRule = new(
             DiagnosticIds.AnalyzerCategoryAndIdRangeFileInvalidRuleId,
             s_localizableAnalyzerCategoryAndIdRangeFileInvalidTitle,
             s_localizableAnalyzerCategoryAndIdRangeFileInvalidMessage,
