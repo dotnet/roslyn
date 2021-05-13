@@ -16,6 +16,7 @@
     <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="$(MicrosoftVisualStudioTemplateWizardInterfaceVersion)" />
+    <PackageReference Include="Microsoft.Visualstudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
     <!-- Explicit reference to avoid missing package warning -->
     <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
   </ItemGroup>
