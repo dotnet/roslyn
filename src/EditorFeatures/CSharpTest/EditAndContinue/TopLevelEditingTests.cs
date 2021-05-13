@@ -588,6 +588,21 @@ namespace N
         }
 
         [Fact]
+        public void TypeKindUpdate3()
+        {
+            var src1 = "record C { }";
+            var src2 = "record struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [record C { }]@0 -> [record struct C { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeKindUpdate, "record struct C", CSharpFeaturesResources.record_struct));
+        }
+
+        [Fact]
         public void Class_Modifiers_Update()
         {
             var src1 = "public static class C { }";
