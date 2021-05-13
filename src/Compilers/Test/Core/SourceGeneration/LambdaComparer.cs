@@ -5,14 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities.TestGenerators
 {
-    public class LambdaComparer<T> : IEqualityComparer<T>
+    public sealed class LambdaComparer<T> : IEqualityComparer<T>
     {
         private readonly Func<T?, T?, bool> _equal;
         private readonly int? _hashCode;

@@ -6,24 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Text;
 using System.Threading;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal interface ISyntaxInputNode
-    {
-        ISyntaxInputBuilder GetBuilder(DriverStateTable table);
-    }
-
-    internal interface ISyntaxInputBuilder
-    {
-        void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model);
-
-        void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables);
-    }
-
     internal sealed class SyntaxInputNode<T> : IIncrementalGeneratorNode<T>, ISyntaxInputNode
     {
         private readonly Func<GeneratorSyntaxContext, T> _func;
