@@ -112,6 +112,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
+        public void Faulted_Node_TableBuilder_Drops_Entries()
+        {
+            var builder = NodeStateTable<int>.Empty.ToBuilder();
+            builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
+            builder.SetFaulted(new Exception());
+            builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Added);
+            var table = builder.ToImmutableAndFree();
+
+            Assert.True(table.IsFaulted);
+            Assert.False(table.IsCompacted);
+            AssertTableEntries(table, ImmutableArray<(int, EntryState)>.Empty);
+        }
+
+        [Fact]
+        public void Faulted_Node_Table_Compaction_Is_No_Op()
+        {
+            var builder = NodeStateTable<int>.Empty.ToBuilder();
+            builder.SetFaulted(new Exception());
+            var table = builder.ToImmutableAndFree();
+
+            Assert.True(table.IsFaulted);
+            Assert.False(table.IsCompacted);
+
+            table = table.Compact();
+
+            Assert.True(table.IsFaulted);
+            Assert.False(table.IsCompacted);
+        }
+
+        [Fact]
         public void Driver_Table_Calls_Into_Node_With_Self()
         {
             DriverStateTable.Builder? passedIn = null;

@@ -12,18 +12,18 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct SyntaxValueSources
     {
-        private readonly ArrayBuilder<ISyntaxInputNode> _nodes;
+        private readonly ArrayBuilder<ISyntaxInputNode> _inputNodes;
 
-        internal SyntaxValueSources(ArrayBuilder<ISyntaxInputNode> nodes)
+        internal SyntaxValueSources(ArrayBuilder<ISyntaxInputNode> inputNodes)
         {
-            _nodes = nodes;
+            _inputNodes = inputNodes;
         }
 
         // PROTOTYPE(source-generators): Minimum exposed, low-level API for now, we can add more as needed
         public IncrementalValueSource<T> Transform<T>(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
         {
             var node = new SyntaxInputNode<T>(filterFunc, transformFunc);
-            _nodes.Add(node);
+            _inputNodes.Add(node);
             return new IncrementalValueSource<T>(node);
         }
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         internal IncrementalValueSource<ISyntaxContextReceiver> CreateSyntaxReceiverInput(SyntaxContextReceiverCreator creator)
         {
             var node = new SyntaxReceiverInputNode(creator);
-            _nodes.Add(node);
+            _inputNodes.Add(node);
             return new IncrementalValueSource<ISyntaxContextReceiver>(node);
         }
     }

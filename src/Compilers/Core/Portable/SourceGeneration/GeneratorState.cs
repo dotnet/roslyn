@@ -29,15 +29,15 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new generator state that contains information and constant trees
         /// </summary>
         public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees)
-            : this(info, postInitTrees, PerGeneratorInputNodes.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty)
+            : this(info, postInitTrees, ImmutableArray<ISyntaxInputNode>.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty)
         {
         }
 
         /// <summary>
         /// Creates a new generator state that contains information, constant trees and an execution pipeline
         /// </summary>
-        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, PerGeneratorInputNodes sources, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes)
-            : this(info, postInitTrees, sources, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, exception: null)
+        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes)
+            : this(info, postInitTrees, inputNodes, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, exception: null)
         {
         }
 
@@ -45,22 +45,22 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new generator state that contains an exception and the associated diagnostic
         /// </summary>
         public GeneratorState(GeneratorInfo info, Exception e, Diagnostic error)
-            : this(info, ImmutableArray<GeneratedSyntaxTree>.Empty, PerGeneratorInputNodes.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray.Create(error), exception: e)
+            : this(info, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<ISyntaxInputNode>.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray.Create(error), exception: e)
         {
         }
 
         /// <summary>
         /// Creates a generator state that contains results
         /// </summary>
-        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, PerGeneratorInputNodes sources, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics)
-            : this(info, postInitTrees, sources, outputNodes, generatedTrees, diagnostics, exception: null)
+        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics)
+            : this(info, postInitTrees, inputNodes, outputNodes, generatedTrees, diagnostics, exception: null)
         {
         }
 
-        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, PerGeneratorInputNodes sources, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, Exception? exception)
+        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, Exception? exception)
         {
             this.PostInitTrees = postInitTrees;
-            this.Sources = sources;
+            this.InputNodes = inputNodes;
             this.OutputNodes = outputNodes;
             this.GeneratedTrees = generatedTrees;
             this.Info = info;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<GeneratedSyntaxTree> PostInitTrees { get; }
 
-        internal PerGeneratorInputNodes Sources { get; }
+        internal ImmutableArray<ISyntaxInputNode> InputNodes { get; }
 
         internal ImmutableArray<IIncrementalGeneratorOutputNode> OutputNodes { get; }
 

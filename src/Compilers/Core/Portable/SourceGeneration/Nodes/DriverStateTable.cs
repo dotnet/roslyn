@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -49,10 +50,12 @@ namespace Microsoft.CodeAnalysis
                 _cancellationToken = cancellationToken;
             }
 
-            public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxTransform)
+            public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxInputNode)
             {
+                Debug.Assert(_syntaxInputNodes.Contains(syntaxInputNode));
+
                 // when we don't have a value for this node, we update all the syntax inputs at once
-                if (!_tableBuilder.ContainsKey(syntaxTransform))
+                if (!_tableBuilder.ContainsKey(syntaxInputNode))
                 {
                     // get a builder for each input node
                     var builders = ArrayBuilder<ISyntaxInputBuilder>.GetInstance(_syntaxInputNodes.Length);
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis
                     builders.Free();
                 }
 
-                return _tableBuilder[syntaxTransform];
+                return _tableBuilder[syntaxInputNode];
             }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)

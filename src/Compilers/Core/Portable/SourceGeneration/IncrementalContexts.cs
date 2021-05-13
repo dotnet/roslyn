@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis
 
         public IncrementalValueSources Sources { get; }
 
-        internal IncrementalGeneratorPipelineContext(PerGeneratorInputNodes.Builder sourcesBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputBuilder)
+        internal IncrementalGeneratorPipelineContext(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputBuilder)
         {
-            Sources = new IncrementalValueSources(sourcesBuilder);
+            Sources = new IncrementalValueSources(syntaxInputBuilder);
             _outputBuilder = outputBuilder;
         }
 

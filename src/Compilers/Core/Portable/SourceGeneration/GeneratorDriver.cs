@@ -218,8 +218,8 @@ namespace Microsoft.CodeAnalysis
                     if (ex is null && generatorState.Info.PipelineCallback is object)
                     {
                         var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
-                        var sourcesBuilder = new PerGeneratorInputNodes.Builder();
-                        var pipelineContext = new IncrementalGeneratorPipelineContext(sourcesBuilder, outputBuilder);
+                        var inputBuilder = ArrayBuilder<ISyntaxInputNode>.GetInstance();
+                        var pipelineContext = new IncrementalGeneratorPipelineContext(inputBuilder, outputBuilder);
                         try
                         {
                             generatorState.Info.PipelineCallback(pipelineContext);
@@ -230,18 +230,18 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         generatorState = ex is null
-                                         ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, sourcesBuilder.ToImmutable(), outputBuilder.ToImmutable())
+                                         ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, inputBuilder.ToImmutable(), outputBuilder.ToImmutable())
                                          : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
 
                         outputBuilder.Free();
-                        sourcesBuilder.Free();
+                        inputBuilder.Free();
                     }
                 }
 
-                // if the pipeline registered any syntax callbacks, record them in the syntax input node list
-                if (!generatorState.Sources.TransformNodes.IsEmpty)
+                // if the pipeline registered any syntax input nodes, record them
+                if (!generatorState.InputNodes.IsEmpty)
                 {
-                    syntaxInputNodes.AddRange(generatorState.Sources.TransformNodes);
+                    syntaxInputNodes.AddRange(generatorState.InputNodes);
                 }
 
                 // record any constant sources
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis
                     (var sources, var generatorDiagnostics) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
-                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.Sources, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics);
+                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.InputNodes, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics);
                 }
                 catch (UserFunctionException ufe)
                 {

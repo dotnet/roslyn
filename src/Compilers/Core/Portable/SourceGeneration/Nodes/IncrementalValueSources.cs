@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis
 {
     public readonly struct IncrementalValueSources
     {
-        private readonly PerGeneratorInputNodes.Builder _perGeneratorBuilder;
+        private readonly ArrayBuilder<ISyntaxInputNode> _syntaxInputBuilder;
 
-        internal IncrementalValueSources(PerGeneratorInputNodes.Builder perGeneratorBuilder)
+        internal IncrementalValueSources(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder)
         {
-            _perGeneratorBuilder = perGeneratorBuilder;
+            _syntaxInputBuilder = syntaxInputBuilder;
         }
 
-        public SyntaxValueSources Syntax => new SyntaxValueSources(_perGeneratorBuilder.SyntaxTransformNodes);
+        public SyntaxValueSources Syntax => new SyntaxValueSources(_syntaxInputBuilder);
 
         public IncrementalValueSource<Compilation> Compilation => new IncrementalValueSource<Compilation>(SharedInputNodes.Compilation);
 
@@ -44,67 +44,5 @@ namespace Microsoft.CodeAnalysis
         public static readonly InputNode<SyntaxTree> SyntaxTrees = new InputNode<SyntaxTree>(b => b.Compilation.SyntaxTrees.ToImmutableArray());
 
         public static readonly InputNode<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions = new InputNode<AnalyzerConfigOptionsProvider>(b => ImmutableArray.Create(b.DriverState.OptionsProvider));
-    }
-
-    /// <summary>
-    /// Holds input nodes that are created per-generator
-    /// </summary>
-    internal sealed class PerGeneratorInputNodes
-    {
-        public static readonly PerGeneratorInputNodes Empty = new PerGeneratorInputNodes(ImmutableArray<ISyntaxInputNode>.Empty);
-
-        private PerGeneratorInputNodes(ImmutableArray<ISyntaxInputNode> transformNodes)
-        {
-            this.TransformNodes = transformNodes;
-        }
-
-        public ImmutableArray<ISyntaxInputNode> TransformNodes { get; }
-
-        public sealed class Builder
-        {
-            private ArrayBuilder<ISyntaxInputNode>? _transformNodes;
-
-            bool _disposed = false;
-
-            public ArrayBuilder<ISyntaxInputNode> SyntaxTransformNodes
-            {
-                get
-                {
-                    Debug.Assert(!_disposed);
-                    if (_transformNodes is null)
-                    {
-                        // PROTOTYPE(source-generators): this is resilient to threading in the user pipeline
-                        // but the rest of the structure isn't. We should decide if we want to support that or 
-                        // just say this whole thing isn't thread safe.
-
-                        var newNodes = ArrayBuilder<ISyntaxInputNode>.GetInstance();
-                        InterlockedOperations.Initialize(ref _transformNodes, newNodes);
-
-                        // in the case another thread beat us to initialization, we will see that threads arraybuilder.
-                        // free the one we just created
-                        if (newNodes != _transformNodes)
-                        {
-                            newNodes.Free();
-                        }
-                    }
-                    return _transformNodes;
-                }
-            }
-
-            public PerGeneratorInputNodes ToImmutable()
-            {
-                Debug.Assert(!_disposed);
-                return _transformNodes is null
-                    ? Empty
-                    : new PerGeneratorInputNodes(_transformNodes.ToImmutable());
-            }
-
-            public void Free()
-            {
-                _disposed = true;
-                _transformNodes?.Free();
-                _transformNodes = null;
-            }
-        }
     }
 }

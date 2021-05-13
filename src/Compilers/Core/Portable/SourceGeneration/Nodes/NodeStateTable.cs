@@ -67,6 +67,10 @@ namespace Microsoft.CodeAnalysis
 
         private NodeStateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, bool isCompacted, Exception? exception)
         {
+            Debug.Assert(exception is object && !isCompacted
+                        || exception is null && isCompacted && states.All(s => s.All(e => e.Item2 == EntryState.Cached))
+                        || exception is null);
+
             _states = states;
             _exception = exception;
             IsCompacted = isCompacted;
@@ -96,7 +100,7 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> Compact()
         {
-            if (IsCompacted)
+            if (IsCompacted || IsFaulted)
                 return this;
 
             var compacted = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis
         public Builder ToBuilder()
         {
             Debug.Assert(!this.IsFaulted);
-            return new Builder(this, copyPrevious: false);
+            return new Builder(this);
         }
 
         public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
@@ -148,14 +152,10 @@ namespace Microsoft.CodeAnalysis
             private readonly NodeStateTable<T> _previous;
             private Exception? _exception = null;
 
-            internal Builder(NodeStateTable<T> previous, bool copyPrevious = false)
+            internal Builder(NodeStateTable<T> previous)
             {
                 _states = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
                 _previous = previous;
-                if (copyPrevious)
-                {
-                    _states.AddRange(previous._states);
-                }
             }
 
             public void RemoveEntries()
@@ -247,13 +247,20 @@ namespace Microsoft.CodeAnalysis
 
             public NodeStateTable<T> ToImmutableAndFree()
             {
-                if (_states.Count == 0 && _exception is null)
+                if (_exception is object)
                 {
+                    _states.Free();
+                    return new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, isCompacted: false, exception: _exception);
+                }
+                else if (_states.Count == 0)
+                {
+                    _states.Free();
                     return NodeStateTable<T>.Empty;
                 }
 
                 var hasNonCached = _states.Any(s => s.Any(i => i.Item2 != EntryState.Cached));
-                return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached, exception: _exception);
+                return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached, exception: null);
+
             }
 
             internal ImmutableArray<T> GetLastEntries()
