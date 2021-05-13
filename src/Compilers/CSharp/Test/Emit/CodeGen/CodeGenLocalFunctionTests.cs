@@ -2070,6 +2070,27 @@ NamedOptional();
             VerifyOutputInMain(source, "3 2", "System");
         }
 
+        [Fact, WorkItem(51518, "https://github.com/dotnet/roslyn/issues/51518")]
+        public void OptionalParameterCodeGen()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        LocalFunc();
+        void LocalFunc(int a = 2) { }
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedSignatures: new SignatureDescription[]
+            {
+                Signature("C", "Main", ".method public hidebysig static System.Void Main() cil managed"),
+                Signature("C", "<Main>g__LocalFunc|0_0", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] assembly hidebysig static System.Void <Main>g__LocalFunc|0_0([opt] System.Int32 a = 2) cil managed")
+            });
+
+        }
 
         [Fact]
         [CompilerTrait(CompilerFeature.Dynamic)]
