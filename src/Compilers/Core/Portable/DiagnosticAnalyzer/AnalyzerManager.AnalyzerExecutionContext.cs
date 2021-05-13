@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return Task.Run(() =>
                         {
                             var sessionScope = new HostSessionStartAnalysisScope();
-                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope, cancellationToken);
+                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope, executor.SeverityFilter, cancellationToken);
                             return sessionScope;
                         }, cancellationToken);
                     }
