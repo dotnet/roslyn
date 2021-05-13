@@ -6207,27 +6207,6 @@ class C
         }
 
         [Fact]
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
-        public void MethodUpdate_UpdateSwitchExpression()
-        {
-            var src1 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 1 };
-}";
-            var src2 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 2 };
-}";
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
-        }
-
-        [Fact]
         public void MethodUpdate_UpdateStackAllocInLambda1()
         {
             var src1 = "unsafe class C { void M() { F(1, () => { int* a = stackalloc int[10]; }); } }";
@@ -8957,8 +8936,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -9008,8 +8986,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -9035,8 +9012,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
