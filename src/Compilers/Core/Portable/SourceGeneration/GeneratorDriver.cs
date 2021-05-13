@@ -168,9 +168,7 @@ namespace Microsoft.CodeAnalysis
             var state = _state;
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
-            var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, fillWithValue: null); // we know there is at max 1 per generator
             var syntaxInputNodes = ArrayBuilder<ISyntaxInputNode>.GetInstance();
-            int walkerCount = 0;
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
@@ -240,32 +238,9 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                // create the syntax receiver if requested
-                if (generatorState.Info.SyntaxContextReceiverCreator is object && generatorState.Exception is null)
-                {
-                    ISyntaxContextReceiver? rx = null;
-                    try
-                    {
-                        rx = generatorState.Info.SyntaxContextReceiverCreator();
-                    }
-                    catch (Exception e)
-                    {
-                        generatorState = SetGeneratorException(MessageProvider, generatorState, sourceGenerator, e, diagnosticsBag);
-                    }
-
-                    if (rx is object)
-                    {
-                        walkerBuilder.SetItem(i, new GeneratorSyntaxWalker(rx));
-                        generatorState = generatorState.WithReceiver(rx);
-                        walkerCount++;
-                    }
-                }
-
                 // if the pipeline registered any syntax callbacks, record them in the syntax input node list
                 if (!generatorState.Sources.TransformNodes.IsEmpty)
                 {
-                    // it isn't possible for an incremental generator to directly create a walker as part of init
-                    Debug.Assert(generatorState.Info.SyntaxContextReceiverCreator is null);
                     syntaxInputNodes.AddRange(generatorState.Sources.TransformNodes);
                 }
 
@@ -286,44 +261,7 @@ namespace Microsoft.CodeAnalysis
             constantSourcesBuilder.Free();
 
 
-            var syntaxWalkers = stateBuilder.Where(s => s.Sources.ReceiverNode is object).SelectAsArray<GeneratorState, (object, object)>(s => (s.Sources.ReceiverNode!, ImmutableArray.Create(s.SyntaxReceiver)));
-            var driverStateBuilder = new DriverStateTable.Builder(_state.StateTable, compilation, _state, syntaxInputNodes.ToImmutable(), syntaxWalkers, cancellationToken);
-
-            // If we have syntax inputs, or receivers, bring them up to date
-            if (walkerCount > 0)
-            {
-                foreach ((var tree, var treeState) in driverStateBuilder.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
-                {
-                    if (treeState == EntryState.Removed)
-                    {
-                        continue;
-                    }
-
-                    // back compat, run this tree over any ISyntaxContextReceivers
-                    if (walkerCount > 0)
-                    {
-                        var semanticModel = compilation.GetSemanticModel(tree);
-                        var root = tree.GetRoot(cancellationToken);
-                        for (int i = 0; i < walkerBuilder.Count; i++)
-                        {
-                            var walker = walkerBuilder[i];
-                            if (walker is object)
-                            {
-                                try
-                                {
-                                    walker.VisitWithModel(semanticModel, root);
-                                }
-                                catch (Exception e)
-                                {
-                                    stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], e, diagnosticsBag);
-                                    walkerBuilder.SetItem(i, null); // don't re-visit this walker for any other trees
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            walkerBuilder.Free();
+            var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxInputNodes.ToImmutable(), cancellationToken);
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
@@ -331,11 +269,6 @@ namespace Microsoft.CodeAnalysis
                 if (generatorState.Exception is object)
                 {
                     continue;
-                }
-
-                if (generatorState.Sources.ReceiverNode is object)
-                {
-                    //driverStateBuilder.AddInput(generatorState.Sources.ReceiverNode, generatorState.SyntaxReceiver);
                 }
 
                 IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());

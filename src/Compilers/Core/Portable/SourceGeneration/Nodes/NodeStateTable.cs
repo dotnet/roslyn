@@ -72,16 +72,22 @@ namespace Microsoft.CodeAnalysis
             IsCompacted = isCompacted;
         }
 
-        public bool IsFaulted { get => _exception is not null; }
-
-        public bool IsEmpty { get => _states.Length == 0; }
-
         public int Count { get => _states.Length; }
 
         /// <summary>
         /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
         /// </summary>
         public bool IsCompacted { get; }
+
+        public bool IsEmpty { get => _states.Length == 0; }
+
+        public bool IsFaulted { get => _exception is not null; }
+
+        public UserFunctionException GetException()
+        {
+            Debug.Assert(_exception is not null);
+            return _exception is UserFunctionException ufe ? ufe : new UserFunctionException(_exception);
+        }
 
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
         {
@@ -133,7 +139,7 @@ namespace Microsoft.CodeAnalysis
         public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
         {
             Debug.Assert(table.IsFaulted);
-            return new NodeStateTable<T>(Empty._states, isCompacted: true, table._exception);
+            return new NodeStateTable<T>(Empty._states, isCompacted: false, table._exception);
         }
 
         public sealed class Builder
@@ -234,7 +240,7 @@ namespace Microsoft.CodeAnalysis
 
             public NodeStateTable<T> ToImmutableAndFree()
             {
-                if (_states.Count == 0)
+                if (_states.Count == 0 && _exception is null)
                 {
                     return NodeStateTable<T>.Empty;
                 }

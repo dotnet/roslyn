@@ -31,9 +31,6 @@ namespace Microsoft.CodeAnalysis
         public IncrementalValueSource<AdditionalText> AdditionalTexts => new IncrementalValueSource<AdditionalText>(SharedInputNodes.AdditionalTexts);
 
         public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions);
-
-        //only used for back compat in the adaptor
-        internal IncrementalValueSource<ISyntaxContextReceiver?> CreateSyntaxReceiver() => new IncrementalValueSource<ISyntaxContextReceiver?>(_perGeneratorBuilder.GetOrCreateReceiverNode());
     }
 
     /// <summary>
@@ -41,15 +38,15 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal static class SharedInputNodes
     {
-        public static readonly InputNode<Compilation> Compilation = new InputNode<Compilation>();
+        public static readonly InputNode<Compilation> Compilation = new InputNode<Compilation>(b => ImmutableArray.Create(b.Compilation));
 
-        public static readonly InputNode<ParseOptions> ParseOptions = new InputNode<ParseOptions>();
+        public static readonly InputNode<ParseOptions> ParseOptions = new InputNode<ParseOptions>(b => ImmutableArray.Create(b.DriverState.ParseOptions));
 
-        public static readonly InputNode<AdditionalText> AdditionalTexts = new InputNode<AdditionalText>();
+        public static readonly InputNode<AdditionalText> AdditionalTexts = new InputNode<AdditionalText>(b => b.DriverState.AdditionalTexts);
 
-        public static readonly InputNode<SyntaxTree> SyntaxTrees = new InputNode<SyntaxTree>();
+        public static readonly InputNode<SyntaxTree> SyntaxTrees = new InputNode<SyntaxTree>(b => b.Compilation.SyntaxTrees.ToImmutableArray());
 
-        public static readonly InputNode<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions = new InputNode<AnalyzerConfigOptionsProvider>();
+        public static readonly InputNode<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions = new InputNode<AnalyzerConfigOptionsProvider>(b => ImmutableArray.Create(b.DriverState.OptionsProvider));
     }
 
     /// <summary>
@@ -57,36 +54,20 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class PerGeneratorInputNodes
     {
-        public static readonly PerGeneratorInputNodes Empty = new PerGeneratorInputNodes(receiverNode: null, ImmutableArray<ISyntaxInputNode>.Empty);
+        public static readonly PerGeneratorInputNodes Empty = new PerGeneratorInputNodes(ImmutableArray<ISyntaxInputNode>.Empty);
 
-        private PerGeneratorInputNodes(InputNode<ISyntaxContextReceiver?>? receiverNode, ImmutableArray<ISyntaxInputNode> transformNodes)
+        private PerGeneratorInputNodes(ImmutableArray<ISyntaxInputNode> transformNodes)
         {
-            this.ReceiverNode = receiverNode;
             this.TransformNodes = transformNodes;
         }
 
         public ImmutableArray<ISyntaxInputNode> TransformNodes { get; }
 
-        public InputNode<ISyntaxContextReceiver?>? ReceiverNode { get; }
-
         public sealed class Builder
         {
-            private InputNode<ISyntaxContextReceiver?>? _receiverNode;
-
             private ArrayBuilder<ISyntaxInputNode>? _transformNodes;
 
             bool _disposed = false;
-
-            public InputNode<ISyntaxContextReceiver?> GetOrCreateReceiverNode()
-            {
-                Debug.Assert(!_disposed);
-                if (_receiverNode is null)
-                {
-                    // this is called by only internal code which we know to be thread safe
-                    _receiverNode = new InputNode<ISyntaxContextReceiver?>();
-                }
-                return _receiverNode;
-            }
 
             public ArrayBuilder<ISyntaxInputNode> SyntaxTransformNodes
             {
@@ -116,9 +97,9 @@ namespace Microsoft.CodeAnalysis
             public PerGeneratorInputNodes ToImmutable()
             {
                 Debug.Assert(!_disposed);
-                return _receiverNode is null && _transformNodes is null
+                return _transformNodes is null
                     ? Empty
-                    : new PerGeneratorInputNodes(_receiverNode, _transformNodes?.ToImmutable() ?? ImmutableArray<ISyntaxInputNode>.Empty);
+                    : new PerGeneratorInputNodes(_transformNodes.ToImmutable());
             }
 
             public void Free()

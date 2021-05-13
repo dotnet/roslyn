@@ -17,18 +17,18 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the input</typeparam>
     internal sealed class InputNode<T> : IIncrementalGeneratorNode<T>
     {
-        private readonly InputNode<T> _inputSource;
+        private readonly Func<DriverStateTable.Builder, ImmutableArray<T>> _getInput;
         private readonly IEqualityComparer<T>? _comparer;
 
-        public InputNode(InputNode<T>? inputSource = null, IEqualityComparer<T>? comparer = null)
+        public InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, IEqualityComparer<T>? comparer = null)
         {
-            _inputSource = inputSource ?? this;
+            _getInput = getInput;
             _comparer = comparer;
         }
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
-            var inputItems = graphState.GetInputValue(_inputSource);
+            var inputItems = _getInput(graphState);
 
             // create a mutable hashset of the new items we can check against
             HashSet<T> itemsSet = new HashSet<T>(_comparer);
@@ -62,6 +62,6 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_inputSource, comparer);
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_getInput, comparer);
     }
 }

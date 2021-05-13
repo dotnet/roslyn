@@ -26,5 +26,15 @@ namespace Microsoft.CodeAnalysis
             _nodes.Add(node);
             return new IncrementalValueSource<T>(node);
         }
+
+        /// <summary>
+        /// Creates a syntax receiver input node. Only used for back compat in <see cref="SourceGeneratorAdaptor"/>
+        /// </summary>
+        internal IncrementalValueSource<ISyntaxContextReceiver> CreateSyntaxReceiverInput(SyntaxContextReceiverCreator creator)
+        {
+            var node = new SyntaxReceiverInputNode(creator);
+            _nodes.Add(node);
+            return new IncrementalValueSource<ISyntaxContextReceiver>(node);
+        }
     }
 }

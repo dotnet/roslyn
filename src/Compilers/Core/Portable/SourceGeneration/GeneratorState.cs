@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new generator state that contains information, constant trees and an execution pipeline
         /// </summary>
         public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, PerGeneratorInputNodes sources, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes)
-            : this(info, postInitTrees, sources, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, syntaxReceiver: null, exception: null)
+            : this(info, postInitTrees, sources, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, exception: null)
         {
         }
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new generator state that contains an exception and the associated diagnostic
         /// </summary>
         public GeneratorState(GeneratorInfo info, Exception e, Diagnostic error)
-            : this(info, ImmutableArray<GeneratedSyntaxTree>.Empty, PerGeneratorInputNodes.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray.Create(error), syntaxReceiver: null, exception: e)
+            : this(info, ImmutableArray<GeneratedSyntaxTree>.Empty, PerGeneratorInputNodes.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray.Create(error), exception: e)
         {
         }
 
@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis
         /// Creates a generator state that contains results
         /// </summary>
         public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, PerGeneratorInputNodes sources, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics)
-            : this(info, postInitTrees, sources, outputNodes, generatedTrees, diagnostics, syntaxReceiver: null, exception: null)
+            : this(info, postInitTrees, sources, outputNodes, generatedTrees, diagnostics, exception: null)
         {
         }
 
-        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, PerGeneratorInputNodes sources, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, ISyntaxContextReceiver? syntaxReceiver, Exception? exception)
+        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, PerGeneratorInputNodes sources, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, Exception? exception)
         {
             this.PostInitTrees = postInitTrees;
             this.Sources = sources;
@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis
             this.GeneratedTrees = generatedTrees;
             this.Info = info;
             this.Diagnostics = diagnostics;
-            this.SyntaxReceiver = syntaxReceiver;
             this.Exception = exception;
         }
 
@@ -79,26 +78,8 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorInfo Info { get; }
 
-        internal ISyntaxContextReceiver? SyntaxReceiver { get; }
-
         internal Exception? Exception { get; }
 
         internal ImmutableArray<Diagnostic> Diagnostics { get; }
-
-        /// <summary>
-        /// Adds a syntax receiver to this generator state
-        /// </summary>
-        internal GeneratorState WithReceiver(ISyntaxContextReceiver syntaxReceiver)
-        {
-            Debug.Assert(this.Exception is null);
-            return new GeneratorState(this.Info,
-                                      postInitTrees: this.PostInitTrees,
-                                      sources: this.Sources,
-                                      outputNodes: this.OutputNodes,
-                                      generatedTrees: this.GeneratedTrees,
-                                      diagnostics: this.Diagnostics,
-                                      syntaxReceiver: syntaxReceiver,
-                                      exception: null);
-        }
     }
 }

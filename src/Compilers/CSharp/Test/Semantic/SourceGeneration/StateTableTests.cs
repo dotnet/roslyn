@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 return s;
             });
 
-            DriverStateTable.Builder builder = new DriverStateTable.Builder(DriverStateTable.Empty);
+            DriverStateTable.Builder builder = GetBuilder(DriverStateTable.Empty);
             builder.GetLatestStateTableForNode(callbackNode);
 
             Assert.Same(builder, passedIn);
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 return s;
             });
 
-            DriverStateTable.Builder builder = new DriverStateTable.Builder(DriverStateTable.Empty);
+            DriverStateTable.Builder builder = GetBuilder(DriverStateTable.Empty);
             builder.GetLatestStateTableForNode(callbackNode);
 
             Assert.Same(NodeStateTable<int>.Empty, passedIn);
@@ -157,13 +158,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             });
 
             // empty first time
-            DriverStateTable.Builder builder = new DriverStateTable.Builder(DriverStateTable.Empty);
+            DriverStateTable.Builder builder = GetBuilder(DriverStateTable.Empty);
             builder.GetLatestStateTableForNode(callbackNode);
 
             Assert.Same(NodeStateTable<int>.Empty, passedIn);
 
             // gives the returned table the second time around
-            DriverStateTable.Builder builder2 = new DriverStateTable.Builder(builder.ToImmutable());
+            DriverStateTable.Builder builder2 = GetBuilder(builder.ToImmutable());
             builder2.GetLatestStateTableForNode(callbackNode);
 
             Assert.NotNull(passedIn);
@@ -188,12 +189,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             });
 
             // empty first time
-            DriverStateTable.Builder builder = new DriverStateTable.Builder(DriverStateTable.Empty);
+            DriverStateTable.Builder builder = GetBuilder(DriverStateTable.Empty);
             builder.GetLatestStateTableForNode(callbackNode);
             Assert.Same(NodeStateTable<int>.Empty, passedIn);
 
             // gives the returned table the second time around
-            DriverStateTable.Builder builder2 = new DriverStateTable.Builder(builder.ToImmutable());
+            DriverStateTable.Builder builder2 = GetBuilder(builder.ToImmutable());
             builder2.GetLatestStateTableForNode(callbackNode);
 
             // table returned from the first instance was compacted by the builder
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             });
 
             // multiple gets will only call it once
-            DriverStateTable.Builder builder = new DriverStateTable.Builder(DriverStateTable.Empty);
+            DriverStateTable.Builder builder = GetBuilder(DriverStateTable.Empty);
             builder.GetLatestStateTableForNode(callbackNode);
             builder.GetLatestStateTableForNode(callbackNode);
             builder.GetLatestStateTableForNode(callbackNode);
@@ -220,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             Assert.Equal(1, callCount);
 
             // second time around we'll call it once, but no more
-            DriverStateTable.Builder builder2 = new DriverStateTable.Builder(builder.ToImmutable());
+            DriverStateTable.Builder builder2 = GetBuilder(builder.ToImmutable());
             builder2.GetLatestStateTableForNode(callbackNode);
             builder2.GetLatestStateTableForNode(callbackNode);
             builder2.GetLatestStateTableForNode(callbackNode);
@@ -237,6 +238,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                 Assert.Equal(expected[index].state, entry.state);
                 index++;
             }
+        }
+
+        private DriverStateTable.Builder GetBuilder(DriverStateTable previous)
+        {
+            var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+            var c = CSharpCompilation.Create("empty");
+            var state = new GeneratorDriverState(options,
+                    CompilerAnalyzerConfigOptionsProvider.Empty,
+                    ImmutableArray<ISourceGenerator>.Empty,
+                    ImmutableArray<IIncrementalGenerator>.Empty,
+                    ImmutableArray<AdditionalText>.Empty,
+                    ImmutableArray<GeneratorState>.Empty,
+                    previous,
+                    enableIncremental: true);
+
+            return new DriverStateTable.Builder(c, state, ImmutableArray<ISyntaxInputNode>.Empty);
         }
 
         private class CallbackNode<T> : IIncrementalGeneratorNode<T>

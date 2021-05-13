@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis
 {
     internal interface ISyntaxInputNode
     {
-        ISyntaxInputBuilder GetBuilder(NodeStateTable<SyntaxNode> filterTable, IStateTable transformNode);
+        ISyntaxInputBuilder GetBuilder(DriverStateTable table);
     }
 
     internal interface ISyntaxInputBuilder
     {
         void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model);
 
-        (NodeStateTable<SyntaxNode> nodeTable, IStateTable transformTable) ToImmutableAndFree();
+        void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables);
     }
 
     internal sealed class SyntaxInputNode<T> : IIncrementalGeneratorNode<T>, ISyntaxInputNode
@@ -37,14 +37,16 @@ namespace Microsoft.CodeAnalysis
             _comparer = comparer ?? EqualityComparer<T>.Default;
         }
 
+        public object FilterKey { get; } = new object();
+
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
-            return graphState.GetSyntaxInputTable(this);
+            return (NodeStateTable<T>)graphState.GetSyntaxInputTable(this);
         }
 
         public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _func, comparer);
 
-        public ISyntaxInputBuilder GetBuilder(NodeStateTable<SyntaxNode> filterTable, IStateTable transformNode) => new Builder(this, filterTable.ToBuilder(), ((NodeStateTable<T>)transformNode).ToBuilder());
+        public ISyntaxInputBuilder GetBuilder(DriverStateTable table) => new Builder(this, table);
 
         private sealed class Builder : ISyntaxInputBuilder
         {
@@ -54,16 +56,17 @@ namespace Microsoft.CodeAnalysis
 
             private readonly NodeStateTable<T>.Builder _transformTable;
 
-            public Builder(SyntaxInputNode<T> owner, NodeStateTable<SyntaxNode>.Builder filterTable, NodeStateTable<T>.Builder transformTable)
+            public Builder(SyntaxInputNode<T> owner, DriverStateTable table)
             {
                 _owner = owner;
-                _filterTable = filterTable;
-                _transformTable = transformTable;
+                _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner.FilterKey).ToBuilder();
+                _transformTable = table.GetStateTableOrEmpty<T>(_owner).ToBuilder();
             }
 
-            public (NodeStateTable<SyntaxNode> nodeTable, IStateTable transformTable) ToImmutableAndFree()
+            public void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables)
             {
-                return (_filterTable.ToImmutableAndFree(), _transformTable.ToImmutableAndFree());
+                tables[_owner.FilterKey] = _filterTable.ToImmutableAndFree();
+                tables[_owner] = _transformTable.ToImmutableAndFree();
             }
 
             public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model)

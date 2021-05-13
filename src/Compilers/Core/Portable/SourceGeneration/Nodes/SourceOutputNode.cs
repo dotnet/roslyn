@@ -80,6 +80,13 @@ namespace Microsoft.CodeAnalysis
             // get our own state table
             var table = context.TableBuilder.GetLatestStateTableForNode(this);
 
+            if (table.IsFaulted)
+            {
+                // PROTOTYPE (source-generators): we're essentially using exceptions as control flow here.
+                //                                instead we should append the exceptions to the context and allow the driver to handle it there
+                throw table.GetException();
+            }
+
             // add each non-removed entry to the context
             foreach (var ((sources, diagnostics), state) in table)
             {
