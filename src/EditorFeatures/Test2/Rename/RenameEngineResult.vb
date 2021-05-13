@@ -53,7 +53,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
                 Optional expectFailure As Boolean = False,
                 Optional sourceGenerator As ISourceGenerator = Nothing) As RenameEngineResult
-            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions)))
+
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions))
+
+            If host = RenameTestHost.OutOfProcess_SingleCall OrElse host = RenameTestHost.OutOfProcess_SplitCall Then
+                composition = composition.WithTestHostParts(Remote.Testing.TestHost.OutOfProcess)
+            End If
+
+            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=composition)
             workspace.SetTestLogger(AddressOf helper.WriteLine)
 
             If sourceGenerator IsNot Nothing Then
