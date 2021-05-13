@@ -277,6 +277,48 @@ public class C2
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnExtendedPropertyPattern_AlreadyTestedByNestedPattern(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+    public C2 CProperty { get; set; }
+}
+public class C2
+{
+    public int IntProperty { get; set; }
+    public short ShortProperty { get; set; }
+    void M(C c)
+    {
+        _ = c is { CProperty: { IntProperty: 2 }$$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars(", ")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars("CProperty")
+                Await state.AssertNoCompletionSession()
+
+                state.SendTypeChars(".")
+                Assert.Contains("is { CProperty: { IntProperty: 2 }, CProperty.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                ' Note: same completion is offered a second time
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+
+                state.SendTypeChars("SP")
+                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty:", isHardSelected:=True)
+
+                state.SendTab()
+                state.SendTypeChars(": 3")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("is { CProperty: { IntProperty: 2 }, CProperty.ShortProperty: 3", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionOnRecordBaseType(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
