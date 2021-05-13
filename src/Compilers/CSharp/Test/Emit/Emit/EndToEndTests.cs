@@ -175,10 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             //    Console.WriteLine($" - {DateTime.UtcNow - start}");
             //}
 
-            for (int i = 0; i < 20; i++) // PROTOTYPE: Remove this.
-            {
-                runDeeplyNestedGenericTest(nestingLevel);
-            }
+            runDeeplyNestedGenericTest(nestingLevel);
 
             void runDeeplyNestedGenericTest(int nestingLevel)
             {
