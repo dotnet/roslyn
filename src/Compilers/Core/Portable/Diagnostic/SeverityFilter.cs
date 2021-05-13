@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static DiagnosticSeverity GetMinimumUnfilteredSeverity(this SeverityFilter severityFilter)
         {
-            if (!severityFilter.Contains(SeverityFilter.Hidden))
+            if (!severityFilter.Contains(ReportDiagnostic.Hidden))
             {
                 return DiagnosticSeverity.Hidden;
             }
-            else if (!severityFilter.Contains(SeverityFilter.Info))
+            else if (!severityFilter.Contains(ReportDiagnostic.Info))
             {
                 return DiagnosticSeverity.Info;
             }
