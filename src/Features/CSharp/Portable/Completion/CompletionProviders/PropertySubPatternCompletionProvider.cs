@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = context.CancellationToken;
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
+            // For `is { Property.Property2.$$`, we get:
+            // - the property pattern clause `{ ... }` and
+            // - the member access before the last dot `Property.Property2` (or null)
             var (propertyPatternClause, memberAccess) = TryGetPropertyPatternClause(tree, position, cancellationToken);
             if (propertyPatternClause is null)
             {
@@ -52,17 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var pattern = (PatternSyntax)propertyPatternClause.Parent;
-            var type = semanticModel.GetTypeInfo(pattern, cancellationToken).ConvertedType;
-
-            if (memberAccess is not null)
-            {
-                // We have to figure out the type of the extended property ourselves, because
-                // the semantic model could not provide the answer we want in incomplete syntax:
-                // `c is { X. }`
-
-                type = GetMemberAccessType(type, memberAccess.Expression, document, semanticModel, position);
-            }
+            var propertyPatternType = semanticModel.GetTypeInfo((PatternSyntax)propertyPatternClause.Parent, cancellationToken).ConvertedType;
+            var type = GetMemberAccessType(propertyPatternType, memberAccess, document, semanticModel, position);
 
             if (type is null)
             {
@@ -95,9 +89,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return;
 
+            // We have to figure out the type of the extended property ourselves, because
+            // the semantic model could not provide the answer we want in incomplete syntax:
+            // `c is { X. }`
             static ITypeSymbol GetMemberAccessType(ITypeSymbol type, ExpressionSyntax expression, Document document, SemanticModel semanticModel, int position)
             {
-                if (expression is MemberAccessExpressionSyntax memberAccess)
+                if (expression is null)
+                {
+                    return type;
+                }
+                else if (expression is MemberAccessExpressionSyntax memberAccess)
                 {
                     type = GetMemberAccessType(type, memberAccess.Expression, document, semanticModel, position);
                     return GetMemberType(type, name: memberAccess.Name.Identifier.ValueText, document, semanticModel, position);
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters.Add(' ');
 
-        private static (PropertyPatternClauseSyntax, MemberAccessExpressionSyntax) TryGetPropertyPatternClause(SyntaxTree tree, int position, CancellationToken cancellationToken)
+        private static (PropertyPatternClauseSyntax, ExpressionSyntax) TryGetPropertyPatternClause(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
             if (tree.IsInNonUserCode(position, cancellationToken))
             {
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (token.IsKind(SyntaxKind.DotToken))
             {
                 return token.Parent is MemberAccessExpressionSyntax { Parent: { Parent: SubpatternSyntax { Parent: PropertyPatternClauseSyntax propertyPatternClause } } } memberAccess
-                    ? (propertyPatternClause, memberAccess)
+                    ? (propertyPatternClause, memberAccess.Expression)
                     : default;
             }
 
