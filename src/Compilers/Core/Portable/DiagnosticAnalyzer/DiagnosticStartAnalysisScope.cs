@@ -21,10 +21,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly DiagnosticAnalyzer _analyzer;
         private readonly HostSessionStartAnalysisScope _scope;
 
-        public AnalyzerAnalysisContext(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope scope)
+        public AnalyzerAnalysisContext(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope scope, SeverityFilter severityFilter)
         {
             _analyzer = analyzer;
             _scope = scope;
+            MinimumReportedSeverity = severityFilter.GetMinimumUnfilteredSeverity();
         }
 
         public override void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action)
@@ -114,6 +115,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _scope.ConfigureGeneratedCodeAnalysis(_analyzer, mode);
         }
+
+        public override DiagnosticSeverity MinimumReportedSeverity { get; }
     }
 
     /// <summary>

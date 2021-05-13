@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerExecutor = AnalyzerExecutor.Create(
                 compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addNotCategorizedDiagnostic, newOnAnalyzerException, analysisOptions.AnalyzerExceptionFilter,
                 IsCompilerAnalyzer, AnalyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, IsGeneratedOrHiddenCodeLocation, IsAnalyzerSuppressedForTree, GetAnalyzerGate,
-                getSemanticModel: GetOrCreateSemanticModel,
+                getSemanticModel: GetOrCreateSemanticModel, _severityFilter,
                 analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic, s => _programmaticSuppressions!.Add(s), cancellationToken);
 
             Initialize(analyzerExecutor, diagnosticQueue, compilationData, cancellationToken);

@@ -29,5 +29,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _ => false
             };
         }
+
+        internal static DiagnosticSeverity GetMinimumUnfilteredSeverity(this SeverityFilter severityFilter)
+        {
+            if ((severityFilter & SeverityFilter.Hidden) == 0)
+            {
+                return DiagnosticSeverity.Hidden;
+            }
+
+            if ((severityFilter & SeverityFilter.Info) == 0)
+            {
+                return DiagnosticSeverity.Info;
+            }
+
+            return DiagnosticSeverity.Warning;
+        }
     }
 }

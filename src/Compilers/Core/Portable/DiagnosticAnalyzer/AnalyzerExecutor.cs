@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<DiagnosticAnalyzer, bool>? _isCompilerAnalyzer;
         private readonly Func<DiagnosticAnalyzer, object?>? _getAnalyzerGate;
         private readonly Func<SyntaxTree, SemanticModel>? _getSemanticModel;
+        private readonly SeverityFilter _severityFilter;
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
         private readonly Func<SyntaxTree, TextSpan, bool> _isGeneratedCodeLocation;
@@ -96,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// All analyzer callbacks for non-concurrent analyzers will be guarded with a lock on the gate.
         /// </param>
         /// <param name="getSemanticModel">Delegate to get a semantic model for the given syntax tree which can be shared across analyzers.</param>
+        /// <param name="severityFilter"><see cref="SeverityFilter"/> for analysis.</param>
         /// <param name="shouldSkipAnalysisOnGeneratedCode">Delegate to identify if analysis should be skipped on generated code.</param>
         /// <param name="shouldSuppressGeneratedCodeDiagnostic">Delegate to identify if diagnostic reported while analyzing generated code should be suppressed.</param>
         /// <param name="isGeneratedCodeLocation">Delegate to identify if the given location is in generated code.</param>
@@ -119,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool> isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
+            SeverityFilter severityFilter,
             bool logExecutionTime = false,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic = null,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic = null,
@@ -133,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return new AnalyzerExecutor(compilation, analyzerOptions, addNonCategorizedDiagnostic, onAnalyzerException, analyzerExceptionFilter,
                 isCompilerAnalyzer, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic, isGeneratedCodeLocation,
-                isAnalyzerSuppressedForTree, getAnalyzerGate, getSemanticModel, analyzerExecutionTimeMap, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic,
+                isAnalyzerSuppressedForTree, getAnalyzerGate, getSemanticModel, severityFilter, analyzerExecutionTimeMap, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic,
                 addSuppression, cancellationToken);
         }
 
@@ -163,6 +166,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isAnalyzerSuppressedForTree: null,
                 getAnalyzerGate: null,
                 getSemanticModel: null,
+                severityFilter: SeverityFilter.None,
                 onAnalyzerException: onAnalyzerException,
                 analyzerExceptionFilter: null,
                 analyzerManager: analyzerManager,
@@ -187,6 +191,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, bool>? isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?>? getAnalyzerGate,
             Func<SyntaxTree, SemanticModel>? getSemanticModel,
+            SeverityFilter severityFilter,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? analyzerExecutionTimeMap,
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
@@ -206,6 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _isAnalyzerSuppressedForTree = isAnalyzerSuppressedForTree;
             _getAnalyzerGate = getAnalyzerGate;
             _getSemanticModel = getSemanticModel;
+            _severityFilter = severityFilter;
             _analyzerExecutionTimeMap = analyzerExecutionTimeMap;
             _addCategorizedLocalDiagnostic = addCategorizedLocalDiagnostic;
             _addCategorizedNonLocalDiagnostic = addCategorizedNonLocalDiagnostic;
@@ -224,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return new AnalyzerExecutor(_compilation, _analyzerOptions, _addNonCategorizedDiagnostic, _onAnalyzerException, _analyzerExceptionFilter,
                 _isCompilerAnalyzer, _analyzerManager, _shouldSkipAnalysisOnGeneratedCode, _shouldSuppressGeneratedCodeDiagnostic, _isGeneratedCodeLocation,
-                _isAnalyzerSuppressedForTree, _getAnalyzerGate, _getSemanticModel, _analyzerExecutionTimeMap, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic,
+                _isAnalyzerSuppressedForTree, _getAnalyzerGate, _getSemanticModel, _severityFilter, _analyzerExecutionTimeMap, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic,
                 _addSuppression, cancellationToken);
         }
 
@@ -256,6 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal CancellationToken CancellationToken => _cancellationToken;
         internal Action<Exception, DiagnosticAnalyzer, Diagnostic> OnAnalyzerException => _onAnalyzerException;
+        internal SeverityFilter SeverityFilter => _severityFilter;
         internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes
         {
             get
@@ -270,14 +277,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="analyzer">Analyzer to get session wide analyzer actions.</param>
         /// <param name="sessionScope">Session scope to store register session wide analyzer actions.</param>
+        /// <param name="severityFilter">Severity filter for analysis.</param>
         /// <remarks>
         /// Note that this API doesn't execute any <see cref="CompilationStartAnalyzerAction"/> registered by the Initialize invocation.
         /// Use <see cref="ExecuteCompilationStartActions(ImmutableArray{CompilationStartAnalyzerAction}, HostCompilationStartAnalysisScope)"/> API
         /// to get execute these actions to get the per-compilation analyzer actions.
         /// </remarks>
-        public void ExecuteInitializeMethod(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope sessionScope)
+        public void ExecuteInitializeMethod(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope sessionScope, SeverityFilter severityFilter)
         {
-            var context = new AnalyzerAnalysisContext(analyzer, sessionScope);
+            var context = new AnalyzerAnalysisContext(analyzer, sessionScope, severityFilter);
 
             // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
             ExecuteAndCatchIfThrows(
