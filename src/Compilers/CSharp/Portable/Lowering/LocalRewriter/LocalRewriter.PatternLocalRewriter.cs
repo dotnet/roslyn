@@ -360,11 +360,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (indexerAccess is null)
                         return true;
-                    var type = indexerAccess.Indexer.Parameters[0].Type;
-                    return type.SpecialType == SpecialType.System_Int32 ||
-                        ConversionsBase.HasImplicitNumericConversion(
-                            source: _factory.SpecialType(SpecialType.System_Int32),
-                            destination: type is ArrayTypeSymbol array ? array.ElementType : type);
+                    var destination = indexerAccess.Indexer.Parameters[0].Type;
+                    destination = destination is ArrayTypeSymbol array ? array.ElementType : destination;
+                    return destination.SpecialType == SpecialType.System_Int32 ||
+                        ConversionsBase.HasImplicitNumericConversion(_factory.SpecialType(SpecialType.System_Int32), destination);
                 }
             }
 
