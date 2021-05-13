@@ -499,6 +499,71 @@ True");
         }
 
         [Fact]
+        public void ThisInitializer_03A()
+        {
+            var source =
+@"using System;
+struct S0
+{
+    internal bool Initialized = true;
+    internal S0(object obj) : this() { }
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S0().Initialized);
+        Console.WriteLine(new S0(null).Initialized);
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+@"False
+False");
+            verifier.VerifyMissing("S0..ctor()");
+            // PROTOTYPE: S0.Initialized should be set after initobj, not before, and
+            // expectedOutput should be False, True, ...
+            verifier.VerifyIL("S0..ctor(object)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""bool S0.Initialized""
+  IL_0007:  ldarg.0
+  IL_0008:  initobj    ""S0""
+  IL_000e:  ret
+}");
+            Assert.False(true); // PROTOTYPE: Remove this method. It's a subset of _03.
+        }
+
+        [Fact]
+        public void ThisInitializer_03B()
+        {
+            var source =
+@"using System;
+record R(int X)
+{
+    object Y = X + 1;
+}
+";
+
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyIL("R..ctor",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""bool S0.Initialized""
+  IL_0007:  ldarg.0
+  IL_0008:  initobj    ""S0""
+  IL_000e:  ret
+}");
+            Assert.False(true); // PROTOTYPE: Remove this method.
+        }
+
+        [Fact]
         public void ThisInitializer_04()
         {
             var source =
