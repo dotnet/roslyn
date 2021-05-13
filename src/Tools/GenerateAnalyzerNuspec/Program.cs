@@ -85,6 +85,7 @@ if (dependencyList.Length > 0)
 result.AppendLine(@"  </metadata>");
 
 result.AppendLine(@"  <files>");
+result.AppendLine(@"    $CommonFileElements$");
 
 if (fileList.Length > 0 || assemblyList.Length > 0 || libraryList.Length > 0 || folderList.Length > 0)
 {
