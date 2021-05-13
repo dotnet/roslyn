@@ -257,8 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 _ => null,
             };
 
-        public static BaseParameterListSyntax? GetParameterList(this SyntaxNode declaration)
-            => declaration.Kind() switch
+        public static BaseParameterListSyntax? GetParameterList(this SyntaxNode? declaration)
+            => declaration?.Kind() switch
             {
                 SyntaxKind.DelegateDeclaration => ((DelegateDeclarationSyntax)declaration).ParameterList,
                 SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).ParameterList,
@@ -270,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
                 SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
                 SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
+                SyntaxKind.RecordDeclaration => ((RecordDeclarationSyntax)declaration).ParameterList,
                 _ => null,
             };
 

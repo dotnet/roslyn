@@ -280,6 +280,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">In Datensatz konvertieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="new">Convert to record struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">In Struktur konvertieren</target>
@@ -343,6 +348,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
         <target state="translated">Die im Projekt "{0}" vorgenommenen Änderungen verhindern, dass die Debugsitzung fortgesetzt wird: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
+        <source>Edit and continue is not supported by the runtime.</source>
+        <target state="new">Edit and continue is not supported by the runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -575,6 +585,21 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Lokale Variable einführen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_parameter">
+        <source>Introduce parameter</source>
+        <target state="new">Introduce parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_0">
+        <source>Introduce parameter for '{0}'</source>
+        <target state="new">Introduce parameter for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
+        <source>Introduce parameter for all occurrences of '{0}'</source>
+        <target state="new">Introduce parameter for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_query_variable">
         <source>Introduce query variable</source>
         <target state="translated">Abfragevariable bereitstellen</target>
@@ -603,6 +628,16 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">Bedingten Operator umkehren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method an iterator will prevent the debug session from continuing.</source>
+        <target state="new">Making a method an iterator will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_async_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method 'async' will prevent the debug session from continuing.</source>
+        <target state="new">Making a method 'async' will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -2436,6 +2471,11 @@ Bei Verwendung des Formatbezeichners "H" ohne weitere benutzerdefinierte Formatb
         <target state="translated">Der benutzerdefinierte Formatbezeichner "HH" (plus beliebig viele zusätzliche H-Bezeichner) repräsentiert die Stunde als eine Zahl zwischen 00 und 23, d. h., die Stunde wird in einem nullbasierten 24-Stunden-Format dargestellt, bei dem die Stunden seit Mitternacht gezählt werden. Ein einstelliger Stundenwert wird mit einer führenden Null formatiert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="new">and update call sites directly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="code">
         <source>code</source>
         <target state="new">code</target>
@@ -2575,6 +2615,16 @@ Der Standardformatbezeichner "f" repräsentiert eine Kombination aus den Mustern
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">in Quelle (Attribut)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="new">into extracted method to invoke at call sites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload">
+        <source>into new overload</source>
+        <target state="new">into new overload</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

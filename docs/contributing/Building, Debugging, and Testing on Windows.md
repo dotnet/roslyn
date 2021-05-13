@@ -176,6 +176,12 @@ under `AppData`, not from `Program File`).
     - add `<RestoreAdditionalProjectSources><PATH-TO-YOUR-ROSLYN-ENLISTMENT>\artifacts\packages\Debug\Shipping\</RestoreAdditionalProjectSources>` using the local path to your `roslyn` repo to `Directory.Build.props`
     - add `<MicrosoftNetCompilersToolsetVersion>3.9.0-dev</MicrosoftNetCompilersToolsetVersion>` with the package version you just packed (look in above artifacts folder) to `eng/Versions.props`
 
+### Testing with extra IOperation validation
+
+Run `build.cmd -testIOperation` which sets the `ROSLYN_TEST_IOPERATION` environment variable to `true` and runs the tests.  
+For running those tests in an IDE, the easiest is to find the `//#define ROSLYN_TEST_IOPERATION` directive and uncomment it.  
+See more details in the [IOperation test hook](https://github.com/dotnet/roslyn/blob/main/docs/compilers/IOperation%20Test%20Hook.md) doc.
+
 ## Contributing
 
 Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/main/CONTRIBUTING.md) for details on contributing changes back to the code.

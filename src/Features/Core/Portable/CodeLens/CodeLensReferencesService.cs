@@ -312,6 +312,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                                 case SymbolDisplayPartKind.ErrorTypeName:
                                 case SymbolDisplayPartKind.InterfaceName:
                                 case SymbolDisplayPartKind.StructName:
+                                case SymbolDisplayPartKind.RecordStructName:
                                     actualBuilder.Append('+');
                                     break;
 
@@ -325,10 +326,11 @@ namespace Microsoft.CodeAnalysis.CodeLens
                             actualBuilder.Append(part);
                         }
 
-                        previousWasClass = part.Kind == SymbolDisplayPartKind.ClassName ||
-                                           part.Kind == SymbolDisplayPartKind.RecordClassName ||
-                                           part.Kind == SymbolDisplayPartKind.InterfaceName ||
-                                           part.Kind == SymbolDisplayPartKind.StructName;
+                        previousWasClass = part.Kind is SymbolDisplayPartKind.ClassName or
+                                           SymbolDisplayPartKind.RecordClassName or
+                                           SymbolDisplayPartKind.InterfaceName or
+                                           SymbolDisplayPartKind.StructName or
+                                           SymbolDisplayPartKind.RecordStructName;
                     }
 
                     return actualBuilder.ToString();

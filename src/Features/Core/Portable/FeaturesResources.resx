@@ -2840,6 +2840,24 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Convert_to_record" xml:space="preserve">
     <value>Convert to record</value>
   </data>
+  <data name="Introduce_parameter" xml:space="preserve">
+    <value>Introduce parameter</value>
+  </data>
+  <data name="Introduce_parameter_for_0" xml:space="preserve">
+    <value>Introduce parameter for '{0}'</value>
+  </data>
+  <data name="Introduce_parameter_for_all_occurrences_of_0" xml:space="preserve">
+    <value>Introduce parameter for all occurrences of '{0}'</value>
+  </data>
+  <data name="into_new_overload" xml:space="preserve">
+    <value>into new overload</value>
+  </data>
+  <data name="into_extracted_method_to_invoke_at_call_sites" xml:space="preserve">
+    <value>into extracted method to invoke at call sites</value>
+  </data>
+  <data name="and_update_call_sites_directly" xml:space="preserve">
+    <value>and update call sites directly</value>
+  </data>
   <data name="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</value>
   </data>
@@ -2869,5 +2887,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Selection_not_contained_inside_a_type" xml:space="preserve">
     <value>Selection not contained inside a type.</value>
+  </data>
+  <data name="Convert_to_record_struct" xml:space="preserve">
+    <value>Convert to record struct</value>
+  </data>
+  <data name="Edit_and_continue_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Edit and continue is not supported by the runtime.</value>
+  </data>
+  <data name="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Making a method an iterator will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Making_a_method_async_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Making a method 'async' will prevent the debug session from continuing.</value>
   </data>
 </root>
