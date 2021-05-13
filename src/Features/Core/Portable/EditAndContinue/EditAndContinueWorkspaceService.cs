@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // For now, runtimes aren't returning capabilities, we just fall back to a known set.
             if (capabilities == EditAndContinueCapabilities.None)
             {
-                capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition 
+                capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition
                 // TODO: REMOVE
                 | EditAndContinueCapabilities.UpdateCustomAttributes;
             }
