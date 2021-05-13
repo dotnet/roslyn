@@ -1689,7 +1689,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</value>
   </data>
   <data name="ERR_InterfacesCantContainConversionOrEqualityOperators" xml:space="preserve">
-    <value>Interfaces cannot contain conversion, equality, or inequality operators</value>
+    <value>Conversion, equality, or inequality operators declared in interfaces must be abstract</value>
   </data>
   <data name="ERR_StructsCantContainDefaultConstructor" xml:space="preserve">
     <value>Structs cannot contain explicit parameterless constructors</value>

@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
-                (methodKind == MethodKind.Conversion || name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName))
+                (methodKind == MethodKind.Conversion || (!IsAbstract && (name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName))))
             {
-                // If we have a conversion or equality/inequality operator in an interface, we already have reported that fact as 
+                // If we have an unsupported conversion or equality/inequality operator in an interface, we already have reported that fact as 
                 // an error. No need to cascade the error further.
                 return;
             }
@@ -131,15 +131,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (inInterface)
                 {
-                    allowedModifiers |= DeclarationModifiers.Abstract | DeclarationModifiers.Sealed;
+                    allowedModifiers |= DeclarationModifiers.Abstract;
+
+                    if (syntax is OperatorDeclarationSyntax { OperatorToken: var opToken1 } && opToken1.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
+                    {
+                        allowedModifiers |= DeclarationModifiers.Sealed;
+                    }
                 }
             }
 
             var result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
                 syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _);
 
-            if (inInterface && syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } &&
-                opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
+            if (inInterface && syntax is OperatorDeclarationSyntax { OperatorToken: var opToken2 })
             {
                 if ((result & (DeclarationModifiers.Abstract | DeclarationModifiers.Sealed)) != 0)
                 {
@@ -163,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     result &= ~DeclarationModifiers.Sealed;
                 }
-                else if ((result & DeclarationModifiers.Static) != 0)
+                else if ((result & DeclarationModifiers.Static) != 0 && opToken2.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
                 {
                     Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
                 }
@@ -243,10 +247,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             MethodChecks(returnType, parameters, diagnostics);
 
-            // If we have a conversion/equality/inequality operator in an interface or static class then we already 
+            // If we have a conversion operator in an interface or static class then we already 
             // have reported that fact as an error. No need to cascade the error further.
-            if ((this.ContainingType.IsInterfaceType() &&
-                (MethodKind == MethodKind.Conversion || Name == WellKnownMemberNames.EqualityOperatorName || Name == WellKnownMemberNames.InequalityOperatorName)) ||
+            if ((this.ContainingType.IsInterfaceType() && MethodKind == MethodKind.Conversion) ||
                 this.ContainingType.IsStatic)
             {
                 return;

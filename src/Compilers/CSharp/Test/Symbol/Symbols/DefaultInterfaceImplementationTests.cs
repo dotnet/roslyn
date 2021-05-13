@@ -41138,33 +41138,46 @@ class Test2 : I1
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.Regular9);
             compilation1.VerifyDiagnostics(
-                // (4,31): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (4,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     public static I1 operator ==(I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(4, 31),
-                // (10,31): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (10,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     public static I1 operator !=(I1 x, I1 y)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(10, 31),
-                // (24,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+                // (24,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x == y;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x == y").WithArguments("bool", "I1").WithLocation(24, 13),
-                // (25,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x == y").WithArguments("static abstract members in interfaces").WithLocation(24, 13),
+                // (25,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x != y;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x != y").WithArguments("bool", "I1").WithLocation(25, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x != y").WithArguments("static abstract members in interfaces").WithLocation(25, 13)
+                );
+
+            CreateCompilation(source1 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp,
+                              parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (4,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     public static I1 operator ==(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(4, 31),
+                // (10,31): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     public static I1 operator !=(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(10, 31)
                 );
 
             CompilationReference compilationReference = compilation1.ToMetadataReference();
 
             var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
-            compilation2.VerifyDiagnostics(
-                // (9,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+                                                 parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            compilation2.VerifyDiagnostics();
+
+            CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                              parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (9,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x == y;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x == y").WithArguments("bool", "I1").WithLocation(9, 13),
-                // (10,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x == y").WithArguments("static abstract members in interfaces").WithLocation(9, 13),
+                // (10,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x != y;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x != y").WithArguments("bool", "I1").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x != y").WithArguments("static abstract members in interfaces").WithLocation(10, 13)
                 );
 
             var ilSource = @"
@@ -41211,14 +41224,19 @@ class Test2 : I1
 } // end of class I1
 ";
 
-            var compilation3 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
-            compilation3.VerifyDiagnostics(
-                // (9,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+            var compilation3 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"
+==
+!=
+").VerifyDiagnostics();
+
+            CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (9,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x == y;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x == y").WithArguments("bool", "I1").WithLocation(9, 13),
-                // (10,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x == y").WithArguments("static abstract members in interfaces").WithLocation(9, 13),
+                // (10,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         x = x != y;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x != y").WithArguments("bool", "I1").WithLocation(10, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x != y").WithArguments("static abstract members in interfaces").WithLocation(10, 13)
                 );
 
             var source3 =
@@ -41235,12 +41253,23 @@ class Test2 : I1
     }
 }
 ";
-            var compilation4 = CreateCompilationWithIL(source3, ilSource, options: TestOptions.DebugExe);
+            var compilation4 = CreateCompilationWithIL(source3, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             compilation4.VerifyDiagnostics();
             CompileAndVerify(compilation4, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"
-False
-True
+==
+Test2
+!=
+Test2
 ");
+
+            CreateCompilationWithIL(source3, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (9,34): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.WriteLine(x == y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x == y").WithArguments("static abstract members in interfaces").WithLocation(9, 34),
+                // (10,34): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.WriteLine(x != y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x != y").WithArguments("static abstract members in interfaces").WithLocation(10, 34)
+                );
         }
 
         [Fact]
@@ -41272,10 +41301,10 @@ public interface I1
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular);
             compilation1.VerifyDiagnostics(
-                // (4,37): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (4,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     public static implicit operator int(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 37),
-                // (8,37): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (8,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     public static explicit operator byte(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "byte").WithLocation(8, 37),
                 // (15,17): error CS0029: Cannot implicitly convert type 'I1' to 'int'
@@ -43688,10 +43717,10 @@ public interface I1
             }
 
             compilation1.VerifyDiagnostics(
-                // (4,30): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (4,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     static implicit operator int(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 30),
-                // (9,30): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (9,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     static explicit operator byte(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "byte").WithLocation(9, 30)
                 );

@@ -2207,23 +2207,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool result = true;
 
-            if (methodOpt?.ContainingType?.IsInterface == true && methodOpt.IsStatic && methodOpt.IsAbstract)
+            if (methodOpt?.ContainingType?.IsInterface == true && methodOpt.IsStatic)
             {
-                if (constrainedToTypeOpt is not TypeParameterSymbol)
+                if (methodOpt.IsAbstract)
                 {
-                    Error(diagnostics, ErrorCode.ERR_BadAbstractStaticMemberAccess, node);
-                    return false;
-                }
-
-                if (Compilation.SourceModule != methodOpt.ContainingModule)
-                {
-                    result = CheckFeatureAvailability(node, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
-
-                    if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    if (constrainedToTypeOpt is not TypeParameterSymbol)
                     {
-                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, node);
+                        Error(diagnostics, ErrorCode.ERR_BadAbstractStaticMemberAccess, node);
                         return false;
                     }
+
+                    if (Compilation.SourceModule != methodOpt.ContainingModule)
+                    {
+                        result = CheckFeatureAvailability(node, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
+
+                        if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, node);
+                            return false;
+                        }
+                    }
+                }
+                else if (methodOpt.Name is WellKnownMemberNames.EqualityOperatorName or WellKnownMemberNames.InequalityOperatorName)
+                {
+                    result = CheckFeatureAvailability(node, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
                 }
             }
 
