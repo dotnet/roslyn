@@ -54,6 +54,7 @@ Microsoft.CodeAnalysis.RuntimeCapability.InlineArrayTypes = 7 -> Microsoft.CodeA
 *REMOVED*Microsoft.CodeAnalysis.SpecialType.Count = 45 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SpecialType.Count = 46 -> Microsoft.CodeAnalysis.SpecialType
 Microsoft.CodeAnalysis.SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute = 46 -> Microsoft.CodeAnalysis.SpecialType
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.MinimumReportedSeverity.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitInlineArrayAccess(Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitInlineArrayAccess(Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.SyntaxContextReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxContextReceiver?
