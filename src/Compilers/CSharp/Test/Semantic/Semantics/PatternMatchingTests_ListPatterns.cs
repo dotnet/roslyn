@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTests_ListPatterns : PatternMatchingTestBase
     {
         [Fact]
-        public void ListPattern_Span()
+        public void ListPattern()
         {
             string createMethod(string type) =>
-@"static bool Test("+ type + @" input)
+@"static bool Test(" + type + @" input)
 {
     switch (input)
     {
