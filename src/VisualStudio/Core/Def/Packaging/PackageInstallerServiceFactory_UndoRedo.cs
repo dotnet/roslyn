@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 
@@ -14,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     {
         private bool TryInstallAndAddUndoAction(
             string source, string packageName, string versionOpt, bool includePrerelease,
-            EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager)
+            ProjectId projectId, EnvDTE.DTE dte, EnvDTE.Project dteProject, IOleUndoManager undoManager)
         {
             var installed = TryInstallPackage(
                 source, packageName, versionOpt, includePrerelease, dte, dteProject);

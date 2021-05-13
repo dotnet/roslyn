@@ -303,11 +303,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return false;
         }
 
+        private bool IsPackageInstalled(ProjectId projectId, string packageName)
+        {
+            var cancellationToken = CancellationToken.None;
+
+            return this.ThreadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                return await this.PerformNuGetProjectServiceWorkAsync(async nugetService =>
+                {
+                    var projectGuid = _workspace.GetProjectGuid(projectId);
+                    if (projectGuid != Guid.Empty)
+                    {
+                        var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
+                        return installedPackagesMap.ContainsKey(packageName);
+                    }
+
+                    return false;
+                }, cancellationToken).ConfigureAwait(false);
+            });
+        }
+
         private bool TryInstallPackage(
             string source,
             string packageName,
             string versionOpt,
             bool includePrerelease,
+            ProjectId projectId,
             EnvDTE.DTE dte,
             EnvDTE.Project dteProject)
         {
@@ -316,7 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-                if (!_packageInstallerServices.Value.IsPackageInstalled(dteProject, packageName))
+                if (!IsPackageInstalled(projectId, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0, packageName);
 
@@ -359,14 +380,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             => installedVersion == null ? packageName : $"{packageName} - {installedVersion}";
 
         private bool TryUninstallPackage(
-            string packageName, EnvDTE.DTE dte, EnvDTE.Project dteProject)
+            string packageName, ProjectId projectId, EnvDTE.DTE dte, EnvDTE.Project dteProject)
         {
             this.AssertIsForeground();
             Contract.ThrowIfFalse(IsEnabled);
 
             try
             {
-                if (_packageInstallerServices.Value.IsPackageInstalled(dteProject, packageName))
+                if (IsPackageInstalled(projectId, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0, packageName);
                     var installedVersion = GetInstalledVersion(packageName, dteProject);
@@ -465,23 +486,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             ThisCanBeCalledOnAnyThread();
 
-            var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
-            var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
-            if (serviceBroker == null)
-                return;
-
-            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-            await TaskScheduler.Default;
-
-            var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            using (nugetService as IDisposable)
+            await PerformNuGetProjectServiceWorkAsync<object>(async nugetService =>
             {
-                // If we didn't get a nuget service, there's nothing we can do in terms of querying the solution for
-                // nuget info.
-                if (nugetService == null)
-                    return;
-
                 // Figure out the entire set of projects to process.
                 using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectsToProcess);
 
@@ -494,6 +500,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                     cancellationToken.ThrowIfCancellationRequested();
                     await ProcessProjectChangeAsync(nugetService, solution, projectId, cancellationToken).ConfigureAwait(false);
                 }
+
+                return null;
+            }, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async ValueTask<T?> PerformNuGetProjectServiceWorkAsync<T>(
+            Func<INuGetProjectService, ValueTask<T?>> doWorkAsync, CancellationToken cancellationToken)
+        {
+            var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
+            var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
+            if (serviceBroker == null)
+                return default;
+
+            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
+            await TaskScheduler.Default;
+
+            var nugetService = await serviceBroker.GetProxyAsync<INuGetProjectService>(NuGetServices.NuGetProjectServiceV1, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            using (nugetService as IDisposable)
+            {
+                // If we didn't get a nuget service, there's nothing we can do in terms of querying the solution for
+                // nuget info.
+                if (nugetService == null)
+                    return default;
+
+                return await doWorkAsync(nugetService).ConfigureAwait(false);
             }
         }
 
@@ -557,21 +589,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                var installedPackagesResult = await nugetService.GetInstalledPackagesAsync(projectGuid, cancellationToken).ConfigureAwait(false);
+                var installedPackagesMap = await GetInstalledPackagesMapAsync(nugetService, projectGuid, cancellationToken).ConfigureAwait(false);
 
-                using var _ = PooledDictionary<string, string>.GetInstance(out var installedPackages);
-                if (installedPackagesResult?.Status == InstalledPackageResultStatus.Successful)
-                {
-                    foreach (var installedPackage in installedPackagesResult.Packages)
-                        installedPackages[installedPackage.Id] = installedPackage.Version;
-                }
-
-                return new ProjectState(installedPackages.ToImmutableDictionary());
+                return new ProjectState(installedPackagesMap);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return null;
             }
+        }
+
+        private static async Task<ImmutableDictionary<string, string>> GetInstalledPackagesMapAsync(INuGetProjectService nugetService, Guid projectGuid, CancellationToken cancellationToken)
+        {
+            var installedPackagesResult = await nugetService.GetInstalledPackagesAsync(projectGuid, cancellationToken).ConfigureAwait(false);
+
+            using var _ = PooledDictionary<string, string>.GetInstance(out var installedPackages);
+            if (installedPackagesResult?.Status == InstalledPackageResultStatus.Successful)
+            {
+                foreach (var installedPackage in installedPackagesResult.Packages)
+                    installedPackages[installedPackage.Id] = installedPackage.Version;
+            }
+
+            var installedPackagesMap = installedPackages.ToImmutableDictionary();
+            return installedPackagesMap;
         }
 
         public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)
