@@ -354,11 +354,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!info.ArgumentsOpt.IsDefaultOrEmpty);
 
-                    ImmutableArray<RefKind> argumentRefKindsOpt = default;
                     MethodSymbol getMethod = indexer.GetMethod;
                     var firstArg = info.ArgumentsOpt[0];
                     if (firstArg is BoundConversion conv)
                         indexerArg = conv.UpdateOperand(indexerArg);
+
+                    ImmutableArray<RefKind> argumentRefKindsOpt = default;
                     ImmutableArray<BoundExpression> args = _localRewriter.MakeArguments(
                         syntax: syntax,
                         rewrittenArguments: info.ArgumentsOpt.SetItem(0, indexerArg),

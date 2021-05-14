@@ -355,68 +355,78 @@ namespace Microsoft.CodeAnalysis.CSharp
             [NotNullWhen(true)] out IndexerArgumentInfo? info, TypeSymbol? indexerArgumentType, BindingDiagnosticBag diagnostics)
         {
             info = null;
-            if (indexerArgumentType is not null)
+
+            if (indexerArgumentType is null)
+                return false;
+
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            LookupMembersInType(
+                lookupResult,
+                receiverType,
+                WellKnownMemberNames.Indexer,
+                arity: 0,
+                basesBeingResolved: null,
+                LookupOptions.Default,
+                originalBinder: this,
+                diagnose: false,
+                ref useSiteInfo);
+
+            if (lookupResult.IsMultiViable)
             {
-                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                LookupMembersInType(
-                    lookupResult,
-                    receiverType,
-                    WellKnownMemberNames.Indexer,
-                    arity: 0,
-                    basesBeingResolved: null,
-                    LookupOptions.Default,
-                    originalBinder: this,
-                    diagnose: false,
-                    ref useSiteInfo);
-
-                if (lookupResult.IsMultiViable)
+                var indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance();
+                foreach (Symbol symbol in lookupResult.Symbols)
                 {
-                    var indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance();
-                    foreach (Symbol symbol in lookupResult.Symbols)
-                    {
-                        Debug.Assert(symbol.IsIndexer());
-                        indexerGroup.Add((PropertySymbol)symbol);
-                    }
-
-                    BoundExpression indexerArgumentExpr = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, indexerArgumentType);
-                    var analyzedArguments = AnalyzedArguments.GetInstance(ImmutableArray.Create(indexerArgumentExpr));
-                    BoundExpression receiver = new BoundImplicitReceiver(syntax, receiverType);
-                    var overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
-                    this.OverloadResolution.PropertyOverloadResolution(indexerGroup, receiver, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments: false, ref useSiteInfo);
-                    if (overloadResolutionResult.Succeeded)
-                    {
-                        MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
-                        PropertySymbol indexer = resolutionResult.Member;
-                        if (!indexer.IsStatic &&
-                            IsAccessible(indexer, ref useSiteInfo) &&
-                            indexer.GetOwnOrInheritedGetMethod() is MethodSymbol accessorForDefaultArgs)
-                        {
-                            ReportDiagnosticsIfObsolete(diagnostics, indexer, syntax, hasBaseReceiver: false);
-                            CoerceArguments(resolutionResult, analyzedArguments.Arguments, diagnostics);
-                            bool isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-                            var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(accessorForDefaultArgs.ParameterCount);
-                            argumentsBuilder.AddRange(analyzedArguments.Arguments);
-                            ImmutableArray<int> argsToParams = default;
-                            BindDefaultArguments(
-                                node: syntax,
-                                parameters: accessorForDefaultArgs.Parameters,
-                                argumentsBuilder: argumentsBuilder,
-                                argumentRefKindsBuilder: null,
-                                argsToParamsOpt: ref argsToParams,
-                                defaultArguments: out _,
-                                expanded: isExpanded,
-                                enableCallerInfo: true,
-                                diagnostics: diagnostics);
-                            info = new IndexerArgumentInfo(indexer, argumentsBuilder.ToImmutableAndFree(), isExpanded);
-                        }
-                    }
-                    analyzedArguments.Free();
-                    overloadResolutionResult.Free();
+                    Debug.Assert(symbol.IsIndexer());
+                    indexerGroup.Add((PropertySymbol)symbol);
                 }
+
+                BoundExpression indexerArgumentExpr = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, indexerArgumentType);
+                var analyzedArguments = AnalyzedArguments.GetInstance(ImmutableArray.Create(indexerArgumentExpr));
+                BoundExpression receiver = new BoundImplicitReceiver(syntax, receiverType);
+                var overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
+                this.OverloadResolution.PropertyOverloadResolution(indexerGroup, receiver, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments: false, ref useSiteInfo);
+                if (overloadResolutionResult.Succeeded)
+                {
+                    MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
+                    PropertySymbol indexer = resolutionResult.Member;
+                    if (!indexer.IsStatic && IsAccessible(indexer, ref useSiteInfo))
+                    {
+                        ReportDiagnosticsIfObsolete(diagnostics, indexer, syntax, hasBaseReceiver: false);
+                        CoerceArguments(resolutionResult, analyzedArguments.Arguments, diagnostics);
+                        bool isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+                        ImmutableArray<BoundExpression> arguments = bindDefaultArguments(indexer, analyzedArguments, isExpanded);
+                        info = new IndexerArgumentInfo(indexer, arguments, isExpanded);
+                    }
+                }
+
+                analyzedArguments.Free();
+                overloadResolutionResult.Free();
             }
 
             lookupResult.Clear();
             return info is not null;
+
+            ImmutableArray<BoundExpression> bindDefaultArguments(PropertySymbol indexer, AnalyzedArguments? analyzedArguments, bool isExpanded)
+            {
+                MethodSymbol? accessorForDefaultArgs = indexer.GetOwnOrInheritedGetMethod();
+                if (accessorForDefaultArgs is null)
+                    return analyzedArguments.Arguments.ToImmutable();
+
+                var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(accessorForDefaultArgs.ParameterCount);
+                argumentsBuilder.AddRange(analyzedArguments.Arguments);
+                ImmutableArray<int> argsToParams = default;
+                BindDefaultArguments(
+                    node: syntax,
+                    parameters: accessorForDefaultArgs.Parameters,
+                    argumentsBuilder: argumentsBuilder,
+                    argumentRefKindsBuilder: null,
+                    argsToParamsOpt: ref argsToParams,
+                    defaultArguments: out _,
+                    expanded: isExpanded,
+                    enableCallerInfo: true,
+                    diagnostics: diagnostics);
+                return argumentsBuilder.ToImmutableAndFree();
+            }
         }
 
         private static BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)

@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (recursive.HasErrors)
                 return;
+
             Debug.Assert(recursive.LengthProperty is not null || input.Type.IsSZArray());
             var syntax = recursive.Syntax;
             var lengthProperty = recursive.LengthProperty ?? (PropertySymbol)_compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length);
@@ -26,8 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tests.Add(MakeTestsAndBindings(lengthTemp, recursive.LengthPattern, bindings));
             }
 
-            if (recursive.ListPatternClause is { Subpatterns: { IsDefaultOrEmpty: false } subpatterns } clause)
+            if (recursive.ListPatternClause is { Subpatterns: var subpatterns } clause)
             {
+                Debug.Assert(!subpatterns.IsDefaultOrEmpty);
+
                 tests.Add(new Tests.One(clause.HasSlice
                     ? new BoundDagRelationalTest(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(subpatterns.Length - 1), lengthTemp)
                     : new BoundDagValueTest(syntax, ConstantValue.Create(subpatterns.Length), lengthTemp)));

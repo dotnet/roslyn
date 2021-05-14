@@ -7961,7 +7961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternSymbol = property;
                             returnType = property.Type;
-                            checkWellKnown(WellKnownMember.System_Index__GetOffset);
+                            GetWellKnownTypeMember(WellKnownMember.System_Index__GetOffset, diagnostics, syntax: syntax);
                             return true;
                         }
                     }
@@ -7979,14 +7979,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             patternSymbol = null;
             returnType = null;
             return false;
-
-            void checkWellKnown(WellKnownMember member)
-            {
-                // Check required well-known member. They may not be needed
-                // during lowering, but it's simpler to always require them to prevent
-                // the user from getting surprising errors when optimizations fail
-                var _ = GetWellKnownTypeMember(member, diagnostics, syntax: syntax);
-            }
         }
 
         private bool TryFindImplicitRangeIndexerPattern(
@@ -8005,9 +7997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (substring is object)
                 {
                     patternSymbol = substring;
-                    checkWellKnown(WellKnownMember.System_Range__get_Start);
-                    checkWellKnown(WellKnownMember.System_Range__get_End);
-                    checkWellKnown(WellKnownMember.System_Index__GetOffset);
+                    checkWellKnownMembers();
                     return true;
                 }
             }
@@ -8040,9 +8030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             patternSymbol = method;
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
-                            checkWellKnown(WellKnownMember.System_Range__get_Start);
-                            checkWellKnown(WellKnownMember.System_Range__get_End);
-                            checkWellKnown(WellKnownMember.System_Index__GetOffset);
+                            checkWellKnownMembers();
                             return true;
                         }
                     }
@@ -8051,12 +8039,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
 
-            void checkWellKnown(WellKnownMember member)
+            void checkWellKnownMembers()
             {
                 // Check required well-known member. They may not be needed
                 // during lowering, but it's simpler to always require them to prevent
                 // the user from getting surprising errors when optimizations fail
-                _ = GetWellKnownTypeMember(member, diagnostics, syntax: syntax);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Range__get_Start, diagnostics, syntax: syntax);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Range__get_End, diagnostics, syntax: syntax);
+                _ = GetWellKnownTypeMember(WellKnownMember.System_Index__GetOffset, diagnostics, syntax: syntax);
             }
         }
 

@@ -1643,10 +1643,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     AssignPatternVariables(p, definitely);
                                 }
                             }
-                            if (pat.LengthPattern is not null)
-                            {
-                                AssignPatternVariables(pat.LengthPattern, definitely);
-                            }
+                        }
+                        if (pat.LengthPattern is not null)
+                        {
+                            AssignPatternVariables(pat.LengthPattern, definitely);
                         }
                         if (definitely)
                             Assign(pat, null, false, false);
