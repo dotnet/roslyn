@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,7 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class SourceUserDefinedOperatorSymbolBase : SourceMemberMethodSymbol
     {
-        private const TypeCompareKind ComparisonForUserDefinedOperators = TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
+        private const TypeCompareKind ComparisonForUserDefinedOperators =
+            TypeCompareKind.IgnoreTupleNames |
+            TypeCompareKind.IgnoreNullableModifiersForReferenceTypes |
+            TypeCompareKind.IgnoreNativeIntegers;
+
         private readonly string _name;
         private readonly bool _isExpressionBodied;
         private ImmutableArray<ParameterSymbol> _lazyParameters;

@@ -14180,5 +14180,102 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             verifier.VerifyIL("NativeInts.Checked4", expectedCheckedIL);
             verifier.VerifyIL("NativeInts.Checked5", expectedCheckedIL);
         }
+
+        [Fact, WorkItem(53306, "https://github.com/dotnet/roslyn/issues/53306")]
+        public void TestNativeIntegerOperatorsInIntPtrAndUIntPtr()
+        {
+            var source =
+@"namespace System
+{
+    public class Object { }
+    public class String { }
+    public class Boolean { }
+    public class Enum { }
+    public class Void { }
+    public class Attribute { }
+    public abstract class ValueType { }
+
+    public sealed class AttributeUsageAttribute : Attribute
+    { 
+        public AttributeUsageAttribute(AttributeTargets validOn)
+        {
+        }
+
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+
+    public enum AttributeTargets { }
+
+    public struct Int32 { }
+    public struct IntPtr
+    {
+        public static nint operator+(nint a, nint b) => (nint)(a + b);
+    }
+    public struct UIntPtr
+    {
+        public static nuint operator+(nuint a, nuint b) => (nuint)(a + b);
+    }
+}";
+
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var method = module.ContainingAssembly.GetTypeByMetadataName("System.IntPtr").GetMethod("op_Addition");
+                Assert.Equal(2, method.ParameterCount);
+                Assert.True(method.Parameters[0].Type is { IsNativeIntegerType: true, SpecialType: SpecialType.System_IntPtr });
+                Assert.True(method.Parameters[1].Type is { IsNativeIntegerType: true, SpecialType: SpecialType.System_IntPtr });
+
+            });
+        }
+
+        [Fact, WorkItem(53306, "https://github.com/dotnet/roslyn/issues/53306")]
+        public void TestNativeIntegerOperatorsInIntPtrAndUIntPtr2()
+        {
+            var source =
+    @"namespace System
+{
+    public class Object { }
+    public class String { }
+    public class Boolean { }
+    public class Enum { }
+    public class Void { }
+    public class Attribute { }
+    public abstract class ValueType { }
+
+    public sealed class AttributeUsageAttribute : Attribute
+    { 
+        public AttributeUsageAttribute(AttributeTargets validOn)
+        {
+        }
+
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+
+    public enum AttributeTargets { }
+
+    public struct Int32 { }
+    public struct IntPtr
+    {
+        public static nuint operator+(nuint a, nuint b) => (nuint)(a + b);
+    }
+    public struct UIntPtr
+    {
+        public static nint operator+(nint a, nint b) => (nint)(a + b);
+    }
+}";
+
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (26,37): error CS0563: One of the parameters of a binary operator must be the containing type
+                //         public static nuint operator+(nuint a, nuint b) => (nuint)(a + b);
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(26, 37),
+                // (30,36): error CS0563: One of the parameters of a binary operator must be the containing type
+                //         public static nint operator+(nint a, nint b) => (nint)(a + b);
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(30, 36)
+                );
+        }
     }
 }
