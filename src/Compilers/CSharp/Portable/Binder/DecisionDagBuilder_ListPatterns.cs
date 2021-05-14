@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             Debug.Assert(recursive.LengthProperty is not null || input.Type.IsSZArray());
             var syntax = recursive.Syntax;
-            var lenthProperty = recursive.LengthProperty ?? (PropertySymbol)_compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length);
-            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, lenthProperty, input);
+            var lengthProperty = recursive.LengthProperty ?? (PropertySymbol)_compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length);
+            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, lengthProperty, input);
             tests.Add(new Tests.One(lengthEvaluation));
             var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
 

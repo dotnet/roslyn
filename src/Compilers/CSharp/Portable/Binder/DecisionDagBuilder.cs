@@ -555,7 +555,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (recursive.LengthPattern is not null || recursive.ListPatternClause is not null)
+            {
                 MakeTestsAndBindingsForLengthAndListPatterns(input, recursive, bindings, tests);
+            }
 
             if (recursive.VariableAccess != null)
             {

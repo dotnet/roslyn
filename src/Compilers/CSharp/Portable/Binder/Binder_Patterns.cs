@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -176,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UnaryPatternSyntax p => BindUnaryPattern(p, inputType, inputValEscape, hasErrors, diagnostics, underIsPattern),
                 RelationalPatternSyntax p => BindRelationalPattern(p, inputType, hasErrors, diagnostics),
                 TypePatternSyntax p => BindTypePattern(p, inputType, hasErrors, diagnostics),
-                SlicePatternSyntax p => BindSlicePattern(p, inputType, permitDesignations, hasErrors, misplaced: true, diagnostics),
+                SlicePatternSyntax p => BindSlicePattern(p, inputType, permitDesignations, ref hasErrors, misplaced: true, diagnostics),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
         }
@@ -185,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SlicePatternSyntax node,
             TypeSymbol inputType,
             bool permitDesignations,
-            bool hasErrors,
+            ref bool hasErrors,
             bool misplaced,
             BindingDiagnosticBag diagnostics)
         {
@@ -244,13 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundPattern boundPattern;
                 if (pattern is SlicePatternSyntax slice)
                 {
-                    if (sawSlice)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_MisplacedSlicePattern, slice.Location);
-                        hasErrors = true;
-                    }
-
-                    boundPattern = BindSlicePattern(slice, inputType, permitDesignations, hasErrors, misplaced: false, diagnostics);
+                    boundPattern = BindSlicePattern(slice, inputType, permitDesignations, ref hasErrors, misplaced: sawSlice, diagnostics);
                     sawSlice = true;
                 }
                 else
@@ -264,44 +257,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private BoundPattern? BindLengthPatternClause(RecursivePatternSyntax node, TypeSymbol inputType,
+        private BoundPattern BindLengthPatternClause(
+            LengthPatternClauseSyntax node, TypeSymbol inputType,
             bool permitDesignations, out PropertySymbol? lengthProperty, ref bool hasErrors, BindingDiagnosticBag diagnostics)
         {
-            lengthProperty = null;
+            LookupLengthOrCountProperty(node, inputType, out lengthProperty, ref hasErrors, diagnostics);
+            return BindPattern(node.Pattern, Compilation.GetSpecialType(SpecialType.System_Int32), ExternalScope, permitDesignations, hasErrors, diagnostics);
+        }
 
-            if (node.LengthPatternClause is not null || node.PropertyPatternClause.IsKind(SyntaxKind.ListPatternClause))
+        private void LookupLengthOrCountProperty(
+            SyntaxNode node, TypeSymbol inputType, out PropertySymbol? lengthProperty,
+            ref bool hasErrors, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause) || node.IsKind(SyntaxKind.LengthPatternClause));
+
+            using var _ = LookupResult.GetInstance(out var lookupResult);
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            if (!TryLookupLengthOrCount(inputType, lookupResult, out lengthProperty, ref useSiteInfo))
             {
-                var lookupResult = LookupResult.GetInstance();
-                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                if (!TryLookupLengthOrCount(inputType, lookupResult, out lengthProperty, ref useSiteInfo))
+                if (!inputType.IsErrorType() && !hasErrors)
                 {
-                    if (!inputType.IsErrorType())
-                    {
-                        (SyntaxNode errorNode, ErrorCode errorCode) = node.LengthPatternClause is not null
-                            ? ((SyntaxNode)node.LengthPatternClause, ErrorCode.ERR_UnsupportedTypeForLengthPattern)
-                            : ((SyntaxNode)node.PropertyPatternClause!, ErrorCode.ERR_UnsupportedTypeForListPattern);
-                        if (!hasErrors)
-                            Error(diagnostics, errorCode, errorNode, inputType.ToDisplayString());
-                    }
-                    hasErrors = true;
+                    var errorCode = node.IsKind(SyntaxKind.ListPatternClause)
+                        ? ErrorCode.ERR_UnsupportedTypeForListPattern
+                        : ErrorCode.ERR_UnsupportedTypeForLengthPattern;
+                    Error(diagnostics, errorCode, node, inputType.ToDisplayString());
                 }
-                lookupResult.Free();
-
-                if (node.LengthPatternClause is not null)
-                    return BindPattern(node.LengthPatternClause.Pattern, Compilation.GetSpecialType(SpecialType.System_Int32), ExternalScope, permitDesignations, hasErrors, diagnostics);
+                hasErrors = true;
             }
-
-            return null;
         }
 
         private BoundListPatternClause BindListPatternClause(
             PropertyPatternClauseSyntax node,
             TypeSymbol inputType,
             bool permitDesignations,
+            ref PropertySymbol? lengthProperty,
             ref bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause));
+
+            if (lengthProperty != null)
+            {
+                LookupLengthOrCountProperty(node, inputType, out lengthProperty, ref hasErrors, diagnostics);
+            }
 
             TypeSymbol elementType;
             IndexerArgumentInfo? info = null;
@@ -348,7 +346,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool PerformPatternIndexerLookup(SyntaxNode syntax, TypeSymbol receiverType, LookupResult lookupResult, out IndexerArgumentInfo? info, TypeSymbol? indexerArgumentType)
+        private bool PerformPatternIndexerLookup(
+            SyntaxNode syntax, TypeSymbol receiverType, LookupResult lookupResult,
+            [NotNullWhen(true)] out IndexerArgumentInfo? info, TypeSymbol? indexerArgumentType)
         {
             info = null;
             if (indexerArgumentType is not null)
@@ -980,11 +980,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BindPropertyPatternClause(node.PropertyPatternClause, declType, inputValEscape, permitDesignations, diagnostics, ref hasErrors)
                 : default;
 
-            BoundListPatternClause? listPatternClause = node.PropertyPatternClause.IsKind(SyntaxKind.ListPatternClause)
-                ? BindListPatternClause(node.PropertyPatternClause, inputType, permitDesignations, ref hasErrors, diagnostics)
+            PropertySymbol? lengthProperty = null;
+            BoundPattern? lengthPattern = node.LengthPatternClause is not null
+                ? BindLengthPatternClause(node.LengthPatternClause, inputType, permitDesignations, out lengthProperty, ref hasErrors, diagnostics)
                 : null;
 
-            BoundPattern? lengthPattern = BindLengthPatternClause(node, inputType, permitDesignations, out PropertySymbol? lengthProperty, ref hasErrors, diagnostics);
+            BoundListPatternClause? listPatternClause = node.PropertyPatternClause.IsKind(SyntaxKind.ListPatternClause)
+                ? BindListPatternClause(node.PropertyPatternClause, inputType, permitDesignations, ref lengthProperty, ref hasErrors, diagnostics)
+                : null;
 
             BindPatternDesignation(
                 node.Designation, declTypeWithAnnotations, inputValEscape, permitDesignations, typeSyntax, diagnostics,
