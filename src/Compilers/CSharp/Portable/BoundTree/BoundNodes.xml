@@ -125,7 +125,7 @@
   This node is used to represent an expression of a certain type, when attempting to bind its Index or Range pattern indexer
   It does not survive past initial binding.
   -->
-  <Node Name="BoundSliceOrListPatternValuePlaceholder" Base="BoundValuePlaceholderBase">
+  <Node Name="BoundIndexOrRangeIndexerPatternValuePlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 

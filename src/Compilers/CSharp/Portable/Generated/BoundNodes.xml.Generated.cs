@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AwaitableValuePlaceholder,
         DisposableValuePlaceholder,
         ObjectOrCollectionValuePlaceholder,
-        SliceOrListPatternValuePlaceholder,
+        IndexOrRangeIndexerPatternValuePlaceholder,
         Dup,
         PassByCopy,
         BadExpression,
@@ -606,18 +606,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundSliceOrListPatternValuePlaceholder : BoundValuePlaceholderBase
+    internal sealed partial class BoundIndexOrRangeIndexerPatternValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundSliceOrListPatternValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.SliceOrListPatternValuePlaceholder, syntax, type, hasErrors)
+        public BoundIndexOrRangeIndexerPatternValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.IndexOrRangeIndexerPatternValuePlaceholder, syntax, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundSliceOrListPatternValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.SliceOrListPatternValuePlaceholder, syntax, type)
+        public BoundIndexOrRangeIndexerPatternValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.IndexOrRangeIndexerPatternValuePlaceholder, syntax, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -627,13 +627,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public new TypeSymbol Type => base.Type!;
         [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSliceOrListPatternValuePlaceholder(this);
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitIndexOrRangeIndexerPatternValuePlaceholder(this);
 
-        public BoundSliceOrListPatternValuePlaceholder Update(TypeSymbol type)
+        public BoundIndexOrRangeIndexerPatternValuePlaceholder Update(TypeSymbol type)
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundSliceOrListPatternValuePlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundIndexOrRangeIndexerPatternValuePlaceholder(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8223,8 +8223,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDisposableValuePlaceholder((BoundDisposableValuePlaceholder)node, arg);
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return VisitObjectOrCollectionValuePlaceholder((BoundObjectOrCollectionValuePlaceholder)node, arg);
-                case BoundKind.SliceOrListPatternValuePlaceholder:
-                    return VisitSliceOrListPatternValuePlaceholder((BoundSliceOrListPatternValuePlaceholder)node, arg);
+                case BoundKind.IndexOrRangeIndexerPatternValuePlaceholder:
+                    return VisitIndexOrRangeIndexerPatternValuePlaceholder((BoundIndexOrRangeIndexerPatternValuePlaceholder)node, arg);
                 case BoundKind.Dup:
                     return VisitDup((BoundDup)node, arg);
                 case BoundKind.PassByCopy:
@@ -8636,7 +8636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitSliceOrListPatternValuePlaceholder(BoundSliceOrListPatternValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDup(BoundDup node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPassByCopy(BoundPassByCopy node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitBadExpression(BoundBadExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -8847,7 +8847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitSliceOrListPatternValuePlaceholder(BoundSliceOrListPatternValuePlaceholder node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDup(BoundDup node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPassByCopy(BoundPassByCopy node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitBadExpression(BoundBadExpression node) => this.DefaultVisit(node);
@@ -9074,7 +9074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node) => null;
         public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node) => null;
         public override BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node) => null;
-        public override BoundNode? VisitSliceOrListPatternValuePlaceholder(BoundSliceOrListPatternValuePlaceholder node) => null;
+        public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node) => null;
         public override BoundNode? VisitDup(BoundDup node) => null;
         public override BoundNode? VisitPassByCopy(BoundPassByCopy node)
         {
@@ -10042,7 +10042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.IsNewInstance, type);
         }
-        public override BoundNode? VisitSliceOrListPatternValuePlaceholder(BoundSliceOrListPatternValuePlaceholder node)
+        public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(type);
@@ -11328,14 +11328,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitSliceOrListPatternValuePlaceholder(BoundSliceOrListPatternValuePlaceholder node)
+        public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
         {
             if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
                 return node;
             }
 
-            BoundSliceOrListPatternValuePlaceholder updatedNode = node.Update(infoAndType.Type!);
+            BoundIndexOrRangeIndexerPatternValuePlaceholder updatedNode = node.Update(infoAndType.Type!);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -13736,7 +13736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
-        public override TreeDumperNode VisitSliceOrListPatternValuePlaceholder(BoundSliceOrListPatternValuePlaceholder node, object? arg) => new TreeDumperNode("sliceOrListPatternValuePlaceholder", null, new TreeDumperNode[]
+        public override TreeDumperNode VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node, object? arg) => new TreeDumperNode("indexOrRangeIndexerPatternValuePlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),

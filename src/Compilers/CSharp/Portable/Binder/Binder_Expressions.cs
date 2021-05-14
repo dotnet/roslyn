@@ -7847,7 +7847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private bool TryBindIndexOrRangeIndexer(
             SyntaxNode syntax,
-            BoundExpression receiverOpt,
+            BoundExpression? receiverOpt,
             AnalyzedArguments arguments,
             BindingDiagnosticBag diagnostics,
             [NotNullWhen(true)] out BoundIndexOrRangePatternIndexerAccess? patternIndexerAccess)
@@ -7906,15 +7906,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryFindIndexOrRangeIndexerPattern(
             SyntaxNode syntax,
             BoundExpression? receiverOpt,
-            TypeSymbol receiverType, bool argIsIndex,
+            TypeSymbol receiverType,
+            bool argIsIndex,
             [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
             [NotNullWhen(true)] out Symbol? patternSymbol,
             [NotNullWhen(true)] out TypeSymbol? returnType,
             BindingDiagnosticBag diagnostics)
         {
-            patternSymbol = null;
-            returnType = null;
-
             // SPEC:
 
             // An indexer invocation with a single argument of System.Index or System.Range will
@@ -7978,6 +7976,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            patternSymbol = null;
+            returnType = null;
             return false;
 
             void checkWellKnown(WellKnownMember member)

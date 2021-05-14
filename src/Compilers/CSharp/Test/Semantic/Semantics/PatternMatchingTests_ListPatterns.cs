@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ListPattern()
         {
-            string createMethod(string type) =>
+            string testMethod(string type) =>
 @"static bool Test(" + type + @" input)
 {
     switch (input)
@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 using System;
 public class X
 {
-    " + createMethod("Span<char>") + @"
-    " + createMethod("char[]") + @"
-    " + createMethod("string") + @"
+    " + testMethod("Span<char>") + @"
+    " + testMethod("char[]") + @"
+    " + testMethod("string") + @"
     static void Check(int num)
     {
         Console.Write(Test((string)num.ToString()) ? 1 : 0);
@@ -276,7 +276,7 @@ class X
         [InlineData("[Range i, int ignored = 0]")]
         [InlineData("[Range i, params int[] ignored]")]
         [InlineData("[params Range[] i]")]
-        public void ListPattern_ExplicitRangeIndexerPattern(string indexer)
+        public void SlicePattern_ExplicitRangeIndexerPattern(string indexer)
         {
             var source = @"
 using System;
@@ -302,6 +302,77 @@ class X
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "this[] True");
+        }
+
+        [Fact]
+        public void ListPattern_MissingMembers()
+        {
+            var source = @"
+class X
+{
+    public static void Main()
+    {
+        _ = 0 is {0};
+        _ = 0 is [0];
+        _ = 0 is [0]{0};
+        _ = 0 is {..0};
+    } 
+}
+";
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS9200: List patterns may not be used for a value of type 'int'.
+                //         _ = 0 is {0};
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{0}").WithArguments("int").WithLocation(6, 18),
+                // (7,18): error CS9202: Length patterns may not be used for a value of type 'int'.
+                //         _ = 0 is [0];
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForLengthPattern, "[0]").WithArguments("int").WithLocation(7, 18),
+                // (8,18): error CS9202: Length patterns may not be used for a value of type 'int'.
+                //         _ = 0 is [0]{0};
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForLengthPattern, "[0]").WithArguments("int").WithLocation(8, 18),
+                // (9,18): error CS9200: List patterns may not be used for a value of type 'int'.
+                //         _ = 0 is {..0};
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{..0}").WithArguments("int").WithLocation(9, 18),
+                // (9,19): error CS9201: Slice patterns may not be used for a value of type 'int'.
+                //         _ = 0 is {..0};
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..0").WithArguments("int").WithLocation(9, 19));
+        }
+
+        [Fact]
+        public void ListPattern_ObsoleteMembers()
+        {
+            var source = @"
+using System;
+class X
+{
+    [Obsolete(""error"", error: true)]
+    public int Slice(int i, int j) => 0;
+    [Obsolete(""error"", error: true)]
+    public int this[int i] => 0;
+    [Obsolete(""error"", error: true)]
+    public int Count => 0;
+
+    public void M()
+    {
+        _ = this is {0};
+        _ = this is [0];
+        _ = this is [1]{0};
+        _ = this is {..0};
+    } 
+}
+";
+            // PROTOTYPE(list-patterns) Missing error for [0]: https://github.com/dotnet/roslyn/issues/53418
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyDiagnostics(
+                // (14,21): error CS0619: 'X.this[int]' is obsolete: 'error'
+                //         _ = this is {0};
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("X.this[int]", "error").WithLocation(14, 21),
+                // (16,24): error CS0619: 'X.this[int]' is obsolete: 'error'
+                //         _ = this is [1]{0};
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("X.this[int]", "error").WithLocation(16, 24),
+                // (17,21): error CS0619: 'X.this[int]' is obsolete: 'error'
+                //         _ = this is {..0};
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{..0}").WithArguments("X.this[int]", "error").WithLocation(17, 21));
         }
     }
 }
