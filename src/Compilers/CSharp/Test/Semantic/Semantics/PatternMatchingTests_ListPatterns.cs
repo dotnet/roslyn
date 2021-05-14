@@ -374,5 +374,31 @@ class X
                 //         _ = this is {..0};
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{..0}").WithArguments("X.this[int]", "error").WithLocation(17, 21));
         }
+
+        [Fact]
+        public void SlicePattern_Misplaced()
+        {
+            var source = @"
+class X
+{
+    public void M(int[] a)
+    {
+        _ = a is {.., ..};
+        _ = a is {(..)};
+    } 
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyDiagnostics(
+                // (6,23): error CS9203: Slice patterns may only be used once and directly inside a list pattern.
+                //         _ = a is {.., ..};
+                Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(6, 23),
+                // (7,20): error CS9203: Slice patterns may only be used once and directly inside a list pattern.
+                //         _ = a is {(..)};
+                Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(7, 20),
+                // (7,20): error CS9201: Slice patterns may not be used for a value of type 'int'.
+                //         _ = a is {(..)};
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..").WithArguments("int").WithLocation(7, 20));
+        }
     }
 }
