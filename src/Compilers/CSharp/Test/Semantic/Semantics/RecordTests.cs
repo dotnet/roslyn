@@ -24,10 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
                 parseOptions: TestOptions.RegularPreview);
 
-        private static CSharpCompilation CreateCompilationWithCovariantReturns(CSharpTestSource source)
-            => CSharpTestBase.CreateCompilation(new[] { source },
-                parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-
         private CompilationVerifier CompileAndVerify(
             CSharpTestSource src,
             string? expectedOutput = null,
@@ -10808,10 +10804,8 @@ record C(object P1, object P2) : B
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
 
-        [Theory]
-        [InlineData(TargetFramework.NetCoreApp)]
-        [InlineData(TargetFramework.Standard)]
-        public void Inheritance_24(TargetFramework targetFramework)
+        [Fact]
+        public void Inheritance_24()
         {
             var source =
 @"record A
@@ -10827,28 +10821,15 @@ record C(object P)
     public object get_P() => null;
     public object set_Q() => null;
 }";
-            CSharpTestSource testSource = targetFramework == TargetFramework.Standard ? new[] { source, IsExternalInitTypeDefinition } : source;
-            var comp = CreateCompilation(testSource, targetFramework: targetFramework);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardLatest);
             comp.VerifyDiagnostics(
                 // (9,17): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
                 // record C(object P)
                 Diagnostic(ErrorCode.ERR_MemberReserved, "P").WithArguments("get_P", "C").WithLocation(9, 17));
 
-            string expectedClone;
-            if (targetFramework == TargetFramework.Standard)
-            {
-                Assert.False(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
-                expectedClone = "A B." + WellKnownMemberNames.CloneMethodName + "()";
-            }
-            else if (targetFramework == TargetFramework.NetCoreApp)
-            {
-                Assert.True(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
-                expectedClone = "B B." + WellKnownMemberNames.CloneMethodName + "()";
-            }
-            else
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+            var expectedClone = comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses
+                ? "B B." + WellKnownMemberNames.CloneMethodName + "()"
+                : "A B." + WellKnownMemberNames.CloneMethodName + "()";
 
             var expectedMembers = new[]
             {
@@ -12708,18 +12689,15 @@ record B : A
         }
 
         [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
-        [InlineData(false, TargetFramework.Standard)]
-        [InlineData(false, TargetFramework.NetCoreApp)]
-        [InlineData(true, TargetFramework.Standard)]
-        [InlineData(true, TargetFramework.NetCoreApp)]
-        public void CopyCtor(bool useCompilationReference, TargetFramework targetFramework)
+        [InlineData(false)]
+        [InlineData(true)]
+        public void CopyCtor(bool useCompilationReference)
         {
             var sourceA =
 @"public record B(object N1, object N2)
 {
 }";
-            CSharpTestSource testSourceA = targetFramework == TargetFramework.Standard ? new[] { sourceA, IsExternalInitTypeDefinition } : sourceA;
-            var compA = CreateCompilation(testSourceA, targetFramework: targetFramework);
+            var compA = CreateCompilation(sourceA, targetFramework: TargetFramework.StandardLatest);
             var verifierA = CompileAndVerify(compA, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
 
             verifierA.VerifyIL("B..ctor(B)", @"
@@ -12758,8 +12736,7 @@ record B : A
         System.Console.Write((c3.P1, c3.P2, c3.N1, c3.N2));
     }
 }";
-            CSharpTestSource testSourceB = targetFramework == TargetFramework.Standard ? new[] { sourceB, IsExternalInitTypeDefinition } : sourceB;
-            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: targetFramework);
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardLatest);
 
             var verifierB = CompileAndVerify(compB, expectedOutput: "(1, 2, 3, 4) (1, 2, 3, 4) (10, 2, 30, 4)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             // call base copy constructor B..ctor(B)
@@ -15912,10 +15889,8 @@ record B(int X, int Y) : A
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        [Theory]
-        [InlineData(TargetFramework.NetCoreApp)]
-        [InlineData(TargetFramework.Standard)]
-        public void Overrides_02(TargetFramework targetFramework)
+        [Fact]
+        public void Overrides_02()
         {
             var source =
 @"abstract record A
@@ -15927,8 +15902,7 @@ record B(int X, int Y) : A
 record B(int X, int Y) : A
 {
 }";
-            CSharpTestSource testSource = targetFramework == TargetFramework.Standard ? new[] { source, IsExternalInitTypeDefinition } : source;
-            var comp = CreateCompilation(testSource, targetFramework: targetFramework);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardLatest);
             comp.VerifyDiagnostics(
                 // (3,35): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public abstract override bool Equals(object other);
@@ -15938,21 +15912,9 @@ record B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.Equals(object)").WithLocation(7, 8)
                 );
 
-            string expectedClone;
-            if (targetFramework == TargetFramework.Standard)
-            {
-                Assert.False(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
-                expectedClone = "A B." + WellKnownMemberNames.CloneMethodName + "()";
-            }
-            else if (targetFramework == TargetFramework.NetCoreApp)
-            {
-                Assert.True(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
-                expectedClone = "B B." + WellKnownMemberNames.CloneMethodName + "()";
-            }
-            else
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+            string expectedClone = comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses
+                ? "B B." + WellKnownMemberNames.CloneMethodName + "()"
+                : "A B." + WellKnownMemberNames.CloneMethodName + "()";
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -21134,7 +21096,7 @@ public record C
     public int X { get; init; }
 }
 public record D(int Y) : C;";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardLatest);
             comp.VerifyDiagnostics();
 
             var src2 = @"
@@ -21172,7 +21134,7 @@ class E
 1 2
 2 3
 3 2
-4 3", targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+4 3", targetFramework: TargetFramework.StandardLatest).VerifyDiagnostics();
 
             verifier.VerifyIL("E.Main", @"
 {
@@ -25880,7 +25842,7 @@ record B
     }
 }
 ";
-            CSharpCompilation c = CreateCompilation(src);
+            CSharpCompilation c = CreateCompilation(src, targetFramework: TargetFramework.StandardLatest);
             c.VerifyDiagnostics(
                 // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
                 //     record C : X<C.D.E>
@@ -25892,16 +25854,6 @@ record B
                 //     record C : X<C.D.E>
                 Diagnostic(ErrorCode.ERR_BadVisParamType, "C").WithArguments("B.C.Equals(X<B.C.D.E>?)", "X<B.C.D.E>").WithLocation(8, 12)
                 );
-
-            c = CreateCompilationWithCovariantReturns(src);
-            c.VerifyDiagnostics(
-                // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
-                //     record C : X<C.D.E>
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 12),
-                // (8,12): error CS0051: Inconsistent accessibility: parameter type 'X<B.C.D.E>' is less accessible than method 'B.C.Equals(X<B.C.D.E>?)'
-                //     record C : X<C.D.E>
-                Diagnostic(ErrorCode.ERR_BadVisParamType, "C").WithArguments("B.C.Equals(X<B.C.D.E>?)", "X<B.C.D.E>").WithLocation(8, 12)
-    );
         }
 
         [Fact]
@@ -26244,7 +26196,7 @@ public partial record C1
 {
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
             comp.VerifyDiagnostics(
                 // (2,15): error CS0106: The modifier 'static' is not valid for this item
                 // static record NV
@@ -26252,19 +26204,6 @@ public partial record C1
                 // (6,23): error CS0050: Inconsistent accessibility: return type 'NV' is less accessible than method 'C1.<Clone>$()'
                 // public partial record C1
                 Diagnostic(ErrorCode.ERR_BadVisReturnType, "C1").WithArguments("C1.<Clone>$()", "NV").WithLocation(6, 23),
-                // (6,23): error CS0051: Inconsistent accessibility: parameter type 'NV' is less accessible than method 'C1.Equals(NV?)'
-                // public partial record C1
-                Diagnostic(ErrorCode.ERR_BadVisParamType, "C1").WithArguments("C1.Equals(NV?)", "NV").WithLocation(6, 23),
-                // (10,16): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
-                // partial record C1 : NV
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 16)
-                );
-
-            comp = CreateCompilationWithCovariantReturns(text);
-            comp.VerifyDiagnostics(
-                // (2,15): error CS0106: The modifier 'static' is not valid for this item
-                // static record NV
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "NV").WithArguments("static").WithLocation(2, 15),
                 // (6,23): error CS0051: Inconsistent accessibility: parameter type 'NV' is less accessible than method 'C1.Equals(NV?)'
                 // public partial record C1
                 Diagnostic(ErrorCode.ERR_BadVisParamType, "C1").WithArguments("C1.Equals(NV?)", "NV").WithLocation(6, 23),
