@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
     internal class InlineErrorTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineErrorTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
+        private readonly IClassificationFormatMapService _classificationFormatMapService;
+        private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
         protected internal override bool IsEnabled => true;
 
         [ImportingConstructor]
@@ -33,11 +35,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
         public InlineErrorTaggerProvider(
             IThreadingContext threadingContext,
             IEditorFormatMapService editorFormatMapService,
+            IClassificationFormatMapService classificationFormatMapService,
+            IClassificationTypeRegistryService classificationTypeRegistryService,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, diagnosticService, listenerProvider)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
+            _classificationFormatMapService = classificationFormatMapService;
+            _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
         protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
@@ -73,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 return null;
             }
 
-            return new InlineErrorTag(errorType, diagnostic, _editorFormatMap);
+            return new InlineErrorTag(errorType, diagnostic, _editorFormatMap, _classificationFormatMapService, _classificationTypeRegistryService);
         }
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)

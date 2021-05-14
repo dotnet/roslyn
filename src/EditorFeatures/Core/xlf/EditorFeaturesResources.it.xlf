@@ -142,6 +142,11 @@
         <target state="new">Indentation Size</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Errors">
+        <source>Inline Errors</source>
+        <target state="new">Inline Errors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">Suggerimenti inline</target>
