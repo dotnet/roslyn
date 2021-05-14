@@ -10822,7 +10822,7 @@ record C(object P)
     public object get_P() => null;
     public object set_Q() => null;
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
             comp.VerifyDiagnostics(
                 // (9,17): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
                 // record C(object P)
@@ -12700,7 +12700,7 @@ record B : A
 @"public record B(object N1, object N2)
 {
 }";
-            var compA = CreateCompilation(sourceA, targetFramework: TargetFramework.StandardLatest);
+            var compA = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceA : new[] { sourceA, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
             var verifierA = CompileAndVerify(compA, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
 
             verifierA.VerifyIL("B..ctor(B)", @"
@@ -12739,7 +12739,7 @@ record B : A
         System.Console.Write((c3.P1, c3.P2, c3.N1, c3.N2));
     }
 }";
-            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardLatest);
+            var compB = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? sourceB : new[] { sourceB, IsExternalInitTypeDefinition }, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.StandardLatest);
 
             var verifierB = CompileAndVerify(compB, expectedOutput: "(1, 2, 3, 4) (1, 2, 3, 4) (10, 2, 30, 4)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             // call base copy constructor B..ctor(B)
@@ -15914,7 +15914,7 @@ record B(int X, int Y) : A
 record B(int X, int Y) : A
 {
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? source : new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
             comp.VerifyDiagnostics(
                 // (3,35): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public abstract override bool Equals(object other);
@@ -21109,7 +21109,7 @@ public record C
     public int X { get; init; }
 }
 public record D(int Y) : C;";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardLatest);
+            var comp = CreateCompilation(RuntimeUtilities.IsCoreClrRuntime ? src : new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.StandardLatest);
             comp.VerifyDiagnostics();
 
             var src2 = @"
@@ -21139,7 +21139,7 @@ class E
         Console.WriteLine(d2.X + "" ""  + d2.Y);
     }
 }";
-            var verifier = CompileAndVerify(src2,
+            var verifier = CompileAndVerify(RuntimeUtilities.IsCoreClrRuntime ? src2 : new[] { src2, IsExternalInitTypeDefinition },
                 references: new[] { emitRef ? comp.EmitToImageReference() : comp.ToMetadataReference() },
                 expectedOutput: @"
 1
