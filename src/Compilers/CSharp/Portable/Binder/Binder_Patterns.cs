@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause));
 
-            if (lengthProperty != null)
+            if (lengthProperty is null)
             {
                 LookupLengthOrCountProperty(node, inputType, out lengthProperty, ref hasErrors, diagnostics);
             }
