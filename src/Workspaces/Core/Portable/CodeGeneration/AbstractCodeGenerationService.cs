@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             => WithAnnotations(AddMethod(destination, method, options ?? CodeGenerationOptions.Default, GetAvailableInsertionIndices(destination, cancellationToken)), options);
 
         public TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions? options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
-            => WithAnnotations(AddProperty(destination, property, options ?? CodeGenerationOptions.Default, null, GetAvailableInsertionIndices(destination, cancellationToken)), options);
+            => WithAnnotations(AddProperty(destination, property, options ?? CodeGenerationOptions.Default, GetAvailableInsertionIndices(destination, cancellationToken)), options);
 
         public TDeclarationNode AddNamedType<TDeclarationNode>(TDeclarationNode destination, INamedTypeSymbol namedType, CodeGenerationOptions? options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
             => WithAnnotations(AddNamedType(destination, namedType, options ?? CodeGenerationOptions.Default, GetAvailableInsertionIndices(destination, cancellationToken), cancellationToken), options);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         protected abstract TDeclarationNode AddEvent<TDeclarationNode>(TDeclarationNode destination, IEventSymbol @event, CodeGenerationOptions? options, IList<bool>? availableIndices) where TDeclarationNode : SyntaxNode;
         protected abstract TDeclarationNode AddField<TDeclarationNode>(TDeclarationNode destination, IFieldSymbol field, CodeGenerationOptions? options, IList<bool>? availableIndices) where TDeclarationNode : SyntaxNode;
         protected abstract TDeclarationNode AddMethod<TDeclarationNode>(TDeclarationNode destination, IMethodSymbol method, CodeGenerationOptions? options, IList<bool>? availableIndices) where TDeclarationNode : SyntaxNode;
-        protected abstract TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions? options, ParseOptions? parseOptions, IList<bool>? availableIndices) where TDeclarationNode : SyntaxNode;
+        protected abstract TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions? options, IList<bool>? availableIndices) where TDeclarationNode : SyntaxNode;
         protected abstract TDeclarationNode AddNamedType<TDeclarationNode>(TDeclarationNode destination, INamedTypeSymbol namedType, CodeGenerationOptions? options, IList<bool>? availableIndices, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
         protected abstract TDeclarationNode AddNamespace<TDeclarationNode>(TDeclarationNode destination, INamespaceSymbol @namespace, CodeGenerationOptions? options, IList<bool>? availableIndices, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
         protected abstract TDeclarationNode AddMembers<TDeclarationNode>(TDeclarationNode destination, IEnumerable<SyntaxNode> members) where TDeclarationNode : SyntaxNode;
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             foreach (var member in members)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                currentDestination = UpdateDestination(availableIndices, options, currentDestination, member, destination.SyntaxTree.Options, cancellationToken);
+                currentDestination = UpdateDestination(availableIndices, options, currentDestination, member, cancellationToken);
             }
 
             return currentDestination;
@@ -298,14 +298,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             CodeGenerationOptions options,
             TDeclarationNode currentDestination,
             ISymbol member,
-            ParseOptions? parseOptions,
             CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode
         {
             return member switch
             {
                 IEventSymbol @event => this.AddEvent(currentDestination, @event, options, availableIndices),
                 IFieldSymbol field => this.AddField(currentDestination, field, options, availableIndices),
-                IPropertySymbol property => this.AddProperty(currentDestination, property, options, parseOptions, availableIndices),
+                IPropertySymbol property => this.AddProperty(currentDestination, property, options, availableIndices),
                 IMethodSymbol method => this.AddMethod(currentDestination, method, options, availableIndices),
                 INamedTypeSymbol namedType => this.AddNamedType(currentDestination, namedType, options, availableIndices, cancellationToken),
                 INamespaceSymbol @namespace => this.AddNamespace(currentDestination, @namespace, options, availableIndices, cancellationToken),
@@ -358,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             return GetEditAsync(
                 solution, destination,
-                (t, opts, ai, ct) => AddProperty(t, property, opts, null, ai),
+                (t, opts, ai, ct) => AddProperty(t, property, opts, ai),
                 options,
                 cancellationToken);
         }

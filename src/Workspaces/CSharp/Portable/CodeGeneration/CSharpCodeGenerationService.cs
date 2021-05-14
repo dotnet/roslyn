@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 MethodGenerator.AddMethodTo(ns, method, options, availableIndices));
         }
 
-        protected override TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions options, ParseOptions parseOptions, IList<bool> availableIndices)
+        protected override TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions options, IList<bool> availableIndices)
         {
             CheckDeclarationNode<TypeDeclarationSyntax, CompilationUnitSyntax>(destination);
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (destination is TypeDeclarationSyntax)
             {
                 return Cast<TDeclarationNode>(PropertyGenerator.AddPropertyTo(
-                    Cast<TypeDeclarationSyntax>(destination), property, options, parseOptions, availableIndices));
+                    Cast<TypeDeclarationSyntax>(destination), property, options, availableIndices));
             }
             else
             {

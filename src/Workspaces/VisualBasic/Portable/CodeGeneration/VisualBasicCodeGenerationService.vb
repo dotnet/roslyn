@@ -102,7 +102,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 destinationType As TDeclarationNode,
                 [property] As IPropertySymbol,
                 options As CodeGenerationOptions,
-                parseOption As ParseOptions,
                 availableIndices As IList(Of Boolean)) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax, CompilationUnitSyntax)(destinationType)
 

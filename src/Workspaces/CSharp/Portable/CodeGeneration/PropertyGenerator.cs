@@ -51,11 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             TypeDeclarationSyntax destination,
             IPropertySymbol property,
             CodeGenerationOptions options,
-            ParseOptions parseOptions,
             IList<bool> availableIndices)
         {
             var declaration = GeneratePropertyOrIndexer(property, GetDestination(destination),
-                options, parseOptions ?? destination?.SyntaxTree.Options ?? options.ParseOptions);
+                options, destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             // Create a clone of the original type with the new method inserted. 
             var members = Insert(destination.Members, declaration, options,
