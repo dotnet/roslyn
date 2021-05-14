@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             lookupResult.Clear();
             return info is not null;
 
-            ImmutableArray<BoundExpression> bindDefaultArguments(PropertySymbol indexer, AnalyzedArguments? analyzedArguments, bool isExpanded)
+            ImmutableArray<BoundExpression> bindDefaultArguments(PropertySymbol indexer, AnalyzedArguments analyzedArguments, bool isExpanded)
             {
                 MethodSymbol? accessorForDefaultArgs = indexer.GetOwnOrInheritedGetMethod();
                 if (accessorForDefaultArgs is null)
