@@ -543,6 +543,59 @@ class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(51563, "https://github.com/dotnet/roslyn/issues/51563")]
+        public async Task TestTrivia3()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    System.Action a;
+    void Goo()
+    {
+        // Comment
+        [||]var v = a;
+        if (v != null) { v(); } // trails
+        System.Console.WriteLine();
+    }
+}",
+@"class C
+{
+    System.Action a;
+    void Goo()
+    {
+        // Comment
+        a?.Invoke(); // trails
+        System.Console.WriteLine();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        [WorkItem(51563, "https://github.com/dotnet/roslyn/issues/51563")]
+        public async Task TestTrivia4()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    System.Action a;
+    void Goo()
+    {
+        [||]if (a != null) { a(); } // trails
+        System.Console.WriteLine();
+    }
+}",
+@"class C
+{
+    System.Action a;
+    void Goo()
+    {
+        a?.Invoke(); // trails
+        System.Console.WriteLine();
+    }
+}");
+        }
+
         /// <remarks>
         /// tests locations where the fix is offered.
         /// </remarks>

@@ -109,7 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 newStatement = block.WithStatements(SyntaxFactory.SingletonList(newStatement));
             }
 
-            newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
+            newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation)
+                .WithTrailingTrivia(ifStatement.GetTrailingTrivia());
+
             cancellationToken.ThrowIfCancellationRequested();
 
             editor.ReplaceNode(ifStatement, newStatement);
@@ -142,7 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                     SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
 
-            newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
+            newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation)
+                .WithTrailingTrivia(ifStatement.GetTrailingTrivia());
 
             editor.ReplaceNode(ifStatement, newStatement);
             editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.AddElasticMarker);
