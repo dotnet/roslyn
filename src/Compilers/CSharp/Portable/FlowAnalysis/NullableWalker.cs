@@ -6695,6 +6695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             NamedTypeSymbol { TypeKind: TypeKind.Delegate, DelegateInvokeMethod: { Parameters: { } parameters } signature } => (signature, parameters),
                             FunctionPointerTypeSymbol { Signature: { Parameters: { } parameters } signature } => (signature, parameters),
+                            { SpecialType: SpecialType.System_Delegate } => (null, ImmutableArray<ParameterSymbol>.Empty),
                             ErrorTypeSymbol => (null, ImmutableArray<ParameterSymbol>.Empty),
                             _ => throw ExceptionUtilities.UnexpectedValue(targetType)
                         };

@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         return ((TypeDeclarationSyntax)member).Identifier;
                     case SyntaxKind.DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)member).Identifier;
@@ -82,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         return ((TypeDeclarationSyntax)member).Arity;
                     case SyntaxKind.DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)member).Arity;
@@ -103,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         return ((TypeDeclarationSyntax)member).TypeParameterList;
                     case SyntaxKind.DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)member).TypeParameterList;
@@ -189,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         return ((TypeDeclarationSyntax)member).WithAttributeLists(attributeLists);
                     case SyntaxKind.DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)member).WithAttributeLists(attributeLists);
