@@ -22,6 +22,11 @@
         <target state="translated">No se puede crear un tipo genérico construido a partir de un tipo no genérico.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
+        <source>User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</source>
+        <target state="new">User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
         <target state="translated">"{0}": un evento abstracto no puede usar la sintaxis de descriptor de acceso de eventos</target>
@@ -5126,8 +5131,8 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
-        <source>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</source>
-        <target state="translated">Un operador definido por el usuario no puede adquirir un objeto de tipo envolvente ni convertirlo en un objeto de tipo envolvente</target>
+        <source>User-defined operator cannot convert a type to itself</source>
+        <target state="needs-review-translation">Un operador definido por el usuario no puede adquirir un objeto de tipo envolvente ni convertirlo en un objeto de tipo envolvente</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionNotInvolvingContainedType">

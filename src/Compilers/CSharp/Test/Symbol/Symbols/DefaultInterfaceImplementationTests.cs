@@ -41301,9 +41301,15 @@ public interface I1
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp,
                                                  parseOptions: TestOptions.Regular);
             compilation1.VerifyDiagnostics(
+                // (4,37): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
+                //     public static implicit operator int(I1 x)
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 37),
                 // (4,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     public static implicit operator int(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 37),
+                // (8,37): error CS0552: 'I1.explicit operator byte(I1)': user-defined conversions to or from an interface are not allowed
+                //     public static explicit operator byte(I1 x)
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "byte").WithArguments("I1.explicit operator byte(I1)").WithLocation(8, 37),
                 // (8,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     public static explicit operator byte(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "byte").WithLocation(8, 37),
@@ -43717,9 +43723,15 @@ public interface I1
             }
 
             compilation1.VerifyDiagnostics(
+                // (4,30): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
+                //     static implicit operator int(I1 x)
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 30),
                 // (4,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     static implicit operator int(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 30),
+                // (9,30): error CS0552: 'I1.explicit operator byte(I1)': user-defined conversions to or from an interface are not allowed
+                //     static explicit operator byte(I1 x)
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "byte").WithArguments("I1.explicit operator byte(I1)").WithLocation(9, 30),
                 // (9,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     static explicit operator byte(I1 x)
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "byte").WithLocation(9, 30)

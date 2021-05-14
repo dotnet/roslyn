@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class SourceUserDefinedOperatorSymbolBase : SourceOrdinaryMethodOrUserDefinedOperatorSymbol
     {
+        // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
         private const TypeCompareKind ComparisonForUserDefinedOperators = TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
         private readonly string _name;
         private readonly bool _isExpressionBodied;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
-                (methodKind == MethodKind.Conversion || (!IsAbstract && (name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName))))
+                !IsAbstract && (methodKind == MethodKind.Conversion || name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName))
             {
                 // If we have an unsupported conversion or equality/inequality operator in an interface, we already have reported that fact as 
                 // an error. No need to cascade the error further.
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     allowedModifiers |= DeclarationModifiers.Abstract;
 
-                    if (syntax is OperatorDeclarationSyntax { OperatorToken: var opToken1 } && opToken1.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
+                    if (syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
                     {
                         allowedModifiers |= DeclarationModifiers.Sealed;
                     }
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
                 syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _);
 
-            if (inInterface && syntax is OperatorDeclarationSyntax { OperatorToken: var opToken2 })
+            if (inInterface)
             {
                 if ((result & (DeclarationModifiers.Abstract | DeclarationModifiers.Sealed)) != 0)
                 {
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     result &= ~DeclarationModifiers.Sealed;
                 }
-                else if ((result & DeclarationModifiers.Static) != 0 && opToken2.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
+                else if ((result & DeclarationModifiers.Static) != 0 && syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken))
                 {
                     Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
                 }
@@ -247,10 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             MethodChecks(returnType, parameters, diagnostics);
 
-            // If we have a conversion operator in an interface or static class then we already 
+            // If we have a static class then we already 
             // have reported that fact as an error. No need to cascade the error further.
-            if ((this.ContainingType.IsInterfaceType() && MethodKind == MethodKind.Conversion) ||
-                this.ContainingType.IsStatic)
+            if (this.ContainingType.IsStatic)
             {
                 return;
             }
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !MatchesContainingType(target))
             {
                 // CS0556: User-defined conversion must convert to or from the enclosing type
-                diagnostics.Add(ErrorCode.ERR_ConversionNotInvolvingContainedType, this.Locations[0]);
+                diagnostics.Add(IsAbstract ? ErrorCode.ERR_AbstractConversionNotInvolvingContainedType : ErrorCode.ERR_ConversionNotInvolvingContainedType, this.Locations[0]);
                 return;
             }
 
@@ -413,8 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ? source.Equals(target, ComparisonForUserDefinedOperators)
                     : source0.Equals(target0, ComparisonForUserDefinedOperators))
             {
-                // CS0555: User-defined operator cannot take an object of the enclosing type 
-                // and convert to an object of the enclosing type
+                // CS0555: User-defined operator cannot convert a type to itself
                 diagnostics.Add(ErrorCode.ERR_IdentityConversion, this.Locations[0]);
                 return;
             }
@@ -501,22 +500,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 different = source;
             }
 
-            if (different.IsClassType())
+            if (different.IsClassType() && !same.IsTypeParameter())
             {
                 // different is a class type:
                 Debug.Assert(!different.IsTypeParameter());
 
-                // "same" is the containing class, so it can't be a type parameter
-                Debug.Assert(!same.IsTypeParameter());
-
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
-                if (same.IsDerivedFrom(different, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
+                if (same.IsDerivedFrom(different, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo))
                 {
                     // '{0}': user-defined conversions to or from a base type are not allowed
                     diagnostics.Add(ErrorCode.ERR_ConversionWithBase, this.Locations[0], this);
                 }
-                else if (different.IsDerivedFrom(same, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
+                else if (different.IsDerivedFrom(same, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo))
                 {
                     // '{0}': user-defined conversions to or from a derived type are not allowed
                     diagnostics.Add(ErrorCode.ERR_ConversionWithDerived, this.Locations[0], this);

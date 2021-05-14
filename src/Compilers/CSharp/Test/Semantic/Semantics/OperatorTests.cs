@@ -6051,7 +6051,7 @@ namespace System
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,41): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+                // (6,41): error CS0555: User-defined operator cannot convert a type to itself
                 //         public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
                 Diagnostic(ErrorCode.ERR_IdentityConversion, "(T1 fst, T2 snd)").WithLocation(6, 41));
         }

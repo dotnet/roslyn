@@ -1953,6 +1953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CloseUnimplementedInterfaceMemberNotStatic = 9109,
         ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember = 9110,
         ERR_ExplicitImplementationOfOperatorsMustBeStatic = 9111,
+        ERR_AbstractConversionNotInvolvingContainedType = 9112,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

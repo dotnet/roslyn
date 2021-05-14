@@ -22,6 +22,11 @@
         <target state="translated">제네릭이 아닌 형식에서 생성된 제네릭 형식을 만들 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
+        <source>User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</source>
+        <target state="new">User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
         <target state="translated">'{0}': 추상 이벤트는 이벤트 접근자 구문을 사용할 수 없습니다.</target>
@@ -5125,8 +5130,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
-        <source>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</source>
-        <target state="translated">사용자 정의 연산자는 바깥쪽 형식의 개체를 가져와서 바깥쪽 형식의 개체로 변환할 수 없습니다.</target>
+        <source>User-defined operator cannot convert a type to itself</source>
+        <target state="needs-review-translation">사용자 정의 연산자는 바깥쪽 형식의 개체를 가져와서 바깥쪽 형식의 개체로 변환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionNotInvolvingContainedType">
