@@ -7926,6 +7926,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isIntNotByRef(original.Parameters[0]))
                         {
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
+                            ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: false);
+                            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
@@ -7987,6 +7989,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
+                            ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
+                            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,
