@@ -14190,7 +14190,7 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
     public class Object { }
     public class String { }
     public class Boolean { }
-    public class Enum { }
+    public class Enum : ValueType { }
     public class Void { }
     public class Attribute { }
     public abstract class ValueType { }
@@ -14239,7 +14239,7 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
     public class Object { }
     public class String { }
     public class Boolean { }
-    public class Enum { }
+    public class Enum : ValueType { }
     public class Void { }
     public class Attribute { }
     public abstract class ValueType { }
