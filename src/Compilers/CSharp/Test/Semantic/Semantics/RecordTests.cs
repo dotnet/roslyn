@@ -10828,7 +10828,7 @@ record C(object P)
     public object set_Q() => null;
 }";
             CSharpTestSource testSource = targetFramework == TargetFramework.Standard ? new[] { source, IsExternalInitTypeDefinition } : source;
-            var comp = CreateCompilation(source, targetFramework: targetFramework);
+            var comp = CreateCompilation(testSource, targetFramework: targetFramework);
             comp.VerifyDiagnostics(
                 // (9,17): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
                 // record C(object P)
