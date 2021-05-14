@@ -11,8 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -25,6 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
             => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
                 parseOptions: TestOptions.RegularPreview);
+
+        private static CSharpCompilation CreateCompilationWithCovariantReturns(CSharpTestSource source)
+            => CSharpTestBase.CreateCompilation(new[] { source },
+                parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
 
         private CompilationVerifier CompileAndVerify(
             CSharpTestSource src,
@@ -374,7 +376,6 @@ record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
                 // record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R3").WithLocation(7, 8)
                 );
-
             var r = comp.GlobalNamespace.GetTypeMember("R");
             Assert.Equal(new[] { "R..ctor(R x)", "R..ctor(R original)" }, r.GetMembers(".ctor").ToTestDisplayStrings());
         }
@@ -10807,8 +10808,10 @@ record C(object P1, object P2) : B
             AssertEx.Equal(new[] { "System.Type C.EqualityContract { get; }" }, actualMembers);
         }
 
-        [Fact]
-        public void Inheritance_24()
+        [Theory]
+        [InlineData(TargetFramework.NetCoreApp)]
+        [InlineData(TargetFramework.Standard)]
+        public void Inheritance_24(TargetFramework targetFramework)
         {
             var source =
 @"record A
@@ -10824,11 +10827,27 @@ record C(object P)
     public object get_P() => null;
     public object set_Q() => null;
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: targetFramework);
             comp.VerifyDiagnostics(
                 // (9,17): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
                 // record C(object P)
                 Diagnostic(ErrorCode.ERR_MemberReserved, "P").WithArguments("get_P", "C").WithLocation(9, 17));
+
+            string expectedClone;
+            if (targetFramework == TargetFramework.Standard)
+            {
+                Assert.False(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+                expectedClone = "A B." + WellKnownMemberNames.CloneMethodName + "()";
+            }
+            else if (targetFramework == TargetFramework.NetCoreApp)
+            {
+                Assert.True(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+                expectedClone = "B B." + WellKnownMemberNames.CloneMethodName + "()";
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
 
             var expectedMembers = new[]
             {
@@ -10851,7 +10870,7 @@ record C(object P)
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
                 "System.Boolean B.Equals(B? other)",
-                "A B." + WellKnownMemberNames.CloneMethodName + "()",
+                expectedClone,
                 "B..ctor(B original)",
                 "void B.Deconstruct(out System.Object P, out System.Object Q)"
             };
@@ -12688,15 +12707,18 @@ record B : A
         }
 
         [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void CopyCtor(bool useCompilationReference)
+        [InlineData(false, TargetFramework.Standard)]
+        [InlineData(false, TargetFramework.NetCoreApp)]
+        [InlineData(true, TargetFramework.Standard)]
+        [InlineData(true, TargetFramework.NetCoreApp)]
+        public void CopyCtor(bool useCompilationReference, TargetFramework targetFramework)
         {
             var sourceA =
 @"public record B(object N1, object N2)
 {
 }";
-            var compA = CreateCompilation(sourceA);
+            CSharpTestSource testSourceA = targetFramework == TargetFramework.Standard ? new[] { sourceA, IsExternalInitTypeDefinition } : sourceA;
+            var compA = CreateCompilation(testSourceA, targetFramework: targetFramework);
             var verifierA = CompileAndVerify(compA, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
 
             verifierA.VerifyIL("B..ctor(B)", @"
@@ -12735,7 +12757,8 @@ record B : A
         System.Console.Write((c3.P1, c3.P2, c3.N1, c3.N2));
     }
 }";
-            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+            CSharpTestSource testSourceB = targetFramework == TargetFramework.Standard ? new[] { sourceB, IsExternalInitTypeDefinition } : sourceB;
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, targetFramework: targetFramework);
 
             var verifierB = CompileAndVerify(compB, expectedOutput: "(1, 2, 3, 4) (1, 2, 3, 4) (10, 2, 30, 4)", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Skipped : Verification.Fails).VerifyDiagnostics();
             // call base copy constructor B..ctor(B)
@@ -15888,8 +15911,10 @@ record B(int X, int Y) : A
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        [Fact]
-        public void Overrides_02()
+        [Theory]
+        [InlineData(TargetFramework.NetCoreApp)]
+        [InlineData(TargetFramework.Standard)]
+        public void Overrides_02(TargetFramework targetFramework)
         {
             var source =
 @"abstract record A
@@ -15901,7 +15926,7 @@ record B(int X, int Y) : A
 record B(int X, int Y) : A
 {
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: targetFramework);
             comp.VerifyDiagnostics(
                 // (3,35): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public abstract override bool Equals(object other);
@@ -15910,6 +15935,22 @@ record B(int X, int Y) : A
                 // record B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.Equals(object)").WithLocation(7, 8)
                 );
+
+            string expectedClone;
+            if (targetFramework == TargetFramework.Standard)
+            {
+                Assert.False(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+                expectedClone = "A B." + WellKnownMemberNames.CloneMethodName + "()";
+            }
+            else if (targetFramework == TargetFramework.NetCoreApp)
+            {
+                Assert.True(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+                expectedClone = "B B." + WellKnownMemberNames.CloneMethodName + "()";
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -15933,7 +15974,7 @@ record B(int X, int Y) : A
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
                 "System.Boolean B.Equals(B? other)",
-                "A B." + WellKnownMemberNames.CloneMethodName + "()",
+                expectedClone,
                 "B..ctor(B original)",
                 "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)"
             };
@@ -21080,6 +21121,175 @@ class E
 }");
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void WithExprReference_WithCovariantReturns(bool emitRef)
+        {
+            var src = @"
+public record C
+{
+    public int X { get; init; }
+}
+public record D(int Y) : C;";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+
+            var src2 = @"
+using System;
+class E
+{
+    public static void Main()
+    {
+        var c = new C() { X = 1 };
+        var c2 = c with { X = 2 };
+        Console.WriteLine(c.X);
+        Console.WriteLine(c2.X);
+
+        var d = new D(2) { X = 1 };
+        var d2 = d with { X = 2, Y = 3 };
+        Console.WriteLine(d.X + "" "" + d.Y);
+        Console.WriteLine(d2.X + "" ""  + d2.Y);
+
+        C c3 = d;
+        C c4 = d2;
+        c3 = c3 with { X = 3 };
+        c4 = c4 with { X = 4 };
+
+        d = (D)c3;
+        d2 = (D)c4;
+        Console.WriteLine(d.X + "" "" + d.Y);
+        Console.WriteLine(d2.X + "" ""  + d2.Y);
+    }
+}";
+            var verifier = CompileAndVerify(src2,
+                references: new[] { emitRef ? comp.EmitToImageReference() : comp.ToMetadataReference() },
+                expectedOutput: @"
+1
+2
+1 2
+2 3
+3 2
+4 3", targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+
+            verifier.VerifyIL("E.Main", @"
+{
+  // Code size      313 (0x139)
+  .maxstack  3
+  .locals init (C V_0, //c
+                D V_1, //d
+                D V_2, //d2
+                C V_3, //c3
+                C V_4, //c4
+                int V_5)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldc.i4.1
+  IL_0007:  callvirt   ""void C.X.init""
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  callvirt   ""C C.<Clone>$()""
+  IL_0013:  dup
+  IL_0014:  ldc.i4.2
+  IL_0015:  callvirt   ""void C.X.init""
+  IL_001a:  ldloc.0
+  IL_001b:  callvirt   ""int C.X.get""
+  IL_0020:  call       ""void System.Console.WriteLine(int)""
+  IL_0025:  callvirt   ""int C.X.get""
+  IL_002a:  call       ""void System.Console.WriteLine(int)""
+  IL_002f:  ldc.i4.2
+  IL_0030:  newobj     ""D..ctor(int)""
+  IL_0035:  dup
+  IL_0036:  ldc.i4.1
+  IL_0037:  callvirt   ""void C.X.init""
+  IL_003c:  stloc.1
+  IL_003d:  ldloc.1
+  IL_003e:  callvirt   ""D D.<Clone>$()""
+  IL_0043:  dup
+  IL_0044:  ldc.i4.2
+  IL_0045:  callvirt   ""void C.X.init""
+  IL_004a:  dup
+  IL_004b:  ldc.i4.3
+  IL_004c:  callvirt   ""void D.Y.init""
+  IL_0051:  stloc.2
+  IL_0052:  ldloc.1
+  IL_0053:  callvirt   ""int C.X.get""
+  IL_0058:  stloc.s    V_5
+  IL_005a:  ldloca.s   V_5
+  IL_005c:  call       ""string int.ToString()""
+  IL_0061:  ldstr      "" ""
+  IL_0066:  ldloc.1
+  IL_0067:  callvirt   ""int D.Y.get""
+  IL_006c:  stloc.s    V_5
+  IL_006e:  ldloca.s   V_5
+  IL_0070:  call       ""string int.ToString()""
+  IL_0075:  call       ""string string.Concat(string, string, string)""
+  IL_007a:  call       ""void System.Console.WriteLine(string)""
+  IL_007f:  ldloc.2
+  IL_0080:  callvirt   ""int C.X.get""
+  IL_0085:  stloc.s    V_5
+  IL_0087:  ldloca.s   V_5
+  IL_0089:  call       ""string int.ToString()""
+  IL_008e:  ldstr      "" ""
+  IL_0093:  ldloc.2
+  IL_0094:  callvirt   ""int D.Y.get""
+  IL_0099:  stloc.s    V_5
+  IL_009b:  ldloca.s   V_5
+  IL_009d:  call       ""string int.ToString()""
+  IL_00a2:  call       ""string string.Concat(string, string, string)""
+  IL_00a7:  call       ""void System.Console.WriteLine(string)""
+  IL_00ac:  ldloc.1
+  IL_00ad:  stloc.3
+  IL_00ae:  ldloc.2
+  IL_00af:  stloc.s    V_4
+  IL_00b1:  ldloc.3
+  IL_00b2:  callvirt   ""C C.<Clone>$()""
+  IL_00b7:  dup
+  IL_00b8:  ldc.i4.3
+  IL_00b9:  callvirt   ""void C.X.init""
+  IL_00be:  stloc.3
+  IL_00bf:  ldloc.s    V_4
+  IL_00c1:  callvirt   ""C C.<Clone>$()""
+  IL_00c6:  dup
+  IL_00c7:  ldc.i4.4
+  IL_00c8:  callvirt   ""void C.X.init""
+  IL_00cd:  stloc.s    V_4
+  IL_00cf:  ldloc.3
+  IL_00d0:  castclass  ""D""
+  IL_00d5:  stloc.1
+  IL_00d6:  ldloc.s    V_4
+  IL_00d8:  castclass  ""D""
+  IL_00dd:  stloc.2
+  IL_00de:  ldloc.1
+  IL_00df:  callvirt   ""int C.X.get""
+  IL_00e4:  stloc.s    V_5
+  IL_00e6:  ldloca.s   V_5
+  IL_00e8:  call       ""string int.ToString()""
+  IL_00ed:  ldstr      "" ""
+  IL_00f2:  ldloc.1
+  IL_00f3:  callvirt   ""int D.Y.get""
+  IL_00f8:  stloc.s    V_5
+  IL_00fa:  ldloca.s   V_5
+  IL_00fc:  call       ""string int.ToString()""
+  IL_0101:  call       ""string string.Concat(string, string, string)""
+  IL_0106:  call       ""void System.Console.WriteLine(string)""
+  IL_010b:  ldloc.2
+  IL_010c:  callvirt   ""int C.X.get""
+  IL_0111:  stloc.s    V_5
+  IL_0113:  ldloca.s   V_5
+  IL_0115:  call       ""string int.ToString()""
+  IL_011a:  ldstr      "" ""
+  IL_011f:  ldloc.2
+  IL_0120:  callvirt   ""int D.Y.get""
+  IL_0125:  stloc.s    V_5
+  IL_0127:  ldloca.s   V_5
+  IL_0129:  call       ""string int.ToString()""
+  IL_012e:  call       ""string string.Concat(string, string, string)""
+  IL_0133:  call       ""void System.Console.WriteLine(string)""
+  IL_0138:  ret
+}");
+        }
+
         private static ImmutableArray<Symbol> GetProperties(CSharpCompilation comp, string typeName)
         {
             return comp.GetMember<NamedTypeSymbol>(typeName).GetMembers().WhereAsArray(m => m.Kind == SymbolKind.Property);
@@ -23557,8 +23767,10 @@ record B : A;
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(5, 8));
         }
 
-        [Fact]
-        public void Equality_14()
+        [Theory]
+        [InlineData(TargetFramework.NetCoreApp)]
+        [InlineData(TargetFramework.Standard)]
+        public void Equality_14(TargetFramework targetFramework)
         {
             var source =
 @"record A;
@@ -23568,7 +23780,7 @@ record B : A
 }
 record C : B;
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: targetFramework);
             comp.VerifyDiagnostics(
                 // (4,43): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
                 //     protected sealed override System.Type EqualityContract => typeof(B);
@@ -23576,6 +23788,22 @@ record C : B;
                 // (6,8): error CS0239: 'C.EqualityContract': cannot override inherited member 'B.EqualityContract' because it is sealed
                 // record C : B;
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C").WithArguments("C.EqualityContract", "B.EqualityContract").WithLocation(6, 8));
+
+            string expectedClone;
+            if (targetFramework == TargetFramework.Standard)
+            {
+                Assert.False(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+                expectedClone = "A B." + WellKnownMemberNames.CloneMethodName + "()";
+            }
+            else if (targetFramework == TargetFramework.NetCoreApp)
+            {
+                Assert.True(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+                expectedClone = "B B." + WellKnownMemberNames.CloneMethodName + "()";
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -23590,7 +23818,7 @@ record C : B;
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
                 "System.Boolean B.Equals(B? other)",
-                "A B." + WellKnownMemberNames.CloneMethodName + "()",
+                expectedClone,
                 "B..ctor(B original)",
                 "B..ctor()",
             };
@@ -25634,7 +25862,7 @@ public class C
         [Fact]
         public void AccessCheckProtected03()
         {
-            CSharpCompilation c = CreateCompilation(@"
+            const string src = @"
 record X<T> { }
 
 record A { }
@@ -25649,8 +25877,8 @@ record B
         }
     }
 }
-");
-
+";
+            CSharpCompilation c = CreateCompilation(src);
             c.VerifyDiagnostics(
                 // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
                 //     record C : X<C.D.E>
@@ -25662,6 +25890,16 @@ record B
                 //     record C : X<C.D.E>
                 Diagnostic(ErrorCode.ERR_BadVisParamType, "C").WithArguments("B.C.Equals(X<B.C.D.E>?)", "X<B.C.D.E>").WithLocation(8, 12)
                 );
+
+            c = CreateCompilationWithCovariantReturns(src);
+            c.VerifyDiagnostics(
+                // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                //     record C : X<C.D.E>
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 12),
+                // (8,12): error CS0051: Inconsistent accessibility: parameter type 'X<B.C.D.E>' is less accessible than method 'B.C.Equals(X<B.C.D.E>?)'
+                //     record C : X<C.D.E>
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "C").WithArguments("B.C.Equals(X<B.C.D.E>?)", "X<B.C.D.E>").WithLocation(8, 12)
+    );
         }
 
         [Fact]
@@ -26012,6 +26250,19 @@ public partial record C1
                 // (6,23): error CS0050: Inconsistent accessibility: return type 'NV' is less accessible than method 'C1.<Clone>$()'
                 // public partial record C1
                 Diagnostic(ErrorCode.ERR_BadVisReturnType, "C1").WithArguments("C1.<Clone>$()", "NV").WithLocation(6, 23),
+                // (6,23): error CS0051: Inconsistent accessibility: parameter type 'NV' is less accessible than method 'C1.Equals(NV?)'
+                // public partial record C1
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "C1").WithArguments("C1.Equals(NV?)", "NV").WithLocation(6, 23),
+                // (10,16): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // partial record C1 : NV
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 16)
+                );
+
+            comp = CreateCompilationWithCovariantReturns(text);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0106: The modifier 'static' is not valid for this item
+                // static record NV
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "NV").WithArguments("static").WithLocation(2, 15),
                 // (6,23): error CS0051: Inconsistent accessibility: parameter type 'NV' is less accessible than method 'C1.Equals(NV?)'
                 // public partial record C1
                 Diagnostic(ErrorCode.ERR_BadVisParamType, "C1").WithArguments("C1.Equals(NV?)", "NV").WithLocation(6, 23),
