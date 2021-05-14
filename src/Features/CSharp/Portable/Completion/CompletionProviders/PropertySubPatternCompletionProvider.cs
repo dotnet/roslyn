@@ -134,11 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             static ImmutableArray<ISymbol> GetCandidatePropertiesAndFields(Document document, SemanticModel semanticModel, int position, ITypeSymbol type)
             {
                 var members = semanticModel.LookupSymbols(position, type);
-                return members.Where(m => m.CanBeReferencedByName &&
+                return members.WhereAsArray(m => m.CanBeReferencedByName &&
                     IsFieldOrReadableProperty(m) &&
                     !m.IsImplicitlyDeclared &&
                     !m.IsStatic &&
-                    m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)).AsImmutable();
+                    m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
             }
         }
 
