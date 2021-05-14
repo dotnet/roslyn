@@ -10827,6 +10827,7 @@ record C(object P)
     public object get_P() => null;
     public object set_Q() => null;
 }";
+            CSharpTestSource testSource = targetFramework == TargetFramework.Standard ? new[] { source, IsExternalInitTypeDefinition } : source;
             var comp = CreateCompilation(source, targetFramework: targetFramework);
             comp.VerifyDiagnostics(
                 // (9,17): error CS0082: Type 'C' already reserves a member called 'get_P' with the same parameter types
@@ -15926,7 +15927,8 @@ record B(int X, int Y) : A
 record B(int X, int Y) : A
 {
 }";
-            var comp = CreateCompilation(source, targetFramework: targetFramework);
+            CSharpTestSource testSource = targetFramework == TargetFramework.Standard ? new[] { source, IsExternalInitTypeDefinition } : source;
+            var comp = CreateCompilation(testSource, targetFramework: targetFramework);
             comp.VerifyDiagnostics(
                 // (3,35): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public abstract override bool Equals(object other);
