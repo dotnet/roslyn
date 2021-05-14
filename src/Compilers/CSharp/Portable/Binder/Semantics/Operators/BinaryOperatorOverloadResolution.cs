@@ -111,11 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((result.Results.Count == 0) != hadApplicableCandidates);
 
             // If there are no applicable candidates in classes / stuctures, try with interface sources.
-            // From https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-06-27.md:
-            // We do not allow == and != and. Otherwise, there'd be no way to override Equals and GetHashCode,
-            // so you couldn't do == and != in a recommended way.
-            if (!hadApplicableCandidates &&
-                kind != BinaryOperatorKind.Equal && kind != BinaryOperatorKind.NotEqual)
+            if (!hadApplicableCandidates)
             {
                 result.Results.Clear();
 

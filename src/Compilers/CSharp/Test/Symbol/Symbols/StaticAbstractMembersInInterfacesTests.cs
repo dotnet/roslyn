@@ -3795,10 +3795,8 @@ public interface I1
             ValidateOperatorModifiers_01(compilation1);
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void OperatorModifiers_07(bool use7_3)
+        [Fact]
+        public void OperatorModifiers_07()
         {
             var source1 =
 @"
@@ -3811,29 +3809,182 @@ public interface I1
 
 public interface I2
 {
-    sealed static bool operator== (I2 x, I2 y) {return false;} 
+    sealed static bool operator== (I2 x, I2 y);
 
     sealed static bool operator!= (I2 x, I2 y) {return false;} 
 }
+
+public interface I3
+{
+    abstract sealed static bool operator== (I3 x, I3 y);
+
+    abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
+}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: use7_3 ? TestOptions.Regular7_3 : TestOptions.RegularPreview,
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (4,34): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (4,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract static bool operator== (I1 x, I1 y); 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(4, 34),
-                // (6,34): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "7.3", "preview").WithLocation(4, 34),
+                // (6,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract static bool operator!= (I1 x, I1 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(6, 34),
-                // (11,32): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
-                //     sealed static bool operator== (I2 x, I2 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "7.3", "preview").WithLocation(6, 34),
+                // (6,34): error CS0500: 'I1.operator !=(I1, I1)' cannot declare a body because it is marked abstract
+                //     abstract static bool operator!= (I1 x, I1 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I1.operator !=(I1, I1)").WithLocation(6, 34),
+                // (11,32): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static bool operator== (I2 x, I2 y);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(11, 32),
+                // (11,32): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     sealed static bool operator== (I2 x, I2 y);
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(11, 32),
-                // (13,32): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (13,32): error CS0106: The modifier 'sealed' is not valid for this item
                 //     sealed static bool operator!= (I2 x, I2 y) {return false;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(13, 32)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(13, 32),
+                // (13,32): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     sealed static bool operator!= (I2 x, I2 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(13, 32),
+                // (18,41): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static bool operator== (I3 x, I3 y);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(18, 41),
+                // (18,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                //     abstract sealed static bool operator== (I3 x, I3 y);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "7.3", "preview").WithLocation(18, 41),
+                // (20,41): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(20, 41),
+                // (20,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "7.3", "preview").WithLocation(20, 41),
+                // (20,41): error CS0500: 'I3.operator !=(I3, I3)' cannot declare a body because it is marked abstract
+                //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I3.operator !=(I3, I3)").WithLocation(20, 41)
                 );
+
+            validate();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (4,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator== (I1 x, I1 y); 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "9.0", "preview").WithLocation(4, 34),
+                // (6,34): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator!= (I1 x, I1 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "9.0", "preview").WithLocation(6, 34),
+                // (6,34): error CS0500: 'I1.operator !=(I1, I1)' cannot declare a body because it is marked abstract
+                //     abstract static bool operator!= (I1 x, I1 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I1.operator !=(I1, I1)").WithLocation(6, 34),
+                // (11,32): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static bool operator== (I2 x, I2 y);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(11, 32),
+                // (11,32): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     sealed static bool operator== (I2 x, I2 y);
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(11, 32),
+                // (13,32): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static bool operator!= (I2 x, I2 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(13, 32),
+                // (13,32): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     sealed static bool operator!= (I2 x, I2 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(13, 32),
+                // (18,41): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static bool operator== (I3 x, I3 y);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(18, 41),
+                // (18,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract sealed static bool operator== (I3 x, I3 y);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "9.0", "preview").WithLocation(18, 41),
+                // (20,41): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(20, 41),
+                // (20,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "9.0", "preview").WithLocation(20, 41),
+                // (20,41): error CS0500: 'I3.operator !=(I3, I3)' cannot declare a body because it is marked abstract
+                //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I3.operator !=(I3, I3)").WithLocation(20, 41)
+                );
+
+            validate();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (6,34): error CS0500: 'I1.operator !=(I1, I1)' cannot declare a body because it is marked abstract
+                //     abstract static bool operator!= (I1 x, I1 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I1.operator !=(I1, I1)").WithLocation(6, 34),
+                // (11,32): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static bool operator== (I2 x, I2 y);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(11, 32),
+                // (11,32): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     sealed static bool operator== (I2 x, I2 y);
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(11, 32),
+                // (13,32): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static bool operator!= (I2 x, I2 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(13, 32),
+                // (13,32): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     sealed static bool operator!= (I2 x, I2 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(13, 32),
+                // (18,41): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static bool operator== (I3 x, I3 y);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "==").WithArguments("sealed").WithLocation(18, 41),
+                // (20,41): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "!=").WithArguments("sealed").WithLocation(20, 41),
+                // (20,41): error CS0500: 'I3.operator !=(I3, I3)' cannot declare a body because it is marked abstract
+                //     abstract sealed static bool operator!= (I3 x, I3 y) {return false;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "!=").WithArguments("I3.operator !=(I3, I3)").WithLocation(20, 41)
+                );
+
+            validate();
+
+            void validate()
+            {
+                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I1").GetMembers())
+                {
+                    Assert.True(m01.IsAbstract);
+                    Assert.False(m01.IsVirtual);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsExtern);
+                    Assert.False(m01.IsAsync);
+                    Assert.False(m01.IsOverride);
+                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
+                }
+
+                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I2").GetMembers())
+                {
+                    Assert.False(m01.IsAbstract);
+                    Assert.False(m01.IsVirtual);
+                    Assert.False(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsExtern);
+                    Assert.False(m01.IsAsync);
+                    Assert.False(m01.IsOverride);
+                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
+                }
+
+                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I3").GetMembers())
+                {
+                    Assert.True(m01.IsAbstract);
+                    Assert.False(m01.IsVirtual);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsExtern);
+                    Assert.False(m01.IsAsync);
+                    Assert.False(m01.IsOverride);
+                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
+                }
+            }
         }
 
         [Theory]
@@ -3862,16 +4013,22 @@ public interface I2
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (4,39): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (4,39): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     abstract static implicit operator int(I1 x); 
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 39),
-                // (6,39): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (6,39): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     abstract static explicit operator bool(I1 x) {return false;} 
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "bool").WithLocation(6, 39),
-                // (11,37): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (11,37): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static implicit operator int(I2 x) {return 0;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(11, 37),
+                // (11,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     sealed static implicit operator int(I2 x) {return 0;} 
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(11, 37),
-                // (13,37): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                // (13,37): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static explicit operator bool(I2 x) {return false;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "bool").WithArguments("sealed").WithLocation(13, 37),
+                // (13,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     sealed static explicit operator bool(I2 x) {return false;} 
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "bool").WithLocation(13, 37)
                 );
@@ -4257,6 +4414,8 @@ interface I1
     abstract static I1 operator < (I1 x, I1 y);
     abstract static I1 operator >= (I1 x, I1 y);
     abstract static I1 operator <= (I1 x, I1 y);
+    abstract static I1 operator == (I1 x, I1 y);
+    abstract static I1 operator != (I1 x, I1 y);
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -4282,7 +4441,7 @@ interface I1
                     count++;
                 }
 
-                Assert.Equal(6, count);
+                Assert.Equal(8, count);
             }
         }
 
@@ -4336,6 +4495,8 @@ interface I1
     abstract static I1 operator < (I1 x, I1 y);
     abstract static I1 operator >= (I1 x, I1 y);
     abstract static I1 operator <= (I1 x, I1 y);
+    abstract static I1 operator == (I1 x, I1 y);
+    abstract static I1 operator != (I1 x, I1 y);
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -4360,7 +4521,13 @@ interface I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, ">=").WithLocation(8, 33),
                 // (9,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator <= (I1 x, I1 y);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "<=").WithLocation(9, 33)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "<=").WithLocation(9, 33),
+                // (10,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static I1 operator == (I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "==").WithLocation(10, 33),
+                // (11,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static I1 operator != (I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "!=").WithLocation(11, 33)
                 );
         }
 
@@ -6634,21 +6801,12 @@ class Test
         }
 
         [Theory]
-        [InlineData("+")]
-        [InlineData("-")]
-        [InlineData("*")]
-        [InlineData("/")]
-        [InlineData("%")]
-        [InlineData("&")]
-        [InlineData("|")]
-        [InlineData("^")]
-        [InlineData("<<")]
-        [InlineData(">>")]
-        public void ConsumeAbstractBinaryOperator_01(string op)
+        [CombinatorialData]
+        public void ConsumeAbstractBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
 @"
-interface I1
+partial interface I1
 {
     abstract static I1 operator" + op + @" (I1 x, int y);
 
@@ -6676,6 +6834,20 @@ class Test
     }
 }
 ";
+
+            string matchingOp = MatchingBinaryOperator(op);
+
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1
+{
+    abstract static I1 operator" + matchingOp + @" (I1 x, int y);
+}
+";
+            }
+
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
@@ -6926,17 +7098,8 @@ class Test
         }
 
         [Theory]
-        [InlineData("+")]
-        [InlineData("-")]
-        [InlineData("*")]
-        [InlineData("/")]
-        [InlineData("%")]
-        [InlineData("&")]
-        [InlineData("|")]
-        [InlineData("^")]
-        [InlineData("<<")]
-        [InlineData(">>")]
-        public void ConsumeAbstractCompoundBinaryOperator_01(string op)
+        [CombinatorialData]
+        public void ConsumeAbstractCompoundBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op)
         {
             var source1 =
 @"
@@ -6993,45 +7156,104 @@ class Test
                 );
         }
 
-        [Theory]
-        [InlineData("+", "op_Addition", "Add")]
-        [InlineData("-", "op_Subtraction", "Subtract")]
-        [InlineData("*", "op_Multiply", "Multiply")]
-        [InlineData("/", "op_Division", "Divide")]
-        [InlineData("%", "op_Modulus", "Remainder")]
-        [InlineData("&", "op_BitwiseAnd", "And")]
-        [InlineData("|", "op_BitwiseOr", "Or")]
-        [InlineData("^", "op_ExclusiveOr", "ExclusiveOr")]
-        [InlineData("<<", "op_LeftShift", "LeftShift")]
-        [InlineData(">>", "op_RightShift", "RightShift")]
-        public void ConsumeAbstractBinaryOperator_03(string op, string metadataName, string operatorKind)
+        private static string BinaryOperatorKind(string op)
         {
-            bool isShiftOperator = op.Length == 2;
+            switch (op)
+            {
+                case "+":
+                    return "Add";
+
+                case "-":
+                    return "Subtract";
+
+                case "*":
+                    return "Multiply";
+
+                case "/":
+                    return "Divide";
+
+                case "%":
+                    return "Remainder";
+
+                case "<<":
+                    return "LeftShift";
+
+                case ">>":
+                    return "RightShift";
+
+                case "&":
+                    return "And";
+
+                case "|":
+                    return "Or";
+
+                case "^":
+                    return "ExclusiveOr";
+
+                case "<":
+                    return "LessThan";
+
+                case "<=":
+                    return "LessThanOrEqual";
+
+                case "==":
+                    return "Equals";
+
+                case "!=":
+                    return "NotEquals";
+
+                case ">=":
+                    return "GreaterThanOrEqual";
+
+                case ">":
+                    return "GreaterThan";
+
+            }
+
+            throw TestExceptionUtilities.UnexpectedValue(op);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op)
+        {
+            string metadataName = BinaryOperatorName(op);
+
+            bool isShiftOperator = op is "<<" or ">>";
 
             var source1 =
 @"
-public interface I1<T0> where T0 : I1<T0>
+public partial interface I1<T0> where T0 : I1<T0>
 {
-";
-            if (!isShiftOperator)
-            {
-                source1 += @"
-    abstract static T0 operator" + op + @" (int a, T0 x);
-    abstract static T0 operator" + op + @" (I1<T0> x, T0 a);
-    abstract static T0 operator" + op + @" (T0 x, I1<T0> a);
-";
-            }
-
-            source1 += @"
     abstract static T0 operator" + op + @" (T0 x, int a);
 }
 
-class Test
+partial class Test
 {
+    static void M03<T, U>(T x) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" 1;
+    }
+
+    static void M05<T, U>(T? y) where T : struct, U where U : I1<T>
+    {
+        _ = y " + op + @" 1;
+    }
+}
 ";
+
             if (!isShiftOperator)
             {
                 source1 += @"
+public partial interface I1<T0>
+{
+    abstract static T0 operator" + op + @" (int a, T0 x);
+    abstract static T0 operator" + op + @" (I1<T0> x, T0 a);
+    abstract static T0 operator" + op + @" (T0 x, I1<T0> a);
+}
+
+partial class Test
+{
     static void M02<T, U>(T x) where T : U where U : I1<T>
     {
         _ = 1 " + op + @" x;
@@ -7051,21 +7273,10 @@ class Test
     {
         _ = x " + op + @" y;
     }
+}
 ";
             }
 
-            source1 += @"
-    static void M03<T, U>(T x) where T : U where U : I1<T>
-    {
-        _ = x " + op + @" 1;
-    }
-
-    static void M05<T, U>(T? y) where T : struct, U where U : I1<T>
-    {
-        _ = y " + op + @" 1;
-    }
-}
-";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
@@ -7294,11 +7505,398 @@ class Test
 //                                               reflected in the IOperation tree. Should we change the shape of the tree in order
 //                                               to expose this information? 
 @"
-IBinaryOperation (BinaryOperatorKind." + operatorKind + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x, System.Int32 a)) (OperationKind.Binary, Type: T) (Syntax: 'x " + op + @" 1')
+IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x, System.Int32 a)) (OperationKind.Binary, Type: T) (Syntax: 'x " + op + @" 1')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
   Right: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractComparisonBinaryOperator_03([CombinatorialValues("<", ">", "<=", ">=", "==", "!=")] string op)
+        {
+            string metadataName = BinaryOperatorName(op);
+
+            var source1 =
+@"
+public partial interface I1<T0> where T0 : I1<T0>
+{
+    abstract static bool operator" + op + @" (T0 x, int a);
+    abstract static bool operator" + op + @" (int a, T0 x);
+    abstract static bool operator" + op + @" (I1<T0> x, T0 a);
+    abstract static bool operator" + op + @" (T0 x, I1<T0> a);
+}
+
+partial class Test
+{
+    static void M02<T, U>(T x) where T : U where U : I1<T>
+    {
+        _ = 1 " + op + @" x;
+    }
+
+    static void M03<T, U>(T x) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" 1;
+    }
+
+    static void M06<T, U>(I1<T> x, T y) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" y;
+    }
+
+    static void M07<T, U>(T x, I1<T> y) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" y;
+    }
+}
+";
+            string matchingOp = MatchingBinaryOperator(op);
+
+            source1 +=
+@"
+public partial interface I1<T0>
+{
+    abstract static bool operator" + matchingOp + @" (T0 x, int a);
+    abstract static bool operator" + matchingOp + @" (int a, T0 x);
+    abstract static bool operator" + matchingOp + @" (I1<T0> x, T0 a);
+    abstract static bool operator" + matchingOp + @" (T0 x, I1<T0> a);
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  ldarg.0
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""bool I1<T>." + metadataName + @"(int, T)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+            verifier.VerifyIL("Test.M06<T, U>(I1<T>, T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.1
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""bool I1<T>." + metadataName + @"(I1<T>, T)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+
+            verifier.VerifyIL("Test.M07<T, U>(T, I1<T>)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.1
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""bool I1<T>." + metadataName + @"(T, I1<T>)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+
+            verifier.VerifyIL("Test.M03<T, U>(T)",
+@"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.1
+  IL_0003:  constrained. ""T""
+  IL_0009:  call       ""bool I1<T>." + metadataName + @"(T, int)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldarg.0
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""bool I1<T>." + metadataName + @"(int, T)""
+  IL_000d:  pop
+  IL_000e:  ret
+}
+");
+            verifier.VerifyIL("Test.M06<T, U>(I1<T>, T)",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""bool I1<T>." + metadataName + @"(I1<T>, T)""
+  IL_000d:  pop
+  IL_000e:  ret
+}
+");
+
+            verifier.VerifyIL("Test.M07<T, U>(T, I1<T>)",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""bool I1<T>." + metadataName + @"(T, I1<T>)""
+  IL_000d:  pop
+  IL_000e:  ret
+}
+");
+
+            verifier.VerifyIL("Test.M03<T, U>(T)",
+@"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""bool I1<T>." + metadataName + @"(T, int)""
+  IL_000d:  pop
+  IL_000e:  ret
+}
+");
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Where(n => n.ToString() == "x " + op + " 1").Single();
+
+            Assert.Equal("x " + op + " 1", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
+//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                               to expose this information? 
+@"
+IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @") (OperatorMethod: System.Boolean I1<T>." + metadataName + @"(T x, System.Int32 a)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x " + op + @" 1')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
+  Right: 
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractLiftedComparisonBinaryOperator_03([CombinatorialValues("<", ">", "<=", ">=", "==", "!=")] string op)
+        {
+            string metadataName = BinaryOperatorName(op);
+
+            var source1 =
+@"
+public partial interface I1<T0> where T0 : I1<T0>
+{
+    abstract static bool operator" + op + @" (T0 x, T0 a);
+}
+
+partial class Test
+{
+    static void M04<T, U>(T? x, T? y) where T : struct, U where U : I1<T>
+    {
+        _ = x " + op + @" y;
+    }
+}
+";
+            string matchingOp = MatchingBinaryOperator(op);
+
+            source1 +=
+@"
+public partial interface I1<T0>
+{
+    abstract static bool operator" + matchingOp + @" (T0 x, T0 a);
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            if (op is "==" or "!=")
+            {
+                verifier.VerifyIL("Test.M04<T, U>(T?, T?)",
+@"
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (T? V_0,
+                T? V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.1
+  IL_0004:  stloc.1
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  call       ""readonly bool T?.HasValue.get""
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       ""readonly bool T?.HasValue.get""
+  IL_0013:  beq.s      IL_0017
+  IL_0015:  br.s       IL_003c
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""readonly bool T?.HasValue.get""
+  IL_001e:  brtrue.s   IL_0022
+  IL_0020:  br.s       IL_003c
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_0029:  ldloca.s   V_1
+  IL_002b:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_0030:  constrained. ""T""
+  IL_0036:  call       ""bool I1<T>." + metadataName + @"(T, T)""
+  IL_003b:  pop
+  IL_003c:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M04<T, U>(T?, T?)",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (T? V_0,
+                T? V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.1
+  IL_0004:  stloc.1
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  call       ""readonly bool T?.HasValue.get""
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       ""readonly bool T?.HasValue.get""
+  IL_0013:  and
+  IL_0014:  brtrue.s   IL_0018
+  IL_0016:  br.s       IL_0032
+  IL_0018:  ldloca.s   V_0
+  IL_001a:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_0026:  constrained. ""T""
+  IL_002c:  call       ""bool I1<T>." + metadataName + @"(T, T)""
+  IL_0031:  pop
+  IL_0032:  ret
+}
+");
+            }
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            if (op is "==" or "!=")
+            {
+                verifier.VerifyIL("Test.M04<T, U>(T?, T?)",
+@"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (T? V_0,
+                T? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  call       ""readonly bool T?.HasValue.get""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  call       ""readonly bool T?.HasValue.get""
+  IL_0012:  bne.un.s   IL_0037
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  call       ""readonly bool T?.HasValue.get""
+  IL_001b:  brfalse.s  IL_0037
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_002b:  constrained. ""T""
+  IL_0031:  call       ""bool I1<T>." + metadataName + @"(T, T)""
+  IL_0036:  pop
+  IL_0037:  ret
+}
+");
+
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M04<T, U>(T?, T?)",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  2
+  .locals init (T? V_0,
+                T? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  call       ""readonly bool T?.HasValue.get""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  call       ""readonly bool T?.HasValue.get""
+  IL_0012:  and
+  IL_0013:  brfalse.s  IL_002f
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001c:  ldloca.s   V_1
+  IL_001e:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_0023:  constrained. ""T""
+  IL_0029:  call       ""bool I1<T>." + metadataName + @"(T, T)""
+  IL_002e:  pop
+  IL_002f:  ret
+}
+");
+            }
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Where(n => n.ToString() == "x " + op + " y").Single();
+
+            Assert.Equal("x " + op + " y", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
+//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                               to expose this information? 
+@"
+IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @", IsLifted) (OperatorMethod: System.Boolean I1<T>." + metadataName + @"(T x, T a)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x " + op + @" y')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T?) (Syntax: 'x')
+  Right: 
+    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: T?) (Syntax: 'y')
 ");
         }
 
@@ -8111,17 +8709,8 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + operatorKind + @") (Operato
         }
 
         [Theory]
-        [InlineData("+")]
-        [InlineData("-")]
-        [InlineData("*")]
-        [InlineData("/")]
-        [InlineData("%")]
-        [InlineData("&")]
-        [InlineData("|")]
-        [InlineData("^")]
-        [InlineData("<<")]
-        [InlineData(">>")]
-        public void ConsumeAbstractBinaryOperator_04(string op)
+        [CombinatorialData]
+        public void ConsumeAbstractBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
 @"
@@ -8159,7 +8748,7 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.VerifyDiagnostics(
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (12,32): error CS9100: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator- (I1 x, int y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(12, 32)
@@ -8311,17 +8900,8 @@ class Test
         }
 
         [Theory]
-        [InlineData("+")]
-        [InlineData("-")]
-        [InlineData("*")]
-        [InlineData("/")]
-        [InlineData("%")]
-        [InlineData("&")]
-        [InlineData("|")]
-        [InlineData("^")]
-        [InlineData("<<")]
-        [InlineData(">>")]
-        public void ConsumeAbstractBinaryOperator_06(string op)
+        [CombinatorialData]
+        public void ConsumeAbstractBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
 @"
@@ -8359,7 +8939,7 @@ class Test
                                                  parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
-            compilation3.VerifyDiagnostics(
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static I1 operator- (I1 x, int y);
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 32)
@@ -12746,7 +13326,7 @@ public interface I2<T> where T : I2<T>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
 
@@ -12827,7 +13407,7 @@ public interface I2<T> where T : I2<T>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator >>(C1, int)'
                 //     C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1, int)").WithLocation(8, 10),
@@ -13047,7 +13627,7 @@ interface I14 : I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
 @"
@@ -13128,10 +13708,7 @@ interface I14 : I1
             ErrorCode badSignatureError = isShift ? ErrorCode.ERR_BadShiftOperatorSignature : ErrorCode.ERR_BadBinaryOperatorSignature;
             ErrorCode badAbstractSignatureError = isShift ? ErrorCode.ERR_BadAbstractShiftOperatorSignature : ErrorCode.ERR_BadAbstractBinaryOperatorSignature;
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
-                // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
-                //     I1 operator |(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + op + "(I1, int)").WithLocation(12, 17),
+            var expected = new[] {
                 // (12,17): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     I1 operator |(I1 x, int y) => default;
                 Diagnostic(badSignatureError, op).WithLocation(12, 17),
@@ -13150,9 +13727,6 @@ interface I14 : I1
                 // (32,33): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     abstract static I1 operator |(I1 x, int y);
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33),
-                // (42,16): error CS0558: User-defined operator 'I8<T>.operator |(T, int)' must be declared static and public
-                //     T operator |(T x, int y) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + op + "(T, int)").WithLocation(42, 16),
                 // (42,16): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     T operator |(T x, int y) => default;
                 Diagnostic(badSignatureError, op).WithLocation(42, 16),
@@ -13180,7 +13754,42 @@ interface I14 : I1
                 // (67,36): error CS0539: 'I14.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     abstract static I1 I1.operator |(I1 x, int y);
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + op + "(I1, int)").WithLocation(67, 36)
-                );
+                };
+
+            if (op is "==" or "!=")
+            {
+                expected = expected.Concat(
+                    new[] {
+                        // (12,17): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                        //     I1 operator ==(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(12, 17),
+                        // (17,24): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                        //     static I1 operator ==(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(17, 24),
+                        // (42,16): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                        //     T operator ==(T x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(42, 16),
+                        // (47,23): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                        //     static T operator ==(T x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(47, 23),
+                        }
+                    ).ToArray();
+            }
+            else
+            {
+                expected = expected.Concat(
+                    new[] {
+                        // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
+                        //     I1 operator |(I1 x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + op + "(I1, int)").WithLocation(12, 17),
+                        // (42,16): error CS0558: User-defined operator 'I8<T>.operator |(T, int)' must be declared static and public
+                        //     T operator |(T x, int y) => default;
+                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + op + "(T, int)").WithLocation(42, 16)
+                        }
+                    ).ToArray();
+            }
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
 
             var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
 
@@ -13273,7 +13882,7 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
 
@@ -13310,7 +13919,7 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.NetCoreApp,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static I1 I1.operator +(I1 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
@@ -13320,7 +13929,7 @@ typeKeyword + @"
                                                  parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static I1 I1.operator +(I1 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
@@ -13384,7 +13993,7 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
 
@@ -13411,7 +14020,7 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (2,12): error CS9110: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1, int)", "I1<Test1>.operator " + op + "(Test1, int)", "Test1").WithLocation(2, 12)
@@ -13421,7 +14030,7 @@ typeKeyword + @"
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (2,12): error CS9110: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1, int)", "I1<Test1>.operator " + op + "(Test1, int)", "Test1").WithLocation(2, 12),
@@ -13482,7 +14091,7 @@ typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
         {
             var typeKeyword = structure ? "struct" : "class";
 
@@ -13676,7 +14285,7 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_07([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_07([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
         {
             // Basic implicit implementation scenario, MethodImpl is emitted
 
@@ -13688,6 +14297,8 @@ public partial interface I1<T> where T : I1<T>
 {
     abstract static T operator " + op + @"(T x, int y);
 }
+
+#pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
 
 partial " + typeKeyword + @"
     C : I1<C>
@@ -13908,7 +14519,7 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_08([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_08([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
         {
             // Basic explicit implementation scenario
 
@@ -14126,7 +14737,7 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_09([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_09([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             // Explicit implementation from base is treated as an implementation
 
@@ -14326,7 +14937,7 @@ public class C5 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_10([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_10([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
@@ -14525,7 +15136,7 @@ public class C1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_11([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_11([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             // Ignore invalid metadata (non-abstract static virtual method). 
 
@@ -14662,7 +15273,7 @@ public class C1 : I2
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_12([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_12([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             // Ignore invalid metadata (default interface implementation for a static method)
 
@@ -14725,7 +15336,7 @@ public class C1 : I2
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_13([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_13([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             // A forwarding method is added for an implicit implementation declared in base class. 
 
@@ -14735,6 +15346,8 @@ public partial interface I1<T> where T : I1<T>
 {
     abstract static T operator " + op + @"(T x, C1 y);
 }
+
+#pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
 
 public partial class C1
 {
@@ -15054,12 +15667,12 @@ class C2 : I1<C2>
 
         private static string MatchingBinaryOperator(string op)
         {
-            return op switch { "<" => ">", ">" => "<", "<=" => ">=", ">=" => "<=", _ => null };
+            return op switch { "<" => ">", ">" => "<", "<=" => ">=", ">=" => "<=", "==" => "!=", "!=" => "==", _ => null };
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_14([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_14([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
@@ -15091,6 +15704,8 @@ class C2 : I1<C2>
 
             var source1 =
 @"
+#pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
+
 class C1 : I1<C1>
 {
     public static C1 operator " + op + @"(C1 x, int y) => default;
@@ -15304,7 +15919,7 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_15([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_15([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             // A forwarding method isn't created if base class implements interface exactly the same way. 
 
@@ -15315,6 +15930,8 @@ public partial interface I1<T> where T : I1<T>
     abstract static T operator " + op + @"(T x, C1 y);
     abstract static T operator " + op + @"(T x, C2 y);
 }
+
+#pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
 
 public partial class C1
 {
@@ -15418,7 +16035,7 @@ public class C3 : C2, I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_16([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_16([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             // A new implicit implementation is properly considered.
 
@@ -15428,6 +16045,8 @@ public partial interface I1<T> where T : I1<T>
 {
     abstract static T operator " + op + @"(T x, C1 y);
 }
+
+#pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
 
 public partial class C1 : I1<C2>
 {
@@ -15533,7 +16152,7 @@ public class C3 : C2, I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_18([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op, bool genericFirst)
+        public void ImplementAbstractStaticBinaryOperator_18([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst)
         {
             // An "ambiguity" in implicit implementation declared in generic base class plus interface is generic too.
 
@@ -15551,6 +16170,8 @@ public partial interface I1<T, U> where T : I1<T, U>
 {
     abstract static T operator " + op + @"(T x, U y);
 }
+
+#pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
 
 public partial class C1<T, U> : I1<C1<T, U>, U>
 {
@@ -15635,7 +16256,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_20([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op, bool genericFirst)
+        public void ImplementAbstractStaticBinaryOperator_20([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst)
         {
             // Same as ImplementAbstractStaticBinaryOperator_18 only implementation is explicit in source.
 
@@ -15653,6 +16274,8 @@ public partial interface I1<T, U> where T : I1<T, U>
 {
     abstract static T operator " + op + @"(T x, U y);
 }
+
+#pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
 
 public partial class C1<T, U> : I1<C1<T, U>, U>
 {
@@ -15725,7 +16348,7 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_22([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=")] string op, bool genericFirst)
+        public void ImplementAbstractStaticBinaryOperator_22([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst)
         {
             // Same as ImplementAbstractStaticMethod_18 only implicit implementation is in an intermediate base.
 
@@ -15743,6 +16366,8 @@ public partial interface I1<T, U> where T : I1<T, U>
 {
     abstract static T operator " + op + @"(T x, U y);
 }
+
+#pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
 
 public partial class C1<T, U>
 {
@@ -15981,7 +16606,7 @@ class
 
         [Theory]
         [CombinatorialData]
-        public void ExplicitImplementationModifiersBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        public void ExplicitImplementationModifiersBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
 @"
@@ -16176,7 +16801,7 @@ class C2 : I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ExplicitInterfaceSpecifierErrorsBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=")] string op)
+        public void ExplicitInterfaceSpecifierErrorsBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
 @"
@@ -18189,7 +18814,7 @@ class C2 : C1, I1
 
     .method public hidebysig specialname abstract virtual static 
         void modopt(I1) set_M01 (
-            int32 'value'
+            int32 modopt(I1) 'value'
         ) cil managed 
     {
     }
@@ -18197,7 +18822,7 @@ class C2 : C1, I1
     .property int32 M01()
     {
         .get int32 I1::get_M01()
-        .set void modopt(I1) I1::set_M01(int32)
+        .set void modopt(I1) I1::set_M01(int32 modopt(I1))
     }
 }
 
@@ -18288,7 +18913,7 @@ class C3 : I2
 
                     c1M01Set = (MethodSymbol)c1.FindImplementationForInterfaceMember(m01.SetMethod);
                     Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c1M01Set.MethodKind);
-                    Assert.Equal("void modopt(I1) C1.I1.set_M01(System.Int32 value)", c1M01Set.ToTestDisplayString());
+                    Assert.Equal("void modopt(I1) C1.I1.set_M01(System.Int32 modopt(I1) value)", c1M01Set.ToTestDisplayString());
                     Assert.Same(m01.SetMethod, c1M01Set.ExplicitInterfaceImplementations.Single());
 
                     Assert.True(c1M01Set.IsStatic);
@@ -18336,6 +18961,7 @@ class C3 : I2
                 Assert.False(c2M01Set.IsMetadataNewSlot());
                 Assert.Equal(MethodKind.PropertySet, c2M01Set.MethodKind);
                 Assert.Equal("void modopt(I1) C2.I1.M01.set", c2M01Set.ToTestDisplayString());
+                Assert.Equal("System.Int32 modopt(I1) value", c2M01Set.Parameters.Single().ToTestDisplayString());
                 Assert.Same(m01.SetMethod, c2M01Set.ExplicitInterfaceImplementations.Single());
                 Assert.Same(c2M01Set, c2.FindImplementationForInterfaceMember(m01.SetMethod));
 
@@ -20572,6 +21198,29 @@ class C2 : C1, I1
         .removeon void I1::remove_M01(class [mscorlib]System.Action`1<int32 modopt(I1)>)
     }
 }
+
+.class interface public auto ansi abstract I2
+{
+    .method public hidebysig specialname abstract virtual static 
+        void add_M02 (
+            class [mscorlib]System.Action modopt(I1) 'value'
+        ) cil managed 
+    {
+    }
+
+    .method public hidebysig specialname abstract virtual static 
+        void modopt(I2) remove_M02 (
+            class [mscorlib]System.Action 'value'
+        ) cil managed 
+    {
+    }
+
+    .event class [mscorlib]System.Action M02
+    {
+        .addon void I2::add_M02(class [mscorlib]System.Action modopt(I1))
+        .removeon void modopt(I2) I2::remove_M02(class [mscorlib]System.Action)
+    }
+}
 ";
 
             var source1 =
@@ -20584,6 +21233,18 @@ class C1 : I1
 class C2 : I1
 {
     static event System.Action<int> I1.M01 { add => throw null; remove{} }
+}
+
+#pragma warning disable CS0067 // The event 'C3.M02' is never used
+
+class C3 : I2
+{
+    public static event System.Action M02;
+}
+
+class C4 : I2
+{
+    static event System.Action I2.M02 { add => throw null; remove{} }
 }
 ";
 
@@ -20705,6 +21366,121 @@ class C2 : I1
 
                 Assert.Same(c2M01, c2.GetMembers().OfType<EventSymbol>().Single());
                 Assert.Equal(2, c2.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+
+                var c3 = module.GlobalNamespace.GetTypeMember("C3");
+                var m02 = c3.Interfaces().Single().GetMembers().OfType<EventSymbol>().Single();
+
+                var c3M02 = c3.GetMembers().OfType<EventSymbol>().Single();
+                var c3M02Add = c3M02.AddMethod;
+                var c3M02Remove = c3M02.RemoveMethod;
+
+                Assert.Equal("event System.Action C3.M02", c3M02.ToTestDisplayString());
+                Assert.Empty(c3M02.ExplicitInterfaceImplementations);
+                Assert.True(c3M02.IsStatic);
+                Assert.False(c3M02.IsAbstract);
+                Assert.False(c3M02.IsVirtual);
+
+                Assert.Equal(MethodKind.EventAdd, c3M02Add.MethodKind);
+                Assert.Equal("void C3.M02.add", c3M02Add.ToTestDisplayString());
+                Assert.Equal("System.Action value", c3M02Add.Parameters.Single().ToTestDisplayString());
+                Assert.Empty(c3M02Add.ExplicitInterfaceImplementations);
+                Assert.True(c3M02Add.IsStatic);
+                Assert.False(c3M02Add.IsAbstract);
+                Assert.False(c3M02Add.IsVirtual);
+                Assert.False(c3M02Add.IsMetadataVirtual());
+                Assert.False(c3M02Add.IsMetadataFinal);
+                Assert.False(c3M02Add.IsMetadataNewSlot());
+
+                Assert.Equal(MethodKind.EventRemove, c3M02Remove.MethodKind);
+                Assert.Equal("void C3.M02.remove", c3M02Remove.ToTestDisplayString());
+                Assert.Equal("System.Void", c3M02Remove.ReturnTypeWithAnnotations.ToTestDisplayString());
+                Assert.Empty(c3M02Remove.ExplicitInterfaceImplementations);
+                Assert.True(c3M02Remove.IsStatic);
+                Assert.False(c3M02Remove.IsAbstract);
+                Assert.False(c3M02Remove.IsVirtual);
+                Assert.False(c3M02Remove.IsMetadataVirtual());
+                Assert.False(c3M02Remove.IsMetadataFinal);
+                Assert.False(c3M02Remove.IsMetadataNewSlot());
+
+                if (module is PEModuleSymbol)
+                {
+                    c3M02Add = (MethodSymbol)c3.FindImplementationForInterfaceMember(m02.AddMethod);
+                    Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c3M02Add.MethodKind);
+                    Assert.Equal("void C3.I2.add_M02(System.Action modopt(I1) value)", c3M02Add.ToTestDisplayString());
+                    Assert.Same(m02.AddMethod, c3M02Add.ExplicitInterfaceImplementations.Single());
+
+                    Assert.True(c3M02Add.IsStatic);
+                    Assert.False(c3M02Add.IsAbstract);
+                    Assert.False(c3M02Add.IsVirtual);
+                    Assert.False(c3M02Add.IsMetadataVirtual());
+                    Assert.False(c3M02Add.IsMetadataFinal);
+                    Assert.False(c3M02Add.IsMetadataNewSlot());
+
+                    c3M02Remove = (MethodSymbol)c3.FindImplementationForInterfaceMember(m02.RemoveMethod);
+                    Assert.Equal(MethodKind.ExplicitInterfaceImplementation, c3M02Remove.MethodKind);
+                    Assert.Equal("void modopt(I2) C3.I2.remove_M02(System.Action value)", c3M02Remove.ToTestDisplayString());
+                    Assert.Same(m02.RemoveMethod, c3M02Remove.ExplicitInterfaceImplementations.Single());
+
+                    Assert.True(c3M02Remove.IsStatic);
+                    Assert.False(c3M02Remove.IsAbstract);
+                    Assert.False(c3M02Remove.IsVirtual);
+                    Assert.False(c3M02Remove.IsMetadataVirtual());
+                    Assert.False(c3M02Remove.IsMetadataFinal);
+                    Assert.False(c3M02Remove.IsMetadataNewSlot());
+
+                    // Forwarding methods aren't tied to an event  
+                    Assert.Null(c3.FindImplementationForInterfaceMember(m02));
+                }
+                else
+                {
+                    Assert.Same(c3M02, c3.FindImplementationForInterfaceMember(m02));
+                    Assert.Same(c3M02Add, c3.FindImplementationForInterfaceMember(m02.AddMethod));
+                    Assert.Same(c3M02Remove, c3.FindImplementationForInterfaceMember(m02.RemoveMethod));
+                }
+
+                var c4 = module.GlobalNamespace.GetTypeMember("C4");
+
+                var c4M02 = (EventSymbol)c4.FindImplementationForInterfaceMember(m02);
+                var c4M02Add = c4M02.AddMethod;
+                var c4M02Remove = c4M02.RemoveMethod;
+
+                Assert.Equal("event System.Action C4.I2.M02", c4M02.ToTestDisplayString());
+
+                // Signatures of accessors are lacking custom modifiers due to https://github.com/dotnet/roslyn/issues/53390.
+
+                Assert.True(c4M02.IsStatic);
+                Assert.False(c4M02.IsAbstract);
+                Assert.False(c4M02.IsVirtual);
+                Assert.Same(m02, c4M02.ExplicitInterfaceImplementations.Single());
+
+                Assert.True(c4M02Add.IsStatic);
+                Assert.False(c4M02Add.IsAbstract);
+                Assert.False(c4M02Add.IsVirtual);
+                Assert.False(c4M02Add.IsMetadataVirtual());
+                Assert.False(c4M02Add.IsMetadataFinal);
+                Assert.False(c4M02Add.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.EventAdd, c4M02Add.MethodKind);
+                Assert.Equal("void C4.I2.M02.add", c4M02Add.ToTestDisplayString());
+                Assert.Equal("System.Action value", c4M02Add.Parameters.Single().ToTestDisplayString());
+                Assert.Equal("System.Void", c4M02Add.ReturnTypeWithAnnotations.ToTestDisplayString());
+                Assert.Same(m02.AddMethod, c4M02Add.ExplicitInterfaceImplementations.Single());
+                Assert.Same(c4M02Add, c4.FindImplementationForInterfaceMember(m02.AddMethod));
+
+                Assert.True(c4M02Remove.IsStatic);
+                Assert.False(c4M02Remove.IsAbstract);
+                Assert.False(c4M02Remove.IsVirtual);
+                Assert.False(c4M02Remove.IsMetadataVirtual());
+                Assert.False(c4M02Remove.IsMetadataFinal);
+                Assert.False(c4M02Remove.IsMetadataNewSlot());
+                Assert.Equal(MethodKind.EventRemove, c4M02Remove.MethodKind);
+                Assert.Equal("void C4.I2.M02.remove", c4M02Remove.ToTestDisplayString());
+                Assert.Equal("System.Action value", c4M02Remove.Parameters.Single().ToTestDisplayString());
+                Assert.Equal("System.Void", c4M02Remove.ReturnTypeWithAnnotations.ToTestDisplayString());
+                Assert.Same(m02.RemoveMethod, c4M02Remove.ExplicitInterfaceImplementations.Single());
+                Assert.Same(c4M02Remove, c4.FindImplementationForInterfaceMember(m02.RemoveMethod));
+
+                Assert.Same(c4M02, c4.GetMembers().OfType<EventSymbol>().Single());
+                Assert.Equal(2, c4.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
             }
 
             verifier.VerifyIL("C1.I1.add_M01",
@@ -20725,6 +21501,28 @@ class C2 : I1
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  call       ""void C1.M01.remove""
+  IL_0006:  ret
+}
+");
+
+            verifier.VerifyIL("C3.I2.add_M02",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void C3.M02.add""
+  IL_0006:  ret
+}
+");
+
+            verifier.VerifyIL("C3.I2.remove_M02",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void C3.M02.remove""
   IL_0006:  ret
 }
 ");
