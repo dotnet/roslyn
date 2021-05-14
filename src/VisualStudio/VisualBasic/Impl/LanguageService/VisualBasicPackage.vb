@@ -30,6 +30,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '     Advanced
     '     Code Style (category)
     '       General
+    '       Naming
+    '     IntelliSense
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
     <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
