@@ -7712,8 +7712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt,
             ArrayBuilder<PropertySymbol> propertyGroup,
             AnalyzedArguments analyzedArguments,
-            BindingDiagnosticBag diagnostics,
-            bool forListPattern = false)
+            BindingDiagnosticBag diagnostics)
         {
             OverloadResolutionResult<PropertySymbol> overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
             bool allowRefOmittedArguments = receiverOpt.IsExpressionOfComImportType();
@@ -7737,8 +7736,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             if (!overloadResolutionResult.Succeeded)
             {
-                if (forListPattern)
-                    return null;
                 // If the arguments had an error reported about them then suppress further error
                 // reporting for overload resolution. 
 
@@ -7847,12 +7844,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return propertyAccess;
         }
 
+#nullable enable
         private bool TryBindIndexOrRangeIndexer(
             SyntaxNode syntax,
             BoundExpression receiverOpt,
             AnalyzedArguments arguments,
             BindingDiagnosticBag diagnostics,
-            out BoundIndexOrRangePatternIndexerAccess patternIndexerAccess)
+            [NotNullWhen(true)] out BoundIndexOrRangePatternIndexerAccess? patternIndexerAccess)
         {
             patternIndexerAccess = null;
 
@@ -7880,7 +7878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (!TryFindIndexOrRangeIndexerPattern(syntax, receiverOpt, receiverType, argIsIndex: argIsIndexNotRange.Value(),
-                out PropertySymbol lengthOrCountProperty, out Symbol patternSymbol, out TypeSymbol returnType, diagnostics))
+                out PropertySymbol? lengthOrCountProperty, out Symbol? patternSymbol, out TypeSymbol? returnType, diagnostics))
             {
                 return false;
             }
@@ -7905,7 +7903,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-#nullable enable
         private bool TryFindIndexOrRangeIndexerPattern(
             SyntaxNode syntax,
             BoundExpression? receiverOpt,
@@ -7915,8 +7912,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             [NotNullWhen(true)] out TypeSymbol? returnType,
             BindingDiagnosticBag diagnostics)
         {
-            bool success = false;
-
             patternSymbol = null;
             returnType = null;
 
@@ -7930,13 +7925,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 2. For Index: Has an accessible indexer with a single int parameter
             //    For Range: Has an accessible Slice method that takes two int parameters
 
-            var lookupResult = LookupResult.GetInstance();
+            using var _ = LookupResult.GetInstance(out var lookupResult);
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
             // Look for Length first
 
             if (!TryLookupLengthOrCount(receiverType, lookupResult, out lengthOrCountProperty, ref discardedUseSiteInfo))
             {
+                // If we haven't found the Length or Count property, bail. We don't need to look any further.
             }
             else if (argIsIndex)
             {
@@ -7961,17 +7957,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             candidate is PropertySymbol property &&
                             IsAccessible(property, ref discardedUseSiteInfo) &&
                             property.OriginalDefinition is { ParameterCount: 1 } original &&
-                            original.Parameters[0] is var param &&
-                            param.Type.SpecialType == SpecialType.System_Int32 &&
-                            param.RefKind == RefKind.None)
+                            original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
                         {
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternSymbol = property;
                             returnType = property.Type;
                             checkWellKnown(WellKnownMember.System_Index__GetOffset);
-                            success = true;
-                            break;
+                            return true;
                         }
                     }
                 }
@@ -7982,18 +7975,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 patternSymbol = sliceMethod;
                 returnType = sliceMethod.ReturnType;
                 CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
-                success = true;
+                return true;
             }
 
-            lookupResult.Free();
-            return success;
+            return false;
 
             void checkWellKnown(WellKnownMember member)
             {
                 // Check required well-known member. They may not be needed
                 // during lowering, but it's simpler to always require them to prevent
                 // the user from getting surprising errors when optimizations fail
-                _ = GetWellKnownTypeMember(member, diagnostics, syntax: syntax);
+                var _ = GetWellKnownTypeMember(member, diagnostics, syntax: syntax);
             }
         }
 
@@ -8004,7 +7996,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics, LookupResult lookupResult,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            bool success = false;
             patternSymbol = null;
 
             if (receiverType.SpecialType == SpecialType.System_String)
@@ -8017,7 +8008,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     checkWellKnown(WellKnownMember.System_Range__get_Start);
                     checkWellKnown(WellKnownMember.System_Range__get_End);
                     checkWellKnown(WellKnownMember.System_Index__GetOffset);
-                    success = true;
+                    return true;
                 }
             }
             else
@@ -8044,26 +8035,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             candidate is MethodSymbol method &&
                             method.OriginalDefinition is var original &&
                             original.ParameterCount == 2 &&
-                            isIntNotByRef(original.Parameters[0]) &&
-                            isIntNotByRef(original.Parameters[1]))
+                            original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None } &&
+                            original.Parameters[1] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
                         {
                             patternSymbol = method;
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
                             checkWellKnown(WellKnownMember.System_Range__get_Start);
                             checkWellKnown(WellKnownMember.System_Range__get_End);
                             checkWellKnown(WellKnownMember.System_Index__GetOffset);
-                            success = true;
-                            break;
+                            return true;
                         }
                     }
                 }
             }
 
-            return success;
-
-            static bool isIntNotByRef(ParameterSymbol param)
-                => param.Type.SpecialType == SpecialType.System_Int32 &&
-                   param.RefKind == RefKind.None;
+            return false;
 
             void checkWellKnown(WellKnownMember member)
             {

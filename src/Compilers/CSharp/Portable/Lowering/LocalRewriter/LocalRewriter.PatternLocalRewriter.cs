@@ -245,28 +245,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, _factory.Call(input, e.Property.GetMethod, _factory.Literal(e.Index)));
                         }
 
-                    case BoundDagIndexerEvaluation e:
+                    case BoundDagIndexerEvaluation { IndexerInfo: null } e:
                         {
-                            TypeSymbol inputType = input.Type;
-                            Debug.Assert(inputType is { });
-                            BoundIndexerAccess indexerAccess = e.IndexerAccess;
-                            Debug.Assert(indexerAccess is not null || inputType.IsSZArray());
+                            // array indexer access
 
-                            BoundExpression indexerArg = isImplicit(indexerAccess)
-                                ? makeImplicitIndexArgument(e.Index, e.LengthTemp)
-                                : makeExplicitIndexArgument(e.Index, e.Index < 0);
+                            Debug.Assert(input.Type?.IsSZArray() == true);
 
-                            BoundExpression access = indexerAccess is null
-                                ? _factory.ArrayAccess(input, indexerArg)
-                                : makeIndexerCall(indexerAccess, indexerArg);
+                            BoundExpression indexerArg = makeImplicitIndexArgument(e.Index, e.LengthTemp);
+                            BoundExpression access = _factory.ArrayAccess(input, indexerArg);
 
                             var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, access);
                         }
 
-                    case BoundDagSliceEvaluation { SliceMethod: null, IndexerAccess: null } e:
+                    case BoundDagIndexerEvaluation { IndexerInfo: { Symbol: PropertySymbol indexer } info } e:
                         {
+                            // implicit or explicit Index indexer access via applicable indexer member
+
+                            BoundExpression indexerArg = isImplicit(indexer)
+                                ? makeImplicitIndexArgument(e.Index, e.LengthTemp)
+                                : makeExplicitIndexArgument(e.Index, e.Index < 0);
+                            BoundExpression access = makeIndexerCall(e.Syntax, info, indexer, indexerArg);
+
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, access);
+                        }
+
+                    case BoundDagSliceEvaluation { IndexerInfo: null } e:
+                        {
+                            // array slice
+
                             TypeSymbol inputType = input.Type;
                             Debug.Assert(inputType is { });
                             Debug.Assert(inputType.IsSZArray());
@@ -283,8 +293,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, callExpr);
                         }
 
-                    case BoundDagSliceEvaluation { SliceMethod: MethodSymbol sliceMethod } e:
+                    case BoundDagSliceEvaluation { IndexerInfo: { Symbol: MethodSymbol sliceMethod } } e:
                         {
+                            // implicit Range indexer access via Slice method
+
                             Debug.Assert(sliceMethod.ContainingSymbol.Equals(input.Type));
                             Debug.Assert(sliceMethod.ParameterCount == 2);
                             Debug.Assert(sliceMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
@@ -299,9 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, callExpr);
                         }
 
-                    case BoundDagSliceEvaluation { IndexerAccess: BoundIndexerAccess indexerAccess } e:
+                    case BoundDagSliceEvaluation { IndexerInfo: { Symbol: PropertySymbol indexer } info } e:
                         {
-                            var callExpr = makeIndexerCall(indexerAccess, makeExplicitRangeArgument(e));
+                            // explicit Range indexer access via applicable indexer member
+
+                            var callExpr = makeIndexerCall(e.Syntax, info, indexer, makeExplicitRangeArgument(e));
                             var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, callExpr);
@@ -336,18 +350,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             makeExplicitIndexArgument(e.EndIndex, fromEnd: true)));
                 }
 
-                BoundExpression makeIndexerCall(BoundIndexerAccess indexerAccess, BoundExpression indexerArg)
+                BoundExpression makeIndexerCall(SyntaxNode syntax, IndexerArgumentInfo info, PropertySymbol indexer, BoundExpression indexerArg)
                 {
+                    Debug.Assert(!info.ArgumentsOpt.IsDefaultOrEmpty);
+
                     ImmutableArray<RefKind> argumentRefKindsOpt = default;
-                    MethodSymbol getMethod = indexerAccess.Indexer.GetMethod;
-                    var firstArg = indexerAccess.Arguments[0];
+                    MethodSymbol getMethod = indexer.GetMethod;
+                    var firstArg = info.ArgumentsOpt[0];
                     if (firstArg is BoundConversion conv)
                         indexerArg = conv.UpdateOperand(indexerArg);
                     ImmutableArray<BoundExpression> args = _localRewriter.MakeArguments(
-                        syntax: indexerAccess.Syntax,
-                        rewrittenArguments: indexerAccess.Arguments.SetItem(0, indexerArg),
+                        syntax: syntax,
+                        rewrittenArguments: info.ArgumentsOpt.SetItem(0, indexerArg),
                         methodOrIndexer: getMethod,
-                        expanded: indexerAccess.Expanded,
+                        expanded: info.Expanded,
                         argsToParamsOpt: default,
                         argumentRefKindsOpt: ref argumentRefKindsOpt,
                         temps: out _,
@@ -356,11 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.Call(input, getMethod, args);
                 }
 
-                bool isImplicit(BoundIndexerAccess indexerAccess)
+                bool isImplicit(PropertySymbol indexer)
                 {
-                    if (indexerAccess is null)
-                        return true;
-                    var destination = indexerAccess.Indexer.Parameters[0].Type;
+                    var destination = indexer.Parameters[0].Type;
                     destination = destination is ArrayTypeSymbol array ? array.ElementType : destination;
                     return destination.SpecialType == SpecialType.System_Int32 ||
                         ConversionsBase.HasImplicitNumericConversion(_factory.SpecialType(SpecialType.System_Int32), destination);

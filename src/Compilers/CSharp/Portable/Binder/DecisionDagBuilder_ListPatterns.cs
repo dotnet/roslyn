@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (slice.Pattern is not null)
                         {
-                            var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slice.SliceMethod, slice.IndexerAccess, slice.SliceType, lengthTemp, startIndex: index, endIndex: index - (subpatterns.Length - 1), input);
+                            var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slice.SliceType, lengthTemp, startIndex: index, endIndex: index - (subpatterns.Length - 1), slice.IndexerInfo, input);
                             tests.Add(new Tests.One(sliceEvaluation));
                             var sliceTemp = new BoundDagTemp(syntax, slice.SliceType, sliceEvaluation);
                             tests.Add(MakeTestsAndBindings(sliceTemp, slice.Pattern, bindings));
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 void addIndexerTests(int index, BoundPattern subpattern)
                 {
-                    var indexEvaluation = new BoundDagIndexerEvaluation(syntax, clause.IndexerAccess, clause.ElementType, lengthTemp, index, input);
+                    var indexEvaluation = new BoundDagIndexerEvaluation(syntax, clause.ElementType, lengthTemp, index, clause.IndexerInfo, input);
                     tests.Add(new Tests.One(indexEvaluation));
                     var indexTemp = new BoundDagTemp(syntax, clause.ElementType, indexEvaluation);
                     tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));

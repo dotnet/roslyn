@@ -195,19 +195,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            MethodSymbol? sliceMethod = null;
-            BoundIndexerAccess? indexerAccess = null;
+            IndexerArgumentInfo? info = null;
 
             TypeSymbol sliceType;
             if (inputType.IsSZArray())
             {
                 sliceType = inputType;
             }
-            else if (TryFindRangeIndexerPatternForListPattern(node, inputType, out sliceMethod, out indexerAccess))
+            else if (TryFindRangeIndexerPatternForListPattern(node, inputType, out info))
             {
-                sliceType = sliceMethod is not null ? sliceMethod.ReturnType :
-                            indexerAccess is not null ? indexerAccess.Type :
-                            throw ExceptionUtilities.Unreachable;
+                sliceType = info.Symbol.GetTypeOrReturnType().Type;
             }
             else
             {
@@ -221,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BindPattern(node.Pattern, sliceType, ExternalScope, permitDesignations, hasErrors, diagnostics)
                 : null;
 
-            return new BoundSlicePattern(node, sliceMethod, indexerAccess, sliceType: sliceType, pattern, inputType: inputType, narrowedType: inputType, hasErrors);
+            return new BoundSlicePattern(node, sliceType: sliceType, pattern, info, inputType: inputType, narrowedType: inputType, hasErrors);
         }
 
         private ImmutableArray<BoundPattern> BindListPatternSubpatterns(
@@ -307,14 +304,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause));
 
             TypeSymbol elementType;
-            BoundIndexerAccess? indexerAccess = null;
+            IndexerArgumentInfo? info = null;
             if (inputType.IsSZArray())
             {
                 elementType = ((ArrayTypeSymbol)inputType).ElementType;
             }
-            else if (TryFindIndexIndexerPatternForListPattern(node, inputType, out indexerAccess))
+            else if (TryFindIndexIndexerPatternForListPattern(node, inputType, out info))
             {
-                elementType = indexerAccess.Type;
+                elementType = info.Symbol.GetTypeOrReturnType().Type;
             }
             else
             {
@@ -325,42 +322,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(node, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
-            return new BoundListPatternClause(node, elementType, subpatterns, sawSlice, indexerAccess, hasErrors);
+            return new BoundListPatternClause(node, elementType, subpatterns, sawSlice, info, hasErrors);
         }
 
         private bool TryFindIndexIndexerPatternForListPattern(
             SyntaxNode syntax, TypeSymbol receiverType,
-            [NotNullWhen(true)] out BoundIndexerAccess? indexerAccess)
+            [NotNullWhen(true)] out IndexerArgumentInfo? info)
         {
-            var lookupResult = LookupResult.GetInstance();
-            var success = PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out indexerAccess, Compilation.GetWellKnownType(WellKnownType.System_Index)) ||
-                          PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out indexerAccess, Compilation.GetSpecialType(SpecialType.System_Int32));
-            lookupResult.Free();
-            return success;
+            using var _ = LookupResult.GetInstance(out var lookupResult);
+            return PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, Compilation.GetWellKnownType(WellKnownType.System_Index)) ||
+                   PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, Compilation.GetSpecialType(SpecialType.System_Int32));
         }
 
         private bool TryFindRangeIndexerPatternForListPattern(
             SyntaxNode syntax, TypeSymbol receiverType,
-            out MethodSymbol? sliceMethod,
-            out BoundIndexerAccess? indexerAccess)
+            [NotNullWhen(true)] out IndexerArgumentInfo? info)
         {
-            sliceMethod = null;
-
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            var lookupResult = LookupResult.GetInstance();
-            var success = PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out indexerAccess, Compilation.GetWellKnownType(WellKnownType.System_Range)) ||
-                          TryFindImplicitRangeIndexerPattern(syntax, receiverOpt: null, receiverType, out sliceMethod, BindingDiagnosticBag.Discarded, lookupResult, ref useSiteInfo);
-            lookupResult.Free();
-            return success;
+            using var _ = LookupResult.GetInstance(out var lookupResult);
+            if (PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, Compilation.GetWellKnownType(WellKnownType.System_Range)))
+                return true;
+            if (!TryFindImplicitRangeIndexerPattern(syntax, receiverOpt: null, receiverType, out MethodSymbol? sliceMethod, BindingDiagnosticBag.Discarded, lookupResult, ref useSiteInfo))
+                return false;
+            info = new IndexerArgumentInfo(sliceMethod);
+            return true;
         }
 
-        private bool PerformPatternIndexerLookup(SyntaxNode syntax, TypeSymbol receiverType, LookupResult lookupResult, out BoundIndexerAccess? valid, TypeSymbol? indexerArgumentType)
+        private bool PerformPatternIndexerLookup(SyntaxNode syntax, TypeSymbol receiverType, LookupResult lookupResult, out IndexerArgumentInfo? info, TypeSymbol? indexerArgumentType)
         {
-            var diagnostics = BindingDiagnosticBag.Discarded;
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-
+            info = null;
             if (indexerArgumentType is not null)
             {
+                var diagnostics = BindingDiagnosticBag.Discarded;
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 LookupMembersInType(
                     lookupResult,
                     receiverType,
@@ -381,25 +375,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                         indexerGroup.Add((PropertySymbol)symbol);
                     }
 
-                    // PROTOTYPE(list-patterns) Use placeholder
                     BoundExpression indexerArgumentExpr = new BoundImplicitReceiver(syntax, indexerArgumentType);
                     var analyzedArguments = AnalyzedArguments.GetInstance(ImmutableArray.Create(indexerArgumentExpr));
-                    var result = BindIndexerOrIndexedPropertyAccess(
-                        syntax, receiverOpt: new BoundImplicitReceiver(syntax, receiverType),
-                        propertyGroup: indexerGroup, analyzedArguments, diagnostics, forListPattern: true);
-                    analyzedArguments.Free();
-                    if (result is BoundIndexerAccess { HasErrors: false } indexerAccess)
+                    BoundExpression receiver = new BoundSliceOrListPatternValuePlaceholder(syntax, receiverType);
+                    var overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
+                    this.OverloadResolution.PropertyOverloadResolution(indexerGroup, receiver, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments: false, ref useSiteInfo);
+                    if (overloadResolutionResult.Succeeded)
                     {
-                        lookupResult.Clear();
-                        valid = BindIndexerDefaultArguments(indexerAccess, BindValueKind.RValue, diagnostics);
-                        return true;
+                        MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
+                        PropertySymbol indexer = resolutionResult.Member;
+                        if (!indexer.IsStatic && IsAccessible(indexer, ref useSiteInfo))
+                        {
+                            ReportDiagnosticsIfObsolete(diagnostics, indexer, syntax, hasBaseReceiver: false);
+                            CoerceArguments(resolutionResult, analyzedArguments.Arguments, diagnostics);
+                            bool isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+                            MethodSymbol? accessorForDefaultArgs = indexer.GetOwnOrInheritedGetMethod();
+                            if (accessorForDefaultArgs is not null)
+                            {
+                                var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(accessorForDefaultArgs.ParameterCount);
+                                argumentsBuilder.AddRange(analyzedArguments.Arguments);
+                                ImmutableArray<int> argsToParams = default;
+                                BindDefaultArguments(
+                                    node: syntax,
+                                    parameters: accessorForDefaultArgs.Parameters,
+                                    argumentsBuilder: argumentsBuilder,
+                                    argumentRefKindsBuilder: null,
+                                    argsToParamsOpt: ref argsToParams,
+                                    defaultArguments: out _,
+                                    expanded: isExpanded,
+                                    enableCallerInfo: true,
+                                    diagnostics: diagnostics);
+                                info = new IndexerArgumentInfo(indexer, argumentsBuilder.ToImmutableAndFree(), isExpanded);
+                            }
+                        }
                     }
+                    analyzedArguments.Free();
+                    overloadResolutionResult.Free();
                 }
             }
 
             lookupResult.Clear();
-            valid = null;
-            return false;
+            return info is not null;
         }
 
         private static BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)

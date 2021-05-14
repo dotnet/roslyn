@@ -320,5 +320,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _pool.Free(this);
             }
         }
+
+        internal static Disposer GetInstance(out LookupResult instance)
+            => new Disposer(instance = GetInstance());
+
+        internal readonly ref struct Disposer
+        {
+            public readonly LookupResult _instance;
+            public Disposer(LookupResult instance) => _instance = instance;
+            public void Dispose() => _instance.Free();
+        }
     }
 }
