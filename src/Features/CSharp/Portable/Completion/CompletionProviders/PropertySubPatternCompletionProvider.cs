@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var propertyPatternType = semanticModel.GetTypeInfo((PatternSyntax)propertyPatternClause.Parent, cancellationToken).ConvertedType;
+            // For simple property patterns, the type we want is the "input type" of the property pattern, ie the type of `c` in `c is { $$ }`.
+            // For extended property patterns, we get the type by following the chain of members that we have so far, ie
+            // the type of `c.Property` for `c is { Property.$$ }` and the type of `c.Property1.Property2` for `c is { Property1.Property2.$$ }`.
             var type = GetMemberAccessType(propertyPatternType, memberAccess, document, semanticModel, position);
 
             if (type is null)
@@ -183,12 +186,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (token.IsKind(SyntaxKind.DotToken))
             {
-                return token.Parent is MemberAccessExpressionSyntax { Parent: { Parent: SubpatternSyntax { Parent: PropertyPatternClauseSyntax propertyPatternClause } } } memberAccess
+                // is { Property1.$$ }
+                // is { Property1.$$  Property1.Property2: ... } // typing before an existing pattern
+                return token.Parent is MemberAccessExpressionSyntax memberAccess && IsExtendedPropertyPattern(memberAccess, out var propertyPatternClause)
                     ? (propertyPatternClause, memberAccess.Expression)
                     : default;
             }
 
             return default;
+
+            bool IsExtendedPropertyPattern(MemberAccessExpressionSyntax memberAccess, out PropertyPatternClauseSyntax propertyPatternClause)
+            {
+                while (memberAccess.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                {
+                    memberAccess = (MemberAccessExpressionSyntax)memberAccess.Parent;
+                }
+
+                if (memberAccess is { Parent: { Parent: SubpatternSyntax { Parent: PropertyPatternClauseSyntax found } } })
+                {
+                    propertyPatternClause = found;
+                    return true;
+                }
+
+                propertyPatternClause = null;
+                return false;
+            }
         }
     }
 }
