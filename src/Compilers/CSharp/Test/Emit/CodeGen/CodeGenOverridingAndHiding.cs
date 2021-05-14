@@ -1114,8 +1114,10 @@ class Test
             var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
 
-        [Fact]
-        public void TestAmbiguousOverridesRefOut()
+        [Theory]
+        [InlineData(TargetFramework.NetCoreApp)]
+        [InlineData(TargetFramework.Standard)]
+        public void TestAmbiguousOverridesRefOut(TargetFramework targetFramework)
         {
             var method1 = @"public virtual void Method(ref List<T> x, out List<U> y) { y = null; Console.WriteLine(""Base<T, U>.Method(ref List<T> x, out List<U> y)""); }";
             var method2 = @"public virtual void Method(out List<U> y, ref List<T> x) { y = null; Console.WriteLine(""Base<T, U>.Method(out List<U> y, ref List<T> x)""); }";
@@ -1190,7 +1192,7 @@ class Program
                     };
 
                     var substitutedSource = subst(substitutedSource0);
-                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe);
+                    var compilation = CreateCompilation(substitutedSource, options: TestOptions.ReleaseExe, targetFramework: targetFramework);
                     string expectedOutput;
                     if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
                     {

@@ -4922,8 +4922,10 @@ public class Derived2 : Derived
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Fact]
-        public void TestAmbiguousOverrideMethod()
+        [Theory]
+        [InlineData(TargetFramework.NetCoreApp)]
+        [InlineData(TargetFramework.Standard)]
+        public void TestAmbiguousOverrideMethod(TargetFramework targetFramework)
         {
             var text = @"
 public class Base<TShort, TInt>
@@ -4937,7 +4939,7 @@ public class Derived : Base<short, int>
     public override void Method(short s, int i) { }
 }
 ";
-            CSharpCompilation comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: targetFramework);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(
@@ -4979,8 +4981,10 @@ public class Derived : Base<short, int>
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "this").WithArguments("Base<TShort, TInt>.this[TShort, int]", "Base<TShort, TInt>.this[short, TInt]", "Derived"));
         }
 
-        [Fact]
-        public void TestRuntimeAmbiguousOverride()
+        [Theory]
+        [InlineData(TargetFramework.NetCoreApp)]
+        [InlineData(TargetFramework.Standard)]
+        public void TestRuntimeAmbiguousOverride(TargetFramework targetFramework)
         {
             var text = @"
 class Base<TInt>
@@ -4995,7 +4999,7 @@ class Derived : Base<int>
     public override void Method(int @in, ref int @ref) { }
 }
 ";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilation(text, targetFramework: targetFramework);
             if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 // We no longer report a runtime ambiguous override because the compiler
