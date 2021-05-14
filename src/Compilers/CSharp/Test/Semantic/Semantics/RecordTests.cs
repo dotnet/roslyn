@@ -30171,5 +30171,106 @@ class C2 : I(0)
                 Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(0)").WithLocation(10, 13)
                 );
         }
+
+        [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [CombinatorialData]
+        public void CrossAssemblySupportingAndNotSupportingCovariantReturns(bool useCompilationReference)
+        {
+            var sourceA =
+@"public record B(int I)
+{
+}
+
+public record C(int I) : B(I);";
+
+            var compA = CreateCompilation(sourceA);
+            compA.VerifyDiagnostics();
+            Assert.False(compA.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            var actualMembers = compA.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "C..ctor(System.Int32 I)",
+                "System.Type C.EqualityContract.get",
+                "System.Type C.EqualityContract { get; }",
+                "System.String C.ToString()",
+                "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C.op_Inequality(C? left, C? right)",
+                "System.Boolean C.op_Equality(C? left, C? right)",
+                "System.Int32 C.GetHashCode()",
+                "System.Boolean C.Equals(System.Object? obj)",
+                "System.Boolean C.Equals(B? other)",
+                "System.Boolean C.Equals(C? other)",
+                "B C." + WellKnownMemberNames.CloneMethodName + "()",
+                "C..ctor(C original)",
+                "void C.Deconstruct(out System.Int32 I)",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+
+            var refA = useCompilationReference ? compA.ToMetadataReference() : compA.EmitToImageReference();
+
+            var sourceB = "record D(int I) : C(I);";
+
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
+
+            if (useCompilationReference)
+            {
+                compB.VerifyDiagnostics(
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1),
+                    // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'e2c3c06c-08d0-4c94-8ce0-425103d97081' matches identity 'System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+                    Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "e2c3c06c-08d0-4c94-8ce0-425103d97081", "System.Runtime, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime").WithLocation(1, 1));
+            }
+            else
+            {
+                compB.VerifyDiagnostics();
+            }
+
+            Assert.True(compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+
+            actualMembers = compB.GetMember<NamedTypeSymbol>("D").GetMembers().ToTestDisplayStrings();
+            expectedMembers = new[]
+            {
+                "D..ctor(System.Int32 I)",
+                "System.Type D.EqualityContract.get",
+                "System.Type D.EqualityContract { get; }",
+                "System.String D.ToString()",
+                "System.Boolean D." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean D.op_Inequality(D? left, D? right)",
+                "System.Boolean D.op_Equality(D? left, D? right)",
+                "System.Int32 D.GetHashCode()",
+                "System.Boolean D.Equals(System.Object? obj)",
+                "System.Boolean D.Equals(C? other)",
+                "System.Boolean D.Equals(D? other)",
+                "D D." + WellKnownMemberNames.CloneMethodName + "()",
+                "D..ctor(D original)",
+                "void D.Deconstruct(out System.Int32 I)"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+
+        }
     }
 }
