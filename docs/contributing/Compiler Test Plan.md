@@ -31,6 +31,7 @@ This document provides guidance for thinking about language interactions and tes
 - VB/F# interop
 - Performance and stress testing
 - Can build VS
+- If the new feature is a syntactic sugar that calls method with specific names (similar to `Deconstruct`, `Slice`, etc), does `Obsolete` attribute work correctly?
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
