@@ -12760,6 +12760,15 @@ record B : A
   IL_001a:  stfld      ""object C.<P2>k__BackingField""
   IL_001f:  ret
 }");
+
+            verifierA.VerifyIL($"B.{WellKnownMemberNames.CloneMethodName}()", @"
+{
+      // Code size        7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  newobj     ""B..ctor(B)""
+      IL_0006:  ret
+}");
         }
 
         [Fact, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
@@ -25818,7 +25827,7 @@ public class C
         [Fact]
         public void AccessCheckProtected03()
         {
-            const string src = @"
+            CSharpCompilation c = CreateCompilation(@"
 record X<T> { }
 
 record A { }
@@ -25833,8 +25842,7 @@ record B
         }
     }
 }
-";
-            CSharpCompilation c = CreateCompilation(src, targetFramework: TargetFramework.StandardLatest);
+", targetFramework: TargetFramework.StandardLatest);
             Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, c.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (c.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
