@@ -372,6 +372,7 @@ record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
                 // record R3([System.Diagnostics.CodeAnalysis.NotNull] R3 x);
                 Diagnostic(ErrorCode.ERR_RecordAmbigCtor, "R3").WithLocation(7, 8)
                 );
+
             var r = comp.GlobalNamespace.GetTypeMember("R");
             Assert.Equal(new[] { "R..ctor(R x)", "R..ctor(R original)" }, r.GetMembers(".ctor").ToTestDisplayStrings());
         }
