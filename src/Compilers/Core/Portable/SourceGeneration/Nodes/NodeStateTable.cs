@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis
         private NodeStateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, bool isCompacted, Exception? exception)
         {
             Debug.Assert(exception is object && !isCompacted
-                        || exception is null && isCompacted && states.All(s => s.All(e => e.Item2 == EntryState.Cached))
-                        || exception is null);
+                         || exception is null && (!isCompacted || isCompacted && states.All(s => s.All(e => e.Item2 == EntryState.Cached))));
 
             _states = states;
             _exception = exception;

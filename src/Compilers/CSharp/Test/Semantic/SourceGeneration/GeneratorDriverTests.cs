@@ -1517,7 +1517,7 @@ class C { }
             Assert.Equal(1, textsCalledFor.Count);
             Assert.Equal(text1, textsCalledFor[0]);
 
-            // clear the results, add an aditional text, but keep the compilation the same
+            // clear the results, add an additional text, but keep the compilation the same
             compilationsCalledFor.Clear();
             textsCalledFor.Clear();
             driver = driver.AddAdditionalTexts(ImmutableArray.Create<AdditionalText>(text2));
@@ -1572,7 +1572,7 @@ class C { }
             Assert.Equal(1, compilationsCalledFor.Count);
             Assert.Equal(compilation, compilationsCalledFor[0]);
 
-            // now edit the compilation, run the generator, and confim that the output was not called again this time
+            // now edit the compilation, run the generator, and confirm that the output was not called again this time
             Compilation newCompilation = compilation.WithOptions(compilation.Options.WithModuleName("newCompilation"));
             driver = driver.RunGenerators(newCompilation);
             Assert.Equal(1, compilationsCalledFor.Count);

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
 
         public ISyntaxInputBuilder GetBuilder(DriverStateTable table) => new Builder(this, table);
 
-        public class Builder : ISyntaxInputBuilder
+        private sealed class Builder : ISyntaxInputBuilder
         {
             private readonly SyntaxReceiverInputNode _owner;
             private readonly NodeStateTable<ISyntaxContextReceiver>.Builder _nodeStateTable;

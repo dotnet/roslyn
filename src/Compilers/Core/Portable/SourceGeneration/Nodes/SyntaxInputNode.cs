@@ -12,25 +12,24 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class SyntaxInputNode<T> : IIncrementalGeneratorNode<T>, ISyntaxInputNode
     {
-        private readonly Func<GeneratorSyntaxContext, T> _func;
-        private readonly IEqualityComparer<T> _comparer;
+        private readonly Func<GeneratorSyntaxContext, T> _transformFunc;
         private readonly Func<SyntaxNode, bool> _filterFunc;
+        private readonly IEqualityComparer<T> _comparer;
+        private readonly object _filterKey = new object();
 
         internal SyntaxInputNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc, IEqualityComparer<T>? comparer = null)
         {
-            _func = transformFunc;
+            _transformFunc = transformFunc;
             _filterFunc = filterFunc;
             _comparer = comparer ?? EqualityComparer<T>.Default;
         }
-
-        public object FilterKey { get; } = new object();
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
             return (NodeStateTable<T>)graphState.GetSyntaxInputTable(this);
         }
 
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _func, comparer);
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, comparer);
 
         public ISyntaxInputBuilder GetBuilder(DriverStateTable table) => new Builder(this, table);
 
@@ -45,13 +44,13 @@ namespace Microsoft.CodeAnalysis
             public Builder(SyntaxInputNode<T> owner, DriverStateTable table)
             {
                 _owner = owner;
-                _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner.FilterKey).ToBuilder();
+                _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder();
                 _transformTable = table.GetStateTableOrEmpty<T>(_owner).ToBuilder();
             }
 
             public void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables)
             {
-                tables[_owner.FilterKey] = _filterTable.ToImmutableAndFree();
+                tables[_owner._filterKey] = _filterTable.ToImmutableAndFree();
                 tables[_owner] = _transformTable.ToImmutableAndFree();
             }
 
@@ -67,6 +66,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     Debug.Assert(model is object);
 
+                    // get the syntax nodes from cache, or a syntax walk using the filter
                     ImmutableArray<SyntaxNode> nodes;
                     if (state == EntryState.Cached && _filterTable.TryUseCachedEntries())
                     {
@@ -78,11 +78,11 @@ namespace Microsoft.CodeAnalysis
                         _filterTable.AddEntries(nodes, EntryState.Added);
                     }
 
-                    // now, using the obtained nodes, run the transform on the regular node
+                    // now, using the obtained syntax nodes, run the transform
                     foreach (var node in nodes)
                     {
                         var value = new GeneratorSyntaxContext(node, model);
-                        var transformed = ImmutableArray.Create(_owner._func(value));
+                        var transformed = ImmutableArray.Create(_owner._transformFunc(value));
 
                         if (state == EntryState.Added || !_transformTable.TryModifyEntries(transformed, _owner._comparer))
                         {
