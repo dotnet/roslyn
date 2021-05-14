@@ -4999,11 +4999,6 @@ class Derived : Base<int>
             if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 throw new Exception("Is this reachable?");
-
-                // We no longer report a runtime ambiguous override because the compiler
-                // produces a methodimpl record to disambiguate.
-                compilation.VerifyDiagnostics(
-                    );
             }
             else
             {
