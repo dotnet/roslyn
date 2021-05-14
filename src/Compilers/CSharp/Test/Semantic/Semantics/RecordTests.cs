@@ -10828,6 +10828,8 @@ record C(object P)
                 // record C(object P)
                 Diagnostic(ErrorCode.ERR_MemberReserved, "P").WithArguments("get_P", "C").WithLocation(9, 17));
 
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+
             var expectedClone = comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses
                 ? "B B." + WellKnownMemberNames.CloneMethodName + "()"
                 : "A B." + WellKnownMemberNames.CloneMethodName + "()";
@@ -15913,6 +15915,7 @@ record B(int X, int Y) : A
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.Equals(object)").WithLocation(7, 8)
                 );
 
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             string expectedClone = comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses
                 ? "B B." + WellKnownMemberNames.CloneMethodName + "()"
                 : "A B." + WellKnownMemberNames.CloneMethodName + "()";
@@ -23732,10 +23735,8 @@ record B : A;
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.EqualityContract", "A.EqualityContract").WithLocation(5, 8));
         }
 
-        [Theory]
-        [InlineData(TargetFramework.NetCoreApp)]
-        [InlineData(TargetFramework.Standard)]
-        public void Equality_14(TargetFramework targetFramework)
+        [Fact]
+        public void Equality_14()
         {
             var source =
 @"record A;
@@ -23745,7 +23746,7 @@ record B : A
 }
 record C : B;
 ";
-            var comp = CreateCompilation(source, targetFramework: targetFramework);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardLatest);
             comp.VerifyDiagnostics(
                 // (4,43): error CS8872: 'B.EqualityContract' must allow overriding because the containing record is not sealed.
                 //     protected sealed override System.Type EqualityContract => typeof(B);
@@ -23754,21 +23755,11 @@ record C : B;
                 // record C : B;
                 Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C").WithArguments("C.EqualityContract", "B.EqualityContract").WithLocation(6, 8));
 
-            string expectedClone;
-            if (targetFramework == TargetFramework.Standard)
-            {
-                Assert.False(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
-                expectedClone = "A B." + WellKnownMemberNames.CloneMethodName + "()";
-            }
-            else if (targetFramework == TargetFramework.NetCoreApp)
-            {
-                Assert.True(comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
-                expectedClone = "B B." + WellKnownMemberNames.CloneMethodName + "()";
-            }
-            else
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+
+            string expectedClone = comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses
+                ? "B B." + WellKnownMemberNames.CloneMethodName + "()"
+                : "A B." + WellKnownMemberNames.CloneMethodName + "()";
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -25844,17 +25835,32 @@ record B
 }
 ";
             CSharpCompilation c = CreateCompilation(src, targetFramework: TargetFramework.StandardLatest);
-            c.VerifyDiagnostics(
-                // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
-                //     record C : X<C.D.E>
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 12),
-                // (8,12): error CS0050: Inconsistent accessibility: return type 'X<B.C.D.E>' is less accessible than method 'B.C.<Clone>$()'
-                //     record C : X<C.D.E>
-                Diagnostic(ErrorCode.ERR_BadVisReturnType, "C").WithArguments("B.C.<Clone>$()", "X<B.C.D.E>").WithLocation(8, 12),
-                // (8,12): error CS0051: Inconsistent accessibility: parameter type 'X<B.C.D.E>' is less accessible than method 'B.C.Equals(X<B.C.D.E>?)'
-                //     record C : X<C.D.E>
-                Diagnostic(ErrorCode.ERR_BadVisParamType, "C").WithArguments("B.C.Equals(X<B.C.D.E>?)", "X<B.C.D.E>").WithLocation(8, 12)
-                );
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, c.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            if (c.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
+            {
+                c.VerifyDiagnostics(
+                    // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                    //     record C : X<C.D.E>
+                    Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 12),
+                    // (8,12): error CS0051: Inconsistent accessibility: parameter type 'X<B.C.D.E>' is less accessible than method 'B.C.Equals(X<B.C.D.E>?)'
+                    //     record C : X<C.D.E>
+                    Diagnostic(ErrorCode.ERR_BadVisParamType, "C").WithArguments("B.C.Equals(X<B.C.D.E>?)", "X<B.C.D.E>").WithLocation(8, 12)
+                    );
+            }
+            else
+            {
+                c.VerifyDiagnostics(
+                    // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                    //     record C : X<C.D.E>
+                    Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 12),
+                    // (8,12): error CS0050: Inconsistent accessibility: return type 'X<B.C.D.E>' is less accessible than method 'B.C.<Clone>$()'
+                    //     record C : X<C.D.E>
+                    Diagnostic(ErrorCode.ERR_BadVisReturnType, "C").WithArguments("B.C.<Clone>$()", "X<B.C.D.E>").WithLocation(8, 12),
+                    // (8,12): error CS0051: Inconsistent accessibility: parameter type 'X<B.C.D.E>' is less accessible than method 'B.C.Equals(X<B.C.D.E>?)'
+                    //     record C : X<C.D.E>
+                    Diagnostic(ErrorCode.ERR_BadVisParamType, "C").WithArguments("B.C.Equals(X<B.C.D.E>?)", "X<B.C.D.E>").WithLocation(8, 12)
+                    );
+            }
         }
 
         [Fact]
@@ -26198,20 +26204,38 @@ public partial record C1
 }
 ";
             var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
-            comp.VerifyDiagnostics(
-                // (2,15): error CS0106: The modifier 'static' is not valid for this item
-                // static record NV
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "NV").WithArguments("static").WithLocation(2, 15),
-                // (6,23): error CS0050: Inconsistent accessibility: return type 'NV' is less accessible than method 'C1.<Clone>$()'
-                // public partial record C1
-                Diagnostic(ErrorCode.ERR_BadVisReturnType, "C1").WithArguments("C1.<Clone>$()", "NV").WithLocation(6, 23),
-                // (6,23): error CS0051: Inconsistent accessibility: parameter type 'NV' is less accessible than method 'C1.Equals(NV?)'
-                // public partial record C1
-                Diagnostic(ErrorCode.ERR_BadVisParamType, "C1").WithArguments("C1.Equals(NV?)", "NV").WithLocation(6, 23),
-                // (10,16): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
-                // partial record C1 : NV
-                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 16)
-                );
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            if (comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
+            {
+                comp.VerifyDiagnostics(
+                    // (2,15): error CS0106: The modifier 'static' is not valid for this item
+                    // static record NV
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "NV").WithArguments("static").WithLocation(2, 15),
+                    // (6,23): error CS0051: Inconsistent accessibility: parameter type 'NV' is less accessible than method 'C1.Equals(NV?)'
+                    // public partial record C1
+                    Diagnostic(ErrorCode.ERR_BadVisParamType, "C1").WithArguments("C1.Equals(NV?)", "NV").WithLocation(6, 23),
+                    // (10,16): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                    // partial record C1 : NV
+                    Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 16)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (2,15): error CS0106: The modifier 'static' is not valid for this item
+                    // static record NV
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "NV").WithArguments("static").WithLocation(2, 15),
+                    // (6,23): error CS0050: Inconsistent accessibility: return type 'NV' is less accessible than method 'C1.<Clone>$()'
+                    // public partial record C1
+                    Diagnostic(ErrorCode.ERR_BadVisReturnType, "C1").WithArguments("C1.<Clone>$()", "NV").WithLocation(6, 23),
+                    // (6,23): error CS0051: Inconsistent accessibility: parameter type 'NV' is less accessible than method 'C1.Equals(NV?)'
+                    // public partial record C1
+                    Diagnostic(ErrorCode.ERR_BadVisParamType, "C1").WithArguments("C1.Equals(NV?)", "NV").WithLocation(6, 23),
+                    // (10,16): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                    // partial record C1 : NV
+                    Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 16)
+                    );
+            }
         }
 
         [Fact]
@@ -30123,7 +30147,7 @@ class C2 : I(0)
 
 public record C(int I) : B(I);";
 
-            var compA = CreateCompilation(sourceA);
+            var compA = CreateCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetStandard20);
             compA.VerifyDiagnostics();
             Assert.False(compA.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             var actualMembers = compA.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
@@ -30150,7 +30174,7 @@ public record C(int I) : B(I);";
 
             var sourceB = "record D(int I) : C(I);";
 
-            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.StandardLatest);
 
             if (useCompilationReference)
             {
@@ -30189,7 +30213,7 @@ public record C(int I) : B(I);";
                 compB.VerifyDiagnostics();
             }
 
-            Assert.True(compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
 
             actualMembers = compB.GetMember<NamedTypeSymbol>("D").GetMembers().ToTestDisplayStrings();
             expectedMembers = new[]
