@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-
         public ValueTask<ImmutableArray<SerializableValueTrackedItem>> TrackValueSourceAsync(PinnedSolutionInfo solutionInfo, TextSpan selection, DocumentId documentId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>

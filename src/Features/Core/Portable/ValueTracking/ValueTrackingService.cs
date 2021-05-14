@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 foreach (var item in result.Value)
                 {
                     var rehydratedItem = await item.RehydrateAsync(document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(rehydratedItem);
                     builder.Add(rehydratedItem);
                 }
             }
