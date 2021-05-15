@@ -23,7 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     ' The option page configuration is duplicated in PackageRegistration.pkgdef.
     '
     ' VB option pages tree
-    '   Basic
+    '   Visual Basic
     '     General (from editor)
     '     Scroll Bars (from editor)
     '     Tabs (from editor)
