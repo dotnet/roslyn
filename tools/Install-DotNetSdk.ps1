@@ -31,17 +31,25 @@ $sdkVersion = & "$PSScriptRoot/../azure-pipelines/variables/DotNetSdkVersion.ps1
 
 # Search for all .NET Core runtime versions referenced from MSBuild projects and arrange to install them.
 $runtimeVersions = @()
+$windowsDesktopRuntimeVersions = @()
 Get-ChildItem "$PSScriptRoot\..\src\*.*proj","$PSScriptRoot\..\test\*.*proj","$PSScriptRoot\..\Directory.Build.props" -Recurse |% {
     $projXml = [xml](Get-Content -Path $_)
-    $targetFrameworks = $projXml.Project.PropertyGroup.TargetFramework
-    if (!$targetFrameworks) {
-        $targetFrameworks = $projXml.Project.PropertyGroup.TargetFrameworks
-        if ($targetFrameworks) {
-            $targetFrameworks = $targetFrameworks -Split ';'
+    $pg = $projXml.Project.PropertyGroup
+    if ($pg) {
+        $targetFrameworks = $pg.TargetFramework
+        if (!$targetFrameworks) {
+            $targetFrameworks = $pg.TargetFrameworks
+            if ($targetFrameworks) {
+                $targetFrameworks = $targetFrameworks -Split ';'
+            }
         }
     }
     $targetFrameworks |? { $_ -match 'netcoreapp(\d+\.\d+)' } |% {
-        $runtimeVersions += $Matches[1]
+        $v = $Matches[1]
+        $runtimeVersions += $v
+        if ($v -ge '3.0' -and -not ($IsMacOS -or $IsLinux)) {
+            $windowsDesktopRuntimeVersions += $v
+        }
     }
 }
 
@@ -163,19 +171,35 @@ if ($PSCmdlet.ShouldProcess(".NET Core SDK $sdkVersion", "Install")) {
     Invoke-Expression -Command "$DotNetInstallScriptPath -Version $sdkVersion $switches -DryRun"
 }
 
-$switches += '-Runtime','dotnet'
+$dotnetRuntimeSwitches = $switches + '-Runtime','dotnet'
 
-$runtimeVersions | Get-Unique |% {
+$runtimeVersions | Sort-Object -Unique |% {
     if ($PSCmdlet.ShouldProcess(".NET Core runtime $_", "Install")) {
         $anythingInstalled = $true
-        Invoke-Expression -Command "$DotNetInstallScriptPath -Channel $_ $switches"
+        Invoke-Expression -Command "$DotNetInstallScriptPath -Channel $_ $dotnetRuntimeSwitches"
 
         if ($LASTEXITCODE -ne 0) {
             Write-Error ".NET SDK installation failure: $LASTEXITCODE"
             exit $LASTEXITCODE
         }
     } else {
-        Invoke-Expression -Command "$DotNetInstallScriptPath -Channel $_ $switches -DryRun"
+        Invoke-Expression -Command "$DotNetInstallScriptPath -Channel $_ $dotnetRuntimeSwitches -DryRun"
+    }
+}
+
+$windowsDesktopRuntimeSwitches = $switches + '-Runtime','windowsdesktop'
+
+$windowsDesktopRuntimeVersions | Sort-Object -Unique |% {
+    if ($PSCmdlet.ShouldProcess(".NET Core WindowsDesktop runtime $_", "Install")) {
+        $anythingInstalled = $true
+        Invoke-Expression -Command "$DotNetInstallScriptPath -Channel $_ $windowsDesktopRuntimeSwitches"
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error ".NET SDK installation failure: $LASTEXITCODE"
+            exit $LASTEXITCODE
+        }
+    } else {
+        Invoke-Expression -Command "$DotNetInstallScriptPath -Channel $_ $windowsDesktopRuntimeSwitches -DryRun"
     }
 }
 
