@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis
                 _transformTable = table.GetStateTableOrEmpty<T>(_owner).ToBuilder();
             }
 
+            public ISyntaxInputNode SyntaxInputNode { get => _owner; }
+
             public void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables)
             {
                 tables[_owner._filterKey] = _filterTable.ToImmutableAndFree();

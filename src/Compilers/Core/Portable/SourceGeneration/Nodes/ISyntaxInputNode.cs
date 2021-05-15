@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis
 
     internal interface ISyntaxInputBuilder
     {
+        ISyntaxInputNode SyntaxInputNode { get; }
+
         void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model);
 
         void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables);

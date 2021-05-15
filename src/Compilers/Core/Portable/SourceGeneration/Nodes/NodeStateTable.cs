@@ -175,7 +175,9 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                var previousEntries = _previous._states[_states.Count].SelectAsArray(s => (s.item, EntryState.Cached));
+                var previousEntries = _previous._states[_states.Count];
+                Debug.Assert(previousEntries.All(e => e.state == EntryState.Cached));
+
                 _states.Add(previousEntries);
                 return true;
             }
@@ -257,7 +259,7 @@ namespace Microsoft.CodeAnalysis
                     return NodeStateTable<T>.Empty;
                 }
 
-                var hasNonCached = _states.Any(s => s.Any(i => i.Item2 != EntryState.Cached));
+                var hasNonCached = _states.Any(static s => s.Any(static i => i.Item2 != EntryState.Cached));
                 return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached, exception: null);
 
             }

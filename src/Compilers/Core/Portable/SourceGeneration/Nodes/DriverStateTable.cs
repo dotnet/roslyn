@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis
                     foreach (var builder in builders)
                     {
                         builder.SaveStateAndFree(_tableBuilder);
+                        Debug.Assert(_tableBuilder.ContainsKey(builder.SyntaxInputNode));
                     }
                     builders.Free();
                 }

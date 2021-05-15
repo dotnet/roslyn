@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -32,7 +33,8 @@ namespace Microsoft.CodeAnalysis
             HashSet<T> itemsSet = new HashSet<T>(_comparer);
             foreach (var item in inputItems)
             {
-                itemsSet.Add(item);
+                var added = itemsSet.Add(item);
+                Debug.Assert(added);
             }
 
             var builder = previousTable.ToBuilder();
@@ -43,7 +45,8 @@ namespace Microsoft.CodeAnalysis
                 if (itemsSet.Remove(oldItem))
                 {
                     // we're iterating the table, so know that it has entries
-                    builder.TryUseCachedEntries();
+                    var usedCache = builder.TryUseCachedEntries();
+                    Debug.Assert(usedCache);
                 }
                 else
                 {

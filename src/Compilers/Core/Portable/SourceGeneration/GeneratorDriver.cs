@@ -260,7 +260,6 @@ namespace Microsoft.CodeAnalysis
             }
             constantSourcesBuilder.Free();
 
-
             var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)

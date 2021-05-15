@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1577,6 +1578,51 @@ class C { }
             driver = driver.RunGenerators(newCompilation);
             Assert.Equal(1, compilationsCalledFor.Count);
             Assert.Equal(compilation, compilationsCalledFor[0]);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_PostInit_Source_Is_Cached()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<ClassDeclarationSyntax> classes = new List<ClassDeclarationSyntax>();
+
+            var generator = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) =>
+            {
+                ic.RegisterForPostInitialization(c => c.AddSource("a", "class D {}"));
+                ic.RegisterExecutionPipeline(pc =>
+                {
+                    pc.RegisterOutput(
+                        pc.Sources.Syntax.Transform(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node).GenerateSource((spc, node) => classes.Add(node))
+                    );
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            Assert.Equal(2, classes.Count);
+            Assert.Equal("C", classes[0].Identifier.ValueText);
+            Assert.Equal("D", classes[1].Identifier.ValueText);
+
+            // clear classes, re-run
+            classes.Clear();
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(classes);
+
+            // modify the original tree, see that the post init is still cached
+            var c2 = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText("class E{}", parseOptions));
+            classes.Clear();
+            driver = driver.RunGenerators(c2);
+            Assert.Single(classes);
+            Assert.Equal("E", classes[0].Identifier.ValueText);
         }
     }
 }

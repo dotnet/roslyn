@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            public ISyntaxInputNode SyntaxInputNode { get => _owner; }
+
             public void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables)
             {
                 if (_exception is object)
