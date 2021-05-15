@@ -14227,7 +14227,15 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
                 Assert.True(method.Parameters[0].Type is { IsNativeIntegerType: true, SpecialType: SpecialType.System_IntPtr });
                 Assert.True(method.Parameters[1].Type is { IsNativeIntegerType: true, SpecialType: SpecialType.System_IntPtr });
 
-            });
+            }).VerifyIL("nint System.IntPtr.op_Addition(nint, nint)", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  add
+  IL_0003:  ret
+}");
         }
 
         [Fact, WorkItem(53306, "https://github.com/dotnet/roslyn/issues/53306")]
