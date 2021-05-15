@@ -32,10 +32,6 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                     "Tooltip"))
             End Function
 
-            Public Function IsGeneratedFile(filePath As String) As Boolean Implements IMetadataAsSourceFileService.IsGeneratedFile
-                Throw New NotImplementedException()
-            End Function
-
             Public Function IsNavigableMetadataSymbol(symbol As ISymbol) As Boolean Implements IMetadataAsSourceFileService.IsNavigableMetadataSymbol
                 Return True
             End Function

@@ -33,7 +33,5 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         bool IsNavigableMetadataSymbol(ISymbol symbol);
 
         Workspace? TryGetWorkspace();
-
-        bool IsGeneratedFile(string filePath);
     }
 }

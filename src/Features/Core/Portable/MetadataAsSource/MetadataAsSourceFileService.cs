@@ -241,14 +241,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return false;
         }
 
-        public bool IsGeneratedFile(string filePath)
-        {
-            using (_gate.DisposableWait())
-            {
-                return _generatedFilenameToInformation.ContainsKey(filePath);
-            }
-        }
-
         public bool TryRemoveDocumentFromWorkspace(string filePath)
         {
             using (_gate.DisposableWait())
