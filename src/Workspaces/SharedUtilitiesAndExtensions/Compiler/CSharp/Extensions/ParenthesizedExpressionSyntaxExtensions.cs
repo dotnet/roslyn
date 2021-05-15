@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // We're parenthesized discard pattern. We cannot remove parens.
             // x is (_)
-            if (pattern is DiscardPatternSyntax {Parent: ParenthesizedPatternSyntax {Parent: IsPatternExpressionSyntax}})
+            if (pattern is DiscardPatternSyntax && node.Parent is IsPatternExpressionSyntax)
                 return false;
 
             // (not ...) -> not ...
