@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
                     _ => entry1.state
                 };
 
-                builder.AddEntries(ImmutableArray.Create((entry1.item, input2)), state);
+                builder.AddEntry((entry1.item, input2), state);
             }
 
             return builder.ToImmutableAndFree();

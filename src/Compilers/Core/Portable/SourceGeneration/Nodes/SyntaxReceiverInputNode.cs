@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (_receiver is object)
                 {
-                    _nodeStateTable.AddEntries(ImmutableArray.Create(_receiver), EntryState.Modified);
+                    _nodeStateTable.AddEntry(_receiver, EntryState.Modified);
                 }
                 tables[_owner] = _nodeStateTable.ToImmutableAndFree();
             }

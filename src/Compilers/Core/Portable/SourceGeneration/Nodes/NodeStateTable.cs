@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -53,21 +54,15 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, isCompacted: true);
+        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, isCompacted: true);
 
-        // PROTOTYPE(source-generators): there is no need to store the state per item
-        //           we can instead store one state per input, with
-        //           an optional set for modified states.
-
-        // PROTOTYPE(source-generators): It seems common that we'll have a lot of immutable arrays of length 1
-        //           we should make it a discriminated union that has either 1 or more items instead.
-        private readonly ImmutableArray<ImmutableArray<(T item, EntryState state)>> _states;
+        private readonly ImmutableArray<TableEntry> _states;
 
         private readonly Exception? _exception;
 
-        private NodeStateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, bool isCompacted)
+        private NodeStateTable(ImmutableArray<TableEntry> states, bool isCompacted)
         {
-            Debug.Assert(!isCompacted || states.All(s => s.All(e => e.Item2 == EntryState.Cached)));
+            Debug.Assert(!isCompacted || states.All(s => s.IsCached));
 
             _states = states;
             IsCompacted = isCompacted;
@@ -77,7 +72,7 @@ namespace Microsoft.CodeAnalysis
         private NodeStateTable(Exception exception)
         {
             _exception = exception;
-            _states = ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty;
+            _states = ImmutableArray<TableEntry>.Empty;
             IsCompacted = false;
         }
 
@@ -87,8 +82,6 @@ namespace Microsoft.CodeAnalysis
         /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
         /// </summary>
         public bool IsCompacted { get; }
-
-        public bool IsEmpty { get => _states.Length == 0; }
 
         public bool IsFaulted { get => _exception is not null; }
 
@@ -100,7 +93,20 @@ namespace Microsoft.CodeAnalysis
 
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
         {
-            return _states.SelectMany(s => s).GetEnumerator();
+            foreach (var inputEntry in _states)
+            {
+                if (inputEntry.IsSingle)
+                {
+                    yield return (inputEntry.Item, inputEntry.State.Value);
+                }
+                else
+                {
+                    for (int i = 0; i < inputEntry.Items.Length; i++)
+                    {
+                        yield return (inputEntry.Items[i], inputEntry.State ?? inputEntry.States[i]);
+                    }
+                }
+            }
         }
 
         public NodeStateTable<T> Compact()
@@ -108,15 +114,12 @@ namespace Microsoft.CodeAnalysis
             if (IsCompacted || IsFaulted)
                 return this;
 
-            var compacted = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
+            var compacted = ArrayBuilder<TableEntry>.GetInstance();
             foreach (var entry in _states)
             {
-                // we have to keep empty entries
-                // we only remove all entries at once, so only need to check the first item
-                // PROTOTYPE(source-generators): doc/assert invariants required for this to be true
-                if (entry.Length == 0 || entry[0].state != EntryState.Removed)
+                if (entry.State != EntryState.Removed)
                 {
-                    compacted.Add(entry.SelectAsArray(e => (e.item, EntryState.Cached)));
+                    compacted.Add(entry.AsCached());
                 }
             }
             return new NodeStateTable<T>(compacted.ToImmutableAndFree(), isCompacted: true);
@@ -153,13 +156,13 @@ namespace Microsoft.CodeAnalysis
 
         public sealed class Builder
         {
-            private readonly ArrayBuilder<ImmutableArray<(T, EntryState)>> _states;
+            private readonly ArrayBuilder<TableEntry> _states;
             private readonly NodeStateTable<T> _previous;
             private Exception? _exception = null;
 
             internal Builder(NodeStateTable<T> previous)
             {
-                _states = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
+                _states = ArrayBuilder<TableEntry>.GetInstance();
                 _previous = previous;
             }
 
@@ -169,7 +172,7 @@ namespace Microsoft.CodeAnalysis
                 // as it can't have any effect on downstream tables
                 if (_previous._states.Length > _states.Count)
                 {
-                    var previousEntries = _previous._states[_states.Count].SelectAsArray(s => (s.item, EntryState.Removed));
+                    var previousEntries = _previous._states[_states.Count].AsRemoved();
                     _states.Add(previousEntries);
                 }
             }
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var previousEntries = _previous._states[_states.Count];
-                Debug.Assert(previousEntries.All(e => e.state == EntryState.Cached));
+                Debug.Assert(previousEntries.IsCached);
 
                 _states.Add(previousEntries);
                 return true;
@@ -196,55 +199,64 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Semantics:
-                // For every slot in the previous table, we compare the new value.
+                // For each item in the row, we compare with the new matching new value.
                 // - Cached when the same
                 // - Modified when different
-                // - Removed when i > outputs.length
-                // - Added when i < previousTable.length
+                // - Removed when old item position > outputs.length
+                // - Added when new item position < previousTable.length
 
-                var previousEntries = _previous._states[_states.Count];
-                var modifiedEntries = ArrayBuilder<(T item, EntryState state)>.GetInstance();
+                var previousEntry = _previous._states[_states.Count];
+                var modifiedEntries = ArrayBuilder<T>.GetInstance();
+                var modifiedStates = ArrayBuilder<EntryState>.GetInstance();
 
-                var previousEnumerator = previousEntries.GetEnumerator();
+                var previousEnumerator = previousEntry.Items.GetEnumerator();
                 var outputEnumerator = outputs.GetEnumerator();
 
-                bool previousHasItems = previousEnumerator.MoveNext();
+                bool previousHasItems = previousEntry.IsSingle || previousEnumerator.MoveNext();
                 bool outputHasItems = outputEnumerator.MoveNext();
 
                 // cached or modified items
                 while (previousHasItems && outputHasItems)
                 {
-                    var previous = previousEnumerator.Current;
+                    var previous = previousEntry.IsSingle ? previousEntry.Item : previousEnumerator.Current;
                     var replacement = outputEnumerator.Current;
 
-                    var entryState = comparer.Equals(previous.item, replacement) ? EntryState.Cached : EntryState.Modified;
-                    modifiedEntries.Add((replacement, entryState));
+                    var entryState = comparer.Equals(previous, replacement) ? EntryState.Cached : EntryState.Modified;
+                    modifiedEntries.Add(replacement);
+                    modifiedStates.Add(entryState);
 
-                    previousHasItems = previousEnumerator.MoveNext();
+                    previousHasItems = !previousEntry.IsSingle && previousEnumerator.MoveNext();
                     outputHasItems = outputEnumerator.MoveNext();
                 }
 
                 // removed
                 while (previousHasItems)
                 {
-                    modifiedEntries.Add((previousEnumerator.Current.item, EntryState.Removed));
+                    modifiedEntries.Add(previousEntry.IsSingle ? previousEntry.Item : previousEnumerator.Current);
+                    modifiedStates.Add(EntryState.Removed);
                     previousHasItems = previousEnumerator.MoveNext();
                 }
 
                 // added
                 while (outputHasItems)
                 {
-                    modifiedEntries.Add((outputEnumerator.Current, EntryState.Added));
+                    modifiedEntries.Add(outputEnumerator.Current);
+                    modifiedStates.Add(EntryState.Modified);
                     outputHasItems = outputEnumerator.MoveNext();
                 }
 
-                _states.Add(modifiedEntries.ToImmutableAndFree());
+                _states.Add(new TableEntry(modifiedEntries.ToImmutableAndFree(), modifiedStates.ToImmutableAndFree()));
                 return true;
+            }
+
+            public void AddEntry(T value, EntryState state)
+            {
+                _states.Add(new TableEntry(value, state));
             }
 
             public void AddEntries(ImmutableArray<T> values, EntryState state)
             {
-                _states.Add(values.SelectAsArray((v, state) => (v, state), state));
+                _states.Add(new TableEntry(values, state));
             }
 
             public void SetFaulted(Exception e)
@@ -265,15 +277,56 @@ namespace Microsoft.CodeAnalysis
                     return NodeStateTable<T>.Empty;
                 }
 
-                var hasNonCached = _states.Any(static s => s.Any(static i => i.Item2 != EntryState.Cached));
+                var hasNonCached = _states.Any(static s => !s.IsCached);
                 return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached);
-
             }
 
             internal ImmutableArray<T> GetLastEntries()
             {
-                return _states[_states.Count - 1].SelectAsArray(t => t.Item1);
+                var nodeStateTableEntry = _states[_states.Count - 1];
+                return nodeStateTableEntry.Item is object ? ImmutableArray.Create<T>(nodeStateTableEntry.Item) : nodeStateTableEntry.Items;
             }
+        }
+
+        private readonly struct TableEntry
+        {
+            internal readonly ImmutableArray<T> Items;
+
+            internal readonly T? Item;
+
+            internal readonly EntryState? State;
+
+            internal readonly ImmutableArray<EntryState> States;
+
+            public TableEntry(T item, EntryState state)
+                : this(item, default, state, default) { }
+
+            public TableEntry(ImmutableArray<T> items, EntryState state)
+                : this(default, items, state, default) { }
+
+            public TableEntry(ImmutableArray<T> items, ImmutableArray<EntryState> states)
+                : this(default, items, null, states) { }
+
+            private TableEntry(T? item, ImmutableArray<T> items, EntryState? state, ImmutableArray<EntryState> states)
+            {
+                Debug.Assert(item is object || !items.IsDefault);
+                Debug.Assert(state is object || !states.IsDefault);
+
+                this.Item = item;
+                this.Items = items;
+                this.State = state;
+                this.States = states;
+            }
+
+            public bool IsCached => this.State == EntryState.Cached;
+
+            [MemberNotNullWhen(true, new[] { nameof(Item), nameof(State) })]
+            public bool IsSingle => this.Items.IsDefault;
+
+            public TableEntry AsCached() => new(Item, Items, EntryState.Cached, default);
+
+            public TableEntry AsRemoved() => new(Item, Items, EntryState.Removed, default);
+
         }
     }
 }

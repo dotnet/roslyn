@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
             // any remaining new items are added
             foreach (var newItem in itemsSet)
             {
-                builder.AddEntries(ImmutableArray.Create(newItem), EntryState.Added);
+                builder.AddEntry(newItem, EntryState.Added);
             }
 
             return builder.ToImmutableAndFree();

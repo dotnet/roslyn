@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         _action(context, entry.item);
-                        nodeTable.AddEntries(ImmutableArray.Create<TOutput>((sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly())), EntryState.Added);
+                        nodeTable.AddEntry((sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly()), EntryState.Added);
                     }
                     finally
                     {
