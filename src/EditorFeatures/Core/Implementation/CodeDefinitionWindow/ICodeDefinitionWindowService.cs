@@ -4,7 +4,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 {
     internal interface ICodeDefinitionWindowService
     {

@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 {
     [Export(typeof(ITextViewConnectionListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]

@@ -7,13 +7,13 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell.Interop;
 
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionWindow
 {
     [Export(typeof(ICodeDefinitionWindowService)), Shared]
     internal sealed class VisualStudioCodeDefinitionWindowService : ICodeDefinitionWindowService
