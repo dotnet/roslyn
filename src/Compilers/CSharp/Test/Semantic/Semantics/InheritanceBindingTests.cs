@@ -4922,10 +4922,8 @@ public class Derived2 : Derived
             CreateCompilation(text).VerifyDiagnostics();
         }
 
-        [Theory]
-        [InlineData(TargetFramework.NetCoreApp)]
-        [InlineData(TargetFramework.Standard)]
-        public void TestAmbiguousOverrideMethod(TargetFramework targetFramework)
+        [Fact]
+        public void TestAmbiguousOverrideMethod()
         {
             var text = @"
 public class Base<TShort, TInt>
@@ -4939,7 +4937,8 @@ public class Derived : Base<short, int>
     public override void Method(short s, int i) { }
 }
 ";
-            CSharpCompilation comp = CreateCompilation(text, targetFramework: targetFramework);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(
@@ -4981,10 +4980,8 @@ public class Derived : Base<short, int>
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "this").WithArguments("Base<TShort, TInt>.this[TShort, int]", "Base<TShort, TInt>.this[short, TInt]", "Derived"));
         }
 
-        [Theory]
-        [InlineData(TargetFramework.NetCoreApp)]
-        [InlineData(TargetFramework.Standard)]
-        public void TestRuntimeAmbiguousOverride(TargetFramework targetFramework)
+        [Fact]
+        public void TestRuntimeAmbiguousOverride()
         {
             var text = @"
 class Base<TInt>
@@ -4999,7 +4996,8 @@ class Derived : Base<int>
     public override void Method(int @in, ref int @ref) { }
 }
 ";
-            var compilation = CreateCompilation(text, targetFramework: targetFramework);
+            var compilation = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 // We no longer report a runtime ambiguous override because the compiler

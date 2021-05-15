@@ -7709,10 +7709,8 @@ class B<T> where T : struct
                 Diagnostic(ErrorCode.ERR_ConWithValCon, "U").WithArguments("U", "T").WithLocation(9, 14));
         }
 
-        [Theory]
-        [InlineData(TargetFramework.NetCoreApp)]
-        [InlineData(TargetFramework.Standard)]
-        public void CS0462ERR_AmbigOverride(TargetFramework targetFramework)
+        [Fact]
+        public void CS0462ERR_AmbigOverride()
         {
             var text = @"class C<T> 
 {
@@ -7725,7 +7723,8 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: targetFramework);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(
@@ -18388,10 +18387,8 @@ class Derived : Base<int, int>, IFace
                 new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 20, Column = 33, IsWarning = true });
         }
 
-        [Theory]
-        [InlineData(TargetFramework.NetCoreApp)]
-        [InlineData(TargetFramework.Standard)]
-        public void CS1957WRN_MultipleRuntimeOverrideMatches(TargetFramework targetFramework)
+        [Fact]
+        public void CS1957WRN_MultipleRuntimeOverrideMatches()
         {
             var text =
 @"class Base<TString>
@@ -18410,7 +18407,8 @@ class Derived : Base<string>
 }
 ";
             // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
-            CSharpCompilation comp = CreateCompilation(text, targetFramework: targetFramework);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(
