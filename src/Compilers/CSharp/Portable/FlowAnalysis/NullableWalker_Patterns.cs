@@ -40,7 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(currentState);
         }
 
-        public override BoundNode VisitSubpattern(BoundSubpattern node)
+        public override BoundNode VisitPositionalSubpattern(BoundPositionalSubpattern node)
+        {
+            Visit(node.Pattern);
+            return null;
+        }
+
+        public override BoundNode VisitPropertySubpattern(BoundPropertySubpattern node)
         {
             Visit(node.Pattern);
             return null;
@@ -165,17 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // for property part
                         if (!rp.Properties.IsDefault)
                         {
-                            foreach (BoundSubpattern subpattern in rp.Properties)
+                            foreach (BoundPropertySubpattern subpattern in rp.Properties)
                             {
-                                if (subpattern.Symbols.IsEmpty)
-                                    continue;
-
-                                // Obtain the last symbol's slot which is actually the one being matched.
-                                Symbol last = subpattern.Symbols.Last();
-                                // PROTOTYPE(extended-property-patterns) For a chain of members, the input type is no longer `inputType`
-                                if (last.ContainingType.Equals(inputType, TypeCompareKind.AllIgnoreOptions))
+                                // PROTOTYPE(extended-property-patterns): Investigate if we need to visit nested members; is there a test gap?
+                                if (subpattern.Member is { Symbol: Symbol symbol } member)
                                 {
-                                    LearnFromAnyNullPatterns(GetOrCreateSlot(last, inputSlot), last.GetTypeOrReturnType().Type, subpattern.Pattern);
+                                    LearnFromAnyNullPatterns(GetOrCreateSlot(symbol, inputSlot), member.Type, subpattern.Pattern);
                                 }
                             }
                         }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -531,41 +532,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundPattern pattern = subpattern.Pattern;
                     BoundDagTemp currentInput = input;
-                    if (subpattern.Symbols.IsEmpty)
+                    if (!tryMakeSubpatternMemberTests(subpattern.Member, ref currentInput))
                     {
-                        addErrorTest();
-                        goto done;
+                        Debug.Assert(recursive.HasAnyErrors);
+                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
                     }
-
-                    for (int index = 0, count = subpattern.Symbols.Length; ;)
-                    {
-                        Symbol symbol = subpattern.Symbols[index];
-                        BoundDagEvaluation evaluation;
-                        switch (symbol)
-                        {
-                            case PropertySymbol property:
-                                evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(currentInput, property));
-                                break;
-                            case FieldSymbol field:
-                                evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, OriginalInput(currentInput, field));
-                                break;
-                            default:
-                                addErrorTest();
-                                goto done;
-                        }
-
-                        tests.Add(new Tests.One(evaluation));
-                        TypeSymbol type = symbol.GetTypeOrReturnType().Type;
-                        currentInput = new BoundDagTemp(pattern.Syntax, type, evaluation);
-
-                        if (++index == count)
-                            break;
-
-                        // If this is not the last member, add null test, unwrap nullables, and continue.
-                        currentInput = MakeConvertToType(currentInput, pattern.Syntax, type.StrippedType(), isExplicitTest: false, tests);
-                    }
-
-done:
                     tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
                 }
             }
@@ -578,10 +549,33 @@ done:
 
             return Tests.AndSequence.Create(tests);
 
-            void addErrorTest()
+            bool tryMakeSubpatternMemberTests([NotNullWhen(true)] BoundPropertySubpatternMember? member, ref BoundDagTemp input)
             {
-                Debug.Assert(recursive.HasAnyErrors);
-                tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
+                if (member is null)
+                    return false;
+
+                if (tryMakeSubpatternMemberTests(member.Receiver, ref input))
+                {
+                    // If this is not the first member, add null test, unwrap nullables, and continue.
+                    input = MakeConvertToType(input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
+                }
+
+                BoundDagEvaluation evaluation;
+                switch (member.Symbol)
+                {
+                    case PropertySymbol property:
+                        evaluation = new BoundDagPropertyEvaluation(member.Syntax, property, OriginalInput(input, property));
+                        break;
+                    case FieldSymbol field:
+                        evaluation = new BoundDagFieldEvaluation(member.Syntax, field, OriginalInput(input, field));
+                        break;
+                    default:
+                        return false;
+                }
+
+                tests.Add(new Tests.One(evaluation));
+                input = new BoundDagTemp(member.Syntax, member.Type, evaluation);
+                return true;
             }
         }
 
