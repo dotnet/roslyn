@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, isCompacted: true, exception: null);
+        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, isCompacted: true);
 
         // PROTOTYPE(source-generators): there is no need to store the state per item
         //           we can instead store one state per input, with
@@ -65,14 +65,20 @@ namespace Microsoft.CodeAnalysis
 
         private readonly Exception? _exception;
 
-        private NodeStateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, bool isCompacted, Exception? exception)
+        private NodeStateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, bool isCompacted)
         {
-            Debug.Assert(exception is object && !isCompacted
-                         || exception is null && (!isCompacted || states.All(s => s.All(e => e.Item2 == EntryState.Cached))));
+            Debug.Assert(!isCompacted || states.All(s => s.All(e => e.Item2 == EntryState.Cached)));
 
             _states = states;
-            _exception = exception;
             IsCompacted = isCompacted;
+            _exception = null;
+        }
+
+        private NodeStateTable(Exception exception)
+        {
+            _exception = exception;
+            _states = ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty;
+            IsCompacted = false;
         }
 
         public int Count { get => _states.Length; }
@@ -113,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                     compacted.Add(entry.SelectAsArray(e => (e.item, EntryState.Cached)));
                 }
             }
-            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), isCompacted: true, _exception);
+            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), isCompacted: true);
         }
 
         IStateTable IStateTable.Compact() => Compact();
@@ -141,8 +147,8 @@ namespace Microsoft.CodeAnalysis
 
         public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
         {
-            Debug.Assert(table.IsFaulted);
-            return new NodeStateTable<T>(Empty._states, isCompacted: false, table._exception);
+            Debug.Assert(table._exception is object);
+            return new NodeStateTable<T>(table._exception);
         }
 
         public sealed class Builder
@@ -251,7 +257,7 @@ namespace Microsoft.CodeAnalysis
                 if (_exception is object)
                 {
                     _states.Free();
-                    return new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, isCompacted: false, exception: _exception);
+                    return new NodeStateTable<T>(_exception);
                 }
                 else if (_states.Count == 0)
                 {
@@ -260,7 +266,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var hasNonCached = _states.Any(static s => s.Any(static i => i.Item2 != EntryState.Cached));
-                return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached, exception: null);
+                return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached);
 
             }
 
