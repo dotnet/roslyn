@@ -346,10 +346,10 @@ public class C2
 
                 state.SendTypeChars(".")
                 Assert.Contains("is { CProperty. CProperty.IntProperty: 2 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="Equals", isHardSelected:=False)
 
                 state.SendTypeChars("SP")
-                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty", isHardSelected:=True)
 
                 state.SendTab()
                 state.SendTypeChars(": 3,")
