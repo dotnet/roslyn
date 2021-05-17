@@ -371,14 +371,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         enableCallerInfo: ThreeState.Unknown);
                     return _factory.Call(input, getMethod, args);
                 }
-
-                bool isImplicit(PropertySymbol indexer)
-                {
-                    var destination = indexer.Parameters[0].Type;
-                    destination = destination is ArrayTypeSymbol array ? array.ElementType : destination;
-                    return destination.SpecialType == SpecialType.System_Int32 ||
-                        ConversionsBase.HasImplicitNumericConversion(_factory.SpecialType(SpecialType.System_Int32), destination);
-                }
             }
 
             /// <summary>
