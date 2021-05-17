@@ -3,15 +3,24 @@
 
   <PropertyGroup>
     <TargetFramework>net45</TargetFramework>
-    <Description>Integration test service extension for Visual Studio</Description>
+    <Description>Integration test service extension for Visual Studio 2012-2019</Description>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTestService</RootNamespace>
-    <AssemblyName>Microsoft.VisualStudio.IntegrationTestService.Impl</AssemblyName>
+    <AssemblyName>Microsoft.VisualStudio.IntegrationTestService</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup>
-    <GeneratePkgDefFile>false</GeneratePkgDefFile>
-    <CreateVsixContainer>false</CreateVsixContainer>
-    <DeployExtension>false</DeployExtension>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <UseCodebase>true</UseCodebase>
+    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
+
+    <!--
+      This extension is deployed on-demand by the integration test harness.
+    -->
+    <DeployExtension>False</DeployExtension>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +30,18 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.1.192" PrivateAssets="all" />
     <PackageReference Include="VSSDK.Shell.11" Version="11.0.4" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\LICENSE" IncludeInVSIX="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <VSCTCompile Include="IntegrationTestServiceCommands.vsct" ResourceName="Menus.ctmenu" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="IntegrationTestServicePackage.resx" MergeWithCTO="true" ManifestResourceName="VSPackage" Generator="" />
   </ItemGroup>
 
   <Import Project="..\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems" Label="Shared" />

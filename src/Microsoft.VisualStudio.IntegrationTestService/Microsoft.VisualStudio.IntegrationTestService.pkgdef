@@ -1,7 +1,0 @@
-[$RootKey$\Packages\{78d5a8b5-1634-434b-802d-e3e4a46b1aa6}]
-@="IntegrationTestServicePackage"
-"InprocServer32"="$WinDir$\SYSTEM32\MSCOREE.DLL"
-"Class"="Microsoft.VisualStudio.IntegrationTestService.IntegrationTestServicePackage"
-"CodeBase"="$PackageFolder$\Microsoft.VisualStudio.IntegrationTestService.Shim.dll"
-[$RootKey$\Menus]
-"{78d5a8b5-1634-434b-802d-e3e4a46b1aa6}"=", Menus.ctmenu, 1"
