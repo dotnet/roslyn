@@ -14,10 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" Version="15.0.26201" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.Interop\Microsoft.VisualStudio.VsixInstaller.Interop.csproj" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="15.6.56" />
   </ItemGroup>
 
   <Import Project="..\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems" Label="Shared" />

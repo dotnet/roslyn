@@ -263,7 +263,7 @@ namespace Xunit.Harness
                     isMatch &= version.Major == instance.Item2.Major;
                     isMatch &= instance.Item2 >= version;
 
-                    if (haveVsInstallDir && version.Major == 15)
+                    if (haveVsInstallDir && version.Major >= 15)
                     {
                         var installationPath = instance.Item1;
                         installationPath = Path.GetFullPath(installationPath);
@@ -298,7 +298,7 @@ namespace Xunit.Harness
                 instanceFoundWithInvalidState = true;
             }
 
-            throw new Exception(instanceFoundWithInvalidState ?
+            throw new PlatformNotSupportedException(instanceFoundWithInvalidState ?
                                 "An instance matching the specified requirements was found but it was in an invalid state." :
                                 "There were no instances of Visual Studio found that match the specified requirements.");
         }
@@ -306,6 +306,7 @@ namespace Xunit.Harness
         private static Process StartNewVisualStudioProcess(string installationPath, Version version, ImmutableList<string> extensionFiles)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
+            var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
 
             var installerAssembly = LoadInstallerAssembly(version);
             var installerType = installerAssembly.GetType("Microsoft.VisualStudio.VsixInstaller.Installer");
@@ -329,6 +330,12 @@ namespace Xunit.Harness
             {
                 File.Delete(integrationTestServiceExtension);
                 Directory.Delete(temporaryFolder);
+            }
+
+            if (version.Major >= 16)
+            {
+                // Make sure the start window doesn't show on launch
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU General OnEnvironmentStartup dword 10").WaitForExit();
             }
 
             // BUG: Currently building with /p:DeployExtension=true does not always cause the MEF cache to recompose...

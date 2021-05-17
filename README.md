@@ -16,6 +16,7 @@ instance of Visual Studio.
     * Visual Studio 2013
     * Visual Studio 2015
     * Visual Studio 2017
+    * Visual Studio 2019
 * Extensions must be deployed via one or more VSIX packages.
 * Test execution and debugging is only supported for versions of Visual Studio available on the same machine as the
   development IDE.

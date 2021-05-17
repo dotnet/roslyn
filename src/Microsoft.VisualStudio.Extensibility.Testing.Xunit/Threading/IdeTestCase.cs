@@ -110,6 +110,10 @@ namespace Xunit.Threading
                 dteKey = "VisualStudio.DTE.15.0";
                 break;
 
+            case VisualStudioVersion.VS2019:
+                dteKey = "VisualStudio.DTE.16.0";
+                break;
+
             default:
                 throw new ArgumentException();
             }

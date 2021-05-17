@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <Platforms>x86</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.ExtensionEngine" HintPath="..\ref\16\Microsoft.VisualStudio.ExtensionEngine.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="..\ref\16\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="..\ref\16\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" Version="16.0.28729" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="16.8.55" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="StreamJsonRpc" Version="2.7.67" />
+  </ItemGroup>
+
+  <Import Project="..\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems" Label="Shared" />
+
+</Project>
