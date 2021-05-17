@@ -6,10 +6,11 @@ namespace Xunit.InProcess
     using System;
     using System.Runtime.InteropServices;
     using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
-    using IUnknown = stdole.IUnknown;
 
     internal sealed class OleServiceProvider : IServiceProvider
     {
+        private static readonly Guid IUnknownGuid = new Guid("00000000-0000-0000-C000-000000000046");
+
         private readonly IOleServiceProvider _serviceProvider;
 
         public OleServiceProvider(IOleServiceProvider serviceProvider)
@@ -34,7 +35,7 @@ namespace Xunit.InProcess
                 return _serviceProvider;
             }
 
-            Marshal.ThrowExceptionForHR(_serviceProvider.QueryService(serviceType.GUID, typeof(IUnknown).GUID, out var service));
+            Marshal.ThrowExceptionForHR(_serviceProvider.QueryService(serviceType.GUID, IUnknownGuid, out var service));
             try
             {
                 return Marshal.GetObjectForIUnknown(service);

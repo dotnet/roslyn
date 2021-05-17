@@ -7,10 +7,11 @@ namespace Xunit.Harness
     using System.Runtime.InteropServices;
     using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
     using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
-    using IUnknown = stdole.IUnknown;
 
     internal class ServiceProvider : IServiceProvider, IObjectWithSite
     {
+        private static readonly Guid IUnknownGuid = new Guid("00000000-0000-0000-C000-000000000046");
+
         private IOleServiceProvider _serviceProvider;
 
         public ServiceProvider(IOleServiceProvider serviceProvider)
@@ -40,7 +41,7 @@ namespace Xunit.Harness
                 return this;
             }
 
-            if (_serviceProvider.QueryService(serviceGuid, typeof(IUnknown).GUID, out var obj) < 0)
+            if (_serviceProvider.QueryService(serviceGuid, IUnknownGuid, out var obj) < 0)
             {
                 return null;
             }

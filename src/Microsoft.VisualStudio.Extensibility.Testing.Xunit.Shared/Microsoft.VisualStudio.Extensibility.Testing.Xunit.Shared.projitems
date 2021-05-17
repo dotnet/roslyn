@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>d7647395-129b-4f45-8c78-10e6f92fc8ad</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.VisualStudio.Extensibility.Testing.Xunit.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\GlobalServiceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\IdeTestAssemblyRunner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\IdeTestFramework.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\IdeTestFrameworkExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\InProcessIdeTestAssemblyRunner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\IntegrationHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\MessageFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\MessageFilterSafeHandle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\NativeMethods.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\RequireExtensionAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\ServiceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\Settings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\VisualStudioInstance.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\VisualStudioInstanceContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\VisualStudioInstanceFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\VSConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Harness\WellKnownCommandNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IdeFactAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InProcess\InProcComponent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InProcess\OleServiceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InProcess\TestInvoker_InProc.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InProcess\VisualStudio_InProc.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OutOfProcess\OutOfProcComponent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OutOfProcess\TestInvoker_OutOfProc.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\ExceptionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeFactDiscoverer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\IdeTestCaseRunner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\InProcessIdeTestRunner.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\SemaphoreExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\SynchronizationContextTaskScheduler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Threading\WpfTestSharedData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VisualStudioVersion.cs" />
+  </ItemGroup>
+</Project>
