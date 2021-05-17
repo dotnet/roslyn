@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 sliceType = inputType;
             }
-            else if (TryFindIndexOrRangeIndexerPattern(node, inputType, argIsIndex: false, out info, diagnostics))
+            else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: false, out info, diagnostics))
             {
                 sliceType = info.Symbol.GetTypeOrReturnType().Type;
             }
@@ -218,11 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BindPattern(node.Pattern, sliceType, ExternalScope, permitDesignations, hasErrors, diagnostics)
                 : null;
 
-            return new BoundSlicePattern(node, sliceType: sliceType, pattern, info, inputType: inputType, narrowedType: inputType, hasErrors);
+            return new BoundSlicePattern(node, pattern, info, inputType, inputType, hasErrors);
         }
 
         private ImmutableArray<BoundPattern> BindListPatternSubpatterns(
-            PropertyPatternClauseSyntax node,
+            SeparatedSyntaxList<SubpatternSyntax> subpatterns,
             TypeSymbol inputType,
             TypeSymbol elementType,
             bool permitDesignations,
@@ -230,10 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool sawSlice,
             BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause));
-
             sawSlice = false;
-            var subpatterns = node.Subpatterns;
             var builder = ArrayBuilder<BoundPattern>.GetInstance(subpatterns.Count);
             foreach (SubpatternSyntax subpat in subpatterns)
             {
@@ -309,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 elementType = ((ArrayTypeSymbol)inputType).ElementType;
             }
-            else if (TryFindIndexOrRangeIndexerPattern(node, inputType, argIsIndex: true, out info, diagnostics))
+            else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: true, out info, diagnostics))
             {
                 elementType = info.Symbol.GetTypeOrReturnType().Type;
             }
@@ -322,11 +319,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = CreateErrorType();
             }
 
-            ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(node, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
-            return new BoundListPatternClause(node, elementType, subpatterns, sawSlice, info, hasErrors);
+            ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(node.Subpatterns, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
+            return new BoundListPatternClause(node, subpatterns, sawSlice, info, hasErrors);
         }
 
-        private bool TryFindIndexOrRangeIndexerPattern(
+        private bool TryFindIndexerOrIndexerPattern(
             SyntaxNode syntax, TypeSymbol receiverType, bool argIsIndex,
             [NotNullWhen(true)] out IndexerArgumentInfo? info,
             BindingDiagnosticBag diagnostics)
@@ -342,6 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, argType, diagnostics))
             {
+                _ = GetWellKnownTypeMember(argIsIndex ? WellKnownMember.System_Index__ctor : WellKnownMember.System_Range__ctor, diagnostics, syntax: syntax);
                 found = true;
             }
             else if (TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out Symbol? patternSymbol, diagnostics, ref useSiteInfo))
@@ -403,6 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 analyzedArguments.Free();
                 overloadResolutionResult.Free();
+                indexerGroup.Free();
             }
 
             lookupResult.Clear();

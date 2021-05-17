@@ -1627,6 +1627,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignPatternVariables(subpat.Pattern, definitely);
                             }
                         }
+                        if (pat.LengthPattern is not null)
+                        {
+                            AssignPatternVariables(pat.LengthPattern, definitely);
+                        }
                         if (!pat.Properties.IsDefaultOrEmpty)
                         {
                             foreach (BoundSubpattern sub in pat.Properties)
@@ -1643,10 +1647,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     AssignPatternVariables(p, definitely);
                                 }
                             }
-                        }
-                        if (pat.LengthPattern is not null)
-                        {
-                            AssignPatternVariables(pat.LengthPattern, definitely);
                         }
                         if (definitely)
                             Assign(pat, null, false, false);

@@ -1437,6 +1437,7 @@
   <Node Name="BoundDagIndexerEvaluation" Base="BoundDagEvaluation">
     <Field Name="IndexerType" Type="TypeSymbol"/>
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
+    <!-- Negative Index values indicate positions after a slice pattern -->
     <Field Name="Index" Type="int"/>
     <!-- This will be null if input type is an array -->
     <Field Name="IndexerInfo" Type="IndexerArgumentInfo?" />
@@ -2110,7 +2111,6 @@
   </Node>
 
   <Node Name="BoundListPatternClause" Base="BoundNode">
-    <Field Name="ElementType" Type="TypeSymbol"/>
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
     <!-- This will be null if input type is an array -->
@@ -2118,7 +2118,6 @@
   </Node>
 
   <Node Name="BoundSlicePattern" Base="BoundPattern">
-    <Field Name="SliceType" Type="TypeSymbol"/>
     <Field Name="Pattern" Type="BoundPattern?"/>
     <!-- This will be null if input type is an array -->
     <Field Name="IndexerInfo" Type="IndexerArgumentInfo?" />

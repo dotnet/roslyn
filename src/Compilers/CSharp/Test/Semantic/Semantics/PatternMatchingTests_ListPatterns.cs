@@ -53,7 +53,7 @@ public class X
 }
 " + TestSources.GetSubArray;
             var compilation = CreateCompilationWithIndexAndRangeAndSpan(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
             var expectedOutput = @"
 111
 111
@@ -257,7 +257,7 @@ class X
 }
 ";
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "this[] True");
         }
 
@@ -291,7 +291,7 @@ class X
 }
 ";
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "this[] True");
         }
 
@@ -311,7 +311,7 @@ class X
 }
 ";
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,18): error CS9200: List patterns may not be used for a value of type 'int'.
                 //         _ = 0 is {0};
                 Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{0}").WithArguments("int").WithLocation(6, 18),
@@ -353,7 +353,7 @@ class X
 }
 ";
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (14,21): error CS0619: 'X.this[int]' is obsolete: 'error'
                 //         _ = this is {0};
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("X.this[int]", "error").WithLocation(14, 21),
@@ -379,7 +379,7 @@ class X
 }
 ";
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (6,23): error CS9203: Slice patterns may only be used once and directly inside a list pattern.
                 //         _ = a is {.., ..};
                 Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(6, 23),

@@ -30,40 +30,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (recursive.ListPatternClause is { Subpatterns: var subpatterns } clause)
             {
                 Debug.Assert(!subpatterns.IsDefaultOrEmpty);
+                Debug.Assert(subpatterns.Count(p => p.Kind == BoundKind.SlicePattern) <= 1);
 
                 tests.Add(new Tests.One(clause.HasSlice
                     ? new BoundDagRelationalTest(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(subpatterns.Length - 1), lengthTemp)
                     : new BoundDagValueTest(syntax, ConstantValue.Create(subpatterns.Length), lengthTemp)));
 
-                for (int index = 0; index < subpatterns.Length; index++)
+                int index = 0;
+                foreach (BoundPattern subpattern in subpatterns)
                 {
-                    var subpattern = subpatterns[index];
                     if (subpattern is BoundSlicePattern slice)
                     {
-                        if (slice.Pattern is not null)
+                        int startIndex = index;
+                        index -= subpatterns.Length - 1;
+
+                        if (slice.Pattern is BoundPattern slicePattern)
                         {
-                            var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slice.SliceType, lengthTemp, startIndex: index, endIndex: index - (subpatterns.Length - 1), slice.IndexerInfo, input);
+                            var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slicePattern.InputType, lengthTemp, startIndex: startIndex, endIndex: index, slice.IndexerInfo, input);
                             tests.Add(new Tests.One(sliceEvaluation));
-                            var sliceTemp = new BoundDagTemp(syntax, slice.SliceType, sliceEvaluation);
-                            tests.Add(MakeTestsAndBindings(sliceTemp, slice.Pattern, bindings));
+                            var sliceTemp = new BoundDagTemp(syntax, slicePattern.InputType, sliceEvaluation);
+                            tests.Add(MakeTestsAndBindings(sliceTemp, slicePattern, bindings));
                         }
 
-                        for (int i = subpatterns.Length - 1, j = -1; i > index; i--, j--)
-                        {
-                            addIndexerTests(index: j, subpatterns[i]);
-                        }
-
-                        break;
+                        continue;
                     }
 
-                    addIndexerTests(index, subpattern);
-                }
-
-                void addIndexerTests(int index, BoundPattern subpattern)
-                {
-                    var indexEvaluation = new BoundDagIndexerEvaluation(syntax, clause.ElementType, lengthTemp, index, clause.IndexerInfo, input);
+                    var indexEvaluation = new BoundDagIndexerEvaluation(syntax, subpattern.InputType, lengthTemp, index++, clause.IndexerInfo, input);
                     tests.Add(new Tests.One(indexEvaluation));
-                    var indexTemp = new BoundDagTemp(syntax, clause.ElementType, indexEvaluation);
+                    var indexTemp = new BoundDagTemp(syntax, subpattern.InputType, indexEvaluation);
                     tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));
                 }
             }
