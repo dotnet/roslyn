@@ -173,6 +173,17 @@
       "vsBranch": "rel/d16.10",
       "vsMajorVersion": 16
     },
+    "release/dev16.11-preview1-vs-deps": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "version": "3.10.*",
+      "packageFeeds": "default",
+      "channels": [],
+      "vsBranch": "rel/d16.11",
+      "vsMajorVersion": 16
+    },
     "main-vs-deps": {
       "nugetKind": [
         "Shipping",
