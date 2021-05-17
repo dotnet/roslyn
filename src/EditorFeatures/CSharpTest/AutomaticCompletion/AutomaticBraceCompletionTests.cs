@@ -1442,7 +1442,7 @@ class C
             Assert.NotNull(session);
 
             CheckStart(session.Session);
-            CheckReturn(session.Session, 16, expected);
+            CheckReturn(session.Session, 12, expected);
         }
 
         [WorkItem(50275, "https://github.com/dotnet/roslyn/issues/50275")]
