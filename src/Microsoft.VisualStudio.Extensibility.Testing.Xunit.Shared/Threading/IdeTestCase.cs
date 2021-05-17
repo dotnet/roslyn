@@ -114,6 +114,10 @@ namespace Xunit.Threading
                 dteKey = "VisualStudio.DTE.16.0";
                 break;
 
+            case VisualStudioVersion.VS2022:
+                dteKey = "VisualStudio.DTE.17.0";
+                break;
+
             default:
                 throw new ArgumentException();
             }

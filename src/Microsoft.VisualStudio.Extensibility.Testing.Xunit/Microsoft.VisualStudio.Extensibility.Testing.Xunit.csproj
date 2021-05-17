@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <RootNamespace>Xunit</RootNamespace>
+    <DefineConstants>$(DefineConstants);MERGED_PIA</DefineConstants>
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
