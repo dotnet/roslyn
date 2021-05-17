@@ -1,0 +1,37 @@
+﻿<Project>
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net45</TargetFramework>
+
+    <LangVersion>9</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <CreateVsixContainer>false</CreateVsixContainer>
+    <DeployExtension>false</DeployExtension>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.63-dev17-g3f11f5ab" PrivateAssets="all" />
+    <PackageReference Include="VSSDK.Shell.11" Version="11.0.4" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev11\Microsoft.VisualStudio.IntegrationTestService.Dev11.csproj" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <VSCTCompile Include="IntegrationTestServiceCommands.vsct" ResourceName="Menus.ctmenu" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="IntegrationTestServicePackage.resx" MergeWithCTO="true" ManifestResourceName="IntegrationTestServicePackage" Generator="" />
+  </ItemGroup>
+
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
+
+</Project>

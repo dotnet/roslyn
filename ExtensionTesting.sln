@@ -33,10 +33,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Vsix
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.VsixInstaller.17", "src\Microsoft.VisualStudio.VsixInstaller.17\Microsoft.VisualStudio.VsixInstaller.17.csproj", "{43CC037C-8EBC-424C-AB73-9DD4047924A1}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.VisualStudio.IntegrationTestService.Shared", "src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.shproj", "{629938E1-1C2C-4F01-8038-90A34A940AC8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTestService.Shim", "src\Microsoft.VisualStudio.IntegrationTestService.Shim\Microsoft.VisualStudio.IntegrationTestService.Shim.csproj", "{E06430B2-DBC1-4722-A039-DBEDC375ADF9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTestService.Dev11", "src\Microsoft.VisualStudio.IntegrationTestService.Dev11\Microsoft.VisualStudio.IntegrationTestService.Dev11.csproj", "{5A516B07-7B9C-4CE1-9DDC-E59800919D64}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTestService.Dev17", "src\Microsoft.VisualStudio.IntegrationTestService.Dev17\Microsoft.VisualStudio.IntegrationTestService.Dev17.csproj", "{56550D99-71D3-44FE-804C-944D82D639F6}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{4232a7ba-a7b7-4c65-b7a1-17fb5cded299}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{43cc037c-8ebc-424c-ab73-9dd4047924a1}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{56550d99-71d3-44fe-804c-944d82d639f6}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{5a516b07-7b9c-4ce1-9ddc-e59800919d64}*SharedItemsImports = 5
+		src\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems*{629938e1-1c2c-4f01-8038-90a34a940ac8}*SharedItemsImports = 13
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{6a12cff7-2499-4671-8ebe-ec3f2ff2adf0}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{75edeb61-db9d-4f12-b922-ecef8081cef1}*SharedItemsImports = 5
 		src\Microsoft.VisualStudio.VsixInstaller.Shared\Microsoft.VisualStudio.VsixInstaller.Shared.projitems*{784cb5c8-6258-499d-8efb-7a601a6f7e46}*SharedItemsImports = 5
@@ -84,6 +95,18 @@ Global
 		{43CC037C-8EBC-424C-AB73-9DD4047924A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43CC037C-8EBC-424C-AB73-9DD4047924A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43CC037C-8EBC-424C-AB73-9DD4047924A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E06430B2-DBC1-4722-A039-DBEDC375ADF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E06430B2-DBC1-4722-A039-DBEDC375ADF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E06430B2-DBC1-4722-A039-DBEDC375ADF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E06430B2-DBC1-4722-A039-DBEDC375ADF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A516B07-7B9C-4CE1-9DDC-E59800919D64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A516B07-7B9C-4CE1-9DDC-E59800919D64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A516B07-7B9C-4CE1-9DDC-E59800919D64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A516B07-7B9C-4CE1-9DDC-E59800919D64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56550D99-71D3-44FE-804C-944D82D639F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56550D99-71D3-44FE-804C-944D82D639F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56550D99-71D3-44FE-804C-944D82D639F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56550D99-71D3-44FE-804C-944D82D639F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

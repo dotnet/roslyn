@@ -1,0 +1,32 @@
+<Project>
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net45</TargetFramework>
+    <Description>Integration test service extension for Visual Studio</Description>
+    <RootNamespace>Microsoft.VisualStudio.IntegrationTestService</RootNamespace>
+    <AssemblyName>Microsoft.VisualStudio.IntegrationTestService.Impl</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <CreateVsixContainer>false</CreateVsixContainer>
+    <DeployExtension>false</DeployExtension>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Runtime.Remoting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.1.192" PrivateAssets="all" />
+    <PackageReference Include="VSSDK.Shell.11" Version="11.0.4" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Import Project="..\Microsoft.VisualStudio.IntegrationTestService.Shared\Microsoft.VisualStudio.IntegrationTestService.Shared.projitems" Label="Shared" />
+
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
+
+</Project>

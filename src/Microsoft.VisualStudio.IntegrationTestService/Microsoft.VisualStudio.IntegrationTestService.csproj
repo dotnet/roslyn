@@ -8,13 +8,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <UseCodebase>true</UseCodebase>
-    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
-    <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
+    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
 
     <!--
       This extension is deployed on-demand by the integration test harness.
@@ -23,31 +23,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="System.Runtime.Remoting" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.0.63-dev17-g3f11f5ab" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.1.192" PrivateAssets="all" />
-    <PackageReference Include="VSSDK.Shell.11" Version="11.0.4" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="..\..\LICENSE">
-      <Link>LICENSE</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <VSCTCompile Include="IntegrationTestServiceCommands.vsct" ResourceName="Menus.ctmenu" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="IntegrationTestServicePackage.resx" MergeWithCTO="true" ManifestResourceName="IntegrationTestServicePackage" Generator="" />
+    <Content Include="..\..\LICENSE" IncludeInVSIX="true" />
+    <Content Include="Microsoft.VisualStudio.IntegrationTestService.pkgdef" IncludeInVSIX="true" />
   </ItemGroup>
 
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
 
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev11\Microsoft.VisualStudio.IntegrationTestService.Dev11.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" VsixSubPath="dev11" IncludeOutputGroupsInVsix="BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;SatelliteDllsProjectOutputGroup" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev17\Microsoft.VisualStudio.IntegrationTestService.Dev17.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" VsixSubPath="dev17" IncludeOutputGroupsInVsix="BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;SatelliteDllsProjectOutputGroup" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService.Shim\Microsoft.VisualStudio.IntegrationTestService.Shim.csproj" ReferenceOutputAssembly="False" SkipGetTargetFrameworkProperties="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- https://github.com/Microsoft/extendvs/issues/57 -->
+    <ProjectReference Update="@(ProjectReference)" Name="%(Filename)" />
+  </ItemGroup>
 
 </Project>

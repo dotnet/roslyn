@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService\Microsoft.VisualStudio.IntegrationTestService.csproj" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev11\Microsoft.VisualStudio.IntegrationTestService.Dev11.csproj" Private="false" PrivateAssets="all" />
 
     <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.11\Microsoft.VisualStudio.VsixInstaller.11.csproj" ReferenceOutputAssembly="False" PrivateAssets="all" />
     <ProjectReference Include="..\Microsoft.VisualStudio.VsixInstaller.12\Microsoft.VisualStudio.VsixInstaller.12.csproj" ReferenceOutputAssembly="False" PrivateAssets="all" />
@@ -44,7 +44,7 @@
     <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.14\bin\x86\$(Configuration)\net452\Microsoft.VisualStudio.VsixInstaller.14.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.14.dll" />
     <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.15\bin\x86\$(Configuration)\net46\Microsoft.VisualStudio.VsixInstaller.15.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.15.dll" />
     <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.16\bin\x86\$(Configuration)\net472\Microsoft.VisualStudio.VsixInstaller.16.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.16.dll" />
-    <EmbeddedResource Include="..\Microsoft.VisualStudio.IntegrationTestService\bin\$(Configuration)\net45\Microsoft.VisualStudio.IntegrationTestService.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.dll" />
+    <EmbeddedResource Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev11\bin\$(Configuration)\net45\Microsoft.VisualStudio.IntegrationTestService.Impl.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.Impl.dll" />
 
     <!-- Embedded extensions -->
     <EmbeddedResource Include="..\Microsoft.VisualStudio.IntegrationTestService\bin\$(Configuration)\net45\Microsoft.VisualStudio.IntegrationTestService.vsix" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.vsix" />
