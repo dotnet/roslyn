@@ -109,8 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 newStatement = block.WithStatements(SyntaxFactory.SingletonList(newStatement));
             }
 
-            newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation)
-                .WithTrailingTrivia(ifStatement.GetTrailingTrivia());
+            newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
+            newStatement = AppendTriviaWithoutEndOfLines(newStatement, ifStatement);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -144,12 +144,23 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                     SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
 
-            newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation)
-                .WithTrailingTrivia(ifStatement.GetTrailingTrivia());
+            newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
+            newStatement = AppendTriviaWithoutEndOfLines(newStatement, ifStatement);
 
             editor.ReplaceNode(ifStatement, newStatement);
             editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.AddElasticMarker);
             cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        private static T AppendTriviaWithoutEndOfLines<T>(T newStatement, IfStatementSyntax ifStatement) where T : SyntaxNode
+        {
+            // We're combining trivia from the delegate invocation and the end of the if statement
+            // but we don't want two EndOfLines so we ignore the one on the invocation (if it exists)
+            var expressionTrivia = newStatement.GetTrailingTrivia();
+            var expressionTriviaWithoutEndOfLine = expressionTrivia.Where(t => !t.IsKind(SyntaxKind.EndOfLineTrivia));
+            var ifStatementTrivia = ifStatement.GetTrailingTrivia();
+
+            return newStatement.WithTrailingTrivia(expressionTriviaWithoutEndOfLine.Concat(ifStatementTrivia));
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction

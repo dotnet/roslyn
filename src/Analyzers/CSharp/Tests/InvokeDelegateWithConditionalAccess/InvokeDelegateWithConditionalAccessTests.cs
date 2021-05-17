@@ -501,7 +501,7 @@ class C
         [||]var v = a;
         if (v != null)
         {
-            v();
+            v(); // Comment2
         }
     }
 }",
@@ -511,7 +511,7 @@ class C
     void Goo()
     {
         // Comment
-        a?.Invoke();
+        a?.Invoke(); // Comment2
     }
 }");
         }
@@ -528,7 +528,7 @@ class C
         // Comment
         [||]if (a != null)
         {
-            a();
+            a(); // Comment2
         }
     }
 }",
@@ -538,7 +538,7 @@ class C
     void Goo()
     {
         // Comment
-        a?.Invoke();
+        a?.Invoke(); // Comment2
     }
 }");
         }
@@ -555,7 +555,7 @@ class C
     {
         // Comment
         [||]var v = a;
-        if (v != null) { v(); } // trails
+        if (v != null) { v(); /* 123 */ } // trails
         System.Console.WriteLine();
     }
 }",
@@ -565,7 +565,7 @@ class C
     void Goo()
     {
         // Comment
-        a?.Invoke(); // trails
+        a?.Invoke(); /* 123 */  // trails
         System.Console.WriteLine();
     }
 }");
@@ -581,7 +581,7 @@ class C
     System.Action a;
     void Goo()
     {
-        [||]if (a != null) { a(); } // trails
+        [||]if (a != null) { a(); /* 123 */ } // trails
         System.Console.WriteLine();
     }
 }",
@@ -590,7 +590,7 @@ class C
     System.Action a;
     void Goo()
     {
-        a?.Invoke(); // trails
+        a?.Invoke(); /* 123 */  // trails
         System.Console.WriteLine();
     }
 }");
