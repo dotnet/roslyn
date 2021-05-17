@@ -126,6 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 [A, B]
 /*<span>*/public abstract partial record R/*</span>*/ { }
 
+[A, B]
+/*<span>*/public abstract partial record struct R/*</span>*/ { }
+
 /*<span>*/interface I/*</span>*/ : J, K, L { }
 
 [A]
