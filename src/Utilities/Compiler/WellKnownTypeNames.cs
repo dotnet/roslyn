@@ -6,6 +6,7 @@ namespace Analyzer.Utilities
     {
         public const string MicrosoftAspNetCoreAntiforgeryIAntiforgery = "Microsoft.AspNetCore.Antiforgery.IAntiforgery";
         public const string MicrosoftAspNetCoreHttpCookieOptions = "Microsoft.AspNetCore.Http.CookieOptions";
+        public const string MicrosoftAspNetCoreHttpHttpRequest = "Microsoft.AspNetCore.Http.HttpRequest";
         public const string MicrosoftAspNetCoreHttpIResponseCookies = "Microsoft.AspNetCore.Http.IResponseCookies";
         public const string MicrosoftAspNetCoreHttpInternalResponseCookies = "Microsoft.AspNetCore.Http.Internal.ResponseCookies";
         public const string MicrosoftAspNetCoreMvcController = "Microsoft.AspNetCore.Mvc.Controller";
