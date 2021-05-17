@@ -162,14 +162,14 @@
         <target state="translated">Sitio de llamada</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_Newline_rn">
-        <source>Carrage Return + Newline (\\r\\n)</source>
-        <target state="translated">Retorno de carro + Nueva línea (\\r\\n)</target>
+      <trans-unit id="Carriage_Return_Newline_rn">
+        <source>Carriage Return + Newline (\r\n)</source>
+        <target state="new">Carriage Return + Newline (\r\n)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_r">
-        <source>Carrage Return (\\r)</source>
-        <target state="translated">Retorno de carro (\\r)</target>
+      <trans-unit id="Carriage_Return_r">
+        <source>Carriage Return (\r)</source>
+        <target state="new">Carriage Return (\r)</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
