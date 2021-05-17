@@ -306,6 +306,7 @@ namespace Xunit.Harness
         private static Process StartNewVisualStudioProcess(string installationPath, Version version, ImmutableList<string> extensionFiles)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
+            var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
 
             var installerAssembly = LoadInstallerAssembly(version);
             var installerType = installerAssembly.GetType("Microsoft.VisualStudio.VsixInstaller.Installer");
@@ -329,6 +330,12 @@ namespace Xunit.Harness
             {
                 File.Delete(integrationTestServiceExtension);
                 Directory.Delete(temporaryFolder);
+            }
+
+            if (version.Major >= 16)
+            {
+                // Make sure the start window doesn't show on launch
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU General OnEnvironmentStartup dword 10").WaitForExit();
             }
 
             // BUG: Currently building with /p:DeployExtension=true does not always cause the MEF cache to recompose...
