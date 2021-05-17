@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
         private const string s_symbolEqualsName = nameof(ISymbol.Equals);
+        private const string s_HashCodeCombineName = "Combine";
         public const string SymbolEqualityComparerName = "Microsoft.CodeAnalysis.SymbolEqualityComparer";
 
         public static readonly DiagnosticDescriptor EqualityRule = new(
@@ -78,9 +79,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     OperationKind.BinaryOperator);
 
                 var equalityComparerMethods = GetEqualityComparerMethodsToCheck(compilation);
+                var systemHashCode = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemHashCode);
 
                 context.RegisterOperationAction(
-                    context => HandleInvocationOperation(in context, symbolType, symbolEqualityComparerType, equalityComparerMethods),
+                    context => HandleInvocationOperation(in context, symbolType, symbolEqualityComparerType, equalityComparerMethods, systemHashCode),
                     OperationKind.Invocation);
 
                 if (symbolEqualityComparerType != null)
@@ -140,8 +142,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             context.ReportDiagnostic(binary.Syntax.GetLocation().CreateDiagnostic(EqualityRule));
         }
 
-        private static void HandleInvocationOperation(in OperationAnalysisContext context, INamedTypeSymbol symbolType,
-            INamedTypeSymbol? symbolEqualityComparerType, ImmutableDictionary<string, ImmutableHashSet<INamedTypeSymbol>> equalityComparerMethods)
+        private static void HandleInvocationOperation(
+            in OperationAnalysisContext context,
+            INamedTypeSymbol symbolType,
+            INamedTypeSymbol? symbolEqualityComparerType,
+            ImmutableDictionary<string, ImmutableHashSet<INamedTypeSymbol>> equalityComparerMethods,
+            INamedTypeSymbol? systemHashCodeType)
         {
             var invocationOperation = (IInvocationOperation)context.Operation;
             var method = invocationOperation.TargetMethod;
@@ -149,14 +155,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             switch (method.Name)
             {
                 case WellKnownMemberNames.ObjectGetHashCode:
-                    if (IsNotInstanceInvocationOrNotOnSymbol(invocationOperation, symbolType))
+                    // This is a call for an instance of ISymbol.GetHashCode()
+                    // without the correct arguments
+                    if (IsSymbolType(invocationOperation.Instance, symbolType))
                     {
                         context.ReportDiagnostic(invocationOperation.CreateDiagnostic(GetHashCodeRule));
                     }
                     break;
 
                 case s_symbolEqualsName:
-                    if (symbolEqualityComparerType != null && IsNotInstanceInvocationOrNotOnSymbol(invocationOperation, symbolType))
+                    if (symbolEqualityComparerType is not null && IsNotInstanceInvocationOrNotOnSymbol(invocationOperation, symbolType))
                     {
                         var parameters = invocationOperation.Arguments;
                         if (parameters.All(p => IsSymbolType(p.Value, symbolType)))
@@ -166,10 +174,21 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     }
                     break;
 
+                case s_HashCodeCombineName:
+                    // A call System.HashCode.Combine(ISymbol) will do the wrong thing and should be avoided
+                    if (systemHashCodeType is not null &&
+                        invocationOperation.Instance is null &&
+                        systemHashCodeType.Equals(method.ContainingType, SymbolEqualityComparer.Default) &&
+                        invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolType)))
+                    {
+                        context.ReportDiagnostic(invocationOperation.CreateDiagnostic(GetHashCodeRule));
+                    }
+                    break;
+
                 default:
                     if (equalityComparerMethods.TryGetValue(method.Name, out var possibleMethodTypes))
                     {
-                        if (symbolEqualityComparerType != null &&
+                        if (symbolEqualityComparerType is not null &&
                             possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
                             IsBehavingOnSymbolType(method, symbolType) &&
                             !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
@@ -228,9 +247,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
         }
 
-        private static bool IsSymbolType(IOperation operation, INamedTypeSymbol symbolType)
+        private static bool IsSymbolType(IOperation? operation, INamedTypeSymbol symbolType)
         {
-            if (operation.Type is object && IsSymbolType(operation.Type, symbolType))
+            if (operation?.Type is object && IsSymbolType(operation.Type, symbolType))
             {
                 return true;
             }
