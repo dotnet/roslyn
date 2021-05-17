@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalFiles = { },
-                    AnalyzerConfigFiles = { ("/.editorconfig", editorConfigText) }
+                    AnalyzerConfigFiles = { ("/.editorconfig", editorConfigText) },
                 },
             };
 
