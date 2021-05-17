@@ -942,6 +942,16 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeStatement(actual, expected);
         }
 
+        [Fact(Skip = "PROTOTYPE")]
+        public void TestNormalizeExtendedPropertyPattern()
+        {
+            // PROTOTYPE: we may need to flow https://github.com/dotnet/roslyn/pull/52680 into the feature branch first
+            var text = "_ = this is{Property . Property :2};";
+
+            var expected = @"_ = this is { Property.Property: 2 };";
+            TestNormalizeStatement(text, expected);
+        }
+
         private void TestNormalize(CSharpSyntaxNode node, string expected)
         {
             var actual = node.NormalizeWhitespace("  ").ToFullString();
