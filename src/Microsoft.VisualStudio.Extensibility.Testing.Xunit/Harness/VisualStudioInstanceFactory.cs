@@ -335,18 +335,18 @@ namespace Xunit.Harness
             if (version.Major >= 16)
             {
                 // Make sure the start window doesn't show on launch
-                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU General OnEnvironmentStartup dword 10").WaitForExit();
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU General OnEnvironmentStartup dword 10")).WaitForExit();
             }
 
             // BUG: Currently building with /p:DeployExtension=true does not always cause the MEF cache to recompose...
             //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
             if (version.Major >= 12)
             {
-                Process.Start(vsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
+                Process.Start(CreateSilentStartInfo(vsExeFile, $"/clearcache {VsLaunchArgs}")).WaitForExit();
             }
 
-            Process.Start(vsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
-            Process.Start(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}").WaitForExit();
+            Process.Start(CreateSilentStartInfo(vsExeFile, $"/updateconfiguration {VsLaunchArgs}")).WaitForExit();
+            Process.Start(CreateSilentStartInfo(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}")).WaitForExit();
 
             // Make sure we kill any leftover processes spawned by the host
             IntegrationHelper.KillProcess("DbgCLR");
@@ -357,6 +357,11 @@ namespace Xunit.Harness
             Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {process.Id})");
 
             return process;
+
+            ProcessStartInfo CreateSilentStartInfo(string fileName, string arguments)
+            {
+                return new ProcessStartInfo(fileName, arguments) { CreateNoWindow = true, UseShellExecute = false };
+            }
         }
 
         private static Assembly LoadInstallerAssembly(Version version)
