@@ -92,31 +92,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         IgnoreCorLibraryDuplicatedTypes = 1 << 26,
 
         /// <summary>
-        /// When binding imports in scripts/submissions, using aliases (other than from the current submission)
-        /// are considered but other imports are not.
-        /// </summary>
-        InScriptUsing = 1 << 27,
-
-        /// <summary>
-        /// In a file that has been included in the compilation via #load.
-        /// </summary>
-        InLoadedSyntaxTree = 1 << 28,
-
-        /// <summary>
         /// This is a <see cref="ContextualAttributeBinder"/>, or has <see cref="ContextualAttributeBinder"/> as its parent.
         /// </summary>
-        InContextualAttributeBinder = 1 << 29,
+        InContextualAttributeBinder = 1 << 27,
 
         /// <summary>
         /// Are we binding for the purpose of an Expression Evaluator
         /// </summary>
-        InEEMethodBinder = 1 << 30,
+        InEEMethodBinder = 1 << 28,
 
         /// <summary>
         /// Skip binding type arguments (we use <see cref="Symbols.PlaceholderTypeArgumentSymbol"/> instead).
         /// For example, currently used when type constraints are bound in some scenarios.
         /// </summary>
-        SuppressTypeArgumentBinding = 1u << 31,
+        SuppressTypeArgumentBinding = 1 << 29,
 
         // Groups
 

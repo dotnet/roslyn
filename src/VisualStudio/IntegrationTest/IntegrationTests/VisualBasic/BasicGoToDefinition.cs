@@ -38,7 +38,7 @@ End Class");
     Dim gibberish As SomeClass
 End Class");
             VisualStudio.Editor.PlaceCaret("SomeClass");
-            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.GoToDefinition("FileDef.vb");
             VisualStudio.Editor.Verify.TextContains(@"Class SomeClass$$", assertCaretPosition: true);
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
@@ -52,13 +52,13 @@ End Class");
 End Class");
             VisualStudio.Workspace.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "True");
 
-            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.GoToDefinition("Object Browser");
             Assert.Equal("Object Browser", VisualStudio.Shell.GetActiveWindowCaption());
 
             VisualStudio.Workspace.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "False");
 
             VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.vb");
-            VisualStudio.Editor.GoToDefinition();
+            VisualStudio.Editor.GoToDefinition("Int32 [from metadata]");
             VisualStudio.Editor.Verify.TextContains("Public Structure Int32");
         }
     }

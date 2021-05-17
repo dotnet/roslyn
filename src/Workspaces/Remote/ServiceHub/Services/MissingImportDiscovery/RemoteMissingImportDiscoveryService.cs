@@ -46,23 +46,20 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (UserOperationBooster.Boost())
-                {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var document = solution.GetDocument(documentId);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetDocument(documentId);
 
-                    var service = document.GetLanguageService<IAddImportFeatureService>();
+                var service = document.GetLanguageService<IAddImportFeatureService>();
 
-                    var symbolSearchService = new SymbolSearchService(_callback, callbackId);
+                var symbolSearchService = new SymbolSearchService(_callback, callbackId);
 
-                    var result = await service.GetFixesAsync(
-                        document, span, diagnosticId, maxResults,
-                        placeSystemNamespaceFirst, allowInHiddenRegions,
-                        symbolSearchService, searchReferenceAssemblies,
-                        packageSources, cancellationToken).ConfigureAwait(false);
+                var result = await service.GetFixesAsync(
+                    document, span, diagnosticId, maxResults,
+                    placeSystemNamespaceFirst, allowInHiddenRegions,
+                    symbolSearchService, searchReferenceAssemblies,
+                    packageSources, cancellationToken).ConfigureAwait(false);
 
-                    return result;
-                }
+                return result;
             }, cancellationToken);
         }
 

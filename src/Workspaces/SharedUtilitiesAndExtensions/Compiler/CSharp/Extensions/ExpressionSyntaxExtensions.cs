@@ -523,6 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.ElementAccessExpression:
+                case SyntaxKind.SwitchExpressionArm:
                     // Direct parent kind checks.
                     return true;
             }
@@ -703,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return OperatorPrecedence.Unary;
 
                 case SyntaxKind.RangeExpression:
-                    // From C# spec, https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#systemrange
+                    // From C# spec, https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#systemrange
                     // Range: ..
 
                     return OperatorPrecedence.Range;

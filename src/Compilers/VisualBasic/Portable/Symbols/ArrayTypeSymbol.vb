@@ -365,18 +365,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Use-Site Diagnostics"
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             ' Check type.
-            Dim elementErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.ElementType)
+            Dim elementUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(Me.ElementType)
 
-            If elementErrorInfo IsNot Nothing AndAlso elementErrorInfo.Code = ERRID.ERR_UnsupportedType1 Then
-                Return elementErrorInfo
+            If elementUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedType1 Then
+                Return elementUseSiteInfo
             End If
 
             ' Check custom modifiers.
-            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.CustomModifiers)
+            Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(Me.CustomModifiers)
 
-            Return MergeUseSiteErrorInfo(elementErrorInfo, modifiersErrorInfo)
+            Return MergeUseSiteInfo(elementUseSiteInfo, modifiersUseSiteInfo)
         End Function
 
         Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo

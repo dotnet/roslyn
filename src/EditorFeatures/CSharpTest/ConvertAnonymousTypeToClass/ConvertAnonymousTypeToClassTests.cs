@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass;
@@ -12,11 +10,14 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousTypeToClass
 {
     public class ConvertAnonymousTypeToClassTests : AbstractCSharpCodeActionTest
     {
+        private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertAnonymousTypeToClassCodeRefactoringProvider();
 
@@ -67,6 +68,32 @@ internal class NewClass
         return hashCode;
     }
 }";
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task ConvertSingleAnonymousType_CSharp9()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1, b = 2 };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewRecord|}(1, 2);
+    }
+}
+
+internal record NewRecord(int A, int B);
+";
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
 
@@ -118,7 +145,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected);
+            await TestInRegularAndScriptAsync(text, expected, parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -157,7 +184,32 @@ internal class NewClass
     {
         return 0;
     }
-}");
+}", parseOptions: CSharp8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task OnEmptyAnonymousType_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { };
+    }
+}
+",
+@"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewRecord|}();
+    }
+}
+
+internal record NewRecord();
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -200,7 +252,32 @@ internal class NewClass
     {
         return -862436692 + A.GetHashCode();
     }
-}");
+}", parseOptions: CSharp8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task OnSingleFieldAnonymousType_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(@"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1 };
+    }
+}
+",
+@"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewRecord|}(1);
+    }
+}
+
+internal record NewRecord(int A);
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -250,6 +327,32 @@ internal class NewClass
         return hashCode;
     }
 }";
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task ConvertSingleAnonymousTypeWithInferredName_CSharp9()
+        {
+            var text = @"
+class Test
+{
+    void Method(int b)
+    {
+        var t1 = [||]new { a = 1, b };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method(int b)
+    {
+        var t1 = new {|Rename:NewRecord|}(1, b);
+    }
+}
+
+internal record NewRecord(int A, int B);
+";
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
 
@@ -302,6 +405,34 @@ internal class NewClass
         return hashCode;
     }
 }";
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task ConvertMultipleInstancesInSameMethod_CSharp9()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1, b = 2 };
+        var t2 = new { a = 3, b = 4 };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewRecord|}(1, 2);
+        var t2 = new NewRecord(3, 4);
+    }
+}
+
+internal record NewRecord(int A, int B);
+";
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
 
@@ -366,7 +497,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -422,7 +553,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -478,7 +609,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -542,7 +673,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -592,7 +723,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -644,7 +775,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -712,7 +843,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -764,7 +895,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -816,7 +947,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -868,6 +999,34 @@ internal class NewClass<X, Y>
         return hashCode;
     }
 }";
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task CapturedTypeParameters_CSharp9()
+        {
+            var text = @"
+class Test<X> where X : struct
+{
+    void Method<Y>(List<X> x, Y[] y) where Y : class, new()
+    {
+        var t1 = [||]new { a = x, b = y };
+    }
+}
+";
+            var expected = @"
+class Test<X> where X : struct
+{
+    void Method<Y>(List<X> x, Y[] y) where Y : class, new()
+    {
+        var t1 = new {|Rename:NewRecord|}<X, Y>(x, y);
+    }
+}
+
+internal record NewRecord<X, Y>(List<X> A, Y[] B)
+    where X : struct
+    where Y : class, new();
+";
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
 
@@ -926,7 +1085,7 @@ internal class NewClass1
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -976,6 +1135,32 @@ internal class NewClass
         return hashCode;
     }
 }";
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
+        public async Task TestDuplicatedName_CSharp9()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = [||]new { a = 1, a = 2 };
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var t1 = new {|Rename:NewRecord|}(1, 2);
+    }
+}
+
+internal record NewRecord(int A, int Item);
+";
             await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
         }
 
@@ -1026,7 +1211,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -1088,7 +1273,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -1150,7 +1335,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -1212,7 +1397,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToClass)]
@@ -1274,7 +1459,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
@@ -1325,7 +1510,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
@@ -1376,7 +1561,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
@@ -1427,7 +1612,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [WorkItem(45747, "https://github.com/dotnet/roslyn/issues/45747")]
@@ -1485,7 +1670,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
 
         [WorkItem(45747, "https://github.com/dotnet/roslyn/issues/45747")]
@@ -1547,7 +1732,7 @@ internal class NewClass
         return hashCode;
     }
 }";
-            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo());
+            await TestInRegularAndScriptAsync(text, expected, options: this.PreferImplicitTypeWithInfo(), parseOptions: CSharp8);
         }
     }
 }

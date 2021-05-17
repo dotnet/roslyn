@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis
             return collection.Checksum;
         }
 
-        public Checksum GetParseOptionsChecksum(CancellationToken cancellationToken)
-            => GetParseOptionsChecksum(_solutionServices.Workspace.Services.GetService<ISerializerService>(), cancellationToken);
+        public Checksum GetParseOptionsChecksum()
+            => GetParseOptionsChecksum(_solutionServices.Workspace.Services.GetService<ISerializerService>());
 
-        private Checksum GetParseOptionsChecksum(ISerializerService serializer, CancellationToken cancellationToken)
+        private Checksum GetParseOptionsChecksum(ISerializerService serializer)
             => this.SupportsCompilation
-                ? ChecksumCache.GetOrCreate(this.ParseOptions, _ => serializer.CreateChecksum(this.ParseOptions, cancellationToken))
+                ? ChecksumCache.GetOrCreate(this.ParseOptions, _ => serializer.CreateParseOptionsChecksum(this.ParseOptions))
                 : Checksum.Null;
 
         private async Task<ProjectStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
@@ -43,11 +43,9 @@ namespace Microsoft.CodeAnalysis
             {
                 using (Logger.LogBlock(FunctionId.ProjectState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    // Here, we use the _documentStates and _additionalDocumentStates and visit them in order; we ensure that those are
-                    // sorted by ID so we have a consistent sort.
-                    var documentChecksumsTasks = _documentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
-                    var additionalDocumentChecksumTasks = _additionalDocumentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
-                    var analyzerConfigDocumentChecksumTasks = _analyzerConfigDocumentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
+                    var documentChecksumsTasks = DocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
+                    var additionalDocumentChecksumTasks = AdditionalDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
+                    var analyzerConfigDocumentChecksumTasks = AnalyzerConfigDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
 
                     var serializer = _solutionServices.Workspace.Services.GetService<ISerializerService>();
 
@@ -55,7 +53,8 @@ namespace Microsoft.CodeAnalysis
 
                     // these compiler objects doesn't have good place to cache checksum. but rarely ever get changed.
                     var compilationOptionsChecksum = SupportsCompilation ? ChecksumCache.GetOrCreate(CompilationOptions, _ => serializer.CreateChecksum(CompilationOptions, cancellationToken)) : Checksum.Null;
-                    var parseOptionsChecksum = GetParseOptionsChecksum(serializer, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var parseOptionsChecksum = GetParseOptionsChecksum(serializer);
 
                     var projectReferenceChecksums = ChecksumCache.GetOrCreate<ProjectReferenceChecksumCollection>(ProjectReferences, _ => new ProjectReferenceChecksumCollection(ProjectReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
                     var metadataReferenceChecksums = ChecksumCache.GetOrCreate<MetadataReferenceChecksumCollection>(MetadataReferences, _ => new MetadataReferenceChecksumCollection(MetadataReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                         new AnalyzerConfigDocumentChecksumCollection(analyzerConfigDocumentChecksums));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -408,5 +408,137 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "event");
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [InlineData("struct", true)]
+        [InlineData("record struct", true)]
+        [InlineData("class", false)]
+        [InlineData("record", false)]
+        [InlineData("record class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyPropertyAccessor(string declarationType, bool present)
+        {
+
+            var markup =
+$@"{declarationType} C {{
+    int X {{
+        $$
+    }}
+}}
+";
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [InlineData("struct", true)]
+        [InlineData("class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyBeforePropertyAccessor(string declarationType, bool present)
+        {
+
+            var markup =
+$@"{declarationType} C {{
+    int X {{
+        $$ get;
+    }}
+}}
+";
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [InlineData("struct", true)]
+        [InlineData("class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyIndexerAccessor(string declarationType, bool present)
+        {
+
+            var markup =
+$@"{declarationType} C {{
+    int this[int i] {{
+        $$
+    }}
+}}
+";
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [InlineData("struct", true)]
+        [InlineData("class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyEventAccessor(string declarationType, bool present)
+        {
+
+            var markup =
+$@"{declarationType} C {{
+    event System.Action E {{
+        $$
+    }}
+}}
+";
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        public async Task SuggestAccessorAfterReadonlyInStruct()
+        {
+            var markup =
+@"struct C {
+    int X {
+        readonly $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "get");
+            await VerifyItemExistsAsync(markup, "set");
+            await VerifyItemIsAbsentAsync(markup, "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        public async Task SuggestReadonlyMethodInStruct()
+        {
+
+            var markup =
+@"struct C {
+    public $$ void M() {}
+}
+";
+            await VerifyItemExistsAsync(markup, "readonly");
+        }
     }
 }

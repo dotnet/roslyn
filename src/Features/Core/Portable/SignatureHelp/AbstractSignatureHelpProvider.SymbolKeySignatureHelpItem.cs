@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -19,21 +17,21 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             public SymbolKeySignatureHelpItem(
                 ISymbol symbol,
                 bool isVariadic,
-                Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+                Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
                 IEnumerable<TaggedText> prefixParts,
                 IEnumerable<TaggedText> separatorParts,
                 IEnumerable<TaggedText> suffixParts,
                 IEnumerable<SignatureHelpParameter> parameters,
-                IEnumerable<TaggedText> descriptionParts)
+                IEnumerable<TaggedText>? descriptionParts)
                 : base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
             {
                 SymbolKey = symbol?.GetSymbolKey();
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
                 => Equals(obj as SymbolKeySignatureHelpItem);
 
-            public bool Equals(SymbolKeySignatureHelpItem obj)
+            public bool Equals(SymbolKeySignatureHelpItem? obj)
             {
                 return ReferenceEquals(this, obj) ||
                     (obj?.SymbolKey != null &&

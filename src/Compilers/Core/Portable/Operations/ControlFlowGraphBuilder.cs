@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private IOperation? _currentStatement;
         private readonly ArrayBuilder<(EvalStackFrame? frameOpt, IOperation? operationOpt)> _evalStack;
         private int _startSpillingAt;
-        private IOperation? _currentConditionalAccessInstance;
+        private ConditionalAccessOperationTracker _currentConditionalAccessTracker;
         private IOperation? _currentSwitchOperationExpression;
         private IOperation? _forToLoopBinaryOperatorLeftOperand;
         private IOperation? _forToLoopBinaryOperatorRightOperand;
@@ -1427,8 +1426,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             switch (operation)
             {
                 case IUsingDeclarationOperation usingDeclarationOperation:
-                    var followingStatements = ImmutableArray.Create(statements, startIndex + 1, statements.Length - startIndex - 1);
-                    VisitUsingVariableDeclarationOperation(usingDeclarationOperation, followingStatements);
+                    VisitUsingVariableDeclarationOperation(usingDeclarationOperation, statements.AsSpan()[(startIndex + 1)..]);
                     return true;
                 case ILabeledOperation { Operation: { } } labelOperation:
                     return visitPossibleUsingDeclarationInLabel(labelOperation);
@@ -3193,79 +3191,50 @@ oneMoreTime:
 
             // Avoid creation of default values and FlowCapture for conditional access on a statement level.
             bool isOnStatementLevel = _currentStatement == operation || (_currentStatement == operation.Parent && _currentStatement?.Kind == OperationKind.ExpressionStatement);
-            var frames = ArrayBuilder<EvalStackFrame>.GetInstance();
+            EvalStackFrame? expressionFrame = null;
+            var operations = ArrayBuilder<IOperation>.GetInstance();
 
             if (!isOnStatementLevel)
             {
-                frames.Push(PushStackFrame());
+                expressionFrame = PushStackFrame();
             }
 
             IConditionalAccessOperation currentConditionalAccess = operation;
-
-            while (true)
-            {
-                frames.Push(PushStackFrame());
-
-                if (currentConditionalAccess.WhenNotNull.Kind != OperationKind.ConditionalAccess)
-                {
-                    break;
-                }
-
-                currentConditionalAccess = (IConditionalAccessOperation)currentConditionalAccess.WhenNotNull;
-            }
-
-            var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
-
-            currentConditionalAccess = operation;
             IOperation testExpression;
+            var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
+            var previousTracker = _currentConditionalAccessTracker;
+            _currentConditionalAccessTracker = new ConditionalAccessOperationTracker(operations, whenNull);
 
             while (true)
             {
                 testExpression = currentConditionalAccess.Operation;
-                SyntaxNode testExpressionSyntax = testExpression.Syntax;
-                ITypeSymbol? testExpressionType = testExpression.Type;
-
-                PushOperand(VisitRequired(testExpression));
-                SpillEvalStack();
-                IOperation spilledTestExpression = PopOperand();
-                PopStackFrame(frames.Pop());
-
-                ConditionalBranch(MakeIsNullOperation(spilledTestExpression),
-                    jumpIfTrue: true,
-                    whenNull);
-                _currentBasicBlock = null;
-
-                IOperation receiver = OperationCloner.CloneOperation(spilledTestExpression);
-
-                if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
+                if (!isConditionalAccessInstancePresentInChildren(currentConditionalAccess.WhenNotNull))
                 {
-                    receiver = CallNullableMember(receiver, SpecialMember.System_Nullable_T_GetValueOrDefault);
+                    // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
+                    //                      a None operation is created and all children are dropped.
+                    //                      See Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests.ExpressionCompilerTests.ConditionalAccessExpressionType
+                    //                      Because of this, the recursion to visit the child operations will never occur if we visit the WhenNull of the current
+                    //                      conditional access, so we need to manually visit the Operation of the conditional access now.
+                    _ = VisitConditionalAccessTestExpression(testExpression);
+                    break;
                 }
 
-                // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
-                //                      a None operation is created and all children are dropped.
-                //                      See Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConditionalAccessTests.AnonymousTypeMemberName_01
-                //                      The following assert is triggered because of that. Disabling it for now.
-                //Debug.Assert(_currentConditionalAccessInstance == null);
-                _currentConditionalAccessInstance = receiver;
+                operations.Push(testExpression);
 
-                if (currentConditionalAccess.WhenNotNull.Kind != OperationKind.ConditionalAccess)
+                if (currentConditionalAccess.WhenNotNull is not IConditionalAccessOperation nested)
                 {
                     break;
                 }
 
-                currentConditionalAccess = (IConditionalAccessOperation)currentConditionalAccess.WhenNotNull;
+                currentConditionalAccess = nested;
             }
 
             if (isOnStatementLevel)
             {
                 Debug.Assert(captureIdForResult == null);
-                Debug.Assert(frames.Count == 0);
-                frames.Free();
 
                 IOperation result = VisitRequired(currentConditionalAccess.WhenNotNull);
-                Debug.Assert(_currentConditionalAccessInstance == null);
-                _currentConditionalAccessInstance = null;
+                resetConditionalAccessTracker();
 
                 if (_currentStatement != operation)
                 {
@@ -3281,10 +3250,7 @@ oneMoreTime:
             }
             else
             {
-                EvalStackFrame frame = frames.Pop();
-                Debug.Assert(frames.Count == 0);
-                frames.Free();
-
+                Debug.Assert(expressionFrame != null);
                 int resultCaptureId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
                 if (ITypeSymbolHelpers.IsNullableType(operation.Type) && !ITypeSymbolHelpers.IsNullableType(currentConditionalAccess.WhenNotNull.Type))
@@ -3299,15 +3265,10 @@ oneMoreTime:
                                               VisitRequired(currentConditionalAccess.WhenNotNull, resultCaptureId));
                 }
 
-                PopStackFrame(frame);
+                PopStackFrame(expressionFrame);
                 LeaveRegionsUpTo(resultCaptureRegion);
 
-                // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
-                //                      a None operation is created and all children are dropped.
-                //                      See Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests.ExpressionCompilerTests.ConditionalAccessExpressionType
-                //                      The following assert is triggered because of that. Disabling it for now.
-                //Debug.Assert(_currentConditionalAccessInstance == null);
-                _currentConditionalAccessInstance = null;
+                resetConditionalAccessTracker();
 
                 var afterAccess = new BasicBlockBuilder(BasicBlockKind.Block);
                 UnconditionalBranch(afterAccess);
@@ -3329,14 +3290,91 @@ oneMoreTime:
 
                 return GetCaptureReference(resultCaptureId, operation);
             }
+
+            void resetConditionalAccessTracker()
+            {
+                Debug.Assert(!_currentConditionalAccessTracker.IsDefault);
+                Debug.Assert(_currentConditionalAccessTracker.Operations.Count == 0);
+                _currentConditionalAccessTracker.Free();
+                _currentConditionalAccessTracker = previousTracker;
+            }
+
+            static bool isConditionalAccessInstancePresentInChildren(IOperation operation)
+            {
+                if (operation is InvalidOperation invalidOperation)
+                {
+                    return checkInvalidChildren(invalidOperation);
+                }
+
+                // The conditional access should always be first leaf node in the subtree when performing a depth-first search. Visit the first child recursively
+                // until we either reach the bottom, or find the conditional access.
+                Operation currentOperation = (Operation)operation;
+                while (currentOperation.ChildOperations.GetEnumerator() is var enumerator && enumerator.MoveNext())
+                {
+                    if (enumerator.Current is IConditionalAccessInstanceOperation)
+                    {
+                        return true;
+                    }
+                    else if (enumerator.Current is InvalidOperation invalidChild)
+                    {
+                        return checkInvalidChildren(invalidChild);
+                    }
+
+                    currentOperation = (Operation)enumerator.Current;
+                }
+
+                return false;
+            }
+
+            static bool checkInvalidChildren(InvalidOperation operation)
+            {
+                // Invalid operations can have children ordering that doesn't put the conditional access instance first. For these cases,
+                // use a recursive check
+                foreach (var child in operation.ChildOperations)
+                {
+                    if (child is IConditionalAccessInstanceOperation || isConditionalAccessInstancePresentInChildren(child))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentConditionalAccessInstance != null);
-            IOperation result = _currentConditionalAccessInstance;
-            _currentConditionalAccessInstance = null;
-            return result;
+            Debug.Assert(!_currentConditionalAccessTracker.IsDefault && _currentConditionalAccessTracker.Operations.Count > 0);
+
+            IOperation testExpression = _currentConditionalAccessTracker.Operations.Pop();
+            return VisitConditionalAccessTestExpression(testExpression);
+        }
+
+        private IOperation VisitConditionalAccessTestExpression(IOperation testExpression)
+        {
+            Debug.Assert(!_currentConditionalAccessTracker.IsDefault);
+            SyntaxNode testExpressionSyntax = testExpression.Syntax;
+            ITypeSymbol? testExpressionType = testExpression.Type;
+
+            var frame = PushStackFrame();
+            PushOperand(VisitRequired(testExpression));
+            SpillEvalStack();
+            IOperation spilledTestExpression = PopOperand();
+            PopStackFrame(frame);
+
+            ConditionalBranch(MakeIsNullOperation(spilledTestExpression),
+                jumpIfTrue: true,
+                _currentConditionalAccessTracker.WhenNull);
+            _currentBasicBlock = null;
+
+            IOperation receiver = OperationCloner.CloneOperation(spilledTestExpression);
+
+            if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
+            {
+                receiver = CallNullableMember(receiver, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            }
+
+            return receiver;
         }
 
         public override IOperation? VisitExpressionStatement(IExpressionStatementOperation operation, int? captureIdForResult)
@@ -7000,14 +7038,31 @@ oneMoreTime:
             return GetCaptureReference(captureOutput, operation);
         }
 
-        private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ImmutableArray<IOperation> statements)
+        private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ReadOnlySpan<IOperation> statements)
         {
             IOperation? saveCurrentStatement = _currentStatement;
             _currentStatement = operation;
             StartVisitingStatement(operation);
 
-            // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using 
-            BlockOperation logicalBlock = BlockOperation.CreateTemporaryBlock(statements, ((Operation)operation).OwningSemanticModel!, operation.Syntax);
+            // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using. Don't include
+            // local functions in this block: they still belong in the containing block. We'll visit any local functions in the list after we visit the statements
+            // in this block.
+            ArrayBuilder<IOperation> statementsBuilder = ArrayBuilder<IOperation>.GetInstance(statements.Length);
+            ArrayBuilder<IOperation>? localFunctionsBuilder = null;
+
+            foreach (var statement in statements)
+            {
+                if (statement.Kind == OperationKind.LocalFunction)
+                {
+                    (localFunctionsBuilder ??= ArrayBuilder<IOperation>.GetInstance()).Add(statement);
+                }
+                else
+                {
+                    statementsBuilder.Add(statement);
+                }
+            }
+
+            BlockOperation logicalBlock = BlockOperation.CreateTemporaryBlock(statementsBuilder.ToImmutableAndFree(), ((Operation)operation).OwningSemanticModel!, operation.Syntax);
 
             DisposeOperationInfo disposeInfo = ((UsingDeclarationOperation)operation).DisposeInfo;
 
@@ -7021,6 +7076,11 @@ oneMoreTime:
 
             FinishVisitingStatement(operation);
             _currentStatement = saveCurrentStatement;
+
+            if (localFunctionsBuilder != null)
+            {
+                VisitStatements(localFunctionsBuilder.ToImmutableAndFree());
+            }
         }
 
         public IOperation? Visit(IOperation? operation)

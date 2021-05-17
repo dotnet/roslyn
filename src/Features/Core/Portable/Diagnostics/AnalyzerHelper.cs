@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         public static ValueTask<OptionSet?> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            if (!(analyzerOptions is WorkspaceAnalyzerOptions workspaceAnalyzerOptions))
+            if (analyzerOptions is not WorkspaceAnalyzerOptions workspaceAnalyzerOptions)
             {
                 return ValueTaskFactory.FromResult((OptionSet?)null);
             }
@@ -424,6 +424,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
                             }
                         }
+
                         break;
                     case LocationKind.ExternalFile:
                         {
@@ -446,6 +447,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, filePath), "diagnostic");
                             }
                         }
+
                         break;
                     default:
                         throw ExceptionUtilities.Unreachable;

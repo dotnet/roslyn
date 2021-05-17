@@ -421,7 +421,7 @@ class Test
 
         [Fact]
         [WorkItem(23358, "https://github.com/dotnet/roslyn/issues/23358")]
-        public void EnumArrayCtorPEverify()
+        public void EnumArrayCtorPEVerify()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
@@ -562,7 +562,7 @@ class Test
         yield break;
     }
 }
-", WithNonNullTypesTrue(TestOptions.ReleaseExe));
+", WithNullableEnable(TestOptions.ReleaseExe));
             var cv = CompileAndVerify(comp, expectedOutput: "", verify: Verification.Passes);
             cv.VerifyIL("Test.<>c__1<T>.<M1>b__1_0(T[])", @"
 {
@@ -630,7 +630,7 @@ public class X
         System.Console.WriteLine(d(2));
     }
 }
-", WithNonNullTypesTrue(TestOptions.ReleaseExe));
+", WithNullableEnable(TestOptions.ReleaseExe));
             var cv = CompileAndVerify(comp, expectedOutput: "100", verify: Verification.Passes);
             cv.VerifyIL("X.<>c__DisplayClass0_0<TSrc>.<Outer>b__0(int)", @"{
   // Code size       26 (0x1a)

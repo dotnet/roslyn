@@ -97,10 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         FinishPropertyParameters = 1 << 7,
         StartPropertyType = 1 << 8,
         FinishPropertyType = 1 << 9,
-        StartPropertyFinalCompletion = 1 << 10,
-        FinishPropertyFinalCompletion = 1 << 11,
         PropertySymbolAll = Attributes | StartPropertyEnsureSignature | FinishPropertyEnsureSignature | StartPropertyParameters | FinishPropertyParameters |
-                            StartPropertyType | FinishPropertyType | StartPropertyFinalCompletion | FinishPropertyFinalCompletion,
+                            StartPropertyType | FinishPropertyType,
 
         // For alias symbols
         AliasTarget = 1 << 4,

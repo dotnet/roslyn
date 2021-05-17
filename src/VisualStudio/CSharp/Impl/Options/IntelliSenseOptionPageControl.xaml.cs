@@ -7,6 +7,7 @@
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -16,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public IntelliSenseOptionPageControl(OptionStore optionStore) : base(optionStore)
         {
             InitializeComponent();
+
+            BindToOption(Automatically_complete_statement_on_semicolon, FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
 
             BindToOption(Show_completion_item_filters, CompletionOptions.ShowCompletionItemFilters, LanguageNames.CSharp);
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);
@@ -33,9 +36,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Always_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Always, LanguageNames.CSharp);
 
             BindToOption(Show_name_suggestions, CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp);
+            BindToOption(Automatically_show_completion_list_in_argument_lists, CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
 
             Show_items_from_unimported_namespaces.IsChecked = this.OptionStore.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp);
-            Automatically_show_completion_list_in_argument_lists.IsChecked = this.OptionStore.GetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp);
+            Tab_twice_to_insert_arguments.IsChecked = this.OptionStore.GetOption(CompletionOptions.EnableArgumentCompletionSnippets, LanguageNames.CSharp);
+
         }
 
         private void Show_completion_list_after_a_character_is_typed_Checked(object sender, RoutedEventArgs e)
@@ -60,10 +65,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             this.OptionStore.SetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, value: Show_items_from_unimported_namespaces.IsChecked);
         }
 
-        private void Automatically_show_completion_list_in_argument_lists_CheckedChanged(object sender, RoutedEventArgs e)
+        private void Tab_twice_to_insert_arguments_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            Automatically_show_completion_list_in_argument_lists.IsThreeState = false;
-            this.OptionStore.SetOption(CompletionOptions.TriggerInArgumentLists, LanguageNames.CSharp, value: Automatically_show_completion_list_in_argument_lists.IsChecked);
+            Tab_twice_to_insert_arguments.IsThreeState = false;
+            this.OptionStore.SetOption(CompletionOptions.EnableArgumentCompletionSnippets, LanguageNames.CSharp, value: Tab_twice_to_insert_arguments.IsChecked);
         }
     }
 }

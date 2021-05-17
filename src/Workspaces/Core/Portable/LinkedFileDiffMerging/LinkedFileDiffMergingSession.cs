@@ -19,18 +19,15 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class LinkedFileDiffMergingSession
     {
-        private readonly bool _logSessionInfo;
-
         private readonly Solution _oldSolution;
         private readonly Solution _newSolution;
         private readonly SolutionChanges _solutionChanges;
 
-        public LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges, bool logSessionInfo)
+        public LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges)
         {
             _oldSolution = oldSolution;
             _newSolution = newSolution;
             _solutionChanges = solutionChanges;
-            _logSessionInfo = logSessionInfo;
         }
 
         internal async Task<LinkedFileMergeSessionResult> MergeDiffsAsync(IMergeConflictHandler mergeConflictHandler, CancellationToken cancellationToken)
@@ -74,8 +71,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            LogLinkedFileDiffMergingSessionInfo(sessionInfo);
-
             return new LinkedFileMergeSessionResult(updatedSolution, linkedFileMergeResults);
         }
 
@@ -90,7 +85,7 @@ namespace Microsoft.CodeAnalysis
 
             // Automatically merge non-conflicting diffs while collecting the conflicting diffs
 
-            var textDifferencingService = _oldSolution.Workspace.Services.GetService<IDocumentTextDifferencingService>() ?? new DefaultDocumentTextDifferencingService();
+            var textDifferencingService = _oldSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
             var appliedChanges = await textDifferencingService.GetTextChangesAsync(_oldSolution.GetDocument(linkedDocumentGroup.First()), _newSolution.GetDocument(linkedDocumentGroup.First()), cancellationToken).ConfigureAwait(false);
             var unmergedChanges = new List<UnmergedDocumentChanges>();
 
@@ -317,16 +312,6 @@ namespace Microsoft.CodeAnalysis
 
             normalizedChanges.Add(currentChange);
             return normalizedChanges;
-        }
-
-        private void LogLinkedFileDiffMergingSessionInfo(LinkedFileDiffMergingSessionInfo sessionInfo)
-        {
-            if (!_logSessionInfo)
-            {
-                return;
-            }
-
-            LinkedFileDiffMergingLogger.LogSession(sessionInfo);
         }
 
         internal class LinkedFileDiffMergingSessionInfo

@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     propertiesBuilder.Add(IsUnusedLocalAssignmentKey, string.Empty);
                 }
+
                 if (isRemovableAssignment)
                 {
                     propertiesBuilder.Add(IsRemovableAssignmentKey, string.Empty);

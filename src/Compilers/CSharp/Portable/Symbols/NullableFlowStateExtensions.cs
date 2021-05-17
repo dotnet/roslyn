@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static NullableFlowState Meet(this NullableFlowState a, NullableFlowState b) => (a < b) ? a : b;
 
-#pragma warning disable IDE0055 // Fix formatting. This formatting is correct, need 16.1 for the updated formatter to not flag
         internal static CodeAnalysis.NullableFlowState ToPublicFlowState(this CSharp.NullableFlowState nullableFlowState) =>
             nullableFlowState switch
             {
@@ -45,6 +44,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CodeAnalysis.NullableFlowState.MaybeNull => CSharp.NullableFlowState.MaybeNull,
                 _ => throw ExceptionUtilities.UnexpectedValue(flowState)
             };
-#pragma warning restore IDE0055 // Fix formatting
     }
 }

@@ -688,7 +688,7 @@ class C<T>
 }";
 
             var compWithoutNullable = CreateCompilation(program);
-            var compWithNullable = CreateCompilation(program, options: WithNonNullTypesTrue());
+            var compWithNullable = CreateCompilation(program, options: WithNullableEnable());
 
             testCore(compWithoutNullable);
             testCore(compWithNullable);

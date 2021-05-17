@@ -8,23 +8,24 @@ using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspMethod(MSLSPMethods.DocumentPullDiagnosticName, mutatesSolutionState: false, StringConstants.XamlLanguageName), Shared]
+    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [ProvidesMethod(MSLSPMethods.DocumentPullDiagnosticName)]
     internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticsParams, DiagnosticReport>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentPullDiagnosticHandler(
-            ILspSolutionProvider solutionProvider,
             IXamlPullDiagnosticService xamlPullDiagnosticService)
-            : base(solutionProvider, xamlPullDiagnosticService)
+            : base(xamlPullDiagnosticService)
         { }
+
+        public override string Method => MSLSPMethods.DocumentPullDiagnosticName;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticsParams request)
             => request.TextDocument;

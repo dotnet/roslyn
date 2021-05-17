@@ -4,13 +4,16 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
-using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
@@ -34,14 +37,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             if (Workspace.TryGetWorkspace(textContainer, out var workspace))
             {
-                var encService = workspace.Services.GetService<IEditAndContinueWorkspaceService>();
-                if (encService != null)
+                var documentId = workspace.GetDocumentIdInCurrentContext(textContainer);
+                if (documentId != null)
                 {
-                    var documentId = workspace.GetDocumentIdInCurrentContext(textContainer);
                     var currentDocument = workspace.CurrentSolution.GetDocument(documentId);
                     if (currentDocument != null)
                     {
-                        encService.OnSourceFileUpdated(currentDocument);
+                        var proxy = new RemoteEditAndContinueServiceProxy(workspace);
+
+                        // fire and forget
+                        _ = Task.Run(() => proxy.OnSourceFileUpdatedAsync(currentDocument, CancellationToken.None)).ReportNonFatalErrorAsync();
                     }
                 }
             }

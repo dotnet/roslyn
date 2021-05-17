@@ -54,9 +54,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         #endregion
         #region User Types - Records
         [Export]
-        [Name(ClassificationTypeNames.RecordName)]
+        [Name(ClassificationTypeNames.RecordClassName)]
         [BaseDefinition(ClassificationTypeNames.ClassName)]
         internal readonly ClassificationTypeDefinition UserTypeRecordsTypeDefinition;
+        #endregion
+        #region User Types - Record Structs
+        [Export]
+        [Name(ClassificationTypeNames.RecordStructName)]
+        [BaseDefinition(ClassificationTypeNames.StructName)]
+        internal readonly ClassificationTypeDefinition UserTypeRecordStructsTypeDefinition;
         #endregion
         #region User Types - Delegates 
         [Export]

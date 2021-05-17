@@ -22,16 +22,6 @@
         <target state="translated">Corrigindo maiúsculas e minúsculas de palavras...</target>
         <note />
       </trans-unit>
-      <trans-unit id="New_">
-        <source>New</source>
-        <target state="translated">Novo</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Events">
-        <source>({0} Events)</source>
-        <target state="translated">({0} Eventos)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
         <target state="translated">Esta chamada é requerida pelo designer.</target>
@@ -50,11 +40,6 @@
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">Recuo Inteligente</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">Formatar Documento</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_Document">

@@ -98,6 +98,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 conditionalExpression, out var conditionNode, out var whenTrueNode, out var whenFalseNode);
 
             conditionNode = syntaxFacts.WalkDownParentheses(conditionNode);
+            whenTrueNode = syntaxFacts.WalkDownParentheses(whenTrueNode);
+            whenFalseNode = syntaxFacts.WalkDownParentheses(whenFalseNode);
 
             var conditionIsNegated = false;
             if (syntaxFacts.IsLogicalNotExpression(conditionNode))
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var type = semanticModel.GetTypeInfo(conditionalExpression).Type;
             if (type?.IsValueType == true)
             {
-                if (!(type is INamedTypeSymbol namedType) || namedType.ConstructedFrom.SpecialType != SpecialType.System_Nullable_T)
+                if (type is not INamedTypeSymbol namedType || namedType.ConstructedFrom.SpecialType != SpecialType.System_Nullable_T)
                 {
                     // User has something like:  If(str is nothing, nothing, str.Length)
                     // In this case, converting to str?.Length changes the type of this from
@@ -313,8 +315,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                     return null;
                 }
 
-                if (current is TMemberAccessExpression ||
-                    current is TElementAccessExpression)
+                if (current is TMemberAccessExpression or
+                    TElementAccessExpression)
                 {
                     if (syntaxFacts.AreEquivalent(unwrapped, expressionToMatch))
                     {
@@ -344,6 +346,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         private static SyntaxNode? Unwrap(ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
+            node = syntaxFacts.WalkDownParentheses(node);
+
             if (node is TInvocationExpression invocation)
             {
                 return syntaxFacts.GetExpressionOfInvocationExpression(invocation);

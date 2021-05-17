@@ -689,6 +689,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (pattern is ParenthesizedPatternSyntax)
                 return true;
 
+            // We're parenthesized discard pattern. We cannot remove parens.
+            // x is (_)
+            if (pattern is DiscardPatternSyntax && node.Parent is IsPatternExpressionSyntax)
+                return false;
+
             // (not ...) -> not ...
             //
             // this is safe because unary patterns have the highest precedence, so even if you had:

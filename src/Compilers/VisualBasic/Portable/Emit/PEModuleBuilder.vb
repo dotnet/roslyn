@@ -584,19 +584,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
         End Function
 
-        Friend NotOverridable Overrides Function GetSystemType(syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
-            Dim systemTypeSymbol As NamedTypeSymbol = SourceModule.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)
-
-            Dim useSiteError = Binder.GetUseSiteErrorForWellKnownType(systemTypeSymbol)
-            If useSiteError IsNot Nothing Then
-                Binder.ReportDiagnostic(diagnostics,
-                                        If(syntaxOpt IsNot Nothing, syntaxOpt.GetLocation(), NoLocation.Singleton),
-                                        useSiteError)
-            End If
-
-            Return Translate(systemTypeSymbol, syntaxOpt, diagnostics, needDeclaration:=True)
-        End Function
-
         Friend NotOverridable Overrides Function GetSpecialType(specialType As SpecialType, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As Cci.INamedTypeReference
             Return Translate(GetUntranslatedSpecialType(specialType, syntaxNodeOpt, diagnostics),
                              needDeclaration:=True,
@@ -607,9 +594,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Function GetUntranslatedSpecialType(specialType As SpecialType, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Dim typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType)
 
-            Dim info = Binder.GetUseSiteErrorForSpecialType(typeSymbol)
-            If info IsNot Nothing Then
-                Binder.ReportDiagnostic(diagnostics, If(syntaxNodeOpt IsNot Nothing, syntaxNodeOpt.GetLocation(), NoLocation.Singleton), info)
+            Dim info = Binder.GetUseSiteInfoForSpecialType(typeSymbol)
+            If info.DiagnosticInfo IsNot Nothing Then
+                Binder.ReportDiagnostic(diagnostics, If(syntaxNodeOpt IsNot Nothing, syntaxNodeOpt.GetLocation(), NoLocation.Singleton), info.DiagnosticInfo)
             End If
 
             Return typeSymbol
@@ -666,9 +653,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Overrides Function GetAdditionalTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
 #If DEBUG Then
-            Return GetAdditionalTopLevelTypes(context.Diagnostics).Select(Function(t) t.GetCciAdapter())
+            Return GetAdditionalTopLevelTypes().Select(Function(t) t.GetCciAdapter())
 #Else
-            Return GetAdditionalTopLevelTypes(context.Diagnostics)
+            Return GetAdditionalTopLevelTypes()
 #End If
         End Function
 

@@ -6,12 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -25,6 +28,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class ProtocolConversions
     {
+        private const string CSharpMarkdownLanguageName = "csharp";
+        private const string VisualBasicMarkdownLanguageName = "vb";
+
+        private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
+
         // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same way
         // which can confuse users
         public static readonly Dictionary<string, LSP.CompletionItemKind> RoslynTagToCompletionItemKind = new Dictionary<string, LSP.CompletionItemKind>()
@@ -70,7 +78,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         // TO-DO: More LSP.CompletionTriggerKind mappings are required to properly map to Roslyn CompletionTriggerKinds.
         // https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1178726
-        public static Completion.CompletionTrigger LSPToRoslynCompletionTrigger(LSP.CompletionContext? context)
+        public static async Task<Completion.CompletionTrigger> LSPToRoslynCompletionTriggerAsync(
+            LSP.CompletionContext? context,
+            Document document,
+            int position,
+            CancellationToken cancellationToken)
         {
             if (context == null)
             {
@@ -79,18 +91,53 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             else if (context.TriggerKind == LSP.CompletionTriggerKind.Invoked)
             {
-                return Completion.CompletionTrigger.Invoke;
+                if (context is not LSP.VSCompletionContext vsCompletionContext)
+                {
+                    return Completion.CompletionTrigger.Invoke;
+                }
+
+                switch (vsCompletionContext.InvokeKind)
+                {
+                    case LSP.VSCompletionInvokeKind.Explicit:
+                        return Completion.CompletionTrigger.Invoke;
+
+                    case LSP.VSCompletionInvokeKind.Typing:
+                        var insertionChar = await GetInsertionCharacterAsync(document, position, cancellationToken).ConfigureAwait(false);
+                        return Completion.CompletionTrigger.CreateInsertionTrigger(insertionChar);
+
+                    case LSP.VSCompletionInvokeKind.Deletion:
+                        Contract.ThrowIfNull(context.TriggerCharacter);
+                        Contract.ThrowIfFalse(char.TryParse(context.TriggerCharacter, out var triggerChar));
+                        return Completion.CompletionTrigger.CreateDeletionTrigger(triggerChar);
+
+                    default:
+                        // LSP added an InvokeKind that we need to support.
+                        Logger.Log(FunctionId.LSPCompletion_MissingLSPCompletionInvokeKind);
+                        return Completion.CompletionTrigger.Invoke;
+                }
             }
             else if (context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter)
             {
                 Contract.ThrowIfNull(context.TriggerCharacter);
-                return Completion.CompletionTrigger.CreateInsertionTrigger(char.Parse(context.TriggerCharacter));
+                Contract.ThrowIfFalse(char.TryParse(context.TriggerCharacter, out var triggerChar));
+                return Completion.CompletionTrigger.CreateInsertionTrigger(triggerChar);
             }
             else
             {
                 // LSP added a TriggerKind that we need to support.
                 Logger.Log(FunctionId.LSPCompletion_MissingLSPCompletionTriggerKind);
                 return Completion.CompletionTrigger.Invoke;
+            }
+
+            // Local functions
+            static async Task<char> GetInsertionCharacterAsync(Document document, int position, CancellationToken cancellationToken)
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // We use 'position - 1' here since we want to find the character that was just inserted.
+                Contract.ThrowIfTrue(position < 1);
+                var triggerCharacter = text[position - 1];
+                return triggerCharacter;
             }
         }
 
@@ -555,6 +602,103 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return ProjectId.CreateFromSerialized(
                 Guid.Parse(projectContext.Id.Substring(0, delimiter)),
                 debugName: projectContext.Id.Substring(delimiter + 1));
+        }
+
+        public static async Task<DocumentOptionSet> FormattingOptionsToDocumentOptionsAsync(
+            LSP.FormattingOptions options,
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            // LSP doesn't currently support indent size as an option. However, except in special
+            // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
+            var updatedOptions = documentOptions
+                .WithChangedOption(Formatting.FormattingOptions.UseTabs, !options.InsertSpaces)
+                .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
+                .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
+            return updatedOptions;
+        }
+
+        public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)
+        {
+            if (!featureSupportsMarkdown)
+            {
+                return new LSP.MarkupContent
+                {
+                    Kind = LSP.MarkupKind.PlainText,
+                    Value = tags.GetFullText(),
+                };
+            }
+
+            var builder = new StringBuilder();
+            var isInCodeBlock = false;
+            foreach (var taggedText in tags)
+            {
+                switch (taggedText.Tag)
+                {
+                    case TextTags.CodeBlockStart:
+                        var codeBlockLanguageName = GetCodeBlockLanguageName(document);
+                        builder.Append($"```{codeBlockLanguageName}{Environment.NewLine}");
+                        builder.Append(taggedText.Text);
+                        isInCodeBlock = true;
+                        break;
+                    case TextTags.CodeBlockEnd:
+                        builder.Append($"{Environment.NewLine}```{Environment.NewLine}");
+                        builder.Append(taggedText.Text);
+                        isInCodeBlock = false;
+                        break;
+                    case TextTags.LineBreak:
+                        // A line ending with double space and a new line indicates to markdown
+                        // to render a single-spaced line break.
+                        builder.Append("  ");
+                        builder.Append(Environment.NewLine);
+                        break;
+                    default:
+                        var styledText = GetStyledText(taggedText, isInCodeBlock);
+                        builder.Append(styledText);
+                        break;
+                }
+            }
+
+            return new LSP.MarkupContent
+            {
+                Kind = LSP.MarkupKind.Markdown,
+                Value = builder.ToString(),
+            };
+
+            static string GetCodeBlockLanguageName(Document document)
+            {
+                return document.Project.Language switch
+                {
+                    (LanguageNames.CSharp) => CSharpMarkdownLanguageName,
+                    (LanguageNames.VisualBasic) => VisualBasicMarkdownLanguageName,
+                    _ => throw new InvalidOperationException($"{document.Project.Language} is not supported"),
+                };
+            }
+
+            static string GetStyledText(TaggedText taggedText, bool isInCodeBlock)
+            {
+                var text = isInCodeBlock ? taggedText.Text : s_markdownEscapeRegex.Replace(taggedText.Text, @"\$1");
+
+                // For non-cref links, the URI is present in both the hint and target.
+                if (!string.IsNullOrEmpty(taggedText.NavigationHint) && taggedText.NavigationHint == taggedText.NavigationTarget)
+                    return $"[{text}]({taggedText.NavigationHint})";
+
+                // Markdown ignores spaces at the start of lines outside of code blocks, 
+                // so to get indented lines we replace the spaces with these.
+                if (!isInCodeBlock)
+                    text = text.Replace(" ", "&nbsp;");
+
+                return taggedText.Style switch
+                {
+                    TaggedTextStyle.None => text,
+                    TaggedTextStyle.Strong => $"**{text}**",
+                    TaggedTextStyle.Emphasis => $"_{text}_",
+                    TaggedTextStyle.Underline => $"<u>{text}</u>",
+                    TaggedTextStyle.Code => $"`{text}`",
+                    _ => text,
+                };
+            }
         }
 
         private static async Task<ImmutableArray<MappedSpanResult>?> GetMappedSpanResultAsync(TextDocument textDocument, ImmutableArray<TextSpan> textSpans, CancellationToken cancellationToken)

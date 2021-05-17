@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 WriteDiagnosticData(writer, items, cancellationToken);
             }
 
-            using var storage = persistentService.GetStorage(project.Solution);
+            var storage = await persistentService.GetStorageAsync(project.Solution, cancellationToken).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
 
             stream.Position = 0;
 
@@ -69,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             Contract.ThrowIfFalse(textDocument == null || textDocument.Project == project);
 
-            using var storage = persistentService.GetStorage(project.Solution);
+            var storage = await persistentService.GetStorageAsync(project.Solution, cancellationToken).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
 
             var readTask = (textDocument != null) ?
                 textDocument is Document document ?
@@ -213,6 +216,13 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
                 data = ReadDiagnosticDataArray(reader, project, document, cancellationToken);
                 return true;
+            }
+            catch (EndOfStreamException) when (cancellationToken.IsCancellationRequested)
+            {
+                // The reader was closed due to a cancellation request while in the process of reading a value. Make
+                // sure to propagate the exception as cancellation and not an error.
+                cancellationToken.ThrowIfCancellationRequested();
+                throw ExceptionUtilities.Unreachable;
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
             {

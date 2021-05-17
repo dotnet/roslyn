@@ -68,9 +68,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 _fixAllAsync = fixAllAsync;
             }
 
-            protected override string GetFixAllTitle(FixAllContext fixAllContext)
-                => FixAllContextHelper.GetDefaultFixAllTitle(fixAllContext);
-
             protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
                 => _fixAllAsync(context, document, diagnostics);
         }

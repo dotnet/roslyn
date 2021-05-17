@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return this.ErrorInfo;
+            return new UseSiteInfo<AssemblySymbol>(this.ErrorInfo);
         }
 
         /// <summary>
@@ -544,6 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
     }
 
@@ -598,9 +599,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.ResultKind; }
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return _originalDefinition.GetUseSiteDiagnostic();
+            return _originalDefinition.GetUseSiteInfo();
         }
 
         public override int GetHashCode()

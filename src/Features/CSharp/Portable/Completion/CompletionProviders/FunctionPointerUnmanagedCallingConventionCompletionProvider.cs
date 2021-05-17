@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         private static readonly ImmutableArray<string> s_predefinedCallingConventions = ImmutableArray.Create("Cdecl", "Fastcall", "Thiscall", "Stdcall");
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static void AddTypes(HashSet<CompletionItem> completionItems, int contextPosition, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // We have to find the set of types that meet the criteria listed in
-            // https://github.com/dotnet/csharplang/blob/master/proposals/csharp-9.0/function-pointers.md#mapping-the-calling_convention_specifier-to-a-callkind
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/function-pointers.md#mapping-the-calling_convention_specifier-to-a-callkind
             // We skip the check of an type being in the core assembly since that's not really necessary for our work.
             var compilerServicesNamespace = semanticModel.Compilation.GlobalNamespace.GetQualifiedNamespace("System.Runtime.CompilerServices");
             if (compilerServicesNamespace == null)
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (type.DeclaredAccessibility == Accessibility.Public && type.Name.StartsWith(CallConvPrefix))
                 {
-                    var displayName = type.Name.Substring(CallConvPrefix.Length);
+                    var displayName = type.Name[CallConvPrefix.Length..];
                     completionItems.Add(
                         SymbolCompletionItem.CreateWithSymbolId(
                             displayName,

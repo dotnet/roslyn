@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     alias);
 
                                 // Skip pseudo-variables with errors.
-                                if (local.GetUseSiteDiagnostic()?.Severity == DiagnosticSeverity.Error)
+                                if (local.HasUseSiteError)
                                 {
                                     continue;
                                 }
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var local = method.LocalsForBinding[localIndex];
-                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type);
+                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, new BindingDiagnosticBag(diagnostics)), type: local.Type);
                 properties = default;
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
@@ -595,14 +595,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static BoundStatement? BindExpression(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics, out ResultProperties resultProperties)
         {
             var flags = DkmClrCompilationResultFlags.None;
+            var bindingDiagnostics = new BindingDiagnosticBag(diagnostics);
 
             // In addition to C# expressions, the native EE also supports
             // type names which are bound to a representation of the type
             // (but not System.Type) that the user can expand to see the
             // base type. Instead, we only allow valid C# expressions.
             var expression = IsDeconstruction(syntax)
-                ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, diagnostics, resultIsUsedOverride: true)
-                : binder.BindRValueWithoutTargetType(syntax, diagnostics);
+                ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, bindingDiagnostics, resultIsUsedOverride: true)
+                : binder.BindRValueWithoutTargetType(syntax, bindingDiagnostics);
             if (diagnostics.HasAnyErrors())
             {
                 resultProperties = default;
@@ -628,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 expression = binder.CreateReturnConversion(
                     syntax,
-                    diagnostics,
+                    bindingDiagnostics,
                     expression,
                     RefKind.None,
                     binder.Compilation.GetSpecialType(SpecialType.System_Object));
@@ -673,20 +674,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static BoundStatement BindStatement(Binder binder, StatementSyntax syntax, DiagnosticBag diagnostics, out ResultProperties properties)
         {
             properties = new ResultProperties(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            return binder.BindStatement(syntax, diagnostics);
+            return binder.BindStatement(syntax, new BindingDiagnosticBag(diagnostics));
         }
 
         private static bool IsAssignableExpression(Binder binder, BoundExpression expression)
         {
-            var diagnostics = DiagnosticBag.GetInstance();
-            var result = binder.CheckValueKind(expression.Syntax, expression, Binder.BindValueKind.Assignable, checkingReceiver: false, diagnostics);
-            diagnostics.Free();
+            var result = binder.CheckValueKind(expression.Syntax, expression, Binder.BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded);
             return result;
         }
 
         private static BoundStatement? BindAssignment(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
-            var expression = binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
+            var expression = binder.BindValue(syntax, new BindingDiagnosticBag(diagnostics), Binder.BindValueKind.RValue);
             if (diagnostics.HasAnyErrors())
             {
                 return null;
@@ -733,7 +732,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Debug.Assert((object)@namespace == compilation.GlobalNamespace);
                 }
 
-                Imports? imports = null;
                 if (hasImports)
                 {
                     if (currentStringGroup < 0)
@@ -743,11 +741,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     var importsBinder = new InContainerBinder(@namespace, binder);
-                    imports = BuildImports(compilation, importRecordGroups[currentStringGroup], importsBinder);
+                    Imports imports = BuildImports(compilation, importRecordGroups[currentStringGroup], importsBinder);
                     currentStringGroup--;
+
+                    binder = WithExternAndUsingAliasesBinder.Create(imports.ExternAliases, imports.UsingAliases, WithUsingNamespacesAndTypesBinder.Create(imports.Usings, binder));
                 }
 
-                binder = new InContainerBinder(@namespace, binder, imports);
+                binder = new InContainerBinder(@namespace, binder);
             }
 
             stack.Free();
@@ -945,9 +945,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     continue;
                 }
 
-                var externAliasSyntax = SyntaxFactory.ExternAliasDirective(aliasNameSyntax.Identifier);
-                var aliasSymbol = new AliasSymbol(binder, externAliasSyntax); // Binder is only used to access compilation.
-                externsBuilder.Add(new AliasAndExternAliasDirective(aliasSymbol, externAliasDirective: null)); // We have one, but we pass null for consistency.
+                NamespaceSymbol target;
+                compilation.GetExternAliasTarget(aliasNameSyntax.Identifier.ValueText, out target);
+                Debug.Assert(target.IsGlobalNamespace);
+
+                var aliasSymbol = AliasSymbol.CreateCustomDebugInfoAlias(target, aliasNameSyntax.Identifier, binder.ContainingMemberOrLambda, isExtern: true);
+                externsBuilder.Add(new AliasAndExternAliasDirective(aliasSymbol, externAliasDirective: null, skipInLookup: false));
             }
 
             var externs = externsBuilder.ToImmutableAndFree();
@@ -959,8 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // the actual binder chain.
                 binder = new InContainerBinder(
                     binder.Container,
-                    binder,
-                    Imports.FromCustomDebugInfo(binder.Compilation, ImmutableDictionary<string, AliasAndUsingDirective>.Empty, ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, externs));
+                    WithExternAliasesBinder.Create(externs, binder));
             }
 
             var usingAliases = ImmutableDictionary.CreateBuilder<string, AliasAndUsingDirective>();
@@ -1030,9 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     continue;
                                 }
 
-                                var unusedDiagnostics = DiagnosticBag.GetInstance();
-                                var aliasSymbol = (AliasSymbol)binder.BindNamespaceAliasSymbol(externAliasSyntax, unusedDiagnostics);
-                                unusedDiagnostics.Free();
+                                var aliasSymbol = (AliasSymbol)binder.BindNamespaceAliasSymbol(externAliasSyntax, BindingDiagnosticBag.Discarded);
 
                                 if (aliasSymbol is null)
                                 {
@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            return Imports.FromCustomDebugInfo(binder.Compilation, usingAliases.ToImmutableDictionary(), usingsBuilder.ToImmutableAndFree(), externs);
+            return Imports.Create(usingAliases.ToImmutableDictionary(), usingsBuilder.ToImmutableAndFree(), externs);
         }
 
         private static NamespaceSymbol? BindNamespace(string namespaceName, NamespaceSymbol globalNamespace)
@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (alias == null)
             {
-                usingsBuilder.Add(new NamespaceOrTypeAndUsingDirective(targetSymbol, usingDirective: null));
+                usingsBuilder.Add(new NamespaceOrTypeAndUsingDirective(targetSymbol, usingDirective: null, dependencies: default));
             }
             else
             {
@@ -1113,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return false;
                 }
 
-                var aliasSymbol = AliasSymbol.CreateCustomDebugInfoAlias(targetSymbol, aliasSyntax.Identifier, binder);
+                var aliasSymbol = AliasSymbol.CreateCustomDebugInfoAlias(targetSymbol, aliasSyntax.Identifier, binder.ContainingMemberOrLambda, isExtern: false);
                 usingAliases.Add(alias, new AliasAndUsingDirective(aliasSymbol, usingDirective: null));
             }
 

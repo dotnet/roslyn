@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
                 {
                     if (baseList.Types.Count > 0 &&
                         baseList.Types[0].Type == node &&
-                        baseList.IsParentKind(SyntaxKind.ClassDeclaration))
+                        baseList.IsParentKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration))
                     {
                         var semanticModel = semanticDocument.SemanticModel;
                         classType = semanticModel.GetDeclaredSymbol(baseList.Parent, cancellationToken) as INamedTypeSymbol;

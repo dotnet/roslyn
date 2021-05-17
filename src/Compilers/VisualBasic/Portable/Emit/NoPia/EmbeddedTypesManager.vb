@@ -43,15 +43,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         Public Function GetSystemStringType(syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As NamedTypeSymbol
             If _lazySystemStringType Is ErrorTypeSymbol.UnknownResultType Then
                 Dim type = ModuleBeingBuilt.Compilation.GetSpecialType(SpecialType.System_String)
-                Dim info = type.GetUseSiteErrorInfo()
+                Dim info = type.GetUseSiteInfo()
 
                 If type.IsErrorType() Then
                     type = Nothing
                 End If
 
                 If TypeSymbol.Equals(Interlocked.CompareExchange(Of NamedTypeSymbol)(_lazySystemStringType, type, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything) Then
-                    If info IsNot Nothing Then
-                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info)
+                    If info.DiagnosticInfo IsNot Nothing Then
+                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info.DiagnosticInfo)
                     End If
                 End If
             End If
@@ -65,14 +65,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Private Function LazyGetWellKnownTypeMethod(ByRef lazyMethod As MethodSymbol, method As WellKnownMember, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
             If lazyMethod Is ErrorMethodSymbol.UnknownMethod Then
-                Dim info As DiagnosticInfo = Nothing
+                Dim info As UseSiteInfo(Of AssemblySymbol) = Nothing
                 Dim symbol = DirectCast(Binder.GetWellKnownTypeMember(ModuleBeingBuilt.Compilation, method, info), MethodSymbol)
 
-                Debug.Assert(info Is Nothing OrElse symbol Is Nothing)
+                Debug.Assert(info.DiagnosticInfo Is Nothing OrElse symbol Is Nothing)
 
                 If Interlocked.CompareExchange(Of MethodSymbol)(lazyMethod, symbol, ErrorMethodSymbol.UnknownMethod) = ErrorMethodSymbol.UnknownMethod Then
-                    If info IsNot Nothing Then
-                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info)
+                    If info.DiagnosticInfo IsNot Nothing Then
+                        ReportDiagnostic(diagnostics, syntaxNodeOpt, info.DiagnosticInfo)
                     End If
                 End If
             End If

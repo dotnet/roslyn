@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor
                     DebugRegisterView_NoLock(textView);
                 }
             }
+
             this.SubjectBuffersConnected?.Invoke(this, new SubjectBuffersConnectedEventArgs(textView, subjectBuffers.ToReadOnlyCollection()));
         }
 

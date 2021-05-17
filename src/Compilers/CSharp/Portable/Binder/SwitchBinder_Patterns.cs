@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind the switch statement, reporting in the process any switch labels that are subsumed by previous cases.
         /// </summary>
-        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(SwitchSyntax.Equals(node));
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Bind switch expression and set the switch governing type.
             BoundExpression boundSwitchGoverningExpression = SwitchGoverningExpression;
-            diagnostics.AddRange(SwitchGoverningDiagnostics);
+            diagnostics.AddRange(SwitchGoverningDiagnostics, allowMismatchInDependencyAccumulation: true);
 
             ImmutableArray<BoundSwitchSection> switchSections = BindSwitchSections(originalBinder, diagnostics, out BoundSwitchLabel defaultLabel);
             ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundSwitchGoverningExpression,
             ref ImmutableArray<BoundSwitchSection> switchSections,
             BoundDecisionDag decisionDag,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var reachableLabels = decisionDag.ReachableLabels;
             bool isSubsumed(BoundSwitchLabel switchLabel)
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind a pattern switch label in order to force inference of the type of pattern variables.
         /// </summary>
-        internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, DiagnosticBag diagnostics)
+        internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, BindingDiagnosticBag diagnostics)
         {
             // node should be a label of this switch statement.
             Debug.Assert(this.SwitchSyntax == node.Parent.Parent);
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ImmutableArray<BoundSwitchSection> BindSwitchSections(
             Binder originalBinder,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out BoundSwitchLabel defaultLabel)
         {
             // Bind match sections
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SwitchSectionSyntax node,
             Binder originalBinder,
             ref BoundSwitchLabel defaultLabel,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             // Bind match section labels
             var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance(node.Labels.Count);
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SwitchLabelSyntax node,
             LabelSymbol label,
             ref BoundSwitchLabel defaultLabel,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {

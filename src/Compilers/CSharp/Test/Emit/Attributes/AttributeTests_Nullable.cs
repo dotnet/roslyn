@@ -352,7 +352,7 @@ class C
 {
     static void F(object? x, object?[] y) { }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -376,7 +376,7 @@ class C
 {
     static void F(object? x, object?[] y) { }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -395,7 +395,7 @@ class C
 {
     static void F(object? x, object?[] y) { }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
                 // (5,34): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //         public NullableAttribute(byte[] b) { }
@@ -423,7 +423,7 @@ class C
 {
     static void F(object? x, object?[] y) { }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
                 // (10,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //     static void F(object? x, object?[] y) { }
@@ -448,7 +448,7 @@ class C
 {
     static void F(object? x, object?[] y) { }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             comp.VerifyEmitDiagnostics(
                 // (5,34): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //         public NullableAttribute(string[] b) { }
@@ -882,7 +882,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(NullableContextOptions.Enable), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullable(NullableContextOptions.Enable), parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var assembly = module.ContainingAssembly;
@@ -904,7 +904,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(NullableContextOptions.Annotations), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullable(NullableContextOptions.Annotations), parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, symbolValidator: module =>
             {
                 var assembly = module.ContainingAssembly;
@@ -989,7 +989,7 @@ class C
 {
     public object? F = new object();
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (3,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public object? F = new object();
@@ -1016,7 +1016,7 @@ class C
     public object? F;
     public object?[]? G;
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             var expected =
 @"[NullableContext(2)] [Nullable(0)] Program
     System.Object? F
@@ -1035,7 +1035,7 @@ class C
     public object? F(object?[]? args) => null;
     public object G(object[] args) => null!;
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             var expected =
 @"Program
     [NullableContext(2)] System.Object? F(System.Object?[]? args)
@@ -1054,7 +1054,7 @@ class C
 {
     public static void F(string x, string y, string z) { }
 }";
-            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNullableEnable());
             var expected =
 @"Program
     [NullableContext(1)] void F(System.String! x, System.String! y, System.String! z)
@@ -1078,7 +1078,7 @@ public class B1 : A<object>
 public class B2 : A<object?>
 {
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             var expected =
 @"A<T>
     [Nullable(2)] T
@@ -1099,7 +1099,7 @@ public class B2 : A<object?>
         F(y, y);
     }
 }";
-            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (8,14): warning CS8620: Argument of type 'B1' cannot be used as an input of type 'A<object?>' for parameter 'y' in 'void C.F(A<object> x, A<object?> y)' due to differences in the nullability of reference types.
                 //         F(x, x);
@@ -1126,7 +1126,7 @@ public class B : I<object?>
 {
 }
 ";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -1154,7 +1154,7 @@ public class B : I<object?>
         FOblivious(z);
     }
 }";
-            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (9,14): warning CS8620: Argument of type 'A' cannot be used as an input of type 'I<object?>' for parameter 'y' in 'void C.F(I<object> x, I<object?> y)' due to differences in the nullability of reference types.
                 //         F(x, x);
@@ -1204,7 +1204,7 @@ public class B : I<(object X, object? Y)>
         F(b, b);
     }
 }";
-            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (9,11): warning CS8620: Argument of type 'B' cannot be used as an input of type 'I<(object, object)>' for parameter 'a' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)' due to differences in the nullability of reference types.
                 //         F(b, b);
@@ -1338,7 +1338,7 @@ public class C<T> where T : A?
 public class D<T> where T : A
 {
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -1368,7 +1368,7 @@ class Program
         new D<B>();
     }
 }";
-            var comp2 = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp2 = CreateCompilation(new[] { source, source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             comp2.VerifyEmitDiagnostics(
                 // (10,15): warning CS8627: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'D<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
                 //         new D<A?>(); // warning
@@ -1377,7 +1377,7 @@ class Program
                 //         new D<B?>(); // warning
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "B?").WithArguments("D<T>", "A", "T", "B?").WithLocation(12, 15));
 
-            comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2 = CreateCompilation(new[] { source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyEmitDiagnostics(
                 // (10,15): warning CS8627: The type 'A?' cannot be used as type parameter 'T' in the generic type or method 'D<T>'. Nullability of type argument 'A?' doesn't match constraint type 'A'.
                 //         new D<A?>(); // warning
@@ -1430,7 +1430,7 @@ class Program
         new C<B2?>();
     }
 }";
-            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics();
 
             var type = comp2.GetMember<NamedTypeSymbol>("C");
@@ -1451,7 +1451,7 @@ public class B<T> where T : A<object?>
 public class C<T> where T : A<object>
 {
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -1476,7 +1476,7 @@ public class C<T> where T : A<object>
         new C<A<object>>();
     }
 }";
-            var comp2 = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp2 = CreateCompilation(new[] { source, source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             comp2.VerifyEmitDiagnostics(
                 // (6,15): warning CS8627: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
                 //         new B<A<object>>(); // warning
@@ -1485,7 +1485,7 @@ public class C<T> where T : A<object>
                 //         new C<A<object?>>(); // warning
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "A<object?>").WithArguments("C<T>", "A<object>", "T", "A<object?>").WithLocation(7, 15));
 
-            comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2 = CreateCompilation(new[] { source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (6,15): warning CS8627: The type 'A<object>' cannot be used as type parameter 'T' in the generic type or method 'B<T>'. Nullability of type argument 'A<object>' doesn't match constraint type 'A<object?>'.
                 //         new B<A<object>>(); // warning
@@ -1509,7 +1509,7 @@ public class C<T> where T : A<object>
     where U : T?
 {
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -1530,7 +1530,7 @@ public class C<T> where T : A<object>
         new C<object, string>();
     }
 }";
-            var comp2 = CreateCompilation(new[] { source, source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp2 = CreateCompilation(new[] { source, source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             var expected = new[] {
                 // (5,15): warning CS8634: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'C<T, U>'. Nullability of type argument 'object?' doesn't match 'class' constraint.
                 //         new C<object?, string?>();
@@ -1542,7 +1542,7 @@ public class C<T> where T : A<object>
 
             comp2.VerifyEmitDiagnostics(expected);
 
-            comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2 = CreateCompilation(new[] { source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyEmitDiagnostics(expected);
 
             var type = comp2.GetMember<NamedTypeSymbol>("C");
@@ -3226,7 +3226,7 @@ Program
 @"using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo(""Other"")]";
 
-            var options = WithNonNullTypesTrue().WithMetadataImportOptions(MetadataImportOptions.All);
+            var options = WithNullableEnable().WithMetadataImportOptions(MetadataImportOptions.All);
             var parseOptions = TestOptions.Regular8;
             AssertNullableAttributes(CreateCompilation(source, options: options, parseOptions: parseOptions), expectedAll);
             AssertNullableAttributes(CreateCompilation(source, options: options, parseOptions: parseOptions.WithFeature("nullablePublicOnly")), expectedPublicOnly);
@@ -3271,7 +3271,7 @@ internal class B : I<object>
     public event D<object?> E;
     private (object, object?) F;
 }";
-            var options = WithNonNullTypesTrue();
+            var options = WithNullableEnable();
             var parseOptions = TestOptions.Regular8;
 
             var comp = CreateCompilation(new[] { sourceAttribute, source }, options: options, parseOptions: parseOptions);
@@ -4185,7 +4185,7 @@ class C
 class B : A<object?>
 {
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (1,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 // class A<T>
@@ -4205,7 +4205,7 @@ class B : A<object?>
 class C : I<(object X, object? Y)>
 {
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (1,11): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
                 // interface I<T>
@@ -4226,7 +4226,7 @@ class C : I<(object X, object? Y)>
 {
     object? F() => null;
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (3,5): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     object? F() => null;
@@ -4244,7 +4244,7 @@ class C : I<(object X, object? Y)>
 {
     void F(object?[] c) { }
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (3,12): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     void F(object?[] c) { }
@@ -4259,7 +4259,7 @@ class C : I<(object X, object? Y)>
 {
     C(object?[] c) { }
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (3,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     C(object?[] c) { }
@@ -4274,7 +4274,7 @@ class C : I<(object X, object? Y)>
 {
     object? P => null;
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (1,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
                 // class C
@@ -4292,7 +4292,7 @@ class C : I<(object X, object? Y)>
 {
     object this[object x, object? y] => throw new System.NotImplementedException();
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (1,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
                 // class C
@@ -4316,7 +4316,7 @@ class C : I<(object X, object? Y)>
 {
     public static object? operator+(C a, C b) => null;
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (3,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object? operator+(C a, C b) => null;
@@ -4338,7 +4338,7 @@ class C : I<(object X, object? Y)>
 {
     public static object operator+(C a, object?[] b) => a;
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (3,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     public static object operator+(C a, object?[] b) => a;
@@ -4356,7 +4356,7 @@ class C : I<(object X, object? Y)>
         {
             var source =
 @"delegate object? D();";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (1,10): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 // delegate object? D();
@@ -4371,7 +4371,7 @@ class C : I<(object X, object? Y)>
         {
             var source =
 @"delegate void D(object?[] o);";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (1,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 // delegate void D(object?[] o);
@@ -4419,7 +4419,7 @@ class C
         F((object? o) => { });
     }
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (1,15): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
                 // delegate void D<T>(T t);
@@ -4456,7 +4456,7 @@ class C
         L();
     }
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (5,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //         object?[] L() => throw new System.NotImplementedException();
@@ -4475,7 +4475,7 @@ class C
         L(null, 2);
     }
 }";
-            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNonNullTypesTrue(TestOptions.ReleaseModule));
+            var comp = CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular8, options: WithNullableEnable(TestOptions.ReleaseModule));
             comp.VerifyEmitDiagnostics(
                 // (5,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //         void L(object? x, object y) { }
@@ -4544,7 +4544,7 @@ class C
         A.Long._9.ToString(); // 9
     }
 }";
-            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (5,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Nested._1.Item1.ToString(); // 1
@@ -4603,7 +4603,7 @@ public class B<T> :
         (dynamic? _1, (object _2, dynamic? _3), object _4, dynamic? _5, object _6, dynamic? _7, object _8, dynamic? _9) arg) => arg;
     public (dynamic? _1, (object _2, dynamic? _3), object _4, dynamic? _5, object _6, dynamic? _7, object _8, dynamic? _9) Property { get; set; }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
@@ -4674,7 +4674,7 @@ public class B<T> :
         b.Property._9.ToString(); // 3
     }
 }";
-            var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(new[] { source2 }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (6,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.Field._9.ToString(); // 1

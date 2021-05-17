@@ -63,68 +63,56 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             // we can use the FindInterfaceImplementationAsync call
             if (symbol.ContainingType is INamedTypeSymbol namedTypeSymbol && symbol.ContainingType.TypeKind == TypeKind.Interface)
             {
-                return (await SymbolFinder.FindImplementationsAsync(namedTypeSymbol, solution, null, cancellationToken).ConfigureAwait(false)).OfType<ISymbol>();
+                return await SymbolFinder.FindImplementationsAsync(namedTypeSymbol, solution, null, cancellationToken).ConfigureAwait(false);
             }
             else if (symbol is INamedTypeSymbol namedTypeSymbol2 && namedTypeSymbol2.TypeKind == TypeKind.Interface)
             {
-                return (await SymbolFinder.FindImplementationsAsync(namedTypeSymbol2, solution, null, cancellationToken).ConfigureAwait(false)).OfType<ISymbol>();
+                return await SymbolFinder.FindImplementationsAsync(namedTypeSymbol2, solution, null, cancellationToken).ConfigureAwait(false);
             }
             // if it's not, but is instead a class, we can use FindDerivedClassesAsync
             else if (symbol is INamedTypeSymbol namedTypeSymbol3)
             {
-                return (await SymbolFinder.FindDerivedClassesAsync(namedTypeSymbol3, solution, null, cancellationToken).ConfigureAwait(false)).OfType<ISymbol>();
+                return await SymbolFinder.FindDerivedClassesAsync(namedTypeSymbol3, solution, null, cancellationToken).ConfigureAwait(false);
             }
             // and lastly, if it's a method, we can use FindOverridesAsync
             else
             {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                return await SymbolFinder.FindOverridesAsync(symbol, solution, null, cancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                return await SymbolFinder.FindOverridesAsync(symbol, solution, null, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task FindDerivedSymbolsAsync(
-                  Document document, int caretPosition,
-                  IStreamingFindUsagesPresenter presenter)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter)
         {
             try
             {
-                using (var token = _asyncListener.BeginAsyncOperation(nameof(FindDerivedSymbolsAsync)))
+                using var token = _asyncListener.BeginAsyncOperation(nameof(FindDerivedSymbolsAsync));
+
+                var (context, cancellationToken) = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true);
+                try
                 {
-                    // Let the presented know we're starting a search.
-                    var context = presenter.StartSearch(
-                        EditorFeaturesResources.Navigating, supportsReferences: true);
-                    try
+                    using (Logger.LogBlock(
+                        FunctionId.CommandHandler_FindAllReference,
+                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
+                        cancellationToken))
                     {
-                        using (Logger.LogBlock(
-                            FunctionId.CommandHandler_FindAllReference,
-                            KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                            context.CancellationToken))
+                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
+                        if (candidateSymbolProjectPair?.symbol == null)
+                            return;
+
+                        var candidates = await GatherSymbolsAsync(candidateSymbolProjectPair.Value.symbol,
+                            document.Project.Solution, cancellationToken).ConfigureAwait(false);
+
+                        foreach (var candidate in candidates)
                         {
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-                            if (candidateSymbolProjectPair?.symbol == null)
-                                return;
-
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            var candidates = await GatherSymbolsAsync(candidateSymbolProjectPair.Value.symbol,
-                                document.Project.Solution, context.CancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-
-                            foreach (var candidate in candidates)
-                            {
-                                var definitionItem = candidate.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                                await context.OnDefinitionFoundAsync(definitionItem);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-                            }
+                            var definitionItem = candidate.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
+                            await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                         }
                     }
-                    finally
-                    {
-                        await context.OnCompletedAsync().ConfigureAwait(false);
-                    }
+                }
+                finally
+                {
+                    await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

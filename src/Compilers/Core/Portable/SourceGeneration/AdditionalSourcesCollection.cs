@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis
 
         public void AddRange(ImmutableArray<GeneratedSourceText> texts) => _sourcesAdded.AddRange(texts);
 
+        public void AddRange(ImmutableArray<GeneratedSyntaxTree> trees) => _sourcesAdded.AddRange(trees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)));
+
         public void RemoveSource(string hintName)
         {
             hintName = AppendExtensionIfRequired(hintName);

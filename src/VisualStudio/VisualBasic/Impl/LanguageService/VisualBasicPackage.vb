@@ -58,10 +58,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             _comAggregate = Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
 
-        Protected Overrides Function CreateWorkspace() As VisualStudioWorkspaceImpl
-            Return Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)
-        End Function
-
         Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task
             Try
                 Await MyBase.InitializeAsync(cancellationToken, progress).ConfigureAwait(True)
@@ -69,9 +65,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
                 RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
 
-                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
                 RegisterService(Of IVbTempPECompilerFactory)(
                     Async Function(ct)
+                        Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
                         Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
                         Return New TempPECompilerFactory(workspace)
                     End Function)
@@ -81,11 +77,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Function
 
         Protected Overrides Async Function RegisterObjectBrowserLibraryManagerAsync(cancellationToken As CancellationToken) As Task
+            Dim workspace As VisualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
+
             Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
             Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
             If objectManager IsNot Nothing Then
-                Me._libraryManager = New ObjectBrowserLibraryManager(Me, ComponentModel, Workspace)
+                Me._libraryManager = New ObjectBrowserLibraryManager(Me, ComponentModel, workspace)
 
                 If ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(Me._libraryManager, Me._libraryManagerCookie)) Then
                     Me._libraryManagerCookie = 0

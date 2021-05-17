@@ -22,16 +22,6 @@
         <target state="translated">Correction de la casse des mots...</target>
         <note />
       </trans-unit>
-      <trans-unit id="New_">
-        <source>New</source>
-        <target state="translated">Nouveau</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Events">
-        <source>({0} Events)</source>
-        <target state="translated">({0} événements)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
         <target state="translated">Cet appel est requis par le concepteur.</target>
@@ -50,11 +40,6 @@
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">Retrait intelligent</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">Mettre le document en forme</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_Document">

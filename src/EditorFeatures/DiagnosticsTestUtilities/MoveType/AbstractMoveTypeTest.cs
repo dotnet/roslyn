@@ -179,7 +179,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
                 Assert.True(changedDocumentIds.Contains(sourceDocumentId), "source document was not changed.");
 
                 var modifiedSourceDocument = newSolution.GetDocument(sourceDocumentId);
-                Assert.Equal(expectedSourceTextAfterRefactoring, (await modifiedSourceDocument.GetTextAsync()).ToString());
+                var actualSourceTextAfterRefactoring = (await modifiedSourceDocument.GetTextAsync()).ToString();
+                Assert.Equal(expectedSourceTextAfterRefactoring, actualSourceTextAfterRefactoring);
             }
             else
             {

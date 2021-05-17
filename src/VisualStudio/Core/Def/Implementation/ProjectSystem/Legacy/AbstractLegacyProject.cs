@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -101,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             }
 
             var projectFactory = componentModel.GetService<VisualStudioProjectFactory>();
-            VisualStudioProject = projectFactory.CreateAndAddToWorkspace(
+            VisualStudioProject = threadingContext.JoinableTaskFactory.Run(() => projectFactory.CreateAndAddToWorkspaceAsync(
                 projectSystemName,
                 language,
                 new VisualStudioProjectCreationInfo
@@ -112,7 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                     FilePath = projectFilePath,
                     Hierarchy = hierarchy,
                     ProjectGuid = GetProjectIDGuid(hierarchy),
-                });
+                },
+                CancellationToken.None));
 
             workspaceImpl.AddProjectRuleSetFileToInternalMaps(
                 VisualStudioProject,

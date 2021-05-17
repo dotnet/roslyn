@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// The executing version of the method might be several generations old.
         /// E.g. when the thread is executing an exception handling region and hasn't been remapped yet.
         /// </summary>
-        public readonly ActiveInstructionId InstructionId;
+        public readonly ManagedInstructionId InstructionId;
 
         /// <summary>
         /// The current source span.
@@ -47,16 +48,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly ImmutableArray<DocumentId> DocumentIds;
 
         /// <summary>
-        /// Threads that share the instruction. May contain duplicates in case a thread is executing a function recursively.
-        /// </summary>
-        public readonly ImmutableArray<Guid> ThreadIds;
-
-        /// <summary>
-        /// Aggregated across <see cref="ThreadIds"/>.
+        /// Aggregated across all threads.
         /// </summary>
         public readonly ActiveStatementFlags Flags;
 
-        public ActiveStatement(int ordinal, int primaryDocumentOrdinal, ImmutableArray<DocumentId> documentIds, ActiveStatementFlags flags, LinePositionSpan span, ActiveInstructionId instructionId, ImmutableArray<Guid> threadIds)
+        public ActiveStatement(int ordinal, int primaryDocumentOrdinal, ImmutableArray<DocumentId> documentIds, ActiveStatementFlags flags, LinePositionSpan span, ManagedInstructionId instructionId)
         {
             Debug.Assert(ordinal >= 0);
             Debug.Assert(primaryDocumentOrdinal >= 0);
@@ -67,7 +63,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentIds = documentIds;
             Flags = flags;
             Span = span;
-            ThreadIds = threadIds;
             InstructionId = instructionId;
         }
 
@@ -86,9 +81,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public DocumentId PrimaryDocumentId => DocumentIds[0];
 
         internal ActiveStatement WithSpan(LinePositionSpan span)
-            => new(Ordinal, PrimaryDocumentOrdinal, DocumentIds, Flags, span, InstructionId, ThreadIds);
+            => new(Ordinal, PrimaryDocumentOrdinal, DocumentIds, Flags, span, InstructionId);
 
         internal ActiveStatement WithFlags(ActiveStatementFlags flags)
-            => new(Ordinal, PrimaryDocumentOrdinal, DocumentIds, flags, Span, InstructionId, ThreadIds);
+            => new(Ordinal, PrimaryDocumentOrdinal, DocumentIds, flags, Span, InstructionId);
     }
 }

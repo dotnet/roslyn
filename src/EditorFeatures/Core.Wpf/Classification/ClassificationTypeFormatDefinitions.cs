@@ -187,8 +187,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         #endregion
         #region User Types - Records
         [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RecordName)]
-        [Name(ClassificationTypeNames.RecordName)]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RecordClassName)]
+        [Name(ClassificationTypeNames.RecordClassName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
@@ -201,6 +201,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public UserTypeRecordsFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Records;
+            }
+        }
+        #endregion
+        #region User Types - Record structs
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RecordStructName)]
+        [Name(ClassificationTypeNames.RecordStructName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserTypeRecordStructsFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public UserTypeRecordStructsFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Types_Record_Structs;
             }
         }
         #endregion

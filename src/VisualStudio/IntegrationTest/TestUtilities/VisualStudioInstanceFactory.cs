@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
 using Roslyn.Utilities;
@@ -166,6 +167,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ImmutableHashSet<string> supportedPackageIds;
             string installationPath;
 
+            var isUsingLspEditor = IsUsingLspEditor();
+
             if (shouldStartNewInstance)
             {
                 // We are starting a new instance, so ensure we close the currently running instance, if it exists
@@ -177,7 +180,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 var instanceVersion = instance.GetInstallationVersion();
                 var majorVersion = int.Parse(instanceVersion.Substring(0, instanceVersion.IndexOf('.')));
-                hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion);
+                hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion, isUsingLspEditor);
 
                 var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
                 if (procDumpInfo != null)
@@ -207,7 +210,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 _currentlyRunningInstance.Close(exitHostProcess: false);
             }
 
-            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
+            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath, isUsingLspEditor);
         }
 
         private static IEnumerable<ISetupInstance> EnumerateVisualStudioInstances()
@@ -307,7 +310,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             throw new Exception(string.Join(Environment.NewLine, messages));
         }
 
-        private static Process StartNewVisualStudioProcess(string installationPath, int majorVersion)
+        private static Process StartNewVisualStudioProcess(string installationPath, int majorVersion, bool isUsingLspEditor)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
             var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
@@ -329,8 +332,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable roaming settings to avoid interference from the online user profile
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"")).WaitForExit();
 
+                // HACK: 16.10P2 contains an LSP client bug where on solution closed, server activation tasks that are not already completed / cancelled
+                // do not properly get cancelled.  When a new solution is opened these incomplete server ativation tasks are not cleared.
+                // Any feature that waits for LSP server activations to complete will hang on the old incomplete server activation tasks.
+                //
+                // The roslyn C# always active server and intellicode's refactorings LSP server are the only LSP servers active on C# files in 16.10p2.
+                // To work around potential hangs where the intellicode server activation does not complete before solution close, we disable their LSP server entirely.
+                // To work around potential hangs in the roslyn C# server, we wait for the async listener around the LSP server activation to complete before proceeding.
+                // Editor tracking bug (to be fixed in 16.10P3) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1322125
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" Refactorings string \"0*System.Int32*2\"")).WaitForExit();
+
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
+
+                var lspRegistryValue = isUsingLspEditor ? "1" : "0";
+                var lspFeatureFlagName = VisualStudioWorkspaceContextService.LspEditorFeatureFlagName.Replace(".", "\\");
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\{lspFeatureFlagName}\" Value dword {lspRegistryValue}")).WaitForExit();
+                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\Telemetry\Channels", "fileLogger", 1, RegistryValueKind.DWord);
 
                 // Remove legacy experiment setting for controlling async completion to ensure it does not interfere.
                 // We no longer set this value, but it could be in place from an earlier test run on the same machine.
@@ -369,6 +387,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             processStartInfo.Environment.Remove("DotNetRoot");
             processStartInfo.Environment.Remove("DotNetTool");
 
+            if (isUsingLspEditor)
+            {
+                // When running under the LSP editor set logging to verbose to ensure LSP client logs are captured.
+                processStartInfo.Environment.Add("LogLevel", "Verbose");
+            }
+
             // The first element of the path in CI is a .dotnet used for the Roslyn build. Make sure to remove that.
             if (processStartInfo.Environment.TryGetValue("BUILD_SOURCESDIRECTORY", out var sourcesDirectory))
             {
@@ -397,6 +421,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
             return Path.GetDirectoryName(assemblyPath);
+        }
+
+        private static bool IsUsingLspEditor()
+        {
+            return string.Equals(Environment.GetEnvironmentVariable("ROSLYN_LSPEDITOR"), "true", StringComparison.OrdinalIgnoreCase);
         }
 
         public void Dispose()

@@ -154,6 +154,7 @@ class C
                 debugEntryPoint: null,
                 sourceLinkStream: new MemoryStream(new byte[] { 1, 2, 3 }),
                 embeddedTexts: null,
+                rebuildData: null,
                 testData: new CompilationTestData()
                 {
                     SymWriterFactory = metadataProvider => new SymUnmanagedWriterWithoutSourceLinkSupport(metadataProvider)

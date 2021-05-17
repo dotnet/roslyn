@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IEnumerable<ResourceDescription> ManifestResources;
         internal readonly Cci.ModulePropertiesForSerialization SerializationProperties;
         internal readonly OutputKind OutputKind;
+        internal Stream RawWin32Resources;
         internal IEnumerable<Cci.IWin32Resource> Win32Resources;
         internal Cci.ResourceSection Win32ResourceSection;
         internal Stream SourceLinkStreamOpt;
@@ -511,7 +512,6 @@ namespace Microsoft.CodeAnalysis.Emit
         internal override IAssemblySymbolInternal CommonCorLibrary => CorLibrary;
         internal abstract TAssemblySymbol CorLibrary { get; }
 
-        internal abstract Cci.INamedTypeReference GetSystemType(TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.INamedTypeReference GetSpecialType(SpecialType specialType, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
 
         internal sealed override Cci.ITypeReference EncTranslateType(ITypeSymbolInternal type, DiagnosticBag diagnostics)
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
+        public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes()
             => ImmutableArray<TNamedTypeSymbol>.Empty;
 
         public virtual ImmutableArray<TNamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
@@ -962,10 +962,10 @@ namespace Microsoft.CodeAnalysis.Emit
             switch (platformType)
             {
                 case Cci.PlatformType.SystemType:
-                    return GetSystemType((TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+                    throw ExceptionUtilities.UnexpectedValue(platformType);
 
                 default:
-                    return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+                    return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxNode, context.Diagnostics);
             }
         }
     }

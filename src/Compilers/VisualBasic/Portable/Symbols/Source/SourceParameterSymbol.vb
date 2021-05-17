@@ -284,6 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
+            Debug.Assert(TypeOf arguments.Diagnostics Is BindingDiagnosticBag)
 
             ' Differences from C#:
             '
@@ -303,7 +304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '     - metadata flag set, no diagnostics reported, don't influence language semantics
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
-                arguments.Diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultParameterValueAttribute) Then
@@ -328,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub DecodeDefaultParameterValueAttribute(description As AttributeDescription, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim attribute = arguments.Attribute
-            Dim diagnostics = arguments.Diagnostics
+            Dim diagnostics = DirectCast(arguments.Diagnostics, BindingDiagnosticBag)
 
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
             Debug.Assert(diagnostics IsNot Nothing)
@@ -344,7 +345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' (DefaultParameterValueAttribute, DateTimeConstantAttribute or DecimalConstantAttribute).
         ''' If not, report ERR_ParamDefaultValueDiffersFromAttribute.
         ''' </summary>
-        Protected Sub VerifyParamDefaultValueMatchesAttributeIfAny(value As ConstantValue, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Protected Sub VerifyParamDefaultValueMatchesAttributeIfAny(value As ConstantValue, syntax As VisualBasicSyntaxNode, diagnostics As BindingDiagnosticBag)
             Dim data = GetEarlyDecodedWellKnownAttributeData()
             If data IsNot Nothing Then
                 Dim attrValue = data.DefaultParameterValue

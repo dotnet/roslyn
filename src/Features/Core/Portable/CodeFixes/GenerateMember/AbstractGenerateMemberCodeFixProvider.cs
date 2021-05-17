@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
 {
     internal abstract class AbstractGenerateMemberCodeFixProvider : CodeFixProvider
     {
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // Fix All is not supported by this code fix
             return null;
@@ -39,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
 
             var diagnostic = context.Diagnostics.First();
             var document = context.Document;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var names = GetTargetNodes(syntaxFacts, root, context.Span, diagnostic);
             foreach (var name in names)
             {

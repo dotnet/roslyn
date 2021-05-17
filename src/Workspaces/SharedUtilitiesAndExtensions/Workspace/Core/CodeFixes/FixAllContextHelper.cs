@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         await Task.WhenAll(tasks).ConfigureAwait(false);
                         allDiagnostics = allDiagnostics.AddRange(diagnostics.SelectMany(i => i.Value));
                     }
+
                     break;
             }
 

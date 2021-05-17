@@ -93,55 +93,54 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             string expectedInterfaceCode = null,
             CompilationOptions compilationOptions = null)
         {
-            using (var testState = ExtractInterfaceTestState.Create(markup, languageName, compilationOptions))
+            using var testState = ExtractInterfaceTestState.Create(markup, languageName, compilationOptions);
+
+            var result = await testState.ExtractViaCommandAsync();
+
+            if (expectedSuccess)
             {
-                var result = await testState.ExtractViaCommandAsync();
+                Assert.True(result.Succeeded);
+                Assert.False(testState.Workspace.Documents.Select(d => d.Id).Contains(result.NavigationDocumentId));
+                Assert.NotNull(result.UpdatedSolution.GetDocument(result.NavigationDocumentId));
 
-                if (expectedSuccess)
+                if (expectedMemberName != null)
                 {
-                    Assert.True(result.Succeeded);
-                    Assert.False(testState.Workspace.Documents.Select(d => d.Id).Contains(result.NavigationDocumentId));
-                    Assert.NotNull(result.UpdatedSolution.GetDocument(result.NavigationDocumentId));
-
-                    if (expectedMemberName != null)
-                    {
-                        Assert.Equal(1, testState.TestExtractInterfaceOptionsService.AllExtractableMembers.Count());
-                        Assert.Equal(expectedMemberName, testState.TestExtractInterfaceOptionsService.AllExtractableMembers.Single().Name);
-                    }
-
-                    if (expectedInterfaceName != null)
-                    {
-                        Assert.Equal(expectedInterfaceName, testState.TestExtractInterfaceOptionsService.DefaultInterfaceName);
-                    }
-
-                    if (expectedNamespaceName != null)
-                    {
-                        Assert.Equal(expectedNamespaceName, testState.TestExtractInterfaceOptionsService.DefaultNamespace);
-                    }
-
-                    if (expectedTypeParameterSuffix != null)
-                    {
-                        Assert.Equal(expectedTypeParameterSuffix, testState.TestExtractInterfaceOptionsService.GeneratedNameTypeParameterSuffix);
-                    }
-
-                    if (expectedUpdatedOriginalDocumentCode != null)
-                    {
-                        var updatedOriginalDocument = result.UpdatedSolution.GetDocument(testState.ExtractFromDocument.Id);
-                        var updatedCode = (await updatedOriginalDocument.GetTextAsync()).ToString();
-                        Assert.Equal(expectedUpdatedOriginalDocumentCode, updatedCode);
-                    }
-
-                    if (expectedInterfaceCode != null)
-                    {
-                        var interfaceDocument = result.UpdatedSolution.GetDocument(result.NavigationDocumentId);
-                        var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
-                        Assert.Equal(expectedInterfaceCode, interfaceCode);
-                    }
+                    Assert.Equal(1, testState.TestExtractInterfaceOptionsService.AllExtractableMembers.Count());
+                    Assert.Equal(expectedMemberName, testState.TestExtractInterfaceOptionsService.AllExtractableMembers.Single().Name);
                 }
-                else
+
+                if (expectedInterfaceName != null)
                 {
-                    Assert.False(result.Succeeded);
+                    Assert.Equal(expectedInterfaceName, testState.TestExtractInterfaceOptionsService.DefaultInterfaceName);
                 }
+
+                if (expectedNamespaceName != null)
+                {
+                    Assert.Equal(expectedNamespaceName, testState.TestExtractInterfaceOptionsService.DefaultNamespace);
+                }
+
+                if (expectedTypeParameterSuffix != null)
+                {
+                    Assert.Equal(expectedTypeParameterSuffix, testState.TestExtractInterfaceOptionsService.GeneratedNameTypeParameterSuffix);
+                }
+
+                if (expectedUpdatedOriginalDocumentCode != null)
+                {
+                    var updatedOriginalDocument = result.UpdatedSolution.GetDocument(testState.ExtractFromDocument.Id);
+                    var updatedCode = (await updatedOriginalDocument.GetTextAsync()).ToString();
+                    Assert.Equal(expectedUpdatedOriginalDocumentCode, updatedCode);
+                }
+
+                if (expectedInterfaceCode != null)
+                {
+                    var interfaceDocument = result.UpdatedSolution.GetDocument(result.NavigationDocumentId);
+                    var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
+                    Assert.Equal(expectedInterfaceCode, interfaceCode);
+                }
+            }
+            else
+            {
+                Assert.False(result.Succeeded);
             }
         }
 
@@ -151,13 +150,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             string expectedMarkup,
             CompilationOptions compilationOptions = null)
         {
-            using (var testState = ExtractInterfaceTestState.Create(markup, languageName, compilationOptions))
-            {
-                var updatedSolution = await testState.ExtractViaCodeAction();
-                var updatedDocument = updatedSolution.GetDocument(testState.ExtractFromDocument.Id);
-                var updatedCode = (await updatedDocument.GetTextAsync()).ToString();
-                Assert.Equal(expectedMarkup, updatedCode);
-            }
+            using var testState = ExtractInterfaceTestState.Create(markup, languageName, compilationOptions);
+
+            var updatedSolution = await testState.ExtractViaCodeAction();
+            var updatedDocument = updatedSolution.GetDocument(testState.ExtractFromDocument.Id);
+            var updatedCode = (await updatedDocument.GetTextAsync()).ToString();
+            Assert.Equal(expectedMarkup, updatedCode);
         }
     }
 }

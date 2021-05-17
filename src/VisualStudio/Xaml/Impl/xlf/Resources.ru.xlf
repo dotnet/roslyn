@@ -17,11 +17,6 @@
         <target state="translated">&amp;Сортировать пространства имен</target>
         <note />
       </trans-unit>
-      <trans-unit id="Xaml_Language_Server_Client">
-        <source>XAML Language Server Client</source>
-        <target state="translated">Клиент языкового сервера XAML</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -1354,6 +1352,125 @@ public class Goo
 public interface IA
 {
     void Test();
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedUpdatedOriginalDocumentCode: updatedMarkup,
+                expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WorkItem(49739, "https://github.com/dotnet/roslyn/issues/49739")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestRecord1()
+        {
+            var markup =
+@"namespace Test
+{
+    record $$Whatever(int X, string Y);
+}";
+
+            var updatedMarkup =
+@"namespace Test
+{
+    record Whatever(int X, string Y) : IWhatever;
+}";
+
+            var expectedInterfaceCode =
+@"namespace Test
+{
+    interface IWhatever
+    {
+        int X { get; init; }
+        string Y { get; init; }
+
+        void Deconstruct(out int X, out string Y);
+        bool Equals(object obj);
+        bool Equals(Whatever other);
+        int GetHashCode();
+        string ToString();
+    }
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedUpdatedOriginalDocumentCode: updatedMarkup,
+                expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WorkItem(49739, "https://github.com/dotnet/roslyn/issues/49739")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestRecord2()
+        {
+            var markup =
+@"namespace Test
+{
+    record $$Whatever(int X, string Y) { }
+}";
+
+            var updatedMarkup =
+@"namespace Test
+{
+    record Whatever(int X, string Y) : IWhatever { }
+}";
+
+            var expectedInterfaceCode =
+@"namespace Test
+{
+    interface IWhatever
+    {
+        int X { get; init; }
+        string Y { get; init; }
+
+        void Deconstruct(out int X, out string Y);
+        bool Equals(object obj);
+        bool Equals(Whatever other);
+        int GetHashCode();
+        string ToString();
+    }
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedUpdatedOriginalDocumentCode: updatedMarkup,
+                expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WorkItem(49739, "https://github.com/dotnet/roslyn/issues/49739")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestRecord3()
+        {
+            var markup =
+@"namespace Test
+{
+    /// <summary></summary>
+    record $$Whatever(int X, string Y);
+}";
+
+            var updatedMarkup =
+@"namespace Test
+{
+    /// <summary></summary>
+    record Whatever(int X, string Y) : IWhatever;
+}";
+
+            var expectedInterfaceCode =
+@"namespace Test
+{
+    interface IWhatever
+    {
+        int X { get; init; }
+        string Y { get; init; }
+
+        void Deconstruct(out int X, out string Y);
+        bool Equals(object obj);
+        bool Equals(Whatever other);
+        int GetHashCode();
+        string ToString();
+    }
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(

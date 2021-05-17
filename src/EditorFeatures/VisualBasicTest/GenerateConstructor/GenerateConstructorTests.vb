@@ -4,10 +4,9 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructor
     Public Class GenerateConstructorTests
@@ -1578,23 +1577,72 @@ Class A
 End Class")
         End Function
 
-        Public Class GenerateConstructorTestsWithFindMissingIdentifiersAnalyzer
-            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.Linq
+Class C
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New C([|0|])",
+"Imports System
+Imports System.Linq
+Class C
+    Private v As Integer
 
-            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-                Return (New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
-                        New GenerateConstructorCodeFixProvider())
-            End Function
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New C(0)Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+End Class
+")
+        End Function
 
-            <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>
-            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-            Public Async Function TestGenerateConstructorInIncompleteLambda() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda2() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.Linq
+Class C
+    Private v As Integer
+    Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New [|C|](0, 0)",
+"Imports System
+Imports System.Linq
+Class C
+    Private v As Integer
+    Private v1 As Integer
+
+    Public Sub New(v As Integer)
+        Me.v = v
+    End Sub
+    Sub New()
+        Dim s As Action = Sub()
+                              Dim a = New C(0, 0)Public Sub New(v As Integer, v1 As Integer)
+        Me.New(v)
+        Me.v1 = v1
+    End Sub
+End Class
+")
+        End Function
+
+        <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/53238"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda_WithoutImport() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System.Linq
 Class C
     Sub New()
         Dim s As Action = Sub()
-                              Dim a = New [|C|](0)",
+                              Dim a = New C([|0|])",
 "Imports System.Linq
 Class C
     Private v As Integer
@@ -1606,12 +1654,12 @@ Class C
     End Sub
 End Class
 ")
-            End Function
+        End Function
 
-            <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
-            <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-            Public Async Function TestGenerateConstructorInIncompleteLambda2() As Task
-                Await TestInRegularAndScriptAsync(
+        <WorkItem(5920, "https://github.com/dotnet/roslyn/issues/5920")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/53238"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateConstructorInIncompleteLambda2_WithoutImport() As Task
+            Await TestInRegularAndScriptAsync(
 "Imports System.Linq
 Class C
     Private v As Integer
@@ -1637,8 +1685,7 @@ Class C
     End Sub
 End Class
 ")
-            End Function
-        End Class
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateConstructorNotOfferedForDuplicate() As Task
@@ -1943,6 +1990,57 @@ public class BaseType
 }")
         End Function
 
+        <WorkItem(50765, "https://github.com/dotnet/roslyn/issues/50765")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructorCrossLanguageWithMissingType() As Task
+            Await TestAsync(
+<Workspace>
+    <Project Language="C#" Name="CSharpProjectWithExtraType" CommonReferences="true">
+        <Document>
+public class ExtraType { }
+        </Document>
+    </Project>
+    <Project Language="C#" Name="CSharpProjectGeneratingInto" CommonReferences="true">
+        <ProjectReference>CSharpProjectWithExtraType</ProjectReference>
+        <Document>
+public class C
+{
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+}
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <ProjectReference>CSharpProjectGeneratingInto</ProjectReference>
+        <Document>
+Option Strict On
+
+Public Class B
+    Public Sub M()
+        Dim x = [|New C(42, 42)|]
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>.ToString(),
+"
+public class C
+{
+    private int v1;
+    private int v2;
+
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+
+    public C(int v1, int v2)
+    {
+        this.v1 = v1;
+        this.v2 = v2;
+    }
+}
+        ", TestOptions.Regular)
+        End Function
+
         <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function CreateFieldDefaultNamingStyle() As Task
@@ -2128,5 +2226,117 @@ Class C
 End Class
 ")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(51040, "https://github.com/dotnet/roslyn/issues/51040")>
+        Public Async Function TestOmittedParameter() As Task
+
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private _a As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Function M() As C
+        Return New C(, [||]2)
+    End Function
+End Class
+",
+"Class C
+    Private _a As Integer
+    Private v As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Sub New(Optional a As Integer = 1, Optional v As Integer = Nothing)
+        Me.New(a)
+        Me.v = v
+    End Sub
+
+    Public Function M() As C
+        Return New C(, 2)
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(51040, "https://github.com/dotnet/roslyn/issues/51040")>
+        Public Async Function TestOmittedParameterAtEnd() As Task
+
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private _a As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Function M() As C
+        Return New C(1,[||])
+    End Function
+End Class
+",
+"Class C
+    Private _a As Integer
+    Private p As Object
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Sub New(Optional a As Integer = 1, Optional p As Object = Nothing)
+        Me.New(a)
+        Me.p = p
+    End Sub
+
+    Public Function M() As C
+        Return New C(1,)
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(51040, "https://github.com/dotnet/roslyn/issues/51040")>
+        Public Async Function TestOmittedParameterAtStartAndEnd() As Task
+
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private _a As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Function M() As C
+        Return New C(,[||])
+    End Function
+End Class
+",
+"Class C
+    Private _a As Integer
+    Private p As Object
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Sub New(Optional a As Integer = 1, Optional p As Object = Nothing)
+        Me.New(a)
+        Me.p = p
+    End Sub
+
+    Public Function M() As C
+        Return New C(,)
+    End Function
+End Class
+")
+        End Function
+
     End Class
 End Namespace

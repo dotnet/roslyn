@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> clauses,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool performOnlyCycleSafeValidation,
             bool isForOverride = false)
         {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind and return a single type parameter constraint clause along with syntax nodes corresponding to type constraints.
         /// </summary>
-        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>?) BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, DiagnosticBag diagnostics)
+        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>?) BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, BindingDiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
             ArrayBuilder<TypeWithAnnotations>? constraintTypes = null;
@@ -155,13 +155,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 reportOverrideWithConstraints(ref reportedOverrideWithConstraints, syntax, diagnostics);
                             }
-                            else
+                            else if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
                             {
                                 LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(
                                     AreNullableAnnotationsEnabled(questionToken),
                                     IsGeneratedCode(questionToken),
                                     questionToken.GetLocation(),
-                                    diagnostics);
+                                    diagnosticBag);
                             }
                         }
                         else if (isForOverride || AreNullableAnnotationsEnabled(constraintSyntax.ClassOrStructKeyword))
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (TypeParameterConstraintClause.Create(constraints, constraintTypes?.ToImmutableAndFree() ?? ImmutableArray<TypeWithAnnotations>.Empty), syntaxBuilder);
 
-            static void reportOverrideWithConstraints(ref bool reportedOverrideWithConstraints, TypeParameterConstraintSyntax syntax, DiagnosticBag diagnostics)
+            static void reportOverrideWithConstraints(ref bool reportedOverrideWithConstraints, TypeParameterConstraintSyntax syntax, BindingDiagnosticBag diagnostics)
             {
                 if (!reportedOverrideWithConstraints)
                 {
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            static void reportTypeConstraintsMustBeUniqueAndFirst(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+            static void reportTypeConstraintsMustBeUniqueAndFirst(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
                 diagnostics.Add(ErrorCode.ERR_TypeConstraintsMustBeUniqueAndFirst, syntax.GetLocation());
             }
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeParameterConstraintClause> constraintClauses,
             ArrayBuilder<ArrayBuilder<TypeConstraintSyntax>?> syntaxNodes,
             bool performOnlyCycleSafeValidation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(typeParameters.Length > 0);
             Debug.Assert(typeParameters.Length == constraintClauses.Count);
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeParameterConstraintClause constraintClause,
             ArrayBuilder<TypeConstraintSyntax>? syntaxNodesOpt,
             bool performOnlyCycleSafeValidation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if (syntaxNodesOpt != null)
             {
@@ -406,15 +406,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol containingSymbol,
             Location location,
             TypeWithAnnotations constraintType,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            if (!containingSymbol.IsNoMoreVisibleThan(constraintType, ref useSiteDiagnostics))
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, containingSymbol.ContainingAssembly);
+            if (!containingSymbol.IsNoMoreVisibleThan(constraintType, ref useSiteInfo))
             {
                 // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
-            diagnostics.Add(location, useSiteDiagnostics);
+            diagnostics.Add(location, useSiteInfo);
         }
 
         /// <summary>
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeParameterConstraintKind constraints,
             ArrayBuilder<TypeWithAnnotations> constraintTypes,
             bool performOnlyCycleSafeValidation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if (!isValidConstraintType(typeParameter, syntax, type, performOnlyCycleSafeValidation, diagnostics))
             {
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Returns true if the type is a valid constraint type.
             // Otherwise returns false and generates a diagnostic.
-            static bool isValidConstraintType(TypeParameterSymbol typeParameter, TypeConstraintSyntax syntax, TypeWithAnnotations typeWithAnnotations, bool performOnlyCycleSafeValidation, DiagnosticBag diagnostics)
+            static bool isValidConstraintType(TypeParameterSymbol typeParameter, TypeConstraintSyntax syntax, TypeWithAnnotations typeWithAnnotations, bool performOnlyCycleSafeValidation, BindingDiagnosticBag diagnostics)
             {
                 if (typeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated && performOnlyCycleSafeValidation &&
                     typeWithAnnotations.DefaultType is TypeParameterSymbol typeParameterInConstraint && typeParameterInConstraint.ContainingSymbol == (object)typeParameter.ContainingSymbol)

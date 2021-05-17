@@ -52,7 +52,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 new[] { PermissionElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
                 new[] { SeeElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
                 new[] { SeeElementName, LangwordAttributeName, $"{LangwordAttributeName}=\"", "\"" },
+                new[] { SeeElementName, HrefAttributeName, $"{HrefAttributeName}=\"", "\"" },
                 new[] { SeeAlsoElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { SeeAlsoElementName, HrefAttributeName, $"{HrefAttributeName}=\"", "\"" },
                 new[] { ListElementName, TypeAttributeName, $"{TypeAttributeName}=\"", "\"" },
                 new[] { ParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
                 new[] { ParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (attributeName == NameAttributeName && symbol != null)
             {
-                if (tagName == ParameterElementName || tagName == ParameterReferenceElementName)
+                if (tagName is ParameterElementName or ParameterReferenceElementName)
                 {
                     return symbol.GetParameters()
                                  .Select(parameter => CreateCompletionItem(parameter.Name));
@@ -331,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly CharacterSetModificationRule WithoutQuoteRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '"');
         private static readonly CharacterSetModificationRule WithoutSpaceRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ');
 
-        internal static readonly ImmutableArray<CharacterSetModificationRule> FilterRules = ImmutableArray.Create(
+        protected static readonly ImmutableArray<CharacterSetModificationRule> FilterRules = ImmutableArray.Create(
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '!', '-', '['));
 
         private CompletionItemRules GetCompletionItemRules(string displayText)

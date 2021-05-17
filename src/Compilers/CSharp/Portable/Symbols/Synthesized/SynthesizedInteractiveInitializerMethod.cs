@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol _returnType;
         private ThreeState _lazyIsNullableAnalysisEnabled;
 
-        internal SynthesizedInteractiveInitializerMethod(SourceMemberContainerTypeSymbol containingType, DiagnosticBag diagnostics)
+        internal SynthesizedInteractiveInitializerMethod(SourceMemberContainerTypeSymbol containingType, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(containingType.IsScriptClass);
 
@@ -257,18 +257,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void CalculateReturnType(
             SourceMemberContainerTypeSymbol containingType,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out TypeSymbol resultType,
             out TypeSymbol returnType)
         {
             CSharpCompilation compilation = containingType.DeclaringCompilation;
             var submissionReturnTypeOpt = compilation.ScriptCompilationInfo?.ReturnTypeOpt;
             var taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
-            var useSiteDiagnostic = taskT.GetUseSiteDiagnostic();
-            if (useSiteDiagnostic != null)
-            {
-                diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton);
-            }
+            diagnostics.ReportUseSite(taskT, NoLocation.Singleton);
+
             // If no explicit return type is set on ScriptCompilationInfo, default to
             // System.Object from the target corlib. This allows cross compiling scripts
             // to run on a target corlib that may differ from the host compiler's corlib.

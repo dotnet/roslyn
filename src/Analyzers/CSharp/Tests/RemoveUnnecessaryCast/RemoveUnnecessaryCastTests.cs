@@ -142,71 +142,38 @@ class Program
         }
 
         [WorkItem(545138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545138")]
-        [WorkItem(44422, "https://github.com/dotnet/roslyn/issues/44422")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44422"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveTypeParameterCastToObject()
         {
             var source =
-@"class Ð¡
+@"class D
 {
     void Goo<T>(T obj)
-{
-    int x = (int)(object)obj;
-}
+    {
+        int x = (int)(object)obj;
+    }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source,
-                new[]
-                {
-                    // /0/Test0.cs(1,8): error CS1056: Unexpected character '¡'
-                    DiagnosticResult.CompilerError("CS1056").WithSpan(1, 8, 1, 8).WithArguments("¡"),
-                    // /0/Test0.cs(1,8): error CS1513: } expected
-                    DiagnosticResult.CompilerError("CS1513").WithSpan(1, 8, 1, 9),
-                    // /0/Test0.cs(1,8): error CS1514: { expected
-                    DiagnosticResult.CompilerError("CS1514").WithSpan(1, 8, 1, 9),
-                    // /0/Test0.cs(2,1): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(2, 1, 2, 2),
-                    // /0/Test0.cs(7,1): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(7, 1, 7, 2),
-                },
-                source);
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [WorkItem(545139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545139")]
-        [WorkItem(44422, "https://github.com/dotnet/roslyn/issues/44422")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44422"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveCastInIsTest()
         {
             var source =
 @"using System;
 
-class Ð¡
+class D
 {
     static void Main()
-{
-    DayOfWeek[] a = {
-    };
-    Console.WriteLine((object)a is int[]);
-}
+    {
+        DayOfWeek[] a = { };
+        Console.WriteLine((object)a is int[]);
+    }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source,
-                new[]
-                {
-                    // /0/Test0.cs(3,8): error CS1056: Unexpected character '¡'
-                    DiagnosticResult.CompilerError("CS1056").WithSpan(3, 8, 3, 8).WithArguments("¡"),
-                    // /0/Test0.cs(3,8): error CS1513: } expected
-                    DiagnosticResult.CompilerError("CS1513").WithSpan(3, 8, 3, 9),
-                    // /0/Test0.cs(3,8): error CS1514: { expected
-                    DiagnosticResult.CompilerError("CS1514").WithSpan(3, 8, 3, 9),
-                    // /0/Test0.cs(4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(4, 1, 4, 2),
-                    // /0/Test0.cs(11,1): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(11, 1, 11, 2),
-                },
-                source);
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [WorkItem(545142, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545142")]
@@ -1816,14 +1783,13 @@ class A
 
         [WorkItem(46423, "https://github.com/dotnet/roslyn/issues/46423")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotCrashWhenTypeCantBeDetermined()
+        public async Task RemoveUnneededTargetTypedCast()
         {
-            var source =
-@"
+            await VerifyCS.VerifyCodeFixAsync(@"
 class Other
 {
     public short GetScopeIdForTelemetry(FixAllScope scope)
-        => (short)(scope switch
+        => [|(short)|](scope switch
         {
             FixAllScope.Document => 1,
             FixAllScope.Project => 2,
@@ -1838,9 +1804,28 @@ class Other
         Solution,
         Other
     }
-}";
+}",
+@"
+class Other
+{
+    public short GetScopeIdForTelemetry(FixAllScope scope)
+        => scope switch
+        {
+            FixAllScope.Document => 1,
+            FixAllScope.Project => 2,
+            FixAllScope.Solution => 3,
+            _ => 4,
+        };
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+    public enum FixAllScope
+    {
+        Document,
+        Project,
+        Solution,
+        Other
+    }
+}"
+);
         }
 
         [WorkItem(545777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545777")]
@@ -8207,6 +8192,27 @@ public class C {
             await test.RunAsync();
         }
 
+        [WorkItem(51123, "https://github.com/dotnet/roslyn/issues/51123")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNativeIntCastsToInt()
+        {
+            var source =
+@"using System;
+
+public class C {
+    public int N(IntPtr x) => (int)(nint)x;
+}";
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
+        }
+
         [WorkItem(47800, "https://github.com/dotnet/roslyn/issues/47800")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoRemoveNativeUIntCasts()
@@ -8431,7 +8437,7 @@ class C
         => s is null ? (ushort)1234 : ushort.Parse(s);
 }
 ",
-                LanguageVersion = LanguageVersion.CSharp8,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -8444,14 +8450,14 @@ class C
                 TestCode = @"
 class C
 {
-    ushort Goo(string s)
-        => s is null ? [|(ushort)|]1234 : ushort.Parse(s);
+    uint Goo(string s)
+        => s is null ? [|(uint)|]1234 : uint.Parse(s);
 }",
                 FixedCode = @"
 class C
 {
-    ushort Goo(string s)
-        => s is null ? 1234 : ushort.Parse(s);
+    uint Goo(string s)
+        => s is null ? 1234 : uint.Parse(s);
 }",
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();

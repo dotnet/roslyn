@@ -157,21 +157,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Use-Site Diagnostics"
 
-        Protected Function CalculateUseSiteErrorInfo() As DiagnosticInfo
+        Protected Function CalculateUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             ' Check base type.
-            Dim baseErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromBase()
+            Dim useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency).AdjustDiagnosticInfo(DeriveUseSiteErrorInfoFromBase())
 
-            If baseErrorInfo IsNot Nothing Then
-                Return baseErrorInfo
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
+                Return useSiteInfo
             End If
 
             ' If we reach a type (Me) that is in an assembly with unified references, 
             ' we check if that type definition depends on a type from a unified reference.
             If Me.ContainingModule.HasUnifiedReferences Then
-                Return GetUnificationUseSiteDiagnosticRecursive(Me, checkedTypes:=Nothing)
+                Dim errorInfo As DiagnosticInfo = GetUnificationUseSiteDiagnosticRecursive(Me, checkedTypes:=Nothing)
+                If errorInfo IsNot Nothing Then
+                    Debug.Assert(errorInfo.Severity = DiagnosticSeverity.Error)
+                    useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+                End If
             End If
 
-            Return Nothing
+            Return useSiteInfo
         End Function
 
         Private Function DeriveUseSiteErrorInfoFromBase() As DiagnosticInfo
@@ -181,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             While base IsNot Nothing
 
                 If base.IsErrorType() AndAlso TypeOf base Is NoPiaIllegalGenericInstantiationSymbol Then
-                    Return base.GetUseSiteErrorInfo()
+                    Return base.GetUseSiteInfo().DiagnosticInfo
                 End If
 
                 base = base.BaseTypeNoUseSiteDiagnostics

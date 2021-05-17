@@ -46,9 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
 
-        internal override SyntaxTrivia EndOfLine(string text)
-            => SyntaxFactory.EndOfLine(text);
-
         internal override SyntaxTrivia Whitespace(string text)
             => SyntaxFactory.Whitespace(text);
 
@@ -153,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return declaration;
                 default:
                     return null;
@@ -820,11 +818,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers modifiers,
             IEnumerable<SyntaxNode> members)
         {
+            return EnumDeclaration(name, underlyingType: null, accessibility, modifiers, members);
+        }
+
+        internal override SyntaxNode EnumDeclaration(string name, SyntaxNode underlyingType, Accessibility accessibility = Accessibility.NotApplicable, DeclarationModifiers modifiers = default, IEnumerable<SyntaxNode> members = null)
+        {
             return SyntaxFactory.EnumDeclaration(
                 default,
                 AsModifierList(accessibility, modifiers, SyntaxKind.EnumDeclaration),
                 name.ToIdentifierToken(),
-                null,
+                underlyingType != null ? SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList((BaseTypeSyntax)SyntaxFactory.SimpleBaseType((TypeSyntax)underlyingType))) : null,
                 this.AsEnumMembers(members));
         }
 
@@ -1471,6 +1474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return s_interfaceModifiers;
 
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return s_structModifiers;
 
                 case SyntaxKind.MethodDeclaration:
@@ -1962,7 +1966,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (this.GetDeclarationKind(existingNode))
             {
                 case DeclarationKind.Class:
-                case DeclarationKind.Record:
                 case DeclarationKind.Interface:
                 case DeclarationKind.Struct:
                 case DeclarationKind.Enum:

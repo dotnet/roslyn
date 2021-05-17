@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected ReadOnly CompilationState As TypeCompilationState
 
-        Protected ReadOnly Diagnostics As DiagnosticBag
+        Protected ReadOnly Diagnostics As BindingDiagnosticBag
         Protected ReadOnly SlotAllocatorOpt As VariableSlotAllocator
 
         ''' <summary>
@@ -69,8 +69,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected ReadOnly PreserveOriginalLocals As Boolean
 
-        Protected Sub New(slotAllocatorOpt As VariableSlotAllocator, compilationState As TypeCompilationState, diagnostics As DiagnosticBag, preserveOriginalLocals As Boolean)
+        Protected Sub New(slotAllocatorOpt As VariableSlotAllocator, compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, preserveOriginalLocals As Boolean)
             Debug.Assert(compilationState IsNot Nothing)
+            Debug.Assert(diagnostics.AccumulatesDiagnostics)
             Me.CompilationState = compilationState
             Me.Diagnostics = diagnostics
             Me.SlotAllocatorOpt = slotAllocatorOpt

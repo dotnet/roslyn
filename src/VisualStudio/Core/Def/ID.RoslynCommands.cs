@@ -49,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             public const int GoToImplementation = 0x0200;
 
             public const int RunCodeAnalysisForProject = 0x0201;
+            public const int RemoveUnusedReferences = 0x0202;
         }
     }
 }

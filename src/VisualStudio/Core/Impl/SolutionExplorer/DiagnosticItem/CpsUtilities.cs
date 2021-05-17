@@ -34,11 +34,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public static string? ExtractAnalyzerFilePath(string projectDirectoryPath, string analyzerNodeCanonicalName)
         {
             // The canonical name may or may not start with the path to the project's directory.
+            if (!projectDirectoryPath.EndsWith("\\"))
+            {
+                projectDirectoryPath += '\\';
+            }
+
             if (analyzerNodeCanonicalName.StartsWith(projectDirectoryPath, StringComparison.OrdinalIgnoreCase))
             {
-                // Extract the rest of the string, taking into account the "\" separating the directory
-                // path from the rest of the canonical name
-                analyzerNodeCanonicalName = analyzerNodeCanonicalName.Substring(projectDirectoryPath.Length + 1);
+                // Extract the rest of the string
+                analyzerNodeCanonicalName = analyzerNodeCanonicalName.Substring(projectDirectoryPath.Length);
             }
 
             // Find the slash after the target framework

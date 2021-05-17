@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Threading;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.CallHierarchy;
@@ -66,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 var navigator = _workspace.Services.GetService<IDocumentNavigationService>();
                 var options = _workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true)
                                                 .WithChangedOption(NavigationOptions.ActivateTab, false);
-                navigator.TryNavigateToSpan(_workspace, document.Id, _span, options);
+                // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
+                navigator.TryNavigateToSpan(_workspace, document.Id, _span, options, CancellationToken.None);
             }
         }
     }

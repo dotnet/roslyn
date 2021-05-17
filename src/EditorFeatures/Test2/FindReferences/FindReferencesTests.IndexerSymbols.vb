@@ -292,5 +292,32 @@ End Class
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_IndexerInSourceGeneratedDocument(kind As TestKind) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public int {|Definition:$$this|}[int y] { get { } }
+}
+        </Document>
+        <DocumentFromSourceGenerator>
+
+class D
+{
+    void Goo()
+    {
+        var q = new C();
+        var b = q[||][4];
+    }
+}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+        End Function
     End Class
 End Namespace

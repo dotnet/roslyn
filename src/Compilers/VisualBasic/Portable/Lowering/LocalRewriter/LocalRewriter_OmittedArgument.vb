@@ -20,9 +20,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim fieldAccess = New BoundFieldAccess(node.Syntax, Nothing, missingField, isLValue:=False, type:=missingField.Type)
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim conversion = Conversions.ClassifyDirectCastConversion(fieldAccess.Type, node.Type, useSiteDiagnostics)
-            _diagnostics.Add(node, useSiteDiagnostics)
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo()
+            Dim conversion = Conversions.ClassifyDirectCastConversion(fieldAccess.Type, node.Type, useSiteInfo)
+            _diagnostics.Add(node, useSiteInfo)
 
             ' Return Directcast(Missing.Value, Object)
             Return New BoundDirectCast(node.Syntax, fieldAccess, conversion, node.Type)

@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData) => throw ExceptionUtilities.Unreachable;
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            var diagnostic = _underlyingType.GetUseSiteDiagnostic();
-            Debug.Assert(diagnostic is null); // If assert fails, add unit test for GetUseSiteDiagnostic().
-            return diagnostic;
+            var useSiteInfo = _underlyingType.GetUseSiteInfo();
+            Debug.Assert(useSiteInfo.DiagnosticInfo is null); // If assert fails, add unit test for use site diagnostic.
+            return useSiteInfo;
         }
 
         public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
@@ -164,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => _underlyingType;
 
         internal sealed override bool IsRecord => false;
+        internal sealed override bool IsRecordStruct => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 
         internal override bool Equals(TypeSymbol? other, TypeCompareKind comparison)

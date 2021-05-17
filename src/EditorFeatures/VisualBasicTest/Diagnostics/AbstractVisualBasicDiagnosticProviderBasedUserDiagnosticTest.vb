@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
         Private ReadOnly _compilationOptions As VisualBasicCompilationOptions =
             New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True).WithParseOptions(New VisualBasicParseOptions(LanguageVersion.Latest))
 
-        Public Sub New(Optional logger As ITestOutputHelper = Nothing)
+        Protected Sub New(Optional logger As ITestOutputHelper = Nothing)
             MyBase.New(logger)
         End Sub
 

@@ -7,11 +7,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -104,42 +104,69 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             private async Task UpdateReferencesAsync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references. If it remote workspace, do this in parallel.
-                using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+                using var pendingTasks = new TemporaryArray<Task>();
 
-                foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>())
-                    tasks.Add(Task.Run(() => this.UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken));
-
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-            }
-
-            private async Task UpdateReferenceAsync(
-                Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
-            {
-                var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(reference);
-                if (metadataId == null)
-                    return;
-
-                var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution, reference, cancellationToken);
-                if (!_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo) ||
-                    metadataInfo.SymbolTreeInfo.Checksum != checksum)
+                foreach (var reference in project.MetadataReferences)
                 {
-                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, reference, checksum, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    if (reference is not PortableExecutableReference portableExecutableReference)
+                        continue;
 
-                    Contract.ThrowIfNull(info);
-                    Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        // Break out of this loop to make sure other pending operations process cancellation before
+                        // returning.
+                        break;
+                    }
 
-                    // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
-                    // We still want to cache that result so that don't try to continuously produce
-                    // this info over and over again.
-                    metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
-                    _metadataIdToInfo[metadataId] = metadataInfo;
+                    var updateTask = UpdateReferenceAsync(_metadataIdToInfo, project, portableExecutableReference, cancellationToken);
+                    if (updateTask.Status != TaskStatus.RanToCompletion)
+                        pendingTasks.Add(updateTask);
                 }
 
-                // Keep track that this dll is referenced by this project.
-                lock (metadataInfo.ReferencingProjects)
+                if (pendingTasks.Count > 0)
                 {
-                    metadataInfo.ReferencingProjects.Add(project.Id);
+                    // If any update operations did not complete synchronously (including any cancelled operations),
+                    // wait for them to complete now.
+                    await Task.WhenAll(pendingTasks.ToImmutableAndClear()).ConfigureAwait(false);
+                }
+
+                // ⚠ This local function must be 'async' to ensure exceptions are captured in the resulting task and
+                // not thrown directly to the caller.
+                static async Task UpdateReferenceAsync(
+                    ConcurrentDictionary<MetadataId, MetadataInfo> metadataIdToInfo,
+                    Project project,
+                    PortableExecutableReference reference,
+                    CancellationToken cancellationToken)
+                {
+                    var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(reference);
+                    if (metadataId == null)
+                        return;
+
+                    // 🐉 PERF: GetMetadataChecksum indirectly uses a ConditionalWeakTable. This call is intentionally
+                    // placed before the first 'await' of this asynchronous method to ensure it executes in the
+                    // synchronous portion of the caller. https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1270250
+                    var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution, reference, cancellationToken);
+                    if (!metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo) ||
+                        metadataInfo.SymbolTreeInfo.Checksum != checksum)
+                    {
+                        var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                            project.Solution, reference, checksum, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                        Contract.ThrowIfNull(info);
+                        Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
+
+                        // Note, getting the info may fail (for example, bogus metadata).  That's ok.  
+                        // We still want to cache that result so that don't try to continuously produce
+                        // this info over and over again.
+                        metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
+                        metadataIdToInfo[metadataId] = metadataInfo;
+                    }
+
+                    // Keep track that this dll is referenced by this project.
+                    lock (metadataInfo.ReferencingProjects)
+                    {
+                        metadataInfo.ReferencingProjects.Add(project.Id);
+                    }
                 }
             }
 

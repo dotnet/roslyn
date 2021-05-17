@@ -435,5 +435,49 @@ End Module
 "
             Await VerifyVB.VerifyCodeFixAsync(source, source)
         End Function
+
+        <WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        Public Async Function TestAbstractMethod() As Task
+            Await VerifyVB.VerifyCodeFixAsync("
+public mustinherit class TestClass
+    mustoverride sub [|Test|]()
+end class
+",
+"
+public mustinherit class TestClass
+    Protected mustoverride sub Test()
+end class
+")
+        End Function
+
+        <WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
+        Public Async Function TestOverriddenMethod() As Task
+            Await VerifyVB.VerifyCodeFixAsync("
+public mustinherit class TestClass
+    public mustoverride sub Test()
+end class
+
+public class Derived
+    inherits TestClass
+
+    overrides sub [|Test|]()
+    end sub
+end class
+",
+"
+public mustinherit class TestClass
+    public mustoverride sub Test()
+end class
+
+public class Derived
+    inherits TestClass
+
+    Public overrides sub Test()
+    end sub
+end class
+")
+        End Function
     End Class
 End Namespace

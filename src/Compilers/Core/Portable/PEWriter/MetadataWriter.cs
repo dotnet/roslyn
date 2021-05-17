@@ -425,6 +425,8 @@ namespace Microsoft.Cci
 
         // progress:
         private bool _tableIndicesAreComplete;
+        private bool _usingNonSourceDocumentNameEnumerator;
+        private ImmutableArray<string>.Enumerator _nonSourceDocumentNameEnumerator;
 
         private EntityHandle[] _pseudoSymbolTokenToTokenMap;
         private object[] _pseudoSymbolTokenToReferenceMap;
@@ -1787,6 +1789,23 @@ namespace Microsoft.Cci
 
             if (_debugMetadataOpt != null)
             {
+                // Ensure document table lists files in command line order
+                // This is key for us to be able to accurately rebuild a binary from a PDB.
+                var documentsBuilder = Module.DebugDocumentsBuilder;
+                foreach (var tree in Module.CommonCompilation.SyntaxTrees)
+                {
+                    if (documentsBuilder.TryGetDebugDocument(tree.FilePath, basePath: null) is { } doc && !_documentIndex.ContainsKey(doc))
+                    {
+                        AddDocument(doc, _documentIndex);
+                    }
+                }
+
+                if (Context.RebuildData is { } rebuildData)
+                {
+                    _usingNonSourceDocumentNameEnumerator = true;
+                    _nonSourceDocumentNameEnumerator = rebuildData.NonSourceFileDocumentNames.GetEnumerator();
+                }
+
                 DefineModuleImportScope();
 
                 if (module.SourceLinkStreamOpt != null)

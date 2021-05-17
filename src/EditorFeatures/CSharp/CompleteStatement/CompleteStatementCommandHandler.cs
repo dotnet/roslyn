@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
     /// When user types <c>;</c> in a statement, semicolon is added and caret is placed after the semicolon
     /// </summary>
     [Export(typeof(ICommandHandler))]
+    [Export]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(CompleteStatementCommandHandler))]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
@@ -83,6 +85,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             var caretOpt = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretOpt.HasValue)
+            {
+                return false;
+            }
+
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
             {
                 return false;
             }
@@ -140,8 +147,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             //    `obj.ToString$()` where `token` references `(` but the caret isn't actually inside the argument list.
             //    `obj.ToString()$` or `obj.method()$ .method()` where `token` references `)` but the caret isn't inside the argument list.
             //    `defa$$ult(object)` where `token` references `default` but the caret isn't inside the parentheses.
-            var (openingDelimeter, closingDelimiter) = GetDelimiters(startingNode);
-            if (!openingDelimeter.IsKind(SyntaxKind.None) && openingDelimeter.Span.Start >= caretPosition
+            var delimiters = startingNode.GetParentheses();
+            if (delimiters == default)
+            {
+                delimiters = startingNode.GetBrackets();
+            }
+
+            var (openingDelimiter, closingDelimiter) = delimiters;
+            if (!openingDelimiter.IsKind(SyntaxKind.None) && openingDelimiter.Span.Start >= caretPosition
                 || !closingDelimiter.IsKind(SyntaxKind.None) && closingDelimiter.Span.End <= caretPosition)
             {
                 startingNode = startingNode.Parent;
@@ -177,7 +190,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 SyntaxKind.ParameterList,
                 SyntaxKind.DefaultExpression,
                 SyntaxKind.CheckedExpression,
-                SyntaxKind.UncheckedExpression))
+                SyntaxKind.UncheckedExpression,
+                SyntaxKind.TypeOfExpression,
+                SyntaxKind.TupleExpression))
             {
                 // make sure the closing delimiter exists
                 if (RequiredDelimiterIsMissing(currentNode))
@@ -211,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
             else if (syntaxFacts.IsStatement(currentNode)
-                || currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause))
+                || CanHaveSemicolon(currentNode))
             {
                 return MoveCaretToFinalPositionInStatement(speculative, currentNode, args, originalCaret, caret, isInsideDelimiters);
             }
@@ -222,6 +237,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return MoveCaretToSemicolonPosition(speculative, args, document, root, originalCaret, caret, syntaxFacts, currentNode,
                     isInsideDelimiters, cancellationToken);
             }
+        }
+
+        private static bool CanHaveSemicolon(SyntaxNode currentNode)
+        {
+            if (currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause))
+            {
+                return true;
+            }
+
+            if (currentNode is RecordDeclarationSyntax { OpenBraceToken: { IsMissing: true } })
+            {
+                return true;
+            }
+
+            if (currentNode is MethodDeclarationSyntax method)
+            {
+                if (method.Modifiers.Any(SyntaxKind.AbstractKeyword) || method.Modifiers.Any(SyntaxKind.ExternKeyword) ||
+                    method.IsParentKind(SyntaxKind.InterfaceDeclaration))
+                {
+                    return true;
+                }
+
+                if (method.Modifiers.Any(SyntaxKind.PartialKeyword) && method.Body is null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool IsInConditionOfDoStatement(SyntaxNode currentNode, SnapshotPoint caret)
@@ -287,6 +331,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.ArrowExpressionClause:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     // These statement types end in a semicolon. 
                     // if the original caret was inside any delimiters, `caret` will be after the outermost delimiter
                     targetPosition = caret;
@@ -347,87 +394,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 && caret.Position < currentNode.Span.End
                 && caret.Position > currentNode.SpanStart;
 
-        private static bool SemicolonIsMissing(SyntaxNode currentNode)
-        {
-            switch (currentNode.Kind())
-            {
-                case SyntaxKind.LocalDeclarationStatement:
-                    return ((LocalDeclarationStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ReturnStatement:
-                    return ((ReturnStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.VariableDeclaration:
-                    return SemicolonIsMissing(currentNode.Parent);
-                case SyntaxKind.ThrowStatement:
-                    return ((ThrowStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.DoStatement:
-                    return ((DoStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.FieldDeclaration:
-                    return ((FieldDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ForStatement:
-                    return ((ForStatementSyntax)currentNode).FirstSemicolonToken.IsMissing;
-                case SyntaxKind.ExpressionStatement:
-                    return ((ExpressionStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.EmptyStatement:
-                    return ((EmptyStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.GotoStatement:
-                    return ((GotoStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.BreakStatement:
-                    return ((BreakStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ContinueStatement:
-                    return ((ContinueStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.YieldReturnStatement:
-                case SyntaxKind.YieldBreakStatement:
-                    return ((YieldStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.LocalFunctionStatement:
-                    return ((LocalFunctionStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.NamespaceDeclaration:
-                    return ((NamespaceDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.UsingDirective:
-                    return ((UsingDirectiveSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ExternAliasDirective:
-                    return ((ExternAliasDirectiveSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.InterfaceDeclaration:
-                    return ((InterfaceDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.EnumDeclaration:
-                    return ((EnumDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.DelegateDeclaration:
-                    return ((DelegateDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.EventFieldDeclaration:
-                    return ((EventFieldDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.MethodDeclaration:
-                    return ((MethodDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.OperatorDeclaration:
-                    return ((OperatorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    return ((ConversionOperatorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ConstructorDeclaration:
-                    return ((ConstructorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.BaseConstructorInitializer:
-                case SyntaxKind.ThisConstructorInitializer:
-                    return ((ConstructorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.DestructorDeclaration:
-                    return ((DestructorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.AddAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                default:
-                    // At this point, the node should be empty or its children should not end with a semicolon.
-                    Debug.Assert(!currentNode.ChildNodesAndTokens().Any()
-                        || !currentNode.ChildNodesAndTokens().Last().IsKind(SyntaxKind.SemicolonToken));
-                    return false;
-            }
-        }
-
         /// <summary>
         /// Determines if a statement ends with a closing delimiter, and that closing delimiter exists.
         /// </summary>
@@ -478,51 +444,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         /// </returns>
         private static bool RequiredDelimiterIsMissing(SyntaxNode currentNode)
         {
-            return GetDelimiters(currentNode).closingDelimiter.IsMissing;
-        }
-
-        private static (SyntaxToken openingDelimeter, SyntaxToken closingDelimiter) GetDelimiters(SyntaxNode currentNode)
-        {
-            switch (currentNode.Kind())
-            {
-                case SyntaxKind.ArgumentList:
-                    var argumentList = (ArgumentListSyntax)currentNode;
-                    return (argumentList.OpenParenToken, argumentList.CloseParenToken);
-
-                case SyntaxKind.ParenthesizedExpression:
-                    var parenthesizedExpression = (ParenthesizedExpressionSyntax)currentNode;
-                    return (parenthesizedExpression.OpenParenToken, parenthesizedExpression.CloseParenToken);
-
-                case SyntaxKind.BracketedArgumentList:
-                    var bracketedArgumentList = (BracketedArgumentListSyntax)currentNode;
-                    return (bracketedArgumentList.OpenBracketToken, bracketedArgumentList.CloseBracketToken);
-
-                case SyntaxKind.ObjectInitializerExpression:
-                case SyntaxKind.WithInitializerExpression:
-                    var initializerExpressionSyntax = (InitializerExpressionSyntax)currentNode;
-                    return (initializerExpressionSyntax.OpenBraceToken, initializerExpressionSyntax.CloseBraceToken);
-
-                case SyntaxKind.ArrayRankSpecifier:
-                    var arrayRankSpecifierSyntax = (ArrayRankSpecifierSyntax)currentNode;
-                    return (arrayRankSpecifierSyntax.OpenBracketToken, arrayRankSpecifierSyntax.CloseBracketToken);
-
-                case SyntaxKind.ParameterList:
-                    var parameterList = (ParameterListSyntax)currentNode;
-                    return (parameterList.OpenParenToken, parameterList.CloseParenToken);
-
-                case SyntaxKind.DefaultExpression:
-                    var defaultExpressionSyntax = (DefaultExpressionSyntax)currentNode;
-                    return (defaultExpressionSyntax.OpenParenToken, defaultExpressionSyntax.CloseParenToken);
-
-                case SyntaxKind.CheckedExpression:
-                case SyntaxKind.UncheckedExpression:
-                    var checkedExpressionSyntax = (CheckedExpressionSyntax)currentNode;
-                    return (checkedExpressionSyntax.OpenParenToken, checkedExpressionSyntax.CloseParenToken);
-
-                default:
-                    // Type of node does not have delimiters used by this feature
-                    return default;
-            }
+            return currentNode.GetBrackets().closeBracket.IsMissing ||
+                currentNode.GetParentheses().closeParen.IsMissing;
         }
     }
 }

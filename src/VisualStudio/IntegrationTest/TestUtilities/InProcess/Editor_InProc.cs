@@ -159,10 +159,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return GetDTE().ActiveDocument.Name;
         }
 
+        public string GetActiveWindowName()
+        {
+            return GetDTE().ActiveWindow.Caption;
+        }
+
         public void WaitForActiveView(string expectedView)
         {
             using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
             Retry(_ => GetActiveBufferName(), (actual, _) => actual == expectedView, TimeSpan.FromMilliseconds(100), cts.Token);
+        }
+
+        public void WaitForActiveWindow(string expectedWindow)
+        {
+            using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+            Retry(_ => GetActiveWindowName(), (actual, _) => actual == expectedWindow, TimeSpan.FromMilliseconds(100), cts.Token);
         }
 
         public void Activate()

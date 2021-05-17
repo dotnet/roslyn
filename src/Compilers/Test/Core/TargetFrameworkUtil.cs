@@ -22,8 +22,7 @@ namespace Roslyn.Test.Utilities
         Empty,
 
         NetStandard20,
-        NetCoreApp30,
-        NetStandardLatest = NetCoreApp30,
+        NetCoreApp,
         WinRT,
 
         /// <summary>
@@ -95,12 +94,12 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> Mscorlib461References => ImmutableArray.Create<MetadataReference>(Net461.mscorlib);
         public static ImmutableArray<MetadataReference> Mscorlib461ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlib, Net461.System, Net461.SystemCore, NetFx.ValueTuple.tuplelib, Net461.SystemRuntime);
         public static ImmutableArray<MetadataReference> NetStandard20References => ImmutableArray.Create<MetadataReference>(NetStandard20.netstandard, NetStandard20.mscorlib, NetStandard20.SystemRuntime, NetStandard20.SystemCore, NetStandard20.SystemDynamicRuntime, NetStandard20.SystemLinq, NetStandard20.SystemLinqExpressions);
-        public static ImmutableArray<MetadataReference> NetCoreApp30References => ImmutableArray.Create<MetadataReference>(NetCoreApp31.netstandard, NetCoreApp31.mscorlib, NetCoreApp31.SystemRuntime, NetCoreApp31.SystemCore,
-                                                                                                                           NetCoreApp31.SystemConsole, NetCoreApp31.SystemLinq, NetCoreApp31.SystemLinqExpressions, NetCoreApp31.SystemThreadingTasks,
-                                                                                                                           NetCoreApp31.SystemCollections, NetCoreApp31.SystemRuntimeInteropServicesWindowsRuntime);
+        public static ImmutableArray<MetadataReference> NetCoreAppReferences => ImmutableArray.Create<MetadataReference>(NetCoreApp.netstandard, NetCoreApp.mscorlib, NetCoreApp.SystemRuntime, NetCoreApp.SystemCore,
+                                                                                                                           NetCoreApp.SystemConsole, NetCoreApp.SystemLinq, NetCoreApp.SystemLinqExpressions, NetCoreApp.SystemThreadingTasks,
+                                                                                                                           NetCoreApp.SystemCollections);
         public static ImmutableArray<MetadataReference> WinRTReferences => ImmutableArray.Create(TestBase.WinRtRefs);
         public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : Mscorlib46ExtendedReferences;
-        public static ImmutableArray<MetadataReference> StandardLatestReferences => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp30References : Mscorlib46ExtendedReferences;
+        public static ImmutableArray<MetadataReference> StandardLatestReferences => RuntimeUtilities.IsCoreClrRuntime ? NetCoreAppReferences : Mscorlib46ExtendedReferences;
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
         public static ImmutableArray<MetadataReference> StandardAndVBRuntimeReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References.Add(MicrosoftVisualBasic.Netstandard11) : Mscorlib46ExtendedReferences.Add(Net461.MicrosoftVisualBasic);
         public static ImmutableArray<MetadataReference> StandardCompatReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : Mscorlib40References;
@@ -124,7 +123,7 @@ namespace Roslyn.Test.Utilities
             TargetFramework.Mscorlib461 => Mscorlib46References,
             TargetFramework.Mscorlib461Extended => Mscorlib461ExtendedReferences,
             TargetFramework.NetStandard20 => NetStandard20References,
-            TargetFramework.NetCoreApp30 => NetCoreApp30References,
+            TargetFramework.NetCoreApp => NetCoreAppReferences,
             TargetFramework.WinRT => WinRTReferences,
             TargetFramework.Standard => StandardReferences,
             TargetFramework.StandardLatest => StandardLatestReferences,

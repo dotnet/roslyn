@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        private BoundExpression BindInterpolatedString(InterpolatedStringExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindInterpolatedString(InterpolatedStringExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
             var stringType = GetSpecialType(SpecialType.System_String, diagnostics, node);
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(isResultConstant == (resultConstant != null));
-            return new BoundInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
+            return new BoundUnconvertedInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
         }
     }
 }

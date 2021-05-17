@@ -1,10 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
-#nullable disable
-
-# nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -23,7 +19,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 {
     internal class ProjectBuildManager
     {
-        private static readonly XmlReaderSettings s_xmlReaderSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlReaderSettings = new()
         {
             DtdProcessing = DtdProcessing.Prohibit,
             XmlResolver = null
@@ -65,13 +61,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         private readonly ILogger? _msbuildLogger;
         private MSB.Evaluation.ProjectCollection? _batchBuildProjectCollection;
         private MSBuildDiagnosticLogger? _batchBuildLogger;
-        private bool _batchBuildStarted;
 
         ~ProjectBuildManager()
         {
-            if (_batchBuildStarted)
+            if (BatchBuildStarted)
             {
-                new InvalidOperationException("ProjectBuilderManager.Stop() not called.");
+                throw new InvalidOperationException("ProjectBuilderManager.Stop() not called.");
             }
         }
 
@@ -99,20 +94,18 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                     return (loadedProjects.First(), log);
                 }
 
-                using (var stream = FileUtilities.OpenAsyncRead(path))
-                using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false))
-                using (var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings))
-                {
-                    var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, projectCollection);
+                using var stream = FileUtilities.OpenAsyncRead(path);
+                using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+                using var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings);
+                var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, projectCollection);
 
-                    // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
-                    // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
-                    xml.FullPath = path;
+                // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
+                // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
+                xml.FullPath = path;
 
-                    var project = new MSB.Evaluation.Project(xml, globalProperties: null, toolsVersion: null, projectCollection);
+                var project = new MSB.Evaluation.Project(xml, globalProperties: null, toolsVersion: null, projectCollection);
 
-                    return (project, log);
-                }
+                return (project, log);
             }
             catch (Exception e)
             {
@@ -124,7 +117,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         public Task<(MSB.Evaluation.Project? project, DiagnosticLog log)> LoadProjectAsync(
             string path, CancellationToken cancellationToken)
         {
-            if (_batchBuildStarted)
+            if (BatchBuildStarted)
             {
                 return LoadProjectAsync(path, _batchBuildProjectCollection, cancellationToken);
             }
@@ -146,7 +139,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         public async Task<string?> TryGetOutputFilePathAsync(
             string path, CancellationToken cancellationToken)
         {
-            Debug.Assert(_batchBuildStarted);
+            Debug.Assert(BatchBuildStarted);
 
             // This tries to get the project output path and retrieving the evaluated $(TargetPath) property.
 
@@ -154,16 +147,16 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             return project?.GetPropertyValue(PropertyNames.TargetPath);
         }
 
-        public bool BatchBuildStarted => _batchBuildStarted;
+        public bool BatchBuildStarted { get; private set; }
 
         public void StartBatchBuild(IDictionary<string, string>? globalProperties = null)
         {
-            if (_batchBuildStarted)
+            if (BatchBuildStarted)
             {
                 throw new InvalidOperationException();
             }
 
-            globalProperties = globalProperties ?? ImmutableDictionary<string, string>.Empty;
+            globalProperties ??= ImmutableDictionary<string, string>.Empty;
             var allProperties = s_defaultGlobalProperties.RemoveRange(globalProperties.Keys).AddRange(globalProperties);
             _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
             _batchBuildLogger = new MSBuildDiagnosticLogger()
@@ -180,12 +173,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
 
-            _batchBuildStarted = true;
+            BatchBuildStarted = true;
         }
 
         public void EndBatchBuild()
         {
-            if (!_batchBuildStarted)
+            if (!BatchBuildStarted)
             {
                 throw new InvalidOperationException();
             }
@@ -196,13 +189,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             _batchBuildProjectCollection?.UnloadAllProjects();
             _batchBuildProjectCollection = null;
             _batchBuildLogger = null;
-            _batchBuildStarted = false;
+            BatchBuildStarted = false;
         }
 
         public Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
             MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
         {
-            Debug.Assert(_batchBuildStarted);
+            Debug.Assert(BatchBuildStarted);
 
             var targets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
 
@@ -244,7 +237,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         }
 
         // this lock is static because we are using the default build manager, and there is only one per process
-        private static readonly SemaphoreSlim s_buildManagerLock = new SemaphoreSlim(initialCount: 1);
+        private static readonly SemaphoreSlim s_buildManagerLock = new(initialCount: 1);
 
         private static async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {

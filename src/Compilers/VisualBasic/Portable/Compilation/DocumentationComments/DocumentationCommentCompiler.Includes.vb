@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private ReadOnly _tree As SyntaxTree
                 Private ReadOnly _onlyDiagnosticsFromTree As SyntaxTree
                 Private ReadOnly _filterSpanWithinTree As TextSpan?
-                Private ReadOnly _diagnostics As DiagnosticBag
+                Private ReadOnly _diagnostics As BindingDiagnosticBag
                 Private ReadOnly _cancellationToken As CancellationToken
 
                 Private _binders As Dictionary(Of DocumentationCommentBinder.BinderType, Binder) = Nothing
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 includedFileCache As DocumentationCommentIncludeCache,
                                 onlyDiagnosticsFromTree As SyntaxTree,
                                 filterSpanWithinTree As TextSpan?,
-                                diagnostics As DiagnosticBag,
+                                diagnostics As BindingDiagnosticBag,
                                 cancellationToken As CancellationToken)
 
                     Me._symbol = symbol
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        onlyDiagnosticsFromTree As SyntaxTree,
                                                        filterSpanWithinTree As TextSpan?,
                                                        ByRef includedFileCache As DocumentationCommentIncludeCache,
-                                                       diagnostics As DiagnosticBag,
+                                                       diagnostics As BindingDiagnosticBag,
                                                        cancellationToken As CancellationToken) As String
 
                     ' If there are no include elements, then there's nothing to expand.
@@ -620,18 +620,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case SyntaxKind.XmlCrefAttribute
                             Dim binder As binder = Me.GetOrCreateBinder(DocumentationCommentBinder.BinderType.Cref)
                             Dim reference As CrefReferenceSyntax = DirectCast(attr, XmlCrefAttributeSyntax).Reference
-                            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                            Dim diagnostics = DiagnosticBag.GetInstance
-                            Dim bindResult As ImmutableArray(Of Symbol) = binder.BindInsideCrefAttributeValue(reference, preserveAliases:=False, diagnosticBag:=diagnostics, useSiteDiagnostics:=useSiteDiagnostics)
+                            Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(_diagnostics)
+                            Dim diagnostics = BindingDiagnosticBag.GetInstance(_diagnostics)
+                            Dim bindResult As ImmutableArray(Of Symbol) = binder.BindInsideCrefAttributeValue(reference, preserveAliases:=False,
+                                                                                                              diagnosticBag:=diagnostics, useSiteInfo:=useSiteInfo)
+                            _diagnostics.AddDependencies(diagnostics)
+                            _diagnostics.AddDependencies(useSiteInfo)
 
-                            Dim errorLocations = diagnostics.ToReadOnlyAndFree().SelectAsArray(Function(x) x.Location).WhereAsArray(Function(x) x IsNot Nothing)
-                            If Me.ProduceXmlDiagnostics AndAlso Not useSiteDiagnostics.IsNullOrEmpty Then
-                                ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), Nothing, useSiteDiagnostics, errorLocations, Nothing)
+                            Dim errorLocations = diagnostics.DiagnosticBag.ToReadOnly().SelectAsArray(Function(x) x.Location).WhereAsArray(Function(x) x IsNot Nothing)
+                            diagnostics.Free()
+
+                            If Me.ProduceXmlDiagnostics AndAlso Not useSiteInfo.Diagnostics.IsNullOrEmpty Then
+                                ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), Nothing, useSiteInfo, errorLocations, Nothing)
                             End If
 
                             If bindResult.IsDefaultOrEmpty Then
                                 If Me.ProduceXmlDiagnostics Then
-                                    ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), reference.ToFullString().TrimEnd(), useSiteDiagnostics, errorLocations, ERRID.WRN_XMLDocCrefAttributeNotFound1)
+                                    ProcessErrorLocations(XmlLocation.Create(attribute, currentXmlFilePath), reference.ToFullString().TrimEnd(), useSiteInfo, errorLocations, ERRID.WRN_XMLDocCrefAttributeNotFound1)
                                 End If
                                 attribute.Value = "?:" + attribute.Value
 
@@ -643,11 +648,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' those out, from the rest we take the symbol with 'smallest' location
                                 Dim symbolCommentId As String = Nothing
                                 Dim smallestSymbol As Symbol = Nothing
-                                Dim errid As ERRID = ERRID.WRN_XMLDocCrefAttributeNotFound1
+                                Dim errid As ERRID = errid.WRN_XMLDocCrefAttributeNotFound1
 
                                 For Each symbol In bindResult
                                     If symbol.Kind = SymbolKind.TypeParameter Then
-                                        errid = ERRID.WRN_XMLDocCrefToTypeParameter
+                                        errid = errid.WRN_XMLDocCrefToTypeParameter
                                         Continue For
                                     End If
 
@@ -676,6 +681,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Else
                                     ' Replace value with id 
                                     attribute.Value = symbolCommentId
+                                    _diagnostics.AddAssembliesUsedByCrefTarget(smallestSymbol.OriginalDefinition)
                                 End If
 
                             End If
@@ -704,10 +710,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Select
                 End Sub
 
-                Private Sub ProcessErrorLocations(currentXmlLocation As XmlLocation, referenceName As String, useSiteDiagnostics As HashSet(Of DiagnosticInfo), errorLocations As ImmutableArray(Of Location), errid As Nullable(Of ERRID))
+                Private Sub ProcessErrorLocations(currentXmlLocation As XmlLocation, referenceName As String, useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol), errorLocations As ImmutableArray(Of Location), errid As Nullable(Of ERRID))
                     If errorLocations.Length = 0 Then
-                        If useSiteDiagnostics IsNot Nothing Then
-                            Me._diagnostics.Add(currentXmlLocation, useSiteDiagnostics)
+                        If useSiteInfo.Diagnostics IsNot Nothing Then
+                            Me._diagnostics.AddDiagnostics(currentXmlLocation, useSiteInfo)
                         ElseIf errid.HasValue Then
                             Me._diagnostics.Add(errid.Value, currentXmlLocation, referenceName)
                         End If
@@ -717,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
                     Else
                         For Each location In errorLocations
-                            Me._diagnostics.Add(location, useSiteDiagnostics)
+                            Me._diagnostics.AddDiagnostics(location, useSiteInfo)
                         Next
                     End If
                 End Sub
@@ -752,13 +758,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case SyntaxKind.XmlNameAttribute
                             Dim binder As binder = Me.GetOrCreateBinder(type)
                             Dim identifier As IdentifierNameSyntax = DirectCast(attr, XmlNameAttributeSyntax).Reference
-                            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                            Dim bindResult As ImmutableArray(Of Symbol) = binder.BindXmlNameAttributeValue(identifier, useSiteDiagnostics)
+                            Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(Me._diagnostics)
+                            Dim bindResult As ImmutableArray(Of Symbol) = binder.BindXmlNameAttributeValue(identifier, useSiteInfo)
 
-                            If Me.ProduceDiagnostics AndAlso Not useSiteDiagnostics.IsNullOrEmpty Then
+                            Me._diagnostics.AddDependencies(useSiteInfo)
+
+                            If Me.ProduceDiagnostics AndAlso Not useSiteInfo.Diagnostics.IsNullOrEmpty Then
                                 Dim loc As Location = XmlLocation.Create(attribute, currentXmlFilePath)
                                 If ShouldProcessLocation(loc) Then
-                                    Me._diagnostics.Add(loc, useSiteDiagnostics)
+                                    Me._diagnostics.AddDiagnostics(loc, useSiteInfo)
                                 End If
                             End If
 

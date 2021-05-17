@@ -30,7 +30,6 @@ using Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
@@ -159,7 +158,7 @@ End Class";
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First();
 
-                var runner = CreateAnalyzerRunner(workspace);
+                var runner = CreateAnalyzerRunner();
 
                 var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
@@ -201,7 +200,7 @@ End Class";
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);
 
-                var runner = CreateAnalyzerRunner(workspace);
+                var runner = CreateAnalyzerRunner();
                 var analyzers = analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray();
 
                 var compilationWithAnalyzers = (await project.GetCompilationAsync())
@@ -218,16 +217,12 @@ End Class";
             }
         }
 
-        private static InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner(Workspace workspace)
-        {
-            return new InProcOrRemoteHostAnalyzerRunner(
-                new DiagnosticAnalyzerInfoCache(),
-                workspace);
-        }
+        private static InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner()
+            => new(new DiagnosticAnalyzerInfoCache());
 
         private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default)
         {
-            var executor = CreateAnalyzerRunner(workspace);
+            var executor = CreateAnalyzerRunner();
 
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);

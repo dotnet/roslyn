@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Utilities.Internal;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
@@ -284,7 +283,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                             return;
                         }
 
-                        var changesAfterReturn = _service.GetTextChangeAfterReturnAsync(context.Value, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        var documentOptions = context.Value.Document.GetOptionsAsync().WaitAndGetResult(CancellationToken.None);
+                        var changesAfterReturn = _service.GetTextChangeAfterReturnAsync(context.Value, documentOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                         if (changesAfterReturn != null)
                         {
                             using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
