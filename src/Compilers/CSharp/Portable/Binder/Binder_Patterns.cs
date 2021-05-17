@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 sliceType = inputType;
             }
-            else if (TryFindRangeIndexerPatternForListPattern(node, inputType, out info, diagnostics))
+            else if (TryFindIndexOrRangeIndexerPattern(node, inputType, argIsIndex: false, out info, diagnostics))
             {
                 sliceType = info.Symbol.GetTypeOrReturnType().Type;
             }
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause) || node.IsKind(SyntaxKind.LengthPatternClause));
 
-            using var _ = LookupResult.GetInstance(out var lookupResult);
+            var lookupResult = LookupResult.GetInstance();
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             if (!TryLookupLengthOrCount(inputType, lookupResult, out lengthProperty, ref useSiteInfo))
             {
@@ -285,6 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 hasErrors = true;
             }
+            lookupResult.Free();
         }
 
         private BoundListPatternClause BindListPatternClause(
@@ -308,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 elementType = ((ArrayTypeSymbol)inputType).ElementType;
             }
-            else if (TryFindIndexIndexerPatternForListPattern(node, inputType, out info, diagnostics))
+            else if (TryFindIndexOrRangeIndexerPattern(node, inputType, argIsIndex: true, out info, diagnostics))
             {
                 elementType = info.Symbol.GetTypeOrReturnType().Type;
             }
@@ -325,39 +326,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundListPatternClause(node, elementType, subpatterns, sawSlice, info, hasErrors);
         }
 
-        private bool TryFindIndexIndexerPatternForListPattern(
-            SyntaxNode syntax, TypeSymbol receiverType,
-            [NotNullWhen(true)] out IndexerArgumentInfo? info,
-            BindingDiagnosticBag diagnostics)
-        {
-            using var _ = LookupResult.GetInstance(out var lookupResult);
-            return PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, Compilation.GetWellKnownType(WellKnownType.System_Index), diagnostics) ||
-                   PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, Compilation.GetSpecialType(SpecialType.System_Int32), diagnostics);
-        }
-
-        private bool TryFindRangeIndexerPatternForListPattern(
-            SyntaxNode syntax, TypeSymbol receiverType,
+        private bool TryFindIndexOrRangeIndexerPattern(
+            SyntaxNode syntax, TypeSymbol receiverType, bool argIsIndex,
             [NotNullWhen(true)] out IndexerArgumentInfo? info,
             BindingDiagnosticBag diagnostics)
         {
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            using var _ = LookupResult.GetInstance(out var lookupResult);
-            if (PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, Compilation.GetWellKnownType(WellKnownType.System_Range), diagnostics))
-                return true;
-            if (!TryFindImplicitRangeIndexerPattern(syntax, receiverOpt: null, receiverType, out MethodSymbol? sliceMethod, BindingDiagnosticBag.Discarded, lookupResult, ref useSiteInfo))
-                return false;
-            info = new IndexerArgumentInfo(sliceMethod);
-            return true;
+            var lookupResult = LookupResult.GetInstance();
+            bool found = false;
+            TypeSymbol? argType = Compilation.GetWellKnownType(argIsIndex ? WellKnownType.System_Index : WellKnownType.System_Range);
+            if (argType is null)
+            {
+                info = null;
+                found = false;
+            }
+            else if (PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, argType, diagnostics))
+            {
+                found = true;
+            }
+            else if (TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out Symbol? patternSymbol, diagnostics, ref useSiteInfo))
+            {
+                info = new IndexerArgumentInfo(patternSymbol);
+                found = true;
+            }
+            lookupResult.Free();
+            return found;
         }
 
         private bool PerformPatternIndexerLookup(
             SyntaxNode syntax, TypeSymbol receiverType, LookupResult lookupResult,
-            [NotNullWhen(true)] out IndexerArgumentInfo? info, TypeSymbol? indexerArgumentType, BindingDiagnosticBag diagnostics)
+            [NotNullWhen(true)] out IndexerArgumentInfo? info, TypeSymbol indexerArgumentType, BindingDiagnosticBag diagnostics)
         {
             info = null;
-
-            if (indexerArgumentType is null)
-                return false;
 
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             LookupMembersInType(
@@ -381,7 +381,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundExpression indexerArgumentExpr = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, indexerArgumentType);
-                var analyzedArguments = AnalyzedArguments.GetInstance(ImmutableArray.Create(indexerArgumentExpr));
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                analyzedArguments.Arguments.Add(indexerArgumentExpr);
                 BoundExpression receiver = new BoundImplicitReceiver(syntax, receiverType);
                 var overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
                 this.OverloadResolution.PropertyOverloadResolution(indexerGroup, receiver, analyzedArguments, overloadResolutionResult, allowRefOmittedArguments: false, ref useSiteInfo);
@@ -389,8 +390,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                     PropertySymbol indexer = resolutionResult.Member;
-                    if (!indexer.IsStatic && IsAccessible(indexer, ref useSiteInfo))
+                    if (IsAccessible(indexer, ref useSiteInfo))
                     {
+                        Debug.Assert(!indexer.IsStatic);
                         ReportDiagnosticsIfObsolete(diagnostics, indexer, syntax, hasBaseReceiver: false);
                         CoerceArguments(resolutionResult, analyzedArguments.Arguments, diagnostics);
                         bool isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;

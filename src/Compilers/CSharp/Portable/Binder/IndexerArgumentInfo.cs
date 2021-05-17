@@ -27,5 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArgumentsOpt = argumentsOpt;
             Expanded = expanded;
         }
+
+        public bool IsImplicit => ArgumentsOpt.IsDefault;
     }
 }

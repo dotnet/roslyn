@@ -263,10 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // implicit or explicit Index indexer access via applicable indexer member
 
-                            BoundExpression indexerArg = isImplicit(indexer)
-                                ? makeImplicitIndexArgument(e.Index, e.LengthTemp)
-                                : makeExplicitIndexArgument(e.Index, e.Index < 0);
-                            BoundExpression access = makeIndexerCall(e.Syntax, info, indexer, indexerArg);
+                            BoundExpression access = info.IsImplicit
+                                ? _factory.Indexer(input, indexer, makeImplicitIndexArgument(e.Index, e.LengthTemp))
+                                : makeIndexerCall(e.Syntax, info, indexer, makeExplicitIndexArgument(e.Index, e.Index < 0));
 
                             var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);

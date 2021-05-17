@@ -233,16 +233,7 @@ public class X
         [InlineData("[Index i, int ignored = 0]")]
         [InlineData("[Index i, params int[] ignored]")]
         [InlineData("[params Index[] i]")]
-        // int
         [InlineData("[int i]")]
-        [InlineData("[int i, int ignored = 0]")]
-        [InlineData("[int i, params int[] ignored]")]
-        [InlineData("[params int[] i]")]
-        // long
-        [InlineData("[long i]")]
-        [InlineData("[long i, int ignored = 0]")]
-        [InlineData("[long i, params int[] ignored]")]
-        [InlineData("[params long[] i]")]
         public void ListPattern_IndexIndexerPattern(string indexer)
         {
             var source = @"
@@ -338,7 +329,7 @@ class X
                 Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..0").WithArguments("int").WithLocation(9, 19));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(list-patterns): https://github.com/dotnet/roslyn/issues/53418")]
         public void ListPattern_ObsoleteMembers()
         {
             var source = @"
@@ -361,8 +352,7 @@ class X
     } 
 }
 ";
-            // PROTOTYPE(list-patterns) Missing error for [0]: https://github.com/dotnet/roslyn/issues/53418
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
             compilation.VerifyDiagnostics(
                 // (14,21): error CS0619: 'X.this[int]' is obsolete: 'error'
                 //         _ = this is {0};
@@ -388,7 +378,7 @@ class X
     } 
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
             compilation.VerifyDiagnostics(
                 // (6,23): error CS9203: Slice patterns may only be used once and directly inside a list pattern.
                 //         _ = a is {.., ..};
