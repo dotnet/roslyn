@@ -680,11 +680,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Fehlendes Steuerzeichen</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">Nach dem Ändern von "{0}" mit Schalterausdruck kann die Debugsitzung nicht mehr fortgesetzt werden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
         <target state="translated">Durch Ändern des Texts von "{0}" wird die Fortsetzung der Debugsitzung verhindert, weil der Text zu viele Anweisungen enthält.</target>

@@ -680,11 +680,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Brak znaku kontrolnego</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">Zmodyfikowanie elementu „{0}”, który zawiera wyrażenie switch, uniemożliwi kontynuowanie sesji debugowania.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
         <target state="translated">Zmodyfikowanie treści elementu „{0}” uniemożliwi kontynuowanie sesji debugowania, ponieważ treść zawiera zbyt wiele instrukcji.</target>
