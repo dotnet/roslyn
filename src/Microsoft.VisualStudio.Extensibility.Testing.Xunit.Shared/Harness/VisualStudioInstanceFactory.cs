@@ -248,12 +248,29 @@ namespace Xunit.Harness
             }
 
             var haveVsInstallDir = !string.IsNullOrEmpty(vsInstallDir);
-
             if (haveVsInstallDir)
             {
+                // Only use vsInstallDir if its version is compatible with the desired test version
                 vsInstallDir = Path.GetFullPath(vsInstallDir);
                 vsInstallDir = vsInstallDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                Debug.WriteLine($"An environment variable named 'VSInstallDir' (or equivalent) was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
+
+                var candidateInstance = EnumerateVisualStudioInstances().FirstOrDefault(instance =>
+                {
+                    var installationPath = instance.Item1;
+                    installationPath = Path.GetFullPath(installationPath);
+                    installationPath = installationPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    return installationPath.Equals(vsInstallDir, StringComparison.OrdinalIgnoreCase);
+                });
+
+                if (candidateInstance == null || candidateInstance.Item2.Major != version.Major)
+                {
+                    vsInstallDir = null;
+                    haveVsInstallDir = false;
+                }
+                else
+                {
+                    Debug.WriteLine($"An environment variable named 'VSInstallDir' (or equivalent) was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
+                }
             }
 
             var instances = EnumerateVisualStudioInstances().Where((instance) =>
