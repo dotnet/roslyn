@@ -3,6 +3,8 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Platforms>x64</Platforms>
     <NoWarn>$(NoWarn);MSB3270</NoWarn>
   </PropertyGroup>
 

@@ -30,7 +30,7 @@
 
   <ItemGroup>
     <!-- Embedded assemblies -->
-    <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.17\bin\$(Configuration)\net472\Microsoft.VisualStudio.VsixInstaller.17.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.17.dll" />
+    <EmbeddedResource Include="..\Microsoft.VisualStudio.VsixInstaller.17\bin\x64\$(Configuration)\net472\Microsoft.VisualStudio.VsixInstaller.17.exe" Visible="false" ManifestResourceName="Microsoft.VisualStudio.VsixInstaller.17.exe" />
     <EmbeddedResource Include="..\Microsoft.VisualStudio.IntegrationTestService.Dev17\bin\$(Configuration)\net472\Microsoft.VisualStudio.IntegrationTestService.Impl.dll" Visible="false" ManifestResourceName="Microsoft.VisualStudio.IntegrationTestService.Impl.dll" />
 
     <!-- Embedded extensions -->

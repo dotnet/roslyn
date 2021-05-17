@@ -308,15 +308,11 @@ namespace Xunit.Harness
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
             var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
 
-            var installerAssembly = LoadInstallerAssembly(version);
-            var installerType = installerAssembly.GetType("Microsoft.VisualStudio.VsixInstaller.Installer");
-            var installMethod = installerType.GetMethod("Install");
-
-            var install = (Action<IEnumerable<string>, string, string>)Delegate.CreateDelegate(typeof(Action<IEnumerable<string>, string, string>), installMethod);
-
             var temporaryFolder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Assert.False(Directory.Exists(temporaryFolder));
             Directory.CreateDirectory(temporaryFolder);
+
+            var installerAssemblyPath = ExtractInstallerAssembly(version, temporaryFolder);
 
             var integrationTestServiceExtension = ExtractIntegrationTestServiceExtension(temporaryFolder);
             var extensions = extensionFiles.Add(integrationTestServiceExtension);
@@ -324,12 +320,17 @@ namespace Xunit.Harness
 
             try
             {
-                install(extensions, installationPath, rootSuffix);
+                var arguments = string.Join(
+                    " ",
+                    rootSuffix,
+                    $"\"{installationPath}\"",
+                    string.Join(" ", extensions.Select(extension => $"\"{extension}\"")));
+                Process.Start(CreateSilentStartInfo(installerAssemblyPath, arguments)).WaitForExit();
             }
             finally
             {
                 File.Delete(integrationTestServiceExtension);
-                Directory.Delete(temporaryFolder);
+                Directory.Delete(temporaryFolder, recursive: true);
             }
 
             if (version.Major >= 16)
@@ -364,26 +365,20 @@ namespace Xunit.Harness
             }
         }
 
-        private static Assembly LoadInstallerAssembly(Version version)
+        private static string ExtractInstallerAssembly(Version version, string temporaryFolder)
         {
-            version = new Version(version.Major, 0, 0, 0);
+            var installerDirectory = Path.Combine(temporaryFolder, $"{version.Major}.{version.Minor}");
+            Directory.CreateDirectory(installerDirectory);
 
-            lock (_installerAssemblies)
+            var installerFileName = $"Microsoft.VisualStudio.VsixInstaller.{version.Major}.exe";
+            var path = Path.Combine(installerDirectory, installerFileName);
+            using (var resourceStream = typeof(VisualStudioInstanceFactory).Assembly.GetManifestResourceStream(installerFileName))
+            using (var writerStream = File.Open(path, FileMode.CreateNew, FileAccess.Write))
             {
-                if (!_installerAssemblies.TryGetValue(version, out var assembly))
-                {
-                    var installerAssemblyFile = $"Microsoft.VisualStudio.VsixInstaller.{version.Major}.dll";
-                    using (var assemblyStream = typeof(VisualStudioInstanceFactory).Assembly.GetManifestResourceStream(installerAssemblyFile))
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        assemblyStream.CopyTo(memoryStream);
-                        assembly = Assembly.Load(memoryStream.ToArray());
-                        _installerAssemblies[version] = assembly;
-                    }
-                }
-
-                return assembly;
+                resourceStream.CopyTo(writerStream);
             }
+
+            return path;
         }
 
         private static string ExtractIntegrationTestServiceExtension(string temporaryFolder)

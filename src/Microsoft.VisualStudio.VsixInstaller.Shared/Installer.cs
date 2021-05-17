@@ -15,6 +15,14 @@ namespace Microsoft.VisualStudio.VsixInstaller
 
     public static class Installer
     {
+        public static void Main(string[] args)
+        {
+            var rootSuffix = args[0];
+            var installationPath = args[1];
+            var vsixFiles = args.Skip(2).ToArray();
+            Install(vsixFiles, installationPath, rootSuffix);
+        }
+
         public static void Install(IEnumerable<string> vsixFiles, string installationPath, string rootSuffix)
         {
             AppDomain.CurrentDomain.AssemblyResolve += HandleAssemblyResolve;

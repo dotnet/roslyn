@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
+    <OutputType>Exe</OutputType>
     <Platforms>x86</Platforms>
   </PropertyGroup>
 
