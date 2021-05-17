@@ -150,10 +150,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 EmitResult.UpdatedMethods.Select(methodHandle => $"0x{MetadataTokens.GetToken(methodHandle):X8}"));
         }
 
-        public void VerifyUpdatedTypes(params string[] expecedTypeTokens)
+        public void VerifyUpdatedTypes(params string[] expectedTypeTokens)
         {
             AssertEx.Equal(
-                expecedTypeTokens,
+                expectedTypeTokens,
                 EmitResult.UpdatedTypes.Select(typeHandle => $"0x{MetadataTokens.GetToken(typeHandle):X8}"));
         }
     }
