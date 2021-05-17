@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     nullableFlowState = GetNullabilityAnalysis(workspace, semanticModel, firstSymbol, bindableParent, cancellationToken);
                 }
 
-                return (semanticModel, new TokenInformation(symbols, isAwait, nullableFlowState));
+                return new TokenInformation(symbols, isAwait, nullableFlowState);
             }
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
