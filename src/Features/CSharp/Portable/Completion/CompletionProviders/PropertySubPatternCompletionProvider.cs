@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // Find the members that can be tested.
             var members = GetCandidatePropertiesAndFields(document, semanticModel, position, type);
+            members = members.WhereAsArray(m => m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
 
             if (memberAccess is null)
             {
@@ -137,8 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return members.WhereAsArray(m => m.CanBeReferencedByName &&
                     IsFieldOrReadableProperty(m) &&
                     !m.IsImplicitlyDeclared &&
-                    !m.IsStatic &&
-                    m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
+                    !m.IsStatic);
             }
         }
 
