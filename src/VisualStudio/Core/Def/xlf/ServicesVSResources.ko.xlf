@@ -162,14 +162,14 @@
         <target state="translated">호출 사이트</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_Newline_rn">
-        <source>Carrage Return + Newline (\\r\\n)</source>
-        <target state="translated">캐리지 리턴 + 줄 바꿈(\\r\\n)</target>
+      <trans-unit id="Carriage_Return_Newline_rn">
+        <source>Carriage Return + Newline (\r\n)</source>
+        <target state="new">Carriage Return + Newline (\r\n)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_r">
-        <source>Carrage Return (\\r)</source>
-        <target state="translated">캐리지 리턴(\\r)</target>
+      <trans-unit id="Carriage_Return_r">
+        <source>Carriage Return (\r)</source>
+        <target state="new">Carriage Return (\r)</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
