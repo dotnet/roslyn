@@ -680,11 +680,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">제어 문자가 없습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">switch 식을 포함하는 '{0}'을(를) 수정하면 디버그 세션을 계속할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
         <target state="translated">본문에 문이 너무 많아 '{0}'의 본문을 수정하면 디버그 세션을 계속 진행할 수 없습니다.</target>
