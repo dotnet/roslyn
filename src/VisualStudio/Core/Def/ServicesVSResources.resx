@@ -1635,6 +1635,9 @@ I agree to all of the foregoing:</value>
   <data name="Reference" xml:space="preserve">
     <value>Reference</value>
   </data>
+  <data name="Enable_all_features_in_opened_files_from_source_generators_experimental" xml:space="preserve">
+    <value>Enable all features in opened files from source generators (experimental)</value>
+  </data>
   <data name="Remove_Unused_References" xml:space="preserve">
     <value>Remove Unused References</value>
   </data>
@@ -1650,6 +1653,9 @@ I agree to all of the foregoing:</value>
   <data name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental" xml:space="preserve">
     <value>Show "Remove Unused References" command in Solution Explorer (experimental)</value>
   </data>
+  <data name="Enable_file_logging_for_diagnostics" xml:space="preserve">
+    <value>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</value>
+  </data>
   <data name="This_action_cannot_be_undone_Do_you_wish_to_continue" xml:space="preserve">
     <value>This action cannot be undone. Do you wish to continue?</value>
   </data>
@@ -1659,11 +1665,11 @@ I agree to all of the foregoing:</value>
   <data name="Analyzers" xml:space="preserve">
     <value>Analyzers</value>
   </data>
-  <data name="Carrage_Return_Newline_rn" xml:space="preserve">
-    <value>Carrage Return + Newline (\\r\\n)</value>
+  <data name="Carriage_Return_Newline_rn" xml:space="preserve">
+    <value>Carriage Return + Newline (\r\n)</value>
   </data>
-  <data name="Carrage_Return_r" xml:space="preserve">
-    <value>Carrage Return (\\r)</value>
+  <data name="Carriage_Return_r" xml:space="preserve">
+    <value>Carriage Return (\r)</value>
   </data>
   <data name="Category" xml:space="preserve">
     <value>Category</value>
@@ -1706,5 +1712,11 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
-  </data> 
+  </data>
+  <data name="Error_updating_suppressions_0" xml:space="preserve">
+    <value>Error updating suppressions: {0}</value>
+  </data>
+  <data name="Underline_reassigned_variables" xml:space="preserve">
+    <value>Underline reassigned variables</value>
+  </data>
 </root>

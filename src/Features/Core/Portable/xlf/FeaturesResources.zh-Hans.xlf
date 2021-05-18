@@ -105,6 +105,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">将 "{0}" 添加进接口将阻止调试会话继续。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
+        <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
+        <target state="new">Adding a positional parameter to a record will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">添加具有显式接口说明符的方法将阻止调试会话继续。</target>
@@ -275,6 +280,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">转换为记录</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="new">Convert to record struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">转换为结构</target>
@@ -303,6 +313,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">创建并分配其余属性</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
+        <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
+        <target state="new">Deleting a positional parameter from a record will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -335,6 +350,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">在项目“{0}”中所作的更改将阻止调试会话继续: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
+        <source>Edit and continue is not supported by the runtime.</source>
+        <target state="new">Edit and continue is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">读取文件“{0}”时出错: {1}</target>
@@ -359,6 +379,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Examples:</source>
         <target state="translated">示例:</target>
         <note>Plural form when we have multiple examples to show.</note>
+      </trans-unit>
+      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
+        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
+        <target state="new">Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</target>
+        <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
@@ -495,6 +520,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">通过“{0}”实现</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing">
+        <source>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</source>
+        <target state="new">Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing">
+        <source>Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</source>
+        <target state="new">Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">\p{X} 字符转义不完整</target>
@@ -550,6 +585,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">引入局部</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_parameter">
+        <source>Introduce parameter</source>
+        <target state="new">Introduce parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_0">
+        <source>Introduce parameter for '{0}'</source>
+        <target state="new">Introduce parameter for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
+        <source>Introduce parameter for all occurrences of '{0}'</source>
+        <target state="new">Introduce parameter for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_query_variable">
         <source>Introduce query variable</source>
         <target state="translated">引入查询变量</target>
@@ -573,6 +623,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">反转条件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method an iterator will prevent the debug session from continuing.</source>
+        <target state="new">Making a method an iterator will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_async_will_prevent_the_debug_session_from_continuing">
+        <source>Making a method 'async' will prevent the debug session from continuing.</source>
+        <target state="new">Making a method 'async' will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -619,11 +679,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Missing control character</source>
         <target state="translated">缺少控制字符</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">修改包含 switch 表达式的“{0}”将阻止调试会话继续执行。</target>
-        <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
@@ -2312,13 +2367,13 @@ Although it's possible to display the ten thousandths of a second component of a
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">"f" 自定义格式说明符表示秒部分的最高有效位；即表示日期和时间值中的十分之一秒数。
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="needs-review-translation">"f" 自定义格式说明符表示秒部分的最高有效位；即表示日期和时间值中的十分之一秒数。
 
 如果使用 "f" 格式说明符而没有其他自定义格式说明符，该说明符将被解释为 "f" 标准日期和时间格式说明符。
 
 将 "f" 格式说明符用作提供给 ParseExact、TryParseExact、ParseExact 或 TryParseExact 方法的格式字符串的一部分时，"f" 格式说明符的数目指示能够成功分析的字符串的秒部分的最高有效位的最大数目。</target>
-        <note />
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
@@ -2384,6 +2439,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
       <trans-unit id="_24_hour_clock_2_digits_description">
         <source>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</source>
         <target state="translated">"HH" 自定义格式说明符(另加任意数量的 "H" 说明符)将小时表示为从 00 至 23 的数字，即通过从零开始的 24 小时制表示小时，自午夜开始对小时计数。一位数字的小时数设置为带前导零的格式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="new">and update call sites directly</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -2525,6 +2585,16 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">在源(属性)中</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="new">into extracted method to invoke at call sites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload">
+        <source>into new overload</source>
+        <target state="new">into new overload</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

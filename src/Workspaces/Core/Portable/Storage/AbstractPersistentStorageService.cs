@@ -95,7 +95,8 @@ namespace Microsoft.CodeAnalysis.Storage
                     // This will remove the single ref count we ourselves added when we cached the
                     // instance.  Then once all other existing clients who are holding onto this
                     // instance let go, it will finally get truly disposed.
-                    _ = Task.Run(() => storageToDispose.Dispose());
+                    // This operation is not safe to cancel (as dispose must happen).
+                    _ = Task.Run(() => storageToDispose.Dispose(), CancellationToken.None);
 
                     _currentPersistentStorage = null;
                     _currentPersistentStorageSolutionId = null;
@@ -151,9 +152,12 @@ namespace Microsoft.CodeAnalysis.Storage
             // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
             // try to create it again.  If we can't create it the second time, then there's nothing
             // we can do and we have to store things in memory.
-            return await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath).ConfigureAwait(false) ??
-                   await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath).ConfigureAwait(false) ??
-                   NoOpPersistentStorage.Instance;
+            var result = await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath).ConfigureAwait(false) ??
+                         await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath).ConfigureAwait(false);
+            if (result != null)
+                return result;
+
+            return NoOpPersistentStorage.Instance;
         }
 
         private async ValueTask<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(SolutionKey solutionKey, string workingFolderPath)

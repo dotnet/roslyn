@@ -243,8 +243,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (operation is IMemberReferenceOperation memberReference &&
                 memberReference.Member.ContainingType.Equals(containingType))
             {
-                if (memberReference.Member is IFieldSymbol ||
-                    memberReference.Member is IPropertySymbol)
+                if (memberReference.Member is IFieldSymbol or
+                    IPropertySymbol)
                 {
                     fieldOrProperty = memberReference.Member;
                     return true;

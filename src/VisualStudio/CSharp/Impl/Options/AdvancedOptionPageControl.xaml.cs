@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -46,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp);
             BindToOption(Enable_navigation_to_decompiled_sources, FeatureOnOffOptions.NavigateToDecompiledSources);
             BindToOption(Use_64bit_analysis_process, RemoteHostOptions.OOP64Bit);
+            BindToOption(Enable_file_logging_for_diagnostics, InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics);
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences, () =>
             {
                 // If the option has not been set by the user, check if the option to remove unused references
@@ -88,6 +90,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.CSharp);
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ReassignedVariableOptions.Underline, LanguageNames.CSharp);
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.EnableOpeningInWorkspace, () =>
+            {
+                // If the option has not been set by the user, check if the option is enabled from experimentation.
+                // If so, default to that. Otherwise default to disabled
+                return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SourceGeneratorsEnableOpeningInWorkspace) ?? false;
+            });
 
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
 

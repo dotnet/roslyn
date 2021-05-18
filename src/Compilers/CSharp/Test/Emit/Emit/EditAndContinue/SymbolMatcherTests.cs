@@ -1404,5 +1404,153 @@ unsafe class C
                 Assert.Null(matcher.MapDefinition(f_1.GetCciAdapter()));
             }
         }
+
+        [Fact]
+        public void Record_ImplementSynthesizedMember_ToString()
+        {
+            var source0 = @"
+public record R
+{
+}";
+            var source1 = @"
+public record R
+{
+    public override string ToString() => ""R"";
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var member = compilation1.GetMember<SourceOrdinaryMethodSymbol>("R.ToString");
+            var other = matcher.MapDefinition(member.GetCciAdapter());
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void Record_ImplementSynthesizedMember_PrintMembers()
+        {
+            var source0 = @"
+public record R
+{
+}";
+            var source1 = @"
+public record R
+{
+    protected virtual bool PrintMembers(System.Text.StringBuilder builder) => true;
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var member0 = compilation0.GetMember<SynthesizedRecordPrintMembers>("R.PrintMembers");
+            var member1 = compilation1.GetMember<SourceOrdinaryMethodSymbol>("R.PrintMembers");
+
+            Assert.Equal(member0, (MethodSymbol)matcher.MapDefinition(member1.GetCciAdapter()).GetInternalSymbol());
+        }
+
+        [Fact]
+        public void Record_RemoveSynthesizedMember_PrintMembers()
+        {
+            var source0 = @"
+public record R
+{
+    protected virtual bool PrintMembers(System.Text.StringBuilder builder) => true;
+}";
+            var source1 = @"
+public record R
+{
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var member0 = compilation0.GetMember<SourceOrdinaryMethodSymbol>("R.PrintMembers");
+            var member1 = compilation1.GetMember<SynthesizedRecordPrintMembers>("R.PrintMembers");
+
+            Assert.Equal(member0, (MethodSymbol)matcher.MapDefinition(member1.GetCciAdapter()).GetInternalSymbol());
+        }
+
+        [Fact]
+        public void Record_ImplementSynthesizedMember_Property()
+        {
+            var source0 = @"
+public record R(int X);";
+            var source1 = @"
+public record R(int X)
+{
+    public int X { get; init; } = this.X;
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var member0 = compilation0.GetMember<SynthesizedRecordPropertySymbol>("R.X");
+            var member1 = compilation1.GetMember<SourcePropertySymbol>("R.X");
+
+            Assert.Equal(member0, (PropertySymbol)matcher.MapDefinition(member1.GetCciAdapter()).GetInternalSymbol());
+        }
+
+        [Fact]
+        public void Record_ImplementSynthesizedMember_Constructor()
+        {
+            var source0 = @"
+public record R(int X);";
+            var source1 = @"
+public record R
+{
+    public R(int X)
+    {
+        this.X = X;
+    }
+
+    public int X { get; init; }
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var members = compilation1.GetMembers("R..ctor");
+            // There are two, one is the copy constructor
+            Assert.Equal(2, members.Length);
+
+            var member = (SourceConstructorSymbol)members.Single(m => m.ToString() == "R.R(int)");
+            var other = matcher.MapDefinition(member.GetCciAdapter());
+            Assert.NotNull(other);
+        }
     }
 }

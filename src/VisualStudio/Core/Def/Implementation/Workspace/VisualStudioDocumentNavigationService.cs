@@ -141,19 +141,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
         }
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             return TryNavigateToLocation(workspace,
                 documentId,
                 _ => textSpan,
-                text => GetVsTextSpan(text, textSpan),
+                text => GetVsTextSpan(text, textSpan, allowInvalidSpan),
                 options,
                 cancellationToken);
 
-            static VsTextSpan GetVsTextSpan(SourceText text, TextSpan textSpan)
+            static VsTextSpan GetVsTextSpan(SourceText text, TextSpan textSpan, bool allowInvalidSpan)
             {
                 var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
-                if (boundedTextSpan != textSpan)
+                if (boundedTextSpan != textSpan && !allowInvalidSpan)
                 {
                     try
                     {

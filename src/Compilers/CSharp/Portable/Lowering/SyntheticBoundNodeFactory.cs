@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If necessary, add a conversion on the return expression.
                 var useSiteInfo =
 #if DEBUG
-                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
 #else
                     CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 #endif 
@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var useSiteInfo =
 #if DEBUG
-                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
 #else
                     CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 #endif 

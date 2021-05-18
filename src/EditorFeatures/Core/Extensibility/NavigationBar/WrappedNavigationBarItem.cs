@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using Microsoft.CodeAnalysis.NavigationBar;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor
                   underlyingItem.Text,
                   underlyingItem.Glyph,
                   underlyingItem.Spans,
-                  underlyingItem.ChildItems.Select(v => new WrappedNavigationBarItem(v)).ToList<NavigationBarItem>(),
+                  underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v)),
                   underlyingItem.Indent,
                   underlyingItem.Bolded,
                   underlyingItem.Grayed)

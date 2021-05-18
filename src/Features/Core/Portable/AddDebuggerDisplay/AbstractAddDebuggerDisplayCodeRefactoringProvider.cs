@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             => methodSymbol is { Name: DebuggerDisplayMethodName, Arity: 0, Parameters: { IsEmpty: true } };
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
-            => typeSymbol.TypeKind == TypeKind.Class || typeSymbol.TypeKind == TypeKind.Struct;
+            => typeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct;
 
         private static bool HasDebuggerDisplayAttribute(ITypeSymbol typeSymbol, Compilation compilation)
             => typeSymbol.GetAttributes()

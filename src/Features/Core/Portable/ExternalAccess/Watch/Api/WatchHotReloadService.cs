@@ -61,10 +61,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         /// </summary>
         /// <param name="solution">Solution that represents sources that match the built binaries on disk.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns></returns>
         public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
             => await _encService.StartDebuggingSessionAsync(solution, DebuggerService.Instance, captureMatchingDocuments: true, cancellationToken).ConfigureAwait(false);
 
+        /// <summary>
+        /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call or 
+        /// the one passed to <see cref="StartSessionAsync(Solution, CancellationToken)"/> for the first invocation.
+        /// </summary>
+        /// <param name="solution">Solution snapshot.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>
+        /// Updates (one for each changed project) and Rude Edit diagnostics. Does not include syntax or semantic diagnostics.
+        /// </returns>
         public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
             var results = await _encService.EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
@@ -72,11 +80,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
                 _encService.CommitSolutionUpdate(out _);
-            }
-
-            if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Blocked)
-            {
-                return default;
             }
 
             var updates = results.ModuleUpdates.Updates.SelectAsArray(

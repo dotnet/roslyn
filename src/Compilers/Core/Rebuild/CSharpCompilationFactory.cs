@@ -55,18 +55,18 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
         private static (CSharpCompilationOptions, CSharpParseOptions) CreateCSharpCompilationOptions(string assemblyFileName, CompilationOptionsReader optionsReader)
         {
-            var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
+            var pdbOptions = optionsReader.GetMetadataCompilationOptions();
 
-            var langVersionString = pdbCompilationOptions.GetUniqueOption(CompilationOptionNames.LanguageVersion);
-            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Optimization, out var optimization);
-            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Platform, out var platform);
+            var langVersionString = pdbOptions.GetUniqueOption(CompilationOptionNames.LanguageVersion);
+            pdbOptions.TryGetUniqueOption(CompilationOptionNames.Optimization, out var optimization);
+            pdbOptions.TryGetUniqueOption(CompilationOptionNames.Platform, out var platform);
 
             // TODO: Check portability policy if needed
             // pdbCompilationOptions.TryGetValue("portability-policy", out var portabilityPolicyString);
-            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Define, out var define);
-            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Checked, out var checkedString);
-            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Nullable, out var nullable);
-            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Unsafe, out var unsafeString);
+            pdbOptions.TryGetUniqueOption(CompilationOptionNames.Define, out var define);
+            pdbOptions.TryGetUniqueOption(CompilationOptionNames.Checked, out var checkedString);
+            pdbOptions.TryGetUniqueOption(CompilationOptionNames.Nullable, out var nullable);
+            pdbOptions.TryGetUniqueOption(CompilationOptionNames.Unsafe, out var unsafeString);
 
             CS.LanguageVersionFacts.TryParse(langVersionString, out var langVersion);
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 : (NullableContextOptions)Enum.Parse(typeof(NullableContextOptions), nullable);
 
             var compilationOptions = new CSharpCompilationOptions(
-                optionsReader.GetOutputKind(),
+                pdbOptions.OptionToEnum<OutputKind>(CompilationOptionNames.OutputKind) ?? OutputKind.DynamicallyLinkedLibrary,
                 reportSuppressedDiagnostics: false,
 
                 moduleName: assemblyFileName,
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 deterministic: true,
 
                 xmlReferenceResolver: null,
-                sourceReferenceResolver: null,
+                sourceReferenceResolver: RebuildSourceReferenceResolver.Instance,
                 metadataReferenceResolver: null,
 
                 assemblyIdentityComparer: null,

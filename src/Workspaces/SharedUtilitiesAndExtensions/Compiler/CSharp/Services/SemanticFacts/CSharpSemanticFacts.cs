@@ -60,10 +60,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken);
                 if (symbol != null)
                 {
-                    // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
-                    // So check if the symbol's location encompasses the span of the token we're asking about.
-                    if (symbol.Locations.Any(loc => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan)))
-                        return symbol;
+                    if (symbol is IMethodSymbol { MethodKind: MethodKind.Conversion })
+                    {
+                        // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
+                        // So check if the symbol's location encompasses the span of the token we're asking about.
+                        if (symbol.Locations.Any(loc => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan)))
+                            return symbol;
+                    }
+                    else
+                    {
+                        // For any other symbols, we only care if the name directly matches the span of the token
+                        if (symbol.Locations.Contains(location))
+                            return symbol;
+                    }
 
                     // We found some symbol, but it defined something else. We're not going to have a higher node defining _another_ symbol with this token, so we can stop now.
                     return null;

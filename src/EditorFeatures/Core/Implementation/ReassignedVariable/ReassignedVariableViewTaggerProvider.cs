@@ -37,13 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReassignedVariable
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ReassignedVariableViewTaggerProvider(
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             ClassificationTypeMap typeMap,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
         }
+
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
         /// <summary>
         /// Rerun the tagger whenever our option changes.
@@ -54,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReassignedVariable
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             this.AssertIsForeground();
-            const TaggerDelay Delay = TaggerDelay.Short;
 
             // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
             // SemanticChange notification. 
@@ -66,12 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReassignedVariable
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
             // compilation is available so that reclassify and bring ourselves up to date.
             return new CompilationAvailableTaggerEventSource(
-                subjectBuffer, Delay,
-                ThreadingContext,
+                subjectBuffer,
                 AsyncListener,
-                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, this.AsyncListener),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
+                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, this.AsyncListener),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
@@ -88,12 +87,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReassignedVariable
             }
 
             return SpecializedCollections.SingletonEnumerable(visibleSpan.Value);
-        }
-
-        protected override void ProduceTagsSynchronously(TaggerContext<ClassificationTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
-        {
-            // Assert just so we can find out who is calling this. We should never be used in synchronous scenarios.
-            Debug.Fail("Unsupported call to ProduceTagsSynchronously");
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<ClassificationTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)

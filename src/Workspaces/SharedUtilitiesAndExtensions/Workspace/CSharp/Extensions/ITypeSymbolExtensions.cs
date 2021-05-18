@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return null;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

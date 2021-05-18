@@ -774,13 +774,13 @@ ForwardDecode:
         }
 
         /// <summary>
-        /// Returns <see langword="true"/> iff <paramref name="value"/> is a valid Unicode scalar
+        /// Returns <see langword="true"/> if and only if <paramref name="value"/> is a valid Unicode scalar
         /// value, i.e., is in [ U+0000..U+D7FF ], inclusive; or [ U+E000..U+10FFFF ], inclusive.
         /// </summary>
         public static bool IsValid(int value) => IsValid((uint)value);
 
         /// <summary>
-        /// Returns <see langword="true"/> iff <paramref name="value"/> is a valid Unicode scalar
+        /// Returns <see langword="true"/> if and only if <paramref name="value"/> is a valid Unicode scalar
         /// value, i.e., is in [ U+0000..U+D7FF ], inclusive; or [ U+E000..U+10FFFF ], inclusive.
         /// </summary>
         public static bool IsValid(uint value) => UnicodeUtility.IsValidUnicodeScalar(value);

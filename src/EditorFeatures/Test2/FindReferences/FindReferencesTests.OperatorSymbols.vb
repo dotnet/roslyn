@@ -108,6 +108,138 @@ class A
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnEqualsOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|==|] new A();
+    }
+    public static bool operator {|Definition:$$==|}(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator !=(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnNotEqualsOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|!=|] new A();
+    }
+    public static bool operator ==(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator {|Definition:$$!=|}(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnGreaterThanOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|>|] new A();
+    }
+    public static bool operator {|Definition:$$>|}(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator <(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnLessThanOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|<|] new A();
+    }
+    public static bool operator >(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator {|Definition:$$<|}(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnGreaterThanOrEqualsOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|>=|] new A();
+    }
+    public static bool operator {|Definition:$$>=|}(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator <=(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnLessThanOrEqualsOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|<=|] new A();
+    }
+    public static bool operator >=(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator {|Definition:$$<=|}(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicFindReferencesOnUnaryOperatorOverload(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -326,7 +458,7 @@ class A
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpFindOperatorUsedInSourceGeneratedDocument(kind As TestKind) As Task
+        Public Async Function TestCSharpFindOperatorUsedInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -348,7 +480,7 @@ class B
         </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
     End Class
