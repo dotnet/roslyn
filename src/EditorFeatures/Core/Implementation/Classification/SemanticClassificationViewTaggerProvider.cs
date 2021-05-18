@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
+        protected override Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
 
@@ -98,22 +98,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             var document = spanToTag.Document;
             if (document == null)
-                return;
+                return Task.CompletedTask;
 
             // Attempt to get a classification service which will actually produce the results.
             // If we can't (because we have no Document, or because the language doesn't support
             // this service), then bail out immediately.
             var classificationService = document.GetLanguageService<IClassificationService>();
             if (classificationService == null)
-                return;
+                return Task.CompletedTask;
 
             // The LSP client will handle producing tags when running under the LSP editor.
             // Our tagger implementation should return nothing to prevent conflicts.
             var workspaceContextService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
             if (workspaceContextService?.IsInLspEditorContext() == true)
-                return;
+                return Task.CompletedTask;
 
-            await SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap).ConfigureAwait(false);
+            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }
     }
 }
