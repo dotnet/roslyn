@@ -10,6 +10,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -27,6 +29,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => s_diagnosticIdToOptionMap.TryGetValue(diagnosticId, out options) ||
                (s_diagnosticIdToLanguageSpecificOptionsMap.TryGetValue(language, out var map) &&
                 map.TryGetValue(diagnosticId, out options));
+
+        public static ImmutableArray<string> GetDiagnosticIdsForOption(IOption2 option, string language)
+        {
+            using var _1 = ArrayBuilder<string>.GetInstance(out var ids);
+            foreach (var (id, options) in s_diagnosticIdToOptionMap)
+            {
+                if (options.Any(o => o == option))
+                {
+                    ids.Add(id);
+                }
+            }
+
+            if (s_diagnosticIdToLanguageSpecificOptionsMap.TryGetValue(language, out var map))
+            {
+                foreach (var (id, options) in map)
+                {
+                    if (options.Any(o => o == option))
+                    {
+                        ids.Add(id);
+                    }
+                }
+            }
+
+            return ids.OrderBy(StringComparer.OrdinalIgnoreCase).AsImmutable();
+        }
 
         public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<IPerLanguageOption> perLanguageOptions)
         {
