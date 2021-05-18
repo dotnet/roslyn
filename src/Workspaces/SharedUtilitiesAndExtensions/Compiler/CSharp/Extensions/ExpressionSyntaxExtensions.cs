@@ -318,7 +318,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
 
             if (expression.IsInRefContext())
+            {
+                // most cases of `ref x` will count as a potential write of `x`.  An important exception is:
+                // `ref readonly y = ref x`.  In that case, because 'y' can't be written to, this would not 
+                // be a write of 'x'.
+                if (expression is { Parent: { RawKind: (int)SyntaxKind.RefExpression, Parent: EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type: RefTypeSyntax refType } } } } }
+                    && refType.ReadOnlyKeyword != default)
+                {
+                    return false;
+                }
+
                 return true;
+            }
 
             // Similar to `ref x`, `&x` allows reads and write of the value, meaning `x` may be (but is not definitely)
             // written to.

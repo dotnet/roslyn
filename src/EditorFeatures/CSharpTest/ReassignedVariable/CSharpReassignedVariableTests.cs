@@ -612,6 +612,23 @@ class C
         }
 
         [Fact]
+        public async Task TestReadonlyRefLocalWithNoReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        int p = 0;
+        ref readonly int refP = ref p;
+        Console.WriteLine(p);
+    }
+}");
+        }
+
+        [Fact]
         public async Task TestPointerCausingPossibleReassignment()
         {
             await TestAsync(
