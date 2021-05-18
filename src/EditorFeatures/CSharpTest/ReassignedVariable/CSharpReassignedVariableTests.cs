@@ -849,5 +849,37 @@ class C
     }
 }");
         }
+
+        [Fact]
+        public async Task TestForLoop()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        for (int [|i|] = 0; [|i|] < 10; [|i|]++)
+            Console.WriteLine([|i|]);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestForeach()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(string[] args)
+    {
+        foreach (var arg in args)
+            Console.WriteLine(arg);
+    }
+}");
+        }
     }
 }
