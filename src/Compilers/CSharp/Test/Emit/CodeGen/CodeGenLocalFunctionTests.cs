@@ -2089,7 +2089,18 @@ public class C
                 Signature("C", "Main", ".method public hidebysig static System.Void Main() cil managed"),
                 Signature("C", "<Main>g__LocalFunc|0_0", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] assembly hidebysig static System.Void <Main>g__LocalFunc|0_0([opt] System.Int32 a = 2) cil managed")
             });
+        }
 
+        [Fact, WorkItem(53478, "https://github.com/dotnet/roslyn/issues/53478")]
+        public void OptionalParameterCodeGen_Reflection()
+        {
+            VerifyOutputInMain(@"void TestAction(int goo = 5) { }
+
+        var d = (Action<int>)TestAction;
+        var p2 = d.Method.GetParameters();
+        Console.WriteLine(p2[0].HasDefaultValue);
+        Console.WriteLine(p2[0].DefaultValue);", @"True
+5", new[] { "System" });
         }
 
         [Fact]
