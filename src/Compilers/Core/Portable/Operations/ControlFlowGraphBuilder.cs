@@ -7032,7 +7032,6 @@ oneMoreTime:
                         matchFailureCtor, initializer: null, ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, operation.Syntax,
                         type: matchFailureCtor.ContainingType, constantValue: null, isImplicit: true);
                 LinkThrowStatement(makeException);
-                AppendNewBlock(afterSwitch, linkToPrevious: true);
 
                 linkToPreviousAfterSwitch = true;
             }
