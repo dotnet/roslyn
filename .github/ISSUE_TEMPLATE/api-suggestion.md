@@ -10,14 +10,14 @@ assignees: ''
 ## Background and Motivation
 
 <!--
-We welcome API proposals! We have a process to evaluate the value and shape of new API. There is an overview of our process [here](https://github.com/dotnet/roslyn/blob/main/docs/contrbuting/API%20Review%20Process.md). This template will help us gather the information we need to start the review process.
+We welcome API proposals! We have a process to evaluate the value and shape of new APIs. There is an overview of our process [here](https://github.com/dotnet/roslyn/blob/main/docs/contributing/API%20Review%20Process.md). This template will help us gather the information we need to start the review process.
 First, please describe the purpose and value of the new API here.
 -->
 
 ## Proposed API
 
 <!--
-Please provide the specific public API signature diff that you are proposing. For example:
+Please provide a sketch of public API signature diff that you are proposing. Be as specific as you can: the more specific the proposal, the easier the process will be. For example:
 ```diff
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Operations
      }
 ```
 You may find the [Framework Design Guidelines](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/framework-design-guidelines-digest.md) helpful.
+
+https://github.com/dotnet/roslyn/issues/53410 is a good example issue.
 -->
 
 ## Usage Examples

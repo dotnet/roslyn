@@ -8,7 +8,7 @@ The rule of thumb is that we (**dotnet/roslyn**) review every public API that is
 
 ## Steps
 
-1. **Requester files an issue**. The issue description should contain a speclet that represents a sketch of the new APIs, including samples on how the APIs are being used. The goal isn't to get a complete API list, but a good handle on how the new APIs would roughly look like and in what scenarios they are being used. Please use [this template](https://github.com/dotnet/roslyn/issues/new?template=api-suggestion.md). The issue should have the labels `Feature Request` and `Concept-API`.
+1. **Requester files an issue**. The issue description should contain a speclet that represents a sketch of the new APIs, including samples on how the APIs are being used. The goal isn't to get a complete API list, but a good handle on how the new APIs would roughly look like and in what scenarios they are being used. Please use [this template](https://github.com/dotnet/roslyn/issues/new?template=api-suggestion.md). The issue should have the labels `Feature Request` and `Concept-API`. [Here](https://github.com/dotnet/roslyn/issues/53410) is a good example of a strong API proposal.
 
 2. **We assign an owner**. We'll assign a dedicated owner from our side that sponsors the issue. This is usually [the area owner](../area-owners.md#areas) for which the API proposal or design change request was filed.
 
@@ -21,21 +21,21 @@ The rule of thumb is that we (**dotnet/roslyn**) review every public API that is
     * **Close as won't fix as proposed**. Sometimes, the issue that is raised is a good one but the owner thinks the concrete proposal is not the right way to tackle the problem. In most cases, the owner will try to steer the discussion in a direction that results in a design that we believe is appropriate. However, for some proposals the problem is at the heart of the design which can't easily be changed without starting a new proposal. In those cases, the owner will close the issue and explain the issue the design has.
     * **Close as won't fix**. Similarly, if proposal is taking the product in a direction we simply don't want to go, the issue might also get closed. In that case, the problem isn't the proposed design but in the issue itself.
 
-5. **API gets reviewed**. The group conducting the review is called *RAR*, which stands for *roslyn api reviewers*. In the review, we'll take notes and provide feedback. After the review, we'll publish the notes in the [API Review repository](https://github.com/dotnet/apireviews) and at the end of the relevant issue. Multiple outcomes are possible:
+5. **API gets reviewed**. The group conducting the review is called *RAR*, which stands for *Roslyn API Reviewers*. In the review, we'll take notes and provide feedback. After the review, we'll publish the notes in the [API Review repository](https://github.com/dotnet/apireviews) and at the end of the relevant issue. Multiple outcomes are possible:
 
     * **Approved**. In this case the label `api-ready-for-review` is replaced
     with `api-approved`.
     * **Needs work**. In case we believe the proposal isn't ready yet, we'll
     replace the label `api-ready-for-review` with `api-needs-work`.
-    * **Rejected**. In case we believe the proposal isn't a direction we want to go after, we simply write a comment and close the issue.
+    * **Rejected**. In case we believe the proposal isn't a direction we want pursue, we simply write a comment and close the issue.
 
 ## Review schedule
 
- There are three methods to get an API review:
+ There are three methods to get an API review (this section applies to API area owners, but is included for transparency into the process):
 
 * **Get into the backlog**. Generally speaking, filing an issue in `dotnet/roslyn` and applying the label `api-ready-for-review` on it will make your issue show up during API reviews. The downside is that we generally walk the backlog oldest-newest, so your issue might not be looked at for a while. Progress of issues can be tracked via https://apireview.net/backlog/roslyn (PROTOTYPE: make this link actually work).
 * **Fast track**. If you need to bypass the backlog apply both `api-ready-for-review` and `blocking`. All blocking issues are looked at before we walk the backlog.
-* **Dedicated review**. This only applies to area owners. If an issue you are the area owner for needs an hour or longer, send an email to roslynapiowners and we book dedicated time. We also book dedicated time for language feature APIs: any APIs added as part of a new language feature need to have a dedicated review session. Rule of thumb: if the API proposal has more than a dozen APIs, the APIs have complex policy, or the APIs are part of a feature branch, then you need 60 min or more. When in doubt, send mail to roslynapiowners.
+* **Dedicated review**. If an issue you are the area owner for needs an hour or longer, send an email to roslynapiowners and we book dedicated time. We also book dedicated time for language feature APIs: any APIs added as part of a new language feature need to have a dedicated review session. Rule of thumb: if the API proposal has more than a dozen APIs, the APIs have complex policy, or the APIs are part of a feature branch, then you need 60 min or more. When in doubt, send mail to roslynapiowners.
 
 The API review board currently meets biweekly.
 
@@ -45,4 +45,4 @@ Pull requests against **dotnet/roslyn** that adds new public API shouldn't be su
 
 If you want to collaborate with other people on the design, feel free to perform the work in a branch in your own fork. If you want to track your TODOs in the description of a PR, you can always submit a PR against your own fork. Also, feel free to advertise your PR by linking it from the issue you filed against **dotnet/roslyn** in the first step above.
 
-For **dotnet/roslyn** team members, PRs are allowed to be submitted and merged before a full API review session, but you should have sign-off from the area owner, and the API is expected to be covered in a formal review session before being shipped.
+For **dotnet/roslyn** team members, PRs are allowed to be submitted and merged before a full API review session, but you should have sign-off from the area owner, and the API is expected to be covered in a formal review session before being shipped. For such issues, please work with the API area owner to make sure that the issue is marked blocking appropriately so it will be covered in short order.
