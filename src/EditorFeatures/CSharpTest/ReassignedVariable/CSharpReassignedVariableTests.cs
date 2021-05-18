@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -323,6 +324,29 @@ class C
     void M()
     {
         if (0 is var [|p|]) [|p|] = 0;
+        Console.WriteLine([|p|]);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestLocalDeclaredByPatternButAssignedInFalseBranch()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        if (0 is var [|p|])
+        {
+        }
+        else
+        {
+             [|p|] = 0;
+        }
+
         Console.WriteLine([|p|]);
     }
 }");
