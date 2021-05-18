@@ -73,18 +73,18 @@ static class Utils
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,13): error CS0428: Cannot convert method group 'Main' to non-delegate type 'Delegate'. Did you intend to invoke the method?
+                // (6,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         d = Main;
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.Delegate").WithLocation(6, 13),
-                // (7,13): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 13),
+                // (7,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         d = () => { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.Delegate").WithLocation(7, 13),
-                // (8,13): error CS1660: Cannot convert anonymous method to type 'Delegate' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(7, 13),
+                // (8,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         d = delegate () { };
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "delegate () { }").WithArguments("anonymous method", "System.Delegate").WithLocation(8, 13),
-                // (9,48): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate () { }").WithArguments("inferred delegate type").WithLocation(8, 13),
+                // (9,48): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Linq.Expressions.Expression e = () => 1;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 48));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(9, 48));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
@@ -1814,10 +1814,14 @@ static class E
     public static void M(this object o, Action a) { Console.WriteLine(""E.M""); }
 }";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
-@"E.M
-E.M
-");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         c.M(Main);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(7, 13),
+                // (8,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         c.M(() => { });
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(8, 13));
 
             // Breaking change from C#9 which binds to E.M.
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
@@ -1850,7 +1854,11 @@ static class E
     public static void M(this object o, Func<int> a) { Console.WriteLine(""E.M""); }
 }";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"E.M");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         c.M(() => 1);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(8, 13));
 
             // Breaking change from C#9 which binds to E.M.
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"C.M");
@@ -1889,24 +1897,24 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (14,12): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
+                // (14,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         FA(F2);
-                Diagnostic(ErrorCode.ERR_BadArgType, "F2").WithArguments("1", "method group", "System.Delegate").WithLocation(14, 12),
-                // (15,12): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("inferred delegate type").WithLocation(14, 12),
+                // (15,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         FB(F1);
-                Diagnostic(ErrorCode.ERR_BadArgType, "F1").WithArguments("1", "method group", "System.Delegate").WithLocation(15, 12),
-                // (18,18): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("inferred delegate type").WithLocation(15, 12),
+                // (18,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         FA(() => 0);
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "0").WithLocation(18, 18),
-                // (19,15): error CS1643: Not all code paths return a value in lambda expression of type 'Func<int>'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 0").WithArguments("inferred delegate type").WithLocation(18, 12),
+                // (19,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         FB(() => { });
-                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<int>").WithLocation(19, 15),
-                // (22,26): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(19, 12),
+                // (22,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         FA(delegate () { return 0; });
-                Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(22, 26),
-                // (23,12): error CS1643: Not all code paths return a value in anonymous method of type 'Func<int>'
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate () { return 0; }").WithArguments("inferred delegate type").WithLocation(22, 12),
+                // (23,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         FB(delegate () { });
-                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "delegate").WithArguments("anonymous method", "System.Func<int>").WithLocation(23, 12));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate () { }").WithArguments("inferred delegate type").WithLocation(23, 12));
 
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
 @"FA(Action)
@@ -1944,12 +1952,9 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (11,17): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                // (11,11): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         F(() => string.Empty);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "string.Empty").WithArguments("string", "int").WithLocation(11, 17),
-                // (11,17): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-                //         F(() => string.Empty);
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "string.Empty").WithArguments("lambda expression").WithLocation(11, 17));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => string.Empty").WithArguments("inferred delegate type").WithLocation(11, 11));
 
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
 @"F(Expression<Func<int>>): () => 0
