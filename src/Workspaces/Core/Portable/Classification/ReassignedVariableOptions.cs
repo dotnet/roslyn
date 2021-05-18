@@ -9,25 +9,25 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.ReassignedVariable
+namespace Microsoft.CodeAnalysis.Classification
 {
-    internal class ReassignedVariableOptions
+    internal class ClassificationOptions
     {
-        public static PerLanguageOption2<bool> Underline =
-           new PerLanguageOption2<bool>(nameof(ReassignedVariableOptions), nameof(Underline), defaultValue: false,
-               storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReassignedVariable.Underline"));
+        public static PerLanguageOption2<bool> ClassifyReassignedVariables =
+           new PerLanguageOption2<bool>(nameof(ClassificationOptions), nameof(ClassifyReassignedVariables), defaultValue: false,
+               storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ClassificationOptions)}.{nameof(ClassifyReassignedVariables)}"));
     }
 
     [ExportOptionProvider, Shared]
-    internal class ReassignedVariableOptionsProvider : IOptionProvider
+    internal class ClassificationOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ReassignedVariableOptionsProvider()
+        public ClassificationOptionsProvider()
         {
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            ReassignedVariableOptions.Underline);
+            ClassificationOptions.ClassifyReassignedVariables);
     }
 }

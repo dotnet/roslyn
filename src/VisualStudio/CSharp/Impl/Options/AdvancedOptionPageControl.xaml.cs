@@ -6,6 +6,7 @@
 
 using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editing;
@@ -19,7 +20,6 @@ using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.QuickInfo;
-using Microsoft.CodeAnalysis.ReassignedVariable;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Structure;
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.CSharp);
             BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.CSharp);
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
-            BindToOption(Underline_reassigned_variables, ReassignedVariableOptions.Underline, LanguageNames.CSharp);
+            BindToOption(Underline_reassigned_variables, ClassificationOptions.ClassifyReassignedVariables, LanguageNames.CSharp);
             BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.EnableOpeningInWorkspace, () =>
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation.

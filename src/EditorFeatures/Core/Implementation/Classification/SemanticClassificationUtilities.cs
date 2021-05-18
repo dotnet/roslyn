@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
             IClassificationService classificationService,
-            ClassificationTypeMap typeMap,
-            bool includeReassignedVariables)
+            ClassificationTypeMap typeMap)
         {
             var document = spanToTag.Document;
             if (document == null)
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             spanToTag = new DocumentSnapshotSpan(document, spanToTag.SnapshotSpan);
 
             var classified = await TryClassifyContainingMemberSpanAsync(
-                    context, spanToTag, classificationService, typeMap, includeReassignedVariables).ConfigureAwait(false);
+                    context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
             if (classified)
             {
                 return;
@@ -62,15 +61,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // We weren't able to use our specialized codepaths for semantic classifying. 
             // Fall back to classifying the full span that was asked for.
             await ClassifySpansAsync(
-                context, spanToTag, classificationService, typeMap, includeReassignedVariables).ConfigureAwait(false);
+                context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
         }
 
         private static async Task<bool> TryClassifyContainingMemberSpanAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
             IClassificationService classificationService,
-            ClassificationTypeMap typeMap,
-            bool includeReassignedVariables)
+            ClassificationTypeMap typeMap)
         {
             var range = context.TextChangeRange;
             if (range == null)
@@ -129,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             // re-classify only the member we're inside.
             await ClassifySpansAsync(
-                context, subSpanToTag, classificationService, typeMap, includeReassignedVariables).ConfigureAwait(false);
+                context, subSpanToTag, classificationService, typeMap).ConfigureAwait(false);
             return true;
         }
 
@@ -137,8 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
             IClassificationService classificationService,
-            ClassificationTypeMap typeMap,
-            bool includeReassignedVariables)
+            ClassificationTypeMap typeMap)
         {
             try
             {
@@ -155,15 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         document, snapshotSpan.Span.ToTextSpan(), classificationService, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     foreach (var span in classifiedSpans)
-                    {
-                        if (span.ClassificationType == ClassificationTypeNames.ReassignedVariable)
-                        {
-                            if (!includeReassignedVariables)
-                                continue;
-                        }
-
                         context.AddTag(ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, span));
-                    }
 
                     var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 

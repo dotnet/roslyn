@@ -23,11 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReassignedVariable
         {
             using var workspace = CreateWorkspace(markup);
 
-            var language = workspace.CurrentSolution.Projects.Single().Language;
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.CurrentSolution.Options.WithChangedOption(ReassignedVariableOptions.Underline, language, true)));
-
-            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            var project = workspace.CurrentSolution.Projects.Single();
+            var language = project.Language;
+            var document = project.Documents.Single();
             var text = await document.GetTextAsync();
 
             var service = document.GetRequiredLanguageService<IReassignedVariableService>();

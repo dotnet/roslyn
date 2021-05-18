@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
 
-        public static async Task AddSemanticClassificationsInCurrentProcessAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public static async Task AddSemanticClassificationsInCurrentProcessAsync(
+            Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
             var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
@@ -75,9 +76,14 @@ namespace Microsoft.CodeAnalysis.Classification
 
             await classificationService.AddSemanticClassificationsAsync(document, textSpan, getNodeClassifiers, getTokenClassifiers, result, cancellationToken).ConfigureAwait(false);
 
-            var reassignedVariableSpans = await reassignedVariableService.GetReassignedVariablesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            foreach (var span in reassignedVariableSpans)
-                result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ReassignedVariable));
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var classifyReassignedVariables = options.GetOption(ClassificationOptions.ClassifyReassignedVariables);
+            if (classifyReassignedVariables)
+            {
+                var reassignedVariableSpans = await reassignedVariableService.GetReassignedVariablesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                foreach (var span in reassignedVariableSpans)
+                    result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ReassignedVariable));
+            }
         }
 
         public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         // all edits were contained within one.
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
         protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(ReassignedVariableOptions.Underline);
+        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(ClassificationOptions.ClassifyReassignedVariables);
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -114,11 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (workspaceContextService?.IsInLspEditorContext() == true)
                 return;
 
-            var option = await document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
-            var includeReassignedVariables = option.GetOption(ReassignedVariableOptions.Underline);
-
-            await SemanticClassificationUtilities.ProduceTagsAsync(
-                context, spanToTag, classificationService, _typeMap, includeReassignedVariables).ConfigureAwait(false);
+            await SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap).ConfigureAwait(false);
         }
     }
 }

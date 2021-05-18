@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 var classificationService = documentSpan.Document.GetLanguageService<IClassificationService>();
                 return classificationService != null
-                    ? SemanticClassificationUtilities.ProduceTagsAsync(context, documentSpan, classificationService, typeMap, includeReassignedVariables: false)
+                    ? SemanticClassificationUtilities.ProduceTagsAsync(context, documentSpan, classificationService, typeMap)
                     : Task.CompletedTask;
             }
         }
