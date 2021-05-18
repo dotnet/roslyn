@@ -81,9 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
         public async Task TestAddNewBoolCodeStyleOptionWithSeverityAsync()
         {
-            var option = CSharpCodeStyleOptions.PreferThrowExpression.DefaultValue;
-            option.Value = true;
-            option.Notification = CodeStyle.NotificationOption2.Suggestion;
+            ICodeStyleOption option = CSharpCodeStyleOptions.PreferThrowExpression.DefaultValue;
+            option = option.WithValue(true).WithNotification(NotificationOption2.Suggestion);
             await TestAsync(
                 string.Empty,
                 "[*.cs]\r\ncsharp_style_throw_expression=true:suggestion",
@@ -93,9 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
         public async Task TestAddNewEnumCodeStyleOptionWithSeverityAsync()
         {
-            var option = CSharpCodeStyleOptions.PreferredUsingDirectivePlacement.DefaultValue;
-            option.Value = AddImportPlacement.InsideNamespace;
-            option.Notification = CodeStyle.NotificationOption2.Warning;
+            ICodeStyleOption option = CSharpCodeStyleOptions.PreferredUsingDirectivePlacement.DefaultValue;
+            option = option.WithValue(AddImportPlacement.InsideNamespace).WithNotification(NotificationOption2.Warning);
             await TestAsync(
                 string.Empty,
                 "[*.cs]\r\ncsharp_using_directive_placement=inside_namespace:warning",
