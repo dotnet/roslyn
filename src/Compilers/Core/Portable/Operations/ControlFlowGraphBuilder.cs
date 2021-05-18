@@ -7033,7 +7033,7 @@ oneMoreTime:
                         type: matchFailureCtor.ContainingType, constantValue: null, isImplicit: true);
                 LinkThrowStatement(makeException);
 
-                linkToPreviousAfterSwitch = true;
+                linkToPreviousAfterSwitch = false;
             }
             else
             {
