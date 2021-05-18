@@ -1791,7 +1791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal static bool HasImplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
+        private static bool HasImplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
