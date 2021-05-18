@@ -7,6 +7,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -42,8 +43,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             public static readonly LoggerTestChannel Instance = new LoggerTestChannel();
 
-            private ConcurrentBag<TelemetryEvent> eventsQueue =
-                new ConcurrentBag<TelemetryEvent>();
+            private BlockingCollection<TelemetryEvent> eventsQueue =
+                new BlockingCollection<TelemetryEvent>();
 
             /// <summary>
             /// Waits for one or more events with the specified names
@@ -54,22 +55,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 if (!TelemetryService.DefaultSession.IsOptedIn)
                     return false;
 
+                using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
                 var set = new HashSet<string>(events);
-                while (true)
+                while (set.Count > 0)
                 {
-                    if (eventsQueue.TryTake(out var result))
-                    {
-                        set.Remove(result.Name);
-                        if (set.Count == 0)
-                        {
-                            return true;
-                        }
-                    }
-                    else
-                    {
-                        System.Threading.Thread.Sleep(1000);
-                    }
+                    var result = eventsQueue.Take(cancellationTokenSource.Token);
+                    set.Remove(result.Name);
                 }
+
+                return true;
             }
 
             /// <summary>
@@ -77,7 +71,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             /// </summary>
             public void Clear()
             {
-                this.eventsQueue = new ConcurrentBag<TelemetryEvent>();
+                this.eventsQueue.CompleteAdding();
+                this.eventsQueue = new BlockingCollection<TelemetryEvent>();
             }
 
             /// <summary>
