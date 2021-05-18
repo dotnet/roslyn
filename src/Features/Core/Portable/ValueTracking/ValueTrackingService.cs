@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return ImmutableArray<ValueTrackedItem>.Empty;
                 }
 
-                _ = PooledObjects.ArrayBuilder<ValueTrackedItem>.GetInstance(out var builder);
+                using var _ = PooledObjects.ArrayBuilder<ValueTrackedItem>.GetInstance(out var builder);
 
                 foreach (var item in result.Value)
                 {
@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     Contract.ThrowIfNull(rehydratedItem);
                     builder.Add(rehydratedItem);
                 }
+
+                return builder.ToImmutable();
             }
 
             var progressTracker = new ValueTrackingProgressCollector();
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return ImmutableArray<ValueTrackedItem>.Empty;
                 }
 
-                _ = PooledObjects.ArrayBuilder<ValueTrackedItem>.GetInstance(out var builder);
+                using var _ = PooledObjects.ArrayBuilder<ValueTrackedItem>.GetInstance(out var builder);
 
                 foreach (var item in result.Value)
                 {
@@ -94,6 +96,8 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                     builder.Add(rehydratedItem);
                 }
+
+                return builder.ToImmutable();
             }
 
             var progressTracker = new ValueTrackingProgressCollector();
