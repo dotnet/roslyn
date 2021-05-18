@@ -2,7 +2,7 @@
 
 If you need to tag folks on an issue or PR, you will generally want to tag the owners (not the lead) for [area](#areas) to which the change or issue is closest to.
 
-# Areas
+## Areas
 
 | Area               | Lead    | Owners                 |
 |--------------------|---------|------------------------|

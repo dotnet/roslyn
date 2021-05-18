@@ -1,6 +1,6 @@
 # API Review Process
 
-.NET has a long standing history of taking API usability extremely seriously. Thus, we generally review every single API that is added to the product. This page discusses how we conduct design reviews for the Roslyn components.
+.NET has a long-standing history of taking API usability extremely seriously. Thus, we generally review every single API that is added to the product. This page discusses how we conduct design reviews for the Roslyn components.
 
 ## Which APIs should be reviewed?
 
@@ -10,9 +10,9 @@ The rule of thumb is that we (**dotnet/roslyn**) review every public API that is
 
 1. **Requester files an issue**. The issue description should contain a speclet that represents a sketch of the new APIs, including samples on how the APIs are being used. The goal isn't to get a complete API list, but a good handle on how the new APIs would roughly look like and in what scenarios they are being used. Please use [this template](https://github.com/dotnet/roslyn/issues/new?template=api-suggestion.md). The issue should have the labels `Feature Request` and `Concept-API`.
 
-2. **We assign an owner**. We'll assign a dedicated owner from our side that sponsors the issue. This is usually [the area owner](../area-owners.md#areas) for which the API proposal or design change request was filed for.
+2. **We assign an owner**. We'll assign a dedicated owner from our side that sponsors the issue. This is usually [the area owner](../area-owners.md#areas) for which the API proposal or design change request was filed.
 
-3. **Discussion**. The goal of the discussion is to help the assignee to make a decision whether we want to pursue the proposal or not. In this phase, the goal isn't necessarily to perform an in-depth review; rather, we want to make sure that the proposal is actionable, i.e. has a concrete design, a sketch of the APIs and some code samples that show how it should be used. If changes are necessary, the owner will set the label `api-needs-work`. To make the changes, the requester should edit the top-most issue description. This allows folks joining later to understand the most recent proposal. To avoid confusion, the requester can maintain a tiny change log, like a bolded "Updates:" followed by a bullet point list of the updates that were being made. When you the feedback is addressed, the requester should notify the owner to re-review the changes.
+3. **Discussion**. The goal of the discussion is to help the assignee to decide whether we want to pursue the proposal or not. In this phase, the goal isn't necessarily to perform an in-depth review; rather, we want to make sure that the proposal is actionable, i.e. has a concrete design, a sketch of the APIs and some code samples that show how it should be used. If changes are necessary, the owner will set the label `api-needs-work`. To make the changes, the requester should edit the top-most issue description. This allows folks joining later to understand the most recent proposal. To avoid confusion, the requester can maintain a tiny change log, like a bolded "Updates:" followed by a bullet point list of the updates that were being made. When you the feedback is addressed, the requester should notify the owner to re-review the changes.
 
 4. **Owner makes decision**. When the owner believes enough information is available to make a decision, they will update the issue accordingly:
 
@@ -41,7 +41,7 @@ The API review board currently meets biweekly.
 
 ## Pull requests
 
-Pull requests against **dotnet/roslyn** shouldn't be submitted before getting approval. Also, we don't want to get work in progress (WIP) PR's. The reason being that we want to reduce the number pending PRs so that we can focus on the work the community expects we take action on.
+Pull requests against **dotnet/roslyn** that adds new public API shouldn't be submitted before getting approval. Also, we don't want to get work in progress (WIP) PR's. The reason being that we want to reduce the number pending PRs so that we can focus on the work the community expects we take action on.
 
 If you want to collaborate with other people on the design, feel free to perform the work in a branch in your own fork. If you want to track your TODOs in the description of a PR, you can always submit a PR against your own fork. Also, feel free to advertise your PR by linking it from the issue you filed against **dotnet/roslyn** in the first step above.
 
