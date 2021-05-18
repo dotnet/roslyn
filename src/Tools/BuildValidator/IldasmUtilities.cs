@@ -31,7 +31,7 @@ namespace BuildValidator
             }
             else
             {
-                throw new PlatformNotSupportedException(BuildValidatorResources.Runtime_platform_not_supported_for_testing);
+                throw new PlatformNotSupportedException();
             }
 
             return Path.Combine(directory, "runtimes", ridName, "native", ildasmExeName);
