@@ -7037,7 +7037,7 @@ oneMoreTime:
             }
             else
             {
-                linkToPreviousAfterSwitch = false;
+                linkToPreviousAfterSwitch = true;
             }
 
             _currentBasicBlock = null;
