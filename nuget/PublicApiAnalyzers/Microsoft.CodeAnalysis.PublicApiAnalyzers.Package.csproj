@@ -13,6 +13,7 @@
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics PublicApi ApiAnalyzer</PackageTags>
     <AnalyzerDocumentationFileDir>$(RepoRoot)src\PublicApiAnalyzers</AnalyzerDocumentationFileDir>
     <AnalyzerSarifFileDir>$(RepoRoot)src\PublicApiAnalyzers</AnalyzerSarifFileDir>
+    <IsShippingPackage>true</IsShippingPackage>
   </PropertyGroup>
 
   <Choose>

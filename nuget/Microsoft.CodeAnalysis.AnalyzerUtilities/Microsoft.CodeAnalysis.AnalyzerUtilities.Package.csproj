@@ -9,6 +9,7 @@
     <Summary>Analyzer utilities for various analyses, including Dataflow analysis</Summary>
     <ReleaseNotes>Analyzer utilities for various analyses, including Dataflow analysis based on ControlFlowGraph API in Microsoft.CodeAnalysis.</ReleaseNotes>
     <PackageTags>Roslyn Analyzer Utilities CodeAnalysis Dataflow ControlFlowGraph FlowAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
+    <IsShippingPackage>true</IsShippingPackage>
 
     <!-- 
       PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.AnalyzerUtilities
