@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ReassignedVariable;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -551,6 +552,26 @@ class C
     }
 
     void M2(ref int p) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestVolatileRefReadParameterCausingPossibleReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+using System.Threading;
+class C
+{
+    void M()
+    {
+        // p is statically detected as overwritten (even though it is not written at runtime)
+        // due to a limitation in ref analysis.
+        int [|p|] = 0;
+        Volatile.Read(ref [|p|]);
+        Console.WriteLine([|p|]);
+    }
 }");
         }
 
