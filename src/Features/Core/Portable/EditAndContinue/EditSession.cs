@@ -898,7 +898,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         Contract.ThrowIfNull(emitResult.Baseline);
 
-                        // TODO: Pass these to ManagedModuleUpdate in the new debugger contracts API
                         var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
                         var updatedTypeTokens = emitResult.UpdatedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
 
@@ -921,7 +920,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             pdbStream.ToImmutableArray(),
                             lineEdits,
                             updatedMethodTokens,
-                            updatedTypes: ImmutableArray<int>.Empty,
+                            updatedTypeTokens,
                             activeStatementsInUpdatedMethods,
                             exceptionRegionUpdates));
 
