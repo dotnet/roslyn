@@ -46,5 +46,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         protected override string FeatureAttributeName => FeatureAttribute.InlineErrors;
 
         protected override string AdornmentLayerName => LayerName;
+
+        public override void TextViewCreated(IWpfTextView textView)
+        {
+            if (textView == null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
+            if (!textView.TextBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Adornment))
+            {
+                return;
+            }
+
+            var manager = new InlineErrorAdornmentManager(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
+            // the manager keeps itself alive by listening to text view events.
+            //LineSeparatorAdornmentManager.Create(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
+        }
     }
 }

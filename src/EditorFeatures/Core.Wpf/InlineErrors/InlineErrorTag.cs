@@ -23,9 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
         private readonly DiagnosticData _diagnostic;
         private readonly IEditorFormatMap _editorFormatMap;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
-        private IClassificationFormatMap _classificationFormatMap;
         private readonly IClassificationType _classificationType;
+        private IClassificationFormatMap _classificationFormatMap;
         private TextFormattingRunProperties _format;
+        private TextBlock? _block;
+        private Border? _border;
+        private IWpfTextView _view;
+        private Geometry _bounds;
 
         public InlineErrorTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap,
             IClassificationFormatMapService classificationFormatMapService, IClassificationTypeRegistryService classificationTypeRegistryService)
@@ -36,10 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             _editorFormatMap = editorFormatMap;
             _classificationFormatMapService = classificationFormatMapService;
             _classificationType = classificationTypeRegistryService.GetClassificationType(TagId);
-            if (_classificationFormatMap is not null)
-            {
-                _classificationFormatMap.ClassificationFormatMappingChanged += OnClassificationFormatMappingChanged;
-            }
         }
 
         private void SetFormat(IClassificationFormatMap classificationFormatMap)
@@ -47,20 +47,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             _format ??= classificationFormatMap.GetTextProperties(_classificationType);
         }
 
-        private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
-        {
-            if (_format != null)
-            {
-                SetFormat(_classificationFormatMap);
-            }
-        }
-
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)
         {
+            _view = view;
+            _bounds = bounds;
             _classificationFormatMap = _classificationFormatMapService.GetClassificationFormatMap(view);
+
             SetFormat(_classificationFormatMap);
 
-            var block = new TextBlock
+            _classificationFormatMap.ClassificationFormatMappingChanged += ClassificationFormatMap_ClassificationFormatMappingChanged;
+
+            _block = new TextBlock
             {
                 FontFamily = _format.Typeface.FontFamily,
                 FontSize = 0.75 * _format.FontRenderingEmSize,
@@ -72,39 +69,55 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
-            block.Inlines.Add(_diagnostic.Id + ": " + _diagnostic.Message);
-            block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            block.Arrange(new Rect(block.DesiredSize));
+            _block.Inlines.Add(_diagnostic.Id + ": " + _diagnostic.Message);
+            _block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            _block.Arrange(new Rect(_block.DesiredSize));
 
             var color = _editorFormatMap.GetProperties(_errorType)[EditorFormatDefinition.ForegroundBrushId];
-            var border = new Border
+            _border = new Border
             {
                 Background = (Brush)color,
-                Child = block,
+                Child = _block,
                 CornerRadius = new CornerRadius(2),
                 // Highlighting lines are 2px buffer.  So shift us up by one from the bottom so we feel centered between them.
                 Margin = new Thickness(0, top: 0, 0, bottom: 5),
             };
 
-            border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            _border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
 
-            void viewportWidthChangedHandler(object s, EventArgs e)
+            void ViewportWidthChangedHandler(object s, EventArgs e)
             {
-                Canvas.SetLeft(border, view.ViewportWidth - block.DesiredSize.Width);
+                Canvas.SetLeft(_border, view.ViewportWidth - _border.DesiredSize.Width);
             }
 
-            view.ViewportWidthChanged += viewportWidthChangedHandler;
+            view.ViewportWidthChanged += ViewportWidthChangedHandler;
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
             // affect layout
-            TextOptions.SetTextFormattingMode(border, TextOptions.GetTextFormattingMode(view.VisualElement));
-            TextOptions.SetTextHintingMode(border, TextOptions.GetTextHintingMode(view.VisualElement));
-            TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(view.VisualElement));
+            TextOptions.SetTextFormattingMode(_border, TextOptions.GetTextFormattingMode(view.VisualElement));
+            TextOptions.SetTextHintingMode(_border, TextOptions.GetTextHintingMode(view.VisualElement));
+            TextOptions.SetTextRenderingMode(_border, TextOptions.GetTextRenderingMode(view.VisualElement));
 
-            Canvas.SetTop(border, bounds.Bounds.Bottom - block.DesiredSize.Height);
-            Canvas.SetLeft(border, view.ViewportWidth - block.DesiredSize.Width);
+            Canvas.SetTop(_border, bounds.Bounds.Bottom - _border.DesiredSize.Height);
+            Canvas.SetLeft(_border, view.ViewportWidth - _border.DesiredSize.Width);
 
-            return new GraphicsResult(border,
-                () => view.ViewportWidthChanged -= viewportWidthChangedHandler);
+            return new GraphicsResult(_border,
+                () => view.ViewportWidthChanged -= ViewportWidthChangedHandler);
+        }
+
+        private void ClassificationFormatMap_ClassificationFormatMappingChanged(object sender, EventArgs e)
+        {
+            if (_format is not null)
+            {
+                SetFormat(_classificationFormatMap);
+                if (_block is not null && _border is not null)
+                {
+                    _block.FontFamily = _format.Typeface.FontFamily;
+                    _block.FontSize = 0.75 * _format.FontHintingEmSize;
+                    _block.Foreground = _format.ForegroundBrush;
+                    Canvas.SetTop(_border, _bounds.Bounds.Bottom - _border.DesiredSize.Height);
+                    Canvas.SetLeft(_border, _view.ViewportWidth - _border.DesiredSize.Width);
+                }
+            }
         }
 
         protected override Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap)

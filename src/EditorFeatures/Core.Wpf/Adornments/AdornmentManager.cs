@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     /// <summary>
     /// UI manager for graphic overlay tags. These tags will simply paint something related to the text.
     /// </summary>
-    internal class AdornmentManager<T> where T : GraphicsTag
+    internal abstract class AdornmentManager<T> where T : GraphicsTag
     {
         private readonly object _invalidatedSpansLock = new object();
 
@@ -43,21 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// <summary>Spans that are invalidated, and need to be removed from the layer..</summary>
         private List<IMappingSpan> _invalidatedSpans;
 
-        public static AdornmentManager<T> Create(
+        public abstract AdornmentManager<T> Create(
             IThreadingContext threadingContext,
             IWpfTextView textView,
             IViewTagAggregatorFactoryService aggregatorService,
             IAsynchronousOperationListener asyncListener,
-            string adornmentLayerName)
-        {
-            Contract.ThrowIfNull(threadingContext);
-            Contract.ThrowIfNull(textView);
-            Contract.ThrowIfNull(aggregatorService);
-            Contract.ThrowIfNull(adornmentLayerName);
-            Contract.ThrowIfNull(asyncListener);
-
-            return new AdornmentManager<T>(threadingContext, textView, aggregatorService, asyncListener, adornmentLayerName);
-        }
+            string adornmentLayerName);
 
         internal AdornmentManager(
             IThreadingContext threadingContext,
