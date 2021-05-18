@@ -700,20 +700,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PartialMethodConstraintsChecks(definition, implementation, diagnostics);
 
-            if (definition.Parameters.Length == implementation.Parameters.Length)
-            {
-                for (int i = 0; i < definition.Parameters.Length; i++)
-                {
-                    if (definition.Parameters[i].Name != implementation.Parameters[i].Name)
-                    {
-                        diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.Locations[0],
-                            new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                            new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
-                        break;
-                    }
-                }
-            }
-
             if (SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 implementation.DeclaringCompilation,
                 constructedDefinition,
@@ -733,8 +719,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasTypeDifferences = true;
             }
 
-            if (!hasTypeDifferences &&
-                (!MemberSignatureComparer.PartialMethodsStrictComparer.Equals(definition, implementation)))
+            if ((!hasTypeDifferences && !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(definition, implementation)) ||
+                !definition.Parameters.SequenceEqual(implementation.Parameters, (a, b) => a.Name == b.Name))
             {
                 diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.Locations[0],
                     new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
