@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     ae = ae.Flatten();
 
                     // If we had a mix of exceptions, don't eat it
-                    if (ae.InnerExceptions.Any(e => !(e is OperationCanceledException)) ||
+                    if (ae.InnerExceptions.Any(e => e is not OperationCanceledException) ||
                         ae.InnerExceptions.Cast<OperationCanceledException>().Any(NotOurShutdownToken))
                     {
                         // We had a cancellation with a different token, so don't eat it

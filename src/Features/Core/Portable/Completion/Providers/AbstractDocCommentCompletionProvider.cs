@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (attributeName == NameAttributeName && symbol != null)
             {
-                if (tagName == ParameterElementName || tagName == ParameterReferenceElementName)
+                if (tagName is ParameterElementName or ParameterReferenceElementName)
                 {
                     return symbol.GetParameters()
                                  .Select(parameter => CreateCompletionItem(parameter.Name));
