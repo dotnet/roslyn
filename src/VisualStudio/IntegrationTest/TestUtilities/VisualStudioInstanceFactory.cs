@@ -334,7 +334,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 // HACK: 16.10P2 contains an LSP client bug where on solution closed, server activation tasks that are not already completed / cancelled
                 // do not properly get cancelled.  When a new solution is opened these incomplete server ativation tasks are not cleared.
-                // Any feature that waits for LSP server activations to complete will hang on the old incomplete server activation tasks.
+                // Any feature that waits for LSP server activations to complete will stop responding because of the old incomplete server activation tasks.
                 //
                 // The roslyn C# always active server and intellicode's refactorings LSP server are the only LSP servers active on C# files in 16.10p2.
                 // To work around potential hangs where the intellicode server activation does not complete before solution close, we disable their LSP server entirely.
