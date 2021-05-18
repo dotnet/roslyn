@@ -76,5 +76,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ConvertPlaceholderToInterpolatedString = nameof(ConvertPlaceholderToInterpolatedString);
         public const string ConvertConcatenationToInterpolatedString = nameof(ConvertConcatenationToInterpolatedString);
         public const string InvertMultiLineIf = nameof(InvertMultiLineIf);
+        public const string UseRecursivePatterns = nameof(UseRecursivePatterns);
     }
 }

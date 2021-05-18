@@ -662,5 +662,24 @@ namespace System.Linq
                 return result;
             }
         }
+
+        public static TResult Aggregate<TSource, TSeed, TResult>(this IEnumerable<TSource> source, TSeed seed, Func<TSeed, TSource, TResult> seedSelector, Func<TResult, TSource, TResult> resultSelector)
+        {
+            using (var e = source.GetEnumerator())
+            {
+                if (!e.MoveNext())
+                {
+                    throw new InvalidOperationException();
+                }
+
+                var result = seedSelector(seed, e.Current);
+                while (e.MoveNext())
+                {
+                    result = resultSelector(result, e.Current);
+                }
+
+                return result;
+            }
+        }
     }
 }
