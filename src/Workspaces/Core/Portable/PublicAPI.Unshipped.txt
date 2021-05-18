@@ -1,4 +1,5 @@
 abstract Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.FixAllAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext, Microsoft.CodeAnalysis.Document document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ReassignedVariable = "reassigned variable" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RecordClassName = "record class name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RecordStructName = "record struct name" -> string
 Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider

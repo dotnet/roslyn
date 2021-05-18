@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -17,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.ReassignedVariable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -43,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         // all edits were contained within one.
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
         protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
+        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(ReassignedVariableOptions.Underline);
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -91,32 +91,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
-        protected override Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
+        protected override async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
 
             var spanToTag = context.SpansToTag.Single();
 
             var document = spanToTag.Document;
+            if (document == null)
+                return;
 
             // Attempt to get a classification service which will actually produce the results.
             // If we can't (because we have no Document, or because the language doesn't support
             // this service), then bail out immediately.
-            var classificationService = document?.GetLanguageService<IClassificationService>();
+            var classificationService = document.GetLanguageService<IClassificationService>();
             if (classificationService == null)
-            {
-                return Task.CompletedTask;
-            }
+                return;
 
             // The LSP client will handle producing tags when running under the LSP editor.
             // Our tagger implementation should return nothing to prevent conflicts.
-            var workspaceContextService = document?.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+            var workspaceContextService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
             if (workspaceContextService?.IsInLspEditorContext() == true)
-            {
-                return Task.CompletedTask;
-            }
+                return;
 
-            return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
+            var option = await document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
+            var includeReassignedVariables = option.GetOption(ReassignedVariableOptions.Underline);
+
+            await SemanticClassificationUtilities.ProduceTagsAsync(
+                context, spanToTag, classificationService, _typeMap, includeReassignedVariables).ConfigureAwait(false);
         }
     }
 }

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.ReassignedVariable;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public static async Task AddSemanticClassificationsInCurrentProcessAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
+            var reassignedVariableService = document.GetRequiredLanguageService<IReassignedVariableService>();
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
             var classifiers = classificationService.GetDefaultSyntaxClassifiers();
@@ -72,6 +74,10 @@ namespace Microsoft.CodeAnalysis.Classification
             var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds);
 
             await classificationService.AddSemanticClassificationsAsync(document, textSpan, getNodeClassifiers, getTokenClassifiers, result, cancellationToken).ConfigureAwait(false);
+
+            var reassignedVariableSpans = await reassignedVariableService.GetReassignedVariablesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            foreach (var span in reassignedVariableSpans)
+                result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ReassignedVariable));
         }
 
         public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
