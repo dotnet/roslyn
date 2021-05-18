@@ -35,8 +35,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        public void WaitForTelemetryEvents(string[] names)
-            => LoggerTestChannel.Instance.WaitForEvents(names);
+        public bool TryWaitForTelemetryEvents(string[] names)
+            => LoggerTestChannel.Instance.TryWaitForEvents(names);
 
         private sealed class LoggerTestChannel : ITelemetryTestChannel
         {
@@ -49,8 +49,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             /// Waits for one or more events with the specified names
             /// </summary>
             /// <param name="events"></param>
-            public void WaitForEvents(string[] events)
+            public bool TryWaitForEvents(string[] events)
             {
+                if (!TelemetryService.DefaultSession.IsOptedIn)
+                    return false;
+
                 var set = new HashSet<string>(events);
                 while (true)
                 {
@@ -59,7 +62,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                         set.Remove(result.Name);
                         if (set.Count == 0)
                         {
-                            return;
+                            return true;
                         }
                     }
                     else
