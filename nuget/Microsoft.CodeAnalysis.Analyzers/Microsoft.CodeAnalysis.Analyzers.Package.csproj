@@ -9,6 +9,7 @@
     <Summary>Analyzers for .NET Compiler Platform ("Roslyn")</Summary>
     <ReleaseNotes>Diagnostic analyzers for the Microsoft .NET Compiler Platform (Roslyn)</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
+    <IsShippingPackage>true</IsShippingPackage>
 
     <!-- 
       PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.Analyzers 

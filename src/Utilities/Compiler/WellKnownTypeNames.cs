@@ -195,6 +195,7 @@ namespace Analyzer.Utilities
         public const string SystemGC = "System.GC";
         public const string SystemGlobalizationCultureInfo = "System.Globalization.CultureInfo";
         public const string SystemGuid = "System.Guid";
+        public const string SystemHashCode = "System.HashCode";
         public const string SystemIAsyncDisposable = "System.IAsyncDisposable";
         public const string SystemIComparable = "System.IComparable";
         public const string SystemIComparable1 = "System.IComparable`1";
@@ -224,6 +225,7 @@ namespace Analyzer.Utilities
         public const string SystemLinqQueryable = "System.Linq.Queryable";
         public const string SystemMarshalByRefObject = "System.MarshalByRefObject";
         public const string SystemMemory1 = "System.Memory`1";
+        public const string SystemMemoryExtensions = "System.MemoryExtensions";
         public const string SystemNetHttpHttpClient = "System.Net.Http.HttpClient";
         public const string SystemNetHttpHttpClientHandler = "System.Net.Http.HttpClientHandler";
         public const string SystemNetHttpWinHttpHandler = "System.Net.Http.WinHttpHandler";

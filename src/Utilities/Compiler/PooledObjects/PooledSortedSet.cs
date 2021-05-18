@@ -55,7 +55,7 @@ namespace Analyzer.Utilities.PooledObjects
         /// <summary>
         /// Gets a pooled instance of a <see cref="PooledSortedSet{T}"/> with an optional comparer.
         /// </summary>
-        /// <param name="comparer">Comparer to use, or null for the element type's default comparer.</param>
+        /// <param name="comparer">Singleton (or at least a bounded number) comparer to use, or null for the element type's default comparer.</param>
         /// <returns>An empty <see cref="PooledSortedSet{T}"/>.</returns>
         public static PooledSortedSet<T> GetInstance(IComparer<T>? comparer = null)
         {

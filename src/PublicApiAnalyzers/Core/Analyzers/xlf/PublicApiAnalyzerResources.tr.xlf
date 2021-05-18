@@ -189,12 +189,12 @@
       </trans-unit>
       <trans-unit id="RemovedApiIsNotActuallyRemovedMessage">
         <source>Symbol '{0}' is marked as removed but it isn't deleted in source code</source>
-        <target state="new">Symbol '{0}' is marked as removed but it isn't deleted in source code</target>
+        <target state="translated">'{0}' sembolü kaldırıldı olarak işaretlenmiş ancak kaynak kodunda silinmemiş</target>
         <note />
       </trans-unit>
       <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
         <source>Public API is marked as removed but it exists in source code</source>
-        <target state="new">Public API is marked as removed but it exists in source code</target>
+        <target state="translated">Genel API kaldırıldı olarak işaretlenmiş ancak kaynak kodunda mevcut</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateApiFilesDescription">
