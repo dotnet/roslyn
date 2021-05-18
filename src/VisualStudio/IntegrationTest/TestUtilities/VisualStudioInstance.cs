@@ -362,7 +362,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             public void VerifyFired(params string[] expectedEventNames)
             {
                 var telemetryEnabled = _instance.TryWaitForTelemetryEvents(expectedEventNames);
-                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AGENT_ID")))
+                if (string.Equals(Environment.GetEnvironmentVariable("ROSLYN_TEST_CI"), "true", StringComparison.OrdinalIgnoreCase))
                 {
                     // Telemetry verification is optional for developer machines, but required for CI.
                     Assert.True(telemetryEnabled);
