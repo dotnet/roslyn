@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Analyzer.Utilities.Extensions
 Imports Microsoft.CodeAnalysis.Analyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -9,17 +10,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers
     Public Class VisualBasicUpgradeMSBuildWorkspaceAnalyzer
         Inherits UpgradeMSBuildWorkspaceAnalyzer
 
-        Private Sub New(performAssemblyChecks As Boolean)
+        Private Protected Sub New(performAssemblyChecks As Boolean)
             MyBase.New(performAssemblyChecks)
         End Sub
 
         Public Sub New()
             Me.New(performAssemblyChecks:=True)
         End Sub
-
-        Friend Shared Function CreateForTests() As VisualBasicUpgradeMSBuildWorkspaceAnalyzer
-            Return New VisualBasicUpgradeMSBuildWorkspaceAnalyzer(performAssemblyChecks:=False)
-        End Function
 
         Protected Overrides Sub RegisterIdentifierAnalysis(context As CompilationStartAnalysisContext)
             context.RegisterSyntaxNodeAction(AddressOf AnalyzeIdentifier, SyntaxKind.IdentifierName)
@@ -39,9 +36,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers
                 Return
             End If
 
-            Dim symbolInfo = context.SemanticModel.GetSymbolInfo(identifierName)
+            Dim symbolInfo = context.SemanticModel.GetSymbolInfo(identifierName, context.CancellationToken)
             If symbolInfo.Symbol Is Nothing Then
-                context.ReportDiagnostic(Diagnostic.Create(UpgradeMSBuildWorkspaceDiagnosticRule, identifierName.GetLocation()))
+                context.ReportDiagnostic(identifierName.CreateDiagnostic(UpgradeMSBuildWorkspaceDiagnosticRule))
             End If
         End Sub
     End Class

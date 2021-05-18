@@ -19,7 +19,7 @@ namespace Analyzer.Utilities
         /// <summary>
         /// ConcurrentDictionary key for a null SymbolDisplayFormat.
         /// </summary>
-        private static readonly SymbolDisplayFormat NullSymbolDisplayFormat = new SymbolDisplayFormat();
+        private static readonly SymbolDisplayFormat NullSymbolDisplayFormat = new();
 
         /// <summary>
         /// Mapping of a symbol to its ToDisplayString().
@@ -36,7 +36,6 @@ namespace Analyzer.Utilities
         {
             this.Format = Object.ReferenceEquals(format, NullSymbolDisplayFormat) ? null : format;
         }
-
 
         /// <summary>
         /// Gets the symbol display string cache for the compilation.

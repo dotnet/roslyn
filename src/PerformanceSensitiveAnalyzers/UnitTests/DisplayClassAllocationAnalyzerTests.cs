@@ -39,11 +39,17 @@ class Test
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(15,13): warning HAA0302: The compiler will emit a class that will hold this as a field to allow capturing of this closure
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureCaptureRule).WithLocation(15, 13),
+#pragma warning restore RS0030 // Do not used banned APIs
                 // Test0.cs(16,16): warning HAA0303: Considering moving this out of the generic method
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.LambaOrAnonymousMethodInGenericMethodRule).WithLocation(16, 16),
+#pragma warning restore RS0030 // Do not used banned APIs
                 // Test0.cs(16,16): warning HAA0301: Heap allocation of closure Captures: counter
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(16, 16).WithArguments("counter"));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -68,9 +74,13 @@ public class Testing<T>
 
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(12,13): warning HAA0302: The compiler will emit a class that will hold this as a field to allow capturing of this closure
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureCaptureRule).WithLocation(12, 13),
+#pragma warning restore RS0030 // Do not used banned APIs
                 // Test0.cs(13,39): warning HAA0301: Heap allocation of closure Captures: min
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(13, 39).WithArguments("min"));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -85,9 +95,9 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
-        var words = new[] { ""foo"", ""bar"", ""baz"", ""beer"" };
+        var words = new[] { ""aaaa"", ""bbbb"", ""cccc"", ""ddd"" };
         var actions = new List<Action>();
         foreach (string word in words) // <-- captured closure
         {
@@ -97,9 +107,13 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(13,25): warning HAA0302: The compiler will emit a class that will hold this as a field to allow capturing of this closure
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureCaptureRule).WithLocation(13, 25),
+#pragma warning restore RS0030 // Do not used banned APIs
                 // Test0.cs(15,28): warning HAA0301: Heap allocation of closure Captures: word
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(15, 28).WithArguments("word"));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -112,7 +126,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Sorter(int[] arr) 
+    public void Sorter(int[] arr)
     {
         System.Array.Sort(arr, delegate(int x, int y) { return x - y; });
     }
@@ -130,7 +144,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Sorter(int[] arr) 
+    public void Sorter(int[] arr)
     {
         System.Array.Sort(arr, (x, y) => x - y);
     }
@@ -148,7 +162,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Sorter(int[] arr) 
+    public void Sorter(int[] arr)
     {
         int z = 2;
         System.Array.Sort(arr, delegate(int x, int y) { return x - z; });
@@ -156,9 +170,13 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(9,13): warning HAA0302: The compiler will emit a class that will hold this as a field to allow capturing of this closure
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureCaptureRule).WithLocation(9, 13),
+#pragma warning restore RS0030 // Do not used banned APIs
                 // Test0.cs(10,32): warning HAA0301: Heap allocation of closure Captures: z
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(10, 32).WithArguments("z"));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
     }
 }

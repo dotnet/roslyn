@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
             foreach (var key in map.Keys)
             {
-                Debug.Assert(key.CaptureIdOpt == null);
+                Debug.Assert(key.CaptureId == null);
             }
         }
 

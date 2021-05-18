@@ -6,7 +6,7 @@
       PackageId is used by Restore. If we set it to DotNetAnalyzers.PublicApiAnalyzer.CodeFixes,
       Restore would conclude that there is a cyclic dependency between us and the DotNetAnalyzers.PublicApiAnalyzer.CodeFixes package.
     -->
-    <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
+    <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <MicrosoftCodeAnalysisVersion>1.2.1</MicrosoftCodeAnalysisVersion>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
   </PropertyGroup>

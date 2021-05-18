@@ -6,6 +6,19 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class ReportDiagnosticExtensions
     {
+        public static string ToAnalyzerConfigString(this ReportDiagnostic reportDiagnostic)
+        {
+            return reportDiagnostic switch
+            {
+                ReportDiagnostic.Error => "error",
+                ReportDiagnostic.Warn => "warning",
+                ReportDiagnostic.Info => "suggestion",
+                ReportDiagnostic.Hidden => "silent",
+                ReportDiagnostic.Suppress => "none",
+                _ => throw new NotImplementedException(),
+            };
+        }
+
         public static DiagnosticSeverity? ToDiagnosticSeverity(this ReportDiagnostic reportDiagnostic)
         {
             return reportDiagnostic switch
@@ -14,7 +27,8 @@ namespace Microsoft.CodeAnalysis
                 ReportDiagnostic.Warn => DiagnosticSeverity.Warning,
                 ReportDiagnostic.Info => DiagnosticSeverity.Info,
                 ReportDiagnostic.Hidden => DiagnosticSeverity.Hidden,
-                ReportDiagnostic.Suppress or ReportDiagnostic.Default => null,
+                ReportDiagnostic.Suppress => null,
+                ReportDiagnostic.Default => null,
                 _ => throw new NotImplementedException(),
             };
         }
@@ -24,23 +38,34 @@ namespace Microsoft.CodeAnalysis
             return current switch
             {
                 ReportDiagnostic.Error => false,
-                ReportDiagnostic.Warn => other switch
-                {
-                    ReportDiagnostic.Error => true,
-                    _ => false,
-                },
-                ReportDiagnostic.Info => other switch
-                {
-                    ReportDiagnostic.Error or ReportDiagnostic.Warn => true,
-                    _ => false,
-                },
-                ReportDiagnostic.Hidden => other switch
-                {
-                    ReportDiagnostic.Error or ReportDiagnostic.Warn or ReportDiagnostic.Info => true,
-                    _ => false,
-                },
+
+                ReportDiagnostic.Warn =>
+                    other switch
+                    {
+                        ReportDiagnostic.Error => true,
+                        _ => false
+                    },
+
+                ReportDiagnostic.Info =>
+                    other switch
+                    {
+                        ReportDiagnostic.Error => true,
+                        ReportDiagnostic.Warn => true,
+                        _ => false
+                    },
+
+                ReportDiagnostic.Hidden =>
+                    other switch
+                    {
+                        ReportDiagnostic.Error => true,
+                        ReportDiagnostic.Warn => true,
+                        ReportDiagnostic.Info => true,
+                        _ => false
+                    },
+
                 ReportDiagnostic.Suppress => true,
-                _ => false,
+
+                _ => false
             };
         }
     }

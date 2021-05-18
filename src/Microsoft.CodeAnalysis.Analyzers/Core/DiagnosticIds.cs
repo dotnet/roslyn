@@ -30,5 +30,24 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string CompareSymbolsCorrectlyRuleId = "RS1024";
         public const string ConfigureGeneratedCodeAnalysisRuleId = "RS1025";
         public const string EnableConcurrentExecutionRuleId = "RS1026";
+        public const string TypeIsNotDiagnosticAnalyzerRuleId = "RS1027";
+        public const string ProvideCustomTagsInDescriptorRuleId = "RS1028";
+        public const string DoNotUseReservedDiagnosticIdRuleId = "RS1029";
+        public const string DoNotUseCompilationGetSemanticModelRuleId = "RS1030";
+        public const string DefineDiagnosticTitleCorrectlyRuleId = "RS1031";
+        public const string DefineDiagnosticMessageCorrectlyRuleId = "RS1032";
+        public const string DefineDiagnosticDescriptionCorrectlyRuleId = "RS1033";
+        public const string PreferIsKindRuleId = "RS1034";
+
+        // Release tracking analyzer IDs
+        public const string DeclareDiagnosticIdInAnalyzerReleaseRuleId = "RS2000";
+        public const string UpdateDiagnosticIdInAnalyzerReleaseRuleId = "RS2001";
+        public const string RemoveUnshippedDeletedDiagnosticIdRuleId = "RS2002";
+        public const string RemoveShippedDeletedDiagnosticIdRuleId = "RS2003";
+        public const string UnexpectedAnalyzerDiagnosticForRemovedDiagnosticIdRuleId = "RS2004";
+        public const string RemoveDuplicateEntriesForAnalyzerReleaseRuleId = "RS2005";
+        public const string RemoveDuplicateEntriesBetweenAnalyzerReleasesRuleId = "RS2006";
+        public const string InvalidEntryInAnalyzerReleasesFileRuleId = "RS2007";
+        public const string EnableAnalyzerReleaseTrackingRuleId = "RS2008";
     }
 }

@@ -47,7 +47,9 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(9,21): warning HAA0201: Considering using StringBuilder
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ConcatenationAllocationAnalyzer.StringConcatenationAllocationRule).WithLocation(9, 21));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Theory]
@@ -103,7 +105,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         System.DateTime c = System.DateTime.Now;
         string s1 = ""char value will box"" + c;
@@ -111,7 +113,9 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
                 // Test0.cs(11,45): warning HAA0202: Value type (System.DateTime) is being boxed to a reference type for a string concatenation.
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ConcatenationAllocationAnalyzer.ValueTypeToReferenceTypeInAStringConcatenationRule).WithLocation(11, 45).WithArguments("System.DateTime"));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
     }
 }

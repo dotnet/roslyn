@@ -5,7 +5,7 @@ using System;
 namespace Test.Utilities
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
-    public class WorkItemAttribute : Attribute
+    public sealed class WorkItemAttribute : Attribute
     {
         public WorkItemAttribute(int id, string source)
         {

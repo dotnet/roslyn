@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         int[] intData = new[] { 123, 32, 4 };
         IList<int> iListData = new[] { 123, 32, 4 };
@@ -51,9 +51,13 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(25,24): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(25, 24),
+#pragma warning restore RS0030 // Do not used banned APIs
                 // Test0.cs(30,24): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(30, 24));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -67,9 +71,9 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
-        // These next 3 are from the YouTube video 
+        // These next 3 are from the YouTube video
         foreach (object a in new[] { 1, 2, 3}) // Allocations 'new [] { 1. 2, 3}'
         {
             Console.WriteLine(a.ToString());
@@ -88,7 +92,9 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(17,24): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(17, 24));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -103,7 +109,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
         var enumeratorRaw = GetIEnumerableRaw();
         while (enumeratorRaw.MoveNext())
@@ -131,7 +137,9 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(17,43): warning HAA0401: Non-ValueType enumerator may result in a heap allocation
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic().WithLocation(17, 43));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Fact]
@@ -144,9 +152,9 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
-        foreach (char c in ""foo"") { };
+        foreach (char c in ""aaa"") { };
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram);

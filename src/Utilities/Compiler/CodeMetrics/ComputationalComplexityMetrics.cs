@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 
 #if LEGACY_CODE_METRICS_MODE
                 // Legacy mode does not account for code within lambdas/local functions for code metrics.
-                if (operation.IsWithinLambdaOrLocalFunction())
+                if (operation.IsWithinLambdaOrLocalFunction(out _))
                 {
                     continue;
                 }
@@ -329,8 +329,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 distinctOperatorKindsBuilder.Add(operation.Kind);
             }
 
-            void countOperand(ISymbol symbol)
+            void countOperand(ISymbol? symbol)
             {
+                if (symbol is null)
+                    return;
+
                 symbolUsageCounts++;
                 distinctReferencedSymbolsBuilder ??= ImmutableHashSet.CreateBuilder<ISymbol>();
                 distinctReferencedSymbolsBuilder.Add(symbol);

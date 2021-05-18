@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new(
             DiagnosticIds.OverrideCodeActionEquivalenceKeyRuleId,
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new(
             DiagnosticIds.OverrideGetFixAllProviderRuleId,
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     }
                     else if (fixer.BaseType != null && fixer.BaseType.Equals(_codeFixProviderSymbol))
                     {
-                        Diagnostic diagnostic = Diagnostic.Create(OverrideGetFixAllProviderRule, fixer.Locations.First(), fixer.Name);
+                        Diagnostic diagnostic = fixer.CreateDiagnostic(OverrideGetFixAllProviderRule, fixer.Name);
                         context.ReportDiagnostic(diagnostic);
                     }
                 }
@@ -280,7 +280,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     IParameterSymbol param = invocation.TargetMethod.Parameters.FirstOrDefault(p => p.Name == EquivalenceKeyParameterName);
                     if (param == null)
                     {
-                        return true;
+                        // User is calling an overload without the equivalenceKey parameter
+                        return false;
                     }
 
                     foreach (var argument in invocation.Arguments)
@@ -304,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                             {
                                 if (IsViolatingCodeActionCreateInvocation(invocation))
                                 {
-                                    Diagnostic diagnostic = Diagnostic.Create(CreateCodeActionEquivalenceKeyRule, invocation.Syntax.GetLocation(), EquivalenceKeyParameterName);
+                                    Diagnostic diagnostic = invocation.CreateDiagnostic(CreateCodeActionEquivalenceKeyRule, EquivalenceKeyParameterName);
                                     context.ReportDiagnostic(diagnostic);
                                 }
                             }
@@ -319,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                             {
                                 if (IsViolatingCodeActionObjectCreation(objectCreation))
                                 {
-                                    Diagnostic diagnostic = Diagnostic.Create(OverrideCodeActionEquivalenceKeyRule, objectCreation.Syntax.GetLocation(), objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
+                                    Diagnostic diagnostic = objectCreation.CreateDiagnostic(OverrideCodeActionEquivalenceKeyRule, objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
                                     context.ReportDiagnostic(diagnostic);
                                 }
                             }
@@ -345,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                             return _codeActionsWithEquivalenceKey != null && _codeActionsWithEquivalenceKey.Contains(namedType);
                         }
 
-                        // For types in different compilation, perfom the check.
+                        // For types in different compilation, perform the check.
                         return IsCodeActionWithOverriddenEquivlanceKeyCore(namedType);
                     }
                 }

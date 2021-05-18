@@ -9,36 +9,36 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public sealed class InterproceduralAnalysisPredicate
     {
-        private readonly Func<IMethodSymbol, bool>? _skipAnalysisForInvokedMethodPredicateOpt;
-        private readonly Func<IMethodSymbol, bool>? _skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt;
-        private readonly Func<IDataFlowAnalysisContext, bool>? _skipAnalysisForInvokedContextPredicateOpt;
+        private readonly Func<IMethodSymbol, bool>? _skipAnalysisForInvokedMethodPredicate;
+        private readonly Func<IMethodSymbol, bool>? _skipAnalysisForInvokedLambdaOrLocalFunctionPredicate;
+        private readonly Func<IDataFlowAnalysisContext, bool>? _skipAnalysisForInvokedContextPredicate;
 
         public InterproceduralAnalysisPredicate(
-            Func<IMethodSymbol, bool>? skipAnalysisForInvokedMethodPredicateOpt,
-            Func<IMethodSymbol, bool>? skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt,
-            Func<IDataFlowAnalysisContext, bool>? skipAnalysisForInvokedContextPredicateOpt)
+            Func<IMethodSymbol, bool>? skipAnalysisForInvokedMethodPredicate,
+            Func<IMethodSymbol, bool>? skipAnalysisForInvokedLambdaOrLocalFunctionPredicate,
+            Func<IDataFlowAnalysisContext, bool>? skipAnalysisForInvokedContextPredicate)
         {
-            if (skipAnalysisForInvokedMethodPredicateOpt == null &&
-                skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt == null &&
-                skipAnalysisForInvokedContextPredicateOpt == null)
+            if (skipAnalysisForInvokedMethodPredicate == null &&
+                skipAnalysisForInvokedLambdaOrLocalFunctionPredicate == null &&
+                skipAnalysisForInvokedContextPredicate == null)
             {
                 throw new ArgumentException("You must provide at least one non-null predicate argument");
             }
 
-            _skipAnalysisForInvokedMethodPredicateOpt = skipAnalysisForInvokedMethodPredicateOpt;
-            _skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt = skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt;
-            _skipAnalysisForInvokedContextPredicateOpt = skipAnalysisForInvokedContextPredicateOpt;
+            _skipAnalysisForInvokedMethodPredicate = skipAnalysisForInvokedMethodPredicate;
+            _skipAnalysisForInvokedLambdaOrLocalFunctionPredicate = skipAnalysisForInvokedLambdaOrLocalFunctionPredicate;
+            _skipAnalysisForInvokedContextPredicate = skipAnalysisForInvokedContextPredicate;
         }
 
         public bool SkipInterproceduralAnalysis(IMethodSymbol invokedMethod, bool isLambdaOrLocalFunction)
         {
-            var predicateOpt = isLambdaOrLocalFunction ?
-                _skipAnalysisForInvokedLambdaOrLocalFunctionPredicateOpt :
-                _skipAnalysisForInvokedMethodPredicateOpt;
-            return predicateOpt?.Invoke(invokedMethod) == true;
+            var predicate = isLambdaOrLocalFunction ?
+                _skipAnalysisForInvokedLambdaOrLocalFunctionPredicate :
+                _skipAnalysisForInvokedMethodPredicate;
+            return predicate?.Invoke(invokedMethod) == true;
         }
 
         public bool SkipInterproceduralAnalysis(IDataFlowAnalysisContext interproceduralAnalysisContext)
-           => _skipAnalysisForInvokedContextPredicateOpt?.Invoke(interproceduralAnalysisContext) == true;
+           => _skipAnalysisForInvokedContextPredicate?.Invoke(interproceduralAnalysisContext) == true;
     }
 }

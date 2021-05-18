@@ -4,6 +4,8 @@ using System;
 using System.Threading;
 using Analyzer.Utilities;
 
+#pragma warning disable CA2002
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     /// <summary>

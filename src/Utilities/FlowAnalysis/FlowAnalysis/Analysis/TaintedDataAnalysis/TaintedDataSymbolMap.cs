@@ -109,10 +109,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <returns>Relevant infos for the given type.</returns>
         public IEnumerable<TInfo> GetInfosForType(INamedTypeSymbol namedTypeSymbol)
         {
-            Debug.Assert(namedTypeSymbol != null);
-
             if (namedTypeSymbol == null)
             {
+                Debug.Fail("Expected non-null 'namedTypeSymbol'");
+
                 yield break;
             }
 

@@ -76,7 +76,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
 
             PointsToAnalysisResult? pointsToAnalysisResult;
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt;
+            ValueContentAnalysisResult? valueContentAnalysisResult;
             if (!constructorMapper.RequiresValueContentAnalysis && !propertyMappers.RequiresValueContentAnalysis)
             {
                 pointsToAnalysisResult = PointsToAnalysis.TryGetOrComputeResult(
@@ -86,7 +86,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     wellKnownTypeProvider,
                     PointsToAnalysisKind.Complete,
                     interproceduralAnalysisConfig,
-                    interproceduralAnalysisPredicateOpt: null,
+                    interproceduralAnalysisPredicate: null,
                     pessimisticAnalysis,
                     performCopyAnalysis: false);
                 if (pointsToAnalysisResult == null)
@@ -94,11 +94,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     return null;
                 }
 
-                valueContentAnalysisResultOpt = null;
+                valueContentAnalysisResult = null;
             }
             else
             {
-                valueContentAnalysisResultOpt = ValueContentAnalysis.TryGetOrComputeResult(
+                valueContentAnalysisResult = ValueContentAnalysis.TryGetOrComputeResult(
                     cfg,
                     owningSymbol,
                     analyzerOptions,
@@ -109,7 +109,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     out pointsToAnalysisResult,
                     pessimisticAnalysis,
                     performCopyAnalysis: false);
-                if (valueContentAnalysisResultOpt == null)
+                if (valueContentAnalysisResult == null)
                 {
                     return null;
                 }
@@ -124,7 +124,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis,
                 pointsToAnalysisResult,
-                valueContentAnalysisResultOpt,
+                valueContentAnalysisResult,
                 TryGetOrComputeResultForAnalysisContext,
                 typeToTrackMetadataNames,
                 constructorMapper,

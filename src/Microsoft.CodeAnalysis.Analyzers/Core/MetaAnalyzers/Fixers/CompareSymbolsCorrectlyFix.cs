@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
@@ -13,31 +15,35 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(CompareSymbolsCorrectlyFix))]
-    [Shared]
-    public class CompareSymbolsCorrectlyFix : CodeFixProvider
+    public abstract class CompareSymbolsCorrectlyFix : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CompareSymbolsCorrectlyAnalyzer.Rule.Id);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
+            => ImmutableArray.Create(CompareSymbolsCorrectlyAnalyzer.EqualityRule.Id);
+
+        protected abstract SyntaxNode CreateConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
-                        cancellationToken => ConvertToEqualsAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
-                        equivalenceKey: nameof(CompareSymbolsCorrectlyFix)),
-                    diagnostic);
+                if (diagnostic.Descriptor == CompareSymbolsCorrectlyAnalyzer.EqualityRule)
+                {
+                    context.RegisterCodeFix(
+                        CodeAction.Create(
+                            CodeAnalysisDiagnosticsResources.CompareSymbolsCorrectlyCodeFix,
+                            cancellationToken => ConvertToEqualsAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
+                            equivalenceKey: nameof(CompareSymbolsCorrectlyFix)),
+                        diagnostic);
+                }
             }
 
             return Task.CompletedTask;
         }
 
-        private static async Task<Document> ConvertToEqualsAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        private async Task<Document> ConvertToEqualsAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -52,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             };
         }
 
-        private static async Task<Document> EnsureEqualsCorrectAsync(Document document, SemanticModel semanticModel, IInvocationOperation invocationOperation, CancellationToken cancellationToken)
+        private async Task<Document> EnsureEqualsCorrectAsync(Document document, SemanticModel semanticModel, IInvocationOperation invocationOperation, CancellationToken cancellationToken)
         {
             if (!CompareSymbolsCorrectlyAnalyzer.UseSymbolEqualityComparer(semanticModel.Compilation))
             {
@@ -62,26 +68,68 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
 
-            if (invocationOperation.Instance is null)
+            // With "a?.b?.c?.Equals(b)", the invocation operation syntax is only ".Equals(b)".
+            // Walk-up the tree to find all parts of the conditional access and also the root
+            // so that we can replace the whole expression.
+            var conditionalAccessMembers = new List<SyntaxNode>();
+            IOperation currentOperation = invocationOperation;
+            while (currentOperation.Parent is IConditionalAccessOperation conditionalAccess)
             {
-                var replacement = generator.InvocationExpression(
-                                    GetEqualityComparerDefaultEquals(generator),
-                                    invocationOperation.Arguments.Select(argument => argument.Syntax).ToImmutableArray());
+                currentOperation = conditionalAccess;
+                conditionalAccessMembers.Add(conditionalAccess.Operation.Syntax);
+            }
 
-                editor.ReplaceNode(invocationOperation.Syntax, replacement.WithTriviaFrom(invocationOperation.Syntax));
-            }
-            else
-            {
-                var replacement = generator.AddParameters(invocationOperation.Syntax, new[] { GetEqualityComparerDefault(generator) });
-                editor.ReplaceNode(invocationOperation.Syntax, replacement.WithTriviaFrom(invocationOperation.Syntax));
-            }
+            var arguments = GetNewInvocationArguments(invocationOperation, conditionalAccessMembers);
+            var replacement = generator.InvocationExpression(GetEqualityComparerDefaultEquals(generator), arguments);
+
+            var nodeToReplace = currentOperation.Syntax;
+            editor.ReplaceNode(nodeToReplace, replacement.WithTriviaFrom(nodeToReplace));
 
             return editor.GetChangedDocument();
         }
 
+        private IEnumerable<SyntaxNode> GetNewInvocationArguments(IInvocationOperation invocationOperation,
+            List<SyntaxNode> conditionalAccessMembers)
+        {
+            var arguments = invocationOperation.Arguments.Select(argument => argument.Syntax);
+
+            if (invocationOperation.GetInstance() is not IOperation instance)
+            {
+                return arguments;
+            }
+
+            if (instance.Kind != OperationKind.ConditionalAccessInstance)
+            {
+                return new[] { instance.Syntax }.Concat(arguments);
+            }
+
+            // We need to rebuild a new conditional access chain skipping the invocation
+            if (conditionalAccessMembers.Count == 0)
+            {
+                throw new InvalidOperationException("Invocation contains conditional expression but we could not detect the parts.");
+            }
+            else if (conditionalAccessMembers.Count == 1)
+            {
+                return new[] { conditionalAccessMembers[0] }.Concat(arguments);
+            }
+            else
+            {
+                var currentExpression = conditionalAccessMembers.Count > 2
+                    ? CreateConditionalAccessExpression(conditionalAccessMembers[1], conditionalAccessMembers[0])
+                    : conditionalAccessMembers[0];
+
+                for (int i = 2; i < conditionalAccessMembers.Count - 1; i++)
+                {
+                    currentExpression = CreateConditionalAccessExpression(conditionalAccessMembers[i], currentExpression);
+                }
+
+                currentExpression = CreateConditionalAccessExpression(conditionalAccessMembers[^1], currentExpression);
+                return new[] { currentExpression }.Concat(arguments);
+            }
+        }
+
         private static async Task<Document> ConvertToEqualsAsync(Document document, SemanticModel semanticModel, IBinaryOperation binaryOperation, CancellationToken cancellationToken)
         {
-
             var expression = binaryOperation.Syntax;
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
