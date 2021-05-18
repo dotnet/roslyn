@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundPattern>.GetInstance(subpatterns.Count);
             foreach (SubpatternSyntax subpat in subpatterns)
             {
-                // Any name would have make this a PropertyPatternClause
+                // Any name would have made this a PropertyPatternClause
                 Debug.Assert(subpat.NameColon is null);
 
                 PatternSyntax pattern = subpat.Pattern;
