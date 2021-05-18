@@ -7019,6 +7019,7 @@ oneMoreTime:
 
             LeaveRegionsUpTo(resultCaptureRegion);
 
+            bool linkToPreviousAfterSwitch;
             if (!operation.IsExhaustive)
             {
                 // throw new SwitchExpressionException
@@ -7031,12 +7032,19 @@ oneMoreTime:
                         matchFailureCtor, initializer: null, ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, operation.Syntax,
                         type: matchFailureCtor.ContainingType, constantValue: null, isImplicit: true);
                 LinkThrowStatement(makeException);
+                AppendNewBlock(afterSwitch, linkToPrevious: true);
+
+                linkToPreviousAfterSwitch = true;
+            }
+            else
+            {
+                linkToPreviousAfterSwitch = false;
             }
 
             _currentBasicBlock = null;
 
             // afterSwitch:
-            AppendNewBlock(afterSwitch, linkToPrevious: false);
+            AppendNewBlock(afterSwitch, linkToPrevious: linkToPreviousAfterSwitch);
 
             // result = captureOutput
             return GetCaptureReference(captureOutput, operation);
