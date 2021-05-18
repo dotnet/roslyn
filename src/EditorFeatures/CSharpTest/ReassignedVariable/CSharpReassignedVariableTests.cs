@@ -881,5 +881,25 @@ class C
     }
 }");
         }
+
+        [Fact]
+        public async Task TestWriteThroughOneBranch()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        int p;
+        if (p)
+            p = 1;
+
+        p = 0;
+        Console.WriteLine(p);
+    }
+}");
+        }
     }
 }
