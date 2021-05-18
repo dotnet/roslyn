@@ -319,9 +319,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     // in the case of a stale item, the span may be out of bounds of the document. Cap
                     // us to the end of the document as that's where we're going to navigate the user
                     // to.
-                    var start = Math.Min(text.Length, span.Start);
-                    var end = Math.Min(text.Length, span.End);
-                    span = TextSpan.FromBounds(start, end);
+                    span = TextSpan.FromBounds(
+                        Math.Min(text.Length, span.Start),
+                        Math.Min(text.Length, span.End));
                 }
 
                 return ConvertTextSpanWithTextToLocation(span, text, document.GetURI());
