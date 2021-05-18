@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
             SourceGenerator.Initialize(generatorInitContext);
 
             initContext.InfoBuilder.PostInitCallback = generatorInitContext.InfoBuilder.PostInitCallback;
-            initContext.InfoBuilder.SyntaxContextReceiverCreator = generatorInitContext.InfoBuilder.SyntaxContextReceiverCreator;
+            var syntaxContextReceiverCreator = generatorInitContext.InfoBuilder.SyntaxContextReceiverCreator;
 
             initContext.RegisterExecutionPipeline((executionContext) =>
             {
@@ -36,8 +36,14 @@ namespace Microsoft.CodeAnalysis
                                             .Transform(c => new GeneratorContextBuilder(c))
                                             .Join(executionContext.Sources.ParseOptions).Transform(p => p.Item1 with { ParseOptions = p.Item2.FirstOrDefault() })
                                             .Join(executionContext.Sources.AnalyzerConfigOptions).Transform(p => p.Item1 with { ConfigOptions = p.Item2.FirstOrDefault() })
-                                            .Join(executionContext.Sources.CreateSyntaxReceiver()).Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() })
                                             .Join(executionContext.Sources.AdditionalTexts).Transform(p => p.Item1 with { AdditionalTexts = p.Item2.ToImmutableArray() });
+
+                if (syntaxContextReceiverCreator is object)
+                {
+                    contextBuilderSource = contextBuilderSource
+                                           .Join(executionContext.Sources.Syntax.CreateSyntaxReceiverInput(syntaxContextReceiverCreator))
+                                           .Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() });
+                }
 
                 var output = contextBuilderSource.GenerateSource((productionContext, contextBuilder) =>
                 {

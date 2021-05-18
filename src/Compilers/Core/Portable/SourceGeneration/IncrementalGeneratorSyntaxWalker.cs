@@ -13,42 +13,27 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class IncrementalGeneratorSyntaxWalker : SyntaxWalker
     {
-        private readonly ArrayBuilder<ISyntaxTransformBuilder> _builders;
+        private readonly Func<SyntaxNode, bool> _filter;
 
-        private readonly ArrayBuilder<ArrayBuilder<SyntaxNode>?> _results;
+        private ArrayBuilder<SyntaxNode>? _results;
 
-        internal IncrementalGeneratorSyntaxWalker(ArrayBuilder<ISyntaxTransformBuilder> builders, ArrayBuilder<ArrayBuilder<SyntaxNode>?> results)
+        internal IncrementalGeneratorSyntaxWalker(Func<SyntaxNode, bool> filter)
         {
-            _builders = builders;
-            _results = results;
+            _filter = filter;
         }
 
-        public static void VisitNodeForBuilders(SyntaxNode root, SemanticModel semanticModel, ArrayBuilder<ISyntaxTransformBuilder> builders)
+        public static ImmutableArray<SyntaxNode> GetFilteredNodes(SyntaxNode root, Func<SyntaxNode, bool> func)
         {
-            var results = ArrayBuilder<ArrayBuilder<SyntaxNode>?>.GetInstance(builders.Count, fillWithValue: null);
-
-            IncrementalGeneratorSyntaxWalker walker = new IncrementalGeneratorSyntaxWalker(builders, results);
+            var walker = new IncrementalGeneratorSyntaxWalker(func);
             walker.Visit(root);
-
-            for (int i = 0; i < builders.Count; i++)
-            {
-                var result = results[i];
-                if (result is object)
-                {
-                    builders[i].AddFilterEntries(result.ToImmutableAndFree(), semanticModel);
-                }
-            }
-            results.Free();
+            return walker._results.ToImmutableOrEmptyAndFree();
         }
 
         public override void Visit(SyntaxNode node)
         {
-            for (int i = 0; i < _builders.Count; i++)
+            if (_filter(node))
             {
-                if (_builders[i].Filter(node))
-                {
-                    (_results[i] ??= ArrayBuilder<SyntaxNode>.GetInstance()).Add(node);
-                }
+                (_results ??= ArrayBuilder<SyntaxNode>.GetInstance()).Add(node);
             }
             base.Visit(node);
         }

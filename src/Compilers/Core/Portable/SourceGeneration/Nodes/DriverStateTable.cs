@@ -2,19 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class DriverStateTable
     {
-        // PROTOTYPE(source-generators): should we make a non generic node interface that we can use as the key
-        //                               instead of just object?
         private readonly ImmutableDictionary<object, IStateTable> _tables;
 
         internal static DriverStateTable Empty { get; } = new DriverStateTable(ImmutableDictionary<object, IStateTable>.Empty);
@@ -24,37 +21,70 @@ namespace Microsoft.CodeAnalysis
             _tables = tables;
         }
 
-        internal NodeStateTable<T> GetStateTable<T>(IIncrementalGeneratorNode<T> input) => _tables.ContainsKey(input) ? (NodeStateTable<T>)_tables[input] : NodeStateTable<T>.Empty;
-
-        internal DriverStateTable SetStateTable<T>(IIncrementalGeneratorNode<T> input, NodeStateTable<T> table) => new DriverStateTable(_tables.SetItem(input, table));
+        public NodeStateTable<T> GetStateTableOrEmpty<T>(object input)
+        {
+            if (_tables.TryGetValue(input, out var result))
+            {
+                return (NodeStateTable<T>)result;
+            }
+            return NodeStateTable<T>.Empty;
+        }
 
         public sealed class Builder
         {
             private readonly ImmutableDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableDictionary.CreateBuilder<object, IStateTable>();
-
+            private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
             private readonly DriverStateTable _previousTable;
-
             private readonly CancellationToken _cancellationToken;
 
-            public Builder(DriverStateTable previousTable, CancellationToken cancellationToken = default)
+            internal GeneratorDriverState DriverState { get; }
+
+            public Compilation Compilation { get; }
+
+            public Builder(Compilation compilation, GeneratorDriverState driverState, ImmutableArray<ISyntaxInputNode> syntaxInputNodes, CancellationToken cancellationToken = default)
             {
-                _previousTable = previousTable;
+                Compilation = compilation;
+                DriverState = driverState;
+                _previousTable = driverState.StateTable;
+                _syntaxInputNodes = syntaxInputNodes;
                 _cancellationToken = cancellationToken;
             }
 
-            public void SetTable<T>(IIncrementalGeneratorNode<T> source, NodeStateTable<T> table)
+            public IStateTable GetSyntaxInputTable(ISyntaxInputNode syntaxInputNode)
             {
-                _tableBuilder[source] = table;
-            }
+                Debug.Assert(_syntaxInputNodes.Contains(syntaxInputNode));
 
-            public void AddInput<T>(InputNode<T> source, T value)
-            {
-                _tableBuilder[source] = source.CreateInputTable(_previousTable.GetStateTable(source), value);
-            }
+                // when we don't have a value for this node, we update all the syntax inputs at once
+                if (!_tableBuilder.ContainsKey(syntaxInputNode))
+                {
+                    // get a builder for each input node
+                    var builders = ArrayBuilder<ISyntaxInputBuilder>.GetInstance(_syntaxInputNodes.Length);
+                    foreach (var node in _syntaxInputNodes)
+                    {
+                        builders.Add(node.GetBuilder(_previousTable));
+                    }
 
-            public void AddInput<T>(InputNode<T> source, IEnumerable<T> value)
-            {
-                _tableBuilder[source] = source.CreateInputTable(_previousTable.GetStateTable(source), value);
+                    // update each tree for the builders, sharing the semantic model
+                    foreach ((var tree, var state) in GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
+                    {
+                        var root = tree.GetRoot(_cancellationToken);
+                        var model = state != EntryState.Removed ? Compilation.GetSemanticModel(tree) : null;
+                        foreach (var builder in builders)
+                        {
+                            builder.VisitTree(root, state, model);
+                        }
+                    }
+
+                    // save the updated inputs
+                    foreach (var builder in builders)
+                    {
+                        builder.SaveStateAndFree(_tableBuilder);
+                        Debug.Assert(_tableBuilder.ContainsKey(builder.SyntaxInputNode));
+                    }
+                    builders.Free();
+                }
+
+                return _tableBuilder[syntaxInputNode];
             }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
@@ -66,7 +96,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // get the previous table, if there was one for this node
-                NodeStateTable<T> previousTable = _previousTable.GetStateTable(source);
+                NodeStateTable<T> previousTable = _previousTable.GetStateTableOrEmpty<T>(source);
 
                 // request the node update its state based on the current driver table and store the new result
                 var newTable = source.UpdateStateTable(this, previousTable, _cancellationToken);

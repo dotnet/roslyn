@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -1441,6 +1442,187 @@ class C { }
             // cancellation is not wrapped, and is bubbled up
             Assert.Throws<OperationCanceledException>(() => timeoutFunc(30));
             Assert.Throws<OperationCanceledException>(() => userTimeoutFunc(30));
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Doesnt_Run_For_Same_Input()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<Compilation> compilationsCalledFor = new List<Compilation>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterOutput(ctx.Sources.Compilation.GenerateSource((spc, c) =>
+                {
+                    compilationsCalledFor.Add(c);
+                }));
+            }));
+
+            // run the generator once, and check it was passed the compilation
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+
+            // run the same compilation through again, and confirm the output wasn't called
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Runs_Only_For_Changed_Inputs()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var text1 = new InMemoryAdditionalText("Text1", "content1");
+            var text2 = new InMemoryAdditionalText("Text2", "content2");
+
+            List<Compilation> compilationsCalledFor = new List<Compilation>();
+            List<AdditionalText> textsCalledFor = new List<AdditionalText>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterOutput(ctx.Sources.Compilation.GenerateSource((spc, c) =>
+                {
+                    compilationsCalledFor.Add(c);
+                }));
+
+                ctx.RegisterOutput(ctx.Sources.AdditionalTexts.GenerateSource((spc, c) =>
+                {
+                    textsCalledFor.Add(c);
+                }));
+            }));
+
+
+            // run the generator once, and check it was passed the compilation
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, additionalTexts: new[] { text1 }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+            Assert.Equal(1, textsCalledFor.Count);
+            Assert.Equal(text1, textsCalledFor[0]);
+
+            // clear the results, add an additional text, but keep the compilation the same
+            compilationsCalledFor.Clear();
+            textsCalledFor.Clear();
+            driver = driver.AddAdditionalTexts(ImmutableArray.Create<AdditionalText>(text2));
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(0, compilationsCalledFor.Count);
+            Assert.Equal(1, textsCalledFor.Count);
+            Assert.Equal(text2, textsCalledFor[0]);
+
+            // now edit the compilation
+            compilationsCalledFor.Clear();
+            textsCalledFor.Clear();
+            var newCompilation = compilation.WithOptions(compilation.Options.WithModuleName("newComp"));
+            driver = driver.RunGenerators(newCompilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(newCompilation, compilationsCalledFor[0]);
+            Assert.Equal(0, textsCalledFor.Count);
+
+            // re run without changing anything
+            compilationsCalledFor.Clear();
+            textsCalledFor.Clear();
+            driver = driver.RunGenerators(newCompilation);
+            Assert.Equal(0, compilationsCalledFor.Count);
+            Assert.Equal(0, textsCalledFor.Count);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Can_Add_Comparer_To_Input_Node()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<Compilation> compilationsCalledFor = new List<Compilation>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var compilationSource = ctx.Sources.Compilation.WithComparer(new LambdaComparer<Compilation>((c1, c2) => true, 0));
+                ctx.RegisterOutput(compilationSource.GenerateSource((spc, c) =>
+                {
+                    compilationsCalledFor.Add(c);
+                }));
+            }));
+
+            // run the generator once, and check it was passed the compilation
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+
+            // now edit the compilation, run the generator, and confirm that the output was not called again this time
+            Compilation newCompilation = compilation.WithOptions(compilation.Options.WithModuleName("newCompilation"));
+            driver = driver.RunGenerators(newCompilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_PostInit_Source_Is_Cached()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<ClassDeclarationSyntax> classes = new List<ClassDeclarationSyntax>();
+
+            var generator = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) =>
+            {
+                ic.RegisterForPostInitialization(c => c.AddSource("a", "class D {}"));
+                ic.RegisterExecutionPipeline(pc =>
+                {
+                    pc.RegisterOutput(
+                        pc.Sources.Syntax.Transform(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node).GenerateSource((spc, node) => classes.Add(node))
+                    );
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            Assert.Equal(2, classes.Count);
+            Assert.Equal("C", classes[0].Identifier.ValueText);
+            Assert.Equal("D", classes[1].Identifier.ValueText);
+
+            // clear classes, re-run
+            classes.Clear();
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(classes);
+
+            // modify the original tree, see that the post init is still cached
+            var c2 = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText("class E{}", parseOptions));
+            classes.Clear();
+            driver = driver.RunGenerators(c2);
+            Assert.Single(classes);
+            Assert.Equal("E", classes[0].Identifier.ValueText);
         }
     }
 }

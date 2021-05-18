@@ -94,14 +94,7 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddAdditionalTexts(ImmutableArray<AdditionalText> additionalTexts)
         {
-            var builder = _state.StateTable.GetStateTable(SharedInputNodes.AdditionalTexts).ToBuilder(extraCapacity: additionalTexts.Length);
-            foreach (var text in additionalTexts)
-            {
-                builder.AddEntries(ImmutableArray.Create(text), EntryState.Added);
-            }
-            var stateTable = _state.StateTable.SetStateTable(SharedInputNodes.AdditionalTexts, builder.ToImmutableAndFree());
-
-            var newState = _state.With(additionalTexts: _state.AdditionalTexts.AddRange(additionalTexts), stateTable: stateTable);
+            var newState = _state.With(additionalTexts: _state.AdditionalTexts.AddRange(additionalTexts));
             return FromState(newState);
         }
 
@@ -175,9 +168,7 @@ namespace Microsoft.CodeAnalysis
             var state = _state;
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
-            var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, fillWithValue: null); // we know there is at max 1 per generator
-            var syntaxInputNodes = ArrayBuilder<ISyntaxTransformNode>.GetInstance();
-            int walkerCount = 0;
+            var syntaxInputNodes = ArrayBuilder<ISyntaxInputNode>.GetInstance();
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
@@ -227,8 +218,8 @@ namespace Microsoft.CodeAnalysis
                     if (ex is null && generatorState.Info.PipelineCallback is object)
                     {
                         var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
-                        var sourcesBuilder = new PerGeneratorInputNodes.Builder();
-                        var pipelineContext = new IncrementalGeneratorPipelineContext(sourcesBuilder, outputBuilder);
+                        var inputBuilder = ArrayBuilder<ISyntaxInputNode>.GetInstance();
+                        var pipelineContext = new IncrementalGeneratorPipelineContext(inputBuilder, outputBuilder);
                         try
                         {
                             generatorState.Info.PipelineCallback(pipelineContext);
@@ -239,41 +230,18 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         generatorState = ex is null
-                                         ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, sourcesBuilder.ToImmutable(), outputBuilder.ToImmutable())
+                                         ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, inputBuilder.ToImmutable(), outputBuilder.ToImmutable())
                                          : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
 
                         outputBuilder.Free();
-                        sourcesBuilder.Free();
+                        inputBuilder.Free();
                     }
                 }
 
-                // create the syntax receiver if requested
-                if (generatorState.Info.SyntaxContextReceiverCreator is object && generatorState.Exception is null)
+                // if the pipeline registered any syntax input nodes, record them
+                if (!generatorState.InputNodes.IsEmpty)
                 {
-                    ISyntaxContextReceiver? rx = null;
-                    try
-                    {
-                        rx = generatorState.Info.SyntaxContextReceiverCreator();
-                    }
-                    catch (Exception e)
-                    {
-                        generatorState = SetGeneratorException(MessageProvider, generatorState, sourceGenerator, e, diagnosticsBag);
-                    }
-
-                    if (rx is object)
-                    {
-                        walkerBuilder.SetItem(i, new GeneratorSyntaxWalker(rx));
-                        generatorState = generatorState.WithReceiver(rx);
-                        walkerCount++;
-                    }
-                }
-
-                // if the pipeline registered any syntax callbacks, record them in the syntax input node list
-                if (!generatorState.Sources.TransformNodes.IsEmpty)
-                {
-                    // it isn't possible for an incremental generator to directly create a walker as part of init
-                    Debug.Assert(generatorState.Info.SyntaxContextReceiverCreator is null);
-                    syntaxInputNodes.AddRange(generatorState.Sources.TransformNodes);
+                    syntaxInputNodes.AddRange(generatorState.InputNodes);
                 }
 
                 // record any constant sources
@@ -292,87 +260,7 @@ namespace Microsoft.CodeAnalysis
             }
             constantSourcesBuilder.Free();
 
-
-            // PROTOTYPE(source-generators): we don't need to run at all if none of the inputs have changes.
-            var driverStateBuilder = new DriverStateTable.Builder(_state.StateTable, cancellationToken);
-
-            driverStateBuilder.AddInput(SharedInputNodes.Compilation, compilation);
-            driverStateBuilder.AddInput(SharedInputNodes.SyntaxTrees, compilation.SyntaxTrees);
-            driverStateBuilder.AddInput(SharedInputNodes.AnalyzerConfigOptions, _state.OptionsProvider);
-            driverStateBuilder.AddInput(SharedInputNodes.ParseOptions, _state.ParseOptions);
-            driverStateBuilder.AddInput(SharedInputNodes.AdditionalTexts, _state.AdditionalTexts);
-
-            // If we have syntax inputs, or receivers, bring them up to date
-            if (syntaxInputNodes.Count > 0 || walkerCount > 0)
-            {
-                var builders = ArrayBuilder<ISyntaxTransformBuilder>.GetInstance(syntaxInputNodes.Count);
-                foreach (var node in syntaxInputNodes)
-                {
-                    builders.Add(node.GetBuilder(_state.StateTable));
-                }
-
-                foreach ((var tree, var treeState) in driverStateBuilder.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
-                {
-                    if (treeState == EntryState.Removed)
-                    {
-                        // we need to keep the removed tree entries, but can skip everything else
-                        foreach (var b in builders)
-                        {
-                            // PROTOTYPE(source-generators): we know we don't use the model in this case
-                            b.AddFilterFromPreviousTable(null!, EntryState.Removed);
-                        }
-                        continue;
-                    }
-
-                    // PROTOTYPE(source-generators): It would be nice to somehow collect all the results up front, then pass them to the builder
-                    //                               so we don't have to worry about the generic and have the extra interface.
-
-                    var semanticModel = compilation.GetSemanticModel(tree);
-                    if (treeState == EntryState.Cached)
-                    {
-                        foreach (var b in builders)
-                        {
-                            b.AddFilterFromPreviousTable(semanticModel, treeState);
-                        }
-                    }
-                    else
-                    {
-                        // run a walk for each filter and apply the results
-                        IncrementalGeneratorSyntaxWalker.VisitNodeForBuilders(tree.GetRoot(cancellationToken), semanticModel, builders);
-                    }
-
-                    // back compat, run this tree over any ISyntaxContextReceivers
-                    if (walkerCount > 0)
-                    {
-                        var root = tree.GetRoot(cancellationToken);
-                        for (int i = 0; i < walkerBuilder.Count; i++)
-                        {
-                            var walker = walkerBuilder[i];
-                            if (walker is object)
-                            {
-                                try
-                                {
-                                    walker.VisitWithModel(semanticModel, root);
-                                }
-                                catch (Exception e)
-                                {
-                                    stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], e, diagnosticsBag);
-                                    walkerBuilder.SetItem(i, null); // don't re-visit this walker for any other trees
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // add the updated nodes as inputs to the new graph
-                foreach (var builder in builders)
-                {
-                    builder.AddInputs(driverStateBuilder);
-                }
-
-                builders.Free();
-            }
-            walkerBuilder.Free();
+            var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
@@ -380,12 +268,6 @@ namespace Microsoft.CodeAnalysis
                 if (generatorState.Exception is object)
                 {
                     continue;
-                }
-
-                if (generatorState.SyntaxReceiver is object)
-                {
-                    Debug.Assert(generatorState.Sources.ReceiverNode is object);
-                    driverStateBuilder.AddInput(generatorState.Sources.ReceiverNode, generatorState.SyntaxReceiver);
                 }
 
                 IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());
@@ -402,7 +284,7 @@ namespace Microsoft.CodeAnalysis
                     (var sources, var generatorDiagnostics) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
-                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.Sources, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics);
+                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.InputNodes, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics);
                 }
                 catch (UserFunctionException ufe)
                 {

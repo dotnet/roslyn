@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, isCompacted: true, exception: null);
+        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, isCompacted: true);
 
         // PROTOTYPE(source-generators): there is no need to store the state per item
         //           we can instead store one state per input, with
@@ -65,16 +65,21 @@ namespace Microsoft.CodeAnalysis
 
         private readonly Exception? _exception;
 
-        private NodeStateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, bool isCompacted, Exception? exception)
+        private NodeStateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, bool isCompacted)
         {
+            Debug.Assert(!isCompacted || states.All(s => s.All(e => e.Item2 == EntryState.Cached)));
+
             _states = states;
-            _exception = exception;
             IsCompacted = isCompacted;
+            _exception = null;
         }
 
-        public bool IsFaulted { get => _exception is not null; }
-
-        public bool IsEmpty { get => _states.Length == 0; }
+        private NodeStateTable(Exception exception)
+        {
+            _exception = exception;
+            _states = ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty;
+            IsCompacted = false;
+        }
 
         public int Count { get => _states.Length; }
 
@@ -83,6 +88,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool IsCompacted { get; }
 
+        public bool IsEmpty { get => _states.Length == 0; }
+
+        public bool IsFaulted { get => _exception is not null; }
+
+        public UserFunctionException GetException()
+        {
+            Debug.Assert(_exception is not null);
+            return _exception is UserFunctionException ufe ? ufe : new UserFunctionException(_exception);
+        }
+
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
         {
             return _states.SelectMany(s => s).GetEnumerator();
@@ -90,7 +105,7 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> Compact()
         {
-            if (IsCompacted)
+            if (IsCompacted || IsFaulted)
                 return this;
 
             var compacted = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
@@ -104,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                     compacted.Add(entry.SelectAsArray(e => (e.item, EntryState.Cached)));
                 }
             }
-            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), isCompacted: true, _exception);
+            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), isCompacted: true);
         }
 
         IStateTable IStateTable.Compact() => Compact();
@@ -124,61 +139,61 @@ namespace Microsoft.CodeAnalysis
             return sourceBuilder.ToImmutableAndFree();
         }
 
-        public Builder ToBuilder(int? extraCapacity = null)
+        public Builder ToBuilder()
         {
             Debug.Assert(!this.IsFaulted);
-            int? capacity = extraCapacity.HasValue ? this._states.Length + extraCapacity.Value : null;
-            return new Builder(this, capacity);
+            return new Builder(this);
         }
 
         public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
         {
-            Debug.Assert(table.IsFaulted);
-            return new NodeStateTable<T>(Empty._states, isCompacted: true, table._exception);
-        }
-
-        public static NodeStateTable<T> WithSingleItem(T item, EntryState state)
-        {
-            return new NodeStateTable<T>(ImmutableArray.Create(ImmutableArray.Create((item, state))), isCompacted: false, exception: null);
+            Debug.Assert(table._exception is object);
+            return new NodeStateTable<T>(table._exception);
         }
 
         public sealed class Builder
         {
             private readonly ArrayBuilder<ImmutableArray<(T, EntryState)>> _states;
-
+            private readonly NodeStateTable<T> _previous;
             private Exception? _exception = null;
 
-            public Builder(int? capacity = null)
+            internal Builder(NodeStateTable<T> previous)
             {
-                _states = capacity.HasValue
-                          ? ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance(capacity.Value)
-                          : ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
+                _states = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
+                _previous = previous;
             }
 
-            public Builder(NodeStateTable<T> previous, int? capacity = null)
-                : this(capacity)
+            public void RemoveEntries()
             {
-                _states.AddRange(previous._states);
+                // if a new table is asked to remove entries we can just do nothing
+                // as it can't have any effect on downstream tables
+                if (_previous._states.Length > _states.Count)
+                {
+                    var previousEntries = _previous._states[_states.Count].SelectAsArray(s => (s.item, EntryState.Removed));
+                    _states.Add(previousEntries);
+                }
             }
 
-            public void AddEntries(ImmutableArray<T> values, EntryState state)
+            public bool TryUseCachedEntries()
             {
-                _states.Add(values.SelectAsArray(v => (v, state)));
-            }
+                if (_previous._states.Length <= _states.Count)
+                {
+                    return false;
+                }
 
-            public ImmutableArray<T> AddEntriesFromPreviousTable(NodeStateTable<T> previousTable, EntryState newState)
-            {
-                Debug.Assert(previousTable._states.Length > _states.Count);
-                var previousEntries = previousTable._states[_states.Count].SelectAsArray(s => (s.item, newState));
+                var previousEntries = _previous._states[_states.Count];
+                Debug.Assert(previousEntries.All(e => e.state == EntryState.Cached));
+
                 _states.Add(previousEntries);
-
-                // PROTOTYPE(source-generators): this is mostly unused, so wastes cycles.
-                // if we refactor the way we store states as noted above though, it will become essentially free
-                return previousEntries.SelectAsArray(e => e.item);
+                return true;
             }
 
-            public void ModifyEntriesFromPreviousTable(NodeStateTable<T> previousTable, ImmutableArray<T> outputs, IEqualityComparer<T> comparer)
+            public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer)
             {
+                if (_previous._states.Length <= _states.Count)
+                {
+                    return false;
+                }
 
                 // Semantics:
                 // For every slot in the previous table, we compare the new value.
@@ -187,8 +202,7 @@ namespace Microsoft.CodeAnalysis
                 // - Removed when i > outputs.length
                 // - Added when i < previousTable.length
 
-                Debug.Assert(previousTable._states.Length > _states.Count);
-                var previousEntries = previousTable._states[_states.Count];
+                var previousEntries = _previous._states[_states.Count];
                 var modifiedEntries = ArrayBuilder<(T item, EntryState state)>.GetInstance();
 
                 var previousEnumerator = previousEntries.GetEnumerator();
@@ -225,6 +239,12 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 _states.Add(modifiedEntries.ToImmutableAndFree());
+                return true;
+            }
+
+            public void AddEntries(ImmutableArray<T> values, EntryState state)
+            {
+                _states.Add(values.SelectAsArray((v, state) => (v, state), state));
             }
 
             public void SetFaulted(Exception e)
@@ -234,13 +254,25 @@ namespace Microsoft.CodeAnalysis
 
             public NodeStateTable<T> ToImmutableAndFree()
             {
-                if (_states.Count == 0)
+                if (_exception is object)
                 {
+                    _states.Free();
+                    return new NodeStateTable<T>(_exception);
+                }
+                else if (_states.Count == 0)
+                {
+                    _states.Free();
                     return NodeStateTable<T>.Empty;
                 }
 
-                var hasNonCached = _states.Any(s => s.Any(i => i.Item2 != EntryState.Cached));
-                return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached, exception: _exception);
+                var hasNonCached = _states.Any(static s => s.Any(static i => i.Item2 != EntryState.Cached));
+                return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached);
+
+            }
+
+            internal ImmutableArray<T> GetLastEntries()
+            {
+                return _states[_states.Count - 1].SelectAsArray(t => t.Item1);
             }
         }
     }

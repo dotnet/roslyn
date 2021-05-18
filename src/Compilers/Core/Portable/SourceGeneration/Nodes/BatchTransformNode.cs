@@ -5,10 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -58,16 +55,12 @@ namespace Microsoft.CodeAnalysis
             var transformed = _func(source);
 
             // update the table 
-            var newTable = new NodeStateTable<TOutput>.Builder();
-            if (previousTable.IsEmpty)
+            var newTable = previousTable.ToBuilder();
+            if (!newTable.TryModifyEntries(transformed, _comparer))
             {
                 newTable.AddEntries(transformed, EntryState.Added);
             }
-            else
-            {
-                Debug.Assert(previousTable.Count == 1);
-                newTable.ModifyEntriesFromPreviousTable(previousTable, transformed, _comparer);
-            }
+
             return newTable.ToImmutableAndFree();
         }
     }

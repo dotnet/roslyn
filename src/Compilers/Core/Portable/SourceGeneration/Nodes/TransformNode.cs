@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -50,27 +48,20 @@ namespace Microsoft.CodeAnalysis
             // - Added: perform transform and add
             // - Modified: perform transform and do element wise comparison with previous results
 
-            var newTable = new NodeStateTable<TOutput>.Builder();
+            var newTable = previousTable.ToBuilder();
 
             foreach (var entry in sourceTable)
             {
-                // PROTOTYPE(source-generators): this is a bit weird that we ask the state table before deciding what to apply
-                // we should convert the Add... methods to a set of TryAdd... that the caller first says 'try getting this from cache'
-                // if that fails, try modifying, then finally, just add them.
-                if ((entry.state == EntryState.Cached || entry.state == EntryState.Removed) && !previousTable.IsEmpty)
+                if (entry.state == EntryState.Removed)
                 {
-                    newTable.AddEntriesFromPreviousTable(previousTable, entry.state);
+                    newTable.RemoveEntries();
                 }
-                else
+                else if (entry.state != EntryState.Cached || !newTable.TryUseCachedEntries())
                 {
                     // generate the new entries
                     var newOutputs = _func(entry.item);
 
-                    if (entry.state == EntryState.Modified && !previousTable.IsEmpty)
-                    {
-                        newTable.ModifyEntriesFromPreviousTable(previousTable, newOutputs, _comparer);
-                    }
-                    else
+                    if (entry.state != EntryState.Modified || !newTable.TryModifyEntries(newOutputs, _comparer))
                     {
                         newTable.AddEntries(newOutputs, EntryState.Added);
                     }

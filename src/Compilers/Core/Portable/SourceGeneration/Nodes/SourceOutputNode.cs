@@ -4,12 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-
 using TOutput = System.ValueTuple<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.GeneratedSourceText>, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>>;
 
 namespace Microsoft.CodeAnalysis
@@ -38,14 +36,14 @@ namespace Microsoft.CodeAnalysis
                 return NodeStateTable<TOutput>.FromFaultedTable(sourceTable);
             }
 
-            var nodeTable = new NodeStateTable<TOutput>.Builder();
+            var nodeTable = previousTable.ToBuilder();
             foreach (var entry in sourceTable)
             {
-                if (entry.state == EntryState.Cached || entry.state == EntryState.Removed)
+                if (entry.state == EntryState.Removed)
                 {
-                    nodeTable.AddEntriesFromPreviousTable(previousTable, entry.state);
+                    nodeTable.RemoveEntries();
                 }
-                else if (entry.state == EntryState.Added || entry.state == EntryState.Modified)
+                else if (entry.state != EntryState.Cached || !nodeTable.TryUseCachedEntries())
                 {
                     // we don't currently handle modified any differently than added at the output
                     // we just run the action and mark the new source as added. In theory we could compare
@@ -66,6 +64,7 @@ namespace Microsoft.CodeAnalysis
                         sourcesBuilder.Free();
                         diagnostics.Free();
                     }
+
                 }
             }
 
@@ -78,6 +77,13 @@ namespace Microsoft.CodeAnalysis
         {
             // get our own state table
             var table = context.TableBuilder.GetLatestStateTableForNode(this);
+
+            if (table.IsFaulted)
+            {
+                // PROTOTYPE (source-generators): we're essentially using exceptions as control flow here.
+                //                                instead we should append the exceptions to the context and allow the driver to handle it there
+                throw table.GetException();
+            }
 
             // add each non-removed entry to the context
             foreach (var ((sources, diagnostics), state) in table)

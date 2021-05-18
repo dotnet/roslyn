@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,7 +13,6 @@ namespace Microsoft.CodeAnalysis
         private readonly IIncrementalGeneratorNode<TInput1> _input1;
 
         private readonly IIncrementalGeneratorNode<TInput2> _input2;
-
 
         public JoinNode(IIncrementalGeneratorNode<TInput1> input1, IIncrementalGeneratorNode<TInput2> input2)
         {
@@ -43,7 +39,7 @@ namespace Microsoft.CodeAnalysis
                 return NodeStateTable<(TInput1, ImmutableArray<TInput2>)>.FromFaultedTable(input2Table);
             }
 
-            var builder = new NodeStateTable<(TInput1, ImmutableArray<TInput2>)>.Builder();
+            var builder = previousTable.ToBuilder();
 
             // Semantics of a join:
             //

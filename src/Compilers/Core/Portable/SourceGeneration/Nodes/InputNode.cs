@@ -5,52 +5,53 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
+using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Input nodes don't actually do anything. They are just placeholders for the value sources
+    /// Input nodes are the 'root' nodes in the graph, and get their values from the inputs of the driver state table
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of the input</typeparam>
     internal sealed class InputNode<T> : IIncrementalGeneratorNode<T>
     {
+        private readonly Func<DriverStateTable.Builder, ImmutableArray<T>> _getInput;
+        private readonly IEqualityComparer<T>? _comparer;
+
+        public InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, IEqualityComparer<T>? comparer = null)
+        {
+            _getInput = getInput;
+            _comparer = comparer;
+        }
+
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
         {
-            // the input node doesn't change the table. 
-            // instead the driver manipulates the previous table to contain the current state of the node.
-            // we can just return that state, as it's already up to date.
-            return previousTable;
-        }
+            var inputItems = _getInput(graphState);
 
-        // PROTOTYPE(source-generators): how does this work? we definitely want to be able to add custom comparers to the input nodes
-        // I guess its just a 'compare only' node with this as the input?
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => this;
-
-        public NodeStateTable<T> CreateInputTable(NodeStateTable<T> previousTable, T item)
-        {
-            // PROTOTYPE(source-generators): we should compare the values, not just assume they were added
-            return NodeStateTable<T>.WithSingleItem(item, EntryState.Added);
-        }
-
-        public NodeStateTable<T> CreateInputTable(NodeStateTable<T> previousTable, IEnumerable<T> items)
-        {
             // create a mutable hashset of the new items we can check against
-            PooledHashSet<T> itemsSet = PooledHashSet<T>.GetInstance();
-            foreach (var item in items)
+            HashSet<T> itemsSet = new HashSet<T>(_comparer);
+            foreach (var item in inputItems)
             {
-                itemsSet.Add(item);
+                var added = itemsSet.Add(item);
+                Debug.Assert(added);
             }
 
-            var builder = new NodeStateTable<T>.Builder();
+            var builder = previousTable.ToBuilder();
 
             // for each item in the previous table, check if its still in the new items
             foreach ((var oldItem, _) in previousTable)
             {
-                bool inItemSet = itemsSet.Remove(oldItem);
-                builder.AddEntriesFromPreviousTable(previousTable, inItemSet ? EntryState.Cached : EntryState.Removed);
+                if (itemsSet.Remove(oldItem))
+                {
+                    // we're iterating the table, so know that it has entries
+                    var usedCache = builder.TryUseCachedEntries();
+                    Debug.Assert(usedCache);
+                }
+                else
+                {
+                    builder.RemoveEntries();
+                }
             }
 
             // any remaining new items are added
@@ -58,8 +59,10 @@ namespace Microsoft.CodeAnalysis
             {
                 builder.AddEntries(ImmutableArray.Create(newItem), EntryState.Added);
             }
-            itemsSet.Free();
+
             return builder.ToImmutableAndFree();
         }
+
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new InputNode<T>(_getInput, comparer);
     }
 }
