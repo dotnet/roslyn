@@ -152,11 +152,22 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText);
         }
 
-        private async Task VerifyAdditionalFileFixAsync(string language, string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText)
+        private async Task VerifyNet50CSharpAdditionalFileFixAsync(string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText)
+        {
+            await VerifyAdditionalFileFixAsync(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText, ReferenceAssemblies.Net.Net50);
+        }
+
+        private async Task VerifyAdditionalFileFixAsync(string language, string source, string? shippedApiText, string? oldUnshippedApiText, string newUnshippedApiText,
+            ReferenceAssemblies? referenceAssemblies = null)
         {
             var test = language == LanguageNames.CSharp
                 ? new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>()
                 : (CodeFixTest<XUnitVerifier>)new VisualBasicCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>();
+
+            if (referenceAssemblies is not null)
+            {
+                test.ReferenceAssemblies = referenceAssemblies;
+            }
 
             test.TestState.Sources.Add(source);
             if (shippedApiText != null)
@@ -2535,6 +2546,27 @@ public partial class {|RS0016:{|RS0016:C|}|}
 C.C() -> void";
 
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact, WorkItem(4133, "https://github.com/dotnet/roslyn-analyzers/issues/4133")]
+        public async Task Record_ImplicitProperty_Fix()
+        {
+            var source = @"
+public record R(int {|RS0016:P|});
+";
+
+            var shippedText = @"";
+            var unshippedText = @"R
+R.R(int P) -> void
+R.P.get -> int
+";
+            var fixedUnshippedText = @"R
+R.P.init -> void
+R.R(int P) -> void
+R.P.get -> int
+";
+
+            await VerifyNet50CSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
         #endregion

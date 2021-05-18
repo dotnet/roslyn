@@ -11,6 +11,7 @@
     <Summary>Banned API Analyzers</Summary>
     <ReleaseNotes>Banned API Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics BannedApi ApiAnalyzer</PackageTags>
+    <IsShippingPackage>true</IsShippingPackage>
   </PropertyGroup>
 
   <ItemGroup>
