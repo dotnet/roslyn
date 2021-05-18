@@ -7019,16 +7019,20 @@ oneMoreTime:
 
             LeaveRegionsUpTo(resultCaptureRegion);
 
-            // throw new SwitchExpressionException
-            var matchFailureCtor =
-                (IMethodSymbol?)(_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor) ??
-                                _compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_InvalidOperationException__ctor))?.GetISymbol();
-            var makeException = (matchFailureCtor is null)
-                ? MakeInvalidOperation(operation.Syntax, type: _compilation.GetSpecialType(SpecialType.System_Object), ImmutableArray<IOperation>.Empty)
-                : new ObjectCreationOperation(
-                    matchFailureCtor, initializer: null, ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, operation.Syntax,
-                    type: matchFailureCtor.ContainingType, constantValue: null, isImplicit: true);
-            LinkThrowStatement(makeException);
+            if (!operation.IsExhaustive)
+            {
+                // throw new SwitchExpressionException
+                var matchFailureCtor =
+                    (IMethodSymbol?)(_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor) ??
+                                    _compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_InvalidOperationException__ctor))?.GetISymbol();
+                var makeException = (matchFailureCtor is null)
+                    ? MakeInvalidOperation(operation.Syntax, type: _compilation.GetSpecialType(SpecialType.System_Object), ImmutableArray<IOperation>.Empty)
+                    : new ObjectCreationOperation(
+                        matchFailureCtor, initializer: null, ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, operation.Syntax,
+                        type: matchFailureCtor.ContainingType, constantValue: null, isImplicit: true);
+                LinkThrowStatement(makeException);
+            }
+
             _currentBasicBlock = null;
 
             // afterSwitch:
