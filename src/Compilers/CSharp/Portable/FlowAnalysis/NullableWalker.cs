@@ -6625,7 +6625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Apply the conversion to the type of the operand and return the resulting type.
-        /// If the operand does not have an explicit type, the operand expression is used for the type.
+        /// If the operand does not have an explicit type, the operand expression is used.
         /// </summary>
         /// <param name="checkConversion">
         /// If <see langword="true"/>, the incoming conversion is assumed to be from binding
