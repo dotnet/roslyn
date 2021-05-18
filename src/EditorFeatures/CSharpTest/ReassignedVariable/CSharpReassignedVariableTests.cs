@@ -494,6 +494,8 @@ class C
 {
     void M(ref int [|p|])
     {
+        // p is statically detected as overwritten (even though it is not written at runtime)
+        // due to a limitation in alias analysis.
         ref var [|local|] = ref [|p|];
         [|local|] = ref [|p|];
         Console.WriteLine([|local|]);
