@@ -23,10 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         End Sub
 
         Protected Overrides Async Function BuildQuickInfoAsync(
-                document As Document,
-                token As SyntaxToken,
-                cancellationToken As CancellationToken) As Task(Of QuickInfoItem)
+                context As QuickInfoContext,
+                token As SyntaxToken) As Task(Of QuickInfoItem)
 
+            Dim document = context.Document
+            Dim cancellationToken = context.CancellationToken
             Dim parent = token.Parent
 
             Dim predefinedCastExpression = TryCast(parent, PredefinedCastExpressionSyntax)
@@ -94,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                     End If
             End Select
 
-            Return Await MyBase.BuildQuickInfoAsync(document, token, cancellationToken).ConfigureAwait(False)
+            Return Await MyBase.BuildQuickInfoAsync(context, token).ConfigureAwait(False)
         End Function
 
         ''' <summary>
@@ -157,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 Return QuickInfoItem.Create(token.Span, sections:=ImmutableArray.Create(QuickInfoSection.Create(QuickInfoSectionKinds.Description, ImmutableArray.Create(New TaggedText(TextTags.Text, VBFeaturesResources.Multiple_Types)))))
             End If
 
-            Return Await CreateContentAsync(document.Project.Solution.Workspace, token, semantics, New TokenInformation(types), supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
+            Return Await CreateContentAsync(document.Project.Solution.Workspace, semantics, token, New TokenInformation(types), supportedPlatforms:=Nothing, cancellationToken:=cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Shared Async Function BuildContentForIntrinsicOperatorAsync(document As Document,

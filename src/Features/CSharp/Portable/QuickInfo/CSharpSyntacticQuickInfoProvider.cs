@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,9 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         }
 
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
-            Document document,
-            SyntaxToken token,
-            CancellationToken cancellationToken)
+            QuickInfoContext context,
+            SyntaxToken token)
         {
             if (token.Kind() != SyntaxKind.CloseBraceToken)
             {
@@ -69,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             // encode document spans that correspond to the text to show
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             var spans = ImmutableArray.Create(TextSpan.FromBounds(spanStart, spanEnd));
             return QuickInfoItem.Create(token.Span, relatedSpans: spans);
         }
