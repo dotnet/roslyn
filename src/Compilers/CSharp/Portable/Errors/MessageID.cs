@@ -339,6 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureGlobalUsing:
                 case MessageID.IDS_FeatureInferredDelegateType: // semantic check
                 case MessageID.IDS_FeatureLambdaAttributes: // semantic check
+                case MessageID.IDS_FeatureExtendedPropertyPatterns:
                     return LanguageVersion.Preview;
 
                 // C# 9.0 features.
@@ -498,10 +499,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeaturePragma: // Checked in the directive parser.
                 case MessageID.IDS_FeatureSwitchOnBool: // Checked in the binder.
                     return LanguageVersion.CSharp2;
-
-                // PROTOTYPE(extended-property-patterns) Move
-                case MessageID.IDS_FeatureExtendedPropertyPatterns:
-                    return LanguageVersion.Preview;
 
                 // Special C# 2 feature: only a warning in C# 1.
                 case MessageID.IDS_FeatureModuleAttrLoc:

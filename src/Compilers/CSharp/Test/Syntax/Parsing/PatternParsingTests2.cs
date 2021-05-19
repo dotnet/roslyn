@@ -865,5 +865,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
+
+        [Fact]
+        public void ExtendedPropertySubpattern_InPositionalPattern()
+        {
+            UsingExpression(@"e is ( a.b.c: p )",
+                // (1,8): error CS1001: Identifier expected
+                // e is ( a.b.c: p )
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "a.b.c:").WithLocation(1, 8)
+                );
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PositionalPatternClause);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.ExpressionColon);
+                            {
+                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "b");
+                                        }
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "c");
+                                    }
+                                }
+                                N(SyntaxKind.ColonToken);
+                            }
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "p");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
     }
 }

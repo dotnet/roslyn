@@ -200,6 +200,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
+            if (hasSuppression(expression))
+            {
+                diagnostics.Add(ErrorCode.ERR_IllegalSuppression, expression.Location);
+                hasErrors = true;
+            }
+
             ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression);
             if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
             {
@@ -221,6 +227,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var boundType = (BoundTypeExpression)convertedExpression;
                 bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
                 return new BoundTypePattern(node, boundType, isExplicitNotNullTest, inputType, boundType.Type, hasErrors);
+            }
+
+            static bool hasSuppression(ExpressionSyntax e)
+            {
+                while (true)
+                {
+                    switch (e)
+                    {
+                        case ParenthesizedExpressionSyntax p:
+                            e = p.Expression;
+                            break;
+                        case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression }:
+                            return true;
+                        default:
+                            return false;
+                    }
+                }
             }
         }
 
@@ -777,10 +800,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < node.Subpatterns.Count; i++)
             {
                 var subPattern = node.Subpatterns[i];
+                // If the expression before the colon isn't just a name, we'll have reported a parsing error.
+                Debug.Assert(subPattern.NameColon is not null || subPattern.ExpressionColon is null || subPattern.ExpressionColon.HasErrors);
+
                 bool isError = hasErrors || outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                 TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
                 ParameterSymbol? parameter = null;
-                // PROTOTYPE(extended-property-patterns) ExpressionColon
                 if (subPattern.NameColon != null && !isError)
                 {
                     // Check that the given name is the same as the corresponding parameter of the method.
@@ -819,7 +844,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
             foreach (var subpatternSyntax in node.Subpatterns)
             {
-                // PROTOTYPE(extended-property-patterns) ExpressionColon
+                // If the expression before the colon isn't just a name, we'll have reported a parsing error.
+                Debug.Assert(subpatternSyntax.NameColon is not null || subpatternSyntax.ExpressionColon is null || subpatternSyntax.ExpressionColon.HasErrors);
+
                 if (subpatternSyntax.NameColon != null)
                 {
                     // error: name not permitted in ITuple deconstruction
@@ -873,10 +900,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < node.Subpatterns.Count; i++)
             {
                 var subpatternSyntax = node.Subpatterns[i];
+                // If the expression before the colon isn't just a name, we'll have reported a parsing error.
+                Debug.Assert(subpatternSyntax.NameColon is not null || subpatternSyntax.ExpressionColon is null || subpatternSyntax.ExpressionColon.HasErrors);
+
                 bool isError = i >= elementTypesWithAnnotations.Length;
                 TypeSymbol elementType = isError ? CreateErrorType() : elementTypesWithAnnotations[i].Type;
                 FieldSymbol? foundField = null;
-                // PROTOTYPE(extended-property-patterns) ExpressionColon
                 if (subpatternSyntax.NameColon != null && !isError)
                 {
                     string name = subpatternSyntax.NameColon.Name.Identifier.ValueText;

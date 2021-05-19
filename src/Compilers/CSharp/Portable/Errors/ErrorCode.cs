@@ -1932,15 +1932,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics introduced for C# 10.0
 
-        // PROTOTYPE(extended-property-patterns) Temp values
-        ERR_InvalidNameInSubpattern = 9000,
-
         ERR_InheritingFromRecordWithSealedToString = 8912,
         ERR_HiddenPositionalMember = 8913,
         ERR_GlobalUsingInNamespace = 8914,
         ERR_GlobalUsingOutOfOrder = 8915,
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
         ERR_CannotInferDelegateType = 8917,
+        ERR_InvalidNameInSubpattern = 8918,
 
         #endregion
 
