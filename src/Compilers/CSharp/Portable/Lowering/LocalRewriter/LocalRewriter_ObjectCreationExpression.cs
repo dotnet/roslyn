@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(anonymousType.Properties.Length);
-                foreach (AnonymousTypeManager.AnonymousTypePropertySymbol property in anonymousType.Properties)
+                foreach (var property in anonymousType.Properties)
                 {
                     if (valueTemps[property.MemberIndexOpt!.Value] is BoundExpression initializerValue)
                     {
