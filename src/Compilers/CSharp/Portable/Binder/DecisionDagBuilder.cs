@@ -525,6 +525,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (recursive.LengthPattern is not null || recursive.ListPatternClause is not null)
+            {
+                MakeTestsAndBindingsForLengthAndListPatterns(input, recursive, bindings, tests);
+            }
+
             if (!recursive.Properties.IsDefault)
             {
                 // we have a "property" form
@@ -552,11 +557,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var element = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType().Type, evaluation);
                     tests.Add(MakeTestsAndBindings(element, pattern, bindings));
                 }
-            }
-
-            if (recursive.LengthPattern is not null || recursive.ListPatternClause is not null)
-            {
-                MakeTestsAndBindingsForLengthAndListPatterns(input, recursive, bindings, tests);
             }
 
             if (recursive.VariableAccess != null)
