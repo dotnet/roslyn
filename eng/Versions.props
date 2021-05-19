@@ -32,11 +32,11 @@
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20623.3</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.9.0</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.10.44</VisualStudioEditorPackagesVersion>
-    <VisualStudioEditorNewPackagesVersion>17.0.58-geff255422b</VisualStudioEditorNewPackagesVersion>
+    <VisualStudioEditorNewPackagesVersion>17.0.61-g037ce4283b</VisualStudioEditorNewPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.0.20-g6553c6c46e</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
-    <MicrosoftVisualStudioShellPackagesVersion>17.0.0-previews-1-31312-464</MicrosoftVisualStudioShellPackagesVersion>
+    <MicrosoftVisualStudioShellPackagesVersion>17.0.0-previews-1-31318-023</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftBuildPackagesVersion>16.5.0</MicrosoftBuildPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
          repository. This must be lower than MicrosoftNetCompilersToolsetVersion,
@@ -112,8 +112,8 @@
     <MicrosoftNetSdkVersion>2.0.0-alpha-20170405-2</MicrosoftNetSdkVersion>
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>
     <MicrosoftPortableTargetsVersion>0.1.2-dev</MicrosoftPortableTargetsVersion>
-    <MicrosoftServiceHubClientVersion>2.8.2012</MicrosoftServiceHubClientVersion>
-    <MicrosoftServiceHubFrameworkVersion>2.8.2012</MicrosoftServiceHubFrameworkVersion>
+    <MicrosoftServiceHubClientVersion>2.8.2018</MicrosoftServiceHubClientVersion>
+    <MicrosoftServiceHubFrameworkVersion>2.8.2018</MicrosoftServiceHubFrameworkVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCacheVersion>16.10.40-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
@@ -167,8 +167,8 @@
     <MicrosoftVisualStudioTextUIVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioTextUIVersion>
     <MicrosoftVisualStudioTextUIWpfVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioTextUIWpfVersion>
     <MicrosoftVisualStudioTextUICocoaVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUICocoaVersion>
-    <MicrosoftVisualStudioThreadingAnalyzersVersion>16.10.56</MicrosoftVisualStudioThreadingAnalyzersVersion>
-    <MicrosoftVisualStudioThreadingVersion>16.10.56</MicrosoftVisualStudioThreadingVersion>
+    <MicrosoftVisualStudioThreadingAnalyzersVersion>17.0.15-alpha</MicrosoftVisualStudioThreadingAnalyzersVersion>
+    <MicrosoftVisualStudioThreadingVersion>17.0.15-alpha</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioUtilitiesVersion>
     <MicrosoftVisualStudioValidationVersion>17.0.11-alpha</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>4.0.0-beta.21267.2</MicrosoftVisualStudioInteractiveWindowVersion>
