@@ -1088,9 +1088,9 @@ class C
 
             var compilation = CreateCompilation(source, new[] { vbCompilation.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
-                // (6,31): error CS9200: List patterns may not be used for a value of type 'object'.
+                // (6,31): error CS9200: List patterns may not be used for a value of type 'C1'.
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{ Prop[1]: var x }").WithArguments("object").WithLocation(6, 31),
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{ Prop[1]: var x }").WithArguments("C1").WithLocation(6, 31),
                 // (6,33): error CS0246: The type or namespace name 'Prop' could not be found (are you missing a using directive or an assembly reference?)
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Prop").WithArguments("Prop").WithLocation(6, 33),
