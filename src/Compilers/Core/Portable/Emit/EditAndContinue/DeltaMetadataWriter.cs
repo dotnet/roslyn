@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly EventOrPropertyMapIndex _eventMap;
         private readonly EventOrPropertyMapIndex _propertyMap;
         private readonly MethodImplIndex _methodImpls;
+        private readonly List<int> _customAttributeRows;
 
         private readonly HeapOrReferenceIndex<AssemblyIdentity> _assemblyRefIndex;
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
@@ -87,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _eventMap = new EventOrPropertyMapIndex(this.TryGetExistingEventMapIndex, sizes[(int)TableIndex.EventMap]);
             _propertyMap = new EventOrPropertyMapIndex(this.TryGetExistingPropertyMapIndex, sizes[(int)TableIndex.PropertyMap]);
             _methodImpls = new MethodImplIndex(this, sizes[(int)TableIndex.MethodImpl]);
+            _customAttributeRows = new List<int>();
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this, lastRowId: sizes[(int)TableIndex.AssemblyRef]);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this, lastRowId: sizes[(int)TableIndex.ModuleRef]);
@@ -807,6 +809,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     row = nextCustomAttributeRow++;
                 }
 
+                _customAttributeRows.Add(row);
                 metadata.AddEncLogEntry(
                     entity: MetadataTokens.CustomAttributeHandle(row),
                     code: EditAndContinueOperation.Default);
@@ -889,7 +892,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             AddReferencedTokens(tokens, TableIndex.Param, previousSizes, deltaSizes);
             AddReferencedTokens(tokens, TableIndex.Constant, previousSizes, deltaSizes);
-            AddReferencedTokens(tokens, TableIndex.CustomAttribute, previousSizes, deltaSizes);
+            AddRowNumberTokens(tokens, _customAttributeRows, TableIndex.CustomAttribute);
             AddReferencedTokens(tokens, TableIndex.DeclSecurity, previousSizes, deltaSizes);
             AddReferencedTokens(tokens, TableIndex.ClassLayout, previousSizes, deltaSizes);
             AddReferencedTokens(tokens, TableIndex.FieldLayout, previousSizes, deltaSizes);
@@ -1013,6 +1016,14 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var member in index.GetRows())
             {
                 tokens.Add(MetadataTokens.Handle(tableIndex, index[member]));
+            }
+        }
+
+        private static void AddRowNumberTokens(ArrayBuilder<EntityHandle> tokens, IEnumerable<int> rowNumbers, TableIndex tableIndex)
+        {
+            foreach (var row in rowNumbers)
+            {
+                tokens.Add(MetadataTokens.Handle(tableIndex, row));
             }
         }
 
