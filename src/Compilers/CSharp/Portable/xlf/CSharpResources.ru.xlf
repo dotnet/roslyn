@@ -22,6 +22,11 @@
         <target state="translated">Не удается создать сконструированный универсальный тип из неуниверсального типа.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
+        <source>User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</source>
+        <target state="new">User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
         <target state="translated">"{0}": абстрактное событие не может использовать синтаксис метода доступа к событиям.</target>
@@ -5126,8 +5131,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
-        <source>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</source>
-        <target state="translated">Определенный пользователем оператор не может получить объект данного включающего типа и выполнить преобразование в объект данного включающего типа.</target>
+        <source>User-defined operator cannot convert a type to itself</source>
+        <target state="needs-review-translation">Определенный пользователем оператор не может получить объект данного включающего типа и выполнить преобразование в объект данного включающего типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionNotInvolvingContainedType">

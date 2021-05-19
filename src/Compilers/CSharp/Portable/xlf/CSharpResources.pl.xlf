@@ -22,6 +22,11 @@
         <target state="translated">Nie można utworzyć konstruowanego typu ogólnego z typu nieogólnego.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
+        <source>User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</source>
+        <target state="new">User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
         <target state="translated">„{0}”: zdarzenie abstrakcyjne nie może używać składni metody dostępu zdarzenia</target>
@@ -5126,8 +5131,8 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
-        <source>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</source>
-        <target state="translated">Zdefiniowany przez użytkownika operator nie może pobrać obiektu typu otaczającego i dokonać konwersji na obiekt typu otaczającego</target>
+        <source>User-defined operator cannot convert a type to itself</source>
+        <target state="needs-review-translation">Zdefiniowany przez użytkownika operator nie może pobrać obiektu typu otaczającego i dokonać konwersji na obiekt typu otaczającego</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionNotInvolvingContainedType">

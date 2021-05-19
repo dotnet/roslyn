@@ -22,6 +22,11 @@
         <target state="translated">無法從另一個非泛型型別建立建構的泛型型別。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
+        <source>User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</source>
+        <target state="new">User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
         <target state="translated">'{0}' 抽象事件無法使用事件存取子語法</target>
@@ -5126,8 +5131,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
-        <source>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</source>
-        <target state="translated">使用者定義的運算子無法攜帶封入類型的物件和轉換為封入類型的物件</target>
+        <source>User-defined operator cannot convert a type to itself</source>
+        <target state="needs-review-translation">使用者定義的運算子無法攜帶封入類型的物件和轉換為封入類型的物件</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionNotInvolvingContainedType">

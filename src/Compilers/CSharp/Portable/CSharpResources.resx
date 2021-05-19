@@ -1665,7 +1665,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': user-defined conversions to or from a derived type are not allowed</value>
   </data>
   <data name="ERR_IdentityConversion" xml:space="preserve">
-    <value>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</value>
+    <value>User-defined operator cannot convert a type to itself</value>
   </data>
   <data name="ERR_ConversionNotInvolvingContainedType" xml:space="preserve">
     <value>User-defined conversion must convert to or from the enclosing type</value>
@@ -6678,5 +6678,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExplicitImplementationOfOperatorsMustBeStatic" xml:space="preserve">
     <value>Explicit implementation of a user-defined operator '{0}' must be declared static</value>
+  </data>
+  <data name="ERR_AbstractConversionNotInvolvingContainedType" xml:space="preserve">
+    <value>User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</value>
   </data>
 </root>

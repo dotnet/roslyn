@@ -61,6 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_OvlUnaryOperatorExpected, syntax.ParameterList.GetLocation());
             }
+
+            if (IsStatic && IsAbstract)
+            {
+                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
+            }
         }
 
         internal ConversionOperatorDeclarationSyntax GetSyntax()

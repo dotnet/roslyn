@@ -10360,11 +10360,11 @@ public struct S
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-// (4,37): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+// (4,37): error CS0555: User-defined operator cannot convert a type to itself
 //     public static implicit operator MyClass(MyClass aa)   // CS0555
 Diagnostic(ErrorCode.ERR_IdentityConversion, "MyClass"),
 
-// (11,37): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+// (11,37): error CS0555: User-defined operator cannot convert a type to itself
 //     public static implicit operator S?(S s) { return s; }
 Diagnostic(ErrorCode.ERR_IdentityConversion, "S?")
                 );

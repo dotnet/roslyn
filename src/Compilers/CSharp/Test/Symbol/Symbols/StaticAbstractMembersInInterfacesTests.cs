@@ -3987,10 +3987,8 @@ public interface I3
             }
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void OperatorModifiers_08(bool use7_3)
+        [Fact]
+        public void OperatorModifiers_08()
         {
             var source1 =
 @"
@@ -3998,40 +3996,241 @@ public interface I1
 {
     abstract static implicit operator int(I1 x); 
 
-    abstract static explicit operator bool(I1 x) {return false;} 
+    abstract static explicit operator I1(bool x) {return null;} 
 }
 
 public interface I2
 {
-    sealed static implicit operator int(I2 x) {return 0;} 
+    sealed static implicit operator int(I2 x);
 
-    sealed static explicit operator bool(I2 x) {return false;} 
+    sealed static explicit operator I2(bool x) {return null;} 
+}
+
+public interface I3
+{
+    abstract sealed static implicit operator int(I3 x);
+
+    abstract sealed static explicit operator I3(bool x) {return null;} 
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: use7_3 ? TestOptions.Regular7_3 : TestOptions.RegularPreview,
+                                                 parseOptions: TestOptions.Regular7_3,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (4,39): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                // (4,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     abstract static implicit operator int(I1 x); 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 39),
-                // (6,39): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     abstract static explicit operator bool(I1 x) {return false;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "bool").WithLocation(6, 39),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "7.3", "preview").WithLocation(4, 39),
+                // (4,39): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
+                //     abstract static implicit operator int(I1 x); 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 39),
+                // (6,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                //     abstract static explicit operator I1(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("abstract", "7.3", "preview").WithLocation(6, 39),
+                // (6,39): error CS0500: 'I1.explicit operator I1(bool)' cannot declare a body because it is marked abstract
+                //     abstract static explicit operator I1(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 39),
+                // (6,39): error CS0552: 'I1.explicit operator I1(bool)': user-defined conversions to or from an interface are not allowed
+                //     abstract static explicit operator I1(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 39),
                 // (11,37): error CS0106: The modifier 'sealed' is not valid for this item
-                //     sealed static implicit operator int(I2 x) {return 0;} 
+                //     sealed static implicit operator int(I2 x);
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(11, 37),
+                // (11,37): error CS0552: 'I2.implicit operator int(I2)': user-defined conversions to or from an interface are not allowed
+                //     sealed static implicit operator int(I2 x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 37),
                 // (11,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     sealed static implicit operator int(I2 x) {return 0;} 
+                //     sealed static implicit operator int(I2 x);
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(11, 37),
                 // (13,37): error CS0106: The modifier 'sealed' is not valid for this item
-                //     sealed static explicit operator bool(I2 x) {return false;} 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "bool").WithArguments("sealed").WithLocation(13, 37),
+                //     sealed static explicit operator I2(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(13, 37),
+                // (13,37): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
+                //     sealed static explicit operator I2(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 37),
                 // (13,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
-                //     sealed static explicit operator bool(I2 x) {return false;} 
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "bool").WithLocation(13, 37)
+                //     sealed static explicit operator I2(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "I2").WithLocation(13, 37),
+                // (18,46): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static implicit operator int(I3 x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(18, 46),
+                // (18,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                //     abstract sealed static implicit operator int(I3 x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "7.3", "preview").WithLocation(18, 46),
+                // (18,46): error CS0552: 'I3.implicit operator int(I3)': user-defined conversions to or from an interface are not allowed
+                //     abstract sealed static implicit operator int(I3 x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I3.implicit operator int(I3)").WithLocation(18, 46),
+                // (20,46): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static explicit operator I3(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I3").WithArguments("sealed").WithLocation(20, 46),
+                // (20,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                //     abstract sealed static explicit operator I3(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "7.3", "preview").WithLocation(20, 46),
+                // (20,46): error CS0500: 'I3.explicit operator I3(bool)' cannot declare a body because it is marked abstract
+                //     abstract sealed static explicit operator I3(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 46),
+                // (20,46): error CS0552: 'I3.explicit operator I3(bool)': user-defined conversions to or from an interface are not allowed
+                //     abstract sealed static explicit operator I3(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 46)
                 );
+
+            validate();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.Regular9,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (4,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static implicit operator int(I1 x); 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(4, 39),
+                // (4,39): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
+                //     abstract static implicit operator int(I1 x); 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 39),
+                // (6,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static explicit operator I1(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I1").WithArguments("abstract", "9.0", "preview").WithLocation(6, 39),
+                // (6,39): error CS0500: 'I1.explicit operator I1(bool)' cannot declare a body because it is marked abstract
+                //     abstract static explicit operator I1(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 39),
+                // (6,39): error CS0552: 'I1.explicit operator I1(bool)': user-defined conversions to or from an interface are not allowed
+                //     abstract static explicit operator I1(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 39),
+                // (11,37): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static implicit operator int(I2 x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(11, 37),
+                // (11,37): error CS0552: 'I2.implicit operator int(I2)': user-defined conversions to or from an interface are not allowed
+                //     sealed static implicit operator int(I2 x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 37),
+                // (11,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     sealed static implicit operator int(I2 x);
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(11, 37),
+                // (13,37): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static explicit operator I2(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(13, 37),
+                // (13,37): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
+                //     sealed static explicit operator I2(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 37),
+                // (13,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     sealed static explicit operator I2(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "I2").WithLocation(13, 37),
+                // (18,46): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static implicit operator int(I3 x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(18, 46),
+                // (18,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract sealed static implicit operator int(I3 x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(18, 46),
+                // (18,46): error CS0552: 'I3.implicit operator int(I3)': user-defined conversions to or from an interface are not allowed
+                //     abstract sealed static implicit operator int(I3 x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I3.implicit operator int(I3)").WithLocation(18, 46),
+                // (20,46): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static explicit operator I3(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I3").WithArguments("sealed").WithLocation(20, 46),
+                // (20,46): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract sealed static explicit operator I3(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "I3").WithArguments("abstract", "9.0", "preview").WithLocation(20, 46),
+                // (20,46): error CS0500: 'I3.explicit operator I3(bool)' cannot declare a body because it is marked abstract
+                //     abstract sealed static explicit operator I3(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 46),
+                // (20,46): error CS0552: 'I3.explicit operator I3(bool)': user-defined conversions to or from an interface are not allowed
+                //     abstract sealed static explicit operator I3(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 46)
+                );
+
+            validate();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (4,39): error CS0552: 'I1.implicit operator int(I1)': user-defined conversions to or from an interface are not allowed
+                //     abstract static implicit operator int(I1 x); 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I1.implicit operator int(I1)").WithLocation(4, 39),
+                // (6,39): error CS0500: 'I1.explicit operator I1(bool)' cannot declare a body because it is marked abstract
+                //     abstract static explicit operator I1(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 39),
+                // (6,39): error CS0552: 'I1.explicit operator I1(bool)': user-defined conversions to or from an interface are not allowed
+                //     abstract static explicit operator I1(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I1").WithArguments("I1.explicit operator I1(bool)").WithLocation(6, 39),
+                // (11,37): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static implicit operator int(I2 x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(11, 37),
+                // (11,37): error CS0552: 'I2.implicit operator int(I2)': user-defined conversions to or from an interface are not allowed
+                //     sealed static implicit operator int(I2 x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I2.implicit operator int(I2)").WithLocation(11, 37),
+                // (11,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     sealed static implicit operator int(I2 x);
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(11, 37),
+                // (13,37): error CS0106: The modifier 'sealed' is not valid for this item
+                //     sealed static explicit operator I2(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(13, 37),
+                // (13,37): error CS0552: 'I2.explicit operator I2(bool)': user-defined conversions to or from an interface are not allowed
+                //     sealed static explicit operator I2(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I2").WithArguments("I2.explicit operator I2(bool)").WithLocation(13, 37),
+                // (13,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                //     sealed static explicit operator I2(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "I2").WithLocation(13, 37),
+                // (18,46): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static implicit operator int(I3 x);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("sealed").WithLocation(18, 46),
+                // (18,46): error CS0552: 'I3.implicit operator int(I3)': user-defined conversions to or from an interface are not allowed
+                //     abstract sealed static implicit operator int(I3 x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "int").WithArguments("I3.implicit operator int(I3)").WithLocation(18, 46),
+                // (20,46): error CS0106: The modifier 'sealed' is not valid for this item
+                //     abstract sealed static explicit operator I3(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I3").WithArguments("sealed").WithLocation(20, 46),
+                // (20,46): error CS0500: 'I3.explicit operator I3(bool)' cannot declare a body because it is marked abstract
+                //     abstract sealed static explicit operator I3(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 46),
+                // (20,46): error CS0552: 'I3.explicit operator I3(bool)': user-defined conversions to or from an interface are not allowed
+                //     abstract sealed static explicit operator I3(bool x) {return null;} 
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I3").WithArguments("I3.explicit operator I3(bool)").WithLocation(20, 46)
+                );
+
+            validate();
+
+            void validate()
+            {
+                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I1").GetMembers())
+                {
+                    Assert.True(m01.IsAbstract);
+                    Assert.False(m01.IsVirtual);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsExtern);
+                    Assert.False(m01.IsAsync);
+                    Assert.False(m01.IsOverride);
+                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
+                }
+
+                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I2").GetMembers())
+                {
+                    Assert.False(m01.IsAbstract);
+                    Assert.False(m01.IsVirtual);
+                    Assert.False(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsExtern);
+                    Assert.False(m01.IsAsync);
+                    Assert.False(m01.IsOverride);
+                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
+                }
+
+                foreach (MethodSymbol m01 in compilation1.GetTypeByMetadataName("I3").GetMembers())
+                {
+                    Assert.True(m01.IsAbstract);
+                    Assert.False(m01.IsVirtual);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsExtern);
+                    Assert.False(m01.IsAsync);
+                    Assert.False(m01.IsOverride);
+                    Assert.Null(m01.ContainingType.FindImplementationForInterfaceMember(m01));
+                }
+            }
         }
 
         [Fact]
@@ -4528,6 +4727,69 @@ interface I1
                 // (11,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator != (I1 x, I1 y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "!=").WithLocation(11, 33)
+                );
+        }
+
+        [Fact]
+        public void DefineAbstractStaticConversion_01()
+        {
+            var source1 =
+@"
+interface I1<T> where T : I1<T>
+{
+    abstract static implicit operator int(T x);
+    abstract static explicit operator T(int x);
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                int count = 0;
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.False(m01.IsMetadataNewSlot());
+                    Assert.True(m01.IsAbstract);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsMetadataFinal);
+                    Assert.False(m01.IsVirtual);
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsOverride);
+
+                    count++;
+                }
+
+                Assert.Equal(2, count);
+            }
+        }
+
+        [Fact]
+        public void DefineAbstractStaticConversion_03()
+        {
+            var source1 =
+@"
+interface I1<T> where T : I1<T>
+{
+    abstract static implicit operator int(T x);
+    abstract static explicit operator T(int x);
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation1.VerifyDiagnostics(
+                // (4,39): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static implicit operator int(T x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(4, 39),
+                // (5,39): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static explicit operator T(int x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "T").WithLocation(5, 39)
                 );
         }
 
@@ -5320,19 +5582,8 @@ interface I15<T151, T152> where T151 : I15<T151, T152> where T152 : I15<T151, T1
         }
 
         [Theory]
-        [InlineData("+")]
-        [InlineData("-")]
-        [InlineData("*")]
-        [InlineData("/")]
-        [InlineData("%")]
-        [InlineData("&")]
-        [InlineData("|")]
-        [InlineData("^")]
-        [InlineData("<")]
-        [InlineData(">")]
-        [InlineData("<=")]
-        [InlineData(">=")]
-        public void OperatorSignature_04(string op)
+        [CombinatorialData]
+        public void OperatorSignature_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
 @"
@@ -5397,7 +5648,7 @@ interface I13
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators)).Verify(
                 // (4,26): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static bool operator +(T1 x, bool y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(4, 26),
@@ -5426,19 +5677,8 @@ interface I13
         }
 
         [Theory]
-        [InlineData("+")]
-        [InlineData("-")]
-        [InlineData("*")]
-        [InlineData("/")]
-        [InlineData("%")]
-        [InlineData("&")]
-        [InlineData("|")]
-        [InlineData("^")]
-        [InlineData("<")]
-        [InlineData(">")]
-        [InlineData("<=")]
-        [InlineData(">=")]
-        public void OperatorSignature_05(string op)
+        [CombinatorialData]
+        public void OperatorSignature_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
 @"
@@ -5503,7 +5743,7 @@ interface I13
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators)).Verify(
                 // (4,26): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static bool operator +(bool y, T1 x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(4, 26),
@@ -5632,6 +5872,248 @@ interface I14
                 // (61,35): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //     static abstract bool operator <<(I14 x, bool y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(61, 35)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void OperatorSignature_07([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            var source1 =
+@"
+interface I1<T1> where T1 : I1<T1>
+{
+    abstract static " + op + @" operator T1(T1 y);
+}
+
+interface I2<T2> where T2 : I2<T2>
+{
+    abstract static " + op + @" operator dynamic(T2 y);
+}
+
+interface I3<T3> where T3 : I3<T3>
+{
+    static abstract " + op + @" operator T3(bool y);
+}
+
+interface I4<T4> where T4 : struct, I4<T4>
+{
+    static abstract " + op + @" operator T4?(bool y);
+}
+
+class C5<T5> where T5 : C5<T5>.I6
+{
+    public interface I6
+    {
+        static abstract " + op + @" operator T5 (bool y);
+    }
+}
+
+interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
+{
+    static abstract " + op + @" operator T71 (bool y);
+}
+
+interface I8<T8> where T8 : I9<T8>
+{
+    static abstract " + op + @" operator T8(bool y);
+}
+
+interface I9<T9> : I8<T9> where T9 : I9<T9> {}
+
+interface I10<T10> where T10 : C11<T10>
+{
+    static abstract " + op + @" operator T10(bool y);
+}
+
+class C11<T11> : I10<T11> where T11 : C11<T11> {}
+
+interface I12
+{
+    static abstract " + op + @" operator int(bool y);
+}
+
+interface I13
+{
+    static abstract " + op + @" operator I13(bool y);
+}
+
+interface I14<T14> where T14 : I14<T14>
+{
+    abstract static " + op + @" operator object(T14 y);
+}
+
+class C15 {}
+class C16 : C15 {}
+
+interface I17<T17> where T17 : C15, I17<T17>
+{
+    abstract static " + op + @" operator C16(T17 y);
+}
+
+interface I18<T18> where T18 : C16, I18<T18>
+{
+    abstract static " + op + @" operator C15(T18 y);
+}
+
+interface I19<T19_1, T19_2> where T19_1 : I19<T19_1, T19_2>, T19_2
+{
+    abstract static " + op + @" operator T19_1(T19_2 y);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (4,39): error CS0555: User-defined operator cannot convert a type to itself
+                //     abstract static explicit operator T1(T1 y);
+                Diagnostic(ErrorCode.ERR_IdentityConversion, "T1").WithLocation(4, 39),
+                // (9,39): error CS1964: 'I2<T2>.explicit operator dynamic(T2)': user-defined conversions to or from the dynamic type are not allowed
+                //     abstract static explicit operator dynamic(T2 y);
+                Diagnostic(ErrorCode.ERR_BadDynamicConversion, "dynamic").WithArguments("I2<T2>." + op + " operator dynamic(T2)").WithLocation(9, 39),
+                // (26,43): error CS9112: User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type
+                //         static abstract explicit operator T5 (bool y);
+                Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "T5").WithLocation(26, 43),
+                // (32,39): error CS9112: User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type
+                //     static abstract explicit operator T71 (bool y);
+                Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "T71").WithLocation(32, 39),
+                // (37,39): error CS9112: User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type
+                //     static abstract explicit operator T8(bool y);
+                Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "T8").WithLocation(37, 39),
+                // (44,39): error CS9112: User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type
+                //     static abstract explicit operator T10(bool y);
+                Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "T10").WithLocation(44, 39),
+                // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.explicit operator T11(bool)'
+                // class C11<T11> : I10<T11> where T11 : C11<T11> {}
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>." + op + " operator T11(bool)").WithLocation(47, 18),
+                // (51,39): error CS9112: User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type
+                //     static abstract explicit operator int(bool y);
+                Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "int").WithLocation(51, 39),
+                // (56,39): error CS0552: 'I13.explicit operator I13(bool)': user-defined conversions to or from an interface are not allowed
+                //     static abstract explicit operator I13(bool y);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "I13").WithArguments("I13." + op + " operator I13(bool)").WithLocation(56, 39)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void OperatorSignature_08([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            var source1 =
+@"
+interface I1<T1> where T1 : I1<T1>
+{
+    abstract static " + op + @" operator T1(T1 y);
+}
+
+interface I2<T2> where T2 : I2<T2>
+{
+    abstract static " + op + @" operator T2(dynamic y);
+}
+
+interface I3<T3> where T3 : I3<T3>
+{
+    static abstract " + op + @" operator bool(T3 y);
+}
+
+interface I4<T4> where T4 : struct, I4<T4>
+{
+    static abstract " + op + @" operator bool(T4? y);
+}
+
+class C5<T5> where T5 : C5<T5>.I6
+{
+    public interface I6
+    {
+        static abstract " + op + @" operator bool(T5 y);
+    }
+}
+
+interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
+{
+    static abstract " + op + @" operator bool(T71 y);
+}
+
+interface I8<T8> where T8 : I9<T8>
+{
+    static abstract " + op + @" operator bool(T8 y);
+}
+
+interface I9<T9> : I8<T9> where T9 : I9<T9> {}
+
+interface I10<T10> where T10 : C11<T10>
+{
+    static abstract " + op + @" operator bool(T10 y);
+}
+
+class C11<T11> : I10<T11> where T11 : C11<T11> {}
+
+interface I12
+{
+    static abstract " + op + @" operator bool(int y);
+}
+
+interface I13
+{
+    static abstract " + op + @" operator bool(I13 y);
+}
+
+interface I14<T14> where T14 : I14<T14>
+{
+    abstract static " + op + @" operator T14(object y);
+}
+
+class C15 {}
+class C16 : C15 {}
+
+interface I17<T17> where T17 : C15, I17<T17>
+{
+    abstract static " + op + @" operator T17(C16 y);
+}
+
+interface I18<T18> where T18 : C16, I18<T18>
+{
+    abstract static " + op + @" operator T18(C15 y);
+}
+
+interface I19<T19_1, T19_2> where T19_1 : I19<T19_1, T19_2>, T19_2
+{
+    abstract static " + op + @" operator T19_2(T19_1 y);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (4,39): error CS0555: User-defined operator cannot convert a type to itself
+                //     abstract static explicit operator T1(T1 y);
+                Diagnostic(ErrorCode.ERR_IdentityConversion, "T1").WithLocation(4, 39),
+                // (9,39): error CS1964: 'I2<T2>.explicit operator T2(dynamic)': user-defined conversions to or from the dynamic type are not allowed
+                //     abstract static explicit operator T2(dynamic y);
+                Diagnostic(ErrorCode.ERR_BadDynamicConversion, "T2").WithArguments("I2<T2>." + op + " operator T2(dynamic)").WithLocation(9, 39),
+                // (26,43): error CS9112: User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type
+                //         static abstract explicit operator bool(T5 y);
+                Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "bool").WithLocation(26, 43),
+                // (32,39): error CS9112: User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type
+                //     static abstract explicit operator bool(T71 y);
+                Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "bool").WithLocation(32, 39),
+                // (37,39): error CS9112: User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type
+                //     static abstract explicit operator bool(T8 y);
+                Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "bool").WithLocation(37, 39),
+                // (44,39): error CS9112: User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type
+                //     static abstract explicit operator bool(T10 y);
+                Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "bool").WithLocation(44, 39),
+                // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.explicit operator bool(T11)'
+                // class C11<T11> : I10<T11> where T11 : C11<T11> {}
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>." + op + " operator bool(T11)").WithLocation(47, 18),
+                // (51,39): error CS9112: User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type
+                //     static abstract explicit operator bool(int y);
+                Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "bool").WithLocation(51, 39),
+                // (56,39): error CS0552: 'I13.explicit operator bool(I13)': user-defined conversions to or from an interface are not allowed
+                //     static abstract explicit operator bool(I13 y);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "bool").WithArguments("I13." + op + " operator bool(I13)").WithLocation(56, 39)
                 );
         }
 
