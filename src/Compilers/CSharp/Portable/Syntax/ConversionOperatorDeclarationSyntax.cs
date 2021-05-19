@@ -4,14 +4,14 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    public partial class OperatorDeclarationSyntax
+    public partial class ConversionOperatorDeclarationSyntax
     {
-        public OperatorDeclarationSyntax Update(
+        public ConversionOperatorDeclarationSyntax Update(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
-            TypeSyntax returnType,
+            SyntaxToken implicitOrExplicitKeyword,
             SyntaxToken operatorKeyword,
-            SyntaxToken operatorToken,
+            TypeSyntax type,
             ParameterListSyntax parameterList,
             BlockSyntax? body,
             ArrowExpressionClauseSyntax? expressionBody,
@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return Update(
                 attributeLists: attributeLists,
                 modifiers: modifiers,
-                returnType: returnType,
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
                 explicitInterfaceSpecifier: this.ExplicitInterfaceSpecifier,
                 operatorKeyword: operatorKeyword,
-                operatorToken: operatorToken,
+                type: type,
                 parameterList: parameterList,
                 body: body,
                 expressionBody: expressionBody,

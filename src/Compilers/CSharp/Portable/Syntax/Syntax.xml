@@ -3784,6 +3784,7 @@
       <Kind Name="ImplicitKeyword"/>
       <Kind Name="ExplicitKeyword"/>
     </Field>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true"/>
     <Field Name="OperatorKeyword" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the "operator" token.</summary>

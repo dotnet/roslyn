@@ -2351,11 +2351,10 @@ tryAgain:
                 }
 
                 // Check for conversion operators (implicit/explicit)
-                if (this.CurrentToken.Kind == SyntaxKind.ExplicitKeyword ||
-                    this.CurrentToken.Kind == SyntaxKind.ImplicitKeyword ||
-                        (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword && !SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(1).Kind)))
+                result = this.TryParseConversionOperatorDeclaration(attributes, modifiers);
+                if (result is not null)
                 {
-                    return this.ParseConversionOperatorDeclaration(attributes, modifiers);
+                    return result;
                 }
 
                 if (this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword)
@@ -2773,11 +2772,10 @@ parse_member_name:;
                 }
 
                 // Check for conversion operators (implicit/explicit)
-                if (this.CurrentToken.Kind == SyntaxKind.ExplicitKeyword ||
-                    this.CurrentToken.Kind == SyntaxKind.ImplicitKeyword ||
-                        (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword && !SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(1).Kind)))
+                MemberDeclarationSyntax result = this.TryParseConversionOperatorDeclaration(attributes, modifiers);
+                if (result is not null)
                 {
-                    return this.ParseConversionOperatorDeclaration(attributes, modifiers);
+                    return result;
                 }
 
                 // Namespaces should be handled by the caller, not checking for them
@@ -2799,7 +2797,6 @@ parse_member_name:;
                 {
                     // Check for misplaced modifiers.  if we see any, then consider this member
                     // terminated and restart parsing.
-                    MemberDeclarationSyntax result;
                     if (IsMisplacedModifier(modifiers, attributes, type, out result))
                     {
                         return result;
@@ -2922,6 +2919,7 @@ parse_member_name:;
             {
                 case SyntaxKind.DotToken:                   // Goo.     explicit
                 case SyntaxKind.ColonColonToken:            // Goo::    explicit
+                case SyntaxKind.DotDotToken:                // Goo..    explicit
                 case SyntaxKind.LessThanToken:            // Goo<     explicit or generic method
                 case SyntaxKind.OpenBraceToken:        // Goo {    property
                 case SyntaxKind.EqualsGreaterThanToken:     // Goo =>   property
@@ -3251,39 +3249,178 @@ parse_member_name:;
             }
         }
 
-        private ConversionOperatorDeclarationSyntax ParseConversionOperatorDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
+        private ConversionOperatorDeclarationSyntax TryParseConversionOperatorDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
-            SyntaxToken style;
-            if (this.CurrentToken.Kind == SyntaxKind.ImplicitKeyword || this.CurrentToken.Kind == SyntaxKind.ExplicitKeyword)
+            var point = GetResetPoint();
+
+            try
             {
-                style = this.EatToken();
+                SyntaxToken style;
+                if (this.CurrentToken.Kind == SyntaxKind.ImplicitKeyword || this.CurrentToken.Kind == SyntaxKind.ExplicitKeyword)
+                {
+                    style = this.EatToken();
+                }
+                else
+                {
+                    style = this.EatToken(SyntaxKind.ExplicitKeyword);
+                }
+
+                ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt = tryParseExplicitInterfaceSpecifier();
+                SyntaxToken opKeyword;
+                TypeSyntax type;
+                ParameterListSyntax paramList;
+
+                if (style.IsMissing)
+                {
+                    if (this.CurrentToken.Kind != SyntaxKind.OperatorKeyword || SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(1).Kind) ||
+                        explicitInterfaceOpt?.DotToken.IsMissing == true)
+                    {
+                        this.Reset(ref point);
+                        return null;
+                    }
+                }
+                else if (explicitInterfaceOpt is not null && this.CurrentToken.Kind != SyntaxKind.OperatorKeyword && style.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia))
+                {
+                    // Not likely an explicit interface implementation. Likely a begining of the next member on the next line.
+                    this.Reset(ref point);
+                    style = this.EatToken();
+                    explicitInterfaceOpt = null;
+                    opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
+                    type = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected);
+                    SyntaxToken open = SyntaxFactory.MissingToken(SyntaxKind.OpenParenToken);
+                    SyntaxToken close = SyntaxFactory.MissingToken(SyntaxKind.CloseParenToken);
+                    var parameters = _pool.AllocateSeparated<ParameterSyntax>();
+                    paramList = _syntaxFactory.ParameterList(open, parameters, close);
+                    _pool.Free(parameters);
+
+                    return _syntaxFactory.ConversionOperatorDeclaration(
+                        attributes,
+                        modifiers.ToList(),
+                        style,
+                        explicitInterfaceOpt,
+                        opKeyword,
+                        type,
+                        paramList,
+                        body: null,
+                        expressionBody: null,
+                        semicolonToken: SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken));
+                }
+
+                opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
+
+                this.Release(ref point);
+                point = GetResetPoint();
+
+                bool couldBeParameterList = this.CurrentToken.Kind == SyntaxKind.OpenParenToken;
+                type = this.ParseType();
+
+                if (couldBeParameterList && type is TupleTypeSyntax { Elements: { Count: 2, SeparatorCount: 1 } } tupleType &&
+                    tupleType.Elements.GetSeparator(0).IsMissing && tupleType.Elements[1].IsMissing &&
+                    this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+                {
+                    // It looks like the type is missing and we parsed parameter list as the type. Recover.
+                    this.Reset(ref point);
+                    type = ParseIdentifierName();
+                }
+
+                paramList = this.ParseParenthesizedParameterList();
+
+                BlockSyntax blockBody;
+                ArrowExpressionClauseSyntax expressionBody;
+                SyntaxToken semicolon;
+                this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
+
+                return _syntaxFactory.ConversionOperatorDeclaration(
+                    attributes,
+                    modifiers.ToList(),
+                    style,
+                    explicitInterfaceOpt,
+                    opKeyword,
+                    type,
+                    paramList,
+                    blockBody,
+                    expressionBody,
+                    semicolon);
             }
-            else
+            finally
             {
-                style = this.EatToken(SyntaxKind.ExplicitKeyword);
+                this.Release(ref point);
             }
 
-            SyntaxToken opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
+            ExplicitInterfaceSpecifierSyntax tryParseExplicitInterfaceSpecifier()
+            {
+                if (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword)
+                {
+                    return null;
+                }
 
-            var type = this.ParseType();
+                if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                {
+                    return null;
+                }
 
-            var paramList = this.ParseParenthesizedParameterList();
+                NameSyntax explicitInterfaceName = null;
+                SyntaxToken separator = null;
 
-            BlockSyntax blockBody;
-            ArrowExpressionClauseSyntax expressionBody;
-            SyntaxToken semicolon;
-            this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
+                while (true)
+                {
+                    // now, scan past the next name.  if it's followed by a dot then
+                    // it's part of the explicit name we're building up.  Otherwise,
+                    // it should be an operator token
+                    var point = GetResetPoint();
+                    bool isPartOfInterfaceName;
+                    try
+                    {
+                        if (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword)
+                        {
+                            isPartOfInterfaceName = false;
+                        }
+                        else
+                        {
+                            int lastTokenPosition = -1;
+                            IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
+                            ScanNamedTypePart();
+                            isPartOfInterfaceName = IsDotOrColonColonOrDotDot() ||
+                                                    (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken);
+                        }
+                    }
+                    finally
+                    {
+                        this.Reset(ref point);
+                        this.Release(ref point);
+                    }
 
-            return _syntaxFactory.ConversionOperatorDeclaration(
-                attributes,
-                modifiers.ToList(),
-                style,
-                opKeyword,
-                type,
-                paramList,
-                blockBody,
-                expressionBody,
-                semicolon);
+                    if (!isPartOfInterfaceName)
+                    {
+                        // We're past any explicit interface portion
+                        if (separator != null && separator.Kind == SyntaxKind.ColonColonToken)
+                        {
+                            separator = this.AddError(separator, ErrorCode.ERR_AliasQualAsExpression);
+                            separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
+                        }
+
+                        break;
+                    }
+                    else
+                    {
+                        // If we saw a . or :: then we must have something explicit.
+                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator, reportAnErrorOnMisplacedColonColon: true);
+                    }
+                }
+
+                if (explicitInterfaceName is null)
+                {
+                    return null;
+                }
+
+                if (separator.Kind != SyntaxKind.DotToken)
+                {
+                    separator = WithAdditionalDiagnostics(separator, GetExpectedTokenError(SyntaxKind.DotToken, separator.Kind, separator.GetLeadingTriviaWidth(), separator.Width));
+                    separator = ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
+                }
+
+                return CheckFeatureAvailability(_syntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceName, separator), MessageID.IDS_FeatureStaticAbstractMembersInInterfaces);
+            }
         }
 
         private OperatorDeclarationSyntax ParseOperatorDeclaration(
@@ -4137,8 +4274,7 @@ tryAgain:
 
         private bool IsEndOfParameterList()
         {
-            return this.CurrentToken.Kind == SyntaxKind.CloseParenToken
-                || this.CurrentToken.Kind == SyntaxKind.CloseBracketToken;
+            return this.CurrentToken.Kind is SyntaxKind.CloseParenToken or SyntaxKind.CloseBracketToken or SyntaxKind.SemicolonToken;
         }
 
         private PostSkipAction SkipBadParameterListTokens(
@@ -6006,7 +6142,7 @@ tryAgain:
                     try
                     {
                         ScanNamedTypePart();
-                        isMemberName = !IsDotOrColonColon();
+                        isMemberName = !IsDotOrColonColonOrDotDot();
                     }
                     finally
                     {
@@ -6117,9 +6253,18 @@ tryAgain:
                 explicitInterfaceName = this.ParseSimpleName(NameOptions.InTypeList);
 
                 // Now, get the next separator.
-                separator = this.CurrentToken.Kind == SyntaxKind.ColonColonToken
-                    ? this.EatToken() // fine after the first identifier
-                    : this.EatToken(SyntaxKind.DotToken);
+                if (this.CurrentToken.Kind == SyntaxKind.DotDotToken)
+                {
+                    // Error recovery as in ParseQualifiedNameRight. If we have `X..Y` break that into `X.<missing-id>.Y`
+                    separator = this.EatToken();
+                    explicitInterfaceName = RecoverFromDotDot(explicitInterfaceName, ref separator);
+                }
+                else
+                {
+                    separator = this.CurrentToken.Kind == SyntaxKind.ColonColonToken
+                        ? this.EatToken() // fine after the first identifier
+                        : this.EatToken(SyntaxKind.DotToken);
+                }
             }
             else
             {
@@ -6141,6 +6286,12 @@ tryAgain:
                     }
 
                     separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
+                }
+                else if (this.CurrentToken.Kind == SyntaxKind.DotDotToken)
+                {
+                    // Error recovery as in ParseQualifiedNameRight. If we have `X..Y` break that into `X.<missing-id>.Y`
+                    separator = this.EatToken();
+                    explicitInterfaceName = RecoverFromDotDot(explicitInterfaceName, ref separator);
                 }
                 else
                 {
@@ -6197,7 +6348,7 @@ tryAgain:
                             // If we have part of the interface name, but no dot before the operator token, then
                             // for the purpose of error recovery, treat this as an operator start with a
                             // missing dot token.
-                            isPartOfInterfaceName = IsDotOrColonColon() || IsOperatorKeyword();
+                            isPartOfInterfaceName = IsDotOrColonColonOrDotDot() || IsOperatorKeyword();
                         }
                     }
                     finally
@@ -6269,7 +6420,7 @@ tryAgain:
             NameSyntax name = this.ParseAliasQualifiedName(options);
 
             // Handle .. tokens for error recovery purposes.
-            while (this.IsDotOrColonColon() || this.CurrentToken.Kind == SyntaxKind.DotDotToken)
+            while (IsDotOrColonColonOrDotDot())
             {
                 if (this.PeekToken(1).Kind == SyntaxKind.ThisKeyword)
                 {
@@ -6281,6 +6432,11 @@ tryAgain:
             }
 
             return name;
+        }
+
+        private bool IsDotOrColonColonOrDotDot()
+        {
+            return this.IsDotOrColonColon() || this.CurrentToken.Kind == SyntaxKind.DotDotToken;
         }
 
         private NameSyntax ParseQualifiedNameRight(
@@ -6300,14 +6456,7 @@ tryAgain:
                     return _syntaxFactory.QualifiedName(left, separator, right);
                 case SyntaxKind.DotDotToken:
                     // Error recovery.  If we have `X..Y` break that into `X.<missing-id>.Y`
-
-                    var leftDot = SyntaxFactory.Token(separator.LeadingTrivia.Node, SyntaxKind.DotToken, null);
-                    var missingName = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected);
-                    var rightDot = SyntaxFactory.Token(null, SyntaxKind.DotToken, separator.TrailingTrivia.Node);
-
-                    return _syntaxFactory.QualifiedName(
-                        _syntaxFactory.QualifiedName(left, leftDot, missingName),
-                        rightDot, right);
+                    return _syntaxFactory.QualifiedName(RecoverFromDotDot(left, ref separator), separator, right);
 
                 case SyntaxKind.ColonColonToken:
                     if (left.Kind != SyntaxKind.IdentifierName)
@@ -6342,6 +6491,16 @@ tryAgain:
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private NameSyntax RecoverFromDotDot(NameSyntax left, ref SyntaxToken separator)
+        {
+            Debug.Assert(separator.Kind == SyntaxKind.DotDotToken);
+
+            var leftDot = SyntaxFactory.Token(separator.LeadingTrivia.Node, SyntaxKind.DotToken, null);
+            var missingName = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected);
+            separator = SyntaxFactory.Token(null, SyntaxKind.DotToken, separator.TrailingTrivia.Node);
+            return _syntaxFactory.QualifiedName(left, leftDot, missingName);
         }
 
         private SyntaxToken ConvertToMissingWithTrailingTrivia(SyntaxToken token, SyntaxKind expectedKind)
