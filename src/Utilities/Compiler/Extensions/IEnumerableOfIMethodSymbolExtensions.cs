@@ -101,6 +101,34 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Gets the <see cref="IMethodSymbol"/> in the sequence who's parameters match <paramref name="expectedParameterTypesInOrder"/>.
+        /// </summary>
+        /// <param name="members">The sequence of <see cref="IMethodSymbol"/>s to search.</param>
+        /// <param name="expectedParameterTypesInOrder">The types of the parameters, in order.</param>
+        /// <returns>
+        /// The first <see cref="IMethodSymbol"/> in the sequence who's parameters match <paramref name="expectedParameterTypesInOrder"/>, or <langword>null</langword> if
+        /// no method was found.
+        /// </returns>
+        public static IMethodSymbol? GetFirstOrDefaultMemberWithParameterTypes(this IEnumerable<IMethodSymbol>? members, params ITypeSymbol[] expectedParameterTypesInOrder)
+        {
+            return members?.FirstOrDefault(member =>
+            {
+                if (member.Parameters.Length != expectedParameterTypesInOrder.Length)
+                    return false;
+
+                for (int i = 0; i < expectedParameterTypesInOrder.Length; ++i)
+                {
+                    var parameterType = member.Parameters[i].Type;
+
+                    if (!expectedParameterTypesInOrder[i].Equals(parameterType))
+                        return false;
+                }
+
+                return true;
+            });
+        }
+
+        /// <summary>
         /// Given a <see cref="IEnumerable{IMethodSymbol}"/>, this method returns the method symbol which 
         /// matches the expectedParameterTypesInOrder parameter requirement
         /// </summary>
