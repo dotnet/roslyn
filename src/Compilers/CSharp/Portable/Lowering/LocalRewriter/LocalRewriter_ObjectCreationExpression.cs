@@ -173,7 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> getAnonymousTypeValues(BoundWithExpression withExpr, BoundExpression oldValue, AnonymousTypeManager.AnonymousTypePublicSymbol anonymousType,
                 ArrayBuilder<BoundExpression> sideEffects, ArrayBuilder<LocalSymbol> temps)
             {
-                var dictionary = PooledDictionary<PropertySymbol, BoundExpression>.GetInstance();
+                // map: [propertyIndex] -> valueTemp
+                var valueTemps = ArrayBuilder<BoundExpression?>.GetInstance(anonymousType.Properties.Length, fillWithValue: null);
+
                 foreach (BoundExpression initializer in withExpr.InitializerExpression.Initializers)
                 {
                     var assignment = (BoundAssignmentOperator)initializer;
@@ -185,13 +187,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     temps.Add(valueTemp.LocalSymbol);
                     sideEffects.Add(boundAssignmentToTemp);
 
-                    dictionary.Add((PropertySymbol)left.MemberSymbol, valueTemp);
+                    var property = left.MemberSymbol;
+                    Debug.Assert(property.MemberIndexOpt!.Value >= 0 && property.MemberIndexOpt.Value < anonymousType.Properties.Length);
+                    valueTemps[property.MemberIndexOpt.Value] =  valueTemp;
                 }
 
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(anonymousType.Properties.Length);
-                foreach (var property in anonymousType.Properties)
+                foreach (AnonymousTypeManager.AnonymousTypePropertySymbol property in anonymousType.Properties)
                 {
-                    if (dictionary.TryGetValue(property, out var initializerValue))
+                    if (valueTemps[property.MemberIndexOpt!.Value] is BoundExpression initializerValue)
                     {
                         builder.Add(initializerValue);
                     }
@@ -202,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                dictionary.Free();
+                valueTemps.Free();
                 return builder.ToImmutableAndFree();
             }
         }
