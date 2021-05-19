@@ -1286,7 +1286,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             //force the existence of IsExhaustive
             _ = operation.IsExhaustive;
-            
             Assert.NotNull(operation.Type);
             Assert.False(operation.ConstantValue.HasValue);
             Assert.Equal(OperationKind.SwitchExpression, operation.Kind);
