@@ -159,15 +159,15 @@ class C
 
             encService.GetBaseActiveStatementSpansImpl = (_, documentIds) => ImmutableArray.Create(
                 ImmutableArray.Create(
-                    new ActiveStatementSpan(span11, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
-                    new ActiveStatementSpan(span12, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)),
+                    new ActiveStatementSpan(0, span11, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
+                    new ActiveStatementSpan(1, span12, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)),
                 ImmutableArray<ActiveStatementSpan>.Empty);
 
             encService.GetAdjustedActiveStatementSpansImpl = (document, _) => document.Name switch
             {
                 "1.cs" => ImmutableArray.Create(
-                    new ActiveStatementSpan(span21, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
-                    new ActiveStatementSpan(span22, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)),
+                    new ActiveStatementSpan(0, span21, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
+                    new ActiveStatementSpan(1, span22, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)),
                 "2.cs" => ImmutableArray<ActiveStatementSpan>.Empty,
                 _ => throw ExceptionUtilities.Unreachable
             };
@@ -231,7 +231,7 @@ class C
             }
 
             // we are not able to determine active statements in a document:
-            encService.GetAdjustedActiveStatementSpansImpl = (_, _) => default;
+            encService.GetAdjustedActiveStatementSpansImpl = (_, _) => ImmutableArray<ActiveStatementSpan>.Empty;
 
             var spans6 = await trackingSession.GetAdjustedTrackingSpansAsync(document1, snapshot1, CancellationToken.None);
             AssertEx.Equal(new[]

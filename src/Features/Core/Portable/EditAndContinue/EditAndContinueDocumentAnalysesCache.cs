@@ -136,14 +136,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     mappedSpansByDocumentPath.Add(mappedFilePath, newMappedDocumentSpans);
                 }
 
-                // Spans not tracked in the document (e.g. the document is closed):
+                // Spans not tracked in the document (e.g. the document has been closed):
                 if (newMappedDocumentSpans.IsEmpty)
                 {
                     continue;
                 }
 
-                // old spans match new spans within document 1:1 (if a span is deleted it's still tracked as empty):
-                var newMappedDocumentActiveSpan = newMappedDocumentSpans[oldActiveStatement.Statement.DocumentOrdinal];
+                // all baseline spans are being tracked in their corresponding mapped documents (if a span is deleted it's still tracked as empty):
+                var newMappedDocumentActiveSpan = newMappedDocumentSpans.GetStatement(oldActiveStatement.Statement.Ordinal);
                 Debug.Assert(newMappedDocumentActiveSpan.UnmappedDocumentId == null || newMappedDocumentActiveSpan.UnmappedDocumentId == newDocument.Id);
 
                 // TODO: optimize

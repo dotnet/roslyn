@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// tokens of the initializer concatenated with tokens of the constructor body.
         /// 
         /// If <paramref name="node"/> is a variable declarator of a field with an initializer,
-        /// tokens of the field initializer.
+        /// subset of the tokens of the field declaration depending on which variable declarator it is.
         /// 
         /// Null reference otherwise.
         /// </returns>
@@ -236,6 +236,52 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return bodyTokens;
+        }
+
+        internal override TextSpan GetActiveSpanEnvelope(SyntaxNode declaration)
+        {
+            if (declaration.IsKind(SyntaxKind.VariableDeclarator))
+            {
+                // TODO: The logic is similar to BreakpointSpans.TryCreateSpanForVariableDeclaration. Can we abstract it?
+
+                var fieldDeclaration = (BaseFieldDeclarationSyntax)declaration.Parent!.Parent!;
+                var variableDeclaration = fieldDeclaration.Declaration;
+
+                if (fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
+                {
+                    return default;
+                }
+
+                if (variableDeclaration.Variables.Count == 1)
+                {
+                    if (variableDeclaration.Variables[0].Initializer == null)
+                    {
+                        return default;
+                    }
+
+                    return TextSpan.FromBounds(fieldDeclaration.Modifiers.Span.Start, fieldDeclaration.SemicolonToken.Span.End);
+                }
+
+                if (declaration == variableDeclaration.Variables[0])
+                {
+                    return TextSpan.FromBounds(fieldDeclaration.Modifiers.Span.Start, declaration.Span.End);
+                }
+
+                return declaration.Span;
+            }
+
+            var body = SyntaxUtilities.TryGetMethodDeclarationBody(declaration);
+            if (body == null)
+            {
+                return default;
+            }
+
+            if (declaration is ConstructorDeclarationSyntax { Initializer: var initializer and not null })
+            {
+                return TextSpan.FromBounds(initializer.Span.Start, body.Span.End);
+            }
+
+            return body.Span;
         }
 
         protected override SyntaxNode GetEncompassingAncestorImpl(SyntaxNode bodyOrMatchRoot)

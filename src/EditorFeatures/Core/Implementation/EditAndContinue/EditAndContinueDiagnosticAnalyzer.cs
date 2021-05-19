@@ -5,7 +5,10 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
@@ -13,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -51,6 +55,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return AnalyzeSemanticsImplAsync(workspace, document, cancellationToken);
         }
 
+        // Copied from
+        // https://github.com/dotnet/sdk/blob/main/src/RazorSdk/SourceGenerators/RazorSourceGenerator.Helpers.cs#L32
+        private static string GetIdentifierFromPath(string filePath)
+        {
+            var builder = new StringBuilder(filePath.Length);
+
+            for (var i = 0; i < filePath.Length; i++)
+            {
+                switch (filePath[i])
+                {
+                    case ':' or '\\' or '/':
+                    case char ch when !char.IsLetterOrDigit(ch):
+                        builder.Append('_');
+                        break;
+                    default:
+                        builder.Append(filePath[i]);
+                        break;
+                }
+            }
+
+            return builder.ToString();
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsImplAsync(Workspace workspace, Document designTimeDocument, CancellationToken cancellationToken)
         {
@@ -60,8 +87,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var compileTimeDocument = await compileTimeSolution.GetDocumentAsync(designTimeDocument.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             if (compileTimeDocument == null)
             {
-                // TODO: map DTO Razor .cs files to source-generated .cs files
-                return ImmutableArray<Diagnostic>.Empty;
+                if (!designTimeDocument.State.Attributes.DesignTimeOnly ||
+                    !designTimeDocument.FilePath.EndsWith(".razor.g.cs"))
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                var relativeDocumentPath = Path.Combine("\\", PathUtilities.GetRelativePath(PathUtilities.GetDirectoryName(designTimeDocument.Project.FilePath), designTimeDocument.FilePath)[..^".g.cs".Length]);
+                var generatedDocumentPath = Path.Combine("Microsoft.NET.Sdk.Razor.SourceGenerators", "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", GetIdentifierFromPath(relativeDocumentPath)) + ".cs";
+
+                var sourceGeneratedDocuments = await compileTimeSolution.GetRequiredProject(designTimeDocument.Project.Id).GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+
+                compileTimeDocument = sourceGeneratedDocuments.SingleOrDefault(d => d.FilePath == generatedDocumentPath);
+                if (compileTimeDocument == null)
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
             }
 
             // EnC services should never be called on a design-time solution.
@@ -74,7 +115,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return await trackingService.GetSpansAsync(compileTimeSolution, documentId, filePath, cancellationToken).ConfigureAwait(false);
             });
 
-            return await proxy.GetDocumentDiagnosticsAsync(compileTimeDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            return await proxy.GetDocumentDiagnosticsAsync(compileTimeDocument, designTimeDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
         }
     }
 }

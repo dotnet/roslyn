@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             private readonly Workspace _workspace;
             private readonly CancellationTokenSource _cancellationSource = new();
             private readonly IActiveStatementSpanProvider _spanProvider;
+            private readonly ICompileTimeSolutionProvider _compileTimeSolutionProvider;
 
             #region lock(_trackingSpans)
 
@@ -110,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 _workspace = workspace;
                 _spanProvider = spanProvider;
+                _compileTimeSolutionProvider = workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>();
 
                 _workspace.DocumentOpened += DocumentOpened;
                 _workspace.DocumentClosed += DocumentClosed;
@@ -146,16 +148,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             private void DocumentOpened(object? sender, DocumentEventArgs e)
                 => _ = TrackActiveSpansAsync(e.Document, _cancellationSource.Token);
 
-            private async Task TrackActiveSpansAsync(Document document, CancellationToken cancellationToken)
+            private async Task TrackActiveSpansAsync(Document designTimeDocument, CancellationToken cancellationToken)
             {
                 try
                 {
-                    if (!TryGetSnapshot(document, out var snapshot))
+                    if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(designTimeDocument.DocumentState))
                     {
                         return;
                     }
 
-                    _ = await GetAdjustedTrackingSpansAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
+                    var compileTimeSolution = _compileTimeSolutionProvider.GetCompileTimeSolution(designTimeDocument.Project.Solution);
+                    var compileTimeDocument = await compileTimeSolution.GetDocumentAsync(designTimeDocument.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+
+                    if (compileTimeDocument == null || !TryGetSnapshot(compileTimeDocument, out var snapshot))
+                    {
+                        return;
+                    }
+
+                    _ = await GetAdjustedTrackingSpansAsync(compileTimeDocument, snapshot, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -247,6 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     var newSpan = newSpans[i];
 
                     Contract.ThrowIfFalse(oldSpan.Flags == newSpan.Flags);
+                    Contract.ThrowIfFalse(oldSpan.Ordinal == newSpan.Ordinal);
 
                     var newTextSpan = snapshot.GetTextSpan(newSpan.LineSpan).ToSpan();
                     if (oldSpan.Span.GetSpan(snapshot).Span != newTextSpan)
@@ -259,6 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                         lazyBuilder[i] = new ActiveStatementTrackingSpan(
                             snapshot.CreateTrackingSpan(newTextSpan, SpanTrackingMode.EdgeExclusive),
+                            newSpan.Ordinal,
                             newSpan.Flags,
                             newSpan.UnmappedDocumentId);
                     }
@@ -302,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         var snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
                         if (snapshot != null && snapshot.TextBuffer == documentSpans.First().Span.TextBuffer)
                         {
-                            return documentSpans.SelectAsArray(s => new ActiveStatementSpan(s.Span.GetSpan(snapshot).ToLinePositionSpan(), s.Flags, s.UnmappedDocumentId));
+                            return documentSpans.SelectAsArray(s => new ActiveStatementSpan(s.Ordinal, s.Span.GetSpan(snapshot).ToLinePositionSpan(), s.Flags, s.UnmappedDocumentId));
                         }
                     }
                 }

@@ -1382,7 +1382,7 @@ End Class
         Public Sub InstancePropertyInitializer_Delete()
             Dim src1 = "
 Class C
-    <AS:0>Property P As Integer = 1</AS:0>
+    Property <AS:0>P As Integer = 1</AS:0>
 
     Sub Main
         Dim <AS:1>c = New C()</AS:1>
@@ -1455,6 +1455,33 @@ Class C
 End Class
 "
 
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "d = 3"))
+        End Sub
+
+        <Fact>
+        Public Sub Initializer_SemanticError()
+            Dim src1 = "
+Class C
+    Dim <AS:0>a</AS:0>, <AS:1>b</AS:1> = 2
+
+    Sub Main
+        Dim <AS:2>a</AS:2>, <AS:3>b</AS:3> = 2
+    End Sub
+End Class
+"
+
+            Dim src2 = "
+Class C
+    Dim <AS:0>a</AS:0>, <AS:1>b</AS:1> = 20
+
+    Sub Main
+        Dim <AS:2>a</AS:2>, <AS:3>b</AS:3> = 20
+    End Sub
+End Class
+"
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
@@ -1716,6 +1743,33 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
+        <Fact>
+        Public Sub Initializer_Array_SemanticError()
+            Dim src1 = "
+Class C
+    Dim <AS:0>a(1)</AS:0>, <AS:1>b(2)</AS:1> = 3
+
+    Sub Main
+        Dim <AS:2>c(1)</AS:2>, <AS:3>d(2)</AS:3> = 3</AS:1>
+    End Sub
+End Class
+"
+
+            Dim src2 = "
+Class C
+    Dim <AS:0>a(10)</AS:0>, <AS:1>b(20)</AS:1> = 30
+
+    Sub Main
+        Dim <AS:2>c(10)</AS:2>, <AS:3>d(20)</AS:3> = 30
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "d = 3"))
+        End Sub
+
         <Fact, WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
         Public Sub Initializer_Array_Update1()
             Dim src1 = "
@@ -1776,7 +1830,7 @@ End Class
         Public Sub Initializer_Array_Update3()
             Dim src1 = "
 Class C
-    Private <AS:0>a(1,0)</AS:0>
+    Private <AS:0>a(1,1)</AS:0>
     Private <AS:1>e(1,0)</AS:1>
     Private f(1,0)
 
@@ -1788,7 +1842,7 @@ End Class
 
             Dim src2 = "
 Class C
-    Private <AS:0>a(1,2)</AS:0>
+    Private <AS:0>a(1,0)</AS:0>
     Private <AS:1>e(1,2)</AS:1>
     Private f(1,2)
 
@@ -1898,7 +1952,7 @@ End Class
 
             Dim src2 = "
 Class C
-    <AS:0>Private Const a As Integer = 1</AS:0>
+    Private Const a As Integer = 1
 End Class
 "
 
@@ -1943,7 +1997,7 @@ End Class
 
             Dim src2 = "
 Class C
-    <AS:0>Private Const a As Integer = 1, b As Integer = 2</AS:0>
+    Private Const a As Integer = 1, b As Integer = 2
 End Class
 "
 
@@ -2347,7 +2401,7 @@ End Class
         Public Sub PropertyInitializer_Delete_StaticInstanceMix()
             Dim src1 = "
 Class C
-    <AS:0>Shared Property a As Integer = 1</AS:0>
+    Shared Property <AS:0>a As Integer = 1</AS:0>
     Property  b As Integer = 1
 End Class
 "
@@ -3261,8 +3315,8 @@ Class C
     Sub Main()
         Try
             <AS:1>Goo()</AS:1>
-        Catch 
-        End Try
+        <ER:1.0>Catch 
+        End Try</ER:1.0>
     End Sub
 
     Sub Goo()
@@ -3327,8 +3381,8 @@ Class C
     Sub Main()
         Try
             <AS:1>Goo()</AS:1>
-        Catch
-        End Try
+        <ER:1.0>Catch
+        End Try</ER:1.0>
     End Sub
 
     Sub Goo()
@@ -3537,9 +3591,9 @@ Class C
 
         Try
             <AS:1>Console.WriteLine(1)</AS:1>
-        Finally
+        <ER:1.0>Finally
             Console.WriteLine(2)
-        End Try
+        End Try</ER:1.0>
     End Sub
 End Class
 "
@@ -3667,8 +3721,8 @@ End Class
 Class C
     Sub Main()
         Try
-        Catch 
-            <AS:1>Goo()</AS:1>
+        <ER:1.0>Catch 
+            <AS:1>Goo()</AS:1></ER:1.0>
         End Try
     End Sub
 
@@ -3706,8 +3760,8 @@ Class C
 
     Sub Goo()
         Try
-        Catch
-            <AS:0>Console.WriteLine(1)</AS:0>
+        <ER:0.0>Catch
+            <AS:0>Console.WriteLine(1)</AS:0></ER:0.0>
         End Try
     End Sub
 End Class
@@ -3735,8 +3789,8 @@ End Class
 Class C
     Sub Main()
         Try
-        Catch
-            <AS:1>Goo()</AS:1>
+        <ER:1.0>Catch
+            <AS:1>Goo()</AS:1></ER:1.0>
         End Try
     End Sub
 
@@ -3750,8 +3804,8 @@ End Class
 Class C
     Sub Main()
         Try
-        Catch e As IOException
-            <AS:1>Goo()</AS:1>
+        <ER:1.0>Catch e As IOException
+            <AS:1>Goo()</AS:1></ER:1.0>
         End Try
     End Sub
 
@@ -3776,8 +3830,8 @@ Class C
 
     Sub Goo()
         Try
-        Catch
-            <AS:0>Console.WriteLine(1)</AS:0>
+        <ER:0.0>Catch
+            <AS:0>Console.WriteLine(1)</AS:0></ER:0.0>
         End Try
     End Sub
 End Class
@@ -3791,9 +3845,9 @@ Class C
 
     Sub Goo()
         Try
-        Catch e As IOException
-            <AS:0>Console.WriteLine(1)</AS:0>
-        End try
+        <ER:0.0>Catch e As IOException
+            <AS:0>Console.WriteLine(1)</AS:0></ER:0.0>
+        End Try
     End Sub
 End Class
 "
@@ -3813,8 +3867,8 @@ Class C
 
     Sub Goo()
         Try
-        <AS:1>Catch e As IOException When Goo(1)</AS:1>
-            Console.WriteLine(1)
+        <ER:1.0><AS:1>Catch e As IOException When Goo(1)</AS:1>
+            Console.WriteLine(1)</ER:1.0>
         End Try
     End Sub
 End Class
@@ -3828,8 +3882,8 @@ Class C
 
     Sub Goo()
         Try
-        <AS:1>Catch e As IOException When Goo(2)</AS:1>
-            Console.WriteLine(1)
+        <ER:1.0><AS:1>Catch e As IOException When Goo(2)</AS:1>
+            Console.WriteLine(1)</ER:1.0>
         End Try
     End Sub
 End Class
@@ -3851,8 +3905,8 @@ Class C
 
     Sub Goo()
         Try
-        <AS:0>Catch e As IOException When Goo(1)</AS:0>
-            Console.WriteLine(1)
+        <ER:0.0><AS:0>Catch e As IOException When Goo(1)</AS:0>
+            Console.WriteLine(1)</ER:0.0>
         End Try
     End Sub
 End Class
@@ -3866,9 +3920,9 @@ Class C
 
     Sub Goo()
         Try
-        <AS:0>Catch e As IOException When Goo(2)</AS:0>
+        <ER:0.0><AS:0>Catch e As IOException When Goo(2)</AS:0>
             Console.WriteLine(1)
-        End Try
+        End Try</ER:0.0>
     End Sub
 End Class
 "
@@ -3888,8 +3942,8 @@ Class C
 
     Sub Goo()
         Try
-        <AS:0>Catch e As IOException When Goo(1)</AS:0>
-            Console.WriteLine(1)
+        <ER:0.0><AS:0>Catch e As IOException When Goo(1)</AS:0>
+            Console.WriteLine(1)</ER:0.0>
         End Try
     End Sub
 End Class
@@ -3903,9 +3957,9 @@ Class C
 
     Sub Goo()
         Try
-        <AS:0>Catch e As Exception When Goo(1)</AS:0>
+        <ER:0.0><AS:0>Catch e As Exception When Goo(1)</AS:0>
             Console.WriteLine(1)
-        End Try
+        End Try<ER:0.0>
     End Sub
 End Class
 "
@@ -3988,10 +4042,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        Try
+        <ER:1.0>Try
         Finally 
             <AS:1>Goo()</AS:1>
-        End Try
+        End Try</ER:1.0>
     End Sub
 
     Sub Goo()
@@ -4026,10 +4080,10 @@ Class C
     End Sub
 
     Sub Goo()
-        Try
+        <ER:0.0>Try
         Finally
             <AS:0>Console.WriteLine(1)</AS:0>
-        End Try
+        End Try</ER:0.0>
     End Sub
 End Class
 "
@@ -4058,7 +4112,7 @@ End Class
 Class C
     Sub Main()
         Try
-        Catch e As IOException
+        <ER:1.0>Catch e As IOException
             Try
                 Try
                     Try
@@ -4068,7 +4122,7 @@ Class C
                 Catch Exception
                 End Try
             Finally
-            End Try
+            End Try</ER:1.0>
         End Try
     End Sub
 
@@ -4081,7 +4135,7 @@ End Class
 Class C
     Sub Main()
         Try
-        Catch e As Exception
+        <ER:1.0>Catch e As Exception
             Try
                 Try
                 Finally
@@ -4091,7 +4145,7 @@ Class C
                     End Try
                 End Try
             Catch e As Exception
-            End Try
+            End Try</ER:1.0>
         End Try
     End Sub
 
@@ -4202,8 +4256,8 @@ Class C
         Dim f = Function(x) 
                     Try
                         <AS:1>Return 1 + Goo(x)</AS:1>
-                    Catch
-                    End Try
+                    <ER:1.0>Catch
+                    End Try</ER:1.0>
                 End Function
 
         <AS:2>Console.Write(f(2))</AS:2>

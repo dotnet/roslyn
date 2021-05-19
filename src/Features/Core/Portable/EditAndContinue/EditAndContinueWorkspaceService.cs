@@ -332,7 +332,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 projectIds.Add(documentId.ProjectId);
             }
 
-            using var _3 = PooledDictionary<int, ArrayBuilder<(DocumentId unmappedDocumentId, LinePositionSpan span)>>.GetInstance(out var activeStatementsInChangedDocuments);
+            using var _3 = PooledDictionary<ActiveStatement, ArrayBuilder<(DocumentId unmappedDocumentId, LinePositionSpan span)>>.GetInstance(
+                out var activeStatementsInChangedDocuments);
 
             // Analyze changed documents in projects containing active statements:
             foreach (var projectId in projectIds)
@@ -380,7 +381,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // 
                             // In the new solution the AS spans are different depending on which document view of the same file we are looking at.
                             // Different views correspond to different projects.
-                            activeStatementsInChangedDocuments.MultiAdd(oldDocumentActiveStatements[i].Statement.Ordinal, (analysis.DocumentId, analysis.ActiveStatements[i].Span));
+                            activeStatementsInChangedDocuments.MultiAdd(oldDocumentActiveStatements[i].Statement, (analysis.DocumentId, analysis.ActiveStatements[i].Span));
                         }
                     }
                 }
@@ -402,7 +403,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 LinePositionSpan span;
                                 DocumentId? unmappedDocumentId;
 
-                                if (activeStatementsInChangedDocuments.TryGetValue(activeStatement.Ordinal, out var newSpans))
+                                if (activeStatementsInChangedDocuments.TryGetValue(activeStatement, out var newSpans))
                                 {
                                     (unmappedDocumentId, span) = newSpans.Single(ns => ns.unmappedDocumentId.ProjectId == projectId);
                                 }
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     unmappedDocumentId = null;
                                 }
 
-                                return new ActiveStatementSpan(span, activeStatement.Flags, unmappedDocumentId);
+                                return new ActiveStatementSpan(activeStatement.Ordinal, span, activeStatement.Flags, unmappedDocumentId);
                             });
                     }
                 }
@@ -463,10 +464,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
 
-            using var _ = ArrayBuilder<ActiveStatementSpan>.GetInstance(out var adjustedSpans);
+            using var _ = ArrayBuilder<ActiveStatementSpan>.GetInstance(out var adjustedMappedSpans);
 
             // Start with the current locations of the tracking spans.
-            adjustedSpans.AddRange(newDocumentActiveStatementSpans);
+            adjustedMappedSpans.AddRange(newDocumentActiveStatementSpans);
 
             // Update tracking spans to the latest known locations of the active statements contained in changed documents based on their analysis.
             await foreach (var unmappedDocumentId in EditSession.GetChangedDocumentsAsync(debuggingSession.LastCommittedSolution, newProject, cancellationToken).ConfigureAwait(false))
@@ -487,15 +488,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     foreach (var activeStatement in analysis.ActiveStatements)
                     {
-                        if (string.Equals(activeStatement.FilePath, mappedDocument.FilePath, StringComparison.Ordinal))
+                        var i = adjustedMappedSpans.FindIndex((s, ordinal) => s.Ordinal == ordinal, activeStatement.Ordinal);
+                        if (i >= 0)
                         {
-                            adjustedSpans[activeStatement.DocumentOrdinal] = new ActiveStatementSpan(activeStatement.Span, activeStatement.Flags, unmappedDocumentId);
+                            adjustedMappedSpans[i] = new ActiveStatementSpan(activeStatement.Ordinal, activeStatement.Span, activeStatement.Flags, unmappedDocumentId);
                         }
                     }
                 }
             }
 
-            return adjustedSpans.ToImmutable();
+            return adjustedMappedSpans.ToImmutable();
         }
 
         public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
@@ -551,7 +553,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 Contract.ThrowIfTrue(analysis.ActiveStatements.IsDefault);
-                return analysis.ActiveStatements[baseActiveStatement.DocumentOrdinal].Span;
+                return analysis.ActiveStatements.GetStatement(baseActiveStatement.Ordinal).Span;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -607,7 +609,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var analyzer = newDocument.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
                 var oldDocumentActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
-                return oldDocumentActiveStatements[baseActiveStatement.DocumentOrdinal].ExceptionRegions.IsActiveStatementCovered;
+                return oldDocumentActiveStatements.GetStatement(baseActiveStatement.Ordinal).ExceptionRegions.IsActiveStatementCovered;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {

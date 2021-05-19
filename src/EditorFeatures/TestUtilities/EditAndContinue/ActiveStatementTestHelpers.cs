@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => InsertNewLines(Delete(src, marker), marker);
 
         public static string InspectActiveStatement(ActiveStatement statement)
-            => $"{statement.Ordinal}: {statement.FileSpan} flags=[{statement.Flags}] #{statement.DocumentOrdinal}";
+            => $"{statement.Ordinal}: {statement.FileSpan} flags=[{statement.Flags}]";
 
         public static string InspectActiveStatementAndInstruction(ActiveStatement statement)
             => InspectActiveStatement(statement) + " " + statement.InstructionId.GetDebuggerDisplay();
@@ -102,5 +102,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public static string GetFirstLineText(LinePositionSpan span, SourceText text)
             => text.Lines[span.Start.Line].ToString().Trim();
+
+        public static string InspectSequencePointUpdates(SequencePointUpdates updates)
+            => $"{updates.FileName}: [{string.Join(", ", updates.LineUpdates.Select(u => $"{u.OldLine} -> {u.NewLine}"))}]";
+
+        public static IEnumerable<string> Inspect(this IEnumerable<SequencePointUpdates> updates)
+            => updates.Select(InspectSequencePointUpdates);
+
     }
 }

@@ -119,7 +119,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var document1 = localWorkspace.CurrentSolution.Projects.Single().Documents.Single();
 
             var activeSpans1 = ImmutableArray.Create(
-                new ActiveStatementSpan(new LinePositionSpan(new LinePosition(1, 2), new LinePosition(3, 4)), ActiveStatementFlags.IsNonLeafFrame, document.Id));
+                new ActiveStatementSpan(0, new LinePositionSpan(new LinePosition(1, 2), new LinePosition(3, 4)), ActiveStatementFlags.IsNonLeafFrame, document.Id));
 
             var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, path, cancellationToken) =>
             {
@@ -315,7 +315,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // GetBaseActiveStatementSpans
 
-            var activeStatementSpan1 = new ActiveStatementSpan(span1, ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.PartiallyExecuted, unmappedDocumentId: document1.Id);
+            var activeStatementSpan1 = new ActiveStatementSpan(0, span1, ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.PartiallyExecuted, unmappedDocumentId: document1.Id);
 
             mockEncService.GetBaseActiveStatementSpansImpl = (solution, documentIds) =>
             {

@@ -102,9 +102,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return new ActiveStatementsMap(
-                    SpecializedCollections.EmptyReadOnlyDictionary<string, ImmutableArray<ActiveStatement>>(),
-                    SpecializedCollections.EmptyReadOnlyDictionary<ManagedInstructionId, ActiveStatement>());
+                return ActiveStatementsMap.Empty;
             }
         }
 

@@ -118,7 +118,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                         unmappedSpan,
                         new ActiveStatement(
                             ordinal,
-                            documentOrdinal: documentActiveStatements.Count,
                             statementFlags,
                             mappedSpan,
                             instructionId: default),
@@ -264,9 +263,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return result;
         }
 
-        internal static ImmutableArray<ImmutableArray<TextSpan>> GetExceptionRegions(string src)
+        internal static ImmutableArray<ImmutableArray<TextSpan>> GetExceptionRegions(string markedSource)
         {
-            var matches = ExceptionRegionPattern.Matches(src);
+            var matches = ExceptionRegionPattern.Matches(markedSource);
+            var plainSource = ClearTags(markedSource);
+
             var result = new List<List<TextSpan>>();
 
             for (var i = 0; i < matches.Count; i++)
@@ -278,11 +279,42 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     EnsureSlot(result, activeStatementId);
                     result[activeStatementId] ??= new List<TextSpan>();
                     EnsureSlot(result[activeStatementId], exceptionRegionId);
-                    result[activeStatementId][exceptionRegionId] = new TextSpan(exceptionRegion.Index, exceptionRegion.Length);
+
+                    var regionText = plainSource.AsSpan().Slice(exceptionRegion.Index, exceptionRegion.Length);
+                    var start = IndexOfDifferent(regionText, ' ');
+                    var length = LastIndexOfDifferent(regionText, ' ') - start + 1;
+
+                    result[activeStatementId][exceptionRegionId] = new TextSpan(exceptionRegion.Index + start, length);
                 }
             }
 
             return result.Select(r => r.AsImmutableOrEmpty()).ToImmutableArray();
+        }
+
+        public static int IndexOfDifferent(ReadOnlySpan<char> span, char c)
+        {
+            for (var i = 0; i < span.Length; i++)
+            {
+                if (span[i] != c)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static int LastIndexOfDifferent(ReadOnlySpan<char> span, char c)
+        {
+            for (var i = span.Length - 1; i >= 0; i--)
+            {
+                if (span[i] != c)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         public static List<T> SetListItem<T>(List<T> list, int i, T item)

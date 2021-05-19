@@ -434,9 +434,7 @@ End Class
             Dim source1 = "
 Class C
     Sub Main()
-
-        ' comment
-        System.Console.WriteLine(1)
+             System.Console.WriteLine(1)
     End Sub
 End Class
 "
@@ -476,7 +474,6 @@ End Class
                         KeyValuePairUtil.Create("file.vb", ImmutableArray.Create(
                             New ActiveStatement(
                                 ordinal:=0,
-                                documentOrdinal:=0,
                                 ActiveStatementFlags.IsLeafFrame,
                                 New SourceFileSpan("file.vb", oldStatementSpan),
                                 instructionId:=Nothing)))
@@ -650,29 +647,6 @@ End Class
                 Assert.False(result.HasChangesAndSyntaxErrors)
             End Using
         End Function
-
-        <Fact>
-        Public Sub FindMemberDeclaration1()
-            Dim source = <text>
-Class C 
-    Inherits D
-
-    Public Sub New()
-        MyBase.New()
-        Goo()
-    End Sub
-
-    Public Sub Goo
-    End Sub
-End Class
-</text>.Value
-
-            Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-            Dim root = SyntaxFactory.ParseCompilationUnit(source)
-
-            Assert.Null(analyzer.FindMemberDeclaration(root, Integer.MaxValue))
-            Assert.Null(analyzer.FindMemberDeclaration(root, Integer.MinValue))
-        End Sub
 
         <Fact>
         Public Async Function AnalyzeDocumentAsync_AddingNewFile() As Task

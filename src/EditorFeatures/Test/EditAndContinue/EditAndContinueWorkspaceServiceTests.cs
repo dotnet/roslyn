@@ -2795,8 +2795,8 @@ class C { int Y => 1; }
             EnterBreakState(service, activeStatements);
             var editSession = service.GetTestAccessor().GetEditSession();
 
-            var activeStatementSpan11 = new ActiveStatementSpan(activeLineSpan11, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null);
-            var activeStatementSpan12 = new ActiveStatementSpan(activeLineSpan12, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null);
+            var activeStatementSpan11 = new ActiveStatementSpan(0, activeLineSpan11, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null);
+            var activeStatementSpan12 = new ActiveStatementSpan(1, activeLineSpan12, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null);
 
             var baseSpans = await service.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document1.Id), CancellationToken.None);
             AssertEx.Equal(new[]
@@ -2821,8 +2821,8 @@ class C { int Y => 1; }
             var document2 = solution.GetDocument(documentId);
 
             // tracking span update triggered by the edit:
-            var activeStatementSpan21 = new ActiveStatementSpan(activeLineSpan21, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null);
-            var activeStatementSpan22 = new ActiveStatementSpan(activeLineSpan22, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null);
+            var activeStatementSpan21 = new ActiveStatementSpan(0, activeLineSpan21, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null);
+            var activeStatementSpan22 = new ActiveStatementSpan(1, activeLineSpan22, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null);
             var trackedActiveSpans2 = ImmutableArray.Create(activeStatementSpan21, activeStatementSpan22);
 
             currentSpans = await service.GetAdjustedActiveStatementSpansAsync(document2, (_, _, _) => new(trackedActiveSpans2), CancellationToken.None);
@@ -2888,8 +2888,8 @@ class C { int Y => 1; }
             var baseSpans = (await service.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(activeLineSpan11, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
-                new ActiveStatementSpan(activeLineSpan12, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)
+                new ActiveStatementSpan(0, activeLineSpan11, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
+                new ActiveStatementSpan(1, activeLineSpan12, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)
             }, baseSpans);
 
             // change the source (valid edit):
@@ -3004,13 +3004,13 @@ class C { int Y => 1; }
 
             AssertEx.Equal(new[]
             {
-                $"2: {doc1.FilePath}: (2,32)-(2,52) flags=[MethodUpToDate, IsNonLeafFrame] #0",
-                $"1: {doc1.FilePath}: (3,29)-(3,49) flags=[MethodUpToDate, IsNonLeafFrame] #1"
+                $"2: {doc1.FilePath}: (2,32)-(2,52) flags=[MethodUpToDate, IsNonLeafFrame]",
+                $"1: {doc1.FilePath}: (3,29)-(3,49) flags=[MethodUpToDate, IsNonLeafFrame]"
             }, documentMap[doc1.FilePath].Select(InspectActiveStatement));
 
             AssertEx.Equal(new[]
             {
-                $"0: {doc2.FilePath}: (0,39)-(0,59) flags=[IsLeafFrame, MethodUpToDate] #0",
+                $"0: {doc2.FilePath}: (0,39)-(0,59) flags=[IsLeafFrame, MethodUpToDate]",
             }, documentMap[doc2.FilePath].Select(InspectActiveStatement));
 
             Assert.Equal(3, baseActiveStatementsMap.InstructionMap.Count);
@@ -3108,7 +3108,7 @@ class C { int Y => 1; }
 
             AssertEx.Equal(new[]
             {
-                $"0: {document.FilePath}: (9,18)-(9,22) flags=[IsLeafFrame, MethodUpToDate] #0",
+                $"0: {document.FilePath}: (9,18)-(9,22) flags=[IsLeafFrame, MethodUpToDate]",
             }, baseActiveStatementMap.DocumentPathMap[document.FilePath].Select(InspectActiveStatement));
 
             Assert.Equal(1, baseActiveStatementMap.InstructionMap.Count);
@@ -3116,7 +3116,6 @@ class C { int Y => 1; }
             var activeStatement1 = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.InstructionId.Method.Token).Single();
             Assert.Equal(0x06000001, activeStatement1.InstructionId.Method.Token);
             Assert.Equal(document.FilePath, activeStatement1.FilePath);
-            Assert.Equal(0, activeStatement1.DocumentOrdinal);
             Assert.True(activeStatement1.IsLeaf);
 
             // Active statement reported as unchanged as the containing document is out-of-sync:
@@ -3211,7 +3210,12 @@ class C
             Assert.NotEmpty(delta.ILDelta);
             Assert.NotEmpty(delta.MetadataDelta);
             Assert.NotEmpty(delta.PdbDelta);
-            Assert.Equal(2, delta.UpdatedMethods.Length);
+            Assert.Empty(delta.UpdatedMethods);
+
+            AssertEx.Equal(new[]
+            {
+                "a.razor: [0 -> 1]"
+            }, delta.SequencePoints.Inspect());
 
             EndDebuggingSession(service);
         }
@@ -3419,8 +3423,8 @@ class C
             var spans = (await service.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, documentId),
-                new ActiveStatementSpan(expectedSpanF1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, documentId)
+                new ActiveStatementSpan(0, expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, documentId),
+                new ActiveStatementSpan(1, expectedSpanF1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, documentId)
             }, spans);
 
             solution = solution.WithDocumentText(documentId, SourceText.From(ActiveStatementsDescription.ClearTags(markedSource3), Encoding.UTF8));
@@ -3435,8 +3439,8 @@ class C
             spans = (await service.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(expectedSpanG2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, documentId),
-                new ActiveStatementSpan(expectedSpanF2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, documentId)
+                new ActiveStatementSpan(0, expectedSpanG2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, documentId),
+                new ActiveStatementSpan(1, expectedSpanF2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, documentId)
             }, spans);
 
             // no rude edits:
@@ -3533,12 +3537,12 @@ class C
             var spans = (await service.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
             AssertEx.Equal(new[]
             {
-                new ActiveStatementSpan(expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null),
+                new ActiveStatementSpan(0, expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null),
 
                 // TODO: https://github.com/dotnet/roslyn/issues/52100
                 // This is incorrect: the active statement shouldn't be reported since it has been deleted.
                 // We need the debugger to mark the method version as replaced by run-mode update.
-                new ActiveStatementSpan(expectedSpanF1, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null)
+                new ActiveStatementSpan(1, expectedSpanF1, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null)
             }, spans);
 
             ExitBreakState();

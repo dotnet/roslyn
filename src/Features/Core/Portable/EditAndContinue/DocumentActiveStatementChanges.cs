@@ -25,10 +25,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 #if DEBUG
             for (var i = 0; i < oldSpans.Length; i++)
             {
-                // statements are listed in the order in which they appear in the document:
-                Debug.Assert(oldSpans[i].Statement.DocumentOrdinal == i);
-                Debug.Assert(newStatements[i].DocumentOrdinal == i);
-
                 // old and new exception region counts must match:
                 Debug.Assert(oldSpans[i].ExceptionRegions.Spans.Length == newExceptionRegions[i].Length);
             }

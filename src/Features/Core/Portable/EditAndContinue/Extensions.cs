@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Runtime.CompilerServices;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal static class LinePositionSpanExtensions
+    internal static class Extensions
     {
         internal static LinePositionSpan AddLineDelta(this LinePositionSpan span, int lineDelta)
             => new(new LinePosition(span.Start.Line + lineDelta, span.Start.Character), new LinePosition(span.End.Line + lineDelta, span.End.Character));
@@ -29,13 +29,44 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public static SourceSpan ToSourceSpan(this LinePositionSpan span)
             => new(span.Start.Line, span.Start.Character, span.End.Line, span.End.Character);
 
-        public static LinePosition Min(LinePosition x, LinePosition y)
-            => (x < y) ? x : y;
+        public static ActiveStatement GetStatement(this ImmutableArray<ActiveStatement> statements, int ordinal)
+        {
+            foreach (var item in statements)
+            {
+                if (item.Ordinal == ordinal)
+                {
+                    return item;
+                }
+            }
 
-        public static LinePosition Max(LinePosition x, LinePosition y)
-            => (x > y) ? x : y;
+            throw ExceptionUtilities.UnexpectedValue(ordinal);
+        }
 
-        public static bool OverlapsWith(this LinePositionSpan x, LinePositionSpan span)
-            => Max(x.Start, span.Start) < Min(x.End, span.End);
+        public static ActiveStatementSpan GetStatement(this ImmutableArray<ActiveStatementSpan> statements, int ordinal)
+        {
+            foreach (var item in statements)
+            {
+                if (item.Ordinal == ordinal)
+                {
+                    return item;
+                }
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(ordinal);
+        }
+
+
+        public static UnmappedActiveStatement GetStatement(this ImmutableArray<UnmappedActiveStatement> statements, int ordinal)
+        {
+            foreach (var item in statements)
+            {
+                if (item.Statement.Ordinal == ordinal)
+                {
+                    return item;
+                }
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(ordinal);
+        }
     }
 }

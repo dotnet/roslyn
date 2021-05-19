@@ -190,13 +190,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
             AssertEx.Equal(new[]
             {
-                $"0: {document1.FilePath}: (9,14)-(9,35) flags=[IsLeafFrame, MethodUpToDate] #1 mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0001",
-                $"1: {document1.FilePath}: (4,32)-(4,37) flags=[MethodUpToDate, IsNonLeafFrame] #0 mvid=11111111-1111-1111-1111-111111111111 0x06000002 v1 IL_0001",
-                $"2: {document2.FilePath}: (21,14)-(21,24) flags=[MethodUpToDate, IsNonLeafFrame] #1 mvid=22222222-2222-2222-2222-222222222222 0x06000003 v1 IL_0001",   // [|Test1.M1()|] in F2
-                $"3: {document2.FilePath}: (8,20)-(8,25) flags=[MethodUpToDate, IsNonLeafFrame] #0 mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002",     // [|F2();|] in M2
-                $"4: {document2.FilePath}: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] #2 mvid=22222222-2222-2222-2222-222222222222 0x06000005 v1 IL_0003",   // [|M2();|] in Main
-                $"5: NonRoslynDocument.mcpp: (1,1)-(1,10) flags=[IsNonLeafFrame] #0 mvid={module3} 0x06000005 v1 IL_000A",
-                $"6: a.dummy: (2,1)-(2,10) flags=[IsNonLeafFrame] #0 mvid={module4} 0x06000005 v1 IL_000A"
+                $"0: {document1.FilePath}: (9,14)-(9,35) flags=[IsLeafFrame, MethodUpToDate] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0001",
+                $"1: {document1.FilePath}: (4,32)-(4,37) flags=[MethodUpToDate, IsNonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000002 v1 IL_0001",
+                $"2: {document2.FilePath}: (21,14)-(21,24) flags=[MethodUpToDate, IsNonLeafFrame] mvid=22222222-2222-2222-2222-222222222222 0x06000003 v1 IL_0001",   // [|Test1.M1()|] in F2
+                $"3: {document2.FilePath}: (8,20)-(8,25) flags=[MethodUpToDate, IsNonLeafFrame] mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002",     // [|F2();|] in M2
+                $"4: {document2.FilePath}: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] mvid=22222222-2222-2222-2222-222222222222 0x06000005 v1 IL_0003",   // [|M2();|] in Main
+                $"5: NonRoslynDocument.mcpp: (1,1)-(1,10) flags=[IsNonLeafFrame] mvid={module3} 0x06000005 v1 IL_000A",
+                $"6: a.dummy: (2,1)-(2,10) flags=[IsNonLeafFrame] mvid={module4} 0x06000005 v1 IL_000A"
             }, statements.Select(InspectActiveStatementAndInstruction));
 
             // Active Statements per document
@@ -205,25 +205,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                $"1: {document1.FilePath}: (4,32)-(4,37) flags=[MethodUpToDate, IsNonLeafFrame] #0",
-                $"0: {document1.FilePath}: (9,14)-(9,35) flags=[IsLeafFrame, MethodUpToDate] #1"
+                $"1: {document1.FilePath}: (4,32)-(4,37) flags=[MethodUpToDate, IsNonLeafFrame]",
+                $"0: {document1.FilePath}: (9,14)-(9,35) flags=[IsLeafFrame, MethodUpToDate]"
             }, baseActiveStatementsMap.DocumentPathMap[document1.FilePath].Select(InspectActiveStatement));
 
             AssertEx.Equal(new[]
             {
-                $"3: {document2.FilePath}: (8,20)-(8,25) flags=[MethodUpToDate, IsNonLeafFrame] #0",            // [|F2();|] in M2
-                $"2: {document2.FilePath}: (21,14)-(21,24) flags=[MethodUpToDate, IsNonLeafFrame] #1",          // [|Test1.M1()|] in F2
-                $"4: {document2.FilePath}: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] #2"           // [|M2();|] in Main
+                $"3: {document2.FilePath}: (8,20)-(8,25) flags=[MethodUpToDate, IsNonLeafFrame]",            // [|F2();|] in M2
+                $"2: {document2.FilePath}: (21,14)-(21,24) flags=[MethodUpToDate, IsNonLeafFrame]",          // [|Test1.M1()|] in F2
+                $"4: {document2.FilePath}: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame]"           // [|M2();|] in Main
             }, baseActiveStatementsMap.DocumentPathMap[document2.FilePath].Select(InspectActiveStatement));
 
             AssertEx.Equal(new[]
             {
-                $"5: NonRoslynDocument.mcpp: (1,1)-(1,10) flags=[IsNonLeafFrame] #0",
+                $"5: NonRoslynDocument.mcpp: (1,1)-(1,10) flags=[IsNonLeafFrame]",
             }, baseActiveStatementsMap.DocumentPathMap["NonRoslynDocument.mcpp"].Select(InspectActiveStatement));
 
             AssertEx.Equal(new[]
             {
-                $"6: a.dummy: (2,1)-(2,10) flags=[IsNonLeafFrame] #0",
+                $"6: a.dummy: (2,1)-(2,10) flags=[IsNonLeafFrame]",
             }, baseActiveStatementsMap.DocumentPathMap["a.dummy"].Select(InspectActiveStatement));
 
             // Exception Regions
@@ -347,8 +347,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                $"0: {document.FilePath}: (6,18)-(6,23) flags=[MethodUpToDate, IsNonLeafFrame] #0 mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0000 '<AS:0>F2();</AS:0>'",
-                $"1: {document.FilePath}: (18,14)-(18,36) flags=[IsLeafFrame, MethodUpToDate] #1 mvid=11111111-1111-1111-1111-111111111111 0x06000002 v1 IL_0000 '<AS:1>throw new Exception();</AS:1>'"
+                $"0: {document.FilePath}: (6,18)-(6,23) flags=[MethodUpToDate, IsNonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0000 '<AS:0>F2();</AS:0>'",
+                $"1: {document.FilePath}: (18,14)-(18,36) flags=[IsLeafFrame, MethodUpToDate] mvid=11111111-1111-1111-1111-111111111111 0x06000002 v1 IL_0000 '<AS:1>throw new Exception();</AS:1>'"
             }, baseActiveStatements.Select(s => InspectActiveStatementAndInstruction(s, baseText)));
 
             // Exception Regions
@@ -530,10 +530,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // Note that the spans of AS:2 and AS:3 correspond to the base snapshot (V2).
             AssertEx.Equal(new[]
             {
-                $"0: {document.FilePath}: (6,18)-(6,22) flags=[MethodUpToDate, IsNonLeafFrame] #0 mvid=11111111-1111-1111-1111-111111111111 0x06000001 v2 IL_0000 '<AS:0>M();</AS:0>'",
-                $"1: {document.FilePath}: (20,18)-(20,22) flags=[MethodUpToDate, IsNonLeafFrame] #1 mvid=11111111-1111-1111-1111-111111111111 0x06000002 v2 IL_0000 '<AS:1>M();</AS:1>'",
-                $"2: {document.FilePath}: (29,22)-(29,26) flags=[IsNonLeafFrame] #2 mvid=11111111-1111-1111-1111-111111111111 0x06000003 v1 IL_0000 '{{   <AS:2>M();</AS:2>'",
-                $"3: {document.FilePath}: (53,22)-(53,26) flags=[IsNonLeafFrame] #3 mvid=11111111-1111-1111-1111-111111111111 0x06000004 v1 IL_0000 '<AS:3>M();</AS:3>'"
+                $"0: {document.FilePath}: (6,18)-(6,22) flags=[MethodUpToDate, IsNonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v2 IL_0000 '<AS:0>M();</AS:0>'",
+                $"1: {document.FilePath}: (20,18)-(20,22) flags=[MethodUpToDate, IsNonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000002 v2 IL_0000 '<AS:1>M();</AS:1>'",
+                $"2: {document.FilePath}: (29,22)-(29,26) flags=[IsNonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000003 v1 IL_0000 '{{   <AS:2>M();</AS:2>'",
+                $"3: {document.FilePath}: (53,22)-(53,26) flags=[IsNonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000004 v1 IL_0000 '<AS:3>M();</AS:3>'"
             }, baseActiveStatements.Select(s => InspectActiveStatementAndInstruction(s, sourceTextV2)));
 
             // Exception Regions
@@ -663,8 +663,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                $"1: {document.FilePath}: (6,18)-(6,22) flags=[IsLeafFrame, MethodUpToDate, IsNonLeafFrame] #0",
-                $"0: {document.FilePath}: (15,14)-(15,18) flags=[PartiallyExecuted, NonUserCode, MethodUpToDate, IsNonLeafFrame] #1",
+                $"1: {document.FilePath}: (6,18)-(6,22) flags=[IsLeafFrame, MethodUpToDate, IsNonLeafFrame]",
+                $"0: {document.FilePath}: (15,14)-(15,18) flags=[PartiallyExecuted, NonUserCode, MethodUpToDate, IsNonLeafFrame]",
             }, baseActiveStatementMap.DocumentPathMap[document.FilePath].Select(InspectActiveStatement));
 
             Assert.Equal(2, baseActiveStatementMap.InstructionMap.Count);
@@ -673,13 +673,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var s = statements[0];
             Assert.Equal(0x06000001, s.InstructionId.Method.Token);
             Assert.Equal(document.FilePath, s.FilePath);
-            Assert.Equal(1, s.DocumentOrdinal);
             Assert.True(s.IsNonLeaf);
 
             s = statements[1];
             Assert.Equal(0x06000002, s.InstructionId.Method.Token);
             Assert.Equal(document.FilePath, s.FilePath);
-            Assert.Equal(0, s.DocumentOrdinal);
             Assert.True(s.IsLeaf);
             Assert.True(s.IsNonLeaf);
 

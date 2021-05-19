@@ -87,12 +87,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var byDocumentPath = updatedSpansByDocumentPath.ToImmutableDictionary(
                 keySelector: entry => entry.Key,
-                elementSelector: entry => entry.Value.SelectAsArrayWithIndex((item, index, _) => new ActiveStatement(
+                elementSelector: entry => entry.Value.SelectAsArray(item => new ActiveStatement(
                     ordinal: item.ordinal,
-                    documentOrdinal: index,
                     flags: item.info.Flags,
                     span: item.span,
-                    instructionId: item.info.ActiveInstruction), 0));
+                    instructionId: item.info.ActiveInstruction)));
 
             using var _2 = PooledDictionary<ManagedInstructionId, ActiveStatement>.GetInstance(out var byInstruction);
 
@@ -189,10 +188,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (DocumentPathMap.TryGetValue(targetPath, out var activeStatementsInMappedFile))
                 {
-                    var range = GetOverlappingSpans(
-                        mappedSection.Span,
+                    var range = GetSpansStartingInSpan(
+                        mappedSection.Span.Start,
+                        mappedSection.Span.End,
                         activeStatementsInMappedFile,
-                        overlapsWith: (mappedSection, activeStatement) => mappedSection.OverlapsWith(activeStatement.Span));
+                        startPositionComparer: (x, y) => x.Span.Start.CompareTo(y));
 
                     for (var i = range.Start.Value; i < range.End.Value; i++)
                     {
@@ -253,36 +253,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return true;
         }
 
-        internal static Range GetOverlappingSpans<TElement, TSpan>(
-            TSpan declarationSpan,
-            ImmutableArray<TElement> statements,
-            Func<TSpan, TElement, bool> overlapsWith)
+        /// <summary>
+        /// Since an active statement represents a range between two sequence points and its span is associated with the first of these sequence points,
+        /// we decide whether the active statement is relevant within given span by checking whether its start location is within that span.
+        /// An active statement may overlap a span even if its starting location is not in the span, but such active statement is not relevant 
+        /// for analysis of code within the given span.
+        /// 
+        /// Assumes that <paramref name="spans"/> are sorted by their start position.
+        /// </summary>
+        internal static Range GetSpansStartingInSpan<TElement, TPosition>(
+            TPosition spanStart,
+            TPosition spanEnd,
+            ImmutableArray<TElement> spans,
+            Func<TElement, TPosition, int> startPositionComparer)
         {
-            // Statements are sorted by their start position.
-            // Therefore we can find the first and the last ones that overlaps the given span
-            // and all statements in between them are those that overlap with given span.
-
-            var i = 0;
-            while (i < statements.Length && !overlapsWith(declarationSpan, statements[i]))
+            var start = spans.BinarySearch(spanStart, startPositionComparer);
+            if (start < 0)
             {
-                i++;
+                // ~start points to the next span whose start position is greater than span start position:
+                start = ~start;
             }
 
-            if (i == statements.Length)
+            if (start == spans.Length)
             {
                 return default;
             }
 
-            var start = i;
-            i++;
-
-            while (i < statements.Length && overlapsWith(declarationSpan, statements[i]))
+            var length = spans.AsSpan()[start..].BinarySearch(spanEnd, startPositionComparer);
+            if (length < 0)
             {
-                i++;
+                // ~length points to the next span whose start position is greater than span start position:
+                length = ~length;
             }
 
-            var end = i;
-            return new Range(start, end);
+            return new Range(start, start + length);
         }
     }
 }

@@ -793,6 +793,9 @@ namespace Microsoft.CodeAnalysis
 
         // same as Array.BinarySearch but the ability to pass arbitrary value to the comparer without allocation
         internal static int BinarySearch<TElement, TValue>(this ImmutableArray<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
+            => BinarySearch(array.AsSpan(), value, comparer);
+
+        internal static int BinarySearch<TElement, TValue>(this ReadOnlySpan<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
         {
             int low = 0;
             int high = array.Length - 1;

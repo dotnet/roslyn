@@ -12,17 +12,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// Represents an instruction range in the code that contains an active instruction of at least one thread and that is delimited by consecutive sequence points.
     /// More than one thread can share the same instance of <see cref="ActiveStatement"/>.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class ActiveStatement
     {
         /// <summary>
         /// Ordinal of the active statement within the set of all active statements.
         /// </summary>
         public readonly int Ordinal;
-
-        /// <summary>
-        /// Ordinal of the active statement within the containing document.
-        /// </summary>
-        public readonly int DocumentOrdinal;
 
         /// <summary>
         /// The instruction of the active statement that is being executed.
@@ -41,26 +37,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public readonly ActiveStatementFlags Flags;
 
-        public ActiveStatement(int ordinal, int documentOrdinal, ActiveStatementFlags flags, SourceFileSpan span, ManagedInstructionId instructionId)
+        public ActiveStatement(int ordinal, ActiveStatementFlags flags, SourceFileSpan span, ManagedInstructionId instructionId)
         {
             Debug.Assert(ordinal >= 0);
-            Debug.Assert(documentOrdinal >= 0);
 
             Ordinal = ordinal;
             Flags = flags;
             FileSpan = span;
             InstructionId = instructionId;
-            DocumentOrdinal = documentOrdinal;
         }
 
         public ActiveStatement WithSpan(LinePositionSpan span)
             => WithFileSpan(FileSpan.WithSpan(span));
 
         public ActiveStatement WithFileSpan(SourceFileSpan span)
-            => new(Ordinal, DocumentOrdinal, Flags, span, InstructionId);
+            => new(Ordinal, Flags, span, InstructionId);
 
         public ActiveStatement WithFlags(ActiveStatementFlags flags)
-            => new(Ordinal, DocumentOrdinal, flags, FileSpan, InstructionId);
+            => new(Ordinal, flags, FileSpan, InstructionId);
 
         public LinePositionSpan Span
             => FileSpan.Span;
@@ -82,5 +76,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public bool IsMethodUpToDate
             => (Flags & ActiveStatementFlags.MethodUpToDate) != 0;
+
+        private string GetDebuggerDisplay()
+            => $"{Ordinal}: {Span}";
     }
 }

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -259,8 +258,7 @@ class C
 {
     public static void Main()
     {
-        // comment
-        System.Console.WriteLine(1);
+        /* comment */ System.Console.WriteLine(1);
     }
 }
 ";
@@ -298,7 +296,6 @@ class C
                     KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
                         new ActiveStatement(
                             ordinal: 0,
-                            documentOrdinal: 0,
                             ActiveStatementFlags.IsLeafFrame,
                             new SourceFileSpan(newDocument.FilePath, oldStatementSpan),
                             instructionId: default)))
@@ -310,6 +307,7 @@ class C
             var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<LinePositionSpan>.Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None);
 
             Assert.True(result.HasChanges);
+
             var syntaxMap = result.SemanticEdits[0].SyntaxMap;
             Assert.NotNull(syntaxMap);
 

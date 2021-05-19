@@ -6125,8 +6125,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -6258,7 +6257,8 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "(G() switch { 0 => 10, _ => 20 }) switch { 10 =>       100       , _ => 200 }"));
         }
 
         [Fact]

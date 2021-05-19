@@ -12,12 +12,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     internal readonly struct ActiveStatementTrackingSpan
     {
         public readonly ITrackingSpan Span;
+        public readonly int Ordinal;
         public readonly ActiveStatementFlags Flags;
         public readonly DocumentId? UnmappedDocumentId;
 
-        public ActiveStatementTrackingSpan(ITrackingSpan trackingSpan, ActiveStatementFlags flags, DocumentId? unmappedDocumentId)
+        public ActiveStatementTrackingSpan(ITrackingSpan trackingSpan, int ordinal, ActiveStatementFlags flags, DocumentId? unmappedDocumentId)
         {
             Span = trackingSpan;
+            Ordinal = ordinal;
             Flags = flags;
             UnmappedDocumentId = unmappedDocumentId;
         }
@@ -28,6 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public bool IsLeaf => (Flags & ActiveStatementFlags.IsLeafFrame) != 0;
 
         public static ActiveStatementTrackingSpan Create(ITextSnapshot snapshot, ActiveStatementSpan span)
-            => new(snapshot.CreateTrackingSpan(snapshot.GetTextSpan(span.LineSpan).ToSpan(), SpanTrackingMode.EdgeExclusive), span.Flags, span.UnmappedDocumentId);
+            => new(snapshot.CreateTrackingSpan(snapshot.GetTextSpan(span.LineSpan).ToSpan(), SpanTrackingMode.EdgeExclusive), span.Ordinal, span.Flags, span.UnmappedDocumentId);
     }
 }

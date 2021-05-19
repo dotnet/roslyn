@@ -141,8 +141,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <remarks>
         /// The implementation has to decide what kinds of nodes in top-level match relationship represent a declaration.
         /// Every member declaration must be represented by exactly one node, but not all nodes have to represent a declaration.
+        /// 
+        /// TODO: consider implementing this via <see cref="GetActiveSpanEnvelope"/>.
         /// </remarks>
         internal abstract IEnumerable<SyntaxToken>? TryGetActiveTokens(SyntaxNode node);
+
+        /// <summary>
+        /// Returns a span that contains all possible active spans of the <paramref name="declaration"/> body.
+        /// Returns default if the declaration does not have any active spans.
+        /// </summary>
+        internal abstract TextSpan GetActiveSpanEnvelope(SyntaxNode declaration);
 
         /// <summary>
         /// Returns an ancestor that encompasses all active and statement level 
@@ -875,7 +883,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             syntaxMap = null;
 
-            var hasActiveStatement = TryGetOverlappingActiveStatements(oldDeclaration.Span, oldActiveStatements, out var start, out var end);
+            var hasActiveStatement = TryGetOverlappingActiveStatements(oldDeclaration, oldActiveStatements, out var start, out var end);
 
             if (newBody == null)
             {
@@ -909,8 +917,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var activeNodes = new ActiveNode[end - start];
                 for (var i = 0; i < activeNodes.Length; i++)
                 {
-                    var ordinal = start + i;
-                    var oldStatementSpan = oldActiveStatements[ordinal].UnmappedSpan;
+                    var activeStatementIndex = start + i;
+                    var oldStatementSpan = oldActiveStatements[activeStatementIndex].UnmappedSpan;
 
                     var oldStatementSyntax = FindStatement(oldBody, oldStatementSpan, out var statementPart);
                     Contract.ThrowIfNull(oldStatementSyntax);
@@ -931,7 +939,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     SyntaxNode? trackedNode = null;
 
-                    if (TryGetTrackedStatement(newActiveStatementSpans, ordinal, newText, newBody, out var newStatementSyntax, out var _))
+                    if (TryGetTrackedStatement(newActiveStatementSpans, activeStatementIndex, newText, newBody, out var newStatementSyntax, out var _))
                     {
                         var newEnclosingLambdaBody = FindEnclosingLambdaBody(newBody, newStatementSyntax);
 
@@ -1005,15 +1013,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 for (var i = 0; i < activeNodes.Length; i++)
                 {
-                    var ordinal = start + i;
+                    var activeStatementIndex = start + i;
                     var hasMatching = false;
-                    var isNonLeaf = oldActiveStatements[ordinal].Statement.IsNonLeaf;
-                    var isPartiallyExecuted = (oldActiveStatements[ordinal].Statement.Flags & ActiveStatementFlags.PartiallyExecuted) != 0;
+                    var isNonLeaf = oldActiveStatements[activeStatementIndex].Statement.IsNonLeaf;
+                    var isPartiallyExecuted = (oldActiveStatements[activeStatementIndex].Statement.Flags & ActiveStatementFlags.PartiallyExecuted) != 0;
                     var statementPart = activeNodes[i].StatementPart;
                     var oldStatementSyntax = activeNodes[i].OldNode;
                     var oldEnclosingLambdaBody = activeNodes[i].EnclosingLambdaBody;
 
-                    newExceptionRegions[ordinal] = ImmutableArray<SourceFileSpan>.Empty;
+                    newExceptionRegions[activeStatementIndex] = ImmutableArray<SourceFileSpan>.Empty;
 
                     TextSpan newSpan;
                     SyntaxNode? newStatementSyntax;
@@ -1100,15 +1108,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         oldStatementSyntax,
                         newStatementSyntax,
                         newSpan,
-                        ordinal,
+                        activeStatementIndex,
                         isNonLeaf,
                         newExceptionRegions,
                         diagnostics,
                         cancellationToken);
 
-                    Debug.Assert(newActiveStatements[ordinal] == null && newSpan != default);
+                    Debug.Assert(newActiveStatements[activeStatementIndex] == null && newSpan != default);
 
-                    newActiveStatements[ordinal] = GetActiveStatementWithSpan(oldActiveStatements[ordinal], newDeclaration.SyntaxTree, newSpan, diagnostics, cancellationToken);
+                    newActiveStatements[activeStatementIndex] = GetActiveStatementWithSpan(oldActiveStatements[activeStatementIndex], newDeclaration.SyntaxTree, newSpan, diagnostics, cancellationToken);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -1137,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private bool TryGetTrackedStatement(ImmutableArray<LinePositionSpan> activeStatementSpans, int activeStatementOrdinal, SourceText text, SyntaxNode body, [NotNullWhen(true)] out SyntaxNode? trackedStatement, out int trackedStatementPart)
+        private bool TryGetTrackedStatement(ImmutableArray<LinePositionSpan> activeStatementSpans, int index, SourceText text, SyntaxNode body, [NotNullWhen(true)] out SyntaxNode? trackedStatement, out int trackedStatementPart)
         {
             trackedStatement = null;
             trackedStatementPart = -1;
@@ -1148,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
-            var trackedLineSpan = activeStatementSpans[activeStatementOrdinal];
+            var trackedLineSpan = activeStatementSpans[index];
             if (trackedLineSpan == default)
             {
                 return false;
@@ -1679,16 +1687,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return false;
         }
 
-        private static bool TryGetOverlappingActiveStatements(
-            TextSpan declarationSpan,
+        private bool TryGetOverlappingActiveStatements(
+            SyntaxNode declaration,
             ImmutableArray<UnmappedActiveStatement> statements,
             out int start,
             out int end)
         {
-            var range = ActiveStatementsMap.GetOverlappingSpans(
-                declarationSpan,
+            var declarationSpan = GetActiveSpanEnvelope(declaration);
+            if (declarationSpan == default)
+            {
+                start = end = 0;
+                return false;
+            }
+
+            var range = ActiveStatementsMap.GetSpansStartingInSpan(
+                declarationSpan.Start,
+                declarationSpan.End,
                 statements,
-                overlapsWith: (span, statement) => span.OverlapsWith(statement.UnmappedSpan));
+                startPositionComparer: (x, y) => x.UnmappedSpan.Start.CompareTo(y));
 
             start = range.Start.Value;
             end = range.End.Value;
@@ -2409,7 +2425,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     continue;
                                 }
 
-                                var hasActiveStatement = TryGetOverlappingActiveStatements(edit.OldNode.Span, oldActiveStatements, out var start, out var end);
+                                var hasActiveStatement = TryGetOverlappingActiveStatements(edit.OldNode, oldActiveStatements, out var start, out var end);
 
                                 // TODO: if the member isn't a field/property we should return empty span.
                                 // We need to adjust the tracking span design and UpdateUneditedSpans to account for such empty spans.
@@ -2930,7 +2946,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     // We need to provide syntax map to the compiler if the member is active (see member update above):
                     var isActiveMember =
-                        TryGetOverlappingActiveStatements(oldNode.Span, oldActiveStatements, out var start, out var end) ||
+                        TryGetOverlappingActiveStatements(oldNode, oldActiveStatements, out var start, out var end) ||
                         IsStateMachineMethod(oldNode) ||
                         ContainsLambda(oldNode);
 

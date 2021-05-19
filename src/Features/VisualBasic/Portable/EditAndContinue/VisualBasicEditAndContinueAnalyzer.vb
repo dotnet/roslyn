@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.VariableDeclarator
                     Dim variableDeclarator = DirectCast(node, VariableDeclaratorSyntax)
-                    If Not IsFieldDeclaration(variableDeclarator) Then
+                    If Not variableDeclarator.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
                         Return Nothing
                     End If
 
@@ -332,11 +332,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
 
                     ' Dim a As New C()
+                    ' Dim a, b As New C()
                     If HasAsNewClause(variableDeclarator) Then
                         Return variableDeclarator.DescendantTokens()
                     End If
 
                     ' Dim a(n) As Integer
+                    ' Dim a(n), b(n) As Integer
                     Dim modifiedIdentifier = variableDeclarator.Names.Single()
                     If modifiedIdentifier.ArrayBounds IsNot Nothing Then
                         Return variableDeclarator.DescendantTokens()
@@ -346,12 +348,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.ModifiedIdentifier
                     Dim modifiedIdentifier = DirectCast(node, ModifiedIdentifierSyntax)
-                    If Not IsFieldDeclaration(modifiedIdentifier) Then
+                    If Not modifiedIdentifier.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
                         Return Nothing
                     End If
 
-                    ' Dim a, b As New C()
                     Dim variableDeclarator = DirectCast(node.Parent, VariableDeclaratorSyntax)
+                    If variableDeclarator.Names.Count = 1 Then
+                        Return TryGetActiveTokens(node.Parent)
+                    End If
+
+                    ' Dim a, b As New C()
                     If HasAsNewClause(variableDeclarator) Then
                         Return node.DescendantTokens().Concat(DirectCast(variableDeclarator.AsClause, AsNewClauseSyntax).NewExpression.DescendantTokens())
                     End If
@@ -359,6 +365,94 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' Dim a(n), b(n) As Integer
                     If modifiedIdentifier.ArrayBounds IsNot Nothing Then
                         Return node.DescendantTokens()
+                    End If
+
+                    Return Nothing
+
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
+
+        Friend Overrides Function GetActiveSpanEnvelope(declaration As SyntaxNode) As TextSpan
+            Select Case declaration.Kind
+                Case SyntaxKind.SubBlock,
+                     SyntaxKind.FunctionBlock,
+                     SyntaxKind.ConstructorBlock,
+                     SyntaxKind.OperatorBlock,
+                     SyntaxKind.GetAccessorBlock,
+                     SyntaxKind.SetAccessorBlock,
+                     SyntaxKind.AddHandlerAccessorBlock,
+                     SyntaxKind.RemoveHandlerAccessorBlock,
+                     SyntaxKind.RaiseEventAccessorBlock
+                    ' the body is the Statements list of the block
+                    Return declaration.Span
+
+                Case SyntaxKind.PropertyStatement
+                    ' Property: Attributes Modifiers [|Identifier AsClause Initializer|] ImplementsClause
+                    ' Property: Attributes Modifiers [|Identifier$ Initializer|] ImplementsClause
+                    Dim propertyStatement = DirectCast(declaration, PropertyStatementSyntax)
+                    If propertyStatement.Initializer IsNot Nothing Then
+                        Return TextSpan.FromBounds(propertyStatement.Identifier.Span.Start, propertyStatement.Initializer.Span.End)
+                    End If
+
+                    If HasAsNewClause(propertyStatement) Then
+                        Return TextSpan.FromBounds(propertyStatement.Identifier.Span.Start, propertyStatement.AsClause.Span.End)
+                    End If
+
+                    Return Nothing
+
+                Case SyntaxKind.VariableDeclarator
+                    Dim variableDeclarator = DirectCast(declaration, VariableDeclaratorSyntax)
+                    If Not variableDeclarator.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                        Return Nothing
+                    End If
+
+                    ' Field: Attributes Modifiers Declarators
+                    Dim fieldDeclaration = DirectCast(declaration.Parent, FieldDeclarationSyntax)
+                    If fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) Then
+                        Return Nothing
+                    End If
+
+                    ' Dim a = initializer
+                    If variableDeclarator.Initializer IsNot Nothing Then
+                        Return variableDeclarator.Span
+                    End If
+
+                    ' Dim a As New C()
+                    ' Dim a, b As New C()
+                    If HasAsNewClause(variableDeclarator) Then
+                        Return variableDeclarator.Span
+                    End If
+
+                    ' Dim a(n) As Integer
+                    ' Dim a(n), b(n) As Integer
+                    Dim modifiedIdentifier = variableDeclarator.Names.Single()
+                    If modifiedIdentifier.ArrayBounds IsNot Nothing Then
+                        Return variableDeclarator.Span
+                    End If
+
+                    Return Nothing
+
+                Case SyntaxKind.ModifiedIdentifier
+                    Dim modifiedIdentifier = DirectCast(declaration, ModifiedIdentifierSyntax)
+                    If Not modifiedIdentifier.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                        Return Nothing
+                    End If
+
+                    Dim variableDeclarator = DirectCast(declaration.Parent, VariableDeclaratorSyntax)
+                    If variableDeclarator.Names.Count = 1 Then
+                        Return GetActiveSpanEnvelope(declaration.Parent)
+                    End If
+
+                    ' Dim a, b As New C()
+                    If HasAsNewClause(variableDeclarator) Then
+                        Return TextSpan.FromBounds(declaration.Span.Start, DirectCast(variableDeclarator.AsClause, AsNewClauseSyntax).NewExpression.Span.End)
+                    End If
+
+                    ' Dim a(n), b(n) As Integer
+                    If modifiedIdentifier.ArrayBounds IsNot Nothing Then
+                        Return declaration.Span
                     End If
 
                     Return Nothing
