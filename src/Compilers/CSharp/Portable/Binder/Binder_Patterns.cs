@@ -328,7 +328,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             [NotNullWhen(true)] out IndexerArgumentInfo? info,
             BindingDiagnosticBag diagnostics)
         {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             TypeSymbol argType = Compilation.GetWellKnownType(argIsIndex ? WellKnownType.System_Index : WellKnownType.System_Range);
             if (argType.IsErrorType())
             {
@@ -336,15 +335,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var lookupResult = LookupResult.GetInstance();
-            if (PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, argType, diagnostics))
+            if (PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, argType, diagnostics, ref useSiteInfo))
             {
                 _ = GetWellKnownTypeMember(argIsIndex ? WellKnownMember.System_Index__ctor : WellKnownMember.System_Range__ctor, diagnostics, syntax: syntax);
                 diagnostics.Add(syntax, useSiteInfo);
                 lookupResult.Free();
                 return true;
             }
-            else if (TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out Symbol? patternSymbol, diagnostics, ref useSiteInfo))
+
+            if (TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out Symbol? patternSymbol, diagnostics, ref useSiteInfo))
             {
                 info = new IndexerArgumentInfo(patternSymbol);
                 diagnostics.Add(syntax, useSiteInfo);
@@ -358,11 +359,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool PerformPatternIndexerLookup(
             SyntaxNode syntax, TypeSymbol receiverType, LookupResult lookupResult,
-            [NotNullWhen(true)] out IndexerArgumentInfo? info, TypeSymbol indexerArgumentType, BindingDiagnosticBag diagnostics)
+            [NotNullWhen(true)] out IndexerArgumentInfo? info, TypeSymbol indexerArgumentType, BindingDiagnosticBag diagnostics, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             info = null;
 
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             LookupMembersInType(
                 lookupResult,
                 receiverType,
