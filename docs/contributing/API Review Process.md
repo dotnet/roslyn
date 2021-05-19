@@ -23,11 +23,9 @@ The rule of thumb is that we (**dotnet/roslyn**) review every public API that is
 
 5. **API gets reviewed**. The group conducting the review is called *RAR*, which stands for *Roslyn API Reviewers*. In the review, we'll take notes and provide feedback. After the review, we'll publish the notes in the [API Review repository](https://github.com/dotnet/apireviews) and at the end of the relevant issue. Multiple outcomes are possible:
 
-    * **Approved**. In this case the label `api-ready-for-review` is replaced
-    with `api-approved`.
-    * **Needs work**. In case we believe the proposal isn't ready yet, we'll
-    replace the label `api-ready-for-review` with `api-needs-work`.
-    * **Rejected**. In case we believe the proposal isn't a direction we want pursue, we simply write a comment and close the issue.
+    * **Approved**. In this case the label `api-ready-for-review` is replaced with `api-approved`.
+    * **Needs work**. If we believe the proposal isn't ready yet, we'll replace the label `api-ready-for-review` with `api-needs-work`.
+    * **Rejected**. If we believe the proposal isn't a direction we want to pursue, we'll simply write a comment and close the issue.
 
 ## Review schedule
 

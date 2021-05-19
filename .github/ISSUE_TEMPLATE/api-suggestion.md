@@ -17,7 +17,11 @@ First, please describe the purpose and value of the new API here.
 ## Proposed API
 
 <!--
-Please provide a sketch of public API signature diff that you are proposing. Be as specific as you can: the more specific the proposal, the easier the process will be. For example:
+Please provide a sketch of the public API signature diff that you are proposing. Be as specific as you can: the more specific the proposal, the easier the process will be. An example diff is below.
+You may find the [Framework Design Guidelines](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/framework-design-guidelines-digest.md) helpful.
+https://github.com/dotnet/roslyn/issues/53410 is a good example issue.
+-->
+
 ```diff
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -26,10 +30,6 @@ namespace Microsoft.CodeAnalysis.Operations
 +        public bool IsExhaustive { get; }
      }
 ```
-You may find the [Framework Design Guidelines](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/framework-design-guidelines-digest.md) helpful.
-
-https://github.com/dotnet/roslyn/issues/53410 is a good example issue.
--->
 
 ## Usage Examples
 
