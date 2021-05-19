@@ -37,9 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         }
 
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
-            Document document,
-            SyntaxToken token,
-            CancellationToken cancellationToken)
+            CommonQuickInfoContext context,
+            SyntaxToken token)
         {
             return GetQuickinfoForPragmaWarning(document, token) ??
                 (await GetQuickInfoForSuppressMessageAttributeAsync(document, token, cancellationToken).ConfigureAwait(false));
