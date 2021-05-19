@@ -1,6 +1,7 @@
 ## Release 3.0.0
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS1024 | MicrosoftCodeAnalysisCorrectness | Warning | CompareSymbolsCorrectlyAnalyzer
@@ -20,10 +21,10 @@ RS2006 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCr
 RS2007 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
 RS2008 | MicrosoftCodeAnalysisReleaseTracking | Warning | DiagnosticDescriptorCreationAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md)
 
-
 ## Release 2.9.8
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS1001 | MicrosoftCodeAnalysisCorrectness | Warning | DiagnosticAnalyzerAttributeAnalyzer
@@ -52,6 +53,7 @@ RS1023 | Library | Warning | UpgradeMSBuildWorkspaceAnalyzer
 ## Release 3.3.0
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS1031 | MicrosoftCodeAnalysisDesign | Warning | DiagnosticDescriptorCreationAnalyzer
