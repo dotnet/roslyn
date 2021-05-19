@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -10,52 +11,48 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal abstract class CommonQuickInfoProvider : QuickInfoProvider
     {
-        protected abstract Task<QuickInfoItem?> BuildQuickInfoAsync(
-            CommonQuickInfoContext context, SyntaxToken token);
+        protected abstract Task<QuickInfoItem?> BuildQuickInfoAsync(QuickInfoContext context, SyntaxToken token);
 
-        public sealed override async Task<QuickInfoItem?> GetQuickInfoAsync(QuickInfoContext context)
+        public override async Task<QuickInfoItem?> GetQuickInfoAsync(QuickInfoContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
             var cancellationToken = context.CancellationToken;
+            var tree = await context.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tokens = await GetTokensAsync(tree, context.Position, context.CancellationToken).ConfigureAwait(false);
 
-            using var linkedSemanticModels = TemporaryArray<(DocumentId documentId, SemanticModel semanticModel)>.Empty;
-            var linkedDocumentIds = document.GetLinkedDocumentIds();
-            foreach (var linkedId in linkedDocumentIds)
+            foreach (var token in tokens)
             {
-                var linkedDoc = document.Project.Solution.GetRequiredDocument(linkedId);
-                var linkedSemanticModel = await linkedDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                linkedSemanticModels.Add((linkedId, linkedSemanticModel));
+                var info = await GetQuickInfoAsync(context, token).ConfigureAwait(false);
+                if (info != null)
+                    return info;
             }
 
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var commonContext = new CommonQuickInfoContext(
-                document.Project.Solution.Workspace, document.Id, semanticModel, linkedSemanticModels.ToImmutableAndClear(), position, cancellationToken);
-
-            return await GetQuickInfoAsync(commonContext).ConfigureAwait(false);
+            return null;
         }
 
-        public async Task<QuickInfoItem?> GetQuickInfoAsync(CommonQuickInfoContext context)
+        protected async Task<ImmutableArray<SyntaxToken>> GetTokensAsync(SyntaxTree tree, int position, System.Threading.CancellationToken cancellationToken)
         {
-            var tree = context.SemanticModel.SyntaxTree;
-            var token = await tree.GetTouchingTokenAsync(context.Position, context.CancellationToken, findInsideTrivia: true).ConfigureAwait(false);
-
-            var info = await GetQuickInfoAsync(context, token).ConfigureAwait(false);
-
-            if (info == null && ShouldCheckPreviousToken(token))
+            using var result = TemporaryArray<SyntaxToken>.Empty;
+            var token = await tree.GetTouchingTokenAsync(position, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
+            if (token != default)
             {
-                var previousToken = token.GetPreviousToken();
-                info = await GetQuickInfoAsync(context, previousToken).ConfigureAwait(false);
+                result.Add(token);
+
+                if (ShouldCheckPreviousToken(token))
+                {
+                    token = token.GetPreviousToken();
+                    if (token != default && token.Span.IntersectsWith(position))
+                        result.Add(token);
+                }
             }
 
-            return info;
+            return result.ToImmutableAndClear();
         }
 
         protected virtual bool ShouldCheckPreviousToken(SyntaxToken token)
             => true;
 
         private async Task<QuickInfoItem?> GetQuickInfoAsync(
-            CommonQuickInfoContext context,
+            QuickInfoContext context,
             SyntaxToken token)
         {
             if (token != default &&

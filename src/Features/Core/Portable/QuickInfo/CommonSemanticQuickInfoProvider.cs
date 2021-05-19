@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -17,35 +18,64 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInfoProvider
     {
-        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
-            CommonQuickInfoContext context,
-            SyntaxToken token)
+        public async Task<QuickInfoItem?> GetQuickInfoAsync(CommonQuickInfoContext context)
         {
-            var (tokenInformation, supportedPlatforms) = ComputeQuickInfoData(context, token);
-
-            if (tokenInformation.Symbols.IsDefaultOrEmpty)
-            {
+            var tree = context.SemanticModel.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var tokens = await GetTokensAsync(tree, context.Position, cancellationToken).ConfigureAwait(false);
+            if (tokens.Length == 0)
                 return null;
+
+            foreach (var token in tokens)
+            {
+                var semanticModel = context.SemanticModel;
+                var tokenInformation = BindToken(context.Workspace, semanticModel, token, cancellationToken);
+                if (tokenInformation.Symbols.IsDefaultOrEmpty)
+                    continue;
+
+                var item = await CreateContentAsync(
+                    context.Workspace, semanticModel, token, tokenInformation, supportedPlatforms: null, cancellationToken).ConfigureAwait(false);
+                if (item != null)
+                    return item;
             }
 
-            return await CreateContentAsync(
-                context, token, tokenInformation, supportedPlatforms).ConfigureAwait(false);
+            return null;
         }
 
-        private (TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms) ComputeQuickInfoData(
-            CommonQuickInfoContext context,
+        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
+            QuickInfoContext context, SyntaxToken token)
+        {
+            var (tokenInformation, supportedPlatforms) = await ComputeQuickInfoDataAsync(context, token).ConfigureAwait(false);
+            if (tokenInformation.Symbols.IsDefaultOrEmpty)
+                return null;
+
+            var cancellationToken = context.CancellationToken;
+            var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return await CreateContentAsync(
+                context.Document.Project.Solution.Workspace, semanticModel, token, tokenInformation, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<(TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
+            QuickInfoContext context,
             SyntaxToken token)
         {
-            if (!context.LinkedSemanticModels.IsEmpty)
-                return ComputeFromLinkedDocuments(context, token);
+            var cancellationToken = context.CancellationToken;
+            var document = context.Document;
 
-            var tokenInformation = BindToken(context.Workspace, context.SemanticModel, token, context.CancellationToken);
+            var linkedDocumentIds = document.GetLinkedDocumentIds();
+            if (linkedDocumentIds.Any())
+                return await ComputeFromLinkedDocumentsAsync(context, token, linkedDocumentIds).ConfigureAwait(false);
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var tokenInformation = BindToken(
+                document.Project.Solution.Workspace, semanticModel, token, cancellationToken);
             return (tokenInformation, supportedPlatforms: null);
         }
 
-        private (TokenInformation, SupportedPlatformData supportedPlatforms) ComputeFromLinkedDocuments(
-            CommonQuickInfoContext context,
-            SyntaxToken token)
+        private async Task<(TokenInformation, SupportedPlatformData supportedPlatforms)> ComputeFromLinkedDocumentsAsync(
+            QuickInfoContext context,
+            SyntaxToken token,
+            ImmutableArray<DocumentId> linkedDocumentIds)
         {
             // Linked files/shared projects: imagine the following when GOO is false
             // #if GOO
@@ -58,26 +88,32 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             // which in this case is the one with no errors.
 
             var cancellationToken = context.CancellationToken;
+            var document = context.Document;
+            var solution = document.Project.Solution;
+            var workspace = solution.Workspace;
 
-            var mainTokenInformation = BindToken(context.Workspace, context.SemanticModel, token, cancellationToken);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var mainTokenInformation = BindToken(workspace, semanticModel, token, cancellationToken);
 
-            var candidateProjects = new List<ProjectId> { context.DocumentId.ProjectId };
+            var candidateProjects = new List<ProjectId> { document.Project.Id };
             var invalidProjects = new List<ProjectId>();
 
             var candidateResults = new List<(DocumentId docId, TokenInformation tokenInformation)>
             {
-                (context.DocumentId, mainTokenInformation)
+                (document.Id, mainTokenInformation)
             };
 
-            foreach (var (linkedDocumentId, linkedModel) in context.LinkedSemanticModels)
+            foreach (var linkedDocumentId in linkedDocumentIds)
             {
+                var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
+                var linkedModel = await linkedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var linkedToken = FindTokenInLinkedDocument(token, linkedModel, cancellationToken);
 
                 if (linkedToken != default)
                 {
                     // Not in an inactive region, so this file is a candidate.
                     candidateProjects.Add(linkedDocumentId.ProjectId);
-                    var linkedSymbols = BindToken(context.Workspace, linkedModel, linkedToken, cancellationToken);
+                    var linkedSymbols = BindToken(workspace, linkedModel, linkedToken, cancellationToken);
                     candidateResults.Add((linkedDocumentId, linkedSymbols));
                 }
             }
@@ -92,14 +128,14 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             // We calculate the set of supported projects
             candidateResults.Remove(bestBinding);
-            foreach (var candidate in candidateResults)
+            foreach (var (docId, tokenInformation) in candidateResults)
             {
                 // Does the candidate have anything remotely equivalent?
-                if (!candidate.tokenInformation.Symbols.Intersect(bestBinding.tokenInformation.Symbols, LinkedFilesSymbolEquivalenceComparer.Instance).Any())
-                    invalidProjects.Add(candidate.docId.ProjectId);
+                if (!tokenInformation.Symbols.Intersect(bestBinding.tokenInformation.Symbols, LinkedFilesSymbolEquivalenceComparer.Instance).Any())
+                    invalidProjects.Add(docId.ProjectId);
             }
 
-            var supportedPlatforms = new SupportedPlatformData(invalidProjects, candidateProjects, context.Workspace);
+            var supportedPlatforms = new SupportedPlatformData(invalidProjects, candidateProjects, workspace);
             return (bestBinding.tokenInformation, supportedPlatforms);
         }
 
@@ -124,14 +160,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         protected static Task<QuickInfoItem> CreateContentAsync(
-            CommonQuickInfoContext context,
+            Workspace workspace,
+            SemanticModel semanticModel,
             SyntaxToken token,
             TokenInformation tokenInformation,
-            SupportedPlatformData? supportedPlatforms)
+            SupportedPlatformData? supportedPlatforms,
+            CancellationToken cancellationToken)
         {
-            var workspace = context.Workspace;
-            var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
             var syntaxFactsService = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
 
             var symbols = tokenInformation.Symbols;
