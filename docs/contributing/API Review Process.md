@@ -39,7 +39,7 @@ The API review board currently meets biweekly.
 
 ## Pull requests
 
-Pull requests against **dotnet/roslyn** that adds new public API shouldn't be submitted before getting approval. Also, we don't want to get work in progress (WIP) PR's. The reason being that we want to reduce the number pending PRs so that we can focus on the work the community expects we take action on.
+Pull requests against **dotnet/roslyn** that add new public API shouldn't be submitted before getting approval. Also, we don't want to get work in progress (WIP) PR's. The reason being that we want to reduce the number pending PRs so that we can focus on the work the community expects we take action on.
 
 If you want to collaborate with other people on the design, feel free to perform the work in a branch in your own fork. If you want to track your TODOs in the description of a PR, you can always submit a PR against your own fork. Also, feel free to advertise your PR by linking it from the issue you filed against **dotnet/roslyn** in the first step above.
 
