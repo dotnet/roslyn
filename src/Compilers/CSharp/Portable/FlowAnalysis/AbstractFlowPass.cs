@@ -2721,19 +2721,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected static bool CanPropagateStateWhenNotNull(Conversion conversion)
         {
+            if (!conversion.IsValid)
+            {
+                return false;
+            }
+
             if (!conversion.IsUserDefined)
             {
                 return true;
             }
 
             var method = conversion.Method;
-            if (method is null)
-            {
-                // This can happen when the user-defined conversion to use is ambiguous.
-                // For example in `SyntaxBinderTests.TestNullCoalesceWithInvalidUserDefinedConversions_03`
-                return false;
-            }
-
+            Debug.Assert(method is object);
             Debug.Assert(method.ParameterCount is 1);
             var param = method.Parameters[0];
             return param.Type.IsNonNullableValueType();

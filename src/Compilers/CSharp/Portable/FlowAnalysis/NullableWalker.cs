@@ -3629,7 +3629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but `expr == a?.b(out x) == true` has a conditional access on the right of the operator
             if (VisitPossibleConditionalAccess(leftOperand, out var conditionalStateWhenNotNull)
                 && CanPropagateStateWhenNotNull(leftConversion)
-                && isEqualsOrNotEquals(binary))
+                && binary.OperatorKind.Operator() is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual)
             {
                 Debug.Assert(!IsConditionalState);
                 var leftType = ResultType;
@@ -3639,20 +3639,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // `a?.b(x = new object()) == c.d(x = null)` // `x` is maybe-null after expression
                 // `a?.b(x = null) == c.d(x = new object())` // `x` is not-null after expression
 
-                // In order to properly integrate state changes from the RHS into the LHS's "state when not null", we can't simply Meet or Join the state.
-                // We have to visit it twice. Once without diagnostics using the LHS's "state when not null", and again with the "state when maybe null" for diagnostics and public API.
+                // In this scenario, we visit the RHS twice:
+                // (1) Once using the single "stateWhenNotNull" after the LHS, in order to update the "stateWhenNotNull" with the effects of the RHS
+                // (2) Once using the "worst case" state after the LHS for diagnostics and public API
+
+                // After the two visits of the RHS, we may set a conditional state using the state after (1) as the StateWhenTrue and the state after (2) as the StateWhenFalse.
+                // Depending on whether `==` or `!=` was used, and depending on the value of the RHS, we may then swap the StateWhenTrue with the StateWhenFalse.
+
                 var oldDisableDiagnostics = _disableDiagnostics;
                 _disableDiagnostics = true;
 
-                var stateBeforeRight = this.State;
-                SetState(getSingleState(rightOperand, conditionalStateWhenNotNull));
+                var stateAfterLeft = this.State;
+                SetState(getUnconditionalStateWhenNotNull(rightOperand, conditionalStateWhenNotNull));
                 VisitRvalue(rightOperand);
                 var stateWhenNotNull = this.State;
 
                 _disableDiagnostics = oldDisableDiagnostics;
 
                 // Now visit the right side for public API and diagnostics using the worst-case state from the LHS.
-                SetState(stateBeforeRight);
+                // Note that we do this visit last to try and make sure that the "visit for public API" overwrites walker state recorded during previous visits where possible.
+                SetState(stateAfterLeft);
                 var rightType = VisitRvalueWithState(rightOperand);
                 ReinferBinaryOperatorAndSetResult(leftOperand, leftConversion, leftType, rightOperand, rightConversion, rightType, binary);
                 if (isKnownNullOrNotNull(rightOperand, rightType))
@@ -3693,9 +3699,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binary = stack.Pop();
             }
 
-            static bool isEqualsOrNotEquals(BoundBinaryOperator binary)
-                => binary.OperatorKind.Operator() is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual;
-
             static bool isEquals(BoundBinaryOperator binary)
                 => binary.OperatorKind.Operator() == BinaryOperatorKind.Equal;
 
@@ -3705,7 +3708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     || expr.ConstantValue is object;
             }
 
-            LocalState getSingleState(BoundExpression otherOperand, PossiblyConditionalState conditionalStateWhenNotNull)
+            LocalState getUnconditionalStateWhenNotNull(BoundExpression otherOperand, PossiblyConditionalState conditionalStateWhenNotNull)
             {
                 LocalState stateWhenNotNull;
                 if (!conditionalStateWhenNotNull.IsConditionalState)
@@ -3729,7 +3732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Returns true if `binary.Right` was visited by the call.
             bool learnFromConditionalAccessOrBoolConstant()
             {
-                if (!isEqualsOrNotEquals(binary))
+                if (binary.OperatorKind.Operator() is not (BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual))
                 {
                     return false;
                 }
@@ -3743,7 +3746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ReinferBinaryOperatorAndSetResult(leftOperand, leftConversion, leftResult, rightOperand, rightConversion, rightType: ResultType, binary);
 
-                    var stateWhenNotNull = getSingleState(leftOperand, conditionalStateWhenNotNull);
+                    var stateWhenNotNull = getUnconditionalStateWhenNotNull(leftOperand, conditionalStateWhenNotNull);
                     var isNullConstant = leftOperand.ConstantValue?.IsNull == true;
                     SetConditionalState(isNullConstant == isEquals(binary)
                         ? (State, stateWhenNotNull)
