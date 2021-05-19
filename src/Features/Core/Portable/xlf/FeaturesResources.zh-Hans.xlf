@@ -2373,7 +2373,7 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 如果使用 "f" 格式说明符而没有其他自定义格式说明符，该说明符将被解释为 "f" 标准日期和时间格式说明符。
 
 将 "f" 格式说明符用作提供给 ParseExact、TryParseExact、ParseExact 或 TryParseExact 方法的格式字符串的一部分时，"f" 格式说明符的数目指示能够成功分析的字符串的秒部分的最高有效位的最大数目。</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
