@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddExplicitInterfaceIfRequired(symbol.ExplicitInterfaceImplementations);
 
                         if (!format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) &&
-                            symbol.GetSymbol()?.OriginalDefinition is SourceUserDefinedOperatorSymbolBase)
+                            symbol.GetSymbol()?.OriginalDefinition is SourceUserDefinedOperatorSymbolBase sourceUserDefinedOperatorSymbolBase)
                         {
                             var operatorName = symbol.MetadataName;
                             var lastDotPosition = operatorName.LastIndexOf('.');
@@ -489,7 +489,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 operatorName = operatorName.Substring(lastDotPosition + 1);
                             }
 
-                            addUserDefinedOperatorName(symbol, operatorName);
+                            if (sourceUserDefinedOperatorSymbolBase is SourceUserDefinedConversionSymbol)
+                            {
+                                addUserDefinedConversionName(symbol, operatorName);
+                            }
+                            else
+                            {
+                                addUserDefinedOperatorName(symbol, operatorName);
+                            }
                             break;
                         }
 
@@ -518,26 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            // "System.IntPtr.explicit operator System.IntPtr(int)"
-
-                            if (symbol.MetadataName == WellKnownMemberNames.ExplicitConversionName)
-                            {
-                                AddKeyword(SyntaxKind.ExplicitKeyword);
-                            }
-                            else if (symbol.MetadataName == WellKnownMemberNames.ImplicitConversionName)
-                            {
-                                AddKeyword(SyntaxKind.ImplicitKeyword);
-                            }
-                            else
-                            {
-                                builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
-                                    SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(symbol.MetadataName))));
-                            }
-
-                            AddSpace();
-                            AddKeyword(SyntaxKind.OperatorKeyword);
-                            AddSpace();
-                            AddReturnType(symbol);
+                            addUserDefinedConversionName(symbol, symbol.MetadataName);
                         }
                         break;
                     }
@@ -659,6 +647,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
                         SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName))));
                 }
+            }
+
+            void addUserDefinedConversionName(IMethodSymbol symbol, string operatorName)
+            {
+                // "System.IntPtr.explicit operator System.IntPtr(int)"
+
+                if (operatorName == WellKnownMemberNames.ExplicitConversionName)
+                {
+                    AddKeyword(SyntaxKind.ExplicitKeyword);
+                }
+                else if (operatorName == WellKnownMemberNames.ImplicitConversionName)
+                {
+                    AddKeyword(SyntaxKind.ImplicitKeyword);
+                }
+                else
+                {
+                    builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
+                        SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName))));
+                }
+
+                AddSpace();
+                AddKeyword(SyntaxKind.OperatorKeyword);
+                AddSpace();
+                AddReturnType(symbol);
             }
         }
 

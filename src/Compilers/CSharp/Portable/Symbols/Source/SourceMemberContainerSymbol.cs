@@ -4412,7 +4412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             var method = SourceUserDefinedConversionSymbol.CreateUserDefinedConversionSymbol(
-                                this, conversionOperatorSyntax, compilation.IsNullableAnalysisEnabledIn(conversionOperatorSyntax), diagnostics);
+                                this, bodyBinder, conversionOperatorSyntax, compilation.IsNullableAnalysisEnabledIn(conversionOperatorSyntax), diagnostics);
                             builder.NonTypeMembers.Add(method);
                         }
                         break;

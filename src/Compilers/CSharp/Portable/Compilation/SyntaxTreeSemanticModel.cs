@@ -1709,13 +1709,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    if (((ConversionOperatorDeclarationSyntax)declaration).ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ExplicitKeyword)
                     {
-                        return WellKnownMemberNames.ExplicitConversionName;
-                    }
-                    else
-                    {
-                        return WellKnownMemberNames.ImplicitConversionName;
+                        var operatorDecl = (ConversionOperatorDeclarationSyntax)declaration;
+                        return GetDeclarationName(declaration, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
                     }
 
                 case SyntaxKind.EventFieldDeclaration:
