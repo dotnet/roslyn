@@ -4979,40 +4979,6 @@ struct A
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
         }
 
-        [WorkItem(545631, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545631")]
-        [Fact]
-        public void TestNullCoalesceWithInvalidUserDefinedConversions_04()
-        {
-            var source = @"
-struct B
-{
-    static void Main()
-    {
-        A a2;
-        B? b2 = null;
-        var c2 = b2 ?? a2;
-    }
-
-    public static implicit operator A(B x, int y)
-    {
-        return new A();
-    }
-}
- 
-struct A
-{
-}
-";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (11,38): error CS1019: Overloadable unary operator expected
-                //     public static implicit operator A(B x, int y)
-                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "(B x, int y)").WithLocation(11, 38),
-                // (8,18): error CS0019: Operator '??' cannot be applied to operands of type 'B?' and 'A'
-                //         var c2 = b2 ?? a2;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "b2 ?? a2").WithArguments("??", "B?", "A").WithLocation(8, 18)
-                );
-        }
-
         [WorkItem(541343, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541343")]
         [Fact]
         public void TestAsOperator_Bug8014()

@@ -4161,6 +4161,103 @@ class C
                 );
         }
 
+        [Theory]
+        [InlineData("")]
+        [InlineData("T t, int i")]
+        public void EqualsCondAccess_BadUserDefinedConversion(string conversionParams)
+        {
+            var source = @"
+#nullable enable
+
+struct T
+{
+    public static implicit operator S(" + conversionParams + @") => new S(); // 1
+    public T M0(out int x, out int y) { x = 42; y = 42; return this; }
+}
+
+struct S
+{
+    public static bool operator ==(S left, S right) => false;
+    public static bool operator !=(S left, S right) => false;
+    public override bool Equals(object obj) => false;
+    public override int GetHashCode() => 0;
+
+    public void M1(T? t)
+    {
+        int x, y;
+        _ = t?.M0(out x, out y) != new S() // 2
+            ? x.ToString() // 3
+            : y.ToString(); // 4
+    }
+
+    public void M2(T? t)
+    {
+        int x, y;
+        _ = t?.M0(out x, out y) == new S() // 5
+            ? x.ToString() // 6
+            : y.ToString(); // 7
+    }
+
+    public void M3(T? t)
+    {
+        int x, y;
+        _ = new S() != t?.M0(out x, out y) // 8
+            ? x.ToString() // 9
+            : y.ToString(); // 10
+    }
+
+    public void M4(T? t)
+    {
+        int x, y;
+        _ = new S() == t?.M0(out x, out y) // 11
+            ? x.ToString() // 12
+            : y.ToString(); // 13
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,38): error CS1019: Overloadable unary operator expected
+                //     public static implicit operator S(T t, int i) => new S(); // 1
+                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "(" + conversionParams + ")").WithLocation(6, 38),
+                // (20,13): error CS0019: Operator '!=' cannot be applied to operands of type 'T?' and 'S'
+                //         _ = t?.M0(out x, out y) != new S() // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "t?.M0(out x, out y) != new S()").WithArguments("!=", "T?", "S").WithLocation(20, 13),
+                // (21,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(21, 15),
+                // (22,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(22, 15),
+                // (28,13): error CS0019: Operator '==' cannot be applied to operands of type 'T?' and 'S'
+                //         _ = t?.M0(out x, out y) == new S() // 5
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "t?.M0(out x, out y) == new S()").WithArguments("==", "T?", "S").WithLocation(28, 13),
+                // (29,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 6
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(29, 15),
+                // (30,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 7
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(30, 15),
+                // (36,13): error CS0019: Operator '!=' cannot be applied to operands of type 'S' and 'T?'
+                //         _ = new S() != t?.M0(out x, out y) // 8
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new S() != t?.M0(out x, out y)").WithArguments("!=", "S", "T?").WithLocation(36, 13),
+                // (37,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 9
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(37, 15),
+                // (38,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 10
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(38, 15),
+                // (44,13): error CS0019: Operator '==' cannot be applied to operands of type 'S' and 'T?'
+                //         _ = new S() == t?.M0(out x, out y) // 11
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "new S() == t?.M0(out x, out y)").WithArguments("==", "S", "T?").WithLocation(44, 13),
+                // (45,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 12
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(45, 15),
+                // (46,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 13
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(46, 15)
+                );
+        }
+
         [Fact]
         public void IsBool()
         {
