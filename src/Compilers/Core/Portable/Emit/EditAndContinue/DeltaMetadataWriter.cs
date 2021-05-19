@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.Emit
             PopulateEncLogTableParameters();
 
             PopulateEncLogTableRows(TableIndex.Constant, previousSizes, deltaSizes);
-            PopulateEncLogTableRows(TableIndex.CustomAttribute, previousSizes, deltaSizes);
+            PopulateEncLogTableCustomAttributes();
             PopulateEncLogTableRows(TableIndex.DeclSecurity, previousSizes, deltaSizes);
             PopulateEncLogTableRows(TableIndex.ClassLayout, previousSizes, deltaSizes);
             PopulateEncLogTableRows(TableIndex.FieldLayout, previousSizes, deltaSizes);
@@ -782,6 +782,59 @@ namespace Microsoft.CodeAnalysis.Emit
                     entity: MetadataTokens.ParameterHandle(parameterFirstId + i),
                     code: EditAndContinueOperation.Default);
             }
+        }
+
+        private void PopulateEncLogTableCustomAttributes()
+        {
+            var attributeMap = CreateExistingAttributeMap(_previousGeneration.MetadataReader);
+
+            var nextCustomAttributeRow = _previousGeneration.MetadataReader.GetTableRowCount(TableIndex.CustomAttribute) + 1;
+
+            foreach (var customAttributeTarget in _customAttributeTargets)
+            {
+                int row;
+                if (attributeMap.TryGetValue(customAttributeTarget, out var queue) &&
+                    queue.Count > 0)
+                {
+                    // If there is already an attribute for this parent, then pull the next available row number
+                    // off the queue and update it
+                    row = queue.Dequeue();
+                }
+                else
+                {
+                    // Otherwise, either this is a new parent that hasn't had an attribute before, or we've run
+                    // out of existing rows to update. Either way, we want to add to the end of the table.
+                    row = nextCustomAttributeRow++;
+                }
+
+                metadata.AddEncLogEntry(
+                    entity: MetadataTokens.CustomAttributeHandle(row),
+                    code: EditAndContinueOperation.Default);
+            }
+        }
+
+        private static Dictionary<EntityHandle, Queue<int>> CreateExistingAttributeMap(MetadataReader metadataReader)
+        {
+            // For each custom attribute target, we need to keep a list of which row numbers are used in the CustomAttribute table
+            // so that when we emit the new attributes we can overwrite them.
+            var result = new Dictionary<EntityHandle, Queue<int>>();
+
+            int index = 1;
+            foreach (var customAttributeHandle in metadataReader.CustomAttributes)
+            {
+                var parent = metadataReader.GetCustomAttribute(customAttributeHandle).Parent;
+                if (!result.TryGetValue(parent, out var queue))
+                {
+                    queue = new Queue<int>();
+                    result.Add(parent, queue);
+                }
+
+                queue.Enqueue(index);
+
+                index++;
+            }
+
+            return result;
         }
 
         private void PopulateEncLogTableRows<T>(DefinitionIndex<T> index, TableIndex tableIndex)
