@@ -32,11 +32,11 @@
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20623.3</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.9.0</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.10.44</VisualStudioEditorPackagesVersion>
-    <VisualStudioEditorNewPackagesVersion>17.0.61-g037ce4283b</VisualStudioEditorNewPackagesVersion>
+    <VisualStudioEditorNewPackagesVersion>17.0.65-g6c25c21ba5</VisualStudioEditorNewPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.0.20-g6553c6c46e</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
-    <MicrosoftVisualStudioShellPackagesVersion>17.0.0-previews-1-31318-023</MicrosoftVisualStudioShellPackagesVersion>
+    <MicrosoftVisualStudioShellPackagesVersion>17.0.0-previews-1-31318-291</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftBuildPackagesVersion>16.5.0</MicrosoftBuildPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
          repository. This must be lower than MicrosoftNetCompilersToolsetVersion,
