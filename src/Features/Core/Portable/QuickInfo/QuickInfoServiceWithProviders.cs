@@ -46,12 +46,17 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return _providers;
         }
 
-        public override async Task<QuickInfoItem?> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public override Task<QuickInfoItem?> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var extensionManager = _workspace.Services.GetRequiredService<IExtensionManager>();
+            return GetQuickInfoAsync(_workspace, GetProviders(), document, position, cancellationToken);
+        }
+
+        private static async Task<QuickInfoItem?> GetQuickInfoAsync(Workspace workspace, ImmutableArray<QuickInfoProvider> providers, Document document, int position, CancellationToken cancellationToken)
+        {
+            var extensionManager = workspace.Services.GetRequiredService<IExtensionManager>();
 
             // returns the first non-empty quick info found (based on provider order)
-            foreach (var provider in GetProviders())
+            foreach (var provider in providers)
             {
                 try
                 {
