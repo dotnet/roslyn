@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
-    [ExportQuickInfoProvider(QuickInfoProviderNames.Semantic, LanguageNames.CSharp), Shared]
+    [ExportInternalQuickInfoProvider(QuickInfoProviderNames.Semantic, LanguageNames.CSharp), Shared]
     internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
     {
         [ImportingConstructor]

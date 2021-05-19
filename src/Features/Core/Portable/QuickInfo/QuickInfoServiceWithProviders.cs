@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     {
         private readonly Workspace _workspace;
         private readonly string _language;
-        private ImmutableArray<QuickInfoProvider> _providers;
+        private ImmutableArray<QuickInfoProvider> _externalProviders;
+        private ImmutableArray<InternalQuickInfoProvider> _internalProviders;
 
         protected QuickInfoServiceWithProviders(Workspace workspace, string language)
         {
@@ -29,48 +30,84 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             _language = language;
         }
 
-        private ImmutableArray<QuickInfoProvider> GetProviders()
+        private ImmutableArray<QuickInfoProvider> GetExternalProviders()
         {
-            if (_providers.IsDefault)
+            if (_externalProviders.IsDefault)
             {
-                var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
-
-                var providers = ExtensionOrderer
-                    .Order(mefExporter.GetExports<QuickInfoProvider, QuickInfoProviderMetadata>()
-                        .Where(lz => lz.Metadata.Language == _language))
-                    .Select(lz => lz.Value)
-                    .ToImmutableArray();
-
-                ImmutableInterlocked.InterlockedCompareExchange(ref _providers, providers, default);
+                ImmutableInterlocked.InterlockedCompareExchange(ref _externalProviders, CreateProviders<QuickInfoProvider>(), default);
             }
 
-            return _providers;
+            return _externalProviders;
+        }
+
+        private ImmutableArray<InternalQuickInfoProvider> GetInternalProviders()
+        {
+            if (_internalProviders.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedCompareExchange(ref _internalProviders, CreateProviders<InternalQuickInfoProvider>(), default);
+            }
+
+            return _internalProviders;
+        }
+
+        private ImmutableArray<TQuickInfoProvider> CreateProviders<TQuickInfoProvider>()
+        {
+            var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
+
+            return ExtensionOrderer
+                .Order(mefExporter.GetExports<TQuickInfoProvider, QuickInfoProviderMetadata>()
+                    .Where(lz => lz.Metadata.Language == _language))
+                .Select(lz => lz.Value)
+                .ToImmutableArray();
         }
 
         public override async Task<QuickInfoItem?> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var context = await QuickInfoContext.CreateAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (document.SupportsSemanticModel)
+            {
+                var internalContext = await InternalQuickInfoContext.CreateAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var info = await GetQuickInfoAsync(internalContext).ConfigureAwait(false);
+                if (info != null)
+                {
+                    return info;
+                }
+            }
+
+            var context = new QuickInfoContext(document, position, cancellationToken);
             return await GetQuickInfoAsync(context).ConfigureAwait(false);
         }
 
         public async Task<QuickInfoItem?> GetQuickInfoAsync(SemanticModel semanticModel, int position, HostLanguageServices languageServices, CancellationToken cancellationToken)
         {
-            var context = await QuickInfoContext.CreateAsync(semanticModel, position, languageServices, cancellationToken).ConfigureAwait(false);
+            var context = await InternalQuickInfoContext.CreateAsync(semanticModel, position, languageServices, cancellationToken).ConfigureAwait(false);
             return await GetQuickInfoAsync(context).ConfigureAwait(false);
         }
 
-        private async Task<QuickInfoItem?> GetQuickInfoAsync(QuickInfoContext context)
+        private Task<QuickInfoItem?> GetQuickInfoAsync(InternalQuickInfoContext context)
+            => GetQuickInfoAsync(GetInternalProviders(), context,
+                getQuickInfoAsync: (provider, context) => provider.GetQuickInfoAsync(context));
+
+        private Task<QuickInfoItem?> GetQuickInfoAsync(QuickInfoContext context)
+            => GetQuickInfoAsync(GetExternalProviders(), context,
+                getQuickInfoAsync: (provider, context) => provider.GetQuickInfoAsync(context));
+
+        private async Task<QuickInfoItem?> GetQuickInfoAsync<TQuickInfoProvider, TQuickInfoContext>(
+            ImmutableArray<TQuickInfoProvider> providers,
+            TQuickInfoContext context,
+            Func<TQuickInfoProvider, TQuickInfoContext, Task<QuickInfoItem?>> getQuickInfoAsync)
+            where TQuickInfoProvider : class
+            where TQuickInfoContext : AbstractQuickInfoContext
         {
             var extensionManager = _workspace.Services.GetRequiredService<IExtensionManager>();
 
             // returns the first non-empty quick info found (based on provider order)
-            foreach (var provider in GetProviders())
+            foreach (var provider in providers)
             {
                 try
                 {
                     if (!extensionManager.IsDisabled(provider))
                     {
-                        var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
+                        var info = await getQuickInfoAsync(provider, context).ConfigureAwait(false);
                         if (info != null)
                         {
                             return info;

@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
-    [ExportQuickInfoProvider(QuickInfoProviderNames.Syntactic, LanguageNames.CSharp), Shared]
+    [ExportInternalQuickInfoProvider(QuickInfoProviderNames.Syntactic, LanguageNames.CSharp), Shared]
     [ExtensionOrder(After = QuickInfoProviderNames.Semantic)]
     internal class CSharpSyntacticQuickInfoProvider : CommonQuickInfoProvider
     {
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         {
         }
 
-        protected override Task<QuickInfoItem?> BuildQuickInfoAsync(QuickInfoContext context)
+        protected override Task<QuickInfoItem?> BuildQuickInfoAsync(InternalQuickInfoContext context)
         {
             var token = context.Token;
             if (token.Kind() != SyntaxKind.CloseBraceToken)

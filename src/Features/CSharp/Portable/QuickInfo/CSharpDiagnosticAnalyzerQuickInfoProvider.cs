@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
-    [ExportQuickInfoProvider(QuickInfoProviderNames.DiagnosticAnalyzer, LanguageNames.CSharp), Shared]
+    [ExportInternalQuickInfoProvider(QuickInfoProviderNames.DiagnosticAnalyzer, LanguageNames.CSharp), Shared]
     // This provider needs to run before the semantic quick info provider, because of the SuppressMessage attribute handling
     // If it runs after it, BuildQuickInfoAsync is not called. This is not covered by a test.
     [ExtensionOrder(Before = QuickInfoProviderNames.Semantic)]
@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
         }
 
-        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(QuickInfoContext context)
+        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(InternalQuickInfoContext context)
         {
-            if (context.Document is { } document)
+            if (context.TryGetDocument(out var document))
             {
                 return GetQuickinfoForPragmaWarning(document, context.Token) ??
                    (await GetQuickInfoForSuppressMessageAttributeAsync(document, context.Token, context.CancellationToken).ConfigureAwait(false));

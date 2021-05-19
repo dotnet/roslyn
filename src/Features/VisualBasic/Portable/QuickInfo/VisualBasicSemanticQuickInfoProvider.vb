@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
-    <ExportQuickInfoProvider(QuickInfoProviderNames.Semantic, LanguageNames.VisualBasic), [Shared]>
+    <ExportInternalQuickInfoProvider(QuickInfoProviderNames.Semantic, LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSemanticQuickInfoProvider
         Inherits CommonSemanticQuickInfoProvider
 
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         Public Sub New()
         End Sub
 
-        Protected Overrides Async Function BuildQuickInfoAsync(context As QuickInfoContext) As Task(Of QuickInfoItem)
+        Protected Overrides Async Function BuildQuickInfoAsync(context As InternalQuickInfoContext) As Task(Of QuickInfoItem)
 
             Dim token = context.Token
             Dim semanticModel = context.SemanticModel

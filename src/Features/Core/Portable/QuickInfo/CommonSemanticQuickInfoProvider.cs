@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInfoProvider
     {
-        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(QuickInfoContext context)
+        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(InternalQuickInfoContext context)
         {
             var (model, tokenInformation, supportedPlatforms) = await ComputeQuickInfoDataAsync(context).ConfigureAwait(false);
 
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         private async Task<(SemanticModel model, TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
-            QuickInfoContext context)
+            InternalQuickInfoContext context)
         {
             var semanticModel = context.SemanticModel;
             Debug.Assert(semanticModel != null);
 
-            if (context.Document is { } document)
+            if (context.TryGetDocument(out var document))
             {
                 // Check linked documents for document-based quick info context.
                 var linkedDocumentIds = document.GetLinkedDocumentIds();

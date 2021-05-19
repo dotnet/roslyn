@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
-    internal abstract class CommonQuickInfoProvider : QuickInfoProvider
+    internal abstract class CommonQuickInfoProvider : InternalQuickInfoProvider
     {
-        public override async Task<QuickInfoItem?> GetQuickInfoAsync(QuickInfoContext context)
+        public override async Task<QuickInfoItem?> GetQuickInfoAsync(InternalQuickInfoContext context)
         {
             var info = await GetQuickInfoCoreAsync(context).ConfigureAwait(false);
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         protected virtual bool ShouldCheckPreviousToken(SyntaxToken token)
             => true;
 
-        private async Task<QuickInfoItem?> GetQuickInfoCoreAsync(QuickInfoContext context)
+        private async Task<QuickInfoItem?> GetQuickInfoCoreAsync(InternalQuickInfoContext context)
         {
             var token = context.Token;
             if (token != default &&
@@ -39,6 +39,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return null;
         }
 
-        protected abstract Task<QuickInfoItem?> BuildQuickInfoAsync(QuickInfoContext context);
+        protected abstract Task<QuickInfoItem?> BuildQuickInfoAsync(InternalQuickInfoContext context);
     }
 }

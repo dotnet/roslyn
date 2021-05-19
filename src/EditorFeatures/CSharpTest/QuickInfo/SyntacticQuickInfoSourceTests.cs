@@ -263,7 +263,7 @@ if (true)
 {");
         }
 
-        private static QuickInfoProvider CreateProvider()
+        private static InternalQuickInfoProvider CreateProvider()
             => new CSharpSyntacticQuickInfoProvider();
 
         protected override async Task AssertNoContentAsync(
@@ -272,7 +272,7 @@ if (true)
             int position)
         {
             var provider = CreateProvider();
-            var context = await QuickInfoContext.CreateAsync(document, position, CancellationToken.None);
+            var context = await InternalQuickInfoContext.CreateAsync(document, position, CancellationToken.None);
             Assert.Null(await provider.GetQuickInfoAsync(context));
         }
 
@@ -284,7 +284,7 @@ if (true)
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider();
-            var context = await QuickInfoContext.CreateAsync(document, position, CancellationToken.None);
+            var context = await InternalQuickInfoContext.CreateAsync(document, position, CancellationToken.None);
             var info = await provider.GetQuickInfoAsync(context);
             Assert.NotNull(info);
             Assert.NotEqual(0, info.RelatedSpans.Length);
