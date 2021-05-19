@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -13,8 +14,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
     [UseExportProvider]
     public class VisualBasicValueTrackingTests : AbstractBaseValueTrackingTests
     {
-        [Fact]
-        public async Task TestProperty()
+        protected override TestWorkspace CreateWorkspace(string code, TestComposition composition)
+            => TestWorkspace.CreateVisualBasic(code, composition: composition);
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestProperty(TestHost testHost)
         {
             var code =
 @"
@@ -40,7 +45,7 @@ Class C
 End Class
 ";
 
-            using var workspace = TestWorkspace.CreateVisualBasic(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
@@ -53,8 +58,9 @@ End Class
             ValidateItem(initialItems[1], 3);
         }
 
-        [Fact]
-        public async Task TestField()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestField(TestHost testHost)
         {
             var code =
 @"
@@ -71,7 +77,7 @@ Class C
 End Class
 ";
 
-            using var workspace = TestWorkspace.CreateVisualBasic(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
@@ -88,8 +94,9 @@ End Class
                 });
         }
 
-        [Fact]
-        public async Task TestLocal()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestLocal(TestHost testHost)
         {
             var code =
 @"
@@ -102,7 +109,7 @@ Class C
 End Class
 ";
 
-            using var workspace = TestWorkspace.CreateVisualBasic(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
@@ -115,8 +122,9 @@ End Class
             ValidateItem(initialItems[1], 3);
         }
 
-        [Fact]
-        public async Task TestParameter()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestParameter(TestHost testHost)
         {
             var code =
 @"
@@ -128,7 +136,7 @@ Class C
 End Class
 ";
 
-            using var workspace = TestWorkspace.CreateVisualBasic(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
@@ -141,8 +149,9 @@ End Class
             ValidateItem(initialItems[1], 2);
         }
 
-        [Fact]
-        public async Task TestVariableReferenceStart()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestVariableReferenceStart(TestHost testHost)
         {
             var code =
 @"
@@ -164,7 +173,7 @@ End Class";
             //    |> Dim x = GetM() [Code.vb:5]
             //      |> Return x; [Code.vb:13]
             //        |> Dim x = 0; [Code.vb:12]
-            using var workspace = TestWorkspace.CreateVisualBasic(code);
+            using var workspace = CreateWorkspace(code, testHost);
 
             var items = await ValidateItemsAsync(
                 workspace,
@@ -200,8 +209,9 @@ End Class";
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
 
-        [Fact]
-        public async Task TestVariableReferenceStart2()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestVariableReferenceStart2(TestHost testHost)
         {
             var code =
 @"
@@ -223,7 +233,7 @@ End Class";
             //    |> Dim x = GetM() [Code.vb:5]
             //      |> Return x; [Code.vb:13]
             //        |> Dim x = 0; [Code.vb:12]
-            using var workspace = TestWorkspace.CreateVisualBasic(code);
+            using var workspace = CreateWorkspace(code, testHost);
 
             var items = await ValidateItemsAsync(
                 workspace,
@@ -259,8 +269,9 @@ End Class";
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
 
-        [Fact]
-        public async Task TestMultipleDeclarators()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestMultipleDeclarators(TestHost testHost)
         {
             var code =
 @"
@@ -284,7 +295,7 @@ End Class";
             //    |> Dim x = GetM(), z = 1, m As Boolean, n As Boolean, o As Boolean [Code.vb:5]
             //      |> Return x; [Code.vb:12]
             //        |> Dim x = 0; [Code.vb:11]
-            using var workspace = TestWorkspace.CreateVisualBasic(code);
+            using var workspace = CreateWorkspace(code, testHost);
 
             var items = await ValidateItemsAsync(
                 workspace,
