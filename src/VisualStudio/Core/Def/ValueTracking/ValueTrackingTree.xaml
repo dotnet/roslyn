@@ -6,7 +6,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.ValueTracking"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             d:DesignHeight="450" d:DesignWidth="800"
+             x:Name="control">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -18,8 +20,26 @@
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
-        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-            <TreeView  x:Name="ValueTrackingTreeView" ItemsSource="{Binding Roots}" SelectedItemChanged="ValueTrackingTreeView_SelectedItemChanged">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <ProgressBar
+            Grid.Row="0"
+            Grid.ColumnSpan="3"
+            Grid.Column="0"
+            IsIndeterminate="True"
+            Panel.ZIndex="10000"
+            Minimum="0"
+            Maximum="100"
+            Height="2"
+            Visibility="{Binding IsLoading, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"
+            Foreground="{DynamicResource {x:Static vs:ProgressBarColors.IndicatorFillBrushKey}}"
+            Background="{DynamicResource {x:Static vs:ProgressBarColors.BackgroundBrushKey}}" />
+        
+        <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <TreeView  x:Name="ValueTrackingTreeView" ItemsSource="{Binding Roots}" SelectedItemChanged="ValueTrackingTreeView_SelectedItemChanged" BorderThickness="0">
                 <TreeView.ItemContainerStyle>
                     <Style TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsNodeExpanded, Mode=TwoWay}" />
@@ -27,7 +47,7 @@
                     </Style>
                 </TreeView.ItemContainerStyle>
                 <TreeView.Resources>
-                    <HierarchicalDataTemplate DataType="{x:Type local:ValueTrackingTreeItemViewModel}" ItemsSource="{Binding ChildItems}">
+                    <HierarchicalDataTemplate DataType="{x:Type local:TreeItemViewModel}" ItemsSource="{Binding ChildItems}">
                         <StackPanel Orientation="Horizontal">
                             <Image Source="{Binding GlyphImage}" />
                             <local:BindableTextBlock InlineCollection="{Binding Inlines}" Margin="0 0 5 0" />
@@ -35,16 +55,28 @@
                     </HierarchicalDataTemplate>
                     <DataTemplate DataType="{x:Type local:EmptyTreeViewItem}">
                     </DataTemplate>
+                    <DataTemplate DataType="{x:Type local:ComputingTreeViewItem}">
+                        <StackPanel Orientation="Horizontal">
+                            <vs:ProgressControl Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <vs:ProgressControl.RenderTransform>
+                                    <ScaleTransform ScaleX="0.50" ScaleY="0.50" />
+                                </vs:ProgressControl.RenderTransform>
+                            </vs:ProgressControl>
+                            <TextBlock Text="{Binding Text}" Margin="0 0 5 0" />
+                        </StackPanel>
+                    </DataTemplate>
                 </TreeView.Resources>
             </TreeView>
         </ScrollViewer>
 
-        <GridSplitter Grid.Column="1" 
+        <GridSplitter 
+            Grid.Column="1" 
+            Grid.Row="1"
             ResizeBehavior="PreviousAndNext"
             ShowsPreview="true"
             Width="5" />
 
-        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" HorizontalContentAlignment="Left" HorizontalAlignment="Left">
+        <ScrollViewer Grid.Column="2" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" HorizontalContentAlignment="Left" HorizontalAlignment="Left">
             <Grid Visibility="{Binding ShowDetails, Converter={StaticResource BooleanToVisibilityConverter}}" HorizontalAlignment="Left">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />

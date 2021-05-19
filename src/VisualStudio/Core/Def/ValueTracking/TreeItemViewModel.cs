@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal class ValueTrackingTreeItemViewModel : TreeViewItemBase
+    internal class TreeItemViewModel : TreeViewItemBase
     {
         private readonly SourceText _sourceText;
         private readonly ISymbol _symbol;
@@ -38,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public string FileName => Document.FilePath ?? Document.Name;
 
         public ImageSource GlyphImage => _symbol.GetGlyph().GetImageSource(_glyphService);
+        public bool ShowGlyph => !IsLoading;
 
         public ImmutableArray<ClassifiedSpan> ClassifiedSpans { get; }
 
@@ -74,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
         }
 
-        public ValueTrackingTreeItemViewModel(
+        public TreeItemViewModel(
             Document document,
             TextSpan textSpan,
             SourceText sourceText,
@@ -83,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             ValueTrackingTreeViewModel treeViewModel,
             IGlyphService glyphService,
             IThreadingContext threadingContext,
-            ImmutableArray<ValueTrackingTreeItemViewModel> children = default)
+            ImmutableArray<TreeItemViewModel> children = default)
         {
             Document = document;
             TextSpan = textSpan;
@@ -107,6 +108,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             sourceText.GetLineAndOffset(textSpan.Start, out var lineStart, out var _);
             sourceText.GetLineAndOffset(textSpan.End, out var lineEnd, out var _);
             LineSpan = LineSpan.FromBounds(lineStart, lineEnd);
+
+            PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(IsLoading))
+                {
+                    NotifyPropertyChanged(nameof(ShowGlyph));
+                }
+            };
         }
 
         public virtual void Select()

@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
@@ -14,18 +10,26 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal class ValueTrackedTreeItemViewModel : ValueTrackingTreeItemViewModel
+    internal class ValueTrackedTreeItemViewModel : TreeItemViewModel
     {
         private bool _childrenCalculated;
         private readonly Solution _solution;
         private readonly IGlyphService _glyphService;
         private readonly IValueTrackingService _valueTrackingService;
         private readonly ValueTrackedItem _trackedItem;
+
+        public override bool IsNodeExpanded
+        {
+            get => base.IsNodeExpanded;
+            set
+            {
+                base.IsNodeExpanded = value;
+                CalculateChildren();
+            }
+        }
 
         public ValueTrackedTreeItemViewModel(
             ValueTrackedItem trackedItem,
@@ -34,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IGlyphService glyphService,
             IValueTrackingService valueTrackingService,
             IThreadingContext threadingContext,
-            ImmutableArray<ValueTrackingTreeItemViewModel> children = default)
+            ImmutableArray<TreeItemViewModel> children = default)
             : base(
                   trackedItem.Document,
                   trackedItem.Span,
@@ -62,14 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 {
                     NotifyPropertyChanged(nameof(ChildItems));
                 };
-
-                PropertyChanged += (s, a) =>
-                {
-                    if (a.PropertyName == nameof(IsNodeExpanded))
-                    {
-                        CalculateChildren();
-                    }
-                };
             }
         }
 
@@ -77,33 +73,47 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (_childrenCalculated)
+            if (_childrenCalculated || IsLoading)
             {
                 return;
             }
 
-            _childrenCalculated = true;
+            TreeViewModel.LoadingCount++;
+            IsLoading = true;
+            ChildItems.Clear();
 
-            CalculateChildrenAsync(CancellationToken.None)
-                 .ContinueWith(task =>
-                 {
-                     if (task.Exception is not null)
-                     {
-                         _childrenCalculated = false;
-                         return;
-                     }
+            var computingItem = new ComputingTreeViewItem();
+            ChildItems.Add(computingItem);
 
-                     ChildItems.Clear();
+            System.Threading.Tasks.Task.Run(async () =>
+            {
+                try
+                {
+                    var items = await _valueTrackingService.TrackValueSourceAsync(_trackedItem, ThreadingContext.DisposalToken).ConfigureAwait(false);
 
-                     foreach (var item in task.Result)
-                     {
-                         ChildItems.Add(item);
-                     }
-                 },
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                 // Use the UI thread synchronization context for calling back to the UI
-                 // thread to add the tiems
-                 TaskScheduler.FromCurrentSynchronizationContext());
+                    ChildItems.Clear();
+
+                    foreach (var valueTrackedItem in items)
+                    {
+                        ChildItems.Add(new ValueTrackedTreeItemViewModel(
+                                valueTrackedItem,
+                                _solution,
+                                TreeViewModel,
+                                _glyphService,
+                                _valueTrackingService,
+                                ThreadingContext));
+                    }
+                }
+                finally
+                {
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    TreeViewModel.LoadingCount--;
+                    _childrenCalculated = true;
+                    IsLoading = false;
+                }
+            }, ThreadingContext.DisposalToken);
         }
 
         public override void Select()
@@ -120,29 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
                 .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
 
-            navigationService.TryNavigateToSpan(workspace, Document.Id, _trackedItem.Span, options, ThreadingContext.DisposalToken);
-        }
-
-        private async Task<ImmutableArray<ValueTrackingTreeItemViewModel>> CalculateChildrenAsync(CancellationToken cancellationToken)
-        {
-            var valueTrackedItems = await _valueTrackingService.TrackValueSourceAsync(
-                _trackedItem,
-                cancellationToken).ConfigureAwait(false);
-
-            // TODO: Use pooled item here? 
-            var builder = new List<ValueTrackingTreeItemViewModel>();
-            foreach (var valueTrackedItem in valueTrackedItems)
-            {
-                builder.Add(new ValueTrackedTreeItemViewModel(
-                    valueTrackedItem,
-                    _solution,
-                    TreeViewModel,
-                    _glyphService,
-                    _valueTrackingService,
-                    ThreadingContext));
-            }
-
-            return builder.ToImmutableArray();
+            _ = navigationService.TryNavigateToSpan(workspace, Document.Id, _trackedItem.Span, options, ThreadingContext.DisposalToken);
         }
     }
 }

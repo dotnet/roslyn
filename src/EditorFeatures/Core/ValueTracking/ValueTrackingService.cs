@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         // In this case, s is being tracked because it contributed to the return of the method. We only
                         // want to track assignments to s that could impact the return rather than tracking the same method
                         // twice.
-                        var isParameterForPreviousTrackedMethod = previousSymbol?.Equals(parameterSymbol.ContainingSymbol) == true;
+                        var isParameterForPreviousTrackedMethod = previousSymbol?.Equals(parameterSymbol.ContainingSymbol, SymbolEqualityComparer.Default) == true;
 
                         // For Ref or Out parameters, they contribute data across method calls through assignments
                         // within the method. No need to track returns
@@ -307,10 +307,14 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             // TODO check for Task
             static bool HasAValueReturn(IMethodSymbol methodSymbol)
-                => methodSymbol.ReturnType.SpecialType != SpecialType.System_Void;
+            {
+                return methodSymbol.ReturnType.SpecialType != SpecialType.System_Void;
+            }
 
             static bool HasAnOutOrRefParam(IMethodSymbol methodSymbol)
-                => methodSymbol.Parameters.Any(p => p.IsRefOrOut());
+            {
+                return methodSymbol.Parameters.Any(p => p.IsRefOrOut());
+            }
         }
 
         private static async Task<(ISymbol?, SyntaxNode?)> GetSelectedSymbolAsync(TextSpan textSpan, Document document, CancellationToken cancellationToken)
