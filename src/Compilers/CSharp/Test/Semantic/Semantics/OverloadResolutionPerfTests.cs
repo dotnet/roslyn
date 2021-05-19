@@ -653,11 +653,7 @@ class C
 
             sourceBuilder.Append(source2);
 
-            var tree = SyntaxFactory.ParseSyntaxTree(sourceBuilder.ToString(), path: "bench.cs");
-            var comp = CSharpCompilation.Create(
-                "Benchmark",
-                new[] { tree },
-                new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
+            var comp = CreateCompilation(sourceBuilder.ToString());
             comp.VerifyDiagnostics();
         }
     }
