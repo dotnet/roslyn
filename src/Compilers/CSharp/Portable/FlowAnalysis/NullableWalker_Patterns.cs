@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitSlicePattern(BoundSlicePattern node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitTypePattern(BoundTypePattern node)
         {
             Visit(node.DeclaredType);
@@ -136,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundDiscardPattern _:
                 case BoundITuplePattern _:
                 case BoundRelationalPattern _:
+                case BoundSlicePattern _:
                     break; // nothing to learn
                 case BoundTypePattern tp:
                     if (tp.IsExplicitNotNullTest)

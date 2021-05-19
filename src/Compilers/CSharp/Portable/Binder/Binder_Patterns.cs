@@ -328,27 +328,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             [NotNullWhen(true)] out IndexerArgumentInfo? info,
             BindingDiagnosticBag diagnostics)
         {
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            var lookupResult = LookupResult.GetInstance();
-            bool found = false;
-            TypeSymbol? argType = Compilation.GetWellKnownType(argIsIndex ? WellKnownType.System_Index : WellKnownType.System_Range);
-            if (argType is null)
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            TypeSymbol argType = Compilation.GetWellKnownType(argIsIndex ? WellKnownType.System_Index : WellKnownType.System_Range);
+            if (argType.IsErrorType())
             {
                 info = null;
-                found = false;
+                return false;
             }
-            else if (PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, argType, diagnostics))
+
+            var lookupResult = LookupResult.GetInstance();
+            if (PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out info, argType, diagnostics))
             {
                 _ = GetWellKnownTypeMember(argIsIndex ? WellKnownMember.System_Index__ctor : WellKnownMember.System_Range__ctor, diagnostics, syntax: syntax);
-                found = true;
+                diagnostics.Add(syntax, useSiteInfo);
+                lookupResult.Free();
+                return true;
             }
             else if (TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out Symbol? patternSymbol, diagnostics, ref useSiteInfo))
             {
                 info = new IndexerArgumentInfo(patternSymbol);
-                found = true;
+                diagnostics.Add(syntax, useSiteInfo);
+                lookupResult.Free();
+                return true;
             }
+
             lookupResult.Free();
-            return found;
+            return false;
         }
 
         private bool PerformPatternIndexerLookup(
@@ -388,13 +393,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                     PropertySymbol indexer = resolutionResult.Member;
-                    if (IsAccessible(indexer, ref useSiteInfo))
+                    if (indexer.GetMethod is not null && IsAccessible(indexer, ref useSiteInfo))
                     {
                         Debug.Assert(!indexer.IsStatic);
                         ReportDiagnosticsIfObsolete(diagnostics, indexer, syntax, hasBaseReceiver: false);
                         CoerceArguments(resolutionResult, analyzedArguments.Arguments, diagnostics);
                         bool isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-                        ImmutableArray<BoundExpression> arguments = bindDefaultArguments(indexer, analyzedArguments, isExpanded);
+                        ImmutableArray<BoundExpression> arguments = bindDefaultArguments(indexer.GetMethod, analyzedArguments, isExpanded);
                         info = new IndexerArgumentInfo(indexer, arguments, isExpanded);
                     }
                 }
@@ -407,18 +412,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             lookupResult.Clear();
             return info is not null;
 
-            ImmutableArray<BoundExpression> bindDefaultArguments(PropertySymbol indexer, AnalyzedArguments analyzedArguments, bool isExpanded)
+            ImmutableArray<BoundExpression> bindDefaultArguments(MethodSymbol getMethod, AnalyzedArguments analyzedArguments, bool isExpanded)
             {
-                MethodSymbol? accessorForDefaultArgs = indexer.GetOwnOrInheritedGetMethod();
-                if (accessorForDefaultArgs is null)
-                    return analyzedArguments.Arguments.ToImmutable();
-
-                var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(accessorForDefaultArgs.ParameterCount);
+                Debug.Assert(getMethod is not null);
+                var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(getMethod.ParameterCount);
                 argumentsBuilder.AddRange(analyzedArguments.Arguments);
                 ImmutableArray<int> argsToParams = default;
                 BindDefaultArguments(
                     node: syntax,
-                    parameters: accessorForDefaultArgs.Parameters,
+                    parameters: getMethod.Parameters,
                     argumentsBuilder: argumentsBuilder,
                     argumentRefKindsBuilder: null,
                     argsToParamsOpt: ref argsToParams,
@@ -994,11 +996,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             PropertySymbol? lengthProperty = null;
             BoundPattern? lengthPattern = node.LengthPatternClause is not null
-                ? BindLengthPatternClause(node.LengthPatternClause, inputType, permitDesignations, out lengthProperty, ref hasErrors, diagnostics)
+                ? BindLengthPatternClause(node.LengthPatternClause, declType, permitDesignations, out lengthProperty, ref hasErrors, diagnostics)
                 : null;
 
             BoundListPatternClause? listPatternClause = node.PropertyPatternClause.IsKind(SyntaxKind.ListPatternClause)
-                ? BindListPatternClause(node.PropertyPatternClause, inputType, permitDesignations, ref lengthProperty, ref hasErrors, diagnostics)
+                ? BindListPatternClause(node.PropertyPatternClause, declType, permitDesignations, ref lengthProperty, ref hasErrors, diagnostics)
                 : null;
 
             BindPatternDesignation(
