@@ -457,6 +457,8 @@ namespace Microsoft.Cci
         protected readonly List<MethodImplementation> methodImplList = new List<MethodImplementation>();
         private readonly Dictionary<IGenericMethodInstanceReference, BlobHandle> _methodInstanceSignatureIndex = new Dictionary<IGenericMethodInstanceReference, BlobHandle>(ReferenceEqualityComparer.Instance);
 
+        protected readonly List<EntityHandle> _customAttributeTargets = new List<EntityHandle>();
+
         // Well known dummy cor library types whose refs are used for attaching assembly attributes off within net modules
         // There is no guarantee the types actually exist in a cor library
         internal const string dummyAssemblyAttributeParentNamespace = "System.Runtime.CompilerServices";
@@ -2151,6 +2153,7 @@ namespace Microsoft.Cci
 
             if (constructor != null)
             {
+                _customAttributeTargets.Add(parentHandle);
                 metadata.AddCustomAttribute(
                     parent: parentHandle,
                     constructor: GetCustomAttributeTypeCodedIndex(constructor),
