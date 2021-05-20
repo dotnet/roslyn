@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(2, fullCompilation.SyntaxTrees.Count());
 
-            var partialProject = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None).Project;
+            var partialProject = (await project.Documents.Single().WithFrozenPartialSemanticsAsync(CancellationToken.None)).Project;
             var partialCompilation = await partialProject.GetRequiredCompilationAsync(CancellationToken.None);
 
             Assert.Same(fullCompilation, partialCompilation);
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await project.GetCompilationAsync();
 
             // Produce an in-progress snapshot
-            project = project.Documents.Single(d => d.Name == "RegularDocument.cs").WithFrozenPartialSemantics(CancellationToken.None).Project;
+            project = (await project.Documents.Single(d => d.Name == "RegularDocument.cs").WithFrozenPartialSemanticsAsync(CancellationToken.None)).Project;
 
             // The generated tree should still be there; even if the regular compilation fell away we've now cached the 
             // generated trees.

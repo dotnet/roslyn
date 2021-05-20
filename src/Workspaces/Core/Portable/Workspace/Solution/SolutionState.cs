@@ -1633,12 +1633,16 @@ namespace Microsoft.CodeAnalysis
         ///
         /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
-        public SolutionState WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
+        public async ValueTask<SolutionState> WithFrozenPartialCompilationIncludingSpecificDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             try
             {
+                // Ensure we explicitly move to the BG so that if we do any IO it does not potentially happen
+                // on a UI thread caller.
+                await Task.Yield().ConfigureAwait(false);
+
                 var doc = this.GetRequiredDocumentState(documentId);
-                var tree = doc.GetSyntaxTree(cancellationToken);
+                var tree = await doc.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 using (this.StateLock.DisposableWait(cancellationToken))
                 {

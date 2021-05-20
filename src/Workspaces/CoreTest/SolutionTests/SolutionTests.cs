@@ -2567,7 +2567,7 @@ public class C : A {
         }
 
         [Fact]
-        public void TestFrozenPartialProjectAlwaysIsIncomplete()
+        public async Task TestFrozenPartialProjectAlwaysIsIncomplete()
         {
             var workspace = new AdhocWorkspace();
             var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
@@ -2584,7 +2584,7 @@ public class C : A {
             var document = workspace.AddDocument(project2.Id, "Test.cs", SourceText.From(""));
 
             // Nothing should have incomplete references, and everything should build
-            var frozenSolution = document.WithFrozenPartialSemantics(CancellationToken.None).Project.Solution;
+            var frozenSolution = (await document.WithFrozenPartialSemanticsAsync(CancellationToken.None)).Project.Solution;
 
             Assert.True(frozenSolution.GetProject(project1.Id).HasSuccessfullyLoadedAsync().Result);
             Assert.True(frozenSolution.GetProject(project2.Id).HasSuccessfullyLoadedAsync().Result);

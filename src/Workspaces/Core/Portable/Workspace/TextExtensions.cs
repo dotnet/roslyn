@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -114,10 +115,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// with the specified text's container, or the text's container isn't associated with a workspace,
         /// then the method returns false.
         /// </summary>
-        internal static Document? GetDocumentWithFrozenPartialSemantics(this SourceText text, CancellationToken cancellationToken)
+        internal static async ValueTask<Document?> GetDocumentWithFrozenPartialSemanticsAsync(this SourceText text, CancellationToken cancellationToken)
         {
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
-            return document?.WithFrozenPartialSemantics(cancellationToken);
+            return document == null ? null : await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' Use frozen partial semantics here.  We're operating on the UI thread, and we don't want to block the
                 ' user indefinitely while getting full semantics for this projects (which can require building all
                 ' projects we depend on).
-                Dim document = currentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken)
+                Dim document = currentSnapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
                 If document Is Nothing Then
                     Return
                 End If
