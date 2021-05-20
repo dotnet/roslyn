@@ -31,6 +31,7 @@ This document provides guidance for thinking about language interactions and tes
 - VB/F# interop
 - Performance and stress testing
 - Can build VS
+- Check that `Obsolete` is honored for members used in binding/lowering
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
