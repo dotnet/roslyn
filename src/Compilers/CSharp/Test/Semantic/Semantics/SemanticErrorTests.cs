@@ -9245,6 +9245,25 @@ class C1
         }
 
         [Fact]
+        public void CS0266ERR_NoImplicitConvCast14()
+        {
+            string source = @"
+class C
+{
+    public unsafe void M(int* p, object o)
+    {
+        _ = p[o]; // error with span on 'o'
+        _ = p[0]; // ok
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (6,15): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         _ = p[o]; // error with span on 'o'
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "int").WithLocation(6, 15));
+        }
+
+        [Fact]
         public void CS0269ERR_UseDefViolationOut()
         {
             var text = @"
