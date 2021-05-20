@@ -5,8 +5,6 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -604,7 +602,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (next.IsKind(SyntaxKind.ColonToken))
             {
                 if (next.Parent.IsKind(SyntaxKind.BaseList) ||
-                    next.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause))
+                    next.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause) ||
+                    next.Parent is ConstructorInitializerSyntax)
                 {
                     return true;
                 }
