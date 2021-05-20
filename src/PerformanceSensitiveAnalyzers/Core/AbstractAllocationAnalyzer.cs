@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                 var compilation = compilationStartContext.Compilation;
                 var attributeSymbol = compilation.GetOrCreateTypeByMetadataName(AllocationRules.PerformanceSensitiveAttributeName);
 
-                // Bail if PerformanceSensitiveAttribute is not delcared in the compilation.
+                // Bail if PerformanceSensitiveAttribute is not declared in the compilation.
                 if (attributeSymbol == null)
                 {
                     return;

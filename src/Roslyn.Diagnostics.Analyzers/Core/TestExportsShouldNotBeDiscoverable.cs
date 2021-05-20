@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -24,7 +26,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.TestExportsShouldNotBeDiscoverableMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.TestExportsShouldNotBeDiscoverableDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        internal static DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.TestExportsShouldNotBeDiscoverableRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -67,14 +69,14 @@ namespace Roslyn.Diagnostics.Analyzers
             });
         }
 
-        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol? exportAttributeOpt, INamedTypeSymbol namedType, IEnumerable<AttributeData> exportAttributes, IEnumerable<AttributeData> namedTypeAttributes)
+        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol? exportAttribute, INamedTypeSymbol namedType, IEnumerable<AttributeData> exportAttributes, IEnumerable<AttributeData> namedTypeAttributes)
         {
-            if (exportAttributeOpt is null)
+            if (exportAttribute is null)
             {
                 return;
             }
 
-            var exportAttributeApplication = exportAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttributeOpt));
+            var exportAttributeApplication = exportAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttribute));
             if (exportAttributeApplication is null)
             {
                 return;
@@ -82,10 +84,17 @@ namespace Roslyn.Diagnostics.Analyzers
 
             if (!namedTypeAttributes.Any(ad =>
                 ad.AttributeClass.Name == nameof(PartNotDiscoverableAttribute)
-                && Equals(ad.AttributeClass.ContainingNamespace, exportAttributeOpt.ContainingNamespace)))
+                && Equals(ad.AttributeClass.ContainingNamespace, exportAttribute.ContainingNamespace)))
             {
-                // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
-                context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                if (exportAttributeApplication.ApplicationSyntaxReference == null)
+                {
+                    context.ReportDiagnostic(context.Symbol.CreateDiagnostic(Rule, namedType.Name));
+                }
+                else
+                {
+                    // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
+                    context.ReportDiagnostic(exportAttributeApplication.ApplicationSyntaxReference.CreateDiagnostic(Rule, context.CancellationToken, namedType.Name));
+                }
             }
         }
     }

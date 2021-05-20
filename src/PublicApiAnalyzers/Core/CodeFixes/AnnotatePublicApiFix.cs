@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -9,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 string publicSymbolNameWithNullability = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNameWithNullabilityPropertyBagKey];
                 bool isShippedDocument = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiIsShippedPropertyBagKey] == "true";
 
-                TextDocument? document = isShippedDocument ? DeclarePublicApiFix.GetShippedDocument(project) : DeclarePublicApiFix.GetUnshippedDocument(project);
+                TextDocument? document = isShippedDocument ? PublicApiFixHelpers.GetShippedDocument(project) : PublicApiFixHelpers.GetUnshippedDocument(project);
 
                 if (document != null)
                 {
@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
             }
 
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, lines) + DeclarePublicApiFix.GetEndOfFileText(sourceText));
+            var endOfLine = PublicApiFixHelpers.GetEndOfLine(sourceText);
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(endOfLine, lines) + PublicApiFixHelpers.GetEndOfFileText(sourceText, endOfLine));
             return newSourceText;
         }
 
@@ -103,13 +104,34 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             {
                 var updatedPublicSurfaceAreaText = new List<KeyValuePair<DocumentId, SourceText>>();
 
+                using var uniqueShippedDocuments = PooledHashSet<string>.GetInstance();
+                using var uniqueUnshippedDocuments = PooledHashSet<string>.GetInstance();
+
                 foreach (KeyValuePair<Project, ImmutableArray<Diagnostic>> pair in _diagnosticsToFix)
                 {
                     Project project = pair.Key;
                     ImmutableArray<Diagnostic> diagnostics = pair.Value;
 
-                    TextDocument? unshippedDocument = DeclarePublicApiFix.GetUnshippedDocument(project);
-                    TextDocument? shippedDocument = DeclarePublicApiFix.GetShippedDocument(project);
+                    TextDocument? unshippedDocument = PublicApiFixHelpers.GetUnshippedDocument(project);
+                    if (unshippedDocument?.FilePath != null && !uniqueUnshippedDocuments.Add(unshippedDocument.FilePath))
+                    {
+                        // Skip past duplicate unshipped documents.
+                        // Multi-tfm projects can likely share the same api files, and we want to avoid duplicate code fix application.
+                        unshippedDocument = null;
+                    }
+
+                    TextDocument? shippedDocument = PublicApiFixHelpers.GetShippedDocument(project);
+                    if (shippedDocument?.FilePath != null && !uniqueShippedDocuments.Add(shippedDocument.FilePath))
+                    {
+                        // Skip past duplicate shipped documents.
+                        // Multi-tfm projects can likely share the same api files, and we want to avoid duplicate code fix application.
+                        shippedDocument = null;
+                    }
+
+                    if (unshippedDocument == null && shippedDocument == null)
+                    {
+                        continue;
+                    }
 
                     SourceText? unshippedSourceText = unshippedDocument is null ? null : await unshippedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     SourceText? shippedSourceText = shippedDocument is null ? null : await shippedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -144,7 +166,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             string oldName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNamePropertyBagKey];
                             string newName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNameWithNullabilityPropertyBagKey];
                             bool isShipped = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiIsShippedPropertyBagKey] == "true";
-                            (isShipped ? shippedChanges : unshippedChanges).Add(oldName, newName);
+                            var mapToUpdate = isShipped ? shippedChanges : unshippedChanges;
+                            mapToUpdate[oldName] = newName;
                         }
                     }
 

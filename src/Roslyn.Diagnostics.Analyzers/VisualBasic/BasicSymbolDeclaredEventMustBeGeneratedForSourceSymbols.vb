@@ -55,10 +55,10 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
                 End Get
             End Property
 
-            Protected Overrides Function GetFirstArgumentOfInvocation(node As SyntaxNode) As SyntaxNode
-                Dim invocation = DirectCast(node, InvocationExpressionSyntax)
-                If invocation.ArgumentList IsNot Nothing Then
-                    Dim argument = invocation.ArgumentList.Arguments.FirstOrDefault()
+            Protected Overrides Function GetFirstArgumentOfInvocation(invocation As SyntaxNode) As SyntaxNode
+                Dim invocationExpression = DirectCast(invocation, InvocationExpressionSyntax)
+                If invocationExpression.ArgumentList IsNot Nothing Then
+                    Dim argument = invocationExpression.ArgumentList.Arguments.FirstOrDefault()
                     If argument IsNot Nothing Then
                         Return argument.GetExpression
                     End If

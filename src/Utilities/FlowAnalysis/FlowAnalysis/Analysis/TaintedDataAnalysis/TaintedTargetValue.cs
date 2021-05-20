@@ -8,5 +8,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// Taint return value.
         /// </summary>
         public const string Return = ".Return";
+
+        /// <summary>
+        /// Taint the instance value.
+        /// </summary>
+        public const string This = ".This";
     }
 }

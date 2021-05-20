@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
 
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecPackageId>Microsoft.CodeAnalysis.PublicApiAnalyzers</NuspecPackageId>
@@ -12,6 +13,7 @@
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics PublicApi ApiAnalyzer</PackageTags>
     <AnalyzerDocumentationFileDir>$(RepoRoot)src\PublicApiAnalyzers</AnalyzerDocumentationFileDir>
     <AnalyzerSarifFileDir>$(RepoRoot)src\PublicApiAnalyzers</AnalyzerSarifFileDir>
+    <IsShippingPackage>true</IsShippingPackage>
   </PropertyGroup>
 
   <Choose>

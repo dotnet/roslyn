@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -20,7 +22,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly string s_fullNameOfSymbol = typeof(ISymbol).FullName;
 
-        internal static readonly DiagnosticDescriptor SymbolDeclaredEventRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor SymbolDeclaredEventRule = new(
             RoslynDiagnosticIds.SymbolDeclaredEventRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -28,7 +30,7 @@ namespace Roslyn.Diagnostics.Analyzers
             DiagnosticSeverity.Error,
             isEnabledByDefault: false,
             description: s_localizableDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(SymbolDeclaredEventRule);
 
@@ -62,8 +64,8 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             private readonly INamedTypeSymbol _symbolType;
             private readonly INamedTypeSymbol _compilationType;
-            private readonly ConcurrentDictionary<INamedTypeSymbol, UnusedValue> _sourceSymbolsToCheck = new ConcurrentDictionary<INamedTypeSymbol, UnusedValue>();
-            private readonly ConcurrentDictionary<INamedTypeSymbol, UnusedValue> _typesWithSymbolDeclaredEventInvoked = new ConcurrentDictionary<INamedTypeSymbol, UnusedValue>();
+            private readonly ConcurrentDictionary<INamedTypeSymbol, UnusedValue> _sourceSymbolsToCheck = new();
+            private readonly ConcurrentDictionary<INamedTypeSymbol, UnusedValue> _typesWithSymbolDeclaredEventInvoked = new();
             private readonly bool _hasMemberNamedSymbolDeclaredEvent;
 
             private const string SymbolDeclaredEventName = "SymbolDeclaredEvent";

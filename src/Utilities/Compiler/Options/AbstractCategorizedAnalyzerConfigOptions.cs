@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Analyzer.Utilities
 {
@@ -15,18 +16,17 @@ namespace Analyzer.Utilities
         private const string DotnetCodeQualityKeyPrefix = "dotnet_code_quality.";
         private const string BuildPropertyKeyPrefix = "build_property.";
 
-        private readonly ConcurrentDictionary<string, (bool found, object? value)> _computedOptionValuesMap;
+        private readonly ConcurrentDictionary<OptionKey, (bool found, object? value)> _computedOptionValuesMap;
 
         protected AbstractCategorizedAnalyzerConfigOptions()
         {
-            _computedOptionValuesMap = new ConcurrentDictionary<string, (bool found, object? value)>();
+            _computedOptionValuesMap = new ConcurrentDictionary<OptionKey, (bool found, object? value)>();
         }
 
         public abstract bool IsEmpty { get; }
         protected abstract bool TryGetOptionValue(string optionKeyPrefix, string? optionKeySuffix, string optionName, [NotNullWhen(returnValue: true)] out string? valueString);
 
-        [return: MaybeNull, NotNullIfNotNull("defaultValue")]
-        public T/*??*/ GetOptionValue<T>(string optionName, SyntaxTree tree, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
+        public T GetOptionValue<T>(string optionName, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, T defaultValue, OptionKind kind = OptionKind.DotnetCodeQuality)
         {
             if (TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out var value))
             {
@@ -62,7 +62,8 @@ namespace Analyzer.Utilities
             return false;
         }
 
-        public bool TryGetOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue, [MaybeNull] T/*??*/ defaultValue, [MaybeNullWhen(false), NotNullIfNotNull("defaultValue")] out T value)
+        [PerformanceSensitive("https://github.com/dotnet/roslyn-analyzers/issues/4905", AllowCaptures = false)]
+        public bool TryGetOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, T defaultValue, out T value)
         {
             if (this.IsEmpty)
             {
@@ -70,10 +71,10 @@ namespace Analyzer.Utilities
                 return false;
             }
 
-            var key = $"{rule.Id}.{optionName}";
+            var key = OptionKey.GetOrCreate(rule?.Id, optionName);
             if (!_computedOptionValuesMap.TryGetValue(key, out var computedValue))
             {
-                computedValue = _computedOptionValuesMap.GetOrAdd(key, _ => ComputeOptionValue(optionName, kind, rule, tryParseValue));
+                computedValue = _computedOptionValuesMap.GetOrAdd(key, ComputeOptionValue(optionName, kind, rule, tryParseValue));
             }
 
             if (computedValue.found)
@@ -88,13 +89,22 @@ namespace Analyzer.Utilities
             }
         }
 
-        private (bool found, object? value) ComputeOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor rule, TryParseValue<T> tryParseValue)
+        private (bool found, object? value) ComputeOptionValue<T>(string optionName, OptionKind kind, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue)
         {
             var optionKeyPrefix = MapOptionKindToKeyPrefix(kind);
-            if (TryGetSpecificOptionValue(rule.Id, optionKeyPrefix, out var optionValue) ||
-                TryGetSpecificOptionValue(rule.Category, optionKeyPrefix, out optionValue) ||
-                TryGetAnySpecificOptionValue(rule.CustomTags, optionKeyPrefix, out optionValue) ||
-                TryGetGeneralOptionValue(optionKeyPrefix, out optionValue))
+
+            T? optionValue;
+            if (rule != null)
+            {
+                if (TryGetSpecificOptionValue(rule.Id, optionKeyPrefix, out optionValue) ||
+                    TryGetSpecificOptionValue(rule.Category, optionKeyPrefix, out optionValue) ||
+                    TryGetAnySpecificOptionValue(rule.CustomTags, optionKeyPrefix, out optionValue))
+                {
+                    return (true, optionValue);
+                }
+            }
+
+            if (TryGetGeneralOptionValue(optionKeyPrefix, out optionValue))
             {
                 return (true, optionValue);
             }

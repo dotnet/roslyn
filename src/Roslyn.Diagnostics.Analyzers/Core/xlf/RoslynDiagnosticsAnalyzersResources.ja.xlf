@@ -2,34 +2,34 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AddSharedAttribute">
+        <source>Add 'Shared' attribute</source>
+        <target state="translated">'Shared' 属性の追加</target>
+        <note>{Locked="Shared"}</note>
+      </trans-unit>
+      <trans-unit id="ApplyTraitToContainingType">
+        <source>Apply trait to containing type</source>
+        <target state="translated">包含する側の型に特性を適用する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
         <source>Remove the 'Opt' suffix</source>
-        <target state="new">Remove the 'Opt' suffix</target>
+        <target state="translated">'Opt' サフィックスの削除</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code.</target>
+        <target state="translated">null 許容型のコードでは 'Opt' サフィックスを使用しないでください。</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code</target>
+        <target state="translated">null 許容型のコードでは 'Opt' サフィックスを使用しません</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
-        <target state="new">Avoid the 'Opt' suffix</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">複数の空白行は使用できません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">中かっこの間に空白行を含めることはできません</target>
+        <target state="translated">'Opt' サフィックスを使用しない</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields.</source>
-        <target state="translated">既定に設定可能な型には、既定に設定可能なフィールドが必要です。</target>
+        <target state="translated">既定値を使用可能な型には、既定に設定可能なフィールドが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -97,6 +97,26 @@
         <target state="translated">値をコピーしないでください</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
+        <source>Cannot assign a value from a reference to a non-copyable type.</source>
+        <target state="translated">参照からコピー不可の型に値を割り当てることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
+        <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">参照からコピー不可の型 '{0}' に値を割り当てることはできません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
+        <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
+        <target state="translated">自動プロパティでは常に値がコピーされるため、コピー不可の型を使用して宣言することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
+        <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">自動プロパティ '{1}' にコピー不可の型 '{0}' を指定することはできません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
         <source>Do not box non-copyable value types.</source>
         <target state="translated">コピー不可の値の型をボックス化しません。</target>
@@ -107,9 +127,29 @@
         <target state="translated">コピー不可の型 '{0}' をボックス化しないでください</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
+        <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
+        <target state="translated">コピー不可の型のフィールドをコピー可能な型のメンバーにすることはできません。包含する側の型をコピー不可にすることも参照型に変換することもできます。あるいは、フィールドを削除することも、コピー可能な型に変換することもできます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
+        <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">コピー可能なフィールド '{1}' にコピー不可の型 '{0}' を指定することはできません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
+        <source>Cannot return a value from a reference to a non-copyable type.</source>
+        <target state="translated">参照からコピー不可の型に値を返すことはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
+        <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">参照からコピー不可の型 '{0}' に値を返すことはできません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
         <source>Do not unbox non-copyable value types.</source>
-        <target state="translated">コピー不可の値の型をボックス化解除しません。</target>
+        <target state="translated">コピー不可の値の型をボックス化解除しないでください。</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingMessage">
@@ -229,7 +269,7 @@
       </trans-unit>
       <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
         <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
-        <target state="new">The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</target>
+        <target state="translated">構文 'typeof(T).FullName' を使用している場合、'Type.FullName' プロパティが null になることはありません</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
@@ -239,7 +279,7 @@
       </trans-unit>
       <trans-unit id="PreferNullLiteralDescription">
         <source>Use 'null' instead of 'default' for nullable types.</source>
-        <target state="translated">Null 許容型には、'default' の代わりに 'null' を使用します。</target>
+        <target state="translated">Null 許容型には、'default' の代わりに 'null' を使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralMessage">
@@ -257,15 +297,20 @@
         <target state="translated">非同期テスト メソッドには 'Async' サフィックスは不要です</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">中かっこの間の空白行を削除する</target>
-        <note />
+      <trans-unit id="TemporaryArrayAsRefDescription">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() のインスタンスは 'using' 変数でなければなりません。</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">余分な空白行を削除する</target>
-        <note />
+      <trans-unit id="TemporaryArrayAsRefMessage">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() のインスタンスは 'using' 変数でなければなりません</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefTitle">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() のインスタンスは 'using' 変数でなければなりません</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply 'PartNotDiscoverableAttribute'</source>
@@ -319,7 +364,7 @@
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出します</target>
+        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出してください</target>
         <note />
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsDescription">
@@ -329,7 +374,7 @@
       </trans-unit>
       <trans-unit id="InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsMessage">
         <source>Invoke the correct property to ensure correct use site diagnostics</source>
-        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出します</target>
+        <target state="translated">正しいサイト診断が使用されるように、正しいプロパティを呼び出してください</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseGenericCodeActionCreateToCreateCodeActionTitle">
@@ -349,7 +394,7 @@
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableTitle">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="translated">'IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドします</target>
+        <target state="translated">IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドしてください</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableDescription">
@@ -359,7 +404,7 @@
       </trans-unit>
       <trans-unit id="OverrideObjectEqualsObjectWhenImplementingIequatableMessage">
         <source>Override 'Object.Equals(object)' when implementing 'IEquatable'</source>
-        <target state="translated">'IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドします</target>
+        <target state="translated">IEquatable' を実装するときに 'Object.Equals(object)' をオーバーライドしてください</target>
         <note />
       </trans-unit>
       <trans-unit id="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle">
@@ -405,11 +450,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">'{0}' は MEFv2 でエクスポートされるため、'SharedAttribute' と設定する必要があります</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">ステートメントは独自の行に配置する必要があります</target>
         <note />
       </trans-unit>
     </body>

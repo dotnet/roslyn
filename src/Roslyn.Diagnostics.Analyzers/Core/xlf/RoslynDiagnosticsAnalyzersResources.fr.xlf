@@ -2,34 +2,34 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AddSharedAttribute">
+        <source>Add 'Shared' attribute</source>
+        <target state="translated">Ajouter l'attribut 'Shared'</target>
+        <note>{Locked="Shared"}</note>
+      </trans-unit>
+      <trans-unit id="ApplyTraitToContainingType">
+        <source>Apply trait to containing type</source>
+        <target state="translated">Appliquer la caractéristique au type conteneur</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
         <source>Remove the 'Opt' suffix</source>
-        <target state="new">Remove the 'Opt' suffix</target>
+        <target state="translated">Supprimer le suffixe 'Opt'</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code.</target>
+        <target state="translated">Évitez le suffixe 'Opt' dans du code pouvant accepter des valeurs null.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code</target>
+        <target state="translated">Éviter le suffixe 'Opt' dans du code pouvant accepter des valeurs null</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
-        <target state="new">Avoid the 'Opt' suffix</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Éviter plusieurs lignes vides</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">Les accolades ne doivent pas contenir de lignes vides</target>
+        <target state="translated">Éviter le suffixe 'Opt'</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
@@ -97,6 +97,26 @@
         <target state="translated">Ne pas copier la valeur</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
+        <source>Cannot assign a value from a reference to a non-copyable type.</source>
+        <target state="translated">Impossible d'affecter une valeur à partir d'une référence à un type non copiable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
+        <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">Impossible d'affecter une valeur à partir d'une référence au type non copiable '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
+        <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
+        <target state="translated">Les propriétés automatiques copient toujours les valeurs, elles ne peuvent donc pas être déclarées avec des types non copiables.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
+        <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">La propriété automatique '{1}' ne peut pas avoir le type non copiable '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
         <source>Do not box non-copyable value types.</source>
         <target state="translated">N'effectue pas de conversion boxing des types valeur non copiables.</target>
@@ -105,6 +125,26 @@
       <trans-unit id="DoNotCopyValueNoBoxingMessage">
         <source>Do not box non-copyable type '{0}'</source>
         <target state="translated">Ne pas effectuer de conversion boxing du type non copiable '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
+        <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
+        <target state="translated">Un champ avec un type non copiable ne peut pas être membre d'un type copiable. Le type conteneur peut être rendu non copiable ou être converti en type référence. De même, le champ peut être supprimé ou converti en type copiable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
+        <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">La champ copiable '{1}' ne peut pas avoir le type non copiable '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
+        <source>Cannot return a value from a reference to a non-copyable type.</source>
+        <target state="translated">Impossible de retourner une valeur à partir d'une référence à un type non copiable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
+        <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">Impossible de retourner une valeur à partir d'une référence au type non copiable '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
@@ -229,7 +269,7 @@
       </trans-unit>
       <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
         <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
-        <target state="new">The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</target>
+        <target state="translated">La propriété 'Type.FullName' n'a jamais de valeur null quand la syntaxe 'typeof(T).FullName' est utilisée</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
@@ -257,15 +297,20 @@
         <target state="translated">Les méthodes de test asynchrones ne nécessitent pas le suffixe 'Async'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">Supprimer les lignes vides entre les accolades</target>
-        <note />
+      <trans-unit id="TemporaryArrayAsRefDescription">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">L'instance de TemporaryArray&lt;T&gt;.AsRef() doit être une variable 'using'.</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">Supprimer les lignes vides supplémentaires</target>
-        <note />
+      <trans-unit id="TemporaryArrayAsRefMessage">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">L'instance de TemporaryArray&lt;T&gt;.AsRef() doit être une variable 'using'</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefTitle">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">L'instance de TemporaryArray&lt;T&gt;.AsRef() doit être une variable 'using'</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply 'PartNotDiscoverableAttribute'</source>
@@ -405,11 +450,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">'{0}' est exporté avec MEFv2 et doit donc être marqué avec 'SharedAttribute'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">Les instructions doivent être placées sur leur propre ligne</target>
         <note />
       </trans-unit>
     </body>

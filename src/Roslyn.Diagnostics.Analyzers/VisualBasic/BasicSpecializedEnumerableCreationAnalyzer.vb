@@ -45,7 +45,7 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
                         Case SyntaxKind.CollectionInitializer
                             AnalyzeCollectionInitializerExpression(DirectCast(expression, CollectionInitializerSyntax), expression, AddressOf context.ReportDiagnostic)
                         Case SyntaxKind.SimpleMemberAccessExpression
-                            AnalyzeMemberAccessName(DirectCast(expression, MemberAccessExpressionSyntax).Name, context.SemanticModel, AddressOf context.ReportDiagnostic)
+                            AnalyzeMemberAccessName(DirectCast(expression, MemberAccessExpressionSyntax).Name, context.SemanticModel, AddressOf context.ReportDiagnostic, context.CancellationToken)
                     End Select
                 Next
             End Sub

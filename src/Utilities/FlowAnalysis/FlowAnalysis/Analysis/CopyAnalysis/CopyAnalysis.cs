@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
-            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate,
             bool pessimisticAnalysis = true,
             PointsToAnalysisKind pointsToAnalysisKind = PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties,
             bool exceptionPathsAnalysis = false)
@@ -38,14 +38,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 return null;
             }
 
-            var pointsToAnalysisResultOpt = pointsToAnalysisKind != PointsToAnalysisKind.None ?
+            var pointsToAnalysisResult = pointsToAnalysisKind != PointsToAnalysisKind.None ?
                 PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions,
                     wellKnownTypeProvider, pointsToAnalysisKind, interproceduralAnalysisConfig,
-                    interproceduralAnalysisPredicateOpt, pessimisticAnalysis, performCopyAnalysis: false, exceptionPathsAnalysis) :
+                    interproceduralAnalysisPredicate, pessimisticAnalysis, performCopyAnalysis: false, exceptionPathsAnalysis) :
                 null;
             var analysisContext = CopyAnalysisContext.Create(CopyAbstractValueDomain.Default, wellKnownTypeProvider,
-                cfg, owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResultOpt,
-                TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicateOpt);
+                cfg, owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResult,
+                TryGetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicate);
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
@@ -58,6 +58,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
         protected override CopyAnalysisResult ToResult(CopyAnalysisContext analysisContext, CopyAnalysisResult dataFlowAnalysisResult) => dataFlowAnalysisResult;
         protected override CopyBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, CopyAnalysisData blockAnalysisData)
-            => new CopyBlockAnalysisResult(basicBlock, blockAnalysisData);
+            => new(basicBlock, blockAnalysisData);
     }
 }

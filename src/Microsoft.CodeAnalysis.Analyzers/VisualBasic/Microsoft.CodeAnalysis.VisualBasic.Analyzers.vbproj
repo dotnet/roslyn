@@ -9,4 +9,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzers.UnitTests" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="$(MicrosoftCodeAnalysisVersion)" />
+  </ItemGroup>
 </Project>

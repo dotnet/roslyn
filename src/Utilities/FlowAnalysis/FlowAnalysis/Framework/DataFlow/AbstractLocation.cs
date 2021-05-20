@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <summary>
     /// <para>
     /// Represents an abstract analysis location.
-    /// This is may be used to represent a location where an <see cref="AnalysisEntity"/> resides, i.e. <see cref="AnalysisEntity.InstanceLocation"/> or
+    /// This is may be used to represent a location where an <see cref="DataFlow.AnalysisEntity"/> resides, i.e. <see cref="AnalysisEntity.InstanceLocation"/> or
     /// a location that is pointed to by a reference type variable, and tracked with <see cref="PointsToAnalysis.PointsToAnalysis"/>.
     /// </para>
     /// <para>
@@ -28,104 +27,117 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     public sealed class AbstractLocation : CacheBasedEquatable<AbstractLocation>
     {
         private readonly bool _isSpecialSingleton;
-        public static readonly AbstractLocation Null = new AbstractLocation(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationTypeOpt: null, isSpecialSingleton: true);
-        public static readonly AbstractLocation NoLocation = new AbstractLocation(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationTypeOpt: null, isSpecialSingleton: true);
+        public static readonly AbstractLocation Null = new(creation: null, creationCallStack: null, analysisEntity: null, symbol: null, captureId: null, locationType: null, isSpecialSingleton: true);
+        public static readonly AbstractLocation NoLocation = new(creation: null, creationCallStack: null, analysisEntity: null, symbol: null, captureId: null, locationType: null, isSpecialSingleton: true);
 
-        private AbstractLocation(IOperation? creationOpt, ImmutableStack<IOperation>? creationCallStackOpt, AnalysisEntity? analysisEntityOpt, ISymbol? symbolOpt, InterproceduralCaptureId? captureIdOpt, ITypeSymbol? locationTypeOpt, bool isSpecialSingleton)
+        private AbstractLocation(IOperation? creation, ImmutableStack<IOperation>? creationCallStack, AnalysisEntity? analysisEntity, ISymbol? symbol, InterproceduralCaptureId? captureId, ITypeSymbol? locationType, bool isSpecialSingleton)
         {
-            Debug.Assert(isSpecialSingleton ^ (locationTypeOpt != null));
+            Debug.Assert(isSpecialSingleton ^ (locationType != null));
 
-            CreationOpt = creationOpt;
-            CreationCallStack = creationCallStackOpt ?? ImmutableStack<IOperation>.Empty;
-            AnalysisEntityOpt = analysisEntityOpt;
-            SymbolOpt = symbolOpt;
-            CaptureIdOpt = captureIdOpt;
-            LocationTypeOpt = locationTypeOpt;
+            Creation = creation;
+            CreationCallStack = creationCallStack ?? ImmutableStack<IOperation>.Empty;
+            AnalysisEntity = analysisEntity;
+            Symbol = symbol;
+            CaptureId = captureId;
+            LocationType = locationType;
             _isSpecialSingleton = isSpecialSingleton;
         }
 
-        private static AbstractLocation Create(IOperation? creationOpt, ImmutableStack<IOperation>? creationCallStackOpt, AnalysisEntity? analysisEntityOpt, ISymbol? symbolOpt, InterproceduralCaptureId? captureIdOpt, ITypeSymbol? locationType)
+        private static AbstractLocation Create(IOperation? creation, ImmutableStack<IOperation>? creationCallStack, AnalysisEntity? analysisEntity, ISymbol? symbol, InterproceduralCaptureId? captureId, ITypeSymbol? locationType)
         {
-            Debug.Assert(creationOpt != null ^ symbolOpt != null ^ analysisEntityOpt != null ^ captureIdOpt != null);
+            Debug.Assert(creation != null ^ symbol != null ^ analysisEntity != null ^ captureId != null);
             Debug.Assert(locationType != null);
 
-            return new AbstractLocation(creationOpt, creationCallStackOpt, analysisEntityOpt, symbolOpt, captureIdOpt, locationType, isSpecialSingleton: false);
+            return new AbstractLocation(creation, creationCallStack, analysisEntity, symbol, captureId, locationType, isSpecialSingleton: false);
         }
 
         public static AbstractLocation CreateAllocationLocation(IOperation creation, ITypeSymbol locationType, PointsToAnalysisContext analysisContext)
-            => CreateAllocationLocation(creation, locationType, analysisContext.InterproceduralAnalysisDataOpt?.CallStack);
-        internal static AbstractLocation CreateAllocationLocation(IOperation creation, ITypeSymbol locationType, ImmutableStack<IOperation>? callStackOpt)
-            => Create(creation, callStackOpt, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: null, locationType: locationType);
+            => CreateAllocationLocation(creation, locationType, analysisContext.InterproceduralAnalysisData?.CallStack);
+        internal static AbstractLocation CreateAllocationLocation(IOperation creation, ITypeSymbol locationType, ImmutableStack<IOperation>? callStack)
+            => Create(creation, callStack, analysisEntity: null, symbol: null, captureId: null, locationType: locationType);
         public static AbstractLocation CreateAnalysisEntityDefaultLocation(AnalysisEntity analysisEntity)
-            => Create(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: analysisEntity, symbolOpt: null, captureIdOpt: null, locationType: analysisEntity.Type);
-        public static AbstractLocation CreateThisOrMeLocation(INamedTypeSymbol namedTypeSymbol, ImmutableStack<IOperation>? creationCallStackOpt)
-            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: namedTypeSymbol, captureIdOpt: null, locationType: namedTypeSymbol);
-        public static AbstractLocation CreateSymbolLocation(ISymbol symbol, ImmutableStack<IOperation>? creationCallStackOpt)
-            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: symbol, captureIdOpt: null, locationType: symbol.GetMemberOrLocalOrParameterType());
-        public static AbstractLocation CreateFlowCaptureLocation(InterproceduralCaptureId captureId, ITypeSymbol locationType, ImmutableStack<IOperation>? creationCallStackOpt)
-            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: null, captureIdOpt: captureId, locationType: locationType);
+            => Create(creation: null, creationCallStack: null, analysisEntity: analysisEntity, symbol: null, captureId: null, locationType: analysisEntity.Type);
+        public static AbstractLocation CreateThisOrMeLocation(INamedTypeSymbol namedTypeSymbol, ImmutableStack<IOperation>? creationCallStack)
+            => Create(creation: null, creationCallStack: creationCallStack, analysisEntity: null, symbol: namedTypeSymbol, captureId: null, locationType: namedTypeSymbol);
+        public static AbstractLocation CreateSymbolLocation(ISymbol symbol, ImmutableStack<IOperation>? creationCallStack)
+            => Create(creation: null, creationCallStack: creationCallStack, analysisEntity: null, symbol: symbol, captureId: null, locationType: symbol.GetMemberOrLocalOrParameterType());
+        public static AbstractLocation CreateFlowCaptureLocation(InterproceduralCaptureId captureId, ITypeSymbol locationType, ImmutableStack<IOperation>? creationCallStack)
+            => Create(creation: null, creationCallStack: creationCallStack, analysisEntity: null, symbol: null, captureId: captureId, locationType: locationType);
 
-        public IOperation? CreationOpt { get; }
+        public IOperation? Creation { get; }
         public ImmutableStack<IOperation> CreationCallStack { get; }
 
         /// <summary>
         /// Returns the top of <see cref="CreationCallStack"/> if this location was created through an interprocedural method invocation, i.e. <see cref="CreationCallStack"/> is non-empty.
-        /// Otherwise, returns <see cref="CreationOpt"/>.
+        /// Otherwise, returns <see cref="Creation"/>.
         /// </summary>
         public IOperation? GetTopOfCreationCallStackOrCreation()
         {
             if (CreationCallStack.IsEmpty)
             {
-                return CreationOpt;
+                return Creation;
             }
 
             return CreationCallStack.Peek();
         }
 
-        public AnalysisEntity? AnalysisEntityOpt { get; }
-        public ISymbol? SymbolOpt { get; }
-        public InterproceduralCaptureId? CaptureIdOpt { get; }
-        public ITypeSymbol? LocationTypeOpt { get; }
+        public AnalysisEntity? AnalysisEntity { get; }
+        public ISymbol? Symbol { get; }
+        public InterproceduralCaptureId? CaptureId { get; }
+        public ITypeSymbol? LocationType { get; }
         public bool IsNull => ReferenceEquals(this, Null);
         public bool IsNoLocation => ReferenceEquals(this, NoLocation);
 
         /// <summary>
         /// Indicates this represents the initial unknown but distinct location for an analysis entity.
         /// </summary>
-        public bool IsAnalysisEntityDefaultLocation => AnalysisEntityOpt != null;
+        public bool IsAnalysisEntityDefaultLocation => AnalysisEntity != null;
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(CreationOpt.GetHashCodeOrDefault());
-            addPart(HashUtilities.Combine(CreationCallStack));
-            addPart(SymbolOpt.GetHashCodeOrDefault());
-            addPart(CaptureIdOpt.GetHashCodeOrDefault());
-            addPart(AnalysisEntityOpt.GetHashCodeOrDefault());
-            addPart(LocationTypeOpt.GetHashCodeOrDefault());
-            addPart(_isSpecialSingleton.GetHashCode());
-            addPart(IsNull.GetHashCode());
+            hashCode.Add(Creation.GetHashCodeOrDefault());
+            hashCode.Add(HashUtilities.Combine(CreationCallStack));
+            hashCode.Add(Symbol.GetHashCodeOrDefault());
+            hashCode.Add(CaptureId.GetHashCodeOrDefault());
+            hashCode.Add(AnalysisEntity.GetHashCodeOrDefault());
+            hashCode.Add(LocationType.GetHashCodeOrDefault());
+            hashCode.Add(_isSpecialSingleton.GetHashCode());
+            hashCode.Add(IsNull.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<AbstractLocation> obj)
+        {
+            var other = (AbstractLocation)obj;
+            return Creation.GetHashCodeOrDefault() == other.Creation.GetHashCodeOrDefault()
+                && HashUtilities.Combine(CreationCallStack) == HashUtilities.Combine(other.CreationCallStack)
+                && Symbol.GetHashCodeOrDefault() == other.Symbol.GetHashCodeOrDefault()
+                && CaptureId.GetHashCodeOrDefault() == other.CaptureId.GetHashCodeOrDefault()
+                && AnalysisEntity.GetHashCodeOrDefault() == other.AnalysisEntity.GetHashCodeOrDefault()
+                && LocationType.GetHashCodeOrDefault() == other.LocationType.GetHashCodeOrDefault()
+                && _isSpecialSingleton.GetHashCode() == other._isSpecialSingleton.GetHashCode()
+                && IsNull.GetHashCode() == other.IsNull.GetHashCode();
         }
 
         /// <summary>
-        /// Attempts to get the syntax node to report diagnostic for this abstract location 
+        /// Attempts to get the syntax node to report diagnostic for this abstract location
         /// Returns null if the location is owned by another method invoked through interprocedural analysis.
         /// </summary>
-        public SyntaxNode? TryGetNodeToReportDiagnostic(PointsToAnalysisResult? pointsToAnalysisResultOpt)
+        public SyntaxNode? TryGetNodeToReportDiagnostic(PointsToAnalysisResult? pointsToAnalysisResult)
         {
-            Debug.Assert(CreationOpt != null);
+            Debug.Assert(Creation != null);
 
-            if (pointsToAnalysisResultOpt != null)
+            if (pointsToAnalysisResult != null)
             {
                 // Attempt to report diagnostic at the bottommost stack frame that owns the location.
                 foreach (var creation in CreationCallStack)
                 {
-                    var syntaxNode = TryGetSyntaxNodeToReportDiagnostic(creation, pointsToAnalysisResultOpt);
+                    var syntaxNode = TryGetSyntaxNodeToReportDiagnostic(creation, pointsToAnalysisResult);
                     if (syntaxNode != null)
                     {
                         return syntaxNode;
                     }
 
-                    if (!(creation is IInvocationOperation invocation) ||
+                    if (creation is not IInvocationOperation invocation ||
                         !invocation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate())
                     {
                         return null;
@@ -134,7 +146,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Fallback to reporting the diagnostic on the allocation location.
-            return CreationOpt?.Syntax;
+            return Creation?.Syntax;
 
             // Local functions.
             SyntaxNode? TryGetSyntaxNodeToReportDiagnostic(IOperation creation, PointsToAnalysisResult pointsToAnalysisResult)
@@ -175,8 +187,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             }
                         }
 
-                        if (pointsToAnalysisResult.TaskWrappedValuesMapOpt != null &&
-                            pointsToAnalysisResult.TaskWrappedValuesMapOpt.TryGetValue(pointsToValue, out var wrappedValue))
+                        if (pointsToAnalysisResult.TaskWrappedValuesMap != null &&
+                            pointsToAnalysisResult.TaskWrappedValuesMap.TryGetValue(pointsToValue, out var wrappedValue))
                         {
                             return TryGetSyntaxNodeToReportDiagnosticForPointsValue(wrappedValue, operation);
                         }

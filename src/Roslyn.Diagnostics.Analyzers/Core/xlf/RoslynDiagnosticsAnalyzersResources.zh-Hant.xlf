@@ -1,35 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANT" original="../RoslynDiagnosticsAnalyzersResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AddSharedAttribute">
+        <source>Add 'Shared' attribute</source>
+        <target state="translated">新增 'Shared' 屬性</target>
+        <note>{Locked="Shared"}</note>
+      </trans-unit>
+      <trans-unit id="ApplyTraitToContainingType">
+        <source>Apply trait to containing type</source>
+        <target state="translated">將特徵套用至包含的型別</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
         <source>Remove the 'Opt' suffix</source>
-        <target state="new">Remove the 'Opt' suffix</target>
+        <target state="translated">移除 'Opt' 尾碼</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code.</target>
+        <target state="translated">避免在可為 null 的程式碼中使用 'Opt' 尾碼。</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code</target>
+        <target state="translated">避免在可為 null 的程式碼中使用 'Opt' 尾碼</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
-        <target state="new">Avoid the 'Opt' suffix</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">避免多個空白行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">括號之間不能有空白行</target>
+        <target state="translated">避免 'Opt' 尾碼</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsDescription">
         <source>Defaultable types should have defaultable fields.</source>
-        <target state="translated">可設為預設值的類型，應有可設為預設值的欄位。</target>
+        <target state="translated">可設為預設的類型應具有可設為預設的欄位。</target>
         <note />
       </trans-unit>
       <trans-unit id="DefaultableTypeShouldHaveDefaultableFieldsMessage">
@@ -97,6 +97,26 @@
         <target state="translated">請勿複製值</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
+        <source>Cannot assign a value from a reference to a non-copyable type.</source>
+        <target state="translated">無法將參考的值指派到無法複製的類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
+        <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">無法將參考的值指派到無法複製的類型 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
+        <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
+        <target state="translated">自動屬性一律會複製值，因此不得以不可複製型別宣告。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
+        <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">自動屬性 '{1}' 不得具有不可複製型別 '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
         <source>Do not box non-copyable value types.</source>
         <target state="translated">請勿對無法複製的值類型進行 Box 處理。</target>
@@ -105,6 +125,26 @@
       <trans-unit id="DoNotCopyValueNoBoxingMessage">
         <source>Do not box non-copyable type '{0}'</source>
         <target state="translated">請勿對無法複製的類型 '{0}' 進行 Box 處理</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
+        <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
+        <target state="translated">具有不可複製型別的欄位，不能是可複製型別的成員。可將包含的型別設為不可複製或轉換為參考型別，或將欄位移除或轉換為可複製型別。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
+        <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">可複製欄位 '{1}' 不能具有不可複製型別 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
+        <source>Cannot return a value from a reference to a non-copyable type.</source>
+        <target state="translated">無法將參考的值傳回無法複製的類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
+        <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">無法將參考的值傳回無法複製的類型 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
@@ -229,7 +269,7 @@
       </trans-unit>
       <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
         <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
-        <target state="new">The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</target>
+        <target state="translated">使用語法 'typeof(T).FullName' 時，'Type.FullName' 屬性絕不會為 Null</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
@@ -257,15 +297,20 @@
         <target state="translated">非同步測試方法不需要 'Async' 尾碼</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">移除括號之間的空白行</target>
-        <note />
+      <trans-unit id="TemporaryArrayAsRefDescription">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() 的執行個體必須是 'using' 變數。</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">移除額外的空白行</target>
-        <note />
+      <trans-unit id="TemporaryArrayAsRefMessage">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() 的執行個體必須是 'using' 變數</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefTitle">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() 的執行個體必須是 'using' 變數</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply 'PartNotDiscoverableAttribute'</source>
@@ -405,11 +450,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">匯出 '{0}' 時使用的是 MEFv2，因此必須標記為 'SharedAttribute'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">陳述式必須位於自己的行中</target>
         <note />
       </trans-unit>
     </body>

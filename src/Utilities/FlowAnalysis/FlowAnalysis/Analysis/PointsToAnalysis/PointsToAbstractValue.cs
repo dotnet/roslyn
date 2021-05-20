@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Analyzer.Utilities;
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             Debug.Assert(locations.All(location => !location.IsNull) || nullState != NullAbstractValue.NotNull);
             Debug.Assert(nullState != NullAbstractValue.Undefined);
             Debug.Assert(nullState != NullAbstractValue.Invalid);
-            Debug.Assert(!locations.Any(l => l.IsAnalysisEntityDefaultLocation && l.AnalysisEntityOpt!.HasUnknownInstanceLocation));
+            Debug.Assert(!locations.Any(l => l.IsAnalysisEntityDefaultLocation && l.AnalysisEntity!.HasUnknownInstanceLocation));
             Debug.Assert(locations.Count <= LocationThreshold);
 
             Locations = locations;
@@ -181,12 +180,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         public PointsToAbstractValueKind Kind { get; }
         public NullAbstractValue NullState { get; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(Locations));
-            addPart(HashUtilities.Combine(LValueCapturedOperations));
-            addPart(Kind.GetHashCode());
-            addPart(NullState.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(Locations));
+            hashCode.Add(HashUtilities.Combine(LValueCapturedOperations));
+            hashCode.Add(Kind.GetHashCode());
+            hashCode.Add(NullState.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<PointsToAbstractValue> obj)
+        {
+            var other = (PointsToAbstractValue)obj;
+            return HashUtilities.Combine(Locations) == HashUtilities.Combine(other.Locations)
+                && HashUtilities.Combine(LValueCapturedOperations) == HashUtilities.Combine(other.LValueCapturedOperations)
+                && Kind.GetHashCode() == other.Kind.GetHashCode()
+                && NullState.GetHashCode() == other.NullState.GetHashCode();
         }
     }
 }

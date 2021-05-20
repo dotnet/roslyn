@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities;
@@ -14,10 +13,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
     /// </summary>
     public class DisposeAbstractValue : CacheBasedEquatable<DisposeAbstractValue>
     {
-        public static readonly DisposeAbstractValue NotDisposable = new DisposeAbstractValue(DisposeAbstractValueKind.NotDisposable);
-        public static readonly DisposeAbstractValue Invalid = new DisposeAbstractValue(DisposeAbstractValueKind.Invalid);
-        public static readonly DisposeAbstractValue NotDisposed = new DisposeAbstractValue(DisposeAbstractValueKind.NotDisposed);
-        public static readonly DisposeAbstractValue Unknown = new DisposeAbstractValue(DisposeAbstractValueKind.Unknown);
+        public static readonly DisposeAbstractValue NotDisposable = new(DisposeAbstractValueKind.NotDisposable);
+        public static readonly DisposeAbstractValue Invalid = new(DisposeAbstractValueKind.Invalid);
+        public static readonly DisposeAbstractValue NotDisposed = new(DisposeAbstractValueKind.NotDisposed);
+        public static readonly DisposeAbstractValue Unknown = new(DisposeAbstractValueKind.Unknown);
 
         private DisposeAbstractValue(DisposeAbstractValueKind kind)
             : this(ImmutableHashSet<IOperation>.Empty, kind)
@@ -56,13 +55,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 case DisposeAbstractValueKind.NotDisposed:
                 case DisposeAbstractValueKind.Invalid:
                 case DisposeAbstractValueKind.Unknown:
-                    Debug.Assert(disposingOrEscapingOperations.Count == 0);
+                    Debug.Assert(disposingOrEscapingOperations.IsEmpty);
                     break;
 
                 case DisposeAbstractValueKind.Escaped:
                 case DisposeAbstractValueKind.Disposed:
                 case DisposeAbstractValueKind.MaybeDisposed:
-                    Debug.Assert(disposingOrEscapingOperations.Count > 0);
+                    Debug.Assert(!disposingOrEscapingOperations.IsEmpty);
                     break;
             }
         }
@@ -70,10 +69,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         public ImmutableHashSet<IOperation> DisposingOrEscapingOperations { get; }
         public DisposeAbstractValueKind Kind { get; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(DisposingOrEscapingOperations));
-            addPart(Kind.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(DisposingOrEscapingOperations));
+            hashCode.Add(Kind.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<DisposeAbstractValue> obj)
+        {
+            var other = (DisposeAbstractValue)obj;
+            return HashUtilities.Combine(DisposingOrEscapingOperations) == HashUtilities.Combine(other.DisposingOrEscapingOperations)
+                && Kind.GetHashCode() == other.Kind.GetHashCode();
         }
     }
 }

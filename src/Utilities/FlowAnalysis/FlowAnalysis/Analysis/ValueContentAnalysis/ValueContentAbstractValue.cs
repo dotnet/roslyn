@@ -112,7 +112,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 }
             }
 
-
             return new ValueContentAbstractValue(literalValues, nonLiteralState);
         }
 
@@ -146,10 +145,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         public ImmutableHashSet<object?> LiteralValues { get; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(LiteralValues));
-            addPart(NonLiteralState.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(LiteralValues));
+            hashCode.Add(NonLiteralState.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<ValueContentAbstractValue> obj)
+        {
+            var other = (ValueContentAbstractValue)obj;
+            return HashUtilities.Combine(LiteralValues) == HashUtilities.Combine(other.LiteralValues)
+                && NonLiteralState.GetHashCode() == other.NonLiteralState.GetHashCode();
         }
 
         /// <summary>
@@ -184,11 +190,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             {
                 return ValueContainsNonLiteralState.Maybe;
             }
-            else if (value1 == ValueContainsNonLiteralState.Invalid || value1 == ValueContainsNonLiteralState.Undefined)
+            else if (value1 is ValueContainsNonLiteralState.Invalid or ValueContainsNonLiteralState.Undefined)
             {
                 return value2;
             }
-            else if (value2 == ValueContainsNonLiteralState.Invalid || value2 == ValueContainsNonLiteralState.Undefined)
+            else if (value2 is ValueContainsNonLiteralState.Invalid or ValueContainsNonLiteralState.Undefined)
             {
                 return value1;
             }

@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable IDE0051 // Remove unused private members
-#pragma warning disable CA1812 // Avoid uninstantiated internal classes
-
 using System;
 using System.IO;
 using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 
-if (args.Length < 1 || args.Length > 2)
+if (args.Length is < 1 or > 2)
 {
     ShowUsage();
     return 1;

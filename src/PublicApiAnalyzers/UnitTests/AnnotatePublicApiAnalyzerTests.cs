@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
@@ -22,7 +23,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     Sources = { source },
                     AdditionalFiles = { },
                 },
-                TestBehaviors = TestBehaviors.SkipGeneratedCodeCheck,
             };
 
             if (shippedApiText != null)
@@ -48,8 +48,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         {
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, AnnotatePublicApiFix, XUnitVerifier>();
 
-            test.TestBehaviors |= TestBehaviors.SkipGeneratedCodeCheck;
-
             test.TestState.Sources.Add(source);
             test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, oldShippedApiText));
             test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, oldUnshippedApiText));
@@ -62,6 +60,134 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         #endregion
 
         #region Fix tests
+
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task NoObliviousWhenUnannotatedClassConstraint()
+        {
+            var source = @"
+#nullable enable
+public class C<T> where T : class
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+C<T>
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task NoObliviousWhenAnnotatedClassConstraint()
+        {
+            var source = @"
+#nullable enable
+public class C<T> where T : class?
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+C<T>
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task ObliviousWhenObliviousClassConstraint()
+        {
+            var source = @"
+#nullable enable
+public class {|RS0041:C|}<T> // oblivious
+#nullable disable
+    where T : class
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+~C<T>
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task NoObliviousWhenUnannotatedReferenceTypeConstraint()
+        {
+            var source = @"
+#nullable enable
+public class D { }
+public class C<T> where T : D
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+C<T>
+D
+D.D() -> void
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task NoObliviousWhenAnnotatedReferenceTypeConstraint()
+        {
+            var source = @"
+#nullable enable
+public class D { }
+public class C<T> where T : D?
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+C<T>
+D
+D.D() -> void
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact, WorkItem(4040, "https://github.com/dotnet/roslyn-analyzers/issues/4040")]
+        public async Task ObliviousWhenObliviousReferenceTypeConstraint()
+        {
+            var source = @"
+#nullable enable
+public class D { }
+
+public class {|RS0041:C|}<T> // oblivious
+#nullable disable
+    where T : D
+{
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"#nullable enable
+C<T>.C() -> void
+~C<T>
+D
+D.D() -> void
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
 
         [Fact]
         public async Task DoNotAnnotateMemberInUnannotatedUnshippedAPI_Nullable()
@@ -79,7 +205,7 @@ public class C
 C.C() -> void
 C.Field -> string";
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, System.Array.Empty<DiagnosticResult>());
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
@@ -98,7 +224,7 @@ public class C
 C.C() -> void
 C.Field2 -> string";
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, System.Array.Empty<DiagnosticResult>());
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
@@ -119,7 +245,7 @@ C.Field -> string
 C.Field2 -> string";
             var unshippedText = @"";
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, System.Array.Empty<DiagnosticResult>());
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact]
@@ -256,7 +382,7 @@ public class C
     public string? {|RS0036:ChangedField|};
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
+            var shippedText = $@"#nullable enable";
             var unshippedText = @"C
 C.C() -> void
 C.ChangedField -> string";
@@ -275,7 +401,7 @@ public class C
     public string {|RS0036:{|RS0041:Field|}|}; // oblivious
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
+            var shippedText = $@"#nullable enable";
             var unshippedText = @"C
 C.C() -> void
 C.Field -> string";
@@ -294,12 +420,12 @@ public class C
     public string {|RS0036:{|RS0041:Field|}|}; // oblivious
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var shippedText = $@"#nullable enable
 C
 C.C() -> void
 C.Field -> string";
             var unshippedText = @"";
-            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var fixedShippedText = $@"#nullable enable
 C
 C.C() -> void
 ~C.Field -> string";
@@ -316,12 +442,12 @@ public class C
     public string? {|RS0036:Field|};
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var shippedText = $@"#nullable enable
 C
 C.C() -> void
 ~C.Field -> string";
             var unshippedText = @"";
-            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var fixedShippedText = $@"#nullable enable
 C
 C.C() -> void
 C.Field -> string?";
@@ -338,12 +464,12 @@ public class C
     public string {|RS0036:Field|};
 }
 ";
-            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var shippedText = $@"#nullable enable
 C
 C.C() -> void
 ~C.Field -> string";
             var unshippedText = @"";
-            var fixedShippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+            var fixedShippedText = $@"#nullable enable
 C
 C.C() -> void
 C.Field -> string!";

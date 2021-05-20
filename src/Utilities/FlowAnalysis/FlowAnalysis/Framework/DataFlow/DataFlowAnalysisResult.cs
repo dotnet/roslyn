@@ -23,43 +23,49 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly ImmutableDictionary<IOperation, TAbstractAnalysisValue> _operationStateMap;
         private readonly ImmutableDictionary<IOperation, PredicateValueKind> _predicateValueKindMap;
         private readonly ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> _interproceduralResultsMap;
+        private readonly ImmutableDictionary<IMethodSymbol, IDataFlowAnalysisResult<TAbstractAnalysisValue>> _standaloneLocalFunctionAnalysisResultsMap;
         private readonly TAbstractAnalysisValue _defaultUnknownValue;
-        private readonly object? _analysisDataForUnhandledThrowOperationsOpt;
+        private readonly object? _analysisDataForUnhandledThrowOperations;
 
         internal DataFlowAnalysisResult(
             ImmutableDictionary<BasicBlock, TBlockAnalysisResult> basicBlockStateMap,
             ImmutableDictionary<IOperation, TAbstractAnalysisValue> operationStateMap,
             ImmutableDictionary<IOperation, PredicateValueKind> predicateValueKindMap,
-            (TAbstractAnalysisValue, PredicateValueKind)? returnValueAndPredicateKindOpt,
+            (TAbstractAnalysisValue, PredicateValueKind)? returnValueAndPredicateKind,
             ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
+            ImmutableDictionary<IMethodSymbol, IDataFlowAnalysisResult<TAbstractAnalysisValue>> standaloneLocalFunctionAnalysisResultsMap,
+            LambdaAndLocalFunctionAnalysisInfo lambdaAndLocalFunctionAnalysisInfo,
             TBlockAnalysisResult entryBlockOutput,
             TBlockAnalysisResult exitBlockOutput,
-            TBlockAnalysisResult? exceptionPathsExitBlockOutputOpt,
-            TBlockAnalysisResult? mergedStateForUnhandledThrowOperationsOpt,
-            object? analysisDataForUnhandledThrowOperationsOpt,
-            Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? taskWrappedValuesMapOpt,
+            TBlockAnalysisResult? exceptionPathsExitBlockOutput,
+            TBlockAnalysisResult? mergedStateForUnhandledThrowOperations,
+            object? analysisDataForUnhandledThrowOperations,
+            Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? taskWrappedValuesMap,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
         {
             _basicBlockStateMap = basicBlockStateMap;
             _operationStateMap = operationStateMap;
             _predicateValueKindMap = predicateValueKindMap;
-            ReturnValueAndPredicateKindOpt = returnValueAndPredicateKindOpt;
+            ReturnValueAndPredicateKind = returnValueAndPredicateKind;
             _interproceduralResultsMap = interproceduralResultsMap;
+            _standaloneLocalFunctionAnalysisResultsMap = standaloneLocalFunctionAnalysisResultsMap;
+            LambdaAndLocalFunctionAnalysisInfo = lambdaAndLocalFunctionAnalysisInfo;
             EntryBlockOutput = entryBlockOutput;
             ExitBlockOutput = exitBlockOutput;
-            ExceptionPathsExitBlockOutputOpt = exceptionPathsExitBlockOutputOpt;
-            MergedStateForUnhandledThrowOperationsOpt = mergedStateForUnhandledThrowOperationsOpt;
-            _analysisDataForUnhandledThrowOperationsOpt = analysisDataForUnhandledThrowOperationsOpt;
-            TaskWrappedValuesMapOpt = taskWrappedValuesMapOpt;
+            ExceptionPathsExitBlockOutput = exceptionPathsExitBlockOutput;
+            MergedStateForUnhandledThrowOperations = mergedStateForUnhandledThrowOperations;
+            _analysisDataForUnhandledThrowOperations = analysisDataForUnhandledThrowOperations;
+            TaskWrappedValuesMap = taskWrappedValuesMap;
             ControlFlowGraph = cfg;
             _defaultUnknownValue = defaultUnknownValue;
         }
 
         protected DataFlowAnalysisResult(DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> other)
-            : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap, other.ReturnValueAndPredicateKindOpt,
-                   other._interproceduralResultsMap, other.EntryBlockOutput, other.ExitBlockOutput, other.ExceptionPathsExitBlockOutputOpt,
-                   other.MergedStateForUnhandledThrowOperationsOpt, other._analysisDataForUnhandledThrowOperationsOpt, other.TaskWrappedValuesMapOpt,
+            : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap, other.ReturnValueAndPredicateKind,
+                   other._interproceduralResultsMap, other._standaloneLocalFunctionAnalysisResultsMap, other.LambdaAndLocalFunctionAnalysisInfo,
+                   other.EntryBlockOutput, other.ExitBlockOutput, other.ExceptionPathsExitBlockOutput,
+                   other.MergedStateForUnhandledThrowOperations, other._analysisDataForUnhandledThrowOperations, other.TaskWrappedValuesMap,
                    other.ControlFlowGraph, other._defaultUnknownValue)
         {
         }
@@ -69,9 +75,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             object analysisDataForUnhandledThrowOperations)
         {
             return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(
-                _basicBlockStateMap, _operationStateMap, _predicateValueKindMap, ReturnValueAndPredicateKindOpt,
-                _interproceduralResultsMap, EntryBlockOutput, ExitBlockOutput, ExceptionPathsExitBlockOutputOpt, mergedStateForUnhandledThrowOperationsOpt,
-                analysisDataForUnhandledThrowOperations, TaskWrappedValuesMapOpt, ControlFlowGraph, _defaultUnknownValue);
+                _basicBlockStateMap, _operationStateMap, _predicateValueKindMap, ReturnValueAndPredicateKind,
+                _interproceduralResultsMap, _standaloneLocalFunctionAnalysisResultsMap, LambdaAndLocalFunctionAnalysisInfo,
+                EntryBlockOutput, ExitBlockOutput, ExceptionPathsExitBlockOutput, mergedStateForUnhandledThrowOperationsOpt,
+                analysisDataForUnhandledThrowOperations, TaskWrappedValuesMap, ControlFlowGraph, _defaultUnknownValue);
+        }
+
+        internal DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> With(ImmutableDictionary<IOperation, TAbstractAnalysisValue> operationStateMap)
+        {
+            return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(
+                _basicBlockStateMap, operationStateMap, _predicateValueKindMap, ReturnValueAndPredicateKind,
+                _interproceduralResultsMap, _standaloneLocalFunctionAnalysisResultsMap, LambdaAndLocalFunctionAnalysisInfo,
+                EntryBlockOutput, ExitBlockOutput, ExceptionPathsExitBlockOutput, MergedStateForUnhandledThrowOperations,
+                _analysisDataForUnhandledThrowOperations, TaskWrappedValuesMap, ControlFlowGraph, _defaultUnknownValue);
         }
 
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
@@ -96,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 // We were requested for value of an operation in non-method body context (e.g. initializer), which is currently not supported.
                 // See https://github.com/dotnet/roslyn-analyzers/issues/1650 (Support for dataflow analysis for non-method body executable code)
-                Debug.Assert(operation.GetAncestor<IBlockOperation>(OperationKind.Block, predicateOpt: b => b.Parent == null) == null);
+                Debug.Assert(operation.GetAncestor<IBlockOperation>(OperationKind.Block, predicate: b => b.Parent == null) == null);
                 return _defaultUnknownValue;
             }
         }
@@ -135,20 +151,72 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return null;
         }
 
+        internal DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>? TryGetStandaloneLocalFunctionAnalysisResult(IMethodSymbol localFunction)
+        {
+            Debug.Assert(localFunction.MethodKind == MethodKind.LocalFunction);
+            if (_standaloneLocalFunctionAnalysisResultsMap.TryGetValue(localFunction, out var result))
+            {
+                return (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>)result;
+            }
+
+            return null;
+        }
+
+        internal IEnumerable<DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>> TryGetLambdaOrLocalFunctionResults(IOperation lambdaOrLocalFunctionOperation)
+        {
+            Debug.Assert(lambdaOrLocalFunctionOperation.Kind is OperationKind.AnonymousFunction or OperationKind.LocalFunction);
+
+            var isNestedLambdaOrLocalFunction = lambdaOrLocalFunctionOperation.IsWithinLambdaOrLocalFunction(out _);
+
+            foreach (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> result in _interproceduralResultsMap.Values)
+            {
+                if (result.ControlFlowGraph.OriginalOperation == lambdaOrLocalFunctionOperation)
+                {
+                    yield return result;
+                }
+                else if (isNestedLambdaOrLocalFunction)
+                {
+                    foreach (var nestedResult in result.TryGetLambdaOrLocalFunctionResults(lambdaOrLocalFunctionOperation))
+                    {
+                        yield return nestedResult;
+                    }
+                }
+            }
+
+            if (lambdaOrLocalFunctionOperation.Kind == OperationKind.LocalFunction)
+            {
+                foreach (DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> result in _standaloneLocalFunctionAnalysisResultsMap.Values)
+                {
+                    if (result.ControlFlowGraph.OriginalOperation == lambdaOrLocalFunctionOperation)
+                    {
+                        yield return result;
+                    }
+                    else if (isNestedLambdaOrLocalFunction)
+                    {
+                        foreach (var nestedResult in result.TryGetLambdaOrLocalFunctionResults(lambdaOrLocalFunctionOperation))
+                        {
+                            yield return nestedResult;
+                        }
+                    }
+                }
+            }
+        }
+
         public ControlFlowGraph ControlFlowGraph { get; }
-        public (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKindOpt { get; }
+        public (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKind { get; }
         public TBlockAnalysisResult EntryBlockOutput { get; }
         public TBlockAnalysisResult ExitBlockOutput { get; }
-        public TBlockAnalysisResult? ExceptionPathsExitBlockOutputOpt { get; }
+        public TBlockAnalysisResult? ExceptionPathsExitBlockOutput { get; }
+        public LambdaAndLocalFunctionAnalysisInfo LambdaAndLocalFunctionAnalysisInfo { get; }
 
-        object? IDataFlowAnalysisResult<TAbstractAnalysisValue>.AnalysisDataForUnhandledThrowOperationsOpt
-            => _analysisDataForUnhandledThrowOperationsOpt;
+        object? IDataFlowAnalysisResult<TAbstractAnalysisValue>.AnalysisDataForUnhandledThrowOperations
+            => _analysisDataForUnhandledThrowOperations;
 
-        object? IDataFlowAnalysisResult<TAbstractAnalysisValue>.TaskWrappedValuesMapOpt
-            => TaskWrappedValuesMapOpt;
+        object? IDataFlowAnalysisResult<TAbstractAnalysisValue>.TaskWrappedValuesMap
+            => TaskWrappedValuesMap;
 
-        public TBlockAnalysisResult? MergedStateForUnhandledThrowOperationsOpt { get; }
+        public TBlockAnalysisResult? MergedStateForUnhandledThrowOperations { get; }
         public PredicateValueKind GetPredicateKind(IOperation operation) => _predicateValueKindMap.TryGetValue(operation, out var valueKind) ? valueKind : PredicateValueKind.Unknown;
-        internal Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? TaskWrappedValuesMapOpt { get; }
+        internal Dictionary<PointsToAbstractValue, TAbstractAnalysisValue>? TaskWrappedValuesMap { get; }
     }
 }

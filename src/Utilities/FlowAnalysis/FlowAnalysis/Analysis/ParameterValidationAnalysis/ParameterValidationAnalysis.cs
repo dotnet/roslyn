@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
     /// </summary>
     internal partial class ParameterValidationAnalysis : ForwardDataFlowAnalysis<ParameterValidationAnalysisData, ParameterValidationAnalysisContext, ParameterValidationAnalysisResult, ParameterValidationBlockAnalysisResult, ParameterValidationAbstractValue>
     {
-        public static readonly ParameterValidationAnalysisDomain ParameterValidationAnalysisDomainInstance = new ParameterValidationAnalysisDomain(ParameterValidationAbstractValueDomain.Default);
+        public static readonly ParameterValidationAnalysisDomain ParameterValidationAnalysisDomainInstance = new(ParameterValidationAbstractValueDomain.Default);
 
         private ParameterValidationAnalysis(ParameterValidationAnalysisDomain analysisDomain, ParameterValidationDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
@@ -36,21 +36,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             PointsToAnalysisKind defaultPointsToAnalysisKind = PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
             uint defaultMaxInterproceduralMethodCallChain = 1, // By default, we only want to track method calls one level down.
-            bool pessimisticAnalysis = true)
+            bool pessimisticAnalysis = false)
         {
-            Debug.Assert(!owningSymbol.IsConfiguredToSkipAnalysis(analyzerOptions, rule, compilation, cancellationToken));
+            Debug.Assert(!analyzerOptions.IsConfiguredToSkipAnalysis(rule, owningSymbol, compilation, cancellationToken));
+
+            var cfg = topmostBlock.GetEnclosingControlFlowGraph();
+            if (cfg == null)
+            {
+                return ImmutableDictionary<IParameterSymbol, SyntaxNode>.Empty;
+            }
 
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                   analyzerOptions, rule, topmostBlock.Syntax.SyntaxTree, compilation, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
+                   analyzerOptions, rule, cfg, compilation, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
             var performCopyAnalysis = analyzerOptions.GetCopyAnalysisOption(rule, topmostBlock.Syntax.SyntaxTree, compilation, defaultValue: false, cancellationToken);
             var nullCheckValidationMethods = analyzerOptions.GetNullCheckValidationMethodsOption(rule, topmostBlock.Syntax.SyntaxTree, compilation, cancellationToken);
             var pointsToAnalysisKind = analyzerOptions.GetPointsToAnalysisKindOption(rule, topmostBlock.Syntax.SyntaxTree, compilation, defaultPointsToAnalysisKind, cancellationToken);
-            return GetOrComputeHazardousParameterUsages(topmostBlock, compilation, owningSymbol, analyzerOptions,
+            return GetOrComputeHazardousParameterUsages(cfg, compilation, owningSymbol, analyzerOptions,
                 nullCheckValidationMethods, pointsToAnalysisKind, interproceduralAnalysisConfig, performCopyAnalysis, pessimisticAnalysis);
         }
 
         private static ImmutableDictionary<IParameterSymbol, SyntaxNode> GetOrComputeHazardousParameterUsages(
-            IBlockOperation topmostBlock,
+            ControlFlowGraph cfg,
             Compilation compilation,
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
@@ -58,17 +64,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             PointsToAnalysisKind pointsToAnalysisKind,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool performCopyAnalysis,
-            bool pessimisticAnalysis = true)
+            bool pessimisticAnalysis)
         {
-            var cfg = topmostBlock.GetEnclosingControlFlowGraph();
-            if (cfg == null)
-            {
-                return ImmutableDictionary<IParameterSymbol, SyntaxNode>.Empty;
-            }
-
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
-                pointsToAnalysisKind, interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt: null, pessimisticAnalysis, performCopyAnalysis);
+                pointsToAnalysisKind, interproceduralAnalysisConfig, interproceduralAnalysisPredicate: null, pessimisticAnalysis, performCopyAnalysis);
             if (pointsToAnalysisResult != null)
             {
                 var result = TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             return new ParameterValidationAnalysisResult(dataFlowAnalysisResult, newOperationVisitor.HazardousParameterUsages);
         }
 
-        protected override ParameterValidationBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, ParameterValidationAnalysisData blockAnalysisData) => new ParameterValidationBlockAnalysisResult(basicBlock, blockAnalysisData);
+        protected override ParameterValidationBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, ParameterValidationAnalysisData blockAnalysisData) => new(basicBlock, blockAnalysisData);
 
     }
 }

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis;
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
     /// <summary>
-    /// Manages tainted data sources, sanitizers, and sinks for all the 
+    /// Manages tainted data sources, sanitizers, and sinks for all the
     /// different tainted data analysis rules.
     /// </summary>
     /// <remarks>
@@ -23,7 +23,25 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     /// </remarks>
     internal class TaintedDataConfig
     {
-        private static readonly BoundedCacheWithFactory<Compilation, TaintedDataConfig> s_ConfigsByCompilation = new BoundedCacheWithFactory<Compilation, TaintedDataConfig>();
+        private static readonly BoundedCacheWithFactory<Compilation, TaintedDataConfig> s_ConfigsByCompilation = new();
+
+        /// <summary>
+        /// Caches the results for <see cref="GetSourceInfos(SinkKind)"/>.
+        /// </summary>
+        private static ImmutableDictionary<SinkKind, ImmutableHashSet<SourceInfo>> s_sinkKindToSourceInfo
+            = ImmutableDictionary.Create<SinkKind, ImmutableHashSet<SourceInfo>>();
+
+        /// <summary>
+        /// Caches the results for <see cref="GetSanitizerInfos(SinkKind)"/>.
+        /// </summary>
+        private static ImmutableDictionary<SinkKind, ImmutableHashSet<SanitizerInfo>> s_sinkKindToSanitizerInfo
+            = ImmutableDictionary.Create<SinkKind, ImmutableHashSet<SanitizerInfo>>();
+
+        /// <summary>
+        /// Caches the results for <see cref="HasTaintArraySource(SinkKind)"/>.
+        /// </summary>
+        private static ImmutableDictionary<SinkKind, bool> s_sinkKindHasTaintArraySource
+            = ImmutableDictionary.Create<SinkKind, bool>();
 
         /// <summary>
         /// <see cref="WellKnownTypeProvider"/> for this instance's <see cref="Compilation"/>.
@@ -52,7 +70,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Gets a cached <see cref="TaintedDataConfig"/> for <paramref name="compilation"/>.
         /// </summary>
-        /// <param name="compilation">Whatev is being compiled.</param>
+        /// <param name="compilation">Whatever is being compiled.</param>
         /// <returns>The TaintedDataConfig.</returns>
         public static TaintedDataConfig GetOrCreate(Compilation compilation)
             => s_ConfigsByCompilation.GetOrCreateValue(compilation, Create);
@@ -162,7 +180,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public static bool HasTaintArraySource(SinkKind sinkKind)
         {
-            return GetSourceInfos(sinkKind).Any(o => o.TaintConstantArray);
+            return ImmutableInterlocked.GetOrAdd(
+                ref s_sinkKindHasTaintArraySource,
+                sinkKind,
+                static sinkKind => GetSourceInfos(sinkKind).Any(static o => o.TaintConstantArray));
         }
 
         private TaintedDataSymbolMap<T> GetFromMap<T>(SinkKind sinkKind, ImmutableDictionary<SinkKind, Lazy<TaintedDataSymbolMap<T>>> map)
@@ -181,9 +202,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         private static ImmutableHashSet<SourceInfo> GetSourceInfos(SinkKind sinkKind)
         {
+            if (s_sinkKindToSourceInfo.TryGetValue(sinkKind, out var sourceInfo))
+            {
+                return sourceInfo;
+            }
+
             switch (sinkKind)
             {
-                case SinkKind.Sql:
                 case SinkKind.Dll:
                 case SinkKind.FilePathInjection:
                 case SinkKind.ProcessCommand:
@@ -194,42 +219,71 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.XPath:
                 case SinkKind.Xml:
                 case SinkKind.Xaml:
-                    return WebInputSources.SourceInfos;
+                    // All of these use WebInputSources.SourceInfos.AddRange(StringTranferSources.SourceInfos), which is
+                    // the same set as SinkKind.Sql. Delegate the call to SinkKind.Sql to avoid computing separate hash
+                    // sets for identical cases.
+                    sourceInfo = GetSourceInfos(SinkKind.Sql);
+                    break;
+
+                case SinkKind.Sql:
+                    sourceInfo = WebInputSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
+                    break;
 
                 case SinkKind.InformationDisclosure:
-                    return InformationDisclosureSources.SourceInfos;
+                    sourceInfo = InformationDisclosureSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
+                    break;
 
                 case SinkKind.ZipSlip:
-                    return ZipSlipSources.SourceInfos;
+                    sourceInfo = ZipSlipSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
+                    break;
 
                 case SinkKind.HardcodedEncryptionKey:
-                    return HardcodedBytesSources.SourceInfos;
+                    sourceInfo = HardcodedSymmetricAlgorithmKeysSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
+                    break;
 
                 case SinkKind.HardcodedCertificate:
-                    return HardcodedCertificateSources.SourceInfos.AddRange(HardcodedBytesSources.SourceInfos);
+                    sourceInfo = HardcodedCertificateSources.SourceInfos.AddRange(HardcodedBytesSources.SourceInfos).AddRange(StringTranferSources.SourceInfos);
+                    break;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
                     return ImmutableHashSet<SourceInfo>.Empty;
             }
+
+            return ImmutableInterlocked.GetOrAdd(ref s_sinkKindToSourceInfo, sinkKind, sourceInfo);
         }
 
         private static ImmutableHashSet<SanitizerInfo> GetSanitizerInfos(SinkKind sinkKind)
         {
+            if (s_sinkKindToSanitizerInfo.TryGetValue(sinkKind, out var sanitizerInfo))
+            {
+                return sanitizerInfo;
+            }
+
             switch (sinkKind)
             {
-                case SinkKind.Sql:
                 case SinkKind.XPath:
-                    return PrimitiveTypeConverterSanitizers.SanitizerInfos;
+                    // All of these use PrimitiveTypeConverterSanitizers.SanitizerInfos.AddRange(AnySanitizers.SanitizerInfos),
+                    // which is the same set as SinkKind.Sql. Delegate the call to SinkKind.Sql to avoid computing
+                    // separate hash sets for identical cases.
+                    sanitizerInfo = GetSanitizerInfos(SinkKind.Sql);
+                    break;
+
+                case SinkKind.Sql:
+                    sanitizerInfo = PrimitiveTypeConverterSanitizers.SanitizerInfos.AddRange(AnySanitizers.SanitizerInfos);
+                    break;
 
                 case SinkKind.Xss:
-                    return XssSanitizers.SanitizerInfos;
+                    sanitizerInfo = XssSanitizers.SanitizerInfos.AddRange(PrimitiveTypeConverterSanitizers.SanitizerInfos).AddRange(AnySanitizers.SanitizerInfos);
+                    break;
 
                 case SinkKind.Ldap:
-                    return LdapSanitizers.SanitizerInfos;
+                    sanitizerInfo = LdapSanitizers.SanitizerInfos.AddRange(AnySanitizers.SanitizerInfos);
+                    break;
 
                 case SinkKind.Xml:
-                    return PrimitiveTypeConverterSanitizers.SanitizerInfos.Union(XmlSanitizers.SanitizerInfos);
+                    sanitizerInfo = XmlSanitizers.SanitizerInfos.AddRange(PrimitiveTypeConverterSanitizers.SanitizerInfos).AddRange(AnySanitizers.SanitizerInfos);
+                    break;
 
                 case SinkKind.Dll:
                 case SinkKind.InformationDisclosure:
@@ -240,15 +294,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Xaml:
                 case SinkKind.HardcodedEncryptionKey:
                 case SinkKind.HardcodedCertificate:
-                    return ImmutableHashSet<SanitizerInfo>.Empty;
+                    sanitizerInfo = AnySanitizers.SanitizerInfos;
+                    break;
 
                 case SinkKind.ZipSlip:
-                    return ZipSlipSanitizers.SanitizerInfos;
+                    sanitizerInfo = ZipSlipSanitizers.SanitizerInfos.AddRange(AnySanitizers.SanitizerInfos);
+                    break;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");
                     return ImmutableHashSet<SanitizerInfo>.Empty;
             }
+
+            return ImmutableInterlocked.GetOrAdd(ref s_sinkKindToSanitizerInfo, sinkKind, sanitizerInfo);
         }
 
         private static ImmutableHashSet<SinkInfo> GetSinkInfos(SinkKind sinkKind)

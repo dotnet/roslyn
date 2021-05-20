@@ -2,34 +2,34 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AddSharedAttribute">
+        <source>Add 'Shared' attribute</source>
+        <target state="translated">'Shared' özniteliği ekleme</target>
+        <note>{Locked="Shared"}</note>
+      </trans-unit>
+      <trans-unit id="ApplyTraitToContainingType">
+        <source>Apply trait to containing type</source>
+        <target state="translated">İçeren türe özellik uygulama</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeCodeFixTitle">
         <source>Remove the 'Opt' suffix</source>
-        <target state="new">Remove the 'Opt' suffix</target>
+        <target state="translated">'Opt' sonekini kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeDescription">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code.</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code.</target>
+        <target state="translated">Null atanabilir özellikli bir kodda 'Opt' sonekinden kaçının.</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeMessage">
         <source>Avoid the 'Opt' suffix in a nullable-enabled code</source>
-        <target state="new">Avoid the 'Opt' suffix in a nullable-enabled code</target>
+        <target state="translated">Null atanabilir özellikli bir kodda 'Opt' sonekinden kaçının</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
-        <target state="new">Avoid the 'Opt' suffix</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Birden çok boş satırdan kaçının</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">Ayraçlar arasında boş satırlar olmamalıdır</target>
+        <target state="translated">'Opt' sonekinden kaçının</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
@@ -97,6 +97,26 @@
         <target state="translated">Değeri kopyalamayın</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceDescription">
+        <source>Cannot assign a value from a reference to a non-copyable type.</source>
+        <target state="translated">Kopyalanamayan türe yönelik bir başvurudan değer atanamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAssignValueFromReferenceMessage">
+        <source>Cannot assign a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">'{0}' kopyalanamayan türüne yönelik bir başvurudan değer atanamaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
+        <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
+        <target state="translated">Otomatik özellikler her zaman değerleri kopyalar, bu nedenle kopyalanabilir olmayan türlerle bildirilemez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
+        <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">'{1}' otomatik özelliği kopyalanabilir olmayan '{0}' türüne sahip olamaz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
         <source>Do not box non-copyable value types.</source>
         <target state="translated">Kopyalanabilir olmayan değer türlerini kutuya eklemeyin.</target>
@@ -105,6 +125,26 @@
       <trans-unit id="DoNotCopyValueNoBoxingMessage">
         <source>Do not box non-copyable type '{0}'</source>
         <target state="translated">Kopyalanabilir olmayan '{0}' türünü kutuya eklemeyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
+        <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
+        <target state="translated">Kopyalanabilir olmayan bir tür içeren alan, kopyalanabilir türün bir üyesi olamaz. Kapsayan tür, kopyalanabilir olmayan hale getirilebilir veya bir başvuru türüne dönüştürülebilir ya da alan kaldırılabilir ya da kopyalanabilir bir türe dönüştürülebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
+        <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="translated">'{1}' kopyalanabilir alanı, kopyalanabilir olmayan '{0}' türüne sahip olamaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
+        <source>Cannot return a value from a reference to a non-copyable type.</source>
+        <target state="translated">Kopyalanamayan türe yönelik bir başvurudan değer döndürülemez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceMessage">
+        <source>Cannot return a value from a reference to non-copyable type '{0}'</source>
+        <target state="translated">'{0}' kopyalanamayan türüne yönelik bir başvurudan değer döndürülemez</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoUnboxingDescription">
@@ -164,17 +204,17 @@
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingDescription">
         <source>Expose member for testing.</source>
-        <target state="translated">Üyeyi test amacıyla kullanıma sunun.</target>
+        <target state="translated">Test için üyeyi kullanıma sunun.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingMessage">
         <source>Expose member for testing</source>
-        <target state="translated">Test için üyeyi kullanıma sun</target>
+        <target state="translated">Test için üyeyi kullanıma sunun</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingTitle">
         <source>Expose member for testing</source>
-        <target state="translated">Test için üyeyi kullanıma sun</target>
+        <target state="translated">Test için üyeyi kullanıma sunun</target>
         <note />
       </trans-unit>
       <trans-unit id="FixNumberedComments">
@@ -229,7 +269,7 @@
       </trans-unit>
       <trans-unit id="NamedTypeFullNameNotNullSuppressorJustification">
         <source>The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</source>
-        <target state="new">The 'Type.FullName' property is never null when using the syntax 'typeof(T).FullName'</target>
+        <target state="translated">'typeof(T).FullName' söz dizimi kullanılırken 'Type.FullName' özelliği hiçbir zaman null olmaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferNullLiteralCodeFix">
@@ -257,15 +297,20 @@
         <target state="translated">Asenkron test metotları için 'Async' soneki gerekmez</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">Küme ayraçları arasındaki boş satırları kaldır</target>
-        <note />
+      <trans-unit id="TemporaryArrayAsRefDescription">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() örneği bir 'using' değişkeni olmalıdır.</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">Fazladan boş satırları kaldır</target>
-        <note />
+      <trans-unit id="TemporaryArrayAsRefMessage">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() örneği bir 'using' değişkeni olmalıdır</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
+      </trans-unit>
+      <trans-unit id="TemporaryArrayAsRefTitle">
+        <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">TemporaryArray&lt;T&gt;.AsRef() örneği bir 'using' değişkeni olmalıdır</target>
+        <note>{Locked="TemporaryArray&lt;T&gt;.AsRef()"}{Locked="using"}</note>
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableCodeFix">
         <source>Apply 'PartNotDiscoverableAttribute'</source>
@@ -405,11 +450,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">'{0}', MEFv2 ile dışarı aktarıldığından 'SharedAttribute' ile işaretlenmelidir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">Deyimler kendi satırına yerleştirilmelidir</target>
         <note />
       </trans-unit>
     </body>

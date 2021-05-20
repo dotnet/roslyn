@@ -16,7 +16,7 @@ namespace Analyzer.Utilities
     internal static class EditorConfigParser
     {
         // Matches EditorConfig property such as "indent_style = space", see http://editorconfig.org for details
-        private static readonly Regex s_propertyMatcher = new Regex(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
+        private static readonly Regex s_propertyMatcher = new(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
 
         private static readonly StringComparer s_keyComparer = CaseInsensitiveComparison.Comparer;
 
@@ -92,7 +92,7 @@ namespace Analyzer.Utilities
             {
                 if (!char.IsWhiteSpace(c))
                 {
-                    return c == '#' || c == ';';
+                    return c is '#' or ';';
                 }
             }
 

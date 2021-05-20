@@ -48,10 +48,10 @@ namespace System
         }
 
         /// <summary>Create an Index pointing at first element.</summary>
-        public static Index Start => new Index(0);
+        public static Index Start => new(0);
 
         /// <summary>Create an Index pointing at beyond last element.</summary>
-        public static Index End => new Index(~0);
+        public static Index End => new(~0);
 
         /// <summary>Create an Index from the start at the position indicated by the value.</summary>
         /// <param name="value">The index value from the start.</param>
@@ -118,8 +118,8 @@ namespace System
         }
 
         /// <summary>Indicates whether the current Index object is equal to another object of the same type.</summary>
-        /// <param name="value">An object to compare with this object</param>
-        public override bool Equals(object? value) => value is Index index && _value == index._value;
+        /// <param name="obj">An object to compare with this object</param>
+        public override bool Equals(object? obj) => obj is Index index && _value == index._value;
 
         /// <summary>Indicates whether the current Index object is equal to another Index object.</summary>
         /// <param name="other">An object to compare with this object</param>
@@ -128,11 +128,9 @@ namespace System
         /// <summary>Returns the hash code for this instance.</summary>
         public override int GetHashCode() => _value;
 
-
         /// <summary>Converts integer number to an Index.</summary>
         [SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "Matches implementation from dotnet/runtime")]
         public static implicit operator Index(int value) => FromStart(value);
-
 
         /// <summary>Converts the value of the current Index object to its equivalent string representation.</summary>
         [SuppressMessage("Globalization", "CA1305:Specify IFormatProvider", Justification = "Matches implementation from dotnet/runtime")]

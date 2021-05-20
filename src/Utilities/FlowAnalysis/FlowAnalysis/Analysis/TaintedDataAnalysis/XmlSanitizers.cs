@@ -41,7 +41,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "XmlEncode",
                 });
 
-
             // Consider SecurityElement.Escape().
 
             SanitizerInfos = builder.ToImmutableAndFree();

@@ -23,17 +23,13 @@ namespace Test.Utilities
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
-                    var project = solution.GetProject(projectId)!;
-                    var parseOptions = (VisualBasicParseOptions)project.ParseOptions!;
-                    solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
                     if (AnalyzerConfigDocument is not null)
                     {
                         solution = solution.AddAnalyzerConfigDocument(
                             DocumentId.CreateNewId(projectId, debugName: ".editorconfig"),
                             ".editorconfig",
                             SourceText.From($"is_global = true" + Environment.NewLine + AnalyzerConfigDocument),
-                            filePath: @"z:\.editorconfig");
+                            filePath: @"/.editorconfig");
                     }
 
                     return solution;
@@ -43,6 +39,11 @@ namespace Test.Utilities
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic15_5;
 
             public string? AnalyzerConfigDocument { get; set; }
+
+            protected override ParseOptions CreateParseOptions()
+            {
+                return ((VisualBasicParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
+            }
         }
     }
 }

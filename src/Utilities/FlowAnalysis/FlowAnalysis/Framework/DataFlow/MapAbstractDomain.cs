@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         protected AbstractValueDomain<TValue> ValueDomain { get; }
-        public override DictionaryAnalysisData<TKey, TValue> Clone(DictionaryAnalysisData<TKey, TValue> value) => new DictionaryAnalysisData<TKey, TValue>(value);
+        public override DictionaryAnalysisData<TKey, TValue> Clone(DictionaryAnalysisData<TKey, TValue> value) => new(value);
 
         /// <summary>
         /// Compares if the abstract dataflow values in <paramref name="oldValue"/> against the values in <paramref name="newValue"/> to ensure
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 var key = kvp.Key;
                 var value = kvp.Value;
-                if (!newValue.TryGetValue(key, out TValue otherValue))
+                if (!newValue.TryGetValue(key, out var otherValue))
                 {
                     FireNonMonotonicAssertIfNeeded(assertMonotonicity);
                     return 1;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var result = new DictionaryAnalysisData<TKey, TValue>(value1);
             foreach (var entry in value2)
             {
-                if (result.TryGetValue(entry.Key, out TValue value))
+                if (result.TryGetValue(entry.Key, out var value))
                 {
                     value = ValueDomain.Merge(value, entry.Value);
 

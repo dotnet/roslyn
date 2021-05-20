@@ -32,10 +32,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult? pointsToAnalysisResult,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             Func<PropertySetAnalysisContext, PropertySetAnalysisResult?> tryGetOrComputeAnalysisResult,
-            ControlFlowGraph? parentControlFlowGraphOpt,
-            InterproceduralPropertySetAnalysisData? interproceduralAnalysisDataOpt,
+            ControlFlowGraph? parentControlFlowGraph,
+            InterproceduralPropertySetAnalysisData? interproceduralAnalysisData,
             ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
             PropertyMapperCollection propertyMappers,
@@ -51,13 +51,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                   pessimisticAnalysis,
                   predicateAnalysis: false,
                   exceptionPathsAnalysis: false,
-                  copyAnalysisResultOpt: null,
+                  copyAnalysisResult: null,
                   pointsToAnalysisResult,
-                  valueContentAnalysisResultOpt,
+                  valueContentAnalysisResult,
                   tryGetOrComputeAnalysisResult,
-                  parentControlFlowGraphOpt,
-                  interproceduralAnalysisDataOpt,
-                  interproceduralAnalysisPredicateOpt: null)
+                  parentControlFlowGraph,
+                  interproceduralAnalysisData,
+                  interproceduralAnalysisPredicate: null)
         {
             this.TypeToTrackMetadataNames = typeToTrackMetadataNames;
             this.ConstructorMapper = constructorMapper;
@@ -75,7 +75,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             PointsToAnalysisResult? pointsToAnalysisResult,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             Func<PropertySetAnalysisContext, PropertySetAnalysisResult?> tryGetOrComputeAnalysisResult,
             ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
@@ -91,10 +91,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 interproceduralAnalysisConfig,
                 pessimisticAnalysis,
                 pointsToAnalysisResult,
-                valueContentAnalysisResultOpt,
+                valueContentAnalysisResult,
                 tryGetOrComputeAnalysisResult,
-                parentControlFlowGraphOpt: null,
-                interproceduralAnalysisDataOpt: null,
+                parentControlFlowGraph: null,
+                interproceduralAnalysisData: null,
                 typeToTrackMetadataNames: typeToTrackMetadataNames,
                 constructorMapper: constructorMapper,
                 propertyMappers: propertyMappers,
@@ -105,14 +105,13 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         public override PropertySetAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
             ControlFlowGraph invokedCfg,
-            IOperation operation,
-            PointsToAnalysisResult? pointsToAnalysisResultOpt,
-            CopyAnalysisResult? copyAnalysisResultOpt,
-            ValueContentAnalysisResult? valueContentAnalysisResultOpt,
+            PointsToAnalysisResult? pointsToAnalysisResult,
+            CopyAnalysisResult? copyAnalysisResult,
+            ValueContentAnalysisResult? valueContentAnalysisResult,
             InterproceduralPropertySetAnalysisData? interproceduralAnalysisData)
         {
-            Debug.Assert(pointsToAnalysisResultOpt != null);
-            Debug.Assert(copyAnalysisResultOpt == null);
+            Debug.Assert(pointsToAnalysisResult != null);
+            Debug.Assert(copyAnalysisResult == null);
 
             return new PropertySetAnalysisContext(
                 ValueDomain,
@@ -122,8 +121,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 AnalyzerOptions,
                 InterproceduralAnalysisConfiguration,
                 PessimisticAnalysis,
-                pointsToAnalysisResultOpt,
-                valueContentAnalysisResultOpt,
+                pointsToAnalysisResult,
+                valueContentAnalysisResult,
                 TryGetOrComputeAnalysisResult,
                 ControlFlowGraph,
                 interproceduralAnalysisData,
@@ -156,14 +155,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         public ImmutableDictionary<(INamedTypeSymbol, bool), string> HazardousUsageTypesToNames { get; }
 
-#pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {
-            addPart(TypeToTrackMetadataNames.GetHashCode());
-            addPart(ConstructorMapper.GetHashCode());
-            addPart(PropertyMappers.GetHashCode());
-            addPart(HazardousUsageEvaluators.GetHashCode());
+            hashCode.Add(TypeToTrackMetadataNames.GetHashCode());
+            hashCode.Add(ConstructorMapper.GetHashCode());
+            hashCode.Add(PropertyMappers.GetHashCode());
+            hashCode.Add(HazardousUsageEvaluators.GetHashCode());
         }
-#pragma warning restore CA1307 // Specify StringComparison
+
+        protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<PropertySetAnalysisData, PropertySetAnalysisContext, PropertySetAnalysisResult, PropertySetAbstractValue> obj)
+        {
+            var other = (PropertySetAnalysisContext)obj;
+            return TypeToTrackMetadataNames.GetHashCode() == other.TypeToTrackMetadataNames.GetHashCode()
+                && ConstructorMapper.GetHashCode() == other.ConstructorMapper.GetHashCode()
+                && PropertyMappers.GetHashCode() == other.PropertyMappers.GetHashCode()
+                && HazardousUsageEvaluators.GetHashCode() == other.HazardousUsageEvaluators.GetHashCode();
+        }
     }
 }

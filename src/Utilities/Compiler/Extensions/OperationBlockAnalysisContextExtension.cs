@@ -11,7 +11,7 @@ namespace Analyzer.Utilities.Extensions
     internal static class OperationBlockAnalysisContextExtension
     {
 #pragma warning disable RS1012 // Start action has no registered actions.
-        public static bool IsMethodNotImplementedOrSupported(this OperationBlockStartAnalysisContext context)
+        public static bool IsMethodNotImplementedOrSupported(this OperationBlockStartAnalysisContext context, bool checkPlatformNotSupported = false)
 #pragma warning restore RS1012 // Start action has no registered actions.
         {
             // Note that VB method bodies with 1 action have 3 operations.
@@ -53,8 +53,10 @@ namespace Analyzer.Utilities.Extensions
                     descendants[0] is IThrowOperation throwOperation &&
                     throwOperation.GetThrownExceptionType() is ITypeSymbol createdExceptionType)
                 {
-                    if (Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotImplementedException), createdExceptionType.OriginalDefinition)
-                        || Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotSupportedException), createdExceptionType.OriginalDefinition))
+                    if (Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotImplementedException), createdExceptionType.OriginalDefinition) ||
+                        Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotSupportedException), createdExceptionType.OriginalDefinition) ||
+                        (checkPlatformNotSupported &&
+                        Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemPlatformNotSupportedException), createdExceptionType.OriginalDefinition)))
                     {
                         return true;
                     }

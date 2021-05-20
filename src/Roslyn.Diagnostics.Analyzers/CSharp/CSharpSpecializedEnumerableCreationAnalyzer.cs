@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -54,7 +56,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
                             AnalyzeInitializerExpression(((ImplicitArrayCreationExpressionSyntax)expression).Initializer, context.ReportDiagnostic);
                             break;
                         case SyntaxKind.SimpleMemberAccessExpression:
-                            AnalyzeMemberAccessName(((MemberAccessExpressionSyntax)expression).Name, context.SemanticModel, context.ReportDiagnostic);
+                            AnalyzeMemberAccessName(((MemberAccessExpressionSyntax)expression).Name, context.SemanticModel, context.ReportDiagnostic, context.CancellationToken);
                             break;
                     }
                 }
@@ -62,16 +64,13 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
 
             private bool ShouldAnalyzeExpression(SyntaxNode expression, SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                switch (expression.Kind())
+                return expression.Kind() switch
                 {
-                    case SyntaxKind.ArrayCreationExpression:
-                    case SyntaxKind.ImplicitArrayCreationExpression:
-                        return ShouldAnalyzeArrayCreationExpression(expression, semanticModel, cancellationToken);
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        return true;
-                    default:
-                        return false;
-                }
+                    SyntaxKind.ArrayCreationExpression
+                    or SyntaxKind.ImplicitArrayCreationExpression => ShouldAnalyzeArrayCreationExpression(expression, semanticModel, cancellationToken),
+                    SyntaxKind.SimpleMemberAccessExpression => true,
+                    _ => false,
+                };
             }
 
             private static void AnalyzeArrayCreationExpression(ArrayCreationExpressionSyntax arrayCreationExpression, Action<Diagnostic> addDiagnostic)

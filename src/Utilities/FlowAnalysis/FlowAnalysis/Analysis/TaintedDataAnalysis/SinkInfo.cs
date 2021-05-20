@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
@@ -57,14 +58,26 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public bool RequiresValueContentAnalysis => false;
 
+        /// <summary>
+        /// Indicates that <see cref="OperationKind.ParameterReference"/> is required.
+        /// </summary>
+        public bool RequiresParameterReferenceAnalysis => false;
+
+        /// <summary>
+        /// Qualified names of the optional dependency types.
+        /// </summary>
+        public ImmutableArray<string> DependencyFullTypeNames => ImmutableArray<string>.Empty;
+
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.SinkProperties,
-                HashUtilities.Combine(this.SinkMethodParameters,
-                HashUtilities.Combine(StringComparer.Ordinal.GetHashCode(this.FullTypeName),
-                HashUtilities.Combine(this.SinkKinds,
-                HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                this.IsAnyStringParameterInConstructorASink.GetHashCode())))));
+            var hashCode = new RoslynHashCode();
+            HashUtilities.Combine(this.SinkProperties, ref hashCode);
+            HashUtilities.Combine(this.SinkMethodParameters, ref hashCode);
+            hashCode.Add(StringComparer.Ordinal.GetHashCode(this.FullTypeName));
+            HashUtilities.Combine(this.SinkKinds, ref hashCode);
+            hashCode.Add(this.IsInterface.GetHashCode());
+            hashCode.Add(this.IsAnyStringParameterInConstructorASink.GetHashCode());
+            return hashCode.ToHashCode();
         }
 
         public override bool Equals(object obj)

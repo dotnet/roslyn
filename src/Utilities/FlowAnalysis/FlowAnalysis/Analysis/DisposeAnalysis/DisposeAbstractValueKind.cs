@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         /// <summary>
         /// Indicates disposable locations that have escaped the declaring method's scope.
         /// For example, a disposable allocation assigned to a field/property or
-        /// escped as a return value for a function, or assigned to a ref or out parameter, etc.
+        /// escaped as a return value for a function, or assigned to a ref or out parameter, etc.
         /// </summary>
         Escaped,
 

@@ -18,13 +18,16 @@ namespace Analyzer.Utilities
     {
         private readonly bool _shouldCheckLambdas;
         private readonly string? _enablingMethodAttributeFullyQualifiedName;
+        private readonly bool _allowExcludedSymbolNames;
 
         private bool RequiresAttributeOnMethod => !string.IsNullOrEmpty(_enablingMethodAttributeFullyQualifiedName);
 
-        protected DoNotCatchGeneralUnlessRethrownAnalyzer(bool shouldCheckLambdas, string? enablingMethodAttributeFullyQualifiedName = null)
+        protected DoNotCatchGeneralUnlessRethrownAnalyzer(bool shouldCheckLambdas, string? enablingMethodAttributeFullyQualifiedName = null,
+            bool allowExcludedSymbolNames = false)
         {
             _shouldCheckLambdas = shouldCheckLambdas;
             _enablingMethodAttributeFullyQualifiedName = enablingMethodAttributeFullyQualifiedName;
+            _allowExcludedSymbolNames = allowExcludedSymbolNames;
         }
 
         protected abstract Diagnostic CreateDiagnostic(IMethodSymbol containingMethod, SyntaxToken catchKeyword);
@@ -33,12 +36,12 @@ namespace Analyzer.Utilities
             return false;
         }
 
-        public override void Initialize(AnalysisContext analysisContext)
+        public override void Initialize(AnalysisContext context)
         {
-            analysisContext.EnableConcurrentExecution();
-            analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
 
-            analysisContext.RegisterCompilationStartAction(compilationStartAnalysisContext =>
+            context.RegisterCompilationStartAction(compilationStartAnalysisContext =>
             {
                 INamedTypeSymbol? requiredAttributeType = null;
                 if (RequiresAttributeOnMethod && (requiredAttributeType = GetRequiredAttributeType(compilationStartAnalysisContext.Compilation)) == null)
@@ -62,6 +65,12 @@ namespace Analyzer.Utilities
                         return;
                     }
 
+                    if (_allowExcludedSymbolNames &&
+                        operationBlockAnalysisContext.Options.IsConfiguredToSkipAnalysis(SupportedDiagnostics[0], method, operationBlockAnalysisContext.Compilation, operationBlockAnalysisContext.CancellationToken))
+                    {
+                        return;
+                    }
+
                     foreach (var operation in operationBlockAnalysisContext.OperationBlocks)
                     {
                         var walker = new DisallowGeneralCatchUnlessRethrowWalker(IsDisallowedCatchType, _shouldCheckLambdas);
@@ -77,7 +86,6 @@ namespace Analyzer.Utilities
                         disallowedCatchTypes.Contains(type) ||
                         IsConfiguredDisallowedExceptionType(type, method, compilationStartAnalysisContext.Compilation,
                             compilationStartAnalysisContext.Options, compilationStartAnalysisContext.CancellationToken);
-
                 });
             });
         }
@@ -105,7 +113,7 @@ namespace Analyzer.Utilities
         {
             private readonly Func<INamedTypeSymbol, bool> _isDisallowedCatchType;
             private readonly bool _checkAnonymousFunctions;
-            private readonly Stack<bool> _seenRethrowInCatchClauses = new Stack<bool>();
+            private readonly Stack<bool> _seenRethrowInCatchClauses = new();
 
             public ISet<ICatchClauseOperation> CatchClausesForDisallowedTypesWithoutRethrow { get; } = new HashSet<ICatchClauseOperation>();
 

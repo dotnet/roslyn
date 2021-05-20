@@ -17,7 +17,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCallGetTestAccessorMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotCallGetTestAccessorDescription), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static readonly DiagnosticDescriptor DoNotCallGetTestAccessorRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor DoNotCallGetTestAccessorRule = new(
             RoslynDiagnosticIds.DoNotCallGetTestAccessorRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -36,8 +36,8 @@ namespace Roslyn.Diagnostics.Analyzers
 
             context.RegisterOperationBlockStartAction(context =>
             {
-                if (!string.Equals(context.OwningSymbol.Name, CreateTestAccessor.GetTestAccessorMethodName, StringComparison.Ordinal)
-                    && !string.Equals(context.OwningSymbol.ContainingType?.Name, CreateTestAccessor.TestAccessorTypeName, StringComparison.Ordinal))
+                if (!string.Equals(context.OwningSymbol.Name, TestAccessorHelper.GetTestAccessorMethodName, StringComparison.Ordinal)
+                    && !string.Equals(context.OwningSymbol.ContainingType?.Name, TestAccessorHelper.TestAccessorTypeName, StringComparison.Ordinal))
                 {
                     context.RegisterOperationAction(HandleMemberReference, OperationKinds.MemberReference);
                     context.RegisterOperationAction(HandleInvocation, OperationKind.Invocation);
@@ -49,7 +49,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private void HandleMemberReference(OperationAnalysisContext context)
         {
             var memberReference = (IMemberReferenceOperation)context.Operation;
-            if (string.Equals(memberReference.Member.ContainingType?.Name, CreateTestAccessor.TestAccessorTypeName, StringComparison.Ordinal))
+            if (string.Equals(memberReference.Member.ContainingType?.Name, TestAccessorHelper.TestAccessorTypeName, StringComparison.Ordinal))
             {
                 context.ReportDiagnostic(memberReference.Syntax.CreateDiagnostic(DoNotCallGetTestAccessorRule));
             }
@@ -58,12 +58,12 @@ namespace Roslyn.Diagnostics.Analyzers
         private void HandleInvocation(OperationAnalysisContext context)
         {
             var invocation = (IInvocationOperation)context.Operation;
-            if (invocation.TargetMethod.Name.Equals(CreateTestAccessor.GetTestAccessorMethodName, StringComparison.Ordinal))
+            if (invocation.TargetMethod.Name.Equals(TestAccessorHelper.GetTestAccessorMethodName, StringComparison.Ordinal))
             {
                 // Calling a type's GetTestAccessor method
                 context.ReportDiagnostic(invocation.Syntax.CreateDiagnostic(DoNotCallGetTestAccessorRule));
             }
-            else if (string.Equals(invocation.TargetMethod.ContainingType?.Name, CreateTestAccessor.TestAccessorTypeName, StringComparison.Ordinal))
+            else if (string.Equals(invocation.TargetMethod.ContainingType?.Name, TestAccessorHelper.TestAccessorTypeName, StringComparison.Ordinal))
             {
                 // Calling a static method of a TestAccessor type
                 context.ReportDiagnostic(invocation.Syntax.CreateDiagnostic(DoNotCallGetTestAccessorRule));
@@ -73,7 +73,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private void HandleObjectCreation(OperationAnalysisContext context)
         {
             var objectCreation = (IObjectCreationOperation)context.Operation;
-            if (objectCreation.Type.Name.Equals(CreateTestAccessor.TestAccessorTypeName, StringComparison.Ordinal))
+            if (objectCreation.Type.Name.Equals(TestAccessorHelper.TestAccessorTypeName, StringComparison.Ordinal))
             {
                 // Directly constructing a TestAccessor instance
                 context.ReportDiagnostic(objectCreation.Syntax.CreateDiagnostic(DoNotCallGetTestAccessorRule));

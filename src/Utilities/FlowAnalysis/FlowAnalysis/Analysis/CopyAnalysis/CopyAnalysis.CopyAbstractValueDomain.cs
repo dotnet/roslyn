@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// </summary>
         private sealed class CopyAbstractValueDomain : AbstractValueDomain<CopyAbstractValue>
         {
-            public static CopyAbstractValueDomain Default = new CopyAbstractValueDomain();
+            public static CopyAbstractValueDomain Default = new();
             private readonly SetAbstractDomain<AnalysisEntity> _entitiesDomain = SetAbstractDomain<AnalysisEntity>.Default;
 
             private CopyAbstractValueDomain() { }
@@ -55,11 +55,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 {
                     return value1;
                 }
-                else if (value1.Kind == CopyAbstractValueKind.Invalid || value1.Kind == CopyAbstractValueKind.NotApplicable)
+                else if (value1.Kind is CopyAbstractValueKind.Invalid or CopyAbstractValueKind.NotApplicable)
                 {
                     return value2;
                 }
-                else if (value2.Kind == CopyAbstractValueKind.Invalid || value2.Kind == CopyAbstractValueKind.NotApplicable)
+                else if (value2.Kind is CopyAbstractValueKind.Invalid or CopyAbstractValueKind.NotApplicable)
                 {
                     return value1;
                 }

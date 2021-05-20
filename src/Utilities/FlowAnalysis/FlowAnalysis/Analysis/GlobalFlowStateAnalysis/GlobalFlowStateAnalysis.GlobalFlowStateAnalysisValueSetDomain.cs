@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
     {
         internal class GlobalFlowStateAnalysisValueSetDomain : AbstractValueDomain<GlobalFlowStateAnalysisValueSet>
         {
-            public static GlobalFlowStateAnalysisValueSetDomain Instance = new GlobalFlowStateAnalysisValueSetDomain();
+            public static GlobalFlowStateAnalysisValueSetDomain Instance = new();
 
             private GlobalFlowStateAnalysisValueSetDomain() { }
 
@@ -79,7 +80,36 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 Debug.Assert(value1.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
                 Debug.Assert(value2.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
 
-                return new GlobalFlowStateAnalysisValueSet(value1, value2);
+                // Perform some early bail out checks.
+                if (Equals(value1, value2))
+                {
+                    return value1;
+                }
+
+                if (value1.Height == 0 && value1.AnalysisValues.IsSubsetOf(value2.AnalysisValues))
+                {
+                    return value2;
+                }
+
+                if (value2.Height == 0 && value2.AnalysisValues.IsSubsetOf(value1.AnalysisValues))
+                {
+                    return value1;
+                }
+
+                // Check if value1 and value2 are negations of each other.
+                // If so, the analysis values nullify each other and we return an empty set.
+                if (value1.Height == value2.Height &&
+                    value1.AnalysisValues.Count == value2.AnalysisValues.Count &&
+                    Equals(value1, value2.GetNegatedValue()))
+                {
+                    return GlobalFlowStateAnalysisValueSet.Empty;
+                }
+
+                // Create a new value set with value1 and value2 as parent sets.
+                return GlobalFlowStateAnalysisValueSet.Create(
+                    ImmutableHashSet<IAbstractAnalysisValue>.Empty,
+                    ImmutableHashSet.Create(value1, value2),
+                    height: Math.Max(value1.Height, value2.Height) + 1);
             }
 
             public static GlobalFlowStateAnalysisValueSet Intersect(GlobalFlowStateAnalysisValueSet value1, GlobalFlowStateAnalysisValueSet value2)
@@ -215,7 +245,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                     }
                     else
                     {
-                        result = new GlobalFlowStateAnalysisValueSet(sets, value1.Parents, value1.Height, GlobalFlowStateAnalysisValueSetKind.Known);
+                        result = GlobalFlowStateAnalysisValueSet.Create(sets, value1.Parents, value1.Height);
                     }
 
                     return true;

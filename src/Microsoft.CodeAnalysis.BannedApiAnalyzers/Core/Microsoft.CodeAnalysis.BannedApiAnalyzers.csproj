@@ -6,7 +6,7 @@
       PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.BannedApiAnalyzer,
       Restore would conclude that there is a cyclic dependency between us and the Microsoft.CodeAnalysis.BannedApiAnalyzer package.
     -->
-    <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
+    <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <MicrosoftCodeAnalysisVersion>2.9.0</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
   <ItemGroup>

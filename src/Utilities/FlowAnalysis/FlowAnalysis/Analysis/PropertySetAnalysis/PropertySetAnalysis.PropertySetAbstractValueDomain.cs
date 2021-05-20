@@ -13,7 +13,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </summary>
         private class PropertySetAbstractValueDomain : AbstractValueDomain<PropertySetAbstractValue>
         {
-            public static PropertySetAbstractValueDomain Default = new PropertySetAbstractValueDomain();
+            public static PropertySetAbstractValueDomain Default = new();
 
             private PropertySetAbstractValueDomain() { }
 
@@ -57,20 +57,14 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 // The PropertySetAbstractValue indexer allows accessing beyond KnownValuesCount (returns Unknown),
                 // so looping through the max of the two KnownValuesCount.
                 int maxKnownCount = Math.Max(value1.KnownValuesCount, value2.KnownValuesCount);
-                ArrayBuilder<PropertySetAbstractValueKind> builder = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(maxKnownCount);
-                try
-                {
-                    for (int i = 0; i < maxKnownCount; i++)
-                    {
-                        builder.Add(MergeKind(value1[i], value2[i]));
-                    }
+                using ArrayBuilder<PropertySetAbstractValueKind> builder = ArrayBuilder<PropertySetAbstractValueKind>.GetInstance(maxKnownCount);
 
-                    return PropertySetAbstractValue.GetInstance(builder);
-                }
-                finally
+                for (int i = 0; i < maxKnownCount; i++)
                 {
-                    builder.Free();
+                    builder.Add(MergeKind(value1[i], value2[i]));
                 }
+
+                return PropertySetAbstractValue.GetInstance(builder);
             }
 
             private static PropertySetAbstractValueKind MergeKind(PropertySetAbstractValueKind kind1, PropertySetAbstractValueKind kind2)

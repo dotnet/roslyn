@@ -47,6 +47,25 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     "UpdateCommand",
                 },
                 sinkMethodParameters: null);
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.MicrosoftEntityFrameworkCoreRelationalQueryableExtensions,
+                SinkKind.Sql,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( "FromSql", new[] { "sql", } ),
+                });
+
+            sinkInfosBuilder.AddSinkInfo(
+                WellKnownTypeNames.SystemDataEntityDbSet1,
+                SinkKind.Sql,
+                isInterface: false,
+                isAnyStringParameterInConstructorASink: false,
+                sinkProperties: null,
+                sinkMethodParameters: new[] {
+                    ( "SqlQuery", new[] { "sql", } ),
+                });
 
             SinkInfos = sinkInfosBuilder.ToImmutableAndFree();
         }
