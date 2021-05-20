@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
@@ -95,21 +96,15 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             {
                 try
                 {
-                    var items = await _valueTrackingService.TrackValueSourceAsync(Workspace.CurrentSolution, _trackedItem, ThreadingContext.DisposalToken).ConfigureAwait(false);
+                    var children = await CalculateChildrenAsync(ThreadingContext.DisposalToken).ConfigureAwait(false);
 
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                     ChildItems.Clear();
 
-                    foreach (var valueTrackedItem in items)
+                    foreach (var child in children)
                     {
-                        ChildItems.Add(new ValueTrackedTreeItemViewModel(
-                                valueTrackedItem,
-                                _solution,
-                                TreeViewModel,
-                                _glyphService,
-                                _valueTrackingService,
-                                ThreadingContext));
+                        ChildItems.Add(child);
                     }
                 }
                 finally
@@ -134,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var options = Workspace.Options
                 .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
                 .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
-                
+
             navigationService.TryNavigateToSpan(Workspace, DocumentId, _trackedItem.Span, options, ThreadingContext.DisposalToken);
         }
 
@@ -145,8 +140,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 _trackedItem,
                 cancellationToken).ConfigureAwait(false);
 
-            // TODO: Use pooled item here? 
-            var builder = new List<ValueTrackingTreeItemViewModel>();
+            var builder = ImmutableArray.CreateBuilder<TreeItemViewModel>(valueTrackedItems.Length);
+
             foreach (var valueTrackedItem in valueTrackedItems)
             {
                 var document = _solution.GetRequiredDocument(valueTrackedItem.DocumentId);
