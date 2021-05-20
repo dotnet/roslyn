@@ -2372,8 +2372,8 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+将 "f" 格式说明符用作提供给 ParseExact、TryParseExact、ParseExact 或 TryParseExact 方法的格式字符串的一部分时，"f" 格式说明符的数目指示能够成功分析的字符串的秒部分的最高有效位的最大数目。</target>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
