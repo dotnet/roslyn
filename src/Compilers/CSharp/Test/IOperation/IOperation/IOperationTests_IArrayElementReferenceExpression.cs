@@ -458,7 +458,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'C' to 'int'
                 //         var a = /*<bind>*/args[c]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "args[c]").WithArguments("C", "int").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c").WithArguments("C", "int").WithLocation(6, 27)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -495,7 +495,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'C' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         var a = /*<bind>*/args[c]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "args[c]").WithArguments("C", "int").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c").WithArguments("C", "int").WithLocation(6, 27)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
