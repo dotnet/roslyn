@@ -3063,8 +3063,7 @@ class C
 
         if (array[[||]o] > 0) {}
     }
-}
-",
+}",
                 @"
 class C
 {
