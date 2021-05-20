@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
-    internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
+    internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
     {
         private class MoveTypeEditor : Editor
         {
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     documentEditor, removeAttributesAndComments: true, removeTypeInheritance: true);
 
                 // remove things that are not being moved, from the forked document.
-                var membersToRemove = GetMembersToRemove(root);
+                var membersToRemove = GetMembersToRemove(root, document.GetRequiredLanguageService<ISyntaxFactsService>());
                 foreach (var member in membersToRemove)
                     documentEditor.RemoveNode(member, SyntaxRemoveOptions.KeepNoTrivia);
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// </summary>
             /// <param name="root">root, of the syntax tree of forked document</param>
             /// <returns>list of syntax nodes, to be removed from the forked copy.</returns>
-            private ISet<SyntaxNode> GetMembersToRemove(SyntaxNode root)
+            private ISet<SyntaxNode> GetMembersToRemove(SyntaxNode root, ISyntaxFactsService syntaxFacts)
             {
                 var spine = new HashSet<SyntaxNode>();
 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 // get potential namespace, types and members to remove.
                 var removableCandidates = root
                     .DescendantNodes(n => spine.Contains(n))
-                    .Where(n => FilterToTopLevelMembers(n, State.TypeNode)).ToSet();
+                    .Where(n => IsRemovable(n, State.TypeNode, syntaxFacts)).ToSet();
 
                 // diff candidates with items we want to keep.
                 removableCandidates.ExceptWith(spine);
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 return removableCandidates;
             }
 
-            private static bool FilterToTopLevelMembers(SyntaxNode node, SyntaxNode typeNode)
+            private static bool IsRemovable(SyntaxNode node, SyntaxNode typeNode, ISyntaxFactsService syntaxFacts)
             {
                 // We never filter out the actual node we're trying to keep around.
                 if (node == typeNode)
@@ -242,9 +242,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     return false;
                 }
 
-                return node is TTypeDeclarationSyntax or
-                       TMemberDeclarationSyntax or
-                       TNamespaceDeclarationSyntax;
+                // IsTypeDeclaration handles ClassBlock but not ClassStatement for VB.
+                // IsNamespaceMemberDeclaration does the opposite.
+                if (syntaxFacts.IsTypeDeclaration(node) ||
+                    syntaxFacts.IsNamespaceMemberDeclaration(node))
+                {
+                    return true;
+                }
+
+                // Filter nodes outside typeNode.
+                return !typeNode.Span.Contains(node.Span) && syntaxFacts.IsDeclaration(node);
             }
 
             /// <summary>

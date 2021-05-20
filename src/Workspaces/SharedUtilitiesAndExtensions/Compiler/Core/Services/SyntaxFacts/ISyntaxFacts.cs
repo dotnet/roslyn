@@ -99,6 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsGlobalModuleAttribute([NotNullWhen(true)] SyntaxNode? node);
         bool IsDeclaration(SyntaxNode node);
         bool IsTypeDeclaration(SyntaxNode node);
+        bool IsNamespaceMemberDeclaration(SyntaxNode node);
 
         bool IsRegularComment(SyntaxTrivia trivia);
         bool IsDocumentationComment(SyntaxTrivia trivia);

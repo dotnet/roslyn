@@ -1408,5 +1408,39 @@ record CacheContext(String Message);
 
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
+
+        [WorkItem(51564, "https://github.com/dotnet/roslyn/issues/51564")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task TestMoveNestedClassWithoutDuplicatingMembers()
+        {
+            var code = @"
+public class Outer
+{
+    private int i;
+
+    [||]public class Inner
+    {
+    }
+}
+";
+            var codeAfterMove = @"
+public partial class Outer
+{
+    private int i;
+}
+";
+
+            var expectedDocumentName = "Inner.cs";
+            var destinationDocumentText = @"
+public partial class Outer
+{
+    public class Inner
+    {
+    }
+}
+";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
     }
 }

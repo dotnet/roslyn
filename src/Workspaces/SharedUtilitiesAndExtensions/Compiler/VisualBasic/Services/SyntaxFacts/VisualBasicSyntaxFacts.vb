@@ -2454,5 +2454,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function IsVerbatimInterpolatedStringExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVerbatimInterpolatedStringExpression
             Return False
         End Function
+
+        Public Function IsNamespaceMemberDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamespaceMemberDeclaration
+            Return SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind())
+        End Function
     End Class
 End Namespace
