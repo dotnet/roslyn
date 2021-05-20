@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var property = left.MemberSymbol;
                     Debug.Assert(property.MemberIndexOpt!.Value >= 0 && property.MemberIndexOpt.Value < anonymousType.Properties.Length);
-                    valueTemps[property.MemberIndexOpt.Value] =  valueTemp;
+                    valueTemps[property.MemberIndexOpt.Value] = valueTemp;
                 }
 
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(anonymousType.Properties.Length);
