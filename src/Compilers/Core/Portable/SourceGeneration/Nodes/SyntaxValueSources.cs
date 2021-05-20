@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -21,12 +22,18 @@ namespace Microsoft.CodeAnalysis
             _registerOutput = registerOutput;
         }
 
-        // PROTOTYPE(source-generators): Minimum exposed, low-level API for now, we can add more as needed
+        /// <summary>
+        /// Creates an <see cref="IncrementalValueSource{T}"/> that can provide a transform over <see cref="SyntaxNode"/>s
+        /// </summary>
+        /// <typeparam name="T">The type of the value the syntax node is transformed into</typeparam>
+        /// <param name="filterFunc">A function that determines if the given <see cref="SyntaxNode"/> should be transformed</param>
+        /// <param name="transformFunc">A function that performs the transform, when <paramref name="filterFunc"/>returns <c>true</c> for a given node</param>
+        /// <returns>An <see cref="IncrementalValueSource{T}"/> that provides the results of the transformation</returns>
         public IncrementalValueSource<T> Transform<T>(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
         {
-            var node = new SyntaxInputNode<T>(filterFunc, transformFunc);
-            _inputNodes.Add(node);
-            return new IncrementalValueSource<T>(node, _registerOutput);
+            var node = new SyntaxInputNode<T>(filterFunc, transformFunc, RegisterInput, _registerOutput);
+            // registration of the input is deferred until we know the node is used
+            return new IncrementalValueSource<T>(node, node.RegisterOutputNode);
         }
 
         /// <summary>
@@ -37,6 +44,14 @@ namespace Microsoft.CodeAnalysis
             var node = new SyntaxReceiverInputNode(creator);
             _inputNodes.Add(node);
             return new IncrementalValueSource<ISyntaxContextReceiver>(node, _registerOutput);
+        }
+
+        private void RegisterInput(ISyntaxInputNode node)
+        {
+            if (!_inputNodes.Contains(node))
+            {
+                _inputNodes.Add(node);
+            }
         }
     }
 }

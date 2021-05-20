@@ -13,13 +13,17 @@ namespace Microsoft.CodeAnalysis
     internal sealed class SyntaxInputNode<T> : IIncrementalGeneratorNode<T>, ISyntaxInputNode
     {
         private readonly Func<GeneratorSyntaxContext, T> _transformFunc;
+        private readonly Action<ISyntaxInputNode> _registerSyntaxInput;
+        private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
         private readonly Func<SyntaxNode, bool> _filterFunc;
         private readonly IEqualityComparer<T> _comparer;
         private readonly object _filterKey = new object();
 
-        internal SyntaxInputNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc, IEqualityComparer<T>? comparer = null)
+        internal SyntaxInputNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc, Action<ISyntaxInputNode> registerSyntaxInput, Action<IIncrementalGeneratorOutputNode> registerOutput, IEqualityComparer<T>? comparer = null)
         {
             _transformFunc = transformFunc;
+            _registerSyntaxInput = registerSyntaxInput;
+            _registerOutput = registerOutput;
             _filterFunc = filterFunc;
             _comparer = comparer ?? EqualityComparer<T>.Default;
         }
@@ -29,9 +33,17 @@ namespace Microsoft.CodeAnalysis
             return (NodeStateTable<T>)graphState.GetSyntaxInputTable(this);
         }
 
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, comparer);
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _registerSyntaxInput, _registerOutput, comparer);
 
         public ISyntaxInputBuilder GetBuilder(DriverStateTable table) => new Builder(this, table);
+
+        public void RegisterOutputNode(IIncrementalGeneratorOutputNode output)
+        {
+            // We don't want to record a syntax input node until we know its actually being used
+            // so we defer registration until an output is registered by wrapping the registration function
+            _registerOutput(output);
+            _registerSyntaxInput(this);
+        }
 
         private sealed class Builder : ISyntaxInputBuilder
         {

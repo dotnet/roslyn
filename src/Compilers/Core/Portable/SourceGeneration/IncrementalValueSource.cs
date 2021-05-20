@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         internal IncrementalValueSource(IIncrementalGeneratorNode<T> node, Action<IIncrementalGeneratorOutputNode> registerOutput)
         {
             this.Node = node;
-            this.RegisterOutput = registerOutput;
+            this.RegisterOutput = node is SyntaxInputNode<T> sin ? sin.RegisterOutputNode : registerOutput;
         }
     }
 }

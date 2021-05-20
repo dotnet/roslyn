@@ -1198,6 +1198,191 @@ class F
             Assert.Single(fieldsCalledFor, "fieldD");
         }
 
+        [Fact]
+        public void IncrementalGenerator_With_Syntax_Filter_Can_Have_Comparer()
+        {
+            var source1 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldA = null; 
+    string fieldB = null;
+    string fieldC = null;
+}
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            List<string> calledFor = new List<string>();
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                source.GenerateSource((spc, fieldName) =>
+                {
+                    calledFor.Add(fieldName);
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, calledFor);
+
+            // when we run it again, we get the same fields called for
+            // even though they were cached, because of our comparer
+            calledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, calledFor);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_With_Syntax_Filter_And_Comparer_Doesnt_Do_Duplicate_Work()
+        {
+            var source1 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldA = null; 
+    string fieldB = null;
+    string fieldC = null;
+}
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            List<string> syntaxCalledFor = new List<string>();
+
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c =>
+                {
+                    syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                    return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
+                });
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                source.GenerateSource((spc, fieldName) => { });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            // verify we only call the syntax transform once, even though we created multiple nodes via the withComparer
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, syntaxCalledFor);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_With_Syntax_Filter_And_Comparer_Can_Feed_Two_Outputs()
+        {
+            var source1 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldA = null; 
+    string fieldB = null;
+    string fieldC = null;
+}
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            List<string> syntaxCalledFor = new List<string>();
+            List<string> noCompareCalledFor = new List<string>();
+            List<string> compareCalledFor = new List<string>();
+
+
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c =>
+                {
+                    syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                    return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
+                });
+
+                source.GenerateSource((spc, fieldName) =>
+                {
+                    noCompareCalledFor.Add(fieldName);
+                });
+
+                var comparerSource = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+                comparerSource.GenerateSource((spc, fieldName) =>
+                {
+                    compareCalledFor.Add(fieldName);
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            // verify we ran the syntax transform twice, one for each output, even though we duplicated them
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC", "fieldA", "fieldB", "fieldC" }, syntaxCalledFor);
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, noCompareCalledFor);
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, compareCalledFor);
+
+            // now, when we re-run, both transforms will run, but only the comparare output will re-run
+            syntaxCalledFor.Clear();
+            noCompareCalledFor.Clear();
+            compareCalledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC", "fieldA", "fieldB", "fieldC" }, syntaxCalledFor);
+            Assert.Empty(noCompareCalledFor);
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, compareCalledFor);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_With_Syntax_Filter_Can_Feed_Two_Outputs()
+        {
+            var source1 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldA = null; 
+    string fieldB = null;
+    string fieldC = null;
+}
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            List<string> syntaxCalledFor = new List<string>();
+            List<string> output1CalledFor = new List<string>();
+            List<string> output2CalledFor = new List<string>();
+
+
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c =>
+                {
+                    syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                    return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
+                });
+
+                source.GenerateSource((spc, fieldName) =>
+                {
+                    output1CalledFor.Add("Output1_" + fieldName);
+                });
+
+                source.GenerateSource((spc, fieldName) =>
+                {
+                    output2CalledFor.Add("Output2_" + fieldName);
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            // verify we ran the syntax transform once, but fed both outputs
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC", }, syntaxCalledFor);
+            Assert.Equal(new[] { "Output1_fieldA", "Output1_fieldB", "Output1_fieldC" }, output1CalledFor);
+            Assert.Equal(new[] { "Output2_fieldA", "Output2_fieldB", "Output2_fieldC" }, output2CalledFor);
+        }
+
         private class TestReceiverBase<T>
         {
             private readonly Action<T>? _callback;
