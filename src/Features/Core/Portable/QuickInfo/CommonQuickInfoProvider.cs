@@ -12,12 +12,27 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     internal abstract class CommonQuickInfoProvider : QuickInfoProvider
     {
         protected abstract Task<QuickInfoItem?> BuildQuickInfoAsync(QuickInfoContext context, SyntaxToken token);
+        protected abstract Task<QuickInfoItem?> BuildQuickInfoAsync(CommonQuickInfoContext context, SyntaxToken token);
 
         public override async Task<QuickInfoItem?> GetQuickInfoAsync(QuickInfoContext context)
         {
             var cancellationToken = context.CancellationToken;
             var tree = await context.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var tokens = await GetTokensAsync(tree, context.Position, context.CancellationToken).ConfigureAwait(false);
+
+            foreach (var token in tokens)
+            {
+                var info = await GetQuickInfoAsync(context, token).ConfigureAwait(false);
+                if (info != null)
+                    return info;
+            }
+
+            return null;
+        }
+
+        public async Task<QuickInfoItem?> GetQuickInfoAsync(CommonQuickInfoContext context)
+        {
+            var tokens = await GetTokensAsync(context.SemanticModel.SyntaxTree, context.Position, context.CancellationToken).ConfigureAwait(false);
 
             foreach (var token in tokens)
             {
@@ -53,6 +68,19 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
         private async Task<QuickInfoItem?> GetQuickInfoAsync(
             QuickInfoContext context,
+            SyntaxToken token)
+        {
+            if (token != default &&
+                token.Span.IntersectsWith(context.Position))
+            {
+                return await BuildQuickInfoAsync(context, token).ConfigureAwait(false);
+            }
+
+            return null;
+        }
+
+        private async Task<QuickInfoItem?> GetQuickInfoAsync(
+            CommonQuickInfoContext context,
             SyntaxToken token)
         {
             if (token != default &&

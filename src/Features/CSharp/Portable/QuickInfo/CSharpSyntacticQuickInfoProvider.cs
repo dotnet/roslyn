@@ -25,9 +25,17 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         {
         }
 
-        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
+        protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
             QuickInfoContext context,
             SyntaxToken token)
+            => Task.FromResult(BuildQuickInfo(token));
+
+        protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
+            CommonQuickInfoContext context,
+            SyntaxToken token)
+            => Task.FromResult(BuildQuickInfo(token));
+
+        private static QuickInfoItem? BuildQuickInfo(SyntaxToken token)
         {
             if (token.Kind() != SyntaxKind.CloseBraceToken)
             {
@@ -67,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             // encode document spans that correspond to the text to show
-            var text = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             var spans = ImmutableArray.Create(TextSpan.FromBounds(spanStart, spanEnd));
             return QuickInfoItem.Create(token.Span, relatedSpans: spans);
         }

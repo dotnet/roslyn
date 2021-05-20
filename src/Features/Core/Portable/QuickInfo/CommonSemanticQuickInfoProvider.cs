@@ -18,30 +18,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 {
     internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInfoProvider
     {
-        public async Task<QuickInfoItem?> GetQuickInfoAsync(CommonQuickInfoContext context)
-        {
-            var tree = context.SemanticModel.SyntaxTree;
-            var cancellationToken = context.CancellationToken;
-            var tokens = await GetTokensAsync(tree, context.Position, cancellationToken).ConfigureAwait(false);
-            if (tokens.Length == 0)
-                return null;
-
-            foreach (var token in tokens)
-            {
-                var semanticModel = context.SemanticModel;
-                var tokenInformation = BindToken(context.Workspace, semanticModel, token, cancellationToken);
-                if (tokenInformation.Symbols.IsDefaultOrEmpty)
-                    continue;
-
-                var item = await CreateContentAsync(
-                    context.Workspace, semanticModel, token, tokenInformation, supportedPlatforms: null, cancellationToken).ConfigureAwait(false);
-                if (item != null)
-                    return item;
-            }
-
-            return null;
-        }
-
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
             QuickInfoContext context, SyntaxToken token)
         {
@@ -53,6 +29,17 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             return await CreateContentAsync(
                 context.Document.Project.Solution.Workspace, semanticModel, token, tokenInformation, supportedPlatforms, cancellationToken).ConfigureAwait(false);
+        }
+
+        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
+            CommonQuickInfoContext context, SyntaxToken token)
+        {
+            var tokenInformation = BindToken(context.Workspace, context.SemanticModel, token, context.CancellationToken);
+            if (tokenInformation.Symbols.IsDefaultOrEmpty)
+                return null;
+
+            return await CreateContentAsync(
+                context.Workspace, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, context.CancellationToken).ConfigureAwait(false);
         }
 
         private async Task<(TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
