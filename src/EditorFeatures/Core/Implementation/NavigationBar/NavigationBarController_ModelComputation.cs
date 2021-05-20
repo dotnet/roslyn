@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             if (document == null)
                 return null;
 
-            // TODO: remove .FirstOrDefault()
             var languageService = document.GetLanguageService<INavigationBarItemService>();
             if (languageService != null)
             {

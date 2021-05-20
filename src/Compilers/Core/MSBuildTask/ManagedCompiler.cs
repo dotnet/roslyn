@@ -56,9 +56,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal abstract RequestLanguage Language { get; }
 
         public ManagedCompiler()
+            : base(ErrorString.ResourceManager)
         {
-            TaskResources = ErrorString.ResourceManager;
-
             // If there is a crash, the runtime error is output to stderr and
             // we want MSBuild to print it out regardless of verbosity.
             LogStandardErrorAsError = true;
@@ -489,6 +488,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
+            using var logger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+        }
+
+        internal int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
+        {
             if (ProvideCommandLineArgs)
             {
                 CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
@@ -502,10 +507,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                using var logger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+                var requestId = Guid.NewGuid();
+                logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
+
                 string workingDir = CurrentDirectoryToUse();
                 string? tempDir = BuildServerConnection.GetTempPath(workingDir);
-                var requestId = Guid.NewGuid();
 
                 if (!UseSharedCompilation ||
                     HasToolBeenOverridden ||
@@ -557,9 +563,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e)
             {
-                var util = new TaskLoggingHelper(this);
-                util.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                util.LogErrorFromException(e, showStackTrace: true, showDetail: true, file: null);
+                Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
+                Log.LogErrorFromException(e);
                 ExitCode = -1;
             }
             finally

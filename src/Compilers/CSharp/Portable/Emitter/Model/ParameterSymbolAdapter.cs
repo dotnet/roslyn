@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
         {
             return ((PEModuleBuilder)context.Module).Translate(AdaptedParameterSymbol.Type,
-                                                      syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                      syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                       diagnostics: context.Diagnostics);
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return ((PEModuleBuilder)context.Module).CreateConstant(type, constant.Value,
-                                                           syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                                                           syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                            diagnostics: context.Diagnostics);
         }
 

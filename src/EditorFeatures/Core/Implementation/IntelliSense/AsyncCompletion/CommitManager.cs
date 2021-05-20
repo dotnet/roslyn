@@ -195,8 +195,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            var disallowAddingImports = session.Properties.ContainsProperty(CompletionSource.DisallowAddingImports);
-
             CompletionChange change;
 
             // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not cancelled.
@@ -204,7 +202,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // See https://github.com/dotnet/roslyn/issues/38455.
             try
             {
-                change = completionService.GetChangeAsync(document, roslynItem, completionListSpan, commitCharacter, disallowAddingImports, cancellationToken).WaitAndGetResult(cancellationToken);
+                // Cached items have a span computed at the point they were created.  This span may no 
+                // longer be valid when used again.  In that case, override the span with the latest span
+                // for the completion list itself.
+                if (roslynItem.Flags.IsCached())
+                    roslynItem.Span = completionListSpan;
+
+                change = completionService.GetChangeAsync(document, roslynItem, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken && FatalError.ReportAndCatch(e))
             {

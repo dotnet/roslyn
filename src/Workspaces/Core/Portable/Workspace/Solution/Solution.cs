@@ -1730,6 +1730,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns a new Solution that will always produce a specific output for a generated file. This is used only in the
+        /// implementation of <see cref="TextExtensions.GetOpenDocumentInCurrentContextWithChanges"/> where if a user has a source
+        /// generated file open, we need to make sure everything lines up.
+        /// </summary>
+        internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
+        {
+            var newState = _state.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+            var newSolution = newState != _state ? new Solution(newState) : this;
+            var newDocumentState = newState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
+            Contract.ThrowIfNull(newDocumentState, "Because we just froze this document, it should always exist.");
+            var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
+            return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
+        }
+
+        /// <summary>
         /// Gets an objects that lists the added, changed and removed projects between
         /// this solution and the specified solution.
         /// </summary>

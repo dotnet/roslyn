@@ -333,6 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.ArrowExpressionClause:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     // These statement types end in a semicolon. 
                     // if the original caret was inside any delimiters, `caret` will be after the outermost delimiter
                     targetPosition = caret;
@@ -392,87 +393,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             => currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression, SyntaxKind.CharacterLiteralExpression)
                 && caret.Position < currentNode.Span.End
                 && caret.Position > currentNode.SpanStart;
-
-        private static bool SemicolonIsMissing(SyntaxNode currentNode)
-        {
-            switch (currentNode.Kind())
-            {
-                case SyntaxKind.LocalDeclarationStatement:
-                    return ((LocalDeclarationStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ReturnStatement:
-                    return ((ReturnStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.VariableDeclaration:
-                    return SemicolonIsMissing(currentNode.Parent);
-                case SyntaxKind.ThrowStatement:
-                    return ((ThrowStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.DoStatement:
-                    return ((DoStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.FieldDeclaration:
-                    return ((FieldDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ForStatement:
-                    return ((ForStatementSyntax)currentNode).FirstSemicolonToken.IsMissing;
-                case SyntaxKind.ExpressionStatement:
-                    return ((ExpressionStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.EmptyStatement:
-                    return ((EmptyStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.GotoStatement:
-                    return ((GotoStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.BreakStatement:
-                    return ((BreakStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ContinueStatement:
-                    return ((ContinueStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.YieldReturnStatement:
-                case SyntaxKind.YieldBreakStatement:
-                    return ((YieldStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.LocalFunctionStatement:
-                    return ((LocalFunctionStatementSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.NamespaceDeclaration:
-                    return ((NamespaceDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.UsingDirective:
-                    return ((UsingDirectiveSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ExternAliasDirective:
-                    return ((ExternAliasDirectiveSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.InterfaceDeclaration:
-                    return ((InterfaceDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.EnumDeclaration:
-                    return ((EnumDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.DelegateDeclaration:
-                    return ((DelegateDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.EventFieldDeclaration:
-                    return ((EventFieldDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.MethodDeclaration:
-                    return ((MethodDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.OperatorDeclaration:
-                    return ((OperatorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    return ((ConversionOperatorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.ConstructorDeclaration:
-                    return ((ConstructorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.BaseConstructorInitializer:
-                case SyntaxKind.ThisConstructorInitializer:
-                    return ((ConstructorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.DestructorDeclaration:
-                    return ((DestructorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                case SyntaxKind.AddAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)currentNode).SemicolonToken.IsMissing;
-                default:
-                    // At this point, the node should be empty or its children should not end with a semicolon.
-                    Debug.Assert(!currentNode.ChildNodesAndTokens().Any()
-                        || !currentNode.ChildNodesAndTokens().Last().IsKind(SyntaxKind.SemicolonToken));
-                    return false;
-            }
-        }
 
         /// <summary>
         /// Determines if a statement ends with a closing delimiter, and that closing delimiter exists.

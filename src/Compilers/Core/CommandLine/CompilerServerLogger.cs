@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.CommandLine
@@ -112,7 +111,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public CompilerServerLogger(string identifier)
         {
             _identifier = identifier;
-            var processId = Process.GetCurrentProcess().Id;
 
             try
             {
@@ -124,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // Otherwise, assume that the environment variable specifies the name of the log file.
                     if (Directory.Exists(loggingFileName))
                     {
+                        var processId = Process.GetCurrentProcess().Id;
                         loggingFileName = Path.Combine(loggingFileName, $"server.{processId}.log");
                     }
 

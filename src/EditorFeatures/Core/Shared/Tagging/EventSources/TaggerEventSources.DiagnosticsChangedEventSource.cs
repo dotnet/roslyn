@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             private readonly ITextBuffer _subjectBuffer;
             private readonly IDiagnosticService _service;
 
-            public DiagnosticsChangedEventSource(ITextBuffer subjectBuffer, IDiagnosticService service, TaggerDelay delay)
-                : base(delay)
+            public DiagnosticsChangedEventSource(ITextBuffer subjectBuffer, IDiagnosticService service)
             {
                 _subjectBuffer = subjectBuffer;
                 _service = service;

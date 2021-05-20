@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             private readonly Document _document;
             private readonly IThreadingContext _threadingContext;
             private readonly IStreamingFindUsagesPresenter _presenter;
-            private readonly IWaitIndicator _waitIndicator;
+            private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
             public NavigableSymbol(
                 ImmutableArray<DefinitionItem> definitions,
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 Document document,
                 IThreadingContext threadingContext,
                 IStreamingFindUsagesPresenter streamingPresenter,
-                IWaitIndicator waitIndicator)
+                IUIThreadOperationExecutor uiThreadOperationExecutor)
             {
                 Contract.ThrowIfFalse(definitions.Length > 0);
 
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 SymbolSpan = symbolSpan;
                 _threadingContext = threadingContext;
                 _presenter = streamingPresenter;
-                _waitIndicator = waitIndicator;
+                _uiThreadOperationExecutor = uiThreadOperationExecutor;
             }
 
             public SnapshotSpan SymbolSpan { get; }
@@ -50,10 +51,10 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 SpecializedCollections.SingletonEnumerable(PredefinedNavigableRelationships.Definition);
 
             public void Navigate(INavigableRelationship relationship) =>
-                _waitIndicator.Wait(
+                _uiThreadOperationExecutor.Execute(
                     title: EditorFeaturesResources.Go_to_Definition,
-                    message: EditorFeaturesResources.Navigating_to_definition,
-                    allowCancel: true,
+                    defaultDescription: EditorFeaturesResources.Navigating_to_definition,
+                    allowCancellation: true,
                     showProgress: false,
                     action: context => GoToDefinitionHelpers.TryGoToDefinition(
                         _definitions,
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                         _definitions[0].NameDisplayParts.GetFullText(),
                         _threadingContext,
                         _presenter,
-                        context.CancellationToken));
+                        context.UserCancellationToken));
         }
     }
 }

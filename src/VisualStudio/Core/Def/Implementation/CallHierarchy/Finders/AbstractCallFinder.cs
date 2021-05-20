@@ -114,12 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         {
             if (scope == CallHierarchySearchScope.CurrentDocument || scope == CallHierarchySearchScope.CurrentProject)
             {
-                var documentTrackingService = project.Solution.Workspace.Services.GetService<IDocumentTrackingService>();
-                if (documentTrackingService == null)
-                {
-                    return null;
-                }
-
+                var documentTrackingService = project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
                 var activeDocument = documentTrackingService.TryGetActiveDocument();
                 if (activeDocument != null)
                 {
