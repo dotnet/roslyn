@@ -383,10 +383,18 @@ class Bad : Bad
     [System.ComponentModel.Description(""The F method""), System.ComponentModel.Category(""Methods"")]
     static string F() { return string.Empty; }
 }";
+            var source3 =
+@"class C
+{
+    static void Main() { }
+    [System.ComponentModel.Browsable(false), System.ComponentModel.Description(""The F method""), System.ComponentModel.Category(""Methods"")]
+    static string F() { return string.Empty; }
+}";
 
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
+            var compilation3 = compilation1.WithSource(source3);
 
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
 
@@ -455,8 +463,6 @@ class Bad : Bad
             var reader2 = md2.Reader;
             readers = new[] { reader0, reader1, reader2 };
 
-            var y = Visualize(generation0.OriginalMetadata, md1, md2);
-
             CheckNames(readers, reader2.GetTypeDefNames());
             CheckNames(readers, reader2.GetMethodDefNames(), "F");
             CheckNames(readers, reader2.GetMemberRefNames(), /*DescriptionAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*String.*/"Empty");
@@ -490,6 +496,55 @@ class Bad : Bad
                 Handle(5, TableIndex.CustomAttribute),
                 Handle(3, TableIndex.StandAloneSig),
                 Handle(3, TableIndex.AssemblyRef));
+
+            var method3 = compilation3.GetMember<MethodSymbol>("C.F");
+            var diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method2, method3)));
+
+            // Verify delta metadata contains expected rows.
+            using var md3 = diff3.GetMetadata();
+            var reader3 = md3.Reader;
+            readers = new[] { reader0, reader1, reader2, reader3 };
+
+            var y = Visualize(generation0.OriginalMetadata, md1, md2, md3);
+            CheckNames(readers, reader3.GetTypeDefNames());
+            CheckNames(readers, reader3.GetMethodDefNames(), "F");
+            CheckNames(readers, reader3.GetMemberRefNames(), /*BrowsableAttribute*/".ctor", /*DescriptionAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*String.*/"Empty");
+
+            CheckEncLog(reader3,
+                Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(11, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(14, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 4, updating the existing custom attribute
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 5, updating a row that was new in Generation 2
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 6, adding a new CustomAttribute
+
+            CheckEncMap(reader3,
+                Handle(14, TableIndex.TypeRef),
+                Handle(15, TableIndex.TypeRef),
+                Handle(16, TableIndex.TypeRef),
+                Handle(17, TableIndex.TypeRef),
+                Handle(18, TableIndex.TypeRef),
+                Handle(2, TableIndex.MethodDef),
+                Handle(11, TableIndex.MemberRef),
+                Handle(12, TableIndex.MemberRef),
+                Handle(13, TableIndex.MemberRef),
+                Handle(14, TableIndex.MemberRef),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(5, TableIndex.CustomAttribute),
+                Handle(6, TableIndex.CustomAttribute),
+                Handle(4, TableIndex.StandAloneSig),
+                Handle(4, TableIndex.AssemblyRef));
         }
 
         [Fact]
