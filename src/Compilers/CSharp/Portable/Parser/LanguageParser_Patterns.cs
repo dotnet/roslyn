@@ -541,7 +541,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 closeKind: SyntaxKind.CloseBraceToken,
                 out bool isPropertyPatternClause);
             var kind = isPropertyPatternClause ? SyntaxKind.PropertyPatternClause : SyntaxKind.ListPatternClause;
-            return _syntaxFactory.PropertyPatternClause(kind, openBraceToken, subPatterns, closeBraceToken);
+            var result = _syntaxFactory.PropertyPatternClause(kind, openBraceToken, subPatterns, closeBraceToken);
+            if (!isPropertyPatternClause)
+                result = CheckFeatureAvailability(result, MessageID.IDS_FeatureListPattern);
+            return result;
         }
 
         private void ParseSubpatternList(

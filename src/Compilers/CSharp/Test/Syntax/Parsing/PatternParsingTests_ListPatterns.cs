@@ -735,7 +735,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is {{}}");
             verify();
 
-            UsingExpression(@"c is {{}}", TestOptions.Regular9);
+            UsingExpression(@"c is {{}}", TestOptions.Regular9,
+                // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // c is {{}}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "{{}}").WithArguments("list pattern").WithLocation(1, 6));
             verify();
 
             void verify()
@@ -831,6 +834,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verify();
 
             UsingExpression(@"c is {..}", TestOptions.Regular9,
+                // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // c is {..}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "{..}").WithArguments("list pattern").WithLocation(1, 6),
                 // (1,7): error CS8652: The feature 'slice pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // c is {..}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "..").WithArguments("slice pattern").WithLocation(1, 7));
