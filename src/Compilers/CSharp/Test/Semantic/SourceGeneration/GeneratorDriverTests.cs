@@ -1460,10 +1460,10 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.RegisterOutput(ctx.Sources.Compilation.GenerateSource((spc, c) =>
+                ctx.Sources.Compilation.GenerateSource((spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
-                }));
+                });
             }));
 
             // run the generator once, and check it was passed the compilation
@@ -1498,15 +1498,15 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.RegisterOutput(ctx.Sources.Compilation.GenerateSource((spc, c) =>
+                ctx.Sources.Compilation.GenerateSource((spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
-                }));
+                });
 
-                ctx.RegisterOutput(ctx.Sources.AdditionalTexts.GenerateSource((spc, c) =>
+                ctx.Sources.AdditionalTexts.GenerateSource((spc, c) =>
                 {
                     textsCalledFor.Add(c);
-                }));
+                });
             }));
 
 
@@ -1561,10 +1561,10 @@ class C { }
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
                 var compilationSource = ctx.Sources.Compilation.WithComparer(new LambdaComparer<Compilation>((c1, c2) => true, 0));
-                ctx.RegisterOutput(compilationSource.GenerateSource((spc, c) =>
+                compilationSource.GenerateSource((spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
-                }));
+                });
             }));
 
             // run the generator once, and check it was passed the compilation
@@ -1599,9 +1599,7 @@ class C { }
                 ic.RegisterForPostInitialization(c => c.AddSource("a", "class D {}"));
                 ic.RegisterExecutionPipeline(pc =>
                 {
-                    pc.RegisterOutput(
-                        pc.Sources.Syntax.Transform(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node).GenerateSource((spc, node) => classes.Add(node))
-                    );
+                    pc.Sources.Syntax.Transform(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node).GenerateSource((spc, node) => classes.Add(node));
                 });
             }));
 

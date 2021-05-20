@@ -20,10 +20,12 @@ namespace Microsoft.CodeAnalysis
     public readonly struct IncrementalValueSource<T>
     {
         internal readonly IIncrementalGeneratorNode<T> Node;
+        internal readonly Action<IIncrementalGeneratorOutputNode> RegisterOutput;
 
-        internal IncrementalValueSource(IIncrementalGeneratorNode<T> node)
+        internal IncrementalValueSource(IIncrementalGeneratorNode<T> node, Action<IIncrementalGeneratorOutputNode> registerOutput)
         {
             this.Node = node;
+            this.RegisterOutput = registerOutput;
         }
     }
 }

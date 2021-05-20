@@ -861,10 +861,10 @@ class C
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
-                context.RegisterOutput(source.GenerateSource((spc, fieldName) =>
+                source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
-                }));
+                });
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
@@ -902,16 +902,16 @@ class classD
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
-                context.RegisterOutput(source.GenerateSource((spc, fieldName) =>
+                source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
-                }));
+                });
 
                 var source2 = context.Sources.Syntax.Transform(c => c is ClassDeclarationSyntax fds, c => ((ClassDeclarationSyntax)c.Node).Identifier.ValueText);
-                context.RegisterOutput(source2.GenerateSource((spc, className) =>
+                source2.GenerateSource((spc, className) =>
                 {
                     spc.AddSource(className, "");
-                }));
+                });
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
@@ -945,11 +945,11 @@ class C
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
-                context.RegisterOutput(source.GenerateSource((spc, fieldName) =>
+                source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
                     fieldsCalledFor.Add(fieldName);
-                }));
+                });
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
@@ -1018,11 +1018,11 @@ class D
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
-                context.RegisterOutput(source.GenerateSource((spc, fieldName) =>
+                source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
                     fieldsCalledFor.Add(fieldName);
-                }));
+                });
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
@@ -1086,11 +1086,11 @@ class D
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
-                context.RegisterOutput(source.GenerateSource((spc, fieldName) =>
+                source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
                     fieldsCalledFor.Add(fieldName);
-                }));
+                });
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
@@ -1154,11 +1154,11 @@ class E
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
-                context.RegisterOutput(source.GenerateSource((spc, fieldName) =>
+                source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
                     fieldsCalledFor.Add(fieldName);
-                }));
+                });
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);

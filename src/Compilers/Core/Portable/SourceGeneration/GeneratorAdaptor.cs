@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                                            .Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() });
                 }
 
-                var output = contextBuilderSource.GenerateSource((productionContext, contextBuilder) =>
+                contextBuilderSource.GenerateSource((productionContext, contextBuilder) =>
                 {
                     var generatorExecutionContext = contextBuilder.ToExecutionContext(productionContext.CancellationToken);
 
@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis
                     generatorExecutionContext.CopyToProductionContext(productionContext);
                     generatorExecutionContext.Free();
                 });
-                executionContext.RegisterOutput(output);
             });
         }
 
