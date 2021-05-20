@@ -377,14 +377,16 @@ class Bad : Bad
     static string F() { return string.Empty; }
 }";
             var source2 =
-@"class C
+@"[System.ComponentModel.Browsable(false)]
+class C
 {
     static void Main() { }
     [System.ComponentModel.Description(""The F method""), System.ComponentModel.Category(""Methods"")]
     static string F() { return string.Empty; }
 }";
             var source3 =
-@"class C
+@"[System.ComponentModel.Browsable(false)]
+class C
 {
     static void Main() { }
     [System.ComponentModel.Browsable(false), System.ComponentModel.Description(""The F method""), System.ComponentModel.Category(""Methods"")]
@@ -456,44 +458,54 @@ class Bad : Bad
             var method2 = compilation2.GetMember<MethodSymbol>("C.F");
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2)));
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, compilation1.GetMember("C"), compilation2.GetMember("C")),
+                    SemanticEdit.Create(SemanticEditKind.Update, method1, method2)));
 
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
             var reader2 = md2.Reader;
             readers = new[] { reader0, reader1, reader2 };
 
-            CheckNames(readers, reader2.GetTypeDefNames());
+            CheckNames(readers, reader2.GetTypeDefNames(), "C");
             CheckNames(readers, reader2.GetMethodDefNames(), "F");
-            CheckNames(readers, reader2.GetMemberRefNames(), /*DescriptionAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*String.*/"Empty");
+            CheckNames(readers, reader2.GetMemberRefNames(), /*DescriptionAttribute*/".ctor", /*BrowsableAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*String.*/"Empty");
 
-            Assert.Equal(2, reader2.CustomAttributes.Count);
+            Assert.Equal(3, reader2.CustomAttributes.Count);
 
             CheckEncLog(reader2,
                 Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                 Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(11, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),  // Row 4, updating the existing custom attribute
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 5, adding a new CustomAttribute
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),  // Row 5, adding a new CustomAttribute
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 6 adding a new CustomAttribute
 
             CheckEncMap(reader2,
                 Handle(10, TableIndex.TypeRef),
                 Handle(11, TableIndex.TypeRef),
                 Handle(12, TableIndex.TypeRef),
                 Handle(13, TableIndex.TypeRef),
+                Handle(14, TableIndex.TypeRef),
+                Handle(2, TableIndex.TypeDef),
                 Handle(2, TableIndex.MethodDef),
                 Handle(8, TableIndex.MemberRef),
                 Handle(9, TableIndex.MemberRef),
                 Handle(10, TableIndex.MemberRef),
+                Handle(11, TableIndex.MemberRef),
                 Handle(4, TableIndex.CustomAttribute),
                 Handle(5, TableIndex.CustomAttribute),
+                Handle(6, TableIndex.CustomAttribute),
                 Handle(3, TableIndex.StandAloneSig),
                 Handle(3, TableIndex.AssemblyRef));
 
@@ -514,20 +526,20 @@ class Bad : Bad
 
             CheckEncLog(reader3,
                 Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(11, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(13, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(14, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(15, TableIndex.MemberRef, EditAndContinueOperation.Default),
                 Row(15, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(16, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(17, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(18, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(19, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 4, updating the existing custom attribute
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 5, updating a row that was new in Generation 2
-                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 6, adding a new CustomAttribute
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 7, adding a new CustomAttribute, and skipping row 6 which is not for this method
 
             CheckEncMap(reader3,
                 Handle(14, TableIndex.TypeRef),
