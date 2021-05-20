@@ -125,11 +125,12 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var is64bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
             var isServerGC = RemoteHostOptions.IsServiceHubProcessServerGC(services);
+            var isCoreClr = RemoteHostOptions.IsServiceHubProcessCoreClr(services);
 
             // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
             await TaskScheduler.Default;
 
-            var descriptor = new ServiceHub.Client.ServiceDescriptor(serviceName.ToString(is64bit, isServerGC));
+            var descriptor = new ServiceHub.Client.ServiceDescriptor(serviceName.ToString(is64bit, isServerGC, isCoreClr));
             try
             {
                 return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);

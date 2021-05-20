@@ -87,6 +87,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public void InitializeGlobalState(int uiCultureLCID, int cultureLCID, CancellationToken cancellationToken)
         {
+            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RoslynServiceHubCoreDebug")))
+            {
+                if (Debugger.IsAttached)
+                    Debugger.Break();
+                else
+                    Debugger.Launch();
+            }
+
             RunService(() =>
             {
                 // initialize global asset storage

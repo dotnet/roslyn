@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -280,7 +281,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             public void RegisterService(RemoteServiceName name, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceFactory)
             {
                 _factoryMap.Add(name, serviceFactory);
-                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC), name.WellKnownService);
+                var isRemoteHost64Bit = IntPtr.Size == 8;
+                var isRemoteHostCoreClr = isRemoteHost64Bit && !RuntimeInformation.FrameworkDescription.Equals(".NET Framework");
+                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit, isRemoteHostServerGC: GCSettings.IsServerGC, isRemoteHostCoreClr), name.WellKnownService);
             }
 
             public Task<Stream> RequestServiceAsync(RemoteServiceName serviceName)

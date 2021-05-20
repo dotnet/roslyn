@@ -60,6 +60,15 @@ namespace Microsoft.CodeAnalysis.Remote
                 || services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.OOPServerGC) == true;
         }
 
+        public static bool IsServiceHubProcessCoreClr(HostWorkspaceServices services)
+        {
+            if (!IsServiceHubProcess64Bit(services))
+                return false;
+
+            return services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.ServiceHubCoreClr) == true
+                || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RoslynServiceHubCore"));
+        }
+
         /// <summary>
         /// Determines whether ServiceHub out-of-process execution is enabled for Roslyn.
         /// </summary>
