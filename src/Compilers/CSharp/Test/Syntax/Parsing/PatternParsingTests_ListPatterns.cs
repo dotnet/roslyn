@@ -1058,11 +1058,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
                         {
-                            N(SyntaxKind.OrPattern);
+                            N(SyntaxKind.SlicePattern);
                             {
-                                N(SyntaxKind.SlicePattern);
+                                N(SyntaxKind.DotDotToken);
+                                N(SyntaxKind.OrPattern);
                                 {
-                                    N(SyntaxKind.DotDotToken);
                                     N(SyntaxKind.ConstantPattern);
                                     {
                                         N(SyntaxKind.IdentifierName);
@@ -1070,13 +1070,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                             N(SyntaxKind.IdentifierToken, "p");
                                         }
                                     }
-                                }
-                                N(SyntaxKind.OrKeyword);
-                                N(SyntaxKind.ConstantPattern);
-                                {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OrKeyword);
+                                    N(SyntaxKind.ConstantPattern);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "q");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "q");
+                                        }
                                     }
                                 }
                             }
@@ -1107,11 +1107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
                         {
-                            N(SyntaxKind.OrPattern);
+                            N(SyntaxKind.SlicePattern);
                             {
-                                N(SyntaxKind.SlicePattern);
+                                N(SyntaxKind.DotDotToken);
+                                N(SyntaxKind.OrPattern);
                                 {
-                                    N(SyntaxKind.DotDotToken);
                                     N(SyntaxKind.ConstantPattern);
                                     {
                                         N(SyntaxKind.IdentifierName);
@@ -1119,16 +1119,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                             N(SyntaxKind.IdentifierToken, "p");
                                         }
                                     }
-                                }
-                                N(SyntaxKind.OrKeyword);
-                                N(SyntaxKind.SlicePattern);
-                                {
-                                    N(SyntaxKind.DotDotToken);
-                                    N(SyntaxKind.ConstantPattern);
+                                    N(SyntaxKind.OrKeyword);
+                                    N(SyntaxKind.SlicePattern);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.DotDotToken);
+                                        N(SyntaxKind.ConstantPattern);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "q");
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "q");
+                                            }
                                         }
                                     }
                                 }

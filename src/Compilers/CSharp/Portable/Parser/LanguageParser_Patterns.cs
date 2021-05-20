@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.DotDotToken:
                     return _syntaxFactory.SlicePattern(
                         CheckFeatureAvailability(EatToken(), MessageID.IDS_FeatureSlicePattern),
-                        IsPossibleSubpatternElement() ? ParseNegatedPattern(precedence, afterIs: false, whenIsKeyword) : null);
+                        IsPossibleSubpatternElement() ? ParsePattern(precedence, afterIs: false, whenIsKeyword) : null);
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.LessThanEqualsToken:
                 case SyntaxKind.GreaterThanToken:
