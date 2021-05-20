@@ -6,3 +6,11 @@ using Caravela.Compiler;
 [assembly: TypeForwardedTo(typeof(TransformerAttribute))]
 [assembly: TypeForwardedTo(typeof(TransformerOrderAttribute))]
 [assembly: TypeForwardedTo(typeof(CaravelaCompilerInfo))]
+
+namespace Caravela.Compiler.Interface.TypeForwards
+{
+    public static class CaravelaCompilerInterfaces
+    {
+        public static void Initialize() { }
+    }
+}

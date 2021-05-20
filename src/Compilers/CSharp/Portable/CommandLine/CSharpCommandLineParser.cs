@@ -237,11 +237,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ParseAndResolveReferencePaths(name, value, baseDirectory, libPaths, MessageID.IDS_LIB_OPTION, diagnostics);
                         continue;
 
-#if DEBUG
+// <Caravela> Enable even in release build
                     case "attachdebugger":
                         Debugger.Launch();
                         continue;
-#endif
+// </Caravela>                        
                 }
 
                 if (IsScriptCommandLineParser)
