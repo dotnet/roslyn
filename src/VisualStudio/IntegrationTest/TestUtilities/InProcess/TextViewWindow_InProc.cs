@@ -264,7 +264,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
-                await broker.TriggerQuickInfoAsync(GetActiveTextView());
+                var session = await broker.TriggerQuickInfoAsync(GetActiveTextView());
+                Contract.ThrowIfNull(session);
             });
         }
 
