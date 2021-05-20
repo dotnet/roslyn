@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// Deprecated. Please use <see cref="IFormattingInteractionService"/> if available. <see cref="FormattingInteractionServiceProxy"/> is available
     /// for wrapping the logic of checking for a formatting interaction service and falling back to this interface.
     /// </summary>
-    [Obsolete("Move to IFormattingService now")]
+    [Obsolete($"Move to {nameof(IFormattingInteractionService)} now")]
     internal interface IEditorFormattingService : ILanguageService
     {
         bool SupportsFormatDocument { get; }

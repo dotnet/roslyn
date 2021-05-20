@@ -78,21 +78,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return edits.ToArrayAndFree();
         }
 
-        protected virtual Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(
+        protected virtual async Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(
             IFormattingInteractionService formattingService,
             Document document,
             int position,
             DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
-            => formattingService.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken);
+            => await formattingService.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken).ConfigureAwait(false);
 
-        protected virtual Task<IList<TextChange>?> GetFormattingChangesAsync(
+        protected virtual async Task<IList<TextChange>?> GetFormattingChangesAsync(
             IFormattingInteractionService formattingService,
             Document document,
             char typedChar,
             int position,
             DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
-            => formattingService.GetFormattingChangesAsync(document, typedChar, position, documentOptions, cancellationToken);
+            => await formattingService.GetFormattingChangesAsync(document, typedChar, position, documentOptions, cancellationToken).ConfigureAwait(false);
     }
 }

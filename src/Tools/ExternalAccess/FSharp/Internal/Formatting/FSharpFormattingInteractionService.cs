@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,16 +36,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Formatting
 
         public bool SupportsFormatOnReturn => _service.SupportsFormatOnReturn;
 
-        public Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
             => _service.GetFormattingChangesAsync(document, textSpan, documentOptions, cancellationToken);
 
-        public Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
             => _service.GetFormattingChangesAsync(document, typedChar, position, documentOptions, cancellationToken);
 
-        public Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
             => _service.GetFormattingChangesOnPasteAsync(document, textSpan, documentOptions, cancellationToken);
 
-        public Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(Document document, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
+        public Task<ImmutableArray<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
             => _service.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken);
 
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)

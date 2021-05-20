@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
     [Shared]
     [ExportLanguageService(typeof(IEditorFormattingService), LanguageNames.FSharp)]
+    [Obsolete($"Move to  {nameof(IFSharpFormattingInteractionService)} now")]
     internal class FSharpEditorFormattingService : IEditorFormattingService
     {
         private readonly IFSharpEditorFormattingService _service;
