@@ -32,18 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.Outlining, value); }
         }
 
-        public int Formatting_TriggerOnPaste
-        {
-            get { return GetBooleanOption(FeatureOnOffOptions.FormatOnPaste); }
-            set { SetBooleanOption(FeatureOnOffOptions.FormatOnPaste, value); }
-        }
-
-        public int Formatting_TriggerOnStatementCompletion
-        {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutoFormattingOnSemicolon); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutoFormattingOnSemicolon, value); }
-        }
-
         public int HighlightReferences
         {
             get { return GetBooleanOption(FeatureOnOffOptions.ReferenceHighlighting); }

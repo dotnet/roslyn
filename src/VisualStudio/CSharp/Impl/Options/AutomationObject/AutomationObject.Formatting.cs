@@ -301,5 +301,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return GetBooleanOption(CSharpFormattingOptions2.WrappingPreserveSingleLine); }
             set { SetBooleanOption(CSharpFormattingOptions2.WrappingPreserveSingleLine, value); }
         }
+
+        public int Formatting_TriggerOnPaste
+        {
+            get { return GetBooleanOption(FormattingOptions2.FormatOnPaste); }
+            set { SetBooleanOption(FormattingOptions2.FormatOnPaste, value); }
+        }
+
+        public int Formatting_TriggerOnStatementCompletion
+        {
+            get { return GetBooleanOption(FormattingOptions2.AutoFormattingOnSemicolon); }
+            set { SetBooleanOption(FormattingOptions2.AutoFormattingOnSemicolon, value); }
+        }
     }
 }
