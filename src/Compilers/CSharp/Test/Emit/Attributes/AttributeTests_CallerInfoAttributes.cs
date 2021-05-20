@@ -414,6 +414,34 @@ public static class C
 value");
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionInAttributeConstructor()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+public class MyAttribute : Attribute
+{
+    public MyAttribute(string s, [CallerArgumentExpression(""s"")] string x = """") => Console.WriteLine($""'{s}', '{x}'"");
+}
+
+[My(""Hello"")]
+public class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttribute(typeof(MyAttribute));
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'");
+        }
+
         [Fact]
         public void TestCallerInfoAttributesWithSaneDefaultValues()
         {
