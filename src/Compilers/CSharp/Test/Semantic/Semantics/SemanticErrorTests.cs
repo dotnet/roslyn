@@ -9245,6 +9245,49 @@ class C1
         }
 
         [Fact]
+        public void CS0266ERR_NoImplicitConvCast14()
+        {
+            string source = @"
+class C
+{
+    public unsafe void M(int* p, object o)
+    {
+        _ = p[o]; // error with span on 'o'
+        _ = p[0]; // ok
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (6,15): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         _ = p[o]; // error with span on 'o'
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "int").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void CS0266ERR_NoImplicitConvCast15()
+        {
+            string source = @"
+class C
+{
+    public void M(object o)
+    {
+        int[o] x;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[o];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[o]").WithLocation(6, 12),
+                // (6,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         int[o];
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "int").WithLocation(6, 13),
+                // (6,16): warning CS0168: The variable 'x' is declared but never used
+                //         int[o] x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 16));
+        }
+
+        [Fact]
         public void CS0269ERR_UseDefViolationOut()
         {
             var text = @"
