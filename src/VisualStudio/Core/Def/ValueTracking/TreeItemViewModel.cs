@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal class ValueTrackingTreeItemViewModel : TreeViewItemBase
+    internal class TreeItemViewModel : TreeViewItemBase
     {
         private readonly SourceText _sourceText;
         private readonly Glyph _glyph;
@@ -39,12 +39,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public string FileName { get; }
 
         public ImageSource GlyphImage => _glyph.GetImageSource(_glyphService);
+        public bool ShowGlyph => !IsLoading;
 
         public ImmutableArray<ClassifiedSpan> ClassifiedSpans { get; }
 
         public ImmutableArray<Inline> Inlines => CalculateInlines();
 
-        public ValueTrackingTreeItemViewModel(
+        public TreeItemViewModel(
             TextSpan textSpan,
             SourceText sourceText,
             DocumentId documentId,
@@ -55,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IGlyphService glyphService,
             IThreadingContext threadingContext,
             Workspace workspace,
-            ImmutableArray<ValueTrackingTreeItemViewModel> children = default)
+            ImmutableArray<TreeItemViewModel> children = default)
         {
             FileName = fileName;
             TextSpan = textSpan;
@@ -80,6 +81,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             sourceText.GetLineAndOffset(textSpan.Start, out var lineStart, out var _);
             sourceText.GetLineAndOffset(textSpan.End, out var lineEnd, out var _);
             LineSpan = LineSpan.FromBounds(lineStart, lineEnd);
+
+            PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(IsLoading))
+                {
+                    NotifyPropertyChanged(nameof(ShowGlyph));
+                }
+            };
         }
 
         public virtual void Select()

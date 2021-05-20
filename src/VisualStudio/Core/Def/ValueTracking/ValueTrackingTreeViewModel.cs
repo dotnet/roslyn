@@ -25,10 +25,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public IClassificationFormatMap ClassificationFormatMap { get; }
         public ClassificationTypeMap ClassificationTypeMap { get; }
         public IEditorFormatMapService FormatMapService { get; }
-        public ObservableCollection<ValueTrackingTreeItemViewModel> Roots { get; } = new();
+        public ObservableCollection<TreeItemViewModel> Roots { get; } = new();
 
-        private ValueTrackingTreeItemViewModel? _selectedItem;
-        public ValueTrackingTreeItemViewModel? SelectedItem
+        private TreeItemViewModel? _selectedItem;
+        public TreeItemViewModel? SelectedItem
         {
             get => _selectedItem;
             set => SetProperty(ref _selectedItem, value);
@@ -48,15 +48,29 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             set => SetProperty(ref _selectedItemLine, value);
         }
 
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            private set => SetProperty(ref _isLoading, value);
+        }
+
+        private int _loadingCount;
+        public int LoadingCount
+        {
+            get => _loadingCount;
+            set => SetProperty(ref _loadingCount, value);
+        }
+
         public bool ShowDetails => SelectedItem is not null;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public ValueTrackingTreeViewModel(IClassificationFormatMap classificationFormatMap, ClassificationTypeMap classificationTypeMap, IEditorFormatMapService _formatMapService)
+        public ValueTrackingTreeViewModel(IClassificationFormatMap classificationFormatMap, ClassificationTypeMap classificationTypeMap, IEditorFormatMapService formatMapService)
         {
             ClassificationFormatMap = classificationFormatMap;
             ClassificationTypeMap = classificationTypeMap;
-            FormatMapService = _formatMapService;
+            FormatMapService = formatMapService;
 
             var properties = FormatMapService.GetEditorFormatMap("text")
                                           .GetProperties(ReferenceHighlightTag.TagId);
@@ -75,6 +89,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 NotifyPropertyChanged(nameof(ShowDetails));
 
                 SelectedItem?.Select();
+            }
+
+            if (e.PropertyName == nameof(LoadingCount))
+            {
+                IsLoading = LoadingCount > 0;
             }
         }
 
