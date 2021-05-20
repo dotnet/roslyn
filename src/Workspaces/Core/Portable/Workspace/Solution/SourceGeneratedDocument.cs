@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             // we'd need to potentially deal with the combination where that happens on a snapshot that was already
             // forked; rather than trying to deal with that combo we'll just fall back to not doing anything special
             // which is allowed.
-            return new(this);
+            return ValueTaskFactory.FromResult(this);
         }
     }
 }
