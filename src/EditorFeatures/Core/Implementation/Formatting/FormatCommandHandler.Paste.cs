@@ -5,8 +5,10 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -72,16 +74,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            var service = FormattingInteractionServiceProxy.GetService(document);
-            if (service is null or { SupportsFormatOnPaste: false })
+            var formattingService = document.GetLanguageService<IFormattingInteractionService>();
+            if (formattingService == null || !formattingService.SupportsFormatOnPaste)
             {
                 return;
             }
 
             var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
-
-            var changes = service.Value.GetFormattingChangesOnPasteAsync(document, span, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (changes.Count == 0)
+            var changes = formattingService.GetFormattingChangesOnPasteAsync(
+                document, span, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (changes.IsEmpty)
             {
                 return;
             }
