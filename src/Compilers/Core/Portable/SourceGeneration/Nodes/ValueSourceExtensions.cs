@@ -17,11 +17,18 @@ namespace Microsoft.CodeAnalysis
         // 1 => many (or none) transform
         public static IncrementalValueSource<U> TransformMany<T, U>(this IncrementalValueSource<T> source, Func<T, ImmutableArray<U>> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.Node, func.WrapUserFunction()), source.RegisterOutput);
 
+        // 1 => many (or none) transform with enumerable
+        public static IncrementalValueSource<U> TransformMany<T, U>(this IncrementalValueSource<T> source, Func<T, IEnumerable<U>> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.Node, t => func.WrapUserFunction()(t).AsImmutable()), source.RegisterOutput);
+
         // collection => collection
         public static IncrementalValueSource<U> BatchTransform<T, U>(this IncrementalValueSource<T> source, Func<ImmutableArray<T>, U> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()), source.RegisterOutput);
 
         // single
         public static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<ImmutableArray<T>, ImmutableArray<U>> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()), source.RegisterOutput);
+
+        // single (enumerable)
+        public static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<ImmutableArray<T>, IEnumerable<U>> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, t => func.WrapUserFunction()(t).ToImmutableArray()), source.RegisterOutput);
+
 
         // join many => many ((source1[0], source2), (source1[0], source2) ...)
         public static IncrementalValueSource<(T, ImmutableArray<U>)> Join<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => new IncrementalValueSource<(T, ImmutableArray<U>)>(new JoinNode<T, U>(source1.Node, source2.Node), source1.RegisterOutput);
