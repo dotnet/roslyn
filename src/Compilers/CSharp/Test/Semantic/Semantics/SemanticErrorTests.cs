@@ -9281,7 +9281,10 @@ class C
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[o]").WithLocation(6, 12),
                 // (6,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         int[o];
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "int").WithLocation(6, 13));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "int").WithLocation(6, 13),
+                // (6,16): warning CS0168: The variable 'x' is declared but never used
+                //         int[o] x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 16));
         }
 
         [Fact]
