@@ -18,14 +18,16 @@ namespace Microsoft.CodeAnalysis.Editor
     /// Acts as an internal proxy for getting an <see cref="IFormattingInteractionService"/> or, if unavailable, an <see cref="IEditorFormattingService"/>.
     /// This should be removed when <see cref="IEditorFormattingService"/> is fully removed.
     /// </summary>
-    internal struct FormattingInteractionServiceProxy : ILanguageService
+    internal struct FormattingInteractionServiceProxy
     {
         public static FormattingInteractionServiceProxy? GetService(Document document)
         {
             var formattingService = document.GetLanguageService<IFormattingInteractionService>();
+#pragma warning disable CS0618 // Type or member is obsolete
             IEditorFormattingService? editorService = null;
 
             if (formattingService == null && (editorService = document.GetLanguageService<IEditorFormattingService>()) == null)
+#pragma warning restore CS0618 // Type or member is obsolete
             {
                 return null;
             }
@@ -36,15 +38,23 @@ namespace Microsoft.CodeAnalysis.Editor
         public static FormattingInteractionServiceProxy GetRequiredService(Document document)
         {
             var formattingService = document.GetLanguageService<IFormattingInteractionService>();
+#pragma warning disable CS0618 // Type or member is obsolete
             var editorService = formattingService == null ? document.GetRequiredLanguageService<IEditorFormattingService>() : null;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             return new(formattingService, editorService);
         }
 
         private readonly IFormattingInteractionService? _formattingService;
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly IEditorFormattingService? _editorService;
+#pragma warning restore CS0618 // Type or member is obsolete
 
-        private FormattingInteractionServiceProxy(IFormattingInteractionService? formattingService, IEditorFormattingService? editorService)
+        private FormattingInteractionServiceProxy(
+            IFormattingInteractionService? formattingService,
+#pragma warning disable CS0618 // Type or member is obsolete
+            IEditorFormattingService? editorService)
+#pragma warning restore CS0618 // Type or member is obsolete
         {
             Debug.Assert(formattingService != null || editorService != null);
             _formattingService = formattingService;
@@ -61,19 +71,47 @@ namespace Microsoft.CodeAnalysis.Editor
             => _formattingService?.SupportsFormattingOnTypedCharacter(document, ch) ?? _editorService!.SupportsFormattingOnTypedCharacter(document, ch);
 
         /// <inheritdoc cref="IFormattingInteractionService.GetFormattingChangesAsync(Document, TextSpan?, DocumentOptionSet?, CancellationToken)"/>
-        public Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
-            => _formattingService?.GetFormattingChangesAsync(document, textSpan, documentOptions, cancellationToken) ?? _editorService!.GetFormattingChangesAsync(document, textSpan, documentOptions, cancellationToken);
+        public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
+        {
+            if (_formattingService != null)
+            {
+                return await _formattingService.GetFormattingChangesAsync(document, textSpan, documentOptions, cancellationToken).ConfigureAwait(false);
+            }
+
+            return await _editorService!.GetFormattingChangesAsync(document, textSpan, documentOptions, cancellationToken).ConfigureAwait(false);
+        }
 
         /// <inheritdoc cref="IFormattingInteractionService.GetFormattingChangesOnPasteAsync(Document, TextSpan, DocumentOptionSet?, CancellationToken)"/>
-        public Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
-            => _formattingService?.GetFormattingChangesOnPasteAsync(document, textSpan, documentOptions, cancellationToken) ?? _editorService!.GetFormattingChangesOnPasteAsync(document, textSpan, documentOptions, cancellationToken);
+        public async Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
+        {
+            if (_formattingService != null)
+            {
+                return await _formattingService.GetFormattingChangesOnPasteAsync(document, textSpan, documentOptions, cancellationToken).ConfigureAwait(false);
+            }
+
+            return await _editorService!.GetFormattingChangesOnPasteAsync(document, textSpan, documentOptions, cancellationToken).ConfigureAwait(false);
+        }
 
         /// <inheritdoc cref="IFormattingInteractionService.GetFormattingChangesAsync(Document, char, int, CodeAnalysis.Options.DocumentOptionSet?, CancellationToken)"/>
-        public Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
-            => _formattingService?.GetFormattingChangesAsync(document, typedChar, position, documentOptions, cancellationToken) ?? _editorService!.GetFormattingChangesAsync(document, typedChar, position, documentOptions, cancellationToken);
+        public async Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
+        {
+            if (_formattingService != null)
+            {
+                return await _formattingService.GetFormattingChangesAsync(document, typedChar, position, documentOptions, cancellationToken).ConfigureAwait(false);
+            }
+
+            return await _editorService!.GetFormattingChangesAsync(document, typedChar, position, documentOptions, cancellationToken).ConfigureAwait(false);
+        }
 
         /// <inheritdoc cref="IFormattingInteractionService.GetFormattingChangesOnReturnAsync(Document, int, DocumentOptionSet?, CancellationToken)"/>
-        public Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(Document document, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
-            => _formattingService?.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken) ?? _editorService!.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken);
+        public async Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(Document document, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
+        {
+            if (_formattingService != null)
+            {
+                return await _formattingService.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken).ConfigureAwait(false);
+            }
+
+            return await _editorService!.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken).ConfigureAwait(false);
+        }
     }
 }

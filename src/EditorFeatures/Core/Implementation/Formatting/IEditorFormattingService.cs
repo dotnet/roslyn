@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// Deprecated. Please use <see cref="IFormattingInteractionService"/> if available. <see cref="FormattingInteractionServiceProxy"/> is available
     /// for wrapping the logic of checking for a formatting interaction service and falling back to this interface.
     /// </summary>
+    [Obsolete("Move to IFormattingService now")]
     internal interface IEditorFormattingService : ILanguageService
     {
         bool SupportsFormatDocument { get; }

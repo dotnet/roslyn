@@ -22,8 +22,10 @@ namespace Microsoft.CodeAnalysis.Indentation
         }
 
         public Task<DocumentOptionSet> GetDocumentOptionsWithInferredIndentationAsync(Document document, bool explicitFormat, CancellationToken cancellationToken)
+        {
             // The workspaces layer doesn't have any smarts to infer spaces/tabs settings without an editorconfig, so just return
             // the document's options.
-            => document.GetOptionsAsync(cancellationToken);
+            return document.GetOptionsAsync(cancellationToken);
+        }
     }
 }

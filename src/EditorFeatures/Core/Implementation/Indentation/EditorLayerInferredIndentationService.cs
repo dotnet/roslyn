@@ -16,14 +16,14 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Indentation
 {
-    [ExportWorkspaceService(typeof(IInferredIndentationService), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudioInferredIndentationService : IInferredIndentationService
+    [ExportWorkspaceService(typeof(IInferredIndentationService), ServiceLayer.Editor), Shared]
+    internal sealed class EditorLayerInferredIndentationService : IInferredIndentationService
     {
         private readonly IIndentationManagerService _indentationManagerService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioInferredIndentationService(IIndentationManagerService indentationManagerService)
+        public EditorLayerInferredIndentationService(IIndentationManagerService indentationManagerService)
         {
             _indentationManagerService = indentationManagerService;
         }
