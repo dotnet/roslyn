@@ -882,8 +882,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     using var metadataStream = SerializableBytes.CreateWritableStream();
                     using var ilStream = SerializableBytes.CreateWritableStream();
 
-                    var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
-
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(newCompilation);
 
@@ -894,14 +892,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         metadataStream,
                         ilStream,
                         pdbStream,
-                        updatedMethods,
                         cancellationToken);
 
                     if (emitResult.Success)
                     {
                         Contract.ThrowIfNull(emitResult.Baseline);
 
-                        var updatedMethodTokens = updatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        // TODO: Pass these to ManagedModuleUpdate in the new debugger contracts API
+                        var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        var updatedTypeTokens = emitResult.UpdatedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
 
                         // Determine all active statements whose span changed and exception region span deltas.
                         GetActiveStatementAndExceptionRegionSpans(

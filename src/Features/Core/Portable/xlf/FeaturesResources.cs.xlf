@@ -680,11 +680,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Chybí řídicí znak</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">Pokud se změní {0} obsahující výraz switch, relace ladění nebude moct pokračovat.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
         <target state="translated">Když se upraví tělo funkce {0}, ladicí relace nebude moct pokračovat, protože tělo má příliš mnoho příkazů.</target>
@@ -2378,7 +2373,7 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 Pokud se specifikátor formátu f použije bez jiných specifikátorů formátu, interpretuje se jako standardní specifikátor formátu data a času f.
 
 Když specifikátor formátu f použijete v rámci řetězce formátu, který se předává metodám ParseExact, TryParseExact, ParseExact nebo TryParseExact, počet specifikátorů formátu f určuje počet platných číslic zlomku sekundy, který musí být k dispozici pro úspěšné parsování řetězce.</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
