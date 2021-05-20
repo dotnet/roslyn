@@ -21,10 +21,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class EditSession : IDisposable
+    internal sealed class EditSession
     {
-        private readonly CancellationTokenSource _cancellationSource = new();
-
         internal readonly DebuggingSession DebuggingSession;
         internal readonly EditSessionTelemetry Telemetry;
 
@@ -75,14 +73,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements);
         }
-
-        internal PendingSolutionUpdate? Test_GetPendingSolutionUpdate() => _pendingUpdate;
-
-        internal CancellationToken CancellationToken => _cancellationSource.Token;
-        internal void Cancel() => _cancellationSource.Cancel();
-
-        public void Dispose()
-            => _cancellationSource.Dispose();
 
         /// <summary>
         /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
@@ -454,7 +444,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var oldProject = DebuggingSession.LastCommittedSolution.GetProject(newProject.Id);
             Contract.ThrowIfNull(oldProject);
 
-            var analyses = await Analyses.GetDocumentAnalysesAsync(oldProject, builder, cancellationToken).ConfigureAwait(false);
+            var analyses = await Analyses.GetDocumentAnalysesAsync(oldProject, builder, DebuggingSession.Capabilities, cancellationToken).ConfigureAwait(false);
             return (analyses, documentDiagnostics.ToImmutable());
         }
 
@@ -492,7 +482,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // TODO: source generated files?
                 var projects = (sourceFilePath == null) ? solution.Projects :
                     from documentId in solution.GetDocumentIdsWithFilePath(sourceFilePath)
-                    select solution.GetDocument(documentId)!.Project;
+                    select solution.GetProject(documentId.ProjectId)!;
 
                 using var _ = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
 
@@ -892,8 +882,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     using var metadataStream = SerializableBytes.CreateWritableStream();
                     using var ilStream = SerializableBytes.CreateWritableStream();
 
-                    var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
-
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(newCompilation);
 
@@ -904,14 +892,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         metadataStream,
                         ilStream,
                         pdbStream,
-                        updatedMethods,
                         cancellationToken);
 
                     if (emitResult.Success)
                     {
                         Contract.ThrowIfNull(emitResult.Baseline);
 
-                        var updatedMethodTokens = updatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        // TODO: Pass these to ManagedModuleUpdate in the new debugger contracts API
+                        var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        var updatedTypeTokens = emitResult.UpdatedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
 
                         // Determine all active statements whose span changed and exception region span deltas.
                         GetActiveStatementAndExceptionRegionSpans(
@@ -1136,6 +1125,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
             Contract.ThrowIfNull(pendingUpdate);
             return pendingUpdate;
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly EditSession _instance;
+
+            internal TestAccessor(EditSession instance)
+                => _instance = instance;
+
+            public PendingSolutionUpdate? GetPendingSolutionUpdate() => _instance._pendingUpdate;
         }
     }
 }

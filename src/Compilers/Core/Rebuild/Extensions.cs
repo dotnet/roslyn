@@ -21,9 +21,14 @@ namespace Microsoft.CodeAnalysis.Rebuild
             }
         }
 
-        public static MetadataReader GetEmbeddedPdbMetadataReader(this PEReader peReader)
+        public static MetadataReader? GetEmbeddedPdbMetadataReader(this PEReader peReader)
         {
-            var entry = peReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+            var entry = peReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+            if (entry.Type == DebugDirectoryEntryType.Unknown)
+            {
+                return null;
+            }
+
             var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
             return provider.GetMetadataReader();
         }

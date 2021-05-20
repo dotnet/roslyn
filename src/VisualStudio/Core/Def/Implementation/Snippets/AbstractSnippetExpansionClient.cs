@@ -535,7 +535,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 // This is the method name as it appears in source text
                 var methodName = dataBufferSpan.GetText();
-                var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty, cancellationToken);
+                var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty);
 
                 var doc = new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
@@ -613,7 +613,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// <param name="parameters">The parameters to the method. If the specific target of the invocation is not
         /// known, an empty array may be passed to create a template with a placeholder where arguments will eventually
         /// go.</param>
-        private static XDocument CreateMethodCallSnippet(string methodName, bool includeMethod, ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterValues, CancellationToken cancellationToken)
+        private static XDocument CreateMethodCallSnippet(string methodName, bool includeMethod, ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterValues)
         {
             XNamespace snippetNamespace = "http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet";
 
@@ -657,8 +657,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (includeMethod)
             {
-                template.Append(")$end$");
+                template.Append(')');
             }
+
+            template.Append("$end$");
 
             // A snippet is manually constructed. Replacement fields are added for each argument, and the field name
             // matches the parameter name.
@@ -896,7 +898,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 newArguments = newArguments.SetItem(parameter.Name, value);
             }
 
-            var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, newArguments, cancellationToken);
+            var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, newArguments);
             var doc = new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {

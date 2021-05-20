@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -39,12 +40,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return locations.ToArrayAndFree();
             }
 
-            var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesService>();
+            var findUsagesService = document.GetRequiredLanguageService<IFindUsagesService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var findUsagesContext = new SimpleFindUsagesContext(cancellationToken);
-
-            await FindImplementationsAsync(findUsagesService, document, position, findUsagesContext).ConfigureAwait(false);
+            var findUsagesContext = new SimpleFindUsagesContext();
+            await FindImplementationsAsync(findUsagesService, document, position, findUsagesContext, cancellationToken).ConfigureAwait(false);
 
             foreach (var definition in findUsagesContext.GetDefinitions())
             {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return locations.ToArrayAndFree();
         }
 
-        protected virtual Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context)
-            => findUsagesService.FindImplementationsAsync(document, position, context);
+        protected virtual Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context, CancellationToken cancellationToken)
+            => findUsagesService.FindImplementationsAsync(document, position, context, cancellationToken);
     }
 }

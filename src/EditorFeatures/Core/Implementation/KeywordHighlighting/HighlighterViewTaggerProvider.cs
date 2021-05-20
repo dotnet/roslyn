@@ -46,19 +46,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public HighlighterViewTaggerProvider(
             IThreadingContext threadingContext,
             IHighlightingService highlightingService,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
         {
             _highlightingService = highlightingService;
         }
 
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
-                TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer),
+                TaggerEventSources.OnParseOptionChanged(subjectBuffer));
         }
 
         protected override async Task ProduceTagsAsync(TaggerContext<KeywordHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)

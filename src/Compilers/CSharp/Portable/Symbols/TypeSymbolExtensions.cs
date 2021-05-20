@@ -366,9 +366,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // If the type is a delegate type, it returns it. If the type is an
         // expression tree type associated with a delegate type, it returns
         // the delegate type. Otherwise, null.
-        public static NamedTypeSymbol? GetDelegateType(this TypeSymbol type)
+        public static NamedTypeSymbol? GetDelegateType(this TypeSymbol? type)
         {
-            if ((object)type == null) return null;
+            if (type is null) return null;
             if (type.IsExpressionTree())
             {
                 type = ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsDelegateType() ? (NamedTypeSymbol)type : null;
         }
 
-        public static TypeSymbol? GetDelegateOrFunctionPointerType(this TypeSymbol type)
+        public static TypeSymbol? GetDelegateOrFunctionPointerType(this TypeSymbol? type)
         {
             return (TypeSymbol?)GetDelegateType(type) ?? type as FunctionPointerTypeSymbol;
         }
@@ -385,23 +385,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// return true if the type is constructed from System.Linq.Expressions.Expression`1
         /// </summary>
-        public static bool IsExpressionTree(this TypeSymbol _type)
+        public static bool IsExpressionTree(this TypeSymbol type)
         {
-            return _type.OriginalDefinition is NamedTypeSymbol type &&
-                type.Arity == 1 &&
-                type.MangleName &&
-                type.Name == "Expression" &&
-                CheckFullName(type.ContainingSymbol, s_expressionsNamespaceName);
+            return type.IsGenericOrNonGenericExpressionType(out bool isGenericType) && isGenericType;
         }
 
+        public static bool IsNonGenericExpressionType(this TypeSymbol type)
+        {
+            return type.IsGenericOrNonGenericExpressionType(out bool isGenericType) && !isGenericType;
+        }
+
+        public static bool IsGenericOrNonGenericExpressionType(this TypeSymbol _type, out bool isGenericType)
+        {
+            if (_type.OriginalDefinition is NamedTypeSymbol type &&
+                type.Name == "Expression" &&
+                CheckFullName(type.ContainingSymbol, s_expressionsNamespaceName))
+            {
+                if (type.Arity == 0)
+                {
+                    isGenericType = false;
+                    return true;
+                }
+                if (type.Arity == 1 &&
+                    type.MangleName)
+                {
+                    isGenericType = true;
+                    return true;
+                }
+            }
+            isGenericType = false;
+            return false;
+        }
 
         /// <summary>
         /// return true if the type is constructed from a generic interface that 
         /// might be implemented by an array.
         /// </summary>
-        public static bool IsPossibleArrayGenericInterface(this TypeSymbol _type)
+        public static bool IsPossibleArrayGenericInterface(this TypeSymbol type)
         {
-            if (!(_type is NamedTypeSymbol t))
+            if (!(type is NamedTypeSymbol t))
             {
                 return false;
             }

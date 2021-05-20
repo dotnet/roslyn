@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -13,10 +11,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         Name = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers), Shared]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
                     Before = PredefinedCodeRefactoringProviderNames.GenerateOverrides)]
-    internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    [IntentProvider(WellKnownIntents.AddConstructorParameter, LanguageNames.CSharp)]
+    internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider, IIntentProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -40,11 +41,17 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 return;
             }
 
-            var actions = await AddConstructorParametersFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var result = await AddConstructorParametersFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            if (result == null)
+            {
+                return;
+            }
+
+            var actions = GetGroupedActions(result.Value);
             context.RegisterRefactorings(actions);
         }
 
-        public static async Task<ImmutableArray<CodeAction>> AddConstructorParametersFromMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<AddConstructorParameterResult?> AddConstructorParametersFromMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
             {
@@ -63,79 +70,75 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     }
                 }
 
-                return default;
+                return null;
             }
         }
 
-        private static ImmutableArray<CodeAction> CreateCodeActions(Document document, State state)
+        private static ImmutableArray<CodeAction> GetGroupedActions(AddConstructorParameterResult result)
         {
-            using var _0 = ArrayBuilder<CodeAction>.GetInstance(out var result);
-            var containingType = state.ContainingType;
-            if (state.ConstructorCandidates.Length == 1)
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+            if (result.UseSubMenu)
             {
-                // There will be at most 2 suggested code actions, so no need to use sub menus
-                var constructorCandidate = state.ConstructorCandidates[0];
-                if (CanHaveRequiredParameters(state.ConstructorCandidates[0].MissingParameters))
+                if (!result.RequiredParameterActions.IsDefaultOrEmpty)
                 {
-                    result.Add(new AddConstructorParametersCodeAction(
+                    actions.Add(new CodeAction.CodeActionWithNestedActions(
+                        FeaturesResources.Add_parameter_to_constructor,
+                        result.RequiredParameterActions.Cast<AddConstructorParametersCodeAction, CodeAction>(),
+                        isInlinable: false));
+                }
+
+                actions.Add(new CodeAction.CodeActionWithNestedActions(
+                    FeaturesResources.Add_optional_parameter_to_constructor,
+                    result.OptionalParameterActions.Cast<AddConstructorParametersCodeAction, CodeAction>(),
+                    isInlinable: false));
+            }
+            else
+            {
+                // Not using submenus, this means we have at most a single of each action.
+                if (!result.RequiredParameterActions.IsDefaultOrEmpty)
+                {
+                    actions.Add(result.RequiredParameterActions.Single());
+                }
+
+                actions.Add(result.OptionalParameterActions.Single());
+            }
+
+            return actions.ToImmutable();
+        }
+
+        private static AddConstructorParameterResult CreateCodeActions(Document document, State state)
+        {
+            using var _0 = ArrayBuilder<AddConstructorParametersCodeAction>.GetInstance(out var requiredParametersActions);
+            using var _1 = ArrayBuilder<AddConstructorParametersCodeAction>.GetInstance(out var optionalParametersActions);
+            var containingType = state.ContainingType;
+
+            var useSubMenu = state.ConstructorCandidates.Length > 1;
+            foreach (var constructorCandidate in state.ConstructorCandidates)
+            {
+                if (CanHaveRequiredParameters(constructorCandidate.Constructor.Parameters))
+                {
+                    requiredParametersActions.Add(new AddConstructorParametersCodeAction(
                         document,
                         constructorCandidate,
                         containingType,
                         constructorCandidate.MissingParameters,
-                        useSubMenuName: false));
+                        useSubMenuName: useSubMenu));
                 }
 
-                result.Add(GetOptionalContructorParametersCodeAction(
+                optionalParametersActions.Add(GetOptionalContructorParametersCodeAction(
                     document,
                     constructorCandidate,
                     containingType,
-                    useSubMenuName: false));
-            }
-            else
-            {
-                // Create sub menus for suggested actions, one for required parameters and one for optional parameters
-                using var _1 = ArrayBuilder<CodeAction>.GetInstance(out var requiredParameterCodeActions);
-                using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var optionalParameterCodeActions);
-                foreach (var constructorCandidate in state.ConstructorCandidates)
-                {
-                    if (CanHaveRequiredParameters(constructorCandidate.Constructor.Parameters))
-                    {
-                        requiredParameterCodeActions.Add(new AddConstructorParametersCodeAction(
-                            document,
-                            constructorCandidate,
-                            containingType,
-                            constructorCandidate.MissingParameters,
-                            useSubMenuName: true));
-                    }
-
-                    optionalParameterCodeActions.Add(GetOptionalContructorParametersCodeAction(
-                        document,
-                        constructorCandidate,
-                        containingType,
-                        useSubMenuName: true));
-                }
-
-                if (requiredParameterCodeActions.Count > 0)
-                {
-                    result.Add(new CodeAction.CodeActionWithNestedActions(
-                        FeaturesResources.Add_parameter_to_constructor,
-                        requiredParameterCodeActions.ToImmutable(),
-                        isInlinable: false));
-                }
-
-                result.Add(new CodeAction.CodeActionWithNestedActions(
-                    FeaturesResources.Add_optional_parameter_to_constructor,
-                    optionalParameterCodeActions.ToImmutable(),
-                    isInlinable: false));
+                    useSubMenuName: useSubMenu));
             }
 
-            return result.ToImmutable();
+            return new AddConstructorParameterResult(requiredParametersActions.ToImmutable(), optionalParametersActions.ToImmutable(), useSubMenu);
 
             // local functions
             static bool CanHaveRequiredParameters(ImmutableArray<IParameterSymbol> parameters)
                    => parameters.Length == 0 || !parameters.Last().IsOptional;
 
-            static CodeAction GetOptionalContructorParametersCodeAction(Document document, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
+            static AddConstructorParametersCodeAction GetOptionalContructorParametersCodeAction(Document document, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
             {
                 var missingOptionalParameters = constructorCandidate.MissingParameters.SelectAsArray(
                     p => CodeGenerationSymbolFactory.CreateParameterSymbol(
@@ -150,6 +153,32 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 return new AddConstructorParametersCodeAction(
                     document, constructorCandidate, containingType, missingOptionalParameters, useSubMenuName);
             }
+        }
+
+        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, string? serializedIntentData, CancellationToken cancellationToken)
+        {
+            var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, cancellationToken).ConfigureAwait(false);
+            if (addConstructorParametersResult == null)
+            {
+                return ImmutableArray<IntentProcessorResult>.Empty;
+            }
+
+            var actions = addConstructorParametersResult.Value.RequiredParameterActions.Concat(addConstructorParametersResult.Value.OptionalParameterActions);
+            if (actions.IsEmpty)
+            {
+                return ImmutableArray<IntentProcessorResult>.Empty;
+            }
+
+            using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
+            foreach (var action in actions)
+            {
+                var changedSolution = await action.GetChangedSolutionInternalAsync(postProcessChanges: true, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(changedSolution);
+                var intent = new IntentProcessorResult(changedSolution, action.Title, action.ActionName);
+                results.Add(intent);
+            }
+
+            return results.ToImmutable();
         }
     }
 }

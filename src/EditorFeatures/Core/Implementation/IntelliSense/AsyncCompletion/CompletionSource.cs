@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -39,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string RoslynItem = nameof(RoslynItem);
         internal const string TriggerLocation = nameof(TriggerLocation);
         internal const string CompletionListSpan = nameof(CompletionListSpan);
-        internal const string DisallowAddingImports = nameof(DisallowAddingImports);
         internal const string InsertionText = nameof(InsertionText);
         internal const string HasSuggestionItemOptions = nameof(HasSuggestionItemOptions);
         internal const string Description = nameof(Description);
@@ -134,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 var workspace = document.Project.Solution.Workspace;
 
-                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
                 textView.Properties[TargetTypeFilterExperimentEnabled] = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
 
                 var importCompletionOptionValue = workspace.Options.GetOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language);
@@ -259,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CompletionContext.Empty;
             }
 
-            var completionService = document.GetLanguageService<CompletionService>();
+            var completionService = document.GetRequiredLanguageService<CompletionService>();
 
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
             if (_snippetCompletionTriggeredIndirectly)
@@ -275,8 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 options = options
                     .WithChangedOption(CompletionControllerOptions.FilterOutOfScopeLocals, false)
-                    .WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, false)
-                    .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, true);
+                    .WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, false);
             }
 
             var (completionList, expandItemsAvailable) = await completionService.GetCompletionsInternalAsync(
@@ -288,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 cancellationToken).ConfigureAwait(false);
 
             ImmutableArray<VSCompletionItem> items;
-            AsyncCompletionData.SuggestionItemOptions suggestionItemOptions;
+            AsyncCompletionData.SuggestionItemOptions? suggestionItemOptions;
             var filterSet = new FilterSet();
 
             if (completionList == null)
@@ -321,11 +316,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // It's OK to overwrite this value when expanded items are requested.
                 session.Properties[CompletionListSpan] = completionList.Span;
 
-                if (_isDebuggerTextView)
-                {
-                    session.Properties[DisallowAddingImports] = true;
-                }
-
                 // This is a code supporting original completion scenarios: 
                 // Controller.Session_ComputeModel: if completionList.SuggestionModeItem != null, then suggestionMode = true
                 // If there are suggestionItemOptions, then later HandleNormalFiltering should set selection to SoftSelection.
@@ -356,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 filterSet.GetFilterStatesInSet(addUnselectedExpander: expandItemsAvailable));
         }
 
-        public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
+        public async Task<object?> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
         {
             if (session is null)
                 throw new ArgumentNullException(nameof(session));
@@ -500,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var hashSet = new HashSet<char>();
             foreach (var roslynItem in roslynItems)
             {
-                foreach (var rule in roslynItem.Rules?.FilterCharacterRules)
+                foreach (var rule in roslynItem.Rules.FilterCharacterRules)
                 {
                     if (rule.Kind == CharacterSetModificationKind.Add)
                     {

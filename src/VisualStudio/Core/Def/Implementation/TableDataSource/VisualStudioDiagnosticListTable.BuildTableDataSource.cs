@@ -178,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = data.Message;
                                 return content != null;
                             case StandardTableKeyNames.DocumentName:
-                                content = GetFileName(data.DataLocation?.OriginalFilePath, data.DataLocation?.MappedFilePath);
+                                content = data.DataLocation?.GetFilePath();
                                 return content != null;
                             case StandardTableKeyNames.Line:
                                 content = data.DataLocation?.MappedStartLine ?? 0;

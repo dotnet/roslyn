@@ -343,7 +343,11 @@ namespace Microsoft.CodeAnalysis
 
         // internal until we settle on this long-term
         internal const string CloneMethodName = "<Clone>$";
-        internal const string PrintMembersMethodName = "PrintMembers";
+
+        /// <summary>
+        /// The required name for the <c>PrintMembers</c> method that is synthesized in a record.
+        /// </summary>
+        public const string PrintMembersMethodName = "PrintMembers";
 
         /// <summary>
         /// The name of an entry point method synthesized for top-level statements.
