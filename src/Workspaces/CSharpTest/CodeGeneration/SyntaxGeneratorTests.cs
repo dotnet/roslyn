@@ -971,7 +971,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 Generator.ConstructorDeclaration("c",
                     parameters: new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) },
                     baseConstructorArguments: new[] { Generator.IdentifierName("p") }),
-                "c(t p): base(p)\r\n{\r\n}");
+                "c(t p) : base(p)\r\n{\r\n}");
         }
 
         [Fact]

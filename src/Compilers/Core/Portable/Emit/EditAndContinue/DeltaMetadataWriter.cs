@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly DefinitionMap _definitionMap;
         private readonly SymbolChanges _changes;
 
+        private readonly List<ITypeDefinition> _updatedTypeDefs;
         private readonly DefinitionIndex<ITypeDefinition> _typeDefs;
         private readonly DefinitionIndex<IEventDefinition> _eventDefs;
         private readonly DefinitionIndex<IFieldDefinition> _fieldDefs;
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             var sizes = previousGeneration.TableSizes;
 
+            _updatedTypeDefs = new List<ITypeDefinition>();
             _typeDefs = new DefinitionIndex<ITypeDefinition>(this.TryGetExistingTypeDefIndex, sizes[(int)TableIndex.TypeDef]);
             _eventDefs = new DefinitionIndex<IEventDefinition>(this.TryGetExistingEventDefIndex, sizes[(int)TableIndex.Event]);
             _fieldDefs = new DefinitionIndex<IFieldDefinition>(this.TryGetExistingFieldDefIndex, sizes[(int)TableIndex.Field]);
@@ -216,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// Return tokens for all modified debuggable methods.
         /// </summary>
-        public void GetMethodTokens(ICollection<MethodDefinitionHandle> methods)
+        public void GetUpdatedMethodTokens(ArrayBuilder<MethodDefinitionHandle> methods)
         {
             foreach (var def in _methodDefs.GetRows())
             {
@@ -225,6 +227,17 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     methods.Add(MetadataTokens.MethodDefinitionHandle(_methodDefs[def]));
                 }
+            }
+        }
+
+        /// <summary>
+        /// Return tokens for all modified debuggable types.
+        /// </summary>
+        public void GetUpdatedTypeTokens(ArrayBuilder<TypeDefinitionHandle> types)
+        {
+            foreach (var def in _updatedTypeDefs)
+            {
+                types.Add(MetadataTokens.TypeDefinitionHandle(_typeDefs[def]));
             }
         }
 
@@ -444,10 +457,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 case SymbolChange.Updated:
                     _typeDefs.AddUpdated(typeDef);
+                    _updatedTypeDefs.Add(typeDef);
                     break;
 
                 case SymbolChange.ContainsChanges:
                     // Members changed.
+                    // We keep this list separately because we don't want to output duplicate typedef entries in the EnC log,
+                    // which uses _typeDefs, but it's simpler to let the members output those rows for the updated typedefs
+                    // with the right update type.
+                    _updatedTypeDefs.Add(typeDef);
                     break;
 
                 case SymbolChange.None:

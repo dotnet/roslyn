@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
@@ -6200,6 +6201,165 @@ class Program
         string a;
     }
 }");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
+        {
+            const string InitialWorkspace = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.cs"">
+using System.ComponentModel;
+namespace ProjectLib
+{
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public class Project
+    {
+    }
+}
+        </Document>
+        <Document FilePath=""Program.cs"">
+class Program
+{
+    static void Main(string[] args)
+    {
+        Project p = new [|Project()|];
+    }
+}
+</Document>
+    </Project>
+</Workspace>";
+
+            const string ExpectedDocumentText = @"
+using ProjectLib;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Project p = new [|Project()|];
+    }
+}
+";
+
+            await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
+        {
+            const string InitialWorkspace = @"
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.vb"">
+imports System.ComponentModel
+namespace ProjectLib
+    &lt;EditorBrowsable(EditorBrowsableState.Never)&gt;
+    public class Project
+    end class
+end namespace
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
+        <ProjectReference>lib</ProjectReference>
+        <Document FilePath=""Program.cs"">
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Project|] p = new Project();
+    }
+}
+</Document>
+    </Project>
+</Workspace>";
+            await TestMissingAsync(InitialWorkspace, new TestParameters(testHost: testHost));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
+        {
+            const string InitialWorkspace = @"
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.vb"">
+imports System.ComponentModel
+namespace ProjectLib
+    &lt;EditorBrowsable(EditorBrowsableState.Advanced)&gt;
+    public class Project
+    end class
+end namespace
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
+        <ProjectReference>lib</ProjectReference>
+        <Document FilePath=""Program.cs"">
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Project|] p = new Project();
+    }
+}
+</Document>
+    </Project>
+</Workspace>";
+
+            const string ExpectedDocumentText = @"
+using ProjectLib;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Project p = new [|Project()|];
+    }
+}
+";
+            await TestAsync(InitialWorkspace, ExpectedDocumentText, testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(1266354, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1266354")]
+        public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
+        {
+            const string InitialWorkspace = @"
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
+        <Document FilePath=""lib.vb"">
+imports System.ComponentModel
+namespace ProjectLib
+    &lt;EditorBrowsable(EditorBrowsableState.Advanced)&gt;
+    public class Project
+    end class
+end namespace
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
+        <ProjectReference>lib</ProjectReference>
+        <Document FilePath=""Program.cs"">
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Project|] p = new Project();
+    }
+}
+</Document>
+    </Project>
+</Workspace>";
+
+            await TestMissingAsync(InitialWorkspace, new TestParameters(
+                options: Option(CompletionOptions.HideAdvancedMembers, true),
+                testHost: testHost));
         }
     }
 }
