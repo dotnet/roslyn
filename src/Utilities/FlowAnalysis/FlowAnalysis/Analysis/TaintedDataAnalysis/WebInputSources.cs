@@ -34,6 +34,29 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
 
+            sourceInfosBuilder.AddSourceInfo(
+                WellKnownTypeNames.MicrosoftAspNetCoreHttpHttpRequest,
+                isInterface: false,
+                taintedProperties: new string[] {
+                    "Body",
+                    "ContentType",
+                    "Cookies",
+                    "Form",
+                    "Headers",
+                    "Host",
+                    "Method",
+                    "Path",
+                    "PathBase",
+                    "Protocol",
+                    "Query",
+                    "QueryString",
+                    "RouteValues",
+                    "Scheme",
+                },
+                taintedMethods: new string[] {
+                    "ReadFormAsync",
+                });
+
             sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
                 WellKnownTypeNames.SystemWebHttpServerUtility,
                 isInterface: false,
