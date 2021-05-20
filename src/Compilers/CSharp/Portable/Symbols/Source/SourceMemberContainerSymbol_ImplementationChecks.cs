@@ -1283,7 +1283,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     for (var i = 0; i < baseParameters.Length; i++)
                     {
                         var overrideParam = overrideParameters[i + overrideParameterOffset];
-                        if (notNullIfParameterNotNull.Contains(overrideParam.Name) && !baseParameters[i].TypeWithAnnotations.NullableAnnotation.IsAnnotated())
+                        var baseParam = baseParameters[i];
+                        if (notNullIfParameterNotNull.Contains(overrideParam.Name) && NullableWalker.GetParameterState(baseParam.TypeWithAnnotations, baseParam.FlowAnalysisAnnotations).IsNotNull)
                         {
                             return outputType.AsNotAnnotated();
                         }
