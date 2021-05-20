@@ -277,7 +277,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var view = GetActiveTextView();
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
 
-                var session = Helper.Retry(() => broker.GetSession(view), delay: TimeSpan.FromSeconds(1), retryCount: (int)Helper.HangMitigatingTimeout.TotalSeconds);
+                var session = broker.GetSession(view);
+
+                // GetSession will not return null if preceded by a call to InvokeQuickInfo
                 Contract.ThrowIfNull(session);
 
                 using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
