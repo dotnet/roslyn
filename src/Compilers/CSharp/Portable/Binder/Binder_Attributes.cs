@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    reorderedArgument = GetDefaultValueArgument(parameter, syntax, diagnostics);
+                    reorderedArgument = GetDefaultValueArgument(parameter, syntax, constructorArgumentNamesOpt, argumentsCount, diagnostics);
                     sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
                 }
 
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 matchingArgumentIndex = -1;
-                return GetDefaultValueArgument(parameter, syntax, diagnostics);
+                return GetDefaultValueArgument(parameter, syntax, constructorArgumentNamesOpt, argumentsCount, diagnostics);
             }
         }
 
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return argIndex;
         }
 
-        private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, BindingDiagnosticBag diagnostics)
+        private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, ImmutableArray<string> constructorArgumentNamesOpt, int argumentsCount, BindingDiagnosticBag diagnostics)
         {
             var parameterType = parameter.Type;
             ConstantValue? defaultConstantValue = parameter.IsOptional ? parameter.ExplicitDefaultConstantValue : ConstantValue.NotAvailable;
@@ -818,6 +818,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterType = Compilation.GetSpecialType(SpecialType.System_String);
                 kind = TypedConstantKind.Primitive;
                 defaultValue = ((ContextualAttributeBinder)this).AttributedMember.GetMemberCallerName();
+            }
+            else if (!IsEarlyAttributeBinder && syntax.ArgumentList is not null &&
+                getArgumentIndex(parameter, constructorArgumentNamesOpt) is int argumentIndex && argumentIndex > -1 && argumentIndex < argumentsCount)
+            {
+                parameterType = Compilation.GetSpecialType(SpecialType.System_String);
+                kind = TypedConstantKind.Primitive;
+                defaultValue = syntax.ArgumentList.Arguments[argumentIndex].Expression.ToString();
             }
             else if (defaultConstantValue == ConstantValue.NotAvailable)
             {
@@ -873,6 +880,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return new TypedConstant(parameterType, kind, defaultValue);
+            }
+
+            static int getArgumentIndex(ParameterSymbol parameter, ImmutableArray<string> constructorArgumentNamesOpt)
+            {
+                if (constructorArgumentNamesOpt.IsDefault || parameter.CallerArgumentExpressionParameterIndex == -1)
+                {
+                    return parameter.CallerArgumentExpressionParameterIndex;
+                }
+
+                Debug.Assert(parameter.ContainingSymbol is MethodSymbol);
+                var methodSymbol = (MethodSymbol)parameter.ContainingSymbol;
+                var callerArgumentParameter = methodSymbol.Parameters[parameter.CallerArgumentExpressionParameterIndex];
+                return constructorArgumentNamesOpt.IndexOf(callerArgumentParameter.Name);
             }
         }
 
