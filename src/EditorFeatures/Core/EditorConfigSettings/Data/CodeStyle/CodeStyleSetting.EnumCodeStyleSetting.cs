@@ -37,16 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
             protected override void ChangeSeverity(NotificationOption2 severity)
             {
-                var option = GetOption();
-                option.Notification = severity;
-                _ = Updater.QueueUpdateAsync(_option, option);
+                ICodeStyleOption option = GetOption();
+                Updater.QueueUpdate(_option, option.WithNotification(severity));
             }
 
             public override void ChangeValue(int valueIndex)
             {
-                var option = GetOption();
-                option.Value = _enumValues[valueIndex];
-                _ = Updater.QueueUpdateAsync(_option, option);
+                ICodeStyleOption option = GetOption();
+                Updater.QueueUpdate(_option, option.WithValue(_enumValues[valueIndex]));
             }
 
             protected override CodeStyleOption2<T> GetOption()
