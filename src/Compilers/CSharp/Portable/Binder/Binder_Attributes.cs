@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultValue = ((ContextualAttributeBinder)this).AttributedMember.GetMemberCallerName();
             }
             else if (!IsEarlyAttributeBinder && syntax.ArgumentList is not null &&
-                getArgumentIndex(parameter, constructorArgumentNamesOpt) is int argumentIndex && argumentIndex > -1 && argumentIndex < argumentsCount)
+                getCallerArgumentArgumentIndex(parameter, constructorArgumentNamesOpt) is int argumentIndex && argumentIndex > -1 && argumentIndex < argumentsCount)
             {
                 parameterType = Compilation.GetSpecialType(SpecialType.System_String);
                 kind = TypedConstantKind.Primitive;
@@ -882,12 +882,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new TypedConstant(parameterType, kind, defaultValue);
             }
 
-            static int getArgumentIndex(ParameterSymbol parameter, ImmutableArray<string> constructorArgumentNamesOpt)
+            static int getCallerArgumentArgumentIndex(ParameterSymbol parameter, ImmutableArray<string> constructorArgumentNamesOpt)
             {
                 if (constructorArgumentNamesOpt.IsDefault || parameter.CallerArgumentExpressionParameterIndex == -1)
                 {
                     return parameter.CallerArgumentExpressionParameterIndex;
                 }
+
 
                 Debug.Assert(parameter.ContainingSymbol is MethodSymbol);
                 var methodSymbol = (MethodSymbol)parameter.ContainingSymbol;

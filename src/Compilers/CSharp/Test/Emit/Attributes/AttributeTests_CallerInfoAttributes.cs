@@ -440,6 +440,112 @@ public class Program
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'");
+            var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
+            var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
+            Assert.Equal(2, attributeArguments.Length);
+            Assert.Equal("Hello", attributeArguments[0].Value);
+            Assert.Equal("\"Hello\"", attributeArguments[1].Value);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionInAttributeConstructor_NamedArgument()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+public class MyAttribute : Attribute
+{
+    public MyAttribute(string s, [CallerArgumentExpression(""s"")] string x = """") => Console.WriteLine($""'{s}', '{x}'"");
+}
+
+[My(s:""Hello"")]
+public class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttribute(typeof(MyAttribute));
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'");
+            var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
+            var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
+            Assert.Equal(2, attributeArguments.Length);
+            Assert.Equal("Hello", attributeArguments[0].Value);
+            Assert.Equal("\"Hello\"", attributeArguments[1].Value);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionInAttributeConstructor_NamedArgumentsSameOrder()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+public class MyAttribute : Attribute
+{
+    public MyAttribute(string s, string s2, [CallerArgumentExpression(""s"")] string x = """") => Console.WriteLine($""'{s}', '{s2}', '{x}'"");
+}
+
+[My(s:""Hello"", s2:""World"")]
+public class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttribute(typeof(MyAttribute));
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'");
+            var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
+            var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
+            Assert.Equal(3, attributeArguments.Length);
+            Assert.Equal("Hello", attributeArguments[0].Value);
+            Assert.Equal("World", attributeArguments[1].Value);
+            Assert.Equal("\"Hello\"", attributeArguments[2].Value);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionInAttributeConstructor_NamedArgumentsOutOfOrder()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+public class MyAttribute : Attribute
+{
+    public MyAttribute(string s, string s2, [CallerArgumentExpression(""s"")] string x = """") => Console.WriteLine($""'{s}', '{s2}', '{x}'"");
+}
+
+[My(s2:""World"", s:""Hello"")]
+public class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttribute(typeof(MyAttribute));
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'");
+            var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
+            var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
+            Assert.Equal(3, attributeArguments.Length);
+            Assert.Equal("Hello", attributeArguments[0].Value);
+            Assert.Equal("World", attributeArguments[1].Value);
+            Assert.Equal("\"Hello\"", attributeArguments[2].Value);
         }
 
         [Fact]
