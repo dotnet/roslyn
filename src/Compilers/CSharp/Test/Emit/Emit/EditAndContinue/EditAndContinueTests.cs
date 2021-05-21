@@ -539,7 +539,7 @@ class C
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 4, updating the existing custom attribute
                 Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default), // Row 5, updating a row that was new in Generation 2
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 7, adding a new CustomAttribute, and skipping row 6 which is not for this method
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 7, adding a new CustomAttribute, and skipping row 6 which is not for the method being emitted
 
             CheckEncMap(reader3,
                 Handle(15, TableIndex.TypeRef),
