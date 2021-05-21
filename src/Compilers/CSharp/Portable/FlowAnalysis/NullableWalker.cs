@@ -191,6 +191,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private PooledDictionary<MethodSymbol, Variables>? _nestedFunctionVariables;
 
+        private PooledDictionary<BoundExpression, ImmutableArray<(LocalState State, TypeWithState ResultType, bool EndReachable)>>? _conditionalInfoForConversionOpt;
+
+        /// <summary>
+        /// Map from a target-typed conditional expression (such as a target-typed conditional or switch) to the nullable state on each branch. This
+        /// is then used by VisitConversion to properly set the state before each branch when visiting a conversion applied to such a construct. These
+        /// states will be the state after visiting the underlying arm value, but before visiting the conversion on top of the arm value.
+        /// </summary>
+        private PooledDictionary<BoundExpression, ImmutableArray<(LocalState State, TypeWithState ResultType, bool EndReachable)>> ConditionalInfoForConversion
+            => _conditionalInfoForConversionOpt ??= PooledDictionary<BoundExpression, ImmutableArray<(LocalState, TypeWithState, bool)>>.GetInstance();
+
         /// <summary>
         /// True if we're analyzing speculative code. This turns off some initialization steps
         /// that would otherwise be taken.
@@ -357,6 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodGroupReceiverMapOpt?.Free();
             _placeholderLocalsOpt?.Free();
             _variables.Free();
+            Debug.Assert(_conditionalInfoForConversionOpt is null or { Count: 0 });
+            _conditionalInfoForConversionOpt?.Free();
             base.Free();
         }
 
@@ -405,6 +417,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // For purpose of nullability analysis, awaits create pending branches, so async usings and foreachs do too
         public sealed override bool AwaitUsingAndForeachAddsPendingBranch => true;
+
+        protected override void EnsureSufficientExecutionStack(int recursionDepth)
+        {
+            if (recursionDepth > StackGuard.MaxUncheckedRecursionDepth &&
+                compilation.NullableAnalysisData is { MaxRecursionDepth: var depth } &&
+                depth > 0 &&
+                recursionDepth > depth)
+            {
+                throw new InsufficientExecutionStackException();
+            }
+
+            base.EnsureSufficientExecutionStack(recursionDepth);
+        }
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
@@ -1389,12 +1414,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool requiresAnalysis = true)
         {
             Debug.Assert(snapshotBuilderOpt is null || symbol is object);
+            var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol!) ?? -1;
             try
             {
                 bool badRegion = false;
-                var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol!) ?? -1;
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialState);
-                snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), previousSlot);
                 diagnostics?.AddRange(walker.Diagnostics);
                 Debug.Assert(!badRegion);
             }
@@ -1402,13 +1426,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ex.AddAnError(diagnostics);
             }
+            finally
+            {
+                snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), previousSlot);
+            }
 
             walker.RecordNullableAnalysisData(symbol, requiresAnalysis);
         }
 
         private void RecordNullableAnalysisData(Symbol? symbol, bool requiredAnalysis)
         {
-            if (compilation.NullableAnalysisData is { } state)
+            if (compilation.NullableAnalysisData?.Data is { } state)
             {
                 var key = (object?)symbol ?? methodMainNode.Syntax;
                 if (state.TryGetValue(key, out var result))
@@ -2376,7 +2404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
+        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
         {
             if ((parameterAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
             {
@@ -2665,25 +2693,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.State = state.CreateNestedMethodState(_variables);
             var previousSlot = _snapshotBuilderOpt?.EnterNewWalker(lambdaOrFunctionSymbol) ?? -1;
 
-            var oldPending = SavePending();
-
-            EnterParameters();
-
-            var oldPending2 = SavePending();
-
-            // If this is an iterator, there's an implicit branch before the first statement
-            // of the function where the enumerable is returned.
-            if (lambdaOrFunctionSymbol.IsIterator)
+            try
             {
-                PendingBranches.Add(new PendingBranch(null, this.State, null));
+                var oldPending = SavePending();
+
+                EnterParameters();
+
+                var oldPending2 = SavePending();
+
+                // If this is an iterator, there's an implicit branch before the first statement
+                // of the function where the enumerable is returned.
+                if (lambdaOrFunctionSymbol.IsIterator)
+                {
+                    PendingBranches.Add(new PendingBranch(null, this.State, null));
+                }
+
+                VisitAlways(lambdaOrFunction.Body);
+                RestorePending(oldPending2); // process any forward branches within the lambda body
+                ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
+                RestorePending(oldPending);
+            }
+            finally
+            {
+                _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
             }
 
-            VisitAlways(lambdaOrFunction.Body);
-            RestorePending(oldPending2); // process any forward branches within the lambda body
-            ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
-            RestorePending(oldPending);
-
-            _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
             _variables = _variables.Container!;
             this.State = oldState;
             _returnTypesOpt = oldReturnTypes;
@@ -4112,7 +4146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand, targetType), trackMembers: false, AssignmentKind.Assignment);
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
-            TypeWithState resultType = GetNullCoalescingResultType(rightResult, targetType.Type);
+            TypeWithState resultType = TypeWithState.Create(targetType.Type, rightResult.State);
             SetResultType(node, resultType);
             return null;
         }
@@ -4146,8 +4180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUnreachable();
             }
 
-            // https://github.com/dotnet/roslyn/issues/29955 For cases where the left operand determines
-            // the type, we should unwrap the right conversion and re-apply.
             rightResult = VisitRvalueWithState(rightOperand);
 
             Join(ref this.State, ref whenNotNull);
@@ -4168,47 +4200,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftResultType = leftResult.Type;
             var rightResultType = rightResult.Type;
 
-            var resultType = node.OperatorResultKind switch
+            var (resultType, leftState) = node.OperatorResultKind switch
             {
-                BoundNullCoalescingOperatorResultKind.NoCommonType => node.Type,
+                BoundNullCoalescingOperatorResultKind.NoCommonType => (node.Type, NullableFlowState.NotNull),
                 BoundNullCoalescingOperatorResultKind.LeftType => getLeftResultType(leftResultType!, rightResultType!),
                 BoundNullCoalescingOperatorResultKind.LeftUnwrappedType => getLeftResultType(leftResultType!.StrippedType(), rightResultType!),
-                BoundNullCoalescingOperatorResultKind.RightType => getRightResultType(leftResultType!, rightResultType!),
-                BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType => getRightResultType(leftResultType!.StrippedType(), rightResultType!),
-                BoundNullCoalescingOperatorResultKind.RightDynamicType => rightResultType!,
+                BoundNullCoalescingOperatorResultKind.RightType => getResultStateWithRightType(leftResultType!, rightResultType!),
+                BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType => getResultStateWithRightType(leftResultType!.StrippedType(), rightResultType!),
+                BoundNullCoalescingOperatorResultKind.RightDynamicType => (rightResultType!, NullableFlowState.NotNull),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind),
             };
 
-            SetResultType(node, GetNullCoalescingResultType(rightResult, resultType));
+            SetResultType(node, TypeWithState.Create(resultType, rightResult.State.Join(leftState)));
             return null;
 
-            TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
+            (TypeSymbol ResultType, NullableFlowState LeftState) getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
             {
                 Debug.Assert(rightType is object);
                 // If there was an identity conversion between the two operands (in short, if there
                 // is no implicit conversion on the right operand), then check nullable conversions
                 // in both directions since it's possible the right operand is the better result type.
                 if ((node.RightOperand as BoundConversion)?.ExplicitCastInCode != false &&
-                    GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false).Exists)
+                    GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false) is { Exists: true } conversion)
                 {
-                    return rightType;
+                    Debug.Assert(!conversion.IsUserDefined);
+                    return (rightType, NullableFlowState.NotNull);
                 }
 
-                GenerateConversionForConditionalOperator(node.RightOperand, rightType, leftType, reportMismatch: true);
-                return leftType;
+                conversion = GenerateConversionForConditionalOperator(node.RightOperand, rightType, leftType, reportMismatch: true);
+                Debug.Assert(!conversion.IsUserDefined);
+                return (leftType, NullableFlowState.NotNull);
             }
 
-            TypeSymbol getRightResultType(TypeSymbol leftType, TypeSymbol rightType)
+            (TypeSymbol ResultType, NullableFlowState LeftState) getResultStateWithRightType(TypeSymbol leftType, TypeSymbol rightType)
             {
-                GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
-                return rightType;
-            }
-        }
+                var conversion = GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
+                if (conversion.IsUserDefined)
+                {
+                    var conversionResult = VisitConversion(
+                        conversionOpt: null,
+                        node.LeftOperand,
+                        conversion,
+                        TypeWithAnnotations.Create(rightType),
+                        // When considering the conversion on the left node, it can only occur in the case where the underlying
+                        // execution returned non-null
+                        TypeWithState.Create(leftType, NullableFlowState.NotNull),
+                        checkConversion: false,
+                        fromExplicitCast: false,
+                        useLegacyWarnings: false,
+                        AssignmentKind.Assignment,
+                        reportTopLevelWarnings: false,
+                        reportRemainingWarnings: false);
+                    Debug.Assert(conversionResult.Type is not null);
+                    return (conversionResult.Type!, conversionResult.State);
+                }
 
-        private static TypeWithState GetNullCoalescingResultType(TypeWithState rightResult, TypeSymbol resultType)
-        {
-            NullableFlowState resultState = rightResult.State;
-            return TypeWithState.Create(resultType, resultState);
+                return (rightType, NullableFlowState.NotNull);
+            }
         }
 
         public override BoundNode? VisitConditionalAccess(BoundConditionalAccess node)
@@ -4335,7 +4383,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol? resultType;
-            if (node.HasErrors || node is BoundConditionalOperator { WasTargetTyped: true })
+            bool wasTargetTyped = node is BoundConditionalOperator { WasTargetTyped: true };
+            if (node.HasErrors || wasTargetTyped)
             {
                 resultType = null;
             }
@@ -4355,47 +4404,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref discardedUseSiteInfo);
             }
 
+
+            resultType ??= node.Type?.SetUnknownNullabilityForReferenceTypes();
+
             NullableFlowState resultState;
-            if (resultType is null)
+            if (!wasTargetTyped)
             {
-                resultType = node.Type?.SetUnknownNullabilityForReferenceTypes();
-                resultState = consequenceRValue.State.Join(alternativeRValue.State);
-
-                var resultTypeWithState = TypeWithState.Create(resultType, resultState);
-
-                if (consequence != originalConsequence)
+                if (resultType is null)
                 {
-                    TrackAnalyzedNullabilityThroughConversionGroup(resultTypeWithState, (BoundConversion)originalConsequence, consequence);
+                    // This can happen when we're inferring the return type of a lambda. For this case, we don't need to do any work,
+                    // the unconverted conditional operator can't contribute info. The conversion that should be on top of this
+                    // can add or remove nullability, and nested nodes aren't being publicly exposed by the semantic model.
+                    Debug.Assert(node is BoundUnconvertedConditionalOperator);
+                    Debug.Assert(_returnTypesOpt is not null);
+                    resultState = default;
                 }
-
-                if (alternative != originalAlternative)
+                else
                 {
-                    TrackAnalyzedNullabilityThroughConversionGroup(resultTypeWithState, (BoundConversion)originalAlternative, alternative);
+                    var resultTypeWithAnnotations = TypeWithAnnotations.Create(resultType);
+
+                    TypeWithState convertedConsequenceResult = ConvertConditionalOperandOrSwitchExpressionArmResult(
+                        originalConsequence,
+                        consequence,
+                        consequenceConversion,
+                        resultTypeWithAnnotations,
+                        consequenceRValue,
+                        consequenceState,
+                        consequenceEndReachable);
+
+                    TypeWithState convertedAlternativeResult = ConvertConditionalOperandOrSwitchExpressionArmResult(
+                        originalAlternative,
+                        alternative,
+                        alternativeConversion,
+                        resultTypeWithAnnotations,
+                        alternativeRValue,
+                        alternativeState,
+                        alternativeEndReachable);
+
+                    resultState = convertedConsequenceResult.State.Join(convertedAlternativeResult.State);
                 }
             }
             else
             {
-                var resultTypeWithAnnotations = TypeWithAnnotations.Create(resultType);
+                resultState = consequenceRValue.State.Join(alternativeRValue.State);
 
-                TypeWithState convertedConsequenceResult = convertResult(
-                    originalConsequence,
-                    consequence,
-                    consequenceConversion,
-                    resultTypeWithAnnotations,
-                    consequenceRValue,
-                    consequenceState,
-                    consequenceEndReachable);
-
-                TypeWithState convertedAlternativeResult = convertResult(
-                    originalAlternative,
-                    alternative,
-                    alternativeConversion,
-                    resultTypeWithAnnotations,
-                    alternativeRValue,
-                    alternativeState,
-                    alternativeEndReachable);
-
-                resultState = convertedConsequenceResult.State.Join(convertedAlternativeResult.State);
+                ConditionalInfoForConversion.Add(node, ImmutableArray.Create(
+                    (consequenceState, consequenceRValue, consequenceEndReachable),
+                    (alternativeState, alternativeRValue, alternativeEndReachable)));
             }
 
             SetResultType(node, TypeWithState.Create(resultType, resultState));
@@ -4421,50 +4476,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithAnnotations lValueType = VisitLvalueWithAnnotations(operand);
                 return (lValueType, ResultType);
             }
+        }
 
-            TypeWithState convertResult(
-                BoundExpression node,
-                BoundExpression operand,
-                Conversion conversion,
-                TypeWithAnnotations targetType,
-                TypeWithState operandType,
-                LocalState state,
-                bool isReachable)
+        private TypeWithState ConvertConditionalOperandOrSwitchExpressionArmResult(
+            BoundExpression node,
+            BoundExpression operand,
+            Conversion conversion,
+            TypeWithAnnotations targetType,
+            TypeWithState operandType,
+            LocalState state,
+            bool isReachable)
+        {
+            var savedState = this.State;
+            this.State = state;
+
+            bool previousDisabledDiagnostics = _disableDiagnostics;
+            // If the node is not reachable, then we're only visiting to get
+            // nullability information for the public API, and not to produce diagnostics.
+            // Disable diagnostics, and return default for the resulting state
+            // to indicate that warnings were suppressed.
+            if (!isReachable)
             {
-                var savedState = this.State;
-                this.State = state;
-
-                bool previousDisabledDiagnostics = _disableDiagnostics;
-                // If the node is not reachable, then we're only visiting to get
-                // nullability information for the public API, and not to produce diagnostics.
-                // Disable diagnostics, and return default for the resulting state
-                // to indicate that warnings were suppressed.
-                if (!isReachable)
-                {
-                    _disableDiagnostics = true;
-                }
-
-                var resultType = VisitConversion(
-                    GetConversionIfApplicable(node, operand),
-                    operand,
-                    conversion,
-                    targetType,
-                    operandType,
-                    checkConversion: true,
-                    fromExplicitCast: false,
-                    useLegacyWarnings: false,
-                    AssignmentKind.Assignment,
-                    reportTopLevelWarnings: false);
-
-                if (!isReachable)
-                {
-                    resultType = default;
-                    _disableDiagnostics = previousDisabledDiagnostics;
-                }
-                this.State = savedState;
-
-                return resultType;
+                _disableDiagnostics = true;
             }
+
+            var resultType = VisitConversion(
+                GetConversionIfApplicable(node, operand),
+                operand,
+                conversion,
+                targetType,
+                operandType,
+                checkConversion: true,
+                fromExplicitCast: false,
+                useLegacyWarnings: false,
+                AssignmentKind.Assignment,
+                reportTopLevelWarnings: false);
+
+            if (!isReachable)
+            {
+                resultType = default;
+                _disableDiagnostics = previousDisabledDiagnostics;
+            }
+            this.State = savedState;
+
+            return resultType;
         }
 
         private bool IsReachable()
@@ -5010,6 +5065,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var argumentNoConversion = argumentsNoConversions[i];
                     var argument = i < arguments.Length ? arguments[i] : argumentsNoConversions[i];
+
+                    // we disable nullable warnings on default arguments
+                    var previousDisableDiagnostics = _disableDiagnostics;
+                    _disableDiagnostics |= defaultArguments[i];
+
                     VisitArgumentConversionAndInboundAssignmentsAndPreConditions(
                         GetConversionIfApplicable(argument, argumentNoConversion),
                         argumentNoConversion,
@@ -5020,6 +5080,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterAnnotations,
                         results[i],
                         invokedAsExtensionMethod && i == 0);
+
+                    _disableDiagnostics = previousDisableDiagnostics;
 
                     if (results[i].RValueType.IsNotNull || isExpandedParamsArgument)
                     {
@@ -5880,9 +5942,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return argument;
                 }
-                if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
+                if (argument is BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithInferredType }
+                             or BoundConditionalOperator { WasTargetTyped: true }
+                             or BoundConvertedSwitchExpression { WasTargetTyped: true })
                 {
-                    // 'out var' doesn't contribute to inference
+                    // target-typed contexts don't contribute to nullability
                     return new BoundExpressionWithNullability(argument.Syntax, argument, NullableAnnotation.Oblivious, type: null);
                 }
                 return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.NullableAnnotation, argumentType.Type);
@@ -6560,14 +6624,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Apply the conversion to the type of the operand and return the resulting type. (If the
-        /// operand does not have an explicit type, the operand expression is used for the type.)
-        /// If `checkConversion` is set, the incoming conversion is assumed to be from binding and will be
-        /// re-calculated, this time considering nullability. (Note that the conversion calculation considers
-        /// nested nullability only. The caller is responsible for checking the top-level nullability of
-        /// the type returned by this method.) `trackMembers` should be set if the nullability of any
-        /// members of the operand should be copied to the converted result when possible.
+        /// Apply the conversion to the type of the operand and return the resulting type.
+        /// If the operand does not have an explicit type, the operand expression is used.
         /// </summary>
+        /// <param name="checkConversion">
+        /// If <see langword="true"/>, the incoming conversion is assumed to be from binding
+        /// and will be re-calculated, this time considering nullability.
+        /// Note that the conversion calculation considers nested nullability only.
+        /// The caller is responsible for checking the top-level nullability of
+        /// the type returned by this method.
+        /// </param>
+        /// <param name="trackMembers">
+        /// If <see langword="true"/>, the nullability of any members of the operand
+        /// will be copied to the converted result when possible.
+        /// </param>
+        /// <param name="useLegacyWarnings">
+        /// If <see langword="true"/>, indicates that the "non-safety" diagnostic <see cref="ErrorCode.WRN_ConvertingNullableToNonNullable"/>
+        /// should be given for an invalid conversion.
+        /// </param>
         private TypeWithState VisitConversion(
             BoundConversion? conversionOpt,
             BoundExpression conversionOperand,
@@ -6618,7 +6692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             method = CheckMethodGroupReceiverNullability(group, parameters, method, conversion.IsExtensionMethod);
                         }
-                        if (reportRemainingWarnings)
+                        if (reportRemainingWarnings && invokeSignature != null)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, targetType, invokeSignature, method, conversion.IsExtensionMethod);
                         }
@@ -6631,6 +6705,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             NamedTypeSymbol { TypeKind: TypeKind.Delegate, DelegateInvokeMethod: { Parameters: { } parameters } signature } => (signature, parameters),
                             FunctionPointerTypeSymbol { Signature: { Parameters: { } parameters } signature } => (signature, parameters),
+                            { SpecialType: SpecialType.System_Delegate } => (null, ImmutableArray<ParameterSymbol>.Empty),
+                            ErrorTypeSymbol => (null, ImmutableArray<ParameterSymbol>.Empty),
                             _ => throw ExceptionUtilities.UnexpectedValue(targetType)
                         };
 
@@ -6657,7 +6733,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
-                    return operandType;
+                    resultState = visitNestedTargetTypedConstructs();
+                    TrackAnalyzedNullabilityThroughConversionGroup(targetTypeWithNullability.ToTypeWithState(), conversionOpt, conversionOperand);
+                    break;
 
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
@@ -6983,6 +7061,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 annotation = default;
                 return false;
+            }
+
+            NullableFlowState visitNestedTargetTypedConstructs()
+            {
+                switch (conversionOperand)
+                {
+                    case BoundConditionalOperator { WasTargetTyped: true } conditional:
+                        {
+                            Debug.Assert(ConditionalInfoForConversion.ContainsKey(conditional));
+                            var info = ConditionalInfoForConversion[conditional];
+                            Debug.Assert(info.Length == 2);
+
+                            var consequence = conditional.Consequence;
+                            (BoundExpression consequenceOperand, Conversion consequenceConversion) = RemoveConversion(consequence, includeExplicitConversions: false);
+                            var consequenceRValue = ConvertConditionalOperandOrSwitchExpressionArmResult(consequence, consequenceOperand, consequenceConversion, targetTypeWithNullability, info[0].ResultType, info[0].State, info[0].EndReachable);
+                            var alternative = conditional.Alternative;
+                            (BoundExpression alternativeOperand, Conversion alternativeConversion) = RemoveConversion(alternative, includeExplicitConversions: false);
+                            var alternativeRValue = ConvertConditionalOperandOrSwitchExpressionArmResult(alternative, alternativeOperand, alternativeConversion, targetTypeWithNullability, info[1].ResultType, info[1].State, info[1].EndReachable);
+
+                            ConditionalInfoForConversion.Remove(conditional);
+
+                            return consequenceRValue.State.Join(alternativeRValue.State);
+                        }
+
+                    case BoundConvertedSwitchExpression { WasTargetTyped: true } @switch:
+                        {
+                            Debug.Assert(ConditionalInfoForConversion.ContainsKey(@switch));
+                            var info = ConditionalInfoForConversion[@switch];
+
+                            Debug.Assert(info.Length == @switch.SwitchArms.Length);
+
+                            var resultTypes = ArrayBuilder<TypeWithState>.GetInstance(info.Length);
+
+                            for (int i = 0; i < info.Length; i++)
+                            {
+                                var (state, armResultType, isReachable) = info[i];
+                                var arm = @switch.SwitchArms[i].Value;
+                                var (operand, conversion) = RemoveConversion(arm, includeExplicitConversions: false);
+                                resultTypes.Add(ConvertConditionalOperandOrSwitchExpressionArmResult(arm, operand, conversion, targetTypeWithNullability, armResultType, state, isReachable));
+                            }
+
+                            var resultState = BestTypeInferrer.GetNullableState(resultTypes);
+                            resultTypes.Free();
+                            ConditionalInfoForConversion.Remove(@switch);
+                            return resultState;
+                        }
+
+                    case BoundObjectCreationExpression { WasTargetTyped: true }:
+                    case BoundUnconvertedObjectCreationExpression:
+                        return NullableFlowState.NotNull;
+
+                    case BoundUnconvertedConditionalOperator:
+                    case BoundUnconvertedSwitchExpression:
+                        return operandType.State;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(conversionOperand.Kind);
+                }
             }
         }
 
@@ -8665,10 +8801,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitBadExpression(BoundBadExpression node)
         {
-            var result = base.VisitBadExpression(node);
+            foreach (var child in node.ChildBoundNodes)
+            {
+                // https://github.com/dotnet/roslyn/issues/35042, we need to implement similar workarounds for object, collection, and dynamic initializers.
+                if (child is BoundLambda lambda)
+                {
+                    TakeIncrementalSnapshot(lambda);
+                    VisitLambda(lambda, delegateTypeOpt: null);
+                    VisitRvalueEpilogue(lambda);
+                }
+                else
+                {
+                    VisitRvalue(child as BoundExpression);
+                }
+            }
+
             var type = TypeWithAnnotations.Create(node.Type);
             SetLvalueResultType(node, type);
-            return result;
+            return null;
         }
 
         public override BoundNode? VisitTypeExpression(BoundTypeExpression node)
@@ -9358,6 +9508,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
         {
             var result = base.VisitInterpolatedString(node);
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return result;
+        }
+
+        public override BoundNode? VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
+        {
+            // This is only involved with unbound lambdas or when visiting the source of a converted tuple literal
+            var result = base.VisitUnconvertedInterpolatedString(node);
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
             return result;
         }

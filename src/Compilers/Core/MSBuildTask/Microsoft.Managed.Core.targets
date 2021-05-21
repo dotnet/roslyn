@@ -293,5 +293,16 @@
     <MakeDir Condition="'$(CompilerGeneratedFilesOutputPath)' != ''" 
              Directories="$(CompilerGeneratedFilesOutputPath)"  />
   </Target>
-  
+
+  <!--
+    ========================
+    Component Debugger Support
+    ========================
+    
+    Add the specified VS capability if a user indicates this project supports component debugging
+    -->
+  <ItemGroup>
+    <ProjectCapability Include="RoslynComponent" Condition="'$(IsRoslynComponent)' == 'true'"/>
+  </ItemGroup>
+
 </Project>

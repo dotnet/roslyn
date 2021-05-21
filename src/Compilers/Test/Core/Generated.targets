@@ -204,6 +204,10 @@
           <LogicalName>netcoreapp.Microsoft.VisualBasic.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\Microsoft.VisualBasic.dll</Link>
         </EmbeddedResource>
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\Microsoft.VisualBasic.Core.dll">
+          <LogicalName>netcoreapp.Microsoft.VisualBasic.Core.dll</LogicalName>
+          <Link>Resources\ReferenceAssemblies\netcoreapp\Microsoft.VisualBasic.Core.dll</Link>
+        </EmbeddedResource>
         <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\mscorlib.dll">
           <LogicalName>netstandard20.mscorlib.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netstandard20\mscorlib.dll</Link>

@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis
         public object? Value { get; }
         public string Text { get; }
         public IEnumerable<TreeDumperNode> Children { get; }
-        public TreeDumperNode this[string child]
+        public TreeDumperNode? this[string child]
         {
             get
             {

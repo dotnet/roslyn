@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
         private readonly TAssemblySymbol? _assemblyBeingBuilt;
 
         public static CompoundUseSiteInfo<TAssemblySymbol> Discarded => new CompoundUseSiteInfo<TAssemblySymbol>(DiscardLevel.DiagnosticsAndDependencies);
-        public static CompoundUseSiteInfo<TAssemblySymbol> DiscardedDependecies => new CompoundUseSiteInfo<TAssemblySymbol>(DiscardLevel.Dependencies);
+        public static CompoundUseSiteInfo<TAssemblySymbol> DiscardedDependencies => new CompoundUseSiteInfo<TAssemblySymbol>(DiscardLevel.Dependencies);
 
         private enum DiscardLevel : byte
         {

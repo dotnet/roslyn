@@ -23,7 +23,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = nameof(ReplaceMethodWithPropertyCodeRefactoringProvider)), Shared]
+        Name = PredefinedCodeRefactoringProviderNames.ReplaceMethodWithProperty), Shared]
     internal class ReplaceMethodWithPropertyCodeRefactoringProvider : CodeRefactoringProvider
     {
         private const string GetPrefix = "Get";
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var methodName = generator.GetName(methodDeclaration);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (!(semanticModel.GetDeclaredSymbol(methodDeclaration) is IMethodSymbol methodSymbol) ||
+            if (semanticModel.GetDeclaredSymbol(methodDeclaration) is not IMethodSymbol methodSymbol ||
                 !IsValidGetMethod(methodSymbol))
             {
                 return;
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private static bool HasPrefix(string text, string prefix)
             => text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
 
-        private static IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
+        private static IMethodSymbol? FindSetMethod(IMethodSymbol getMethod)
         {
             var containingType = getMethod.ContainingType;
             var setMethodName = "Set" + getMethod.Name[GetPrefix.Length..];

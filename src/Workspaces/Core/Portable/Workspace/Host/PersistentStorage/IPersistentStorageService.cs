@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.Host
     {
         [Obsolete("Use GetStorageAsync instead", error: false)]
         IPersistentStorage GetStorage(Solution solution);
-        ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken);
+        ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken = default);
     }
 }

@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -18,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor
         public NavigationBarPresentedItem(
             string text,
             Glyph glyph,
-            IList<TextSpan> spans,
-            IList<NavigationBarItem> childItems = null,
+            ImmutableArray<TextSpan> spans,
+            ImmutableArray<NavigationBarItem> childItems = default,
             bool bolded = false,
             bool grayed = false)
             : base(

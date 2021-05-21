@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal async Task VerifySolutionStateSerializationAsync(Solution solution, Checksum solutionChecksum)
         {
             var solutionObjectFromSyncObject = await GetValueAsync<SolutionStateChecksums>(solutionChecksum);
-            Assert.True(solution.State.TryGetStateChecksums(out var solutionObjectFromSolution));
+            Contract.ThrowIfFalse(solution.State.TryGetStateChecksums(out var solutionObjectFromSolution));
 
             SolutionStateEqual(solutionObjectFromSolution, solutionObjectFromSyncObject);
         }

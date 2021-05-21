@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _documentProvider(cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return ImmutableArray<TextSpan>.Empty;
                 }
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return await _solutionProvider(documentId, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return ImmutableArray<TextSpan>.Empty;
                 }
@@ -95,20 +97,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private sealed class EditSessionCallback
         {
-            private readonly IManagedEditAndContinueDebuggerService _managedModuleInfoProvider;
+            private readonly IManagedEditAndContinueDebuggerService _debuggerService;
 
-            public EditSessionCallback(IManagedEditAndContinueDebuggerService debuggeeModuleMetadataProvider)
+            public EditSessionCallback(IManagedEditAndContinueDebuggerService debuggerService)
             {
-                _managedModuleInfoProvider = debuggeeModuleMetadataProvider;
+                _debuggerService = debuggerService;
             }
 
             public async ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
             {
                 try
                 {
-                    return await _managedModuleInfoProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
+                    return await _debuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
                 }
@@ -118,9 +120,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 try
                 {
-                    return await _managedModuleInfoProvider.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
+                    return await _debuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     return new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.InternalError, e.Message);
                 }
@@ -130,9 +132,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 try
                 {
-                    await _managedModuleInfoProvider.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
+                    await _debuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                     // nop
                 }
@@ -149,53 +151,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private IEditAndContinueWorkspaceService GetLocalService()
             => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
-        public async ValueTask StartDebuggingSessionAsync(Solution solution, CancellationToken cancellationToken)
+        public async ValueTask<IDisposable?> StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                GetLocalService().StartDebuggingSession(solution);
-                return;
+                await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, cancellationToken).ConfigureAwait(false);
+                return LocalConnection.Instance;
             }
 
-            await client.TryInvokeAsync<IRemoteEditAndContinueService>(
+            // need to keep the providers alive until the edit session ends:
+            var connection = client.CreateConnection<IRemoteEditAndContinueService>(
+                callbackTarget: new EditSessionCallback(debuggerService));
+
+            await connection.TryInvokeAsync(
                 solution,
-                (service, solutionInfo, cancellationToken) => service.StartDebuggingSessionAsync(solutionInfo, cancellationToken),
+                async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
-        }
 
-        public async ValueTask<IDisposable?> StartEditSessionAsync(
-            IDiagnosticAnalyzerService diagnosticService,
-            IManagedEditAndContinueDebuggerService debuggerService,
-            CancellationToken cancellationToken)
-        {
-            IDisposable result;
-            ImmutableArray<DocumentId> documentsToReanalyze;
-
-            var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                GetLocalService().StartEditSession(debuggerService, out documentsToReanalyze);
-                result = LocalConnection.Instance;
-            }
-            else
-            {
-                // need to keep the providers alive until the edit session ends:
-                var connection = client.CreateConnection<IRemoteEditAndContinueService>(
-                    callbackTarget: new EditSessionCallback(debuggerService));
-
-                var documentsToReanalyzeOpt = await connection.TryInvokeAsync(
-                    (service, callbackId, cancellationToken) => service.StartEditSessionAsync(callbackId, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
-                result = connection;
-            }
-
-            // clear all reported run mode diagnostics:
-            diagnosticService.Reanalyze(Workspace, documentIds: documentsToReanalyze);
-
-            return result;
+            return connection;
         }
 
         private sealed class LocalConnection : IDisposable
@@ -207,19 +181,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public async ValueTask EndEditSessionAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
+        public async ValueTask BreakStateEnteredAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
         {
             ImmutableArray<DocumentId> documentsToReanalyze;
 
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                GetLocalService().EndEditSession(out documentsToReanalyze);
+                GetLocalService().BreakStateEntered(out documentsToReanalyze);
             }
             else
             {
                 var documentsToReanalyzeOpt = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DocumentId>>(
-                    (service, cancallationToken) => service.EndEditSessionAsync(cancellationToken),
+                    (service, cancallationToken) => service.BreakStateEnteredAsync(cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
@@ -241,17 +215,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             else
             {
                 var documentsToReanalyzeOpt = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DocumentId>>(
-                    (service, cancellationToken) => service.EndDebuggingSessionAsync(cancellationToken),
+                    (service, cancallationToken) => service.EndDebuggingSessionAsync(cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
             }
 
+            // clear all reported rude edits:
+            diagnosticService.Reanalyze(Workspace, documentIds: documentsToReanalyze);
+
             // clear emit/apply diagnostics reported previously:
             diagnosticUpdateSource.ClearDiagnostics();
-
-            // clear diagnostics reported during run mode:
-            diagnosticService.Reanalyze(Workspace, documentIds: documentsToReanalyze);
         }
 
         public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
@@ -299,19 +273,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return result.HasValue ? result.Value : true;
         }
 
-        public async ValueTask<ManagedModuleUpdates> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, CancellationToken cancellationToken)
+        public async ValueTask<(
+                ManagedModuleUpdates updates,
+                ImmutableArray<DiagnosticData> diagnostics,
+                ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>)> EmitSolutionUpdateAsync(
+            Solution solution,
+            SolutionActiveStatementSpanProvider activeStatementSpanProvider,
+            IDiagnosticAnalyzerService diagnosticService,
+            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
+            CancellationToken cancellationToken)
         {
-            ManagedModuleUpdates updates;
-            ImmutableArray<DiagnosticData> diagnosticsByProject;
+            ManagedModuleUpdates moduleUpdates;
+            ImmutableArray<DiagnosticData> diagnosticData;
+            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits;
 
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                (updates, diagnosticsByProject) = await GetLocalService().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                var results = await GetLocalService().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                moduleUpdates = results.ModuleUpdates;
+                diagnosticData = results.GetDiagnosticData(solution);
+                rudeEdits = results.RudeEdits;
             }
             else
             {
-                var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, (ManagedModuleUpdates, ImmutableArray<DiagnosticData>)>(
+                var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, EmitSolutionUpdateResults.Data>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) => service.EmitSolutionUpdateAsync(solutionInfo, callbackId, cancellationToken),
                     callbackTarget: new SolutionActiveStatementSpanProviderCallback(activeStatementSpanProvider),
@@ -319,36 +305,50 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (result.HasValue)
                 {
-                    (updates, diagnosticsByProject) = result.Value;
+                    moduleUpdates = result.Value.ModuleUpdates;
+                    diagnosticData = result.Value.Diagnostics;
+                    rudeEdits = result.Value.RudeEdits;
                 }
                 else
                 {
-                    updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
-                    diagnosticsByProject = ImmutableArray<DiagnosticData>.Empty;
+                    moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
+                    diagnosticData = ImmutableArray<DiagnosticData>.Empty;
+                    rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
                 }
             }
 
             // clear emit/apply diagnostics reported previously:
             diagnosticUpdateSource.ClearDiagnostics();
 
-            // report emit/apply diagnostics:
-            diagnosticUpdateSource.ReportDiagnostics(Workspace, solution, diagnosticsByProject);
+            // clear all reported rude edits:
+            diagnosticService.Reanalyze(Workspace, documentIds: rudeEdits.Select(d => d.DocumentId));
 
-            return updates;
+            // report emit/apply diagnostics:
+            diagnosticUpdateSource.ReportDiagnostics(Workspace, solution, diagnosticData);
+
+            return (moduleUpdates, diagnosticData, rudeEdits);
         }
 
-        public async ValueTask CommitSolutionUpdateAsync(CancellationToken cancellationToken)
+        public async ValueTask CommitSolutionUpdateAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
         {
+            ImmutableArray<DocumentId> documentsToReanalyze;
+
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                GetLocalService().CommitSolutionUpdate();
-                return;
+                GetLocalService().CommitSolutionUpdate(out documentsToReanalyze);
+            }
+            else
+            {
+                var documentsToReanalyzeOpt = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DocumentId>>(
+                    (service, cancallationToken) => service.CommitSolutionUpdateAsync(cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
             }
 
-            await client.TryInvokeAsync<IRemoteEditAndContinueService>(
-                (service, cancellationToken) => service.CommitSolutionUpdateAsync(cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            // clear all reported rude edits:
+            diagnosticService.Reanalyze(Workspace, documentIds: documentsToReanalyze);
         }
 
         public async ValueTask DiscardSolutionUpdateAsync(CancellationToken cancellationToken)

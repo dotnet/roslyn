@@ -806,9 +806,7 @@ End Namespace
             Assert.Equal(Of Boolean)(True, b1)
 
             Dim xt As SyntaxTree = Nothing
-            Assert.Throws(Of ArgumentNullException)(Sub()
-                                                        b1 = comp.ContainsSyntaxTree(xt)
-                                                    End Sub)
+            Assert.Equal(Of Boolean)(False, comp.ContainsSyntaxTree(xt))
 
             comp = comp.RemoveSyntaxTrees({t2})
             Assert.Equal(1, comp.SyntaxTrees.Length)

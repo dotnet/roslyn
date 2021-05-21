@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 while (!_cancelSource.IsCancellationRequested)
                 {
-                    var work = await _queue.DequeueAsync().ConfigureAwait(false);
+                    var work = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
 
                     // Record when the work item was been de-queued and the request context preparation started.
                     work.Metrics.RecordExecutionStart();
@@ -230,8 +230,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
             catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
             {
-                // If the queue is asked to shut down between the start of the while loop, and the Dequeue call
-                // we could end up here, but we don't want to report an error. The Shutdown call will take care of things.
+                // If cancellation occurs as a result of our token, then it was either because we cancelled it in the Shutdown
+                // method, if it happened during a mutating request, or because the queue was completed in the Shutdown method
+                // if it happened while waiting to dequeue the next item. Either way, we're already shutting down so we don't
+                // want to log it.
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {

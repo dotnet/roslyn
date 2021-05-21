@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default,
+            string displayTextPrefix = null,
+            string inlineDescription = null,
+            Glyph? glyph = null,
             bool isComplexTextEdit = false)
         {
             var props = properties ?? ImmutableDictionary<string, string>.Empty;
@@ -49,10 +52,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var item = CommonCompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: displayTextPrefix,
+                inlineDescription: inlineDescription,
                 rules: rules,
                 filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : firstSymbol.Name),
                 sortText: sortText ?? firstSymbol.Name,
-                glyph: firstSymbol.GetGlyph(),
+                glyph: glyph ?? firstSymbol.GetGlyph(),
                 showsWarningIcon: supportedPlatforms != null,
                 properties: props,
                 tags: tags,
@@ -168,28 +173,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static async Task<CompletionDescription> GetDescriptionAsync(
             CompletionItem item, Document document, CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
+            var symbols = await GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+            return await GetDescriptionForSymbolsAsync(item, document, symbols, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async Task<CompletionDescription> GetDescriptionForSymbolsAsync(
+            CompletionItem item, Document document, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
+        {
+            if (symbols.Length == 0)
+                return CompletionDescription.Empty;
 
             var position = GetDescriptionPosition(item);
             if (position == -1)
-            {
                 position = item.Span.Start;
-            }
+
+            var workspace = document.Project.Solution.Workspace;
 
             var supportedPlatforms = GetSupportedPlatforms(item, workspace);
-
             var contextDocument = FindAppropriateDocumentForDescriptionContext(document, supportedPlatforms);
-
             var semanticModel = await contextDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbols = await GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-            if (symbols.Length > 0)
-            {
-                return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return CompletionDescription.Empty;
-            }
+
+            return await CommonCompletionUtilities.CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms, cancellationToken).ConfigureAwait(false);
         }
 
         private static Document FindAppropriateDocumentForDescriptionContext(Document document, SupportedPlatformData supportedPlatforms)
@@ -281,6 +285,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 sortText,
                 insertionText,
                 filterText,
+                displayTextPrefix: null,
+                inlineDescription: null,
+                glyph: null,
                 supportedPlatforms,
                 properties,
                 tags,
@@ -296,6 +303,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string sortText = null,
             string insertionText = null,
             string filterText = null,
+            string displayTextPrefix = null,
+            string inlineDescription = null,
+            Glyph? glyph = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default,
@@ -304,7 +314,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
                 s_addSymbolEncoding, sortText, insertionText,
-                filterText, supportedPlatforms, properties, tags, isComplexTextEdit);
+                filterText, supportedPlatforms, properties, tags, displayTextPrefix,
+                inlineDescription, glyph, isComplexTextEdit);
         }
 
         public static CompletionItem CreateWithNameAndKind(
@@ -316,6 +327,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string sortText = null,
             string insertionText = null,
             string filterText = null,
+            string displayTextPrefix = null,
+            string inlineDescription = null,
+            Glyph? glyph = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default,
@@ -324,7 +338,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
                 s_addSymbolInfo, sortText, insertionText,
-                filterText, supportedPlatforms, properties, tags, isComplexTextEdit);
+                filterText, supportedPlatforms, properties, tags,
+                displayTextPrefix, inlineDescription, glyph, isComplexTextEdit);
         }
 
         internal static string GetSymbolName(CompletionItem item)

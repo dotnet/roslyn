@@ -912,7 +912,7 @@ Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.EditAndContinu
 Microsoft.CodeAnalysis.Emit.EmitBaseline
 Microsoft.CodeAnalysis.Emit.EmitBaseline.OriginalMetadata.get -> Microsoft.CodeAnalysis.ModuleMetadata!
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult
-Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.Baseline.get -> Microsoft.CodeAnalysis.Emit.EmitBaseline!
+Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.Baseline.get -> Microsoft.CodeAnalysis.Emit.EmitBaseline?
 Microsoft.CodeAnalysis.Emit.EmitOptions
 Microsoft.CodeAnalysis.Emit.EmitOptions.BaseAddress.get -> ulong
 Microsoft.CodeAnalysis.Emit.EmitOptions.DebugInformationFormat.get -> Microsoft.CodeAnalysis.Emit.DebugInformationFormat
@@ -3327,7 +3327,7 @@ static Microsoft.CodeAnalysis.SyntaxList<TNode>.implicit operator Microsoft.Code
 static Microsoft.CodeAnalysis.SyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
 static Microsoft.CodeAnalysis.SyntaxList<TNode>.operator !=(Microsoft.CodeAnalysis.SyntaxList<TNode!> left, Microsoft.CodeAnalysis.SyntaxList<TNode!> right) -> bool
 static Microsoft.CodeAnalysis.SyntaxList<TNode>.operator ==(Microsoft.CodeAnalysis.SyntaxList<TNode!> left, Microsoft.CodeAnalysis.SyntaxList<TNode!> right) -> bool
-static Microsoft.CodeAnalysis.SyntaxNodeExtensions.GetCurrentNode<TNode>(this Microsoft.CodeAnalysis.SyntaxNode! root, TNode! node) -> TNode!
+static Microsoft.CodeAnalysis.SyntaxNodeExtensions.GetCurrentNode<TNode>(this Microsoft.CodeAnalysis.SyntaxNode! root, TNode! node) -> TNode?
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.GetCurrentNodes<TNode>(this Microsoft.CodeAnalysis.SyntaxNode! root, System.Collections.Generic.IEnumerable<TNode!>! nodes) -> System.Collections.Generic.IEnumerable<TNode!>!
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.GetCurrentNodes<TNode>(this Microsoft.CodeAnalysis.SyntaxNode! root, TNode! node) -> System.Collections.Generic.IEnumerable<TNode!>!
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.InsertNodesAfter<TRoot>(this TRoot! root, Microsoft.CodeAnalysis.SyntaxNode! nodeInList, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>! newNodes) -> TRoot!

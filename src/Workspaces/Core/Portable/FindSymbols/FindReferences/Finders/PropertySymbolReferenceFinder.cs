@@ -22,32 +22,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IPropertySymbol symbol)
             => true;
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IPropertySymbol symbol,
             Solution solution,
             IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             var baseSymbols = await base.DetermineCascadedSymbolsAsync(
-                symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
+                symbol, solution, projects, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
 
             var backingFields = symbol.ContainingType.GetMembers()
                                       .OfType<IFieldSymbol>()
                                       .Where(f => symbol.Equals(f.AssociatedSymbol))
-                                      .ToImmutableArray<ISymbol>();
+                                      .Select(f => ((ISymbol)f, cascadeDirection))
+                                      .ToImmutableArray();
 
             var result = baseSymbols.Concat(backingFields);
 
             if (symbol.GetMethod != null)
-            {
-                result = result.Add(symbol.GetMethod);
-            }
+                result = result.Add((symbol.GetMethod, cascadeDirection));
 
             if (symbol.SetMethod != null)
-            {
-                result = result.Add(symbol.SetMethod);
-            }
+                result = result.Add((symbol.SetMethod, cascadeDirection));
 
             return result;
         }

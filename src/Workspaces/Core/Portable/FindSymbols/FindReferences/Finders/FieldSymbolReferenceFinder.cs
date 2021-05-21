@@ -14,21 +14,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IFieldSymbol symbol)
             => true;
 
-        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IFieldSymbol symbol,
             Solution solution,
             IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
-            if (symbol.AssociatedSymbol != null)
-            {
-                return Task.FromResult(ImmutableArray.Create(symbol.AssociatedSymbol));
-            }
-            else
-            {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-            }
+            return symbol.AssociatedSymbol != null
+                ? Task.FromResult(ImmutableArray.Create((symbol.AssociatedSymbol, cascadeDirection)))
+                : SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>();
         }
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

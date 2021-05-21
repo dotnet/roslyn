@@ -9,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -22,7 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
-            updatedMethods As ICollection(Of MethodDefinitionHandle),
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -33,6 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim runtimeMDVersion = compilation.GetRuntimeMetadataVersion()
             Dim serializationProperties = compilation.ConstructModuleSerializationProperties(emitOpts, runtimeMDVersion, baseline.ModuleVersionId)
             Dim manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
+
+            Dim updatedMethods = ArrayBuilder(Of MethodDefinitionHandle).GetInstance()
+            Dim updatedTypes = ArrayBuilder(Of TypeDefinitionHandle).GetInstance()
 
             Dim moduleBeingBuilt As PEDeltaAssemblyBuilder
             Try
@@ -48,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Catch e As NotSupportedException
                 ' TODO: https://github.com/dotnet/roslyn/issues/9004
                 diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message)
-                Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
+                Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing, updatedMethods:=updatedMethods.ToImmutableAndFree(), updatedTypes:=updatedTypes.ToImmutableAndFree())
             End Try
 
             If testData IsNot Nothing Then
@@ -81,6 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     ilStream,
                     pdbStream,
                     updatedMethods,
+                    updatedTypes,
                     diagnostics,
                     testData?.SymWriterFactory,
                     emitOpts.PdbFilePath,
@@ -90,7 +94,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return New EmitDifferenceResult(
                 success:=newBaseline IsNot Nothing,
                 diagnostics:=diagnostics.ToReadOnlyAndFree(),
-                baseline:=newBaseline)
+                baseline:=newBaseline,
+                updatedMethods:=updatedMethods.ToImmutableAndFree(),
+                updatedTypes:=updatedTypes.ToImmutableAndFree())
         End Function
 
         Friend Function MapToCompilation(

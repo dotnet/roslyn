@@ -15,7 +15,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
+using Xunit;
 using Process = System.Diagnostics.Process;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -235,6 +235,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // Prevent the start page from showing after each solution closes
             StartPage.SetEnabled(false);
+            Workspace.ResetOptions();
         }
 
         public void Close(bool exitHostProcess = true)
@@ -333,8 +334,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private void DisableTestTelemetryChannel()
             => _inProc.DisableTestTelemetryChannel();
 
-        private void WaitForTelemetryEvents(string[] names)
-            => _inProc.WaitForTelemetryEvents(names);
+        /// <summary>
+        /// Waits for specific telemetry events to occur.
+        /// </summary>
+        /// <param name="names">The telemetry events to wait for.</param>
+        /// <returns><see langword="true"/> if the telemetry events occurred; otherwise, <see langword="false"/> if
+        /// telemetry is disabled.</returns>
+        private bool TryWaitForTelemetryEvents(string[] names)
+            => _inProc.TryWaitForTelemetryEvents(names);
 
         public class TelemetryVerifier : IDisposable
         {
@@ -354,7 +361,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             /// <param name="expectedEventNames"></param>
             public void VerifyFired(params string[] expectedEventNames)
             {
-                _instance.WaitForTelemetryEvents(expectedEventNames);
+                var telemetryEnabled = _instance.TryWaitForTelemetryEvents(expectedEventNames);
+                if (string.Equals(Environment.GetEnvironmentVariable("ROSLYN_TEST_CI"), "true", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Telemetry verification is optional for developer machines, but required for CI.
+                    Assert.True(telemetryEnabled);
+                }
             }
         }
     }

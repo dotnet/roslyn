@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class TryStatementSyntax
     {
         public TryStatementSyntax Update(SyntaxToken tryKeyword, BlockSyntax block, SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax @finally)
-            => Update(attributeLists: default, tryKeyword, block, catches, @finally);
+            => Update(AttributeLists, tryKeyword, block, catches, @finally);
     }
 }
 

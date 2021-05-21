@@ -73,7 +73,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
                  displayTextSuffix: arity == 0 ? string.Empty : genericTypeSuffix,
-                 inlineDescription: containingNamespace);
+                 inlineDescription: containingNamespace,
+                 isComplexTextEdit: true);
 
             if (includedInTargetTypeCompletion)
             {
@@ -102,7 +103,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  rules: attributeItem.Rules,
                  displayTextPrefix: attributeItem.DisplayTextPrefix,
                  displayTextSuffix: attributeItem.DisplayTextSuffix,
-                 inlineDescription: attributeItem.InlineDescription);
+                 inlineDescription: attributeItem.InlineDescription,
+                 isComplexTextEdit: true);
 
             item.Flags = flags;
             return item;

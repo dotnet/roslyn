@@ -46,10 +46,7 @@ Imports System.Collections.Generic
                 "Delete [Imports <xmlns=""http://roslyn/default1"">]@34",
                 "Delete [Imports System.Collections]@76")
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, Nothing, VBFeaturesResources.import),
-                Diagnostic(RudeEditKind.Delete, Nothing, VBFeaturesResources.import),
-                Diagnostic(RudeEditKind.Delete, Nothing, VBFeaturesResources.import))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -71,10 +68,7 @@ Imports System.Collections.Generic
                 "Insert [Imports <xmlns=""http://roslyn/default1"">]@34",
                 "Insert [Imports System.Collections]@76")
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Imports D = System.Diagnostics", VBFeaturesResources.import),
-                Diagnostic(RudeEditKind.Insert, "Imports <xmlns=""http://roslyn/default1"">", "import"),
-                Diagnostic(RudeEditKind.Insert, "Imports System.Collections", VBFeaturesResources.import))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -95,8 +89,7 @@ Imports System.Collections.Generic
             edits.VerifyEdits(
                 "Update [Imports System.Collections]@30 -> [Imports X = System.Collections]@30")
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Imports X = System.Collections", VBFeaturesResources.import))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact, WorkItem(51374, "https://github.com/dotnet/roslyn/issues/51374")>
@@ -130,8 +123,7 @@ Imports System.Collections.Generic
             edits.VerifyEdits(
                 "Update [Imports X1 = System.Collections]@30 -> [Imports X2 = System.Collections]@30")
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Imports X2 = System.Collections", VBFeaturesResources.import))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -153,8 +145,7 @@ Imports System.Collections.Generic
             edits.VerifyEdits(
                 "Update [Imports System.Diagnostics]@2 -> [Imports System]@2")
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Imports System", VBFeaturesResources.import))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -175,6 +166,60 @@ Imports System.Diagnostics
 
             edits.VerifyEdits(
                 "Reorder [Imports System.Diagnostics]@2 -> @66")
+        End Sub
+
+        <Fact>
+        Public Sub ImportInsert_WithNewCode()
+            Dim src1 = "
+Class C
+    Sub M()
+    End Sub
+End Class
+"
+
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub M()
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"))
+            })
+        End Sub
+
+        <Fact>
+        Public Sub ImportDelete_WithOldCode()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub M()
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+
+            Dim src2 = "
+Class C
+    Sub M()
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"))
+            })
         End Sub
 #End Region
 

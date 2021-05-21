@@ -2979,7 +2979,7 @@ public class SomeClass : Base
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
             var completionItem = completionList.Items.Where(c => c.DisplayText == "M(in int x)").Single();
 
-            var commit = await service.GetChangeAsync(document, completionItem, completionList.Span, commitKey: null, disallowAddingImports: false, CancellationToken.None);
+            var commit = await service.GetChangeAsync(document, completionItem, commitKey: null, CancellationToken.None);
 
             var text = await document.GetTextAsync();
             var newText = text.WithChanges(commit.TextChange);
@@ -3145,6 +3145,11 @@ record Program : Base
 {
     override $$
 }", "ToString()");
+        }
+
+        private Task VerifyItemExistsAsync(string markup, string expectedItem)
+        {
+            return VerifyItemExistsAsync(markup, expectedItem, isComplexTextEdit: true);
         }
     }
 }

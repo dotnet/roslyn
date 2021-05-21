@@ -27,6 +27,11 @@
         <target state="translated">Tüm C# biçimlendirme kurallarını (girinti, kaydırma, boşluklar) uygula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_complete_statement_on_semicolon">
+        <source>Automatically complete statement on semicolon</source>
+        <target state="new">Automatically complete statement on semicolon</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
         <target state="needs-review-translation">Bağımsız değişken listelerinde tamamlama listesini otomatik olarak göster (deneysel)</target>
@@ -47,6 +52,11 @@
         <target state="translated">C# biçimlendirme kuralları</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="new">Completion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">At</target>
@@ -55,11 +65,6 @@
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
         <target state="translated">Renk düzenini düzenle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">Belgeyi biçimlendir</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -585,11 +590,6 @@
       <trans-unit id="Place_code_snippets_in_completion_lists">
         <source>Place _code snippets in completion lists</source>
         <target state="translated">_Kod parçacıklarını tamamlama listelerine yerleştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Completion_Lists">
-        <source>Completion Lists</source>
-        <target state="translated">Tamamlama Listeleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_In_Completion_List">

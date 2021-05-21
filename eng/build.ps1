@@ -364,6 +364,10 @@ function TestUsingRunTests() {
     }
   }
 
+  if ($ci) {
+    $env:ROSLYN_TEST_CI = "true"
+  }
+
   if ($testIOperation) {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
@@ -455,6 +459,10 @@ function TestUsingRunTests() {
     Exec-Console $dotnetExe "$runTests $args"
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
+    if ($ci) {
+      Remove-Item env:\ROSLYN_TEST_CI
+    }
+
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
