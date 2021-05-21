@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1054,6 +1055,36 @@ class Program
         static void local1(int z)
         {
         }
+    }
+}
+";
+
+            var lookupNames = GetLookupNames(testSrc);
+            var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
+
+            Assert.Contains("w", lookupNames);
+            Assert.Contains("y", lookupNames);
+            Assert.Contains("System.Int32 Program.w", lookupSymbols);
+            Assert.Contains("System.Int32 y", lookupSymbols);
+        }
+
+        [Fact]
+        public void LookupInsideLambdaAttribute()
+        {
+            var testSrc = @"
+using System;
+
+class Program
+{
+    const int w = 0451;
+
+    void M()
+    {
+        int x = 42;
+        const int y = 123;
+        Action<int> a =
+            [ObsoleteAttribute(/*pos*/
+            (int z) => { };
     }
 }
 ";

@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -25,17 +26,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// The path to the project file for this project.
         /// </summary>
-        public string FilePath { get; }
+        public string? FilePath { get; }
 
         /// <summary>
         /// The path to the output file this project generates.
         /// </summary>
-        public string OutputFilePath { get; }
+        public string? OutputFilePath { get; }
 
         /// <summary>
         /// The path to the reference assembly output file this project generates.
         /// </summary>
-        public string OutputRefFilePath { get; }
+        public string? OutputRefFilePath { get; }
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
@@ -48,13 +49,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// In the future, we might consider officially exposing "default namespace" for VB project 
         /// (e.g. through a "defaultnamespace" msbuild property)
         /// </remarks>
-        public string DefaultNamespace { get; }
+        public string? DefaultNamespace { get; }
 
         /// <summary>
         /// The target framework of this project.
         /// This takes the form of the 'short name' form used by NuGet (e.g. net46, netcoreapp2.0, etc.)
         /// </summary>
-        public string TargetFramework { get; }
+        public string? TargetFramework { get; }
 
         /// <summary>
         /// The command line args used to compile the project.
@@ -88,18 +89,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public DiagnosticLog Log { get; }
 
         public override string ToString()
-            => string.IsNullOrWhiteSpace(TargetFramework)
-                ? FilePath
+            => RoslynString.IsNullOrWhiteSpace(TargetFramework)
+                ? FilePath ?? string.Empty
                 : $"{FilePath} ({TargetFramework})";
 
         private ProjectFileInfo(
             bool isEmpty,
             string language,
-            string filePath,
-            string outputFilePath,
-            string outputRefFilePath,
-            string defaultNamespace,
-            string targetFramework,
+            string? filePath,
+            string? outputFilePath,
+            string? outputRefFilePath,
+            string? defaultNamespace,
+            string? targetFramework,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<ProjectFileReference> projectReferences,
             DiagnosticLog log)
         {
-            Debug.Assert(filePath != null);
+            RoslynDebug.Assert(filePath != null);
 
             this.IsEmpty = isEmpty;
             this.Language = language;
@@ -126,18 +127,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public static ProjectFileInfo Create(
             string language,
-            string filePath,
-            string outputFilePath,
-            string outputRefFilePath,
-            string defaultNamespace,
-            string targetFramework,
+            string? filePath,
+            string? outputFilePath,
+            string? outputRefFilePath,
+            string? defaultNamespace,
+            string? targetFramework,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
             ImmutableArray<DocumentFileInfo> additionalDocuments,
             ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
             DiagnosticLog log)
-            => new ProjectFileInfo(
+            => new(
                 isEmpty: false,
                 language,
                 filePath,
@@ -152,8 +153,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectReferences,
                 log);
 
-        public static ProjectFileInfo CreateEmpty(string language, string filePath, DiagnosticLog log)
-            => new ProjectFileInfo(
+        public static ProjectFileInfo CreateEmpty(string language, string? filePath, DiagnosticLog log)
+            => new(
                 isEmpty: true,
                 language,
                 filePath,

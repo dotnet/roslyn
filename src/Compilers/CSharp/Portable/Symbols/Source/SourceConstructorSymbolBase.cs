@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,15 +21,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected SourceConstructorSymbolBase(
             SourceMemberContainerTypeSymbol containingType,
             Location location,
-            CSharpSyntaxNode syntax)
-            : base(containingType, syntax.GetReference(), ImmutableArray.Create(location), SyntaxFacts.HasYieldOperations(syntax))
+            CSharpSyntaxNode syntax,
+            bool isIterator)
+            : base(containingType, syntax.GetReference(), ImmutableArray.Create(location), isIterator)
         {
             Debug.Assert(
                 syntax.IsKind(SyntaxKind.ConstructorDeclaration) ||
-                syntax.IsKind(SyntaxKind.RecordDeclaration));
+                syntax.IsKind(SyntaxKind.RecordDeclaration) ||
+                syntax.IsKind(SyntaxKind.RecordStructDeclaration));
         }
 
-        protected sealed override void MethodChecks(DiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             var syntax = (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
             var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
@@ -57,7 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyReturnType = TypeWithAnnotations.Create(bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
 
             var location = this.Locations[0];
-            if (MethodKind == MethodKind.StaticConstructor && (_lazyParameters.Length != 0))
+            // Don't report ERR_StaticConstParam if the ctor symbol name doesn't match the containing type name.
+            // This avoids extra unnecessary errors.
+            // There will already be a diagnostic saying Method must have a return type.
+            if (MethodKind == MethodKind.StaticConstructor && (_lazyParameters.Length != 0) &&
+                ContainingType.Name == ((ConstructorDeclarationSyntax)this.SyntaxNode).Identifier.ValueText)
             {
                 diagnostics.Add(ErrorCode.ERR_StaticConstParam, location, this);
             }
@@ -74,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract ParameterListSyntax GetParameterList();
 
         protected abstract bool AllowRefOrOut { get; }
-#nullable restore
+#nullable disable
 
-        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
@@ -135,8 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses()
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         public override RefKind RefKind
         {
@@ -229,6 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we haven't found the constructor part that declares the variable:
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal abstract override bool IsNullableAnalysisEnabled();
 
         protected abstract CSharpSyntaxNode GetInitializer();
 

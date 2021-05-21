@@ -5,11 +5,17 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     /// <summary>
-    /// Provides current active statements.
+    /// Provides active statement spans within the specified document of a solution.
     /// </summary>
-    internal delegate Task<ImmutableArray<ActiveStatementDebugInfo>> ActiveStatementProvider(CancellationToken cancellationToken);
+    internal delegate ValueTask<ImmutableArray<TextSpan>> SolutionActiveStatementSpanProvider(DocumentId documentId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Provides active statement spans within a document.
+    /// </summary>
+    internal delegate ValueTask<ImmutableArray<TextSpan>> DocumentActiveStatementSpanProvider(CancellationToken cancellationToken);
 }

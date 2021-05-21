@@ -27,6 +27,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
 
+        Private Shared Function GetDefaultDiagnosticAnalyzerService(workspace As TestWorkspace) As DefaultDiagnosticAnalyzerService
+            Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
+            Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
+            Return Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+        End Function
+
         <WpfFact>
         Public Async Function TestMiscSquiggles() As Task
             Dim code = <code>
@@ -39,16 +45,13 @@ class 123 { }
 
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
-                WpfTestRunner.RequireWpfFact($"This test uses {NameOf(IForegroundNotificationService)}")
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = workspace.ExportProvider.GetExportedValues(Of ITaggerProvider)().OfType(Of DiagnosticsSquiggleTaggerProvider)().Single()
@@ -88,9 +91,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
@@ -104,8 +105,10 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Assert.Single(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None))
+                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+
+                Assert.Single(diagnostics)
             End Using
         End Function
 
@@ -127,9 +130,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic)
@@ -142,7 +143,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 ' error CS0246: The type or namespace name 'M' could not be found
                 AssertEx.Equal({"CS0246"}, diagnostics.Select(Function(d) d.Id))
@@ -167,9 +169,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
@@ -182,7 +182,8 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Dim diagnostics = diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None)
+                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
 
                 ' error CS1002: ; expected
                 ' error CS0246: The type or namespace name 'M' could not be found
@@ -208,9 +209,7 @@ class A
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
@@ -225,8 +224,10 @@ class A
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                AssertEx.Empty(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None))
+                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+
+                AssertEx.Empty(diagnostics)
             End Using
         End Function
 
@@ -240,9 +241,7 @@ class 123 { }
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
                 Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
@@ -271,9 +270,7 @@ End Class
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
                 Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
@@ -310,15 +307,13 @@ End Class
                 GetType(NoCompilationContentTypeLanguageService),
                 GetType(NoCompilationContentTypeDefinitions))
 
-            Using workspace = TestWorkspace.CreateWorkspace(test, openDocuments:=True, composition:=Composition)
+            Using workspace = TestWorkspace.CreateWorkspace(test, openDocuments:=True, composition:=composition)
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(analyzerMap)
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
                 Dim diagnosticService = DirectCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService), DiagnosticService)
 
-                Dim lazyIncrementalAnalyzerProviders = workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata)()
-                Dim lazyMiscService = lazyIncrementalAnalyzerProviders.Single(Function(lazyProvider) lazyProvider.Metadata.Name = WellKnownSolutionCrawlerAnalyzers.Diagnostic AndAlso lazyProvider.Metadata.HighPriorityForActiveFile = False)
-                Dim miscService = Assert.IsType(Of DefaultDiagnosticAnalyzerService)(lazyMiscService.Value)
+                Dim miscService = GetDefaultDiagnosticAnalyzerService(workspace)
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.ScriptSemantic)
@@ -332,8 +327,10 @@ End Class
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
-                Assert.Single(
-                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None))
+                Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+
+                Assert.Single(diagnostics)
             End Using
         End Function
 

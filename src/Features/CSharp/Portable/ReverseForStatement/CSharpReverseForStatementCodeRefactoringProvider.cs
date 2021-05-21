@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 {
     using static IntegerUtilities;
 
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ReverseForStatement), Shared]
     internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactoringProvider
     {
         [ImportingConstructor]
@@ -99,10 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             };
         }
 
-        private static bool IsUnsignedBoundary(Optional<object> startValue, Optional<object> endValue, ulong maxValue)
+        private static bool IsUnsignedBoundary(Optional<object?> startValue, Optional<object?> endValue, ulong maxValue)
             => ValueEquals(startValue, 0) || ValueEquals(endValue, maxValue);
 
-        private static bool ValueEquals(Optional<object> valueOpt, ulong value)
+        private static bool ValueEquals(Optional<object?> valueOpt, ulong value)
             => valueOpt.HasValue && IsIntegral(valueOpt.Value) && ToUInt64(valueOpt.Value) == value;
 
         private static bool MatchesIncrementPattern(

@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.TodoComments;
@@ -14,7 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
     public class TodoCommentTests : AbstractTodoCommentTests
     {
         protected override TestWorkspace CreateWorkspace(string codeWithMarker)
-            => TestWorkspace.CreateCSharp(codeWithMarker);
+        {
+            var workspace = TestWorkspace.CreateCSharp(codeWithMarker);
+            workspace.SetOptions(workspace.Options.WithChangedOption(TodoCommentOptions.TokenList, DefaultTokenList));
+            return workspace;
+        }
 
         [Fact]
         public async Task SingleLineTodoComment_Colon()

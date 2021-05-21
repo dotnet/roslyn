@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -11,12 +13,18 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyInterpolation)]
     public partial class SimplifyInterpolationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public SimplifyInterpolationTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyInterpolationDiagnosticAnalyzer(), new CSharpSimplifyInterpolationCodeFixProvider());
 
@@ -38,8 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
             Assert.Equal(
                 new[] {
                     ("IDE0071", DiagnosticSeverity.Info),
-                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
-                    ("IDE0071WithoutSuggestion", DiagnosticSeverity.Hidden),
                 },
                 diagnostics.Select(d => (d.Descriptor.Id, d.Severity)));
         }
@@ -204,6 +210,114 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     void M(System.DateTime someValue)
     {
         _ = $""prefix {someValue[||].ToString(""some format code"", System.Globalization.CultureInfo.CurrentCulture)} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToStringWithInvariantCultureInsideFormattableStringInvariant()
+        {
+            // Invariance remains explicit, so this is okay.
+
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(System.Globalization.CultureInfo.InvariantCulture)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task DateTimeFormatInfoInvariantInfoIsRecognized()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(System.Globalization.DateTimeFormatInfo.InvariantInfo)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task NumberFormatInfoInvariantInfoIsRecognized()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(System.Globalization.NumberFormatInfo.InvariantInfo)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(int someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToStringWithInvariantCultureOutsideFormattableStringInvariant()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = $""prefix {someValue[||].ToString(System.Globalization.CultureInfo.InvariantCulture)} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToStringWithFormatAndInvariantCultureInsideFormattableStringInvariant()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue[||]{|Unnecessary:.ToString(""|}some format code{|Unnecessary:"", System.Globalization.CultureInfo.InvariantCulture)|}} suffix"");
+    }
+}",
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = System.FormattableString.Invariant($""prefix {someValue:some format code} suffix"");
+    }
+}");
+        }
+
+        [Fact]
+        public async Task ToStringWithFormatAndInvariantCultureOutsideFormattableStringInvariant()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(System.DateTime someValue)
+    {
+        _ = $""prefix {someValue[||].ToString(""some format code"", System.Globalization.CultureInfo.InvariantCulture)} suffix"";
     }
 }");
         }
@@ -993,6 +1107,66 @@ class B : C
     void M(B someValue)
     {
         _ = $""prefix {someValue} suffix"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterlessToString()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2){|Unnecessary:[||].ToString()|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2)}"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingParameterizedToString()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2){|Unnecessary:[||].ToString(""|}g{|Unnecessary:"")|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? 1 : 2):g}"";
+    }
+}");
+        }
+
+        [Fact, WorkItem(49647, "https://github.com/dotnet/roslyn/issues/49647")]
+        public async Task ConditionalExpressionMustRemainParenthesizedWhenUsingPadLeft()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? ""1"" : ""2""){|Unnecessary:[||].PadLeft(|}3{|Unnecessary:)|}}"";
+    }
+}",
+@"class C
+{
+    void M(bool cond)
+    {
+        _ = $""{(cond ? ""1"" : ""2""),3}"";
     }
 }");
         }

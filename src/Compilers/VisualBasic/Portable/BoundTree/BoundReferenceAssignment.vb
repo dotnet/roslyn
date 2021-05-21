@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundReferenceAssignment
+    Partial Friend Class BoundReferenceAssignment
 #If DEBUG Then
         Private Sub Validate()
             Debug.Assert(ByRefLocal.LocalSymbol.IsByRef AndAlso LValue.IsLValue AndAlso TypeSymbol.Equals(Type, LValue.Type, TypeCompareKind.ConsiderEverything))

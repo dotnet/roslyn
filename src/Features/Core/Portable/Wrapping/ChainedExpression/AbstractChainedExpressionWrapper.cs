@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -269,38 +272,47 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         }
 
         /// <summary>
-        /// Recursively walks down <paramref name="node"/> decomposing it into the individual 
-        /// tokens and nodes we want to look for chunks in. 
+        /// Walks down <paramref name="node"/> decomposing it into the individual tokens and nodes we want to look for chunks in. 
         /// </summary>
         private void Decompose(SyntaxNode node, ArrayBuilder<SyntaxNodeOrToken> pieces)
         {
             // Ignore null nodes, they are never relevant when building up the sequence of
             // pieces in this chained expression.
             if (node is null)
-            {
                 return;
-            }
 
-            // We've hit some node that can't be decomposed further (like an argument list,
-            // or name node).  Just add directly to the pieces list.
-            if (!IsDecomposableChainPart(node))
+            var stack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
+            stack.Push(node);
+            try
             {
-                pieces.Add(node);
-                return;
-            }
+                while (stack.Count > 0)
+                {
+                    var nodeOrToken = stack.Pop();
+                    if (nodeOrToken.IsToken)
+                    {
+                        // tokens can't be decomposed.  just add to the result list.
+                        pieces.Add(nodeOrToken.AsToken());
+                        continue;
+                    }
 
-            // For everything else that is a chain part, just decompose into its constituent 
-            // parts and add to the pieces array.
-            foreach (var child in node.ChildNodesAndTokens())
+                    var currentNode = nodeOrToken.AsNode();
+                    if (!IsDecomposableChainPart(currentNode))
+                    {
+                        // We've hit some node that can't be decomposed further (like an argument list, or name node).
+                        // Just add directly to the pieces list.
+                        pieces.Add(currentNode);
+                        continue;
+                    }
+
+                    // Hit something that can be decomposed.  Push it onto the stack in reverse so that we continue to
+                    // traverse the node from right to left as we pop things off the end of the stack.
+                    foreach (var child in currentNode.ChildNodesAndTokens().Reverse())
+                        stack.Push(child);
+                }
+            }
+            finally
             {
-                if (child.IsNode)
-                {
-                    Decompose(child.AsNode(), pieces);
-                }
-                else
-                {
-                    pieces.Add(child.AsToken());
-                }
+                SharedPools.Default<Stack<SyntaxNodeOrToken>>().Free(stack);
             }
         }
     }

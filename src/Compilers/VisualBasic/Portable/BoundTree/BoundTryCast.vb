@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundTryCast
+    Partial Friend Class BoundTryCast
 
         Public Sub New(
             syntax As SyntaxNode,

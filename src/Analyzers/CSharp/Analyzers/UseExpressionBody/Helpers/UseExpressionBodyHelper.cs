@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public abstract LocalizableString UseExpressionBodyTitle { get; }
         public abstract LocalizableString UseBlockBodyTitle { get; }
         public abstract string DiagnosticId { get; }
+        public abstract EnforceOnBuild EnforceOnBuild { get; }
         public abstract ImmutableArray<SyntaxKind> SyntaxKinds { get; }
 
         public abstract BlockSyntax GetBody(SyntaxNode declaration);

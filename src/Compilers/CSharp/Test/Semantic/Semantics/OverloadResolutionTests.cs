@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -868,7 +869,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
 
             assert("F0", "delegate*<System.Int32, System.Int32, C<MyTask<System.Int32>>>", "delegate*<System.Int32, System.Int32, C<System.Threading.Tasks.Task<System.Int32>>>");
@@ -8985,7 +8986,7 @@ public interface IDetail<T>
 
 }
 
-public interface IMaster<T>
+public interface IMain<T>
 {
 
 }
@@ -9016,15 +9017,15 @@ public class Permission : IDetail<Principal>
 
 }
 
-public class Principal : IMaster<Permission>
+public class Principal : IMain<Permission>
 {
 }
 
 public static class Class
 {
-    public static void RemoveDetail<TMaster, TChild>(this TMaster master, TChild child)
-        where TMaster : class, IMaster<TChild>
-        where TChild : class, IDetail<TMaster>
+    public static void RemoveDetail<TMain, TChild>(this TMain main, TChild child)
+        where TMain : class, IMain<TChild>
+        where TChild : class, IDetail<TMain>
     {
         System.Console.WriteLine(""RemoveDetail"");
     }

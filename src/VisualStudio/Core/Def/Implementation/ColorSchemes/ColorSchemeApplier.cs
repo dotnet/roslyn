@@ -2,18 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -30,14 +28,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     [Export(typeof(ColorSchemeApplier))]
     internal sealed partial class ColorSchemeApplier : ForegroundThreadAffinitizedObject, IDisposable
     {
+        private const string ColorThemeValueName = "Microsoft.VisualStudio.ColorTheme";
+        private const string ColorThemeNewValueName = "Microsoft.VisualStudio.ColorThemeNew";
+
         private readonly IServiceProvider _serviceProvider;
         private readonly ColorSchemeSettings _settings;
+        private readonly ClassificationVerifier _classificationVerifier;
         private readonly ImmutableDictionary<SchemeName, ColorScheme> _colorSchemes;
         private readonly AsyncLazy<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>> _colorSchemeRegistryItems;
-        private readonly ForegroundColorDefaulter _colorDefaulter;
 
         private bool _isInitialized = false;
-        private bool _migrationAttempted = false;
         private bool _isDisposed = false;
 
         [ImportingConstructor]
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             _settings = new ColorSchemeSettings(_serviceProvider, visualStudioWorkspace);
             _colorSchemes = _settings.GetColorSchemes();
-            _colorDefaulter = new ForegroundColorDefaulter(threadingContext, serviceProvider, _settings, _colorSchemes);
+            _classificationVerifier = new ClassificationVerifier(threadingContext, serviceProvider, _colorSchemes);
 
             _colorSchemeRegistryItems = new AsyncLazy<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>>(GetColorSchemeRegistryItemsAsync, cacheResult: true);
         }
@@ -66,48 +66,51 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
         public void Initialize()
         {
+            if (_isInitialized)
+            {
+                return;
+            }
+
             AssertIsForeground();
 
-            if (!_isInitialized)
-            {
-                _isInitialized = true;
+            _isInitialized = true;
 
-                _ = _colorSchemeRegistryItems.GetValueAsync(CancellationToken.None);
+            _ = _colorSchemeRegistryItems.GetValueAsync(CancellationToken.None);
 
-                // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
-                var settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
-                settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
+            // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
+            var settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
+            settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
 
-                VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
+            VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
-                // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
-                // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
-                // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
-                // colors are only applicable to the Blue and Light VS themes.
+            // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
+            _settings.MigrateToColorSchemeSetting();
 
-                // When we update the colors we also flag that this is potentially a theme change, as settings could have synced over from a
-                // different VS instance and we may need to perform additional work to default colors that match our scheme.
-                UpdateColorScheme(themeChanged: true);
-            }
+            // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
+            // We attempt to apply a color scheme when the Roslyn package is loaded. This is our chance to update the configuration registry
+            // with the Roslyn colors before they are seen by the user. This is important because the MEF exported Roslyn classification
+            // colors are only applicable to the Blue and Light VS themes.
+
+            UpdateColorScheme();
         }
 
         private Task<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>> GetColorSchemeRegistryItemsAsync(CancellationToken arg)
             => SpecializedTasks.FromResult(_colorSchemes.ToImmutableDictionary(kvp => kvp.Key, kvp => RegistryItemConverter.Convert(kvp.Value)));
 
         private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
-            => QueueColorSchemeUpdate(themeChanged: true);
+            => QueueColorSchemeUpdate();
 
         private async Task ColorSchemeChangedAsync(object sender, PropertyChangedEventArgs args)
             => await QueueColorSchemeUpdate();
 
-        private IVsTask QueueColorSchemeUpdate(bool themeChanged = false)
+        private IVsTask QueueColorSchemeUpdate()
         {
             // Wait until things have settled down from the theme change, since we will potentially be changing theme colors.
             return VsTaskLibraryHelper.CreateAndStartTask(
-                VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadBackgroundPriority, () => UpdateColorScheme(themeChanged));
+                VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadBackgroundPriority, () => UpdateColorScheme());
         }
 
-        private void UpdateColorScheme(bool themeChanged = false)
+        private void UpdateColorScheme()
         {
             AssertIsForeground();
 
@@ -115,20 +118,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             if (_isDisposed)
             {
                 return;
-            }
-
-            if (!_migrationAttempted)
-            {
-                _migrationAttempted = true;
-
-                // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
-                _settings.MigrateToColorSchemeSetting(IsThemeCustomized());
-            }
-
-            if (themeChanged)
-            {
-                // Default Foreground colors if they match our theme colors.
-                _colorDefaulter.DefaultClassifications(IsThemeCustomized());
             }
 
             // If the color scheme has updated, apply the scheme.
@@ -165,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         }
 
         public bool IsSupportedTheme()
-            => IsSupportedTheme(_settings.GetThemeId());
+            => IsSupportedTheme(GetThemeId());
 
         public bool IsSupportedTheme(Guid themeId)
         {
@@ -175,7 +164,28 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         }
 
         public bool IsThemeCustomized()
-            => !_colorDefaulter.AreClassificationsDefaultable(_settings.GetThemeId());
+            => _classificationVerifier.AreForegroundColorsCustomized(_settings.GetConfiguredColorScheme(), GetThemeId());
+
+        public Guid GetThemeId()
+        {
+            AssertIsForeground();
+
+            var settingsManager = (ISettingsManager)_serviceProvider.GetService(typeof(SVsSettingsPersistenceManager));
+
+            //  Look up the value from the new roamed theme property first
+            //  Fallback to the original roamed theme property if that fails
+            var currentThemeString = settingsManager.GetValueOrDefault<string?>(ColorThemeNewValueName, defaultValue: null) ??
+                settingsManager.GetValueOrDefault<string?>(ColorThemeValueName, defaultValue: null);
+
+            if (currentThemeString is null)
+            {
+                // The ColorTheme setting is unpopulated when it has never been changed from its default.
+                // The default VS ColorTheme is Blue
+                return KnownColorThemes.Blue;
+            }
+
+            return Guid.Parse(currentThemeString);
+        }
 
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]

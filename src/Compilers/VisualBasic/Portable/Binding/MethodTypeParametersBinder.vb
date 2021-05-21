@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       arity As Integer,
                                                       options As LookupOptions,
                                                       originalBinder As Binder,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.IsClear)
 
             ' type parameters can only be accessed with arity 0
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For i = 0 To _typeParameters.Length - 1
                 Dim tp = _typeParameters(i)
                 If IdentifierComparison.Equals(tp.Name, name) Then
-                    lookupResult.SetFrom(CheckViability(tp, arity, options, Nothing, useSiteDiagnostics))
+                    lookupResult.SetFrom(CheckViability(tp, arity, options, Nothing, useSiteInfo))
                 End If
             Next
         End Sub

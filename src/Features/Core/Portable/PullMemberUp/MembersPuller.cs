@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -371,10 +373,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             else
             {
                 var overrideMembersSet = new HashSet<ISymbol>();
-                for (var symbol = selectedMember; symbol != null; symbol = symbol.OverriddenMember())
-                {
+                for (var symbol = selectedMember; symbol != null; symbol = symbol.GetOverriddenMember())
                     overrideMembersSet.Add(symbol);
-                }
 
                 // Since the destination and selectedMember may belong different language, so use SymbolEquivalenceComparer as comparer
                 return overrideMembersSet.Intersect(destination.GetMembers(), SymbolEquivalenceComparer.Instance).Any();

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,13 +36,13 @@ namespace Microsoft.CodeAnalysis.Serialization
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
 
-        internal static async Task FindAsync<TKey, TValue>(
-            ImmutableSortedDictionary<TKey, TValue> documentStates,
+        internal static async Task FindAsync<TState>(
+            TextDocumentStates<TState> documentStates,
             HashSet<Checksum> searchingChecksumsLeft,
             Dictionary<Checksum, object> result,
-            CancellationToken cancellationToken) where TValue : TextDocumentState
+            CancellationToken cancellationToken) where TState : TextDocumentState
         {
-            foreach (var (_, state) in documentStates)
+            foreach (var state in documentStates.States)
             {
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 

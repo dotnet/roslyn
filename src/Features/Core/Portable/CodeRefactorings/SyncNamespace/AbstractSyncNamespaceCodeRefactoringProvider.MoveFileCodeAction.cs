@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -37,8 +39,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 _state = state;
                 _newfolders = newFolders;
             }
-
-            internal override bool PerformFinalApplicabilityCheck => true;
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                             rootFolderInfo.AddFolder(folders);
                         }
                     }
+
                     return rootFolderInfo;
                 }
             }

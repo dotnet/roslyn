@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -117,10 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool MightAssignSomething(BoundExpression expr)
                 {
-                    if (expr == null || expr.ConstantValue != null)
-                    {
+                    if (expr == null)
                         return false;
-                    }
 
                     this._mightAssignSomething = false;
                     this.Visit(expr);
@@ -129,6 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override BoundNode Visit(BoundNode node)
                 {
+                    // A constant expression cannot mutate anything
+                    if (node is BoundExpression { ConstantValue: { } })
+                        return null;
+
                     // Stop visiting once we determine something might get assigned
                     return this._mightAssignSomething ? null : base.Visit(node);
                 }
@@ -381,9 +385,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0, length = nodesToLower.Length; i < length; i++)
                 {
                     BoundDecisionDagNode node = nodesToLower[i];
-                    if (loweredNodes.Contains(node))
+                    // A node may have been lowered as part of a switch dispatch, but if it had a label, we'll need to lower it individually as well
+                    bool alreadyLowered = loweredNodes.Contains(node);
+                    if (alreadyLowered && !_dagNodeLabels.TryGetValue(node, out _))
                     {
-                        Debug.Assert(!_dagNodeLabels.TryGetValue(node, out _));
                         continue;
                     }
 
@@ -393,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // If we can generate an IL switch instruction, do so
-                    if (GenerateSwitchDispatch(node, loweredNodes))
+                    if (!alreadyLowered && GenerateSwitchDispatch(node, loweredNodes))
                     {
                         continue;
                     }
@@ -840,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If we have already generated the helper, possibly for another switch
                 // or on another thread, we don't need to regenerate it.
-                var privateImplClass = module.GetPrivateImplClass(syntaxNode, _localRewriter._diagnostics);
+                var privateImplClass = module.GetPrivateImplClass(syntaxNode, _localRewriter._diagnostics.DiagnosticBag);
                 if (privateImplClass.GetMethod(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedStringHashFunctionName) != null)
                 {
                     return;
@@ -848,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // cannot emit hash method if have no access to Chars.
                 var charsMember = _localRewriter._compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars);
-                if ((object)charsMember == null || charsMember.GetUseSiteDiagnostic() != null)
+                if ((object)charsMember == null || charsMember.HasUseSiteError)
                 {
                     return;
                 }
@@ -857,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol paramType = _factory.SpecialType(SpecialType.System_String);
 
                 var method = new SynthesizedStringSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType);
-                privateImplClass.TryAddSynthesizedMethod(method);
+                privateImplClass.TryAddSynthesizedMethod(method.GetCciAdapter());
             }
 
             private void LowerWhenClause(BoundWhenDecisionDagNode whenClause)

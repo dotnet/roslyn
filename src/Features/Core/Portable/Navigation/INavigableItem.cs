@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
@@ -12,12 +14,14 @@ namespace Microsoft.CodeAnalysis.Navigation
         Glyph Glyph { get; }
 
         /// <summary>
-        /// The tagged parts to display for this item. If default, the line of text from <see cref="Document"/> is used.
+        /// The tagged parts to display for this item. If default, the line of text from <see
+        /// cref="Document"/> is used.
         /// </summary>
         ImmutableArray<TaggedText> DisplayTaggedParts { get; }
 
         /// <summary>
-        /// Return true to display the file path of <see cref="Document"/> and the span of <see cref="SourceSpan"/> when displaying this item.
+        /// Return true to display the file path of <see cref="Document"/> and the span of <see
+        /// cref="SourceSpan"/> when displaying this item.
         /// </summary>
         bool DisplayFileLocation { get; }
 
@@ -31,6 +35,14 @@ namespace Microsoft.CodeAnalysis.Navigation
 
         Document Document { get; }
         TextSpan SourceSpan { get; }
+
+        /// <summary>
+        /// True if this search result represents an item that existed in the past, but which may
+        /// not exist currently, or which may have moved to a different location.  Consumers should
+        /// be resilient to that being the case and not being able to necessarily navigate to the
+        /// <see cref="SourceSpan"/> provided.
+        /// </summary>
+        bool IsStale { get; }
 
         ImmutableArray<INavigableItem> ChildItems { get; }
     }

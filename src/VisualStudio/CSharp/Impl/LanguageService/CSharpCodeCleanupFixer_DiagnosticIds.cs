@@ -8,12 +8,11 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
-    internal partial class CSharpCodeCleanUpFixer : CodeCleanUpFixer
+    internal partial class CSharpCodeCleanUpFixer
     {
         [Export]
         [FixId(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
@@ -22,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_implicit_explicit_type_preferences))]
-        public static readonly FixIdDefinition UseImplicitTypeDiagnosticId;
+        public static readonly FixIdDefinition? UseImplicitTypeDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseExplicitTypeDiagnosticId)]
@@ -31,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_implicit_explicit_type_preferences))]
-        public static readonly FixIdDefinition UseExplicitTypeDiagnosticId;
+        public static readonly FixIdDefinition? UseExplicitTypeDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.AddQualificationDiagnosticId)]
@@ -40,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_this_qualification_preferences))]
-        public static readonly FixIdDefinition AddQualificationDiagnosticId;
+        public static readonly FixIdDefinition? AddQualificationDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.RemoveQualificationDiagnosticId)]
@@ -49,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_this_qualification_preferences))]
-        public static readonly FixIdDefinition RemoveQualificationDiagnosticId;
+        public static readonly FixIdDefinition? RemoveQualificationDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)]
@@ -58,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_language_framework_type_preferences))]
-        public static readonly FixIdDefinition PreferBuiltInOrFrameworkTypeDiagnosticId;
+        public static readonly FixIdDefinition? PreferBuiltInOrFrameworkTypeDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.AddBracesDiagnosticId)]
@@ -67,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements))]
-        public static readonly FixIdDefinition AddBracesDiagnosticId;
+        public static readonly FixIdDefinition? AddBracesDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)]
@@ -76,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(AnalyzersResources), nameof(AnalyzersResources.Add_accessibility_modifiers))]
-        public static readonly FixIdDefinition AddAccessibilityModifiersDiagnosticId;
+        public static readonly FixIdDefinition? AddAccessibilityModifiersDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.OrderModifiersDiagnosticId)]
@@ -85,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Sort_accessibility_modifiers))]
-        public static readonly FixIdDefinition OrderModifiersDiagnosticId;
+        public static readonly FixIdDefinition? OrderModifiersDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)]
@@ -94,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Make_private_field_readonly_when_possible))]
-        public static readonly FixIdDefinition MakeFieldReadonlyDiagnosticId;
+        public static readonly FixIdDefinition? MakeFieldReadonlyDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
@@ -102,8 +101,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Order(After = IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Remove_unnecessary_casts))]
-        public static readonly FixIdDefinition RemoveUnnecessaryCastDiagnosticId;
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Remove_unnecessary_casts))]
+        public static readonly FixIdDefinition? RemoveUnnecessaryCastDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
@@ -112,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition UseExpressionBodyForConstructorsDiagnosticId;
+        public static readonly FixIdDefinition? UseExpressionBodyForConstructorsDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId)]
@@ -121,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition UseExpressionBodyForMethodsDiagnosticId;
+        public static readonly FixIdDefinition? UseExpressionBodyForMethodsDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId)]
@@ -130,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition UseExpressionBodyForConversionOperatorsDiagnosticId;
+        public static readonly FixIdDefinition? UseExpressionBodyForConversionOperatorsDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId)]
@@ -139,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition UseExpressionBodyForOperatorsDiagnosticId;
+        public static readonly FixIdDefinition? UseExpressionBodyForOperatorsDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId)]
@@ -148,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition UseExpressionBodyForPropertiesDiagnosticId;
+        public static readonly FixIdDefinition? UseExpressionBodyForPropertiesDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId)]
@@ -157,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition UseExpressionBodyForIndexersDiagnosticId;
+        public static readonly FixIdDefinition? UseExpressionBodyForIndexersDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)]
@@ -166,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition UseExpressionBodyForAccessorsDiagnosticId;
+        public static readonly FixIdDefinition? UseExpressionBodyForAccessorsDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.InlineDeclarationDiagnosticId)]
@@ -175,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_inline_out_variable_preferences))]
-        public static readonly FixIdDefinition InlineDeclarationDiagnosticId;
+        public static readonly FixIdDefinition? InlineDeclarationDiagnosticId;
 
         [Export]
         [FixId(CSharpRemoveUnusedVariableCodeFixProvider.CS0168)]
@@ -183,8 +182,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Remove_unused_variables))]
-        public static readonly FixIdDefinition CS0168;
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Remove_unused_variables))]
+        public static readonly FixIdDefinition? CS0168;
 
         [Export]
         [FixId(CSharpRemoveUnusedVariableCodeFixProvider.CS0219)]
@@ -192,8 +191,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Remove_unused_variables))]
-        public static readonly FixIdDefinition CS0219;
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Remove_unused_variables))]
+        public static readonly FixIdDefinition? CS0219;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseObjectInitializerDiagnosticId)]
@@ -201,8 +200,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Order(After = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_object_collection_initialization_preferences))]
-        public static readonly FixIdDefinition UseObjectInitializerDiagnosticId;
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Apply_object_collection_initialization_preferences))]
+        public static readonly FixIdDefinition? UseObjectInitializerDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId)]
@@ -210,17 +209,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Order(After = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_object_collection_initialization_preferences))]
-        public static readonly FixIdDefinition UseCollectionInitializerDiagnosticId;
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Apply_object_collection_initialization_preferences))]
+        public static readonly FixIdDefinition? UseCollectionInitializerDiagnosticId;
+
+        [Export]
+        [FixId(FormatDocumentFixId)]
+        [Name(FormatDocumentFixId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [ExportMetadata("EnableByDefault", true)]
+        [LocalizedName(typeof(ServicesVSResources), nameof(ServicesVSResources.Format_document))]
+        public static readonly FixIdDefinition? FormatDocument;
 
         [Export]
         [FixId(RemoveUnusedImportsFixId)]
         [Name(RemoveUnusedImportsFixId)]
+        [Order(After = FormatDocumentFixId)]
         [ConfigurationKey("unused")]
         [HelpLink("https://www.microsoft.com")]
         [ExportMetadata("EnableByDefault", true)]
         [LocalizedName(typeof(CSharpVSResources), nameof(CSharpVSResources.Remove_unnecessary_usings))]
-        public static readonly FixIdDefinition RemoveUnusedImports;
+        public static readonly FixIdDefinition? RemoveUnusedImports;
 
         [Export]
         [FixId(SortImportsFixId)]
@@ -230,6 +239,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [HelpLink("https://www.microsoft.com")]
         [ExportMetadata("EnableByDefault", true)]
         [LocalizedName(typeof(CSharpVSResources), nameof(CSharpVSResources.Sort_usings))]
-        public static readonly FixIdDefinition SortImports;
+        public static readonly FixIdDefinition? SortImports;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.FileHeaderMismatch)]
+        [Name(IDEDiagnosticIds.FileHeaderMismatch)]
+        [Order(After = SortImportsFixId)]
+        [ConfigurationKey("unused")]
+        [HelpLink("https://www.microsoft.com")]
+        [ExportMetadata("EnableByDefault", true)]
+        [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Apply_file_header_preferences))]
+        public static readonly FixIdDefinition? FileHeaderMismatch;
     }
 }

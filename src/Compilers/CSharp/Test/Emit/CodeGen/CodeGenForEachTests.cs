@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2381,7 +2383,7 @@ public class C
         }
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS1579: foreach statement cannot operate on variables of type 'object' because 'object' does not contain a public instance or extension definition for 'GetEnumerator'
                     //         foreach (var i in (object)null)
@@ -2405,7 +2407,7 @@ public class C
         }
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,27): error CS0186: Use of null is not valid in this context
                     //         foreach (var i in (IEnumerable<int>)null)
@@ -2431,7 +2433,7 @@ public class C
 
     public IEnumerator<int> GetEnumerator() => throw null;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,27): error CS0186: Use of null is not valid in this context
                     //         foreach (var i in (C)null)
@@ -2454,7 +2456,7 @@ public class C
         }
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS0186: Use of null is not valid in this context
                     //         foreach (var i in (int[])null)
@@ -2480,7 +2482,7 @@ public struct C : IEnumerable
 
     IEnumerator IEnumerable.GetEnumerator() => throw null;
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview)
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9)
                 .VerifyIL("C.Main", @"
 {
   // Code size       70 (0x46)
@@ -2542,7 +2544,7 @@ public struct C
 
     public IEnumerator GetEnumerator() => throw null;
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview)
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9)
                 .VerifyIL("C.Main", @"
 {
   // Code size       64 (0x40)
@@ -2600,7 +2602,7 @@ public class C
         }
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS0186: Use of null is not valid in this context
                     //         foreach (var i in null)
@@ -2632,7 +2634,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this object self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS8716: There is no target type for the default literal.
                     //         foreach (var i in default)
@@ -2664,7 +2666,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -2691,7 +2693,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this object self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -2718,7 +2720,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this object self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -2745,7 +2747,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -2774,7 +2776,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this int self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (9,27): error CS1929: 'C' does not contain a definition for 'GetEnumerator' and the best extension method overload 'Extensions.GetEnumerator(int)' requires a receiver of type 'int'
                     //         foreach (var i in new C())
@@ -2809,7 +2811,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this int? self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS1929: 'int' does not contain a definition for 'GetEnumerator' and the best extension method overload 'Extensions.GetEnumerator(int?)' requires a receiver of type 'int?'
                     //         foreach (var i in 1)
@@ -2844,7 +2846,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this int self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS1929: 'object' does not contain a definition for 'GetEnumerator' and the best extension method overload 'Extensions.GetEnumerator(int)' requires a receiver of type 'int'
                     //         foreach (var i in new object())
@@ -2879,7 +2881,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this int self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS1929: 'int?' does not contain a definition for 'GetEnumerator' and the best extension method overload 'Extensions.GetEnumerator(int)' requires a receiver of type 'int'
                     //         foreach (var i in (int?)1)
@@ -2916,7 +2918,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this E self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (9,27): error CS1929: 'int' does not contain a definition for 'GetEnumerator' and the best extension method overload 'Extensions.GetEnumerator(E)' requires a receiver of type 'E'
                     //         foreach (var i in 0)
@@ -2956,7 +2958,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this object self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -2988,7 +2990,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this IConvertible self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -3016,7 +3018,7 @@ public static class Extensions
     public static C.Enumerator GetEnumerator(this FormattableString self) => throw null;
     public static C.Enumerator GetEnumerator(this object self) => throw null;
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "System.Char");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "System.Char");
         }
 
         [Fact]
@@ -3043,7 +3045,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this Func<int> self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS0446: Foreach cannot operate on a 'lambda expression'. Did you intend to invoke the 'lambda expression'?
                     //         foreach (var i in () => 42)
@@ -3075,7 +3077,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this object self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -3103,7 +3105,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this I self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -3130,7 +3132,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this Func<int> self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -3158,7 +3160,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this E self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -3185,7 +3187,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this int? self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -3212,7 +3214,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this object self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -3239,7 +3241,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator<T>(this T self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -3267,7 +3269,7 @@ public static class Extensions
 {
     public static Span<int>.Enumerator GetEnumerator(this C self) => self.span.GetEnumerator();
 }";
-            var comp = CreateCompilationWithSpan(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpan(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped);
         }
@@ -3298,7 +3300,7 @@ public static class Extensions
         }
     }
 }";
-            var comp = CreateCompilationWithIndexAndRange(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIndexAndRange(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -3328,7 +3330,7 @@ public static class Extensions
         yield return self.third;
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -3355,7 +3357,7 @@ public static class Extensions
         return self.first.Zip(self.second, (a,b) => (a,b)).GetEnumerator();
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"1.1
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"1.1
 2.2
 3.3");
         }
@@ -3380,7 +3382,7 @@ public static class Extensions
 {
     public static IEnumerator<T> GetEnumerator<T>(this object o) => throw null;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,27): error CS0411: The type arguments for method 'Extensions.GetEnumerator<T>(object)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                     //         foreach (var i in new object())
@@ -3411,7 +3413,7 @@ public static class Extensions
 {
     public static IEnumerator<T> GetEnumerator<T>(this object o, params T[] arr) => throw null;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,27): error CS0411: The type arguments for method 'Extensions.GetEnumerator<T>(object, params T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                     //         foreach (var i in new object())
@@ -3446,7 +3448,7 @@ public static class Extensions
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
     public static bool MoveNext(this C.Enumerator e) => false;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNext'
                     //         foreach (var i in new C())
@@ -3482,7 +3484,7 @@ public static class Extensions
 {
     public static bool MoveNext(this C.Enumerator e) => false;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNext'
                     //         foreach (var i in new C())
@@ -3525,7 +3527,7 @@ public static class Extensions
 {
     public static C.Enumerator2 GetEnumerator(this C self) => throw null;
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview,
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9,
                      expectedOutput: "123");
         }
 
@@ -3559,7 +3561,7 @@ public static class Extensions
 {
     public static C.Enumerator2 GetEnumerator(this C self) => throw null;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS0117: 'C.Enumerator1' does not contain a definition for 'Current'
                     //         foreach (var i in new C())
@@ -3613,7 +3615,7 @@ public static class Extensions
 {
     public static C.Enumerator2 GetEnumerator(this C self) => throw null;
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview,
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9,
                      expectedOutput: "123");
         }
 
@@ -3652,7 +3654,7 @@ public static class Extensions
 {
     public static C.Enumerator2 GetEnumerator(this C self) => throw null;
 }";
-            var comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -3685,7 +3687,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetEnumerator(C)' is ambiguous with 'Extensions2.GetEnumerator(C)'.
                     //         foreach (var i in new C())
@@ -3724,7 +3726,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetEnumerator(C)' is ambiguous with 'Extensions2.GetEnumerator(C)'.
                     //         foreach (var i in new C())
@@ -3763,7 +3765,7 @@ public static class Extensions2
 {
     public static bool GetEnumerator(this C self) => true;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetEnumerator(C)' is ambiguous with 'Extensions2.GetEnumerator(C)'.
                     //         foreach (var i in new C())
@@ -3802,7 +3804,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -3833,7 +3835,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetEnumerator(this C self, bool _) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS1501: No overload for method 'GetEnumerator' takes 0 arguments
                     //         foreach (var i in new C())
@@ -3876,7 +3878,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetEnumerator(this I2 self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (11,27): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetEnumerator(I1)' is ambiguous with 'Extensions2.GetEnumerator(I2)'.
                     //         foreach (var i in new C())
@@ -3917,7 +3919,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -3950,7 +3952,7 @@ public static class Extensions2
 {
     public static int GetEnumerator(this C self) => 42;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (9,27): error CS0117: 'int' does not contain a definition for 'Current'
                     //         foreach (var i in new C())
@@ -3989,7 +3991,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetEnumerator(this C self, int a = 0) => throw null;
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4020,7 +4022,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetEnumerator(this C self, int a = 0) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetEnumerator(C, int, int)' is ambiguous with 'Extensions2.GetEnumerator(C, int)'.
                     //         foreach (var i in new C())
@@ -4056,7 +4058,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this C self, int x = 1) => new C.Enumerator(x);
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "23");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "23");
         }
 
         [Fact]
@@ -4084,7 +4086,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this C self, params int[] x) => new C.Enumerator(x);
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4111,7 +4113,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this C self, __arglist) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                  .VerifyDiagnostics(
                     // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'Extensions.GetEnumerator(C, __arglist)'
                     //         foreach (var i in new C())
@@ -4145,7 +4147,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this ref C self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                  .VerifyDiagnostics(
                     // (7,27): error CS1510: A ref or out value must be an assignable variable
                     //         foreach (var i in new C())
@@ -4177,7 +4179,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this ref C self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,27): error CS1510: A ref or out value must be an assignable variable
                     //         foreach (var i in c)
@@ -4209,7 +4211,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this out C self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS1620: Argument 1 must be passed with the 'out' keyword
                     //         foreach (var i in new C())
@@ -4246,7 +4248,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this in C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4274,7 +4276,7 @@ public static class Extensions
 {
     public static C.Enumerator GetEnumerator(this in C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4303,9 +4305,9 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,27): error CS8652: The feature 'extension GetEnumerator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,27): error CS8400: Feature 'extension GetEnumerator' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new C()").WithArguments("extension GetEnumerator").WithLocation(7, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new C()").WithArguments("extension GetEnumerator", "9.0").WithLocation(7, 27)
                 );
         }
 
@@ -4333,7 +4335,7 @@ public static class Extensions
 {
     internal static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4360,7 +4362,7 @@ internal static class Extensions
 {
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4386,7 +4388,7 @@ internal static class Extensions
 {
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNext'
                     //         foreach (var i in new C())
@@ -4428,7 +4430,7 @@ internal static class Extensions
 {
     public static C.Enumerator2 GetEnumerator(this C self) => new C.Enumerator2();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS0117: 'C.Enumerator1' does not contain a definition for 'MoveNext'
                     //         foreach (var i in new C())
@@ -4466,7 +4468,7 @@ internal static class Extensions
 {
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4496,7 +4498,7 @@ internal static class Extensions
 {
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4526,7 +4528,7 @@ internal static class Extensions
 {
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4557,7 +4559,7 @@ struct Enumerator : IDisposable
     public bool MoveNext() => Current++ != 3;
     public void Dispose() { Console.Write(""Disposed""); }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"123Disposed")
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"123Disposed")
                 .VerifyIL("C.Main", @"
 {
   // Code size       51 (0x33)
@@ -4616,7 +4618,7 @@ struct Enumerator : IDisposable
     public bool MoveNext() => Current++ != 3;
     void IDisposable.Dispose() { Console.Write(""Disposed""); }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"123Disposed")
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"123Disposed")
                 .VerifyIL("C.Main", @"
 {
   // Code size       51 (0x33)
@@ -4675,7 +4677,7 @@ struct Enumerator
     public bool MoveNext() => Current++ != 3;
     public void Dispose() { Console.Write(""Disposed""); }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"123")
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"123")
                 .VerifyIL("C.Main", @"
 {
   // Code size       35 (0x23)
@@ -4723,7 +4725,7 @@ ref struct Enumerator
     public bool MoveNext() => Current++ != 3;
     public void Dispose() { Console.Write(""Disposed""); }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"123Disposed")
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"123Disposed")
                 .VerifyIL("C.Main", @"
 {
   // Code size       45 (0x2d)
@@ -4781,7 +4783,7 @@ public static class Extensions
     [Obsolete]
     public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123")
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123")
                 .VerifyDiagnostics(
                     // (7,9): warning CS0612: 'Extensions.GetEnumerator(C)' is obsolete
                     //         foreach (var i in new C())
@@ -4822,7 +4824,7 @@ namespace N
         public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4852,7 +4854,7 @@ namespace N
         public static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                 // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var i in new C())
@@ -4900,7 +4902,7 @@ namespace N1
         }
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4946,7 +4948,7 @@ namespace N3
         public static int GetEnumerator(this C self) => throw null;
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -4990,7 +4992,7 @@ namespace N1
         }
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (25,39): error CS0117: 'int' does not contain a definition for 'Current'
                     //                     foreach (var i in new C())
@@ -5043,7 +5045,7 @@ namespace N3
         public static int GetEnumerator(this C self) => throw null;
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (4,1): hidden CS8019: Unnecessary using directive.
                     // using N2;
@@ -5083,7 +5085,7 @@ public class C
         public bool MoveNext() => Current++ != 3;
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -5116,7 +5118,7 @@ public class C
         public bool MoveNext() => Current++ != 3;
     }
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123");
         }
 
         [Fact]
@@ -5144,7 +5146,7 @@ public static class Extensions
     private static C.Enumerator GetEnumerator(this C self) => new C.Enumerator();
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
                     //         foreach (var i in new C())
@@ -5182,7 +5184,7 @@ public static class Extensions
     public static C.Enumerator Instance = new C.Enumerator();
     public static ref C.Enumerator GetEnumerator(this C self) => ref Instance;
 }";
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "123123");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "123123");
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
     /// <summary>
@@ -12,7 +10,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// </summary>
     internal enum UnifiedSuggestedActionSetPriority
     {
-        None = 0,
+        Lowest = 0, // Corresponds to SuggestedActionSetPriority.None
         Low = 1,
         Medium = 2,
         High = 3

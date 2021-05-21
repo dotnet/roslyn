@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void SimpleFunctionPointerTest()
         {
-            UsingStatement("delegate*<string, Goo, int> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<string, Goo, int> ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -27,34 +26,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.StringKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.IdentifierToken, "Goo");
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -67,16 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Theory]
-        [InlineData("cdecl")]
-        [InlineData("managed")]
-        [InlineData("stdcall")]
-        [InlineData("thiscall")]
-        [InlineData("unmanaged")]
+        [InlineData("Cdecl")]
+        [InlineData("Stdcall")]
+        [InlineData("Thiscall")]
+        [InlineData("Fastcall")]
         [InlineData("invalidcallingconvention")] // This is a semantic error, not a syntax error
-        [InlineData("void")] // This is a semantic error, not a syntax error
-        public void CallingConventions(string conventionString)
+        public void UnmanagedCallingConventionSpecifiers(string conventionString)
         {
-            UsingStatement($"delegate* {conventionString}<string, Goo, int> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement($"delegate* unmanaged[{conventionString}]<string, Goo, int> ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -85,35 +82,415 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(conventionString == "void" ? SyntaxKind.VoidKeyword : SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                             {
-                                N(SyntaxKind.StringKeyword);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, conventionString);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.IdentifierToken, "Goo");
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ptr");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void KeywordInCallingConventionList()
+        {
+            UsingStatement("delegate* unmanaged[void]<void> ptr;", options: TestOptions.RegularPreview,
+                // (1,21): error CS1041: Identifier expected; 'void' is a keyword
+                // delegate* unmanaged[void]<void> ptr;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "void").WithArguments("", "void").WithLocation(1, 21),
+                // (1,21): error CS1003: Syntax error, ',' expected
+                // delegate* unmanaged[void]<void> ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments(",", "void").WithLocation(1, 21)
+            );
+
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ptr");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("managed")]
+        [InlineData("unmanaged")]
+        public void NoUnmanagedSpecifiers(string convention)
+        {
+            UsingStatement($"delegate* {convention}<void> ptr;", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
+                        {
+                            N(convention == "managed" ? SyntaxKind.ManagedKeyword : SyntaxKind.UnmanagedKeyword);
+                        }
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ptr");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ManagedWithUnmanagedSpecifiers()
+        {
+            UsingStatement("delegate* managed[Cdecl]<void> ptr;", options: TestOptions.RegularPreview,
+                // (1,18): error CS8888: 'managed' calling convention cannot be combined with unmanaged calling convention specifiers.
+                // delegate* managed[Cdecl]<void> ptr;
+                Diagnostic(ErrorCode.ERR_CannotSpecifyManagedWithUnmanagedSpecifiers, "[Cdecl]").WithLocation(1, 18)
+            );
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
+                        {
+                            N(SyntaxKind.ManagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Cdecl");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ptr");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void InvalidConventionWithUnmanagedSpecifiers()
+        {
+            UsingStatement("delegate* invalid[Cdecl]<void> ptr;", options: TestOptions.RegularPreview,
+                // (1,11): error CS1003: Syntax error, 'unmanaged' expected
+                // delegate* invalid[Cdecl]<void> ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "invalid").WithArguments("unmanaged", "").WithLocation(1, 11)
+            );
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
+                        {
+                            M(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Cdecl");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ptr");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void InvalidConventionFollowedByTypeArguments()
+        {
+            UsingStatement("delegate* invalid<void> ptr;", options: TestOptions.RegularPreview,
+                // (1,11): error CS1003: Syntax error, 'managed' expected
+                // delegate* invalid<void>
+                Diagnostic(ErrorCode.ERR_SyntaxError, "invalid").WithArguments("managed", "").WithLocation(1, 11));
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        M(SyntaxKind.FunctionPointerCallingConvention);
+                        {
+                            M(SyntaxKind.ManagedKeyword);
+                        }
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ptr");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void EmptyUnmanagedSpecifierBraces()
+        {
+            UsingStatement("delegate* unmanaged[]<void> ptr;", options: TestOptions.RegularPreview,
+                // (1,21): error CS1001: Identifier expected
+                // delegate* unmanaged[]<void> ptr;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 21)
+            );
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
+                        {
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ptr");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void MultipleUnmanagedSpecifiers()
+        {
+            UsingStatement("delegate* unmanaged[Cdecl, Thiscall, Stdcall, Fastcall, Vectorcall, SuppressGCTransition]<void> ptr;", options: TestOptions.RegularPreview);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
+                        {
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Cdecl");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Thiscall");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Stdcall");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Fastcall");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Vectorcall");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "SuppressGCTransition");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -128,10 +505,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void LangVersion8()
         {
-            UsingStatement("delegate* cdecl<string, Goo, int> ptr;", options: TestOptions.Regular8,
-                    // (1,1): error CS8652: The feature 'function pointers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // delegate* cdecl<string, Goo, int> ptr;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate* cdecl<string, Goo, int>").WithArguments("function pointers").WithLocation(1, 1));
+            UsingStatement("delegate* unmanaged[cdecl]<string, Goo, int> ptr;", options: TestOptions.Regular8,
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // delegate* unmanaged[cdecl]<string, Goo, int> ptr;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate* unmanaged[cdecl]<string, Goo, int>").WithArguments("function pointers", "9.0").WithLocation(1, 1));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -140,35 +517,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                             {
-                                N(SyntaxKind.StringKeyword);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "cdecl");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.IdentifierToken, "Goo");
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -184,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void VoidsAsType()
         {
             // Void isn't allowed in anything but the return type, but that's a semantic error, not a syntax error
-            UsingStatement("delegate*<void, void, void> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<void, void, void> ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -193,34 +582,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -235,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void NestedFunctionPointers()
         {
-            UsingStatement("delegate*<delegate* cdecl<int*, void*>, delegate* managed<string*>> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<delegate* unmanaged[cdecl]<int*, void*>, delegate* managed<string*>> ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -244,70 +633,89 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.FunctionPointerType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.DelegateKeyword);
-                                N(SyntaxKind.AsteriskToken);
-                                N(SyntaxKind.IdentifierToken, "cdecl");
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.Parameter);
+                                N(SyntaxKind.FunctionPointerType);
                                 {
-                                    N(SyntaxKind.PointerType);
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.AsteriskToken);
+                                    N(SyntaxKind.FunctionPointerCallingConvention);
                                     {
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.UnmanagedKeyword);
+                                        N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                                         {
-                                            N(SyntaxKind.IntKeyword);
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "cdecl");
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
                                         }
-                                        N(SyntaxKind.AsteriskToken);
                                     }
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.Parameter);
-                                {
-                                    N(SyntaxKind.PointerType);
+                                    N(SyntaxKind.FunctionPointerParameterList);
                                     {
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.FunctionPointerParameter);
                                         {
-                                            N(SyntaxKind.VoidKeyword);
+                                            N(SyntaxKind.PointerType);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.AsteriskToken);
+                                            }
                                         }
-                                        N(SyntaxKind.AsteriskToken);
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.FunctionPointerParameter);
+                                        {
+                                            N(SyntaxKind.PointerType);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.VoidKeyword);
+                                                }
+                                                N(SyntaxKind.AsteriskToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
                                     }
-                                    M(SyntaxKind.IdentifierToken);
                                 }
-                                N(SyntaxKind.GreaterThanToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.FunctionPointerType);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.DelegateKeyword);
-                                N(SyntaxKind.AsteriskToken);
-                                N(SyntaxKind.IdentifierToken, "managed");
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.Parameter);
+                                N(SyntaxKind.FunctionPointerType);
                                 {
-                                    N(SyntaxKind.PointerType);
+                                    N(SyntaxKind.DelegateKeyword);
+                                    N(SyntaxKind.AsteriskToken);
+                                    N(SyntaxKind.FunctionPointerCallingConvention);
                                     {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.StringKeyword);
-                                        }
-                                        N(SyntaxKind.AsteriskToken);
+                                        N(SyntaxKind.ManagedKeyword);
                                     }
-                                    M(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.FunctionPointerParameterList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.FunctionPointerParameter);
+                                        {
+                                            N(SyntaxKind.PointerType);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.StringKeyword);
+                                                }
+                                                N(SyntaxKind.AsteriskToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
                                 }
-                                N(SyntaxKind.GreaterThanToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -322,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void PointerToAFunctionPointer()
         {
-            UsingStatement("delegate*<Goo, void>* ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<Goo, void>* ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -333,25 +741,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "Goo");
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Goo");
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Parameter);
-                            {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.AsteriskToken);
                     }
@@ -368,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void RefModifiers()
         {
-            UsingStatement("delegate*<ref Goo, in Bar, out Baz, ref readonly void*> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<ref Goo, in Bar, out Baz, ref readonly void*> ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -377,52 +786,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.IdentifierToken, "Goo");
-                            }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.InKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Bar");
-                            }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.OutKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Baz");
-                            }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            N(SyntaxKind.PointerType);
-                            {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.IdentifierToken, "Goo");
                                 }
-                                N(SyntaxKind.AsteriskToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.InKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Bar");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.OutKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Baz");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.ReadOnlyKeyword);
+                                N(SyntaxKind.PointerType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
+                                    N(SyntaxKind.AsteriskToken);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -437,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_01()
         {
-            UsingStatement("delegate*< ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*< ;", options: TestOptions.Regular9,
                     // (1,12): error CS1031: Type expected
                     // delegate*< ;
                     Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 12),
@@ -455,16 +863,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -479,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_02()
         {
-            UsingStatement("delegate*<ref ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*<ref ;", options: TestOptions.Regular9,
                     // (1,15): error CS1031: Type expected
                     // delegate*<ref ;
                     Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 15),
@@ -497,17 +907,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.RefKeyword);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -522,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_03()
         {
-            UsingStatement("delegate*<ref bar ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*<ref bar ;", options: TestOptions.Regular9,
                     // (1,19): error CS1003: Syntax error, '>' expected
                     // delegate*<ref bar ;
                     Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 19),
@@ -537,17 +949,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.IdentifierToken, "bar");
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "bar");
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -562,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_04()
         {
-            UsingStatement("delegate*<ref bar, ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*<ref bar, ;", options: TestOptions.Regular9,
                     // (1,20): error CS1031: Type expected
                     // delegate*<ref bar, ;
                     Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 20),
@@ -580,26 +994,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.IdentifierToken, "bar");
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "bar");
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        M(SyntaxKind.Parameter);
-                        {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.CommaToken);
+                            M(SyntaxKind.FunctionPointerParameter);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -614,10 +1029,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_05()
         {
-            UsingStatement("delegate* ptr;", options: TestOptions.RegularPreview,
-                    // (1,11): error CS1003: Syntax error, '<' expected
-                    // delegate* ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "ptr").WithArguments("<", "").WithLocation(1, 11));
+            UsingStatement("delegate* unmanaged[ptr];", options: TestOptions.Regular9,
+                // (1,25): error CS1003: Syntax error, '<' expected
+                // delegate* unmanaged[ptr];
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 25),
+                // (1,25): error CS1001: Identifier expected
+                // delegate* unmanaged[ptr];
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 25));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -626,20 +1044,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "ptr");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
+                        M(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
                     }
-                    N(SyntaxKind.VariableDeclarator);
+                    M(SyntaxKind.VariableDeclarator);
                     {
-                        N(SyntaxKind.IdentifierToken, "ptr");
+                        M(SyntaxKind.IdentifierToken);
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
@@ -650,13 +1083,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_06()
         {
-            UsingStatement("delegate* cdecl ;", options: TestOptions.RegularPreview,
-                    // (1,17): error CS1003: Syntax error, '<' expected
-                    // delegate* cdecl ;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 17),
-                    // (1,17): error CS1001: Identifier expected
-                    // delegate* cdecl ;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 17));
+            UsingStatement("delegate* unmanaged[cdecl] ;", options: TestOptions.Regular9,
+                // (1,28): error CS1003: Syntax error, '<' expected
+                // delegate* unmanaged[cdecl] ;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 28),
+                // (1,28): error CS1001: Identifier expected
+                // delegate* unmanaged[cdecl] ;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 28));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -665,17 +1098,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.IdentifierToken, "cdecl");
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "cdecl");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
+                        M(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -690,10 +1137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_07()
         {
-            UsingStatement("delegate* cdecl ptr;", options: TestOptions.RegularPreview,
-                    // (1,17): error CS1003: Syntax error, '<' expected
-                    // delegate* cdecl ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "ptr").WithArguments("<", "").WithLocation(1, 17));
+            UsingStatement("delegate* unmanaged[cdecl] ptr;", options: TestOptions.Regular9,
+                // (1,28): error CS1003: Syntax error, '<' expected
+                // delegate* unmanaged[cdecl] ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ptr").WithArguments("<", "").WithLocation(1, 28));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -702,17 +1149,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.IdentifierToken, "cdecl");
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "cdecl");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
+                        M(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -727,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_08()
         {
-            UsingStatement("delegate* ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* ;", options: TestOptions.Regular9,
                     // (1,11): error CS1003: Syntax error, '<' expected
                     // delegate* ;
                     Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 11),
@@ -742,16 +1203,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        M(SyntaxKind.FunctionPointerParameterList);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -766,35 +1229,75 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_09()
         {
-            UsingStatement("delegate* Dotted.Name<void> ptr;", options: TestOptions.RegularPreview,
-                    // (1,11): error CS1003: Syntax error, '<' expected
-                    // delegate* Dotted.Name<void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Dotted").WithArguments("<", "").WithLocation(1, 11),
-                    // (1,17): error CS1003: Syntax error, ',' expected
-                    // delegate* Dotted.Name<void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(1, 17));
-            N(SyntaxKind.LocalDeclarationStatement);
+            UsingStatement("delegate* unmanaged.Name[Dotted]<void> ptr;", options: TestOptions.Regular9,
+                // (1,9): error CS1514: { expected
+                // delegate* unmanaged.Name[Dotted]<void> ptr;
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(1, 9),
+                // (1,9): warning CS8848: Operator '*' cannot be used here due to precedence. Use parentheses to disambiguate.
+                // delegate* unmanaged.Name[Dotted]<void> ptr;
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "*").WithArguments("*").WithLocation(1, 9),
+                // (1,34): error CS1525: Invalid expression term 'void'
+                // delegate* unmanaged.Name[Dotted]<void> ptr;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(1, 34));
+            // This is ambiguous. However, the parser attempts to do better error recovery when the start
+            // of a statement is MustBeType followed by a `.`, which while better for the general case, results
+            // in this not being parsed as a function pointer.
+            N(SyntaxKind.ExpressionStatement);
             {
-                N(SyntaxKind.VariableDeclaration);
+                N(SyntaxKind.GreaterThanExpression);
                 {
-                    N(SyntaxKind.FunctionPointerType);
+                    N(SyntaxKind.LessThanExpression);
                     {
-                        N(SyntaxKind.DelegateKeyword);
-                        N(SyntaxKind.AsteriskToken);
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        N(SyntaxKind.MultiplyExpression);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.AnonymousMethodExpression);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.DelegateKeyword);
+                                M(SyntaxKind.Block);
+                                {
+                                    M(SyntaxKind.OpenBraceToken);
+                                    M(SyntaxKind.CloseBraceToken);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.AsteriskToken);
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                N(SyntaxKind.SimpleMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "unmanaged");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Name");
+                                    }
+                                }
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Dotted");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
                         }
-                        M(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
                     }
-                    N(SyntaxKind.VariableDeclarator);
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken, "Dotted");
+                        N(SyntaxKind.IdentifierToken, "ptr");
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
@@ -805,7 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_10()
         {
-            UsingStatement("delegate*( ;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*( ;", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*( ;
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 10),
@@ -826,16 +1329,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        M(SyntaxKind.FunctionPointerParameterList);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -850,7 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void Unterminated_11()
         {
-            UsingStatement("delegate* @cdecl>", options: TestOptions.RegularPreview,
+            UsingStatement("delegate* @cdecl>", options: TestOptions.Regular9,
                 // (1,11): error CS1003: Syntax error, '<' expected
                 // delegate* @cdecl>
                 Diagnostic(ErrorCode.ERR_SyntaxError, "@cdecl").WithArguments("<", "").WithLocation(1, 11),
@@ -868,16 +1373,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        M(SyntaxKind.FunctionPointerParameterList);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -890,9 +1397,197 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
+        public void Unterminated_12()
+        {
+            UsingStatement("delegate* unmanaged[ ;", options: TestOptions.RegularPreview,
+                // (1,22): error CS1001: Identifier expected
+                // delegate* unmanaged[ ;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 22),
+                // (1,22): error CS1003: Syntax error, ']' expected
+                // delegate* unmanaged[ ;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(1, 22),
+                // (1,22): error CS1003: Syntax error, '<' expected
+                // delegate* unmanaged[ ;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 22),
+                // (1,22): error CS1001: Identifier expected
+                // delegate* unmanaged[ ;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 22)
+            );
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
+                        {
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                M(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        M(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Unterminated_13()
+        {
+            UsingStatement("delegate* unmanaged[Cdecl ;", options: TestOptions.RegularPreview,
+                // (1,27): error CS1003: Syntax error, ']' expected
+                // delegate* unmanaged[Cdecl ;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(1, 27),
+                // (1,27): error CS1003: Syntax error, '<' expected
+                // delegate* unmanaged[Cdecl ;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("<", "").WithLocation(1, 27),
+                // (1,27): error CS1001: Identifier expected
+                // delegate* unmanaged[Cdecl ;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 27)
+            );
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
+                        {
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Cdecl");
+                                }
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        M(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Unterminated_14()
+        {
+            UsingStatement("delegate* unmanaged[Cdecl,", options: TestOptions.RegularPreview,
+                // (1,27): error CS1001: Identifier expected
+                // delegate* unmanaged[Cdecl,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 27),
+                // (1,27): error CS1003: Syntax error, ']' expected
+                // delegate* unmanaged[Cdecl,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(1, 27),
+                // (1,27): error CS1003: Syntax error, '<' expected
+                // delegate* unmanaged[Cdecl,
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(1, 27),
+                // (1,27): error CS1001: Identifier expected
+                // delegate* unmanaged[Cdecl,
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 27),
+                // (1,27): error CS1002: ; expected
+                // delegate* unmanaged[Cdecl,
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27)
+            );
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
+                        {
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Cdecl");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                M(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        M(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    M(SyntaxKind.VariableDeclarator);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void NoParamOrReturnTypes()
         {
-            UsingStatement("delegate*<> ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*<> ptr;", options: TestOptions.Regular9,
                     // (1,11): error CS1031: Type expected
                     // delegate*<> ptr;
                     Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(1, 11));
@@ -904,16 +1599,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -928,7 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void UsingParensInsteadOfAngles()
         {
-            UsingStatement("delegate*(int, void)", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*(int, void)", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*(int, void)
                     Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 10),
@@ -949,25 +1646,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            M(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -985,9 +1683,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingTree(@"
 class C
 {
-    public delegate*<int, string> M(delegate*<C, void> param1, delegate* cdecl<D> param2) {}
+    public delegate*<int, string> M(delegate*<C, void> param1, delegate* unmanaged[cdecl]<D> param2) {}
 }",
-                options: TestOptions.RegularPreview);
+                options: TestOptions.Regular9);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1002,25 +1700,26 @@ class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Parameter);
-                            {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.StringKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.IdentifierToken, "M");
                         N(SyntaxKind.ParameterList);
@@ -1032,25 +1731,26 @@ class C
                                 {
                                     N(SyntaxKind.DelegateKeyword);
                                     N(SyntaxKind.AsteriskToken);
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.FunctionPointerParameterList);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.FunctionPointerParameter);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "C");
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "C");
+                                            }
                                         }
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.Parameter);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.FunctionPointerParameter);
                                         {
-                                            N(SyntaxKind.VoidKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.VoidKeyword);
+                                            }
                                         }
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.GreaterThanToken);
                                     }
-                                    N(SyntaxKind.GreaterThanToken);
                                 }
                                 N(SyntaxKind.IdentifierToken, "param1");
                             }
@@ -1061,17 +1761,31 @@ class C
                                 {
                                     N(SyntaxKind.DelegateKeyword);
                                     N(SyntaxKind.AsteriskToken);
-                                    N(SyntaxKind.IdentifierToken);
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.FunctionPointerCallingConvention);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.UnmanagedKeyword);
+                                        N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "D");
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "cdecl");
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
                                         }
-                                        M(SyntaxKind.IdentifierToken);
                                     }
-                                    N(SyntaxKind.GreaterThanToken);
+                                    N(SyntaxKind.FunctionPointerParameterList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.FunctionPointerParameter);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "D");
+                                            }
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
                                 }
                                 N(SyntaxKind.IdentifierToken, "param2");
                             }
@@ -1093,7 +1807,7 @@ class C
         [Fact]
         public void HardCast()
         {
-            UsingExpression("(delegate* thiscall<int, C>)ptr", options: TestOptions.RegularPreview);
+            UsingExpression("(delegate* unmanaged[thiscall]<int, C>)ptr", options: TestOptions.Regular9);
             N(SyntaxKind.CastExpression);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1101,26 +1815,39 @@ class C
                 {
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.AsteriskToken);
-                    N(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.FunctionPointerCallingConvention);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.UnmanagedKeyword);
+                        N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                         {
-                            N(SyntaxKind.IntKeyword);
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                            {
+                                N(SyntaxKind.IdentifierToken, "thiscall");
+                            }
+                            N(SyntaxKind.CloseBracketToken);
                         }
-                        M(SyntaxKind.IdentifierToken);
                     }
-                    N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.FunctionPointerParameterList);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.FunctionPointerParameter);
                         {
-                            N(SyntaxKind.IdentifierToken, "C");
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
                         }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.FunctionPointerParameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                        }
+                        N(SyntaxKind.GreaterThanToken);
                     }
-                    N(SyntaxKind.GreaterThanToken);
                 }
                 N(SyntaxKind.CloseParenToken);
                 N(SyntaxKind.IdentifierName);
@@ -1134,7 +1861,7 @@ class C
         [Fact]
         public void AsCast()
         {
-            UsingExpression("ptr as delegate* stdcall<int, void>", options: TestOptions.RegularPreview);
+            UsingExpression("ptr as delegate* unmanaged[stdcall]<int, void>", options: TestOptions.Regular9);
             N(SyntaxKind.AsExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -1146,26 +1873,39 @@ class C
                 {
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.AsteriskToken);
-                    N(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.FunctionPointerCallingConvention);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.UnmanagedKeyword);
+                        N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                         {
-                            N(SyntaxKind.IntKeyword);
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                            {
+                                N(SyntaxKind.IdentifierToken, "stdcall");
+                            }
+                            N(SyntaxKind.CloseBracketToken);
                         }
-                        M(SyntaxKind.IdentifierToken);
                     }
-                    N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.FunctionPointerParameterList);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.FunctionPointerParameter);
                         {
-                            N(SyntaxKind.VoidKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
                         }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.FunctionPointerParameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                        }
+                        N(SyntaxKind.GreaterThanToken);
                     }
-                    N(SyntaxKind.GreaterThanToken);
                 }
             }
             EOF();
@@ -1174,7 +1914,7 @@ class C
         [Fact]
         public void TupleType()
         {
-            UsingExpression("((delegate*<int, void> i1, delegate* managed<C, D> i2))ptr", options: TestOptions.RegularPreview);
+            UsingExpression("((delegate*<int, void> i1, delegate* managed<C, D> i2))ptr", options: TestOptions.Regular9);
             N(SyntaxKind.CastExpression);
             {
                 N(SyntaxKind.OpenParenToken);
@@ -1187,25 +1927,26 @@ class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Parameter);
-                            {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.IdentifierToken, "i1");
                     }
@@ -1216,26 +1957,30 @@ class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerCallingConvention);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "C");
-                                }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.ManagedKeyword);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "D");
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerParameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "D");
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.IdentifierToken, "i2");
                     }
@@ -1253,7 +1998,7 @@ class C
         [Fact]
         public void GenericArguments()
         {
-            UsingExpression("new M<delegate* thiscall<void>, delegate*<C, D>>()", options: TestOptions.RegularPreview);
+            UsingExpression("new M<delegate* unmanaged[thiscall]<void>, delegate*<C, D>>()", options: TestOptions.Regular9);
             N(SyntaxKind.ObjectCreationExpression);
             {
                 N(SyntaxKind.NewKeyword);
@@ -1267,42 +2012,57 @@ class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerCallingConvention);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.UnmanagedKeyword);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "thiscall");
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
-                                M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
+                            N(SyntaxKind.FunctionPointerParameterList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.FunctionPointerType);
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "C");
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Parameter);
-                            {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "D");
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "D");
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -1319,7 +2079,7 @@ class C
         [Fact]
         public void TypeOf()
         {
-            UsingExpression("typeof(delegate* cdecl<ref int, readonly ref D>)", options: TestOptions.RegularPreview);
+            UsingExpression("typeof(delegate* unmanaged[cdecl]<ref int, readonly ref D>)", options: TestOptions.Regular9);
             N(SyntaxKind.TypeOfExpression);
             {
                 N(SyntaxKind.TypeOfKeyword);
@@ -1328,29 +2088,42 @@ class C
                 {
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.AsteriskToken);
-                    N(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.FunctionPointerCallingConvention);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.UnmanagedKeyword);
+                        N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                         {
-                            N(SyntaxKind.IntKeyword);
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                            {
+                                N(SyntaxKind.IdentifierToken, "cdecl");
+                            }
+                            N(SyntaxKind.CloseBracketToken);
                         }
-                        M(SyntaxKind.IdentifierToken);
                     }
-                    N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.FunctionPointerParameterList);
                     {
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.FunctionPointerParameter);
                         {
-                            N(SyntaxKind.IdentifierToken, "D");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
                         }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.FunctionPointerParameter);
+                        {
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "D");
+                            }
+                        }
+                        N(SyntaxKind.GreaterThanToken);
                     }
-                    N(SyntaxKind.GreaterThanToken);
                 }
                 N(SyntaxKind.CloseParenToken);
             }
@@ -1360,7 +2133,7 @@ class C
         [Fact]
         public void ArrayType()
         {
-            UsingStatement("delegate*<ref C>[] ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate*<ref C>[] ptr;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1371,17 +2144,19 @@ class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "C");
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.ArrayRankSpecifier);
                         {
@@ -1409,9 +2184,9 @@ class C
             UsingNode(@"
 class C
 {
-    delegate delegate* cdecl<void> M(delegate*<ref C, D> p);
+    delegate delegate* unmanaged[cdecl]<void> M(delegate*<ref C, D> p);
 }",
-                options: TestOptions.RegularPreview);
+                options: TestOptions.Regular9);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1426,17 +2201,31 @@ class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.IdentifierToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerCallingConvention);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.UnmanagedKeyword);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "cdecl");
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
-                                M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
+                            N(SyntaxKind.FunctionPointerParameterList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
                         }
                         N(SyntaxKind.IdentifierToken, "M");
                         N(SyntaxKind.ParameterList);
@@ -1448,26 +2237,27 @@ class C
                                 {
                                     N(SyntaxKind.DelegateKeyword);
                                     N(SyntaxKind.AsteriskToken);
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.FunctionPointerParameterList);
                                     {
-                                        N(SyntaxKind.RefKeyword);
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.FunctionPointerParameter);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "C");
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "C");
+                                            }
                                         }
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.Parameter);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.FunctionPointerParameter);
                                         {
-                                            N(SyntaxKind.IdentifierToken, "D");
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "D");
+                                            }
                                         }
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.GreaterThanToken);
                                     }
-                                    N(SyntaxKind.GreaterThanToken);
                                 }
                                 N(SyntaxKind.IdentifierToken, "p");
                             }
@@ -1485,7 +2275,7 @@ class C
         [Fact]
         public void LambdaParameterType()
         {
-            UsingExpression("(delegate*<void> p1) => {}", options: TestOptions.RegularPreview);
+            UsingExpression("(delegate*<void> p1) => {}", options: TestOptions.Regular9);
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
                 N(SyntaxKind.ParameterList);
@@ -1497,16 +2287,18 @@ class C
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.IdentifierToken, "p1");
                     }
@@ -1531,7 +2323,7 @@ public void M()
     delegate*<void> l1;
     delegate*<void> L2() { }
     delegate*<void> l3;
-}", options: TestOptions.RegularPreview,
+}", options: TestOptions.Regular9,
                 // (2,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void M()
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(2, 1)
@@ -1565,16 +2357,18 @@ public void M()
                                     {
                                         N(SyntaxKind.DelegateKeyword);
                                         N(SyntaxKind.AsteriskToken);
-                                        N(SyntaxKind.LessThanToken);
-                                        N(SyntaxKind.Parameter);
+                                        N(SyntaxKind.FunctionPointerParameterList);
                                         {
-                                            N(SyntaxKind.PredefinedType);
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.FunctionPointerParameter);
                                             {
-                                                N(SyntaxKind.VoidKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.VoidKeyword);
+                                                }
                                             }
-                                            M(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.GreaterThanToken);
                                         }
-                                        N(SyntaxKind.GreaterThanToken);
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
@@ -1589,16 +2383,18 @@ public void M()
                                 {
                                     N(SyntaxKind.DelegateKeyword);
                                     N(SyntaxKind.AsteriskToken);
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.FunctionPointerParameterList);
                                     {
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.FunctionPointerParameter);
                                         {
-                                            N(SyntaxKind.VoidKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.VoidKeyword);
+                                            }
                                         }
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.GreaterThanToken);
                                     }
-                                    N(SyntaxKind.GreaterThanToken);
                                 }
                                 N(SyntaxKind.IdentifierToken, "L2");
                                 N(SyntaxKind.ParameterList);
@@ -1620,16 +2416,18 @@ public void M()
                                     {
                                         N(SyntaxKind.DelegateKeyword);
                                         N(SyntaxKind.AsteriskToken);
-                                        N(SyntaxKind.LessThanToken);
-                                        N(SyntaxKind.Parameter);
+                                        N(SyntaxKind.FunctionPointerParameterList);
                                         {
-                                            N(SyntaxKind.PredefinedType);
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.FunctionPointerParameter);
                                             {
-                                                N(SyntaxKind.VoidKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.VoidKeyword);
+                                                }
                                             }
-                                            M(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.GreaterThanToken);
                                         }
-                                        N(SyntaxKind.GreaterThanToken);
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
@@ -1650,7 +2448,7 @@ public void M()
         [Fact]
         public void IsExpression()
         {
-            UsingExpression("o is delegate*<void>", options: TestOptions.RegularPreview);
+            UsingExpression("o is delegate*<void>", options: TestOptions.Regular9);
             N(SyntaxKind.IsExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -1662,16 +2460,18 @@ public void M()
                 {
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.AsteriskToken);
-                    N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.FunctionPointerParameterList);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.FunctionPointerParameter);
                         {
-                            N(SyntaxKind.VoidKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
                         }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.GreaterThanToken);
                     }
-                    N(SyntaxKind.GreaterThanToken);
                 }
             }
             EOF();
@@ -1680,7 +2480,7 @@ public void M()
         [Fact]
         public void IsNamedExpression()
         {
-            UsingExpression("o is delegate*<void> ptr", options: TestOptions.RegularPreview);
+            UsingExpression("o is delegate*<void> ptr", options: TestOptions.Regular9);
             N(SyntaxKind.IsPatternExpression);
             {
                 N(SyntaxKind.IdentifierName);
@@ -1694,16 +2494,18 @@ public void M()
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.SingleVariableDesignation);
                     {
@@ -1723,7 +2525,7 @@ switch (o)
     case delegate*<void> { } _:
     case delegate*<void> (var x, var y):
         break;
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
 
             N(SyntaxKind.SwitchStatement);
             {
@@ -1746,16 +2548,18 @@ switch (o)
                             {
                                 N(SyntaxKind.DelegateKeyword);
                                 N(SyntaxKind.AsteriskToken);
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.Parameter);
+                                N(SyntaxKind.FunctionPointerParameterList);
                                 {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.FunctionPointerParameter);
                                     {
-                                        N(SyntaxKind.VoidKeyword);
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.VoidKeyword);
+                                        }
                                     }
-                                    M(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.GreaterThanToken);
                                 }
-                                N(SyntaxKind.GreaterThanToken);
                             }
                             N(SyntaxKind.PropertyPatternClause);
                             {
@@ -1778,16 +2582,18 @@ switch (o)
                             {
                                 N(SyntaxKind.DelegateKeyword);
                                 N(SyntaxKind.AsteriskToken);
-                                N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.Parameter);
+                                N(SyntaxKind.FunctionPointerParameterList);
                                 {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.FunctionPointerParameter);
                                     {
-                                        N(SyntaxKind.VoidKeyword);
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.VoidKeyword);
+                                        }
                                     }
-                                    M(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.GreaterThanToken);
                                 }
-                                N(SyntaxKind.GreaterThanToken);
                             }
                             N(SyntaxKind.PositionalPatternClause);
                             {
@@ -1839,7 +2645,7 @@ o switch
 {
     delegate*<void> _ => 1,
     delegate*<void> (var a, 2) ptr => 2,
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
 
             N(SyntaxKind.SwitchExpression);
             {
@@ -1857,16 +2663,18 @@ o switch
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.DiscardDesignation);
                         {
@@ -1888,16 +2696,18 @@ o switch
                         {
                             N(SyntaxKind.DelegateKeyword);
                             N(SyntaxKind.AsteriskToken);
-                            N(SyntaxKind.LessThanToken);
-                            N(SyntaxKind.Parameter);
+                            N(SyntaxKind.FunctionPointerParameterList);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.FunctionPointerParameter);
                                 {
-                                    N(SyntaxKind.VoidKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.VoidKeyword);
+                                    }
                                 }
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.GreaterThanToken);
                         }
                         N(SyntaxKind.PositionalPatternClause);
                         {
@@ -1946,7 +2756,7 @@ o switch
         [Fact]
         public void UsingStatementType()
         {
-            UsingStatement("using (delegate*<void> ptr = MyMethod()) {}", options: TestOptions.RegularPreview);
+            UsingStatement("using (delegate*<void> ptr = MyMethod()) {}", options: TestOptions.Regular9);
             N(SyntaxKind.UsingStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -1957,16 +2767,18 @@ o switch
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -2002,7 +2814,7 @@ o switch
         [Fact]
         public void UsingDeclarationType()
         {
-            UsingStatement("using delegate*<void> ptr = MyMethod();", options: TestOptions.RegularPreview);
+            UsingStatement("using delegate*<void> ptr = MyMethod();", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.UsingKeyword);
@@ -2012,16 +2824,18 @@ o switch
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -2052,7 +2866,7 @@ o switch
         [Fact]
         public void FixedStatement()
         {
-            UsingStatement("fixed (delegate*<void> ptr = &MyMethod) {}", options: TestOptions.RegularPreview);
+            UsingStatement("fixed (delegate*<void> ptr = &MyMethod) {}", options: TestOptions.Regular9);
             N(SyntaxKind.FixedStatement);
             {
                 N(SyntaxKind.FixedKeyword);
@@ -2063,16 +2877,18 @@ o switch
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -2104,7 +2920,7 @@ o switch
         [Fact]
         public void ForEachVariable()
         {
-            UsingStatement("foreach (delegate*<void> ptr in ptrs) {}", options: TestOptions.RegularPreview);
+            UsingStatement("foreach (delegate*<void> ptr in ptrs) {}", options: TestOptions.Regular9);
             N(SyntaxKind.ForEachStatement);
             {
                 N(SyntaxKind.ForEachKeyword);
@@ -2113,16 +2929,18 @@ o switch
                 {
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.AsteriskToken);
-                    N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.FunctionPointerParameterList);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.FunctionPointerParameter);
                         {
-                            N(SyntaxKind.VoidKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
                         }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.GreaterThanToken);
                     }
-                    N(SyntaxKind.GreaterThanToken);
                 }
                 N(SyntaxKind.IdentifierToken, "ptr");
                 N(SyntaxKind.InKeyword);
@@ -2143,7 +2961,7 @@ o switch
         [Fact]
         public void ForVariable()
         {
-            UsingStatement("for (delegate*<void> ptr = null;;) {}", options: TestOptions.RegularPreview);
+            UsingStatement("for (delegate*<void> ptr = null;;) {}", options: TestOptions.Regular9);
             N(SyntaxKind.ForStatement);
             {
                 N(SyntaxKind.ForKeyword);
@@ -2154,16 +2972,18 @@ o switch
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -2193,7 +3013,7 @@ o switch
         [Fact]
         public void SizeOf()
         {
-            UsingExpression("sizeof(delegate*<void>)", options: TestOptions.RegularPreview);
+            UsingExpression("sizeof(delegate*<void>)", options: TestOptions.Regular9);
             N(SyntaxKind.SizeOfExpression);
             {
                 N(SyntaxKind.SizeOfKeyword);
@@ -2202,16 +3022,18 @@ o switch
                 {
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.AsteriskToken);
-                    N(SyntaxKind.LessThanToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.FunctionPointerParameterList);
                     {
-                        N(SyntaxKind.PredefinedType);
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.FunctionPointerParameter);
                         {
-                            N(SyntaxKind.VoidKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
                         }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.GreaterThanToken);
                     }
-                    N(SyntaxKind.GreaterThanToken);
                 }
                 N(SyntaxKind.CloseParenToken);
             }
@@ -2221,7 +3043,7 @@ o switch
         [Fact]
         public void SpecifiedParameterNamesAndDefaults()
         {
-            UsingStatement("delegate*<int param1, string param2 = default, void> ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*<int param1, string param2 = default, void> ptr;", options: TestOptions.Regular9,
                     // (1,15): error CS1003: Syntax error, ',' expected
                     // delegate*<int param1, string param2 = default, void> ptr;
                     Diagnostic(ErrorCode.ERR_SyntaxError, "param1").WithArguments(",", "").WithLocation(1, 15),
@@ -2236,34 +3058,34 @@ o switch
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.StringKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -2278,7 +3100,7 @@ o switch
         [Fact]
         public void MissingListStart_01()
         {
-            UsingStatement("delegate*void> ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*void> ptr;", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*void> ptr;
                     Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments("<", "").WithLocation(1, 10),
@@ -2296,16 +3118,18 @@ o switch
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        M(SyntaxKind.FunctionPointerParameterList);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -2320,16 +3144,16 @@ o switch
         [Fact]
         public void MissingListStart_02()
         {
-            UsingStatement("delegate* cdecl void> ptr;", options: TestOptions.RegularPreview,
-                    // (1,17): error CS1003: Syntax error, '<' expected
-                    // delegate* cdecl void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments("<", "").WithLocation(1, 17),
-                    // (1,17): error CS1001: Identifier expected
-                    // delegate* cdecl void> ptr;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "void").WithLocation(1, 17),
-                    // (1,17): error CS1003: Syntax error, ',' expected
-                    // delegate* cdecl void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments(",", "void").WithLocation(1, 17));
+            UsingStatement("delegate* unmanaged[cdecl] void> ptr;", options: TestOptions.Regular9,
+                // (1,28): error CS1003: Syntax error, '<' expected
+                // delegate* unmanaged[cdecl] void> ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments("<", "").WithLocation(1, 28),
+                // (1,28): error CS1001: Identifier expected
+                // delegate* unmanaged[cdecl] void> ptr;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "void").WithLocation(1, 28),
+                // (1,28): error CS1003: Syntax error, ',' expected
+                // delegate* unmanaged[cdecl] void> ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "void").WithArguments(",", "void").WithLocation(1, 28));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2338,17 +3162,31 @@ o switch
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.IdentifierToken, "cdecl");
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "cdecl");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
+                        M(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -2363,7 +3201,7 @@ o switch
         [Fact]
         public void MissingListStart_03()
         {
-            UsingStatement("delegate*> ptr;", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*> ptr;", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*> ptr;
                     Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("<", "").WithLocation(1, 10));
@@ -2375,16 +3213,18 @@ o switch
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -2397,9 +3237,16 @@ o switch
         }
 
         [Fact]
-        public void ManyInvalidModifiers()
+        public void MissingListStart_04()
         {
-            UsingStatement("delegate*<this params readonly ref ref this int> ptr;", options: TestOptions.RegularPreview);
+            UsingStatement("delegate* unmanaged Cdecl]<void> ptr;", options: TestOptions.RegularPreview,
+                // (1,21): error CS1003: Syntax error, '<' expected
+                // delegate* unmanaged Cdecl]<void> ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Cdecl").WithArguments("<", "").WithLocation(1, 21),
+                // (1,26): error CS1003: Syntax error, ',' expected
+                // delegate* unmanaged Cdecl]<void> ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",", "]").WithLocation(1, 26)
+            );
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2408,22 +3255,63 @@ o switch
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
                         {
-                            N(SyntaxKind.ThisKeyword);
-                            N(SyntaxKind.ParamsKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ThisKeyword);
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.UnmanagedKeyword);
                         }
-                        N(SyntaxKind.GreaterThanToken);
+                        M(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Cdecl");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ManyInvalidModifiers()
+        {
+            UsingStatement("delegate*<this params readonly ref ref this int> ptr;", options: TestOptions.Regular9);
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.ThisKeyword);
+                                N(SyntaxKind.ParamsKeyword);
+                                N(SyntaxKind.ReadOnlyKeyword);
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.ThisKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
                     }
                     N(SyntaxKind.VariableDeclarator);
                     {
@@ -2442,7 +3330,7 @@ o switch
 async void M()
 {
     delegate*<async, async> ptr;
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2472,25 +3360,26 @@ async void M()
                                     {
                                         N(SyntaxKind.DelegateKeyword);
                                         N(SyntaxKind.AsteriskToken);
-                                        N(SyntaxKind.LessThanToken);
-                                        N(SyntaxKind.Parameter);
+                                        N(SyntaxKind.FunctionPointerParameterList);
                                         {
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.FunctionPointerParameter);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "async");
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
                                             }
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.Parameter);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.FunctionPointerParameter);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "async");
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
                                             }
-                                            M(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.GreaterThanToken);
                                         }
-                                        N(SyntaxKind.GreaterThanToken);
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
@@ -2515,7 +3404,7 @@ async void M()
 void M()
 {
     delegate*<async, async> ptr;
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2544,25 +3433,26 @@ void M()
                                     {
                                         N(SyntaxKind.DelegateKeyword);
                                         N(SyntaxKind.AsteriskToken);
-                                        N(SyntaxKind.LessThanToken);
-                                        N(SyntaxKind.Parameter);
+                                        N(SyntaxKind.FunctionPointerParameterList);
                                         {
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.FunctionPointerParameter);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "async");
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
                                             }
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.Parameter);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.FunctionPointerParameter);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "async");
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "async");
+                                                }
                                             }
-                                            M(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.GreaterThanToken);
                                         }
-                                        N(SyntaxKind.GreaterThanToken);
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
@@ -2587,7 +3477,7 @@ void M()
 async void M()
 {
     delegate*<await, await> ptr;
-}", options: TestOptions.RegularPreview,
+}", options: TestOptions.Regular9,
                     // (4,15): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                     //     delegate*<await, await> ptr;
                     Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(4, 15),
@@ -2623,25 +3513,26 @@ async void M()
                                     {
                                         N(SyntaxKind.DelegateKeyword);
                                         N(SyntaxKind.AsteriskToken);
-                                        N(SyntaxKind.LessThanToken);
-                                        N(SyntaxKind.Parameter);
+                                        N(SyntaxKind.FunctionPointerParameterList);
                                         {
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.FunctionPointerParameter);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "await");
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "await");
+                                                }
                                             }
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.Parameter);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.FunctionPointerParameter);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "await");
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "await");
+                                                }
                                             }
-                                            M(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.GreaterThanToken);
                                         }
-                                        N(SyntaxKind.GreaterThanToken);
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
@@ -2666,7 +3557,7 @@ async void M()
 void M()
 {
     delegate*<await, await> ptr;
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.Regular9);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -2694,25 +3585,26 @@ void M()
                                     {
                                         N(SyntaxKind.DelegateKeyword);
                                         N(SyntaxKind.AsteriskToken);
-                                        N(SyntaxKind.LessThanToken);
-                                        N(SyntaxKind.Parameter);
+                                        N(SyntaxKind.FunctionPointerParameterList);
                                         {
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.FunctionPointerParameter);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "await");
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "await");
+                                                }
                                             }
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                        N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.Parameter);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.FunctionPointerParameter);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "await");
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "await");
+                                                }
                                             }
-                                            M(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.GreaterThanToken);
                                         }
-                                        N(SyntaxKind.GreaterThanToken);
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
@@ -2733,7 +3625,7 @@ void M()
         [Fact]
         public void IncompleteAtEndOfFile()
         {
-            UsingStatement("delegate*", options: TestOptions.RegularPreview,
+            UsingStatement("delegate*", options: TestOptions.Regular9,
                     // (1,10): error CS1003: Syntax error, '<' expected
                     // delegate*
                     Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(1, 10),
@@ -2751,17 +3643,18 @@ void M()
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.EndOfFileToken);
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        M(SyntaxKind.FunctionPointerParameterList);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.GreaterThanToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -2774,18 +3667,18 @@ void M()
         }
 
         [Fact]
-        public void IncompleteAtEndOfFileWithIdentifier()
+        public void IncompleteAtEndOfFileWithCallingConvention()
         {
-            UsingStatement("delegate* cdecl", options: TestOptions.RegularPreview,
-                    // (1,11): error CS1003: Syntax error, '<' expected
-                    // delegate* cdecl
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(1, 16),
-                    // (1,16): error CS1001: Identifier expected
-                    // delegate* cdecl
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 16),
-                    // (1,16): error CS1002: ; expected
-                    // delegate* cdecl
-                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 16));
+            UsingStatement("delegate* unmanaged[cdecl]", options: TestOptions.Regular9,
+                // (1,27): error CS1003: Syntax error, '<' expected
+                // delegate* unmanaged[cdecl]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(1, 27),
+                // (1,27): error CS1001: Identifier expected
+                // delegate* unmanaged[cdecl]
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 27),
+                // (1,27): error CS1002: ; expected
+                // delegate* unmanaged[cdecl]
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 27));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2794,17 +3687,31 @@ void M()
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.IdentifierToken, "cdecl");
-                        M(SyntaxKind.LessThanToken);
-                        M(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "cdecl");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
+                        M(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            M(SyntaxKind.LessThanToken);
+                            M(SyntaxKind.FunctionPointerParameter);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -2813,21 +3720,22 @@ void M()
                 }
                 M(SyntaxKind.SemicolonToken);
             }
+            EOF();
         }
 
         [Fact]
         public void MixedParensAndAngles_01()
         {
-            UsingStatement("delegate* cdecl<void) ptr;", options: TestOptions.RegularPreview,
-                    // (1,21): error CS1003: Syntax error, ',' expected
-                    // delegate* cdecl<void) ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(1, 21),
-                    // (1,26): error CS1003: Syntax error, '>' expected
-                    // delegate* cdecl<void) ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 26),
-                    // (1,26): error CS1001: Identifier expected
-                    // delegate* cdecl<void) ptr;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 26));
+            UsingStatement("delegate* unmanaged[cdecl]<void) ptr;", options: TestOptions.Regular9,
+                // (1,32): error CS1003: Syntax error, ',' expected
+                // delegate* unmanaged[cdecl]<void) ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(1, 32),
+                // (1,37): error CS1003: Syntax error, '>' expected
+                // delegate* unmanaged[cdecl]<void) ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 37),
+                // (1,37): error CS1001: Identifier expected
+                // delegate* unmanaged[cdecl]<void) ptr;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 37));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2836,17 +3744,31 @@ void M()
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.IdentifierToken, "cdecl");
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "cdecl");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -2861,19 +3783,19 @@ void M()
         [Fact]
         public void MixedParensAndAngles_02()
         {
-            UsingStatement("delegate* cdecl(void> ptr;", options: TestOptions.RegularPreview,
-                    // (1,16): error CS1003: Syntax error, '<' expected
-                    // delegate* cdecl(void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 16),
-                    // (1,21): error CS1003: Syntax error, ',' expected
-                    // delegate* cdecl(void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(1, 21),
-                    // (1,26): error CS1003: Syntax error, '>' expected
-                    // delegate* cdecl(void> ptr;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 26),
-                    // (1,26): error CS1001: Identifier expected
-                    // delegate* cdecl(void> ptr;
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 26));
+            UsingStatement("delegate* unmanaged[cdecl](void> ptr;", options: TestOptions.Regular9,
+                // (1,27): error CS1003: Syntax error, '<' expected
+                // delegate* unmanaged[cdecl](void> ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("<", "(").WithLocation(1, 27),
+                // (1,32): error CS1003: Syntax error, ',' expected
+                // delegate* unmanaged[cdecl](void> ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(1, 32),
+                // (1,37): error CS1003: Syntax error, '>' expected
+                // delegate* unmanaged[cdecl](void> ptr;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(">", ";").WithLocation(1, 37),
+                // (1,37): error CS1001: Identifier expected
+                // delegate* unmanaged[cdecl](void> ptr;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 37));
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -2882,17 +3804,31 @@ void M()
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.IdentifierToken, "cdecl");
-                        M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerCallingConvention);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.UnmanagedKeyword);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "cdecl");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        M(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            M(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                            }
+                            M(SyntaxKind.GreaterThanToken);
+                        }
                     }
                     M(SyntaxKind.VariableDeclarator);
                     {
@@ -2904,29 +3840,24 @@ void M()
             EOF();
         }
 
-        [InlineData("cdecl")]
-        [InlineData("managed")]
-        [InlineData("stdcall")]
-        [InlineData("thiscall")]
-        [Theory]
-        public void ValidCallingConventionNextLine(string convention)
+        [Fact]
+        public void CallingConventionNextLine()
         {
             UsingNode($@"
 void C()
 {{
     delegate*
-    {convention}
-}}", options: TestOptions.RegularPreview,
-                    // (5,10): error CS1003: Syntax error, '<' expected
-                    //     {convention}
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(5, convention.Length + 5),
-                    // (5,10): error CS1001: Identifier expected
-                    //     {convention}
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(5, convention.Length + 5),
-                    // (5,10): error CS1002: ; expected
-                    //     {convention}
-                    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, convention.Length + 5));
-
+    unmanaged[Cdecl]
+}}", options: TestOptions.Regular9,
+                // (5,21): error CS1003: Syntax error, '<' expected
+                //     unmanaged[Cdecl]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(5, 21),
+                // (5,21): error CS1001: Identifier expected
+                //     unmanaged[Cdecl]
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(5, 21),
+                // (5,21): error CS1002: ; expected
+                //     unmanaged[Cdecl]
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 21));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -2954,17 +3885,31 @@ void C()
                                     {
                                         N(SyntaxKind.DelegateKeyword);
                                         N(SyntaxKind.AsteriskToken);
-                                        N(SyntaxKind.IdentifierToken, convention);
-                                        M(SyntaxKind.LessThanToken);
-                                        M(SyntaxKind.Parameter);
+                                        N(SyntaxKind.FunctionPointerCallingConvention);
                                         {
-                                            M(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.UnmanagedKeyword);
+                                            N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
                                             {
-                                                M(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Cdecl");
+                                                }
+                                                N(SyntaxKind.CloseBracketToken);
                                             }
-                                            M(SyntaxKind.IdentifierToken);
                                         }
-                                        M(SyntaxKind.GreaterThanToken);
+                                        M(SyntaxKind.FunctionPointerParameterList);
+                                        {
+                                            M(SyntaxKind.LessThanToken);
+                                            M(SyntaxKind.FunctionPointerParameter);
+                                            {
+                                                M(SyntaxKind.IdentifierName);
+                                                {
+                                                    M(SyntaxKind.IdentifierToken);
+                                                }
+                                            }
+                                            M(SyntaxKind.GreaterThanToken);
+                                        }
                                     }
                                     M(SyntaxKind.VariableDeclarator);
                                     {
@@ -2989,8 +3934,8 @@ void C()
 void C()
 {
     delegate*
-    int ptr = 1;
-}", options: TestOptions.RegularPreview,
+    int[] ptr = 1;
+}", options: TestOptions.Regular9,
                     // (4,14): error CS1003: Syntax error, '<' expected
                     //     delegate*
                     Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("<", "").WithLocation(4, 14),
@@ -3028,16 +3973,18 @@ void C()
                                     {
                                         N(SyntaxKind.DelegateKeyword);
                                         N(SyntaxKind.AsteriskToken);
-                                        M(SyntaxKind.LessThanToken);
-                                        M(SyntaxKind.Parameter);
+                                        M(SyntaxKind.FunctionPointerParameterList);
                                         {
-                                            M(SyntaxKind.IdentifierName);
+                                            M(SyntaxKind.LessThanToken);
+                                            M(SyntaxKind.FunctionPointerParameter);
                                             {
-                                                M(SyntaxKind.IdentifierToken);
+                                                M(SyntaxKind.IdentifierName);
+                                                {
+                                                    M(SyntaxKind.IdentifierToken);
+                                                }
                                             }
-                                            M(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.GreaterThanToken);
                                         }
-                                        M(SyntaxKind.GreaterThanToken);
                                     }
                                     M(SyntaxKind.VariableDeclarator);
                                     {
@@ -3050,9 +3997,21 @@ void C()
                             {
                                 N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.PredefinedType);
+                                    N(SyntaxKind.ArrayType);
                                     {
-                                        N(SyntaxKind.IntKeyword);
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        N(SyntaxKind.ArrayRankSpecifier);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.OmittedArraySizeExpression);
+                                            {
+                                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
                                     }
                                     N(SyntaxKind.VariableDeclarator);
                                     {
@@ -3082,12 +4041,14 @@ void C()
         public void SyntaxFacts()
         {
             Assert.True(CSharp.SyntaxFacts.IsTypeSyntax(SyntaxKind.FunctionPointerType));
+            Assert.True(CSharp.SyntaxFacts.IsContextualKeyword(SyntaxKind.ManagedKeyword));
+            Assert.True(CSharp.SyntaxFacts.IsContextualKeyword(SyntaxKind.UnmanagedKeyword));
         }
 
         [Fact]
         public void FunctionPointerArrayInTypeArgument()
         {
-            UsingStatement("I<delegate*<void>[]> i;", options: TestOptions.RegularPreview);
+            UsingStatement("I<delegate*<void>[]> i;", options: TestOptions.Regular9);
             N(SyntaxKind.LocalDeclarationStatement);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -3104,16 +4065,18 @@ void C()
                                 {
                                     N(SyntaxKind.DelegateKeyword);
                                     N(SyntaxKind.AsteriskToken);
-                                    N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.FunctionPointerParameterList);
                                     {
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.FunctionPointerParameter);
                                         {
-                                            N(SyntaxKind.VoidKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.VoidKeyword);
+                                            }
                                         }
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.GreaterThanToken);
                                     }
-                                    N(SyntaxKind.GreaterThanToken);
                                 }
                                 N(SyntaxKind.ArrayRankSpecifier);
                                 {
@@ -3141,7 +4104,7 @@ void C()
         [Fact]
         public void UsingAlias()
         {
-            UsingNode("using t = delegate*<void>;", options: TestOptions.RegularPreview,
+            UsingNode("using t = delegate*<void>;", options: TestOptions.Regular9,
                 // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
                 // using t = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
@@ -3175,16 +4138,18 @@ void C()
                     {
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
-                        N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.FunctionPointerParameterList);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
                             {
-                                N(SyntaxKind.VoidKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.GreaterThanToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
                     }
                 }
                 N(SyntaxKind.GlobalStatement);

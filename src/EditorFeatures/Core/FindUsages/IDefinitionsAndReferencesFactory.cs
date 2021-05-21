@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
-        DefinitionItem GetThirdPartyDefinitionItem(
+        DefinitionItem? GetThirdPartyDefinitionItem(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken);
     }
 
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
         /// </summary>
-        public virtual DefinitionItem GetThirdPartyDefinitionItem(
+        public virtual DefinitionItem? GetThirdPartyDefinitionItem(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             return null;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal static class DefinitionItemExtensions
     {
-        private static readonly SymbolDisplayFormat s_namePartsFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_namePartsFormat = new(
             memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
         public static DefinitionItem ToNonClassifiedDefinitionItem(
@@ -82,8 +84,23 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 options, cancellationToken);
         }
 
+        public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
+            this SymbolGroup group, Solution solution, bool isPrimary, bool includeHiddenLocations, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+        {
+            // Make a single definition item that knows about all the locations of all the symbols in the group.
+            var allLocations = group.Symbols.SelectMany(s => s.Locations).ToImmutableArray();
+            return ToDefinitionItemAsync(group.Symbols.First(), allLocations, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans: true, options, cancellationToken);
+        }
+
+        private static Task<DefinitionItem> ToDefinitionItemAsync(
+            ISymbol definition, Solution solution, bool isPrimary, bool includeHiddenLocations, bool includeClassifiedSpans, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+        {
+            return ToDefinitionItemAsync(definition, definition.Locations, solution, isPrimary, includeHiddenLocations, includeClassifiedSpans, options, cancellationToken);
+        }
+
         private static async Task<DefinitionItem> ToDefinitionItemAsync(
-            this ISymbol definition,
+            ISymbol definition,
+            ImmutableArray<Location> locations,
             Solution solution,
             bool isPrimary,
             bool includeHiddenLocations,
@@ -111,16 +128,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var displayIfNoReferences = definition.ShouldShowWithNoReferenceLocations(
                 options, showMetadataSymbolsWithoutReferences: false);
 
-            using var sourceLocationsDisposer = ArrayBuilder<DocumentSpan>.GetInstance(out var sourceLocations);
-
             var properties = GetProperties(definition, isPrimary);
 
             // If it's a namespace, don't create any normal location.  Namespaces
             // come from many different sources, but we'll only show a single 
             // root definition node for it.  That node won't be navigable.
+            using var sourceLocations = TemporaryArray<DocumentSpan>.Empty;
             if (definition.Kind != SymbolKind.Namespace)
             {
-                foreach (var location in definition.Locations)
+                foreach (var location in locations)
                 {
                     if (location.IsInMetadata)
                     {
@@ -163,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var displayableProperties = AbstractReferenceFinder.GetAdditionalFindUsagesProperties(definition);
 
             return DefinitionItem.Create(
-                tags, displayParts, sourceLocations.ToImmutable(),
+                tags, displayParts, sourceLocations.ToImmutableAndClear(),
                 nameDisplayParts, properties, displayableProperties, displayIfNoReferences);
         }
 
@@ -196,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return properties;
         }
 
-        public static async Task<SourceReferenceItem> TryCreateSourceReferenceItemAsync(
+        public static async Task<SourceReferenceItem?> TryCreateSourceReferenceItemAsync(
             this ReferenceLocation referenceLocation,
             DefinitionItem definitionItem,
             bool includeHiddenLocations,

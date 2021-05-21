@@ -5,31 +5,28 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class AdditionalSourcesCollection
     {
         private readonly ArrayBuilder<GeneratedSourceText> _sourcesAdded;
 
+        private readonly string _fileExtension;
+
         private const StringComparison _hintNameComparison = StringComparison.OrdinalIgnoreCase;
 
         private static readonly StringComparer s_hintNameComparer = StringComparer.OrdinalIgnoreCase;
 
-        internal AdditionalSourcesCollection()
+        internal AdditionalSourcesCollection(string fileExtension)
         {
+            Debug.Assert(fileExtension.Length > 0 && fileExtension[0] == '.');
             _sourcesAdded = ArrayBuilder<GeneratedSourceText>.GetInstance();
-        }
-
-        internal AdditionalSourcesCollection(ImmutableArray<GeneratedSourceText> existingSources)
-            : this()
-        {
-            _sourcesAdded.AddRange(existingSources);
+            _fileExtension = fileExtension;
         }
 
         public void Add(string hintName, SourceText source)
@@ -66,8 +63,17 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.HintNameUniquePerGenerator, nameof(hintName));
             }
 
+            if (source.Encoding is null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.SourceTextRequiresEncoding, nameof(source));
+            }
+
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
         }
+
+        public void AddRange(ImmutableArray<GeneratedSourceText> texts) => _sourcesAdded.AddRange(texts);
+
+        public void AddRange(ImmutableArray<GeneratedSyntaxTree> trees) => _sourcesAdded.AddRange(trees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)));
 
         public void RemoveSource(string hintName)
         {
@@ -97,11 +103,11 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree() => _sourcesAdded.ToImmutableAndFree();
 
-        private static string AppendExtensionIfRequired(string hintName)
+        private string AppendExtensionIfRequired(string hintName)
         {
-            if (!hintName.EndsWith(".cs", _hintNameComparison))
+            if (!hintName.EndsWith(_fileExtension, _hintNameComparison))
             {
-                hintName = string.Concat(hintName, ".cs");
+                hintName = string.Concat(hintName, _fileExtension);
             }
 
             return hintName;

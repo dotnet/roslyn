@@ -10,7 +10,7 @@ extern_alias_directive
   ;
 
 using_directive
-  : 'using' ('static' | name_equals)? name ';'
+  : 'global'? 'using' ('static' | name_equals)? name ';'
   ;
 
 name_equals
@@ -309,7 +309,7 @@ interface_declaration
   ;
 
 record_declaration
-  : attribute_list* modifier* syntax_token identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  : attribute_list* modifier* syntax_token ('class' | 'struct')? identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 struct_declaration
@@ -353,7 +353,28 @@ array_rank_specifier
   ;
 
 function_pointer_type
-  : 'delegate' '*' syntax_token? '<' parameter (',' parameter)* '>'
+  : 'delegate' '*' function_pointer_calling_convention? function_pointer_parameter_list
+  ;
+
+function_pointer_calling_convention
+  : 'managed' function_pointer_unmanaged_calling_convention_list?
+  | 'unmanaged' function_pointer_unmanaged_calling_convention_list?
+  ;
+
+function_pointer_unmanaged_calling_convention_list
+  : '[' function_pointer_unmanaged_calling_convention (',' function_pointer_unmanaged_calling_convention)* ']'
+  ;
+
+function_pointer_unmanaged_calling_convention
+  : identifier_token
+  ;
+
+function_pointer_parameter_list
+  : '<' function_pointer_parameter (',' function_pointer_parameter)* '>'
+  ;
+
+function_pointer_parameter
+  : attribute_list* modifier* type
   ;
 
 nullable_type
@@ -723,11 +744,11 @@ lambda_expression
   ;
 
 parenthesized_lambda_expression
-  : modifier* parameter_list '=>' (block | expression)
+  : attribute_list* modifier* parameter_list '=>' (block | expression)
   ;
 
 simple_lambda_expression
-  : modifier* parameter '=>' (block | expression)
+  : attribute_list* modifier* parameter '=>' (block | expression)
   ;
 
 anonymous_object_creation_expression
@@ -1266,6 +1287,11 @@ base_cref_parameter_list
 base_parameter_list
   : bracketed_parameter_list
   | parameter_list
+  ;
+
+base_parameter
+  : function_pointer_parameter
+  | parameter
   ;
 
 character_literal_token

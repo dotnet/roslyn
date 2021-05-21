@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Xunit;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -131,7 +133,7 @@ class Program
 }
 ";
 
-            ParseAndValidate(text, TestOptions.RegularPreview,
+            ParseAndValidate(text, TestOptions.Regular9,
                 // (9,27): error CS1003: Syntax error, '(' expected
                 //     ref readonly int Field;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(", ";").WithLocation(9, 27),

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
         // Make public after review: https://github.com/dotnet/roslyn/issues/21281
-        internal virtual TResult VisitFixed(IFixedOperation operation, TArgument argument) =>
+        internal virtual TResult? VisitFixed(IFixedOperation operation, TArgument argument) =>
             // https://github.com/dotnet/roslyn/issues/21281
             //return DefaultVisit(operation, argument);
             VisitNoneOperation(operation, argument);

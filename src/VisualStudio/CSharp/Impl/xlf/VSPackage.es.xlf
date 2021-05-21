@@ -33,7 +33,7 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline parameter name hints;
+        <source>Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -81,7 +81,8 @@ regex;
 regular expression;
 Use enhanced colors;
 Editor Color Scheme;</source>
-        <target state="needs-review-translation">Mostrar diagnóstico para archivos cerrados;
+        <target state="translated">Mostrar sugerencias insertadas;
+Mostrar diagnóstico para archivos cerrados;
 Colorear expresión regular; 
 Resaltar componentes relacionados bajo el cursor; 
 Informar sobre expresiones regulares no válidas;
@@ -110,7 +111,7 @@ Guías de estructura de bloque;
 Mostrar guías para construcciones a nivel de declaración;
 Mostrar guías para construcciones a nivel de código;
 Ayuda del editor;
-Generar comentarios de documentación XML con ///;
+Generar comentarios de documentación XML para ///;
 Insertar * al comienzo de las nuevas líneas al escribir comentarios /* */;
 Mostrar vista previa para seguimiento de cambio de nombre;
 Dividir literales de cadena al presionar Entrar;
@@ -278,6 +279,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -288,7 +290,7 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="translated">Cambiar configuración de la lista de finalización;Preseleccionar el miembro usado recientemente; Listas de finalización;
+        <target state="needs-review-translation">Cambiar configuración de la lista de finalización;Preseleccionar el miembro usado recientemente; Listas de finalización;
 Mostrar lista de finalización después de escribir un carácter;
 Mostrar lista de finalización después de eliminar un carácter;
 Mostrar lista de finalización en las listas de argumentos automáticamente (experimental);

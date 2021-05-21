@@ -5,7 +5,6 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Editor;
@@ -25,18 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public ItemManagerProvider(RecentItemsManager recentItemsManager)
             => _instance = new ItemManager(recentItemsManager);
 
-        public IAsyncCompletionItemManager GetOrCreate(ITextView textView)
+        public IAsyncCompletionItemManager? GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.TryGetWorkspace(out var workspace))
+            if (textView.TextBuffer.IsInLspEditorContext())
             {
-                var workspaceContextService = workspace.Services.GetRequiredService<IWorkspaceContextService>();
-
-                // If we're in a cloud environment context, we want to avoid returning a completion item manager.
+                // If we're in an LSP editing context, we want to avoid returning a completion item manager.
                 // Otherwise, we'll interfere with the LSP client manager and disrupt filtering.
-                if (workspaceContextService.IsCloudEnvironmentClient())
-                {
-                    return null;
-                }
+                return null;
             }
 
             return _instance;

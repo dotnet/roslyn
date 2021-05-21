@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     internal enum VSTypeScriptWaitIndicatorResult
     {
-        Canceled = WaitIndicatorResult.Canceled,
-        Completed = WaitIndicatorResult.Completed
+        Canceled = UIThreadOperationStatus.Canceled,
+        Completed = UIThreadOperationStatus.Completed
     }
 }

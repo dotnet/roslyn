@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                 // Eliminate any blank lines at the end.
                 while (formattedCommentLinesBuilder.Count > 0 &&
-                       formattedCommentLinesBuilder[formattedCommentLinesBuilder.Count - 1].Length == 0)
+                       formattedCommentLinesBuilder[^1].Length == 0)
                 {
                     formattedCommentLinesBuilder.RemoveAt(formattedCommentLinesBuilder.Count - 1);
                 }

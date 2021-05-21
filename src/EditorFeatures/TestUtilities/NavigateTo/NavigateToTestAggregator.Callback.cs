@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -15,7 +17,7 @@ namespace Roslyn.Test.EditorUtilities.NavigateTo
     {
         private sealed class Callback : INavigateToCallback
         {
-            private readonly ConcurrentBag<NavigateToItem> _itemsReceived;
+            private readonly List<NavigateToItem> _itemsReceived = new();
 
             private readonly TaskCompletionSource<IEnumerable<NavigateToItem>> _taskCompletionSource =
                 new TaskCompletionSource<IEnumerable<NavigateToItem>>();
@@ -25,11 +27,13 @@ namespace Roslyn.Test.EditorUtilities.NavigateTo
                 Contract.ThrowIfNull(options);
 
                 Options = options;
-                _itemsReceived = new ConcurrentBag<NavigateToItem>();
             }
 
             public void AddItem(NavigateToItem item)
-                => _itemsReceived.Add(item);
+            {
+                lock (_itemsReceived)
+                    _itemsReceived.Add(item);
+            }
 
             public void Done()
                 => _taskCompletionSource.SetResult(_itemsReceived);

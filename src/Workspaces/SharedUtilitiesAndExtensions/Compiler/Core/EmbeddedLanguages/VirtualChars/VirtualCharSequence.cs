@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public static readonly VirtualCharSequence Empty = Create(ImmutableArray<VirtualChar>.Empty);
 
         public static VirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
-            => new VirtualCharSequence(new ImmutableArrayChunk(virtualChars));
+            => new(new ImmutableArrayChunk(virtualChars));
 
         public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData)
-            => new VirtualCharSequence(new StringChunk(firstVirtualCharPosition, underlyingData));
+            => new(new StringChunk(firstVirtualCharPosition, underlyingData));
 
         /// <summary>
         /// The actual characters that this <see cref="VirtualCharSequence"/> is a portion of.
@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
 
         public VirtualCharSequence GetSubSequence(TextSpan span)
-           => new VirtualCharSequence(
+           => new(
                _leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
 
         public VirtualChar First() => this[0];
         public VirtualChar Last() => this[this.Length - 1];
 
         public Enumerator GetEnumerator()
-            => new Enumerator(this);
+            => new(this);
 
         public VirtualChar? FirstOrNull(Func<VirtualChar, bool> predicate)
         {

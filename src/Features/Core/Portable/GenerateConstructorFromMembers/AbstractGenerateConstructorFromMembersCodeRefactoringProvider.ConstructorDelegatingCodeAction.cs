@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -47,9 +48,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var languageServices = project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
 
                 var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var factory = languageServices.GetService<SyntaxGenerator>();
-                var codeGenerationService = languageServices.GetService<ICodeGenerationService>();
+                var factory = languageServices.GetRequiredService<SyntaxGenerator>();
+                var codeGenerationService = languageServices.GetRequiredService<ICodeGenerationService>();
 
+                Contract.ThrowIfNull(_state.DelegatedConstructor);
                 var thisConstructorArguments = factory.CreateArguments(
                     _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length).ToImmutableArray());
 
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         nullCheckStatements, assignStatements);
                 }
 
-                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await _document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
                 // choose the right location (i.e. null) to insert the constructor.  However, if they're 

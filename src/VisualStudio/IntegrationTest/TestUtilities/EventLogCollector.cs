@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -96,6 +98,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 "ServiceHub.Host.CLR.x64.exe",
                 "ServiceHub.Host.CLR.x86.exe",
                 "ServiceHub.IdentityHost.exe",
+                "ServiceHub.RoslynCodeAnalysisService.exe",
                 "ServiceHub.RoslynCodeAnalysisService32.exe",
                 "ServiceHub.SettingsHost.exe",
                 "ServiceHub.VSDetouredHost.exe",

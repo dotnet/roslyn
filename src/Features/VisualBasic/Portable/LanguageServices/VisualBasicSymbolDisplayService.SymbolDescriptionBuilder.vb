@@ -66,6 +66,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     Space())
             End Sub
 
+            Protected Overrides Sub AddEnumUnderlyingTypeSeparator()
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    Space(),
+                    Keyword("As"),
+                    Space())
+            End Sub
+
             Protected Overrides Function GetInitializerSourcePartsAsync(symbol As ISymbol) As Task(Of ImmutableArray(Of SymbolDisplayPart))
                 If TypeOf symbol Is IParameterSymbol Then
                     Return GetInitializerSourcePartsAsync(DirectCast(symbol, IParameterSymbol))
@@ -76,6 +83,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 End If
 
                 Return SpecializedTasks.EmptyImmutableArray(Of SymbolDisplayPart)
+            End Function
+
+            Protected Overrides Function ToMinimalDisplayParts(symbol As ISymbol, semanticModel As SemanticModel, position As Integer, format As SymbolDisplayFormat) As ImmutableArray(Of SymbolDisplayPart)
+                Return CodeAnalysis.VisualBasic.ToMinimalDisplayParts(symbol, semanticModel, position, format)
+            End Function
+
+            Protected Overrides Function GetNavigationHint(symbol As ISymbol) As String
+                Return If(symbol Is Nothing, Nothing, CodeAnalysis.VisualBasic.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat))
             End Function
 
             Private Async Function GetFirstDeclarationAsync(Of T As SyntaxNode)(symbol As ISymbol) As Task(Of T)

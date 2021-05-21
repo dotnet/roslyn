@@ -238,5 +238,25 @@ End Namespace
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpRangeVariableUseInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+class C
+{
+    void M()
+    {
+        var q = from $${|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|x|];
+    }
+}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
     End Class
 End Namespace

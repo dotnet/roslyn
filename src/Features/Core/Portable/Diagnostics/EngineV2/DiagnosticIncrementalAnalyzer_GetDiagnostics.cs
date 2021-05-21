@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -18,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
-            if (!(id is LiveDiagnosticUpdateArgsId argsId))
+            if (id is not LiveDiagnosticUpdateArgsId argsId)
             {
-                return Task.FromResult(ImmutableArray<DiagnosticData>.Empty);
+                return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
             }
 
             var (documentId, projectId) = (argsId.ProjectOrDocumentId is DocumentId docId) ? (docId, docId.ProjectId) : (null, (ProjectId)argsId.ProjectOrDocumentId);

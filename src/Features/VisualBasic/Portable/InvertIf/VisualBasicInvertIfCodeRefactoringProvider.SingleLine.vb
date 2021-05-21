@@ -54,14 +54,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
                 ' That way the trailing comments/newlines at the end of the 'if' stay there,
                 ' And the spaces after the true-part stay where they are.
 
-                Dim lastTrue = trueStatements.Last()
-                Dim lastFalse = falseStatements.Last()
+                Dim lastTrue = trueStatements.LastOrDefault()
+                Dim lastFalse = falseStatements.LastOrDefault()
 
-                Dim newLastTrue = lastTrue.WithTrailingTrivia(lastFalse.GetTrailingTrivia())
-                Dim newLastFalse = lastFalse.WithTrailingTrivia(lastTrue.GetTrailingTrivia())
+                If lastTrue IsNot Nothing AndAlso lastFalse IsNot Nothing Then
+                    Dim newLastTrue = lastTrue.WithTrailingTrivia(lastFalse.GetTrailingTrivia())
+                    Dim newLastFalse = lastFalse.WithTrailingTrivia(lastTrue.GetTrailingTrivia())
 
-                trueStatements = trueStatements.Replace(lastTrue, newLastTrue)
-                falseStatements = falseStatements.Replace(lastFalse, newLastFalse)
+                    trueStatements = trueStatements.Replace(lastTrue, newLastTrue)
+                    falseStatements = falseStatements.Replace(lastFalse, newLastFalse)
+                End If
             End If
 
             Dim updatedIf = ifNode _

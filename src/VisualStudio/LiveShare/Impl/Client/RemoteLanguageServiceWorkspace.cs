@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -102,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
 
-        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy) => NotifyOnDocumentOpened(moniker, textBuffer);
+        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame) => NotifyOnDocumentOpened(moniker, textBuffer);
 
         void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
 
@@ -343,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
             if (fileExtension == ".cs")
             {
-                return StringConstants.CSharpLspLanguageName;
+                return LanguageNames.CSharp;
             }
             else if (fileExtension == ".ts" || fileExtension == ".js")
             {
@@ -351,7 +349,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             }
             else if (fileExtension == ".vb")
             {
-                return StringConstants.VBLspLanguageName;
+                return LanguageNames.VisualBasic;
             }
 
             return null;
@@ -481,7 +479,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     if (textBuffer == null)
                     {
                         // Text buffer is missing for opened Live Share document.
-                        FatalError.ReportWithoutCrash(new LiveShareTextBufferMissingException());
+                        FatalError.ReportAndCatch(new LiveShareTextBufferMissingException());
                         return;
                     }
 

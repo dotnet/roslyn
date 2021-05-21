@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -78,6 +80,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void RemoveMetadataReference(ProjectUtils.AssemblyReference assemblyName, ProjectUtils.Project projectName)
         {
             _inProc.RemoveMetadataReference(assemblyName.Name, projectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void AddAnalyzerReference(string filePath, ProjectUtils.Project projectName)
+        {
+            _inProc.AddAnalyzerReference(filePath, projectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void RemoveAnalyzerReference(string filePath, ProjectUtils.Project projectName)
+        {
+            _inProc.RemoveAnalyzerReference(filePath, projectName.Name);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void SetLanguageVersion(ProjectUtils.Project projectName, string languageVersion)
+        {
+            _inProc.SetLanguageVersion(projectName.Name, languageVersion);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 

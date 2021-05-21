@@ -10,27 +10,29 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
-    [Obsolete("Use " + nameof(INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate) + " instead.")]
     internal interface INavigateToSearchService : ILanguageService
     {
-        Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, CancellationToken cancellationToken);
-        Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, CancellationToken cancellationToken);
+        IImmutableSet<string> KindsProvided { get; }
+        bool CanFilter { get; }
+
+        /// <summary>
+        /// Searches the documents inside <paramref name="project"/> for symbols that matches
+        /// <paramref name="searchPattern"/>. <paramref name="priorityDocuments"/> is an optional
+        /// subset of the documents from <paramref name="project"/> that can be used to prioritize
+        /// work.
+        /// </summary>
+        Task<NavigateToSearchLocation> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken);
+        Task<NavigateToSearchLocation> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken);
     }
 
-    // This will be renamed to replace INavigateToSearchService as part of https://github.com/dotnet/roslyn/issues/28343
-    internal interface INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate : ILanguageService
+    internal enum NavigateToSearchLocation
     {
-        IImmutableSet<string> KindsProvided
-        {
-            get;
-        }
+        /// <summary>
+        /// If the search was performed against cached data from a previous run.
+        /// </summary>
+        Cache,
 
-        bool CanFilter
-        {
-            get;
-        }
-
-        Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
-        Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
+        // If the search examined the latest data we have for the requested project or document.
+        Latest
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -128,8 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // new { - Object Initialization
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression))
+            // new { - Object Initialization, or with { - Record with initializer, or is { - property pattern clauses
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+                (currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause)))
             {
                 if (!_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
@@ -183,6 +184,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression) || currentTokenParentParent.IsKind(SyntaxKind.ParenthesizedLambdaExpression)))
             {
                 if (!_options.NewLinesForBracesInLambdaExpressionBody)
+                {
+                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
+            // * { - in the switch expression context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            {
+                if (!_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -304,9 +314,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // new MyObject { - Object Initialization
             // new List<int> { - Collection Initialization
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken &&
-                (currentToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.CollectionInitializerExpression))
+            // with { - Record with initializer
+            // is { - property pattern clauses
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+                (currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.WithInitializerExpression) ||
+                currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause)))
             {
                 if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
                 {
@@ -401,6 +415,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
+            // * { - in the switch expression context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            {
+                if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
+                {
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
             // * { - in the control statement context
             if (currentToken.Kind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
             {
@@ -414,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // Wrapping - Leave statements on same line (false): 
+            // Wrapping - Leave statements on same line (false):
             // Insert a newline between the previous statement and this one.
             // ; *
             if (previousToken.Kind() == SyntaxKind.SemicolonToken

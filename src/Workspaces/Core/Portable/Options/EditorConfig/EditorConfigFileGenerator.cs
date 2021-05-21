@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -36,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Options
                 editorconfig.AppendLine($"# {WorkspacesResources.Visual_Basic_files}");
                 editorconfig.AppendLine("[*.vb]");
             }
+
             editorconfig.AppendLine();
 
             foreach ((var feature, var options) in groupedOptions)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -440,9 +438,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case SyntaxKind.FunctionPointerType:
                         var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)type;
-                        for (int i = functionPointerTypeSyntax.Parameters.Count - 1; i >= 0; i--)
+                        for (int i = functionPointerTypeSyntax.ParameterList.Parameters.Count - 1; i >= 0; i--)
                         {
-                            TypeSyntax? paramType = functionPointerTypeSyntax.Parameters[i].Type;
+                            TypeSyntax? paramType = functionPointerTypeSyntax.ParameterList.Parameters[i].Type;
                             Debug.Assert(paramType is object);
                             stack.Push(paramType);
                         }

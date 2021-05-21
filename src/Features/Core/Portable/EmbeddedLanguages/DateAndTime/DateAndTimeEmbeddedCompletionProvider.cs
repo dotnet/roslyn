@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 {
-    internal partial class DateAndTimeEmbeddedCompletionProvider : CompletionProvider
+    internal partial class DateAndTimeEmbeddedCompletionProvider : LSPCompletionProvider
     {
         private const string StartKey = nameof(StartKey);
         private const string LengthKey = nameof(LengthKey);
@@ -36,17 +34,19 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
         public DateAndTimeEmbeddedCompletionProvider(DateAndTimeEmbeddedLanguageFeatures language)
             => _language = language;
 
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('"', ':');
+
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            if (trigger.Kind == CompletionTriggerKind.Invoke ||
-                trigger.Kind == CompletionTriggerKind.InvokeAndCommitIfUnique)
+            if (trigger.Kind is CompletionTriggerKind.Invoke or
+                CompletionTriggerKind.InvokeAndCommitIfUnique)
             {
                 return true;
             }
 
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
-                if (trigger.Character == '"' || trigger.Character == ':')
+                if (TriggerCharacters.Contains(trigger.Character))
                 {
                     return true;
                 }
@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             if (!context.Options.GetOption(DateAndTimeOptions.ProvideDateAndTimeCompletions, context.Document.Project.Language))
                 return;
 
-            if (context.Trigger.Kind != CompletionTriggerKind.Invoke &&
-                context.Trigger.Kind != CompletionTriggerKind.InvokeAndCommitIfUnique &&
-                context.Trigger.Kind != CompletionTriggerKind.Insertion)
+            if (context.Trigger.Kind is not CompletionTriggerKind.Invoke and
+                not CompletionTriggerKind.InvokeAndCommitIfUnique and
+                not CompletionTriggerKind.Insertion)
             {
                 return;
             }

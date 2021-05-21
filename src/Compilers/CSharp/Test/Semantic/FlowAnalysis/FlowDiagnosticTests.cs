@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2607,6 +2609,33 @@ struct S
                 // (7,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //         void f() { F = x; }
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(7, 20));
+        }
+
+        [Fact]
+        [WorkItem(1243877, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1243877")]
+        public void WorkItem1243877()
+        {
+            string program = @"
+static class C
+{
+    static void Main()
+    {
+        Test(out var x, x);
+    }
+    
+    static void Test(out Empty x, object y) => throw null;
+}
+
+
+struct Empty
+{
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (6,25): error CS8196: Reference to an implicitly-typed out variable 'x' is not permitted in the same argument list.
+                //         Test(out var x, x);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x").WithArguments("x").WithLocation(6, 25)
+                );
         }
     }
 }

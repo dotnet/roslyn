@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-#pragma warning disable CA1822 // Mark members as static
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+#pragma warning disable CS0618 // Type or member is obsolete - this should become error once we provide infra for migrating to ISB (https://github.com/dotnet/roslyn/issues/44326)
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal abstract class UnitTestingServiceBase : ServiceBase
     {
         protected UnitTestingServiceBase(
@@ -45,23 +44,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             => EndPoint.InvokeAsync(targetName, arguments, cancellationToken);
 
         public UnitTestingIncrementalAnalyzerProvider? TryRegisterAnalyzerProvider(string analyzerName, IUnitTestingIncrementalAnalyzerProviderImplementation provider)
-        {
-            var workspace = SolutionService.PrimaryWorkspace;
-            var solutionCrawlerRegistrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
-            if (solutionCrawlerRegistrationService == null)
-            {
-                return null;
-            }
-
-            var analyzerProvider = new UnitTestingIncrementalAnalyzerProvider(workspace, provider);
-
-            var metadata = new IncrementalAnalyzerProviderMetadata(
-                analyzerName,
-                highPriorityForActiveFile: false,
-                new[] { WorkspaceKind.RemoteWorkspace });
-
-            solutionCrawlerRegistrationService.AddAnalyzerProvider(analyzerProvider, metadata);
-            return analyzerProvider;
-        }
+            => UnitTestingIncrementalAnalyzerProvider.TryRegister(GetWorkspace(), analyzerName, provider);
     }
 }

@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,18 +28,18 @@ namespace Microsoft.CodeAnalysis.UnitTesting.ExternalAccess
             CodeLensDescriptorContext descriptorContext,
             CancellationToken cancellationToken)
         {
-            var callerMethods = await callbackService.InvokeAsync<IEnumerable<ReferenceMethodDescriptor>>(
+            var callerMethods = await callbackService.InvokeAsync<ImmutableArray<ReferenceMethodDescriptor>?>(
                 provider,
                 nameof(ICodeLensContext.FindReferenceMethodsAsync),
                 new object[] { descriptor, descriptorContext },
                 cancellationToken).ConfigureAwait(false);
 
-            if (callerMethods == null || !callerMethods.Any())
+            if (!callerMethods.HasValue || callerMethods.Value.IsEmpty)
             {
                 return Empty;
             }
 
-            return callerMethods.Select(m => (
+            return callerMethods.Value.SelectAsArray(m => (
                 MethodFullyQualifiedName: m.FullName,
                 MethodFilePath: m.FilePath,
                 MethodOutputFilePath: m.OutputFilePath));

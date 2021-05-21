@@ -8,20 +8,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         <Fact>
         <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function IsInCaseClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub IsInCaseClauseTest()
+            VerifyRecommendationsContain(
                 <MethodBody>        
                     Select Case 5
                          Case |
                     End Select
                 </MethodBody>, "Is")
-        End Function
+        End Sub
 
         <Fact>
         <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoIsKeywordAfterCaseAfterCaseElseTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NoIsKeywordAfterCaseAfterCaseElseTest()
+            VerifyRecommendationsMissing(
                 <MethodBody>
                     Select Case 5
                         Case Else
@@ -29,77 +29,77 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
                         Case |
                     End Select
                 </MethodBody>, "Is")
-        End Function
+        End Sub
 
         <Fact>
         <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function IsInMiddleCaseClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub IsInMiddleCaseClauseTest()
+            VerifyRecommendationsContain(
                 <MethodBody>
                     Select Case 5
                         Case 4, |, Is > 7
                     End Select
                 </MethodBody>, "Is")
-        End Function
+        End Sub
 
         <Fact>
         <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function IsInFinalCaseClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub IsInFinalCaseClauseTest()
+            VerifyRecommendationsContain(
                 <MethodBody>
                     Select Case 5
                         Case 4, Is > 5, |
                     End Select
                 </MethodBody>, "Is")
-        End Function
+        End Sub
 
         <Fact>
         <WorkItem(543384, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543384")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function IsInExistingIsClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub IsInExistingIsClauseTest()
+            VerifyRecommendationsContain(
                 <MethodBody>
                     Select Case 5
                         Case |Is > 5
                     End Select
                 </MethodBody>, "Is")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <MethodBody>
     Select Case 5
         Case 
 |
     End Select
 </MethodBody>, "Is")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsContain(
 <MethodBody>
     Select Case 5
         Case _
 |
     End Select
 </MethodBody>, "Is")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <MethodBody>
     Select Case 5
         Case _ ' Test
 |
     End Select
 </MethodBody>, "Is")
-        End Function
+        End Sub
     End Class
 End Namespace

@@ -3,15 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.VisualStudio.Text
-Imports Xunit.Sdk
-Imports Microsoft.CodeAnalysis.Options
 Imports Xunit.Abstractions
-Imports Microsoft.CodeAnalysis
+Imports Xunit.Sdk
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -51,9 +51,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 renameTo As String,
                 host As RenameTestHost,
                 Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
-                Optional expectFailure As Boolean = False) As RenameEngineResult
-            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions)))
+                Optional expectFailure As Boolean = False,
+                Optional sourceGenerator As ISourceGenerator = Nothing) As RenameEngineResult
+
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions))
+
+            If host = RenameTestHost.OutOfProcess_SingleCall OrElse host = RenameTestHost.OutOfProcess_SplitCall Then
+                composition = composition.WithTestHostParts(Remote.Testing.TestHost.OutOfProcess)
+            End If
+
+            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=composition)
             workspace.SetTestLogger(AddressOf helper.WriteLine)
+
+            If sourceGenerator IsNot Nothing Then
+                workspace.OnAnalyzerReferenceAdded(workspace.CurrentSolution.ProjectIds.Single(), New TestGeneratorReference(sourceGenerator))
+            End If
 
             Dim engineResult As RenameEngineResult = Nothing
             Try
@@ -137,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Property
 
         Private Sub AssertUnlabeledSpansRenamedAndHaveNoConflicts()
-            For Each documentWithSpans In _workspace.Documents
+            For Each documentWithSpans In _workspace.Documents.Where(Function(d) Not d.IsSourceGenerated)
                 Dim oldSyntaxTree = _workspace.CurrentSolution.GetDocument(documentWithSpans.Id).GetSyntaxTreeAsync().Result
 
                 For Each span In documentWithSpans.SelectedSpans

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -96,6 +94,35 @@ build_metadata.Compile.ToRetrieve = def456
 
 [c:/file3.cs]
 build_metadata.AdditionalFiles.ToRetrieve = ghi789
+", result);
+        }
+
+        [Fact]
+        [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
+        public void MultipleSpecialCharacterItemMetaDataCreatesSections()
+        {
+            ITaskItem item1 = MSBuildUtil.CreateTaskItem("c:/{f*i?le1}.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "abc123" } });
+            ITaskItem item2 = MSBuildUtil.CreateTaskItem("c:/f,ile#2.cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "def456" } });
+            ITaskItem item3 = MSBuildUtil.CreateTaskItem("c:/f;i!le[3].cs", new Dictionary<string, string> { { "ItemType", "Compile" }, { "MetadataName", "ToRetrieve" }, { "ToRetrieve", "ghi789" } });
+
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
+            {
+                MetadataItems = new[] { item1, item2, item3 }
+            };
+            configTask.Execute();
+
+            var result = configTask.ConfigFileContents;
+
+            Assert.Equal(@"is_global = true
+
+[c:/\{f\*i\?le1\}.cs]
+build_metadata.Compile.ToRetrieve = abc123
+
+[c:/f\,ile\#2.cs]
+build_metadata.Compile.ToRetrieve = def456
+
+[c:/f\;i\!le\[3\].cs]
+build_metadata.Compile.ToRetrieve = ghi789
 ", result);
         }
 

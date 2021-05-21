@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -107,12 +109,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitWhileStatement(node);
         }
 
-        override protected void EnterRegion()
+        protected override void EnterRegion()
         {
             base.EnterRegion();
         }
 
-        override protected void LeaveRegion()
+        protected override void LeaveRegion()
         {
             foreach (var pending in PendingBranches)
             {

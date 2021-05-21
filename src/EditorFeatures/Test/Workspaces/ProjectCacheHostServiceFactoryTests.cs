@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -271,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 _hostServices = hostServices;
                 _workspace = workspace;
 
-                var globalOptionService = new GlobalOptionService(ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>.Empty, ImmutableArray<Lazy<IOptionPersister>>.Empty);
+                var globalOptionService = new GlobalOptionService(workspaceThreadingService: null, ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>.Empty, ImmutableArray<Lazy<IOptionPersisterProvider>>.Empty);
                 _optionService = new OptionServiceFactory.OptionService(globalOptionService, this);
             }
 

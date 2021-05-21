@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
@@ -32,6 +34,40 @@ class C
 class C
 {
 }";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Record()
+        {
+            var code =
+@"//$$
+record R;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record R;";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_RecordWithPositionalParameters()
+        {
+            var code =
+@"//$$
+record R(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record R(string S, int I);";
 
             VerifyTypingCharacter(code, expected);
         }
@@ -1461,6 +1497,36 @@ void M() {}""
 class C
 {
 }";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_Record()
+        {
+            var code = "record R$$;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record R;";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_RecordWithPositionalParameters()
+        {
+            var code = "record R$$(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record R(string S, int I);";
 
             VerifyInsertCommentCommand(code, expected);
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -790,6 +792,50 @@ class C
         }
     }
 }");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [InlineData("get")]
+        [InlineData("set")]
+        [InlineData("init")]
+        public async Task IfWithoutElse_InPropertyAccessors(string accessor)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    private bool _b;
+
+    public string Prop
+    {{
+        {accessor}
+        {{
+            [||]if (_b)
+            {{
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine();
+            }}
+        }}
+    }}
+}}",
+$@"class C
+{{
+    private bool _b;
+
+    public string Prop
+    {{
+        {accessor}
+        {{
+            if (!_b)
+            {{
+                return;
+            }}
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+        }}
+    }}
+}}");
         }
     }
 }

@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
     End Structure
 
-    Friend Partial Class VBSemanticModel
+    Partial Friend Class VBSemanticModel
 
         ''' <summary>
         ''' Returns information about methods associated with CollectionRangeVariableSyntax.

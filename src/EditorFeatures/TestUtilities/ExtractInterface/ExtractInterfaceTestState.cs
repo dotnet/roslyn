@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -11,7 +13,9 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
@@ -80,6 +84,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     this.ErrorSeverity = severity;
                 },
                 CancellationToken.None);
+        }
+
+        public async Task<Solution> ExtractViaCodeAction()
+        {
+            var actions = await ExtractInterfaceService.GetExtractInterfaceCodeActionAsync(
+                ExtractFromDocument,
+                new TextSpan(_testDocument.CursorPosition.Value, 1),
+                CancellationToken.None);
+            var action = actions.Single();
+
+            var options = (ExtractInterfaceOptionsResult)action.GetOptions(CancellationToken.None);
+            var changedOptions = new ExtractInterfaceOptionsResult(
+                options.IsCancelled,
+                options.IncludedMembers,
+                options.InterfaceName,
+                options.FileName,
+                ExtractInterfaceOptionsResult.ExtractLocation.SameFile);
+
+            var operations = await action.GetOperationsAsync(changedOptions, CancellationToken.None);
+            foreach (var operation in operations)
+            {
+                operation.Apply(Workspace, CancellationToken.None);
+            }
+
+            return Workspace.CurrentSolution;
         }
 
         public void Dispose()

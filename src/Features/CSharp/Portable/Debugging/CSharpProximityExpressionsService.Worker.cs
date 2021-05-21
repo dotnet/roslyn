@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -57,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             private void AddValueExpression()
             {
                 // If we're in a setter/adder/remover then add "value".
-                if (_parentStatement.GetAncestorOrThis<AccessorDeclarationSyntax>().IsKind(SyntaxKind.SetAccessorDeclaration, SyntaxKind.AddAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration))
+                if (_parentStatement.GetAncestorOrThis<AccessorDeclarationSyntax>().IsKind(
+                    SyntaxKind.SetAccessorDeclaration, SyntaxKind.InitAccessorDeclaration, SyntaxKind.AddAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration))
                 {
                     _expressions.Add("value");
                 }

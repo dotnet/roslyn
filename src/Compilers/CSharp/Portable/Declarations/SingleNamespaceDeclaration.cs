@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -32,6 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {
             return _children;
+        }
+
+        public virtual bool HasGlobalUsings
+        {
+            get
+            {
+                return false;
+            }
         }
 
         public virtual bool HasUsings

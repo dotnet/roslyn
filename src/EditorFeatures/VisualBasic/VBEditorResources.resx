@@ -123,12 +123,6 @@
   <data name="Correcting_word_casing" xml:space="preserve">
     <value>Correcting word casing...</value>
   </data>
-  <data name="New_" xml:space="preserve">
-    <value>New</value>
-  </data>
-  <data name="_0_Events" xml:space="preserve">
-    <value>({0} Events)</value>
-  </data>
   <data name="This_call_is_required_by_the_designer" xml:space="preserve">
     <value>This call is required by the designer.</value>
   </data>
@@ -140,9 +134,6 @@
   </data>
   <data name="Smart_Indenting" xml:space="preserve">
     <value>Smart Indenting</value>
-  </data>
-  <data name="Format_Document" xml:space="preserve">
-    <value>Format Document</value>
   </data>
   <data name="Formatting_Document" xml:space="preserve">
     <value>Formatting Document...</value>
@@ -179,5 +170,13 @@
   </data>
   <data name="Implement_Abstract_Class_Or_Interface" xml:space="preserve">
     <value>Implement Abstract Class Or Interface</value>
+  </data>
+  <data name="Adding_missing_imports" xml:space="preserve">
+    <value>Adding missing imports...</value>
+    <comment>Thread awaited dialog text. "imports" is a language specific term and should not be localized</comment>
+  </data>
+  <data name="Add_Missing_Imports_on_Paste" xml:space="preserve">
+    <value>Add Missing Imports on Paste</value>
+    <comment>"imports" is a language specific term and should not be localized</comment>
   </data>
 </root>

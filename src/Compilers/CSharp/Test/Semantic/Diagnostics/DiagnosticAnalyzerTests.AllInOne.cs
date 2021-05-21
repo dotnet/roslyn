@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // https://github.com/dotnet/roslyn/issues/44682 Add to all in one
             missingSyntaxKinds.Add(SyntaxKind.WithExpression);
             missingSyntaxKinds.Add(SyntaxKind.RecordDeclaration);
-            missingSyntaxKinds.Add(SyntaxKind.FunctionPointerType);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());

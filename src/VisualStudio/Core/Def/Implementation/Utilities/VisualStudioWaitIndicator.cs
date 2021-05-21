@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -17,6 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
+    [Obsolete("You should now use IUIThreadOperationExecutor, which is a platform supported version of this.")]
     [Export(typeof(IWaitIndicator))]
     internal sealed class VisualStudioWaitIndicator : IWaitIndicator
     {

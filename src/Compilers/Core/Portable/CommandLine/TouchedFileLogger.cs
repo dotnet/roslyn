@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             int i = 0;
             var readFiles = Interlocked.Exchange(
                 ref _readFiles,
-                null);
+                null!);
             foreach (var path in readFiles)
             {
                 temp[i] = path.ToUpperInvariant();
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
             int i = 0;
             var writtenFiles = Interlocked.Exchange(
                 ref _writtenFiles,
-                null);
+                null!);
             foreach (var path in writtenFiles)
             {
                 temp[i] = path.ToUpperInvariant();

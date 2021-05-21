@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
@@ -88,8 +86,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
             public static AnalyzedPattern? TryCreate(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern, bool isDisjunctive, SyntaxToken token)
             {
-                var target = leftPattern.Target;
-                if (!SyntaxFactory.AreEquivalent(target.Syntax, rightPattern.Target.Syntax))
+                var leftTarget = leftPattern.Target;
+                var rightTarget = rightPattern.Target;
+
+                var leftConv = (leftTarget as IConversionOperation)?.Conversion;
+                var rightConv = (rightTarget as IConversionOperation)?.Conversion;
+
+                var target = (leftConv, rightConv) switch
+                {
+                    ({ IsUserDefined: true }, _) or
+                    (_, { IsUserDefined: true }) => null,
+
+                    // If the original targets are implicitly converted due to usage of operators,
+                    // both targets must have been converted to the same type, otherwise we bail.
+                    ({ IsImplicit: true }, { IsImplicit: true }) when !Equals(leftTarget.Type, rightTarget.Type) => null,
+
+                    // If either of targets are implicitly converted but not both,
+                    // we take the conversion node so that we can generate a cast off of it.
+                    (null, { IsImplicit: true }) => rightTarget,
+                    ({ IsImplicit: true }, null) => leftTarget,
+
+                    // If no implicit conversion is present, we just pick either side and continue.
+                    _ => leftTarget,
+                };
+
+                if (target is null)
+                    return null;
+
+                var compareTarget = target == leftTarget ? rightTarget : leftTarget;
+                if (!SyntaxFactory.AreEquivalent(target.Syntax, compareTarget.Syntax))
                     return null;
 
                 return new Binary(leftPattern, rightPattern, isDisjunctive, token, target);

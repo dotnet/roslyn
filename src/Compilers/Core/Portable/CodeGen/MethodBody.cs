@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Debugging;
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ImmutableArray<ClosureDebugInfo> _closureDebugInfo;
 
         // Data used when emitting EnC delta:
-        private readonly ImmutableArray<Cci.ITypeReference> _stateMachineAwaiterSlots;
+        private readonly ImmutableArray<Cci.ITypeReference?> _stateMachineAwaiterSlots;
 
         // Data used when emitting Dynamic Analysis resource:
         private readonly DynamicAnalysisMethodBodyData _dynamicAnalysisDataOpt;
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string stateMachineTypeNameOpt,
             ImmutableArray<StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots,
-            ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlots,
+            ImmutableArray<Cci.ITypeReference?> stateMachineAwaiterSlots,
             StateMachineMoveNextBodyDebugInfo stateMachineMoveNextDebugInfoOpt,
             DynamicAnalysisMethodBodyData dynamicAnalysisDataOpt)
         {
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
             => _stateMachineHoistedLocalSlots;
 
-        ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots
+        ImmutableArray<Cci.ITypeReference?> Cci.IMethodBody.StateMachineAwaiterSlots
             => _stateMachineAwaiterSlots;
 
         bool Cci.IMethodBody.HasDynamicLocalVariables => _hasDynamicLocalVariables;

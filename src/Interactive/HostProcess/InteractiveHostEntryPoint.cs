@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -15,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 {
     internal static class InteractiveHostEntryPoint
     {
+        [SupportedOSPlatform("windows")]
         private static async Task<int> Main(string[] args)
         {
             FatalError.Handler = FailFast.OnFatalException;
@@ -53,9 +53,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
         }
 
+        [SupportedOSPlatform("windows")]
         [DllImport("kernel32", PreserveSig = true)]
         internal static extern ErrorMode SetErrorMode(ErrorMode mode);
 
+        [SupportedOSPlatform("windows")]
         [DllImport("kernel32", PreserveSig = true)]
         internal static extern ErrorMode GetErrorMode();
 
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// The system does not display the critical-error-handler message box. Instead, the system sends the error to the calling process.
             /// Best practice is that all applications call the process-wide SetErrorMode function with a parameter of SEM_FAILCRITICALERRORS at startup. 
-            /// This is to prevent error mode dialogs from hanging the application.
+            /// This is to prevent error mode dialogs from blocking the application.
             /// </summary>
             SEM_NOGPFAULTERRORBOX = 0x0002,
 

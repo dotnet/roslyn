@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertAnonymousTypeToTupleCodeFixProvider)), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ConvertAnonymousTypeToTuple), [Shared]>
     Friend Class VisualBasicConvertAnonymousTypeToTupleCodeFixProvider
         Inherits AbstractConvertAnonymousTypeToTupleCodeFixProvider(Of
             ExpressionSyntax,

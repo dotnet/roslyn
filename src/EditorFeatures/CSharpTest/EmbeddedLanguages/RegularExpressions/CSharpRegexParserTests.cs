@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -55,8 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     allowIndexOutOfRange, allowNullReference, allowOutOfMemory, allowDiagnosticsMismatch);
             }
 
-            var actual = TreeToText(sourceText, tree).Replace("\"", "\"\"");
-            Assert.Equal(expected.Replace("\"", "\"\""), actual);
+            const string DoubleQuoteEscaping = "\"\"";
+            var actual = TreeToText(sourceText, tree)
+                .Replace("\"", DoubleQuoteEscaping)
+                .Replace("&quot;", DoubleQuoteEscaping);
+            Assert.Equal(expected.Replace("\"", DoubleQuoteEscaping), actual);
         }
 
         private void TryParseSubTrees(

@@ -791,7 +791,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     receiver = Nothing
                 End If
 
-                Return node.Update(receiver, field, node.IsLValue, node.SuppressVirtualCalls, node.ConstantsInProgressOpt, node.Type)
+                Return node.Update(receiver, field, node.IsLValue, node.SuppressVirtualCalls, constantsInProgressOpt:=Nothing, node.Type)
             End Function
 
             Public Overrides Function VisitLabelStatement(node As BoundLabelStatement) As BoundNode

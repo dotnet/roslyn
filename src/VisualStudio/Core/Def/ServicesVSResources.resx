@@ -1,17 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -123,11 +123,11 @@
   <data name="You_must_select_at_least_one_member" xml:space="preserve">
     <value>You must select at least one member.</value>
   </data>
-  <data name="Interface_name_conflicts_with_an_existing_type_name" xml:space="preserve">
-    <value>Interface name conflicts with an existing type name.</value>
+  <data name="Name_conflicts_with_an_existing_type_name" xml:space="preserve">
+    <value>Name conflicts with an existing type name.</value>
   </data>
-  <data name="Interface_name_is_not_a_valid_0_identifier" xml:space="preserve">
-    <value>Interface name is not a valid {0} identifier.</value>
+  <data name="Name_is_not_a_valid_0_identifier" xml:space="preserve">
+    <value>Name is not a valid {0} identifier.</value>
   </data>
   <data name="Illegal_characters_in_path" xml:space="preserve">
     <value>Illegal characters in path.</value>
@@ -846,12 +846,6 @@ Additional information: {1}</value>
   <data name="type_is_apparent_from_assignment_expression" xml:space="preserve">
     <value>type is apparent from assignment expression</value>
   </data>
-  <data name="Get_help_for_0" xml:space="preserve">
-    <value>Get help for '{0}'</value>
-  </data>
-  <data name="Get_help_for_0_from_Bing" xml:space="preserve">
-    <value>Get help for '{0}' from Bing</value>
-  </data>
   <data name="Move_down" xml:space="preserve">
     <value>Move down</value>
   </data>
@@ -1353,13 +1347,6 @@ I agree to all of the foregoing:</value>
   <data name="Entire_solution" xml:space="preserve">
     <value>Entire solution</value>
   </data>
-  <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
-    <value>C#/Visual Basic Language Server Client</value>
-  </data>
-  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
-    <value>Live Share C#/Visual Basic Language Server Client</value>
-    <comment>'Live Share' is a product name and does not need to be localized.</comment>
-  </data>
   <data name="Edit" xml:space="preserve">
     <value>_Edit</value>
   </data>
@@ -1447,9 +1434,6 @@ I agree to all of the foregoing:</value>
   <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
     <value>Prefer simplified boolean expressions</value>
   </data>
-  <data name="Razor_CSharp_Language_Server_Client" xml:space="preserve">
-    <value>Razor C# Language Server Client</value>
-  </data>
   <data name="All_sources" xml:space="preserve">
     <value>All sources</value>
   </data>
@@ -1521,7 +1505,7 @@ I agree to all of the foregoing:</value>
     <value>Warning: type does not bind</value>
   </data>
   <data name="Display_inline_parameter_name_hints" xml:space="preserve">
-    <value>Disp_lay inline parameter name hints (experimental)</value>
+    <value>Disp_lay inline parameter name hints</value>
   </data>
   <data name="Current_parameter" xml:space="preserve">
     <value>Current parameter</value>
@@ -1534,5 +1518,199 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Use_64_bit_process_for_code_analysis_requires_restart" xml:space="preserve">
     <value>Use 64-bit process for code analysis (requires restart)</value>
+  </data>
+  <data name="Extract_Base_Class" xml:space="preserve">
+    <value>Extract Base Class</value>
+  </data>
+  <data name="This_file_is_autogenerated_by_0_and_cannot_be_edited" xml:space="preserve">
+    <value>This file is auto-generated by the generator '{0}' and cannot be edited.</value>
+  </data>
+  <data name="generated_by_0_suffix" xml:space="preserve">
+    <value>[generated by {0}]</value>
+    <comment>{0} is the name of a generator.</comment>
+  </data>
+  <data name="generated_suffix" xml:space="preserve">
+    <value>[generated]</value>
+  </data>
+  <data name="The_generator_0_that_generated_this_file_has_been_removed_from_the_project" xml:space="preserve">
+    <value>The generator '{0}' that generated this file has been removed from the project; this file is no longer being included in your project.</value>
+  </data>
+  <data name="The_generator_0_that_generated_this_file_has_stopped_generating_this_file" xml:space="preserve">
+    <value>The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</value>
+  </data>
+  <data name="Comments" xml:space="preserve">
+    <value>Comments</value>
+  </data>
+  <data name="Inline_Hints_experimental" xml:space="preserve">
+    <value>Inline Hints (experimental)</value>
+  </data>
+  <data name="Show_hints_for_everything_else" xml:space="preserve">
+    <value>Show hints for everything else</value>
+  </data>
+  <data name="Show_hints_for_literals" xml:space="preserve">
+    <value>Show hints for literals</value>
+  </data>
+  <data name="Suppress_hints_when_parameter_name_matches_the_method_s_intent" xml:space="preserve">
+    <value>Suppress hints when parameter name matches the method's intent</value>
+  </data>
+  <data name="Suppress_hints_when_parameter_names_differ_only_by_suffix" xml:space="preserve">
+    <value>Suppress hints when parameter names differ only by suffix</value>
+  </data>
+  <data name="Display_inline_type_hints" xml:space="preserve">
+    <value>Display inline type hints</value>
+  </data>
+  <data name="Show_hints_for_lambda_parameter_types" xml:space="preserve">
+    <value>Show hints for lambda parameter types</value>
+  </data>
+  <data name="Show_hints_for_implicit_object_creation" xml:space="preserve">
+    <value>Show hints for implicit object creation</value>
+  </data>
+  <data name="Show_hints_for_variables_with_inferred_types" xml:space="preserve">
+    <value>Show hints for variables with inferred types</value>
+  </data>
+  <data name="Color_hints" xml:space="preserve">
+    <value>Color hints</value>
+  </data>
+  <data name="Display_all_hints_while_pressing_Alt_F1" xml:space="preserve">
+    <value>Display all hints while pressing Alt+F1</value>
+  </data>
+  <data name="Enable_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
+    <value>Enable 'pull' diagnostics (experimental, requires restart)</value>
+  </data>
+  <data name="Enable_Razor_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
+    <value>Enable Razor 'pull' diagnostics (experimental, requires restart)</value>
+  </data>
+  <data name="CSharp_Visual_Basic_Diagnostics_Language_Client" xml:space="preserve">
+    <value>C#/Visual Basic Diagnostics Language Client</value>
+  </data>
+  <data name="New_Type_Name_colon" xml:space="preserve">
+    <value>New Type Name:</value>
+  </data>
+  <data name="Format_document" xml:space="preserve">
+    <value>Format document</value>
+  </data>
+  <data name="New_line_preferences_experimental_colon" xml:space="preserve">
+    <value>New line preferences (experimental):</value>
+  </data>
+  <data name="Require_colon" xml:space="preserve">
+    <value>Require:</value>
+  </data>
+  <data name="Allow_multiple_blank_lines" xml:space="preserve">
+    <value>Allow multiple blank lines</value>
+  </data>
+  <data name="Allow_statement_immediately_after_block" xml:space="preserve">
+    <value>Allow statement immediately after block</value>
+  </data>
+  <data name="Symbols_without_references" xml:space="preserve">
+    <value>Symbols without references</value>
+  </data>
+  <data name="Tab_twice_to_insert_arguments" xml:space="preserve">
+    <value>Tab twice to insert arguments (experimental)</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Remove_All" xml:space="preserve">
+    <value>Remove All</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>Action</value>
+    <comment>Action to perform on an unused reference, such as remove or keep</comment>
+  </data>
+  <data name="Assemblies" xml:space="preserve">
+    <value>Assemblies</value>
+  </data>
+  <data name="Choose_which_action_you_would_like_to_perform_on_the_unused_references" xml:space="preserve">
+    <value>Choose which action you would like to perform on the unused references.</value>
+  </data>
+  <data name="Keep" xml:space="preserve">
+    <value>Keep</value>
+  </data>
+  <data name="Packages" xml:space="preserve">
+    <value>Packages</value>
+  </data>
+  <data name="Projects" xml:space="preserve">
+    <value>Projects</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="Enable_all_features_in_opened_files_from_source_generators_experimental" xml:space="preserve">
+    <value>Enable all features in opened files from source generators (experimental)</value>
+  </data>
+  <data name="Remove_Unused_References" xml:space="preserve">
+    <value>Remove Unused References</value>
+  </data>
+  <data name="Analyzing_project_references" xml:space="preserve">
+    <value>Analyzing project references...</value>
+  </data>
+  <data name="Updating_project_references" xml:space="preserve">
+    <value>Updating project references...</value>
+  </data>
+  <data name="No_unused_references_were_found" xml:space="preserve">
+    <value>No unused references were found.</value>
+  </data>
+  <data name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental" xml:space="preserve">
+    <value>Show "Remove Unused References" command in Solution Explorer (experimental)</value>
+  </data>
+  <data name="Enable_file_logging_for_diagnostics" xml:space="preserve">
+    <value>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</value>
+  </data>
+  <data name="This_action_cannot_be_undone_Do_you_wish_to_continue" xml:space="preserve">
+    <value>This action cannot be undone. Do you wish to continue?</value>
+  </data>
+  <data name="Analyzers" xml:space="preserve">
+    <value>Analyzers</value>
+  </data>
+  <data name="Carriage_Return_Newline_rn" xml:space="preserve">
+    <value>Carriage Return + Newline (\r\n)</value>
+  </data>
+  <data name="Carriage_Return_r" xml:space="preserve">
+    <value>Carriage Return (\r)</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Code_Style" xml:space="preserve">
+    <value>Code Style</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Formatting" xml:space="preserve">
+    <value>Formatting</value>
+  </data>
+  <data name="Id" xml:space="preserve">
+    <value>Id</value>
+  </data>
+  <data name="Newline_n" xml:space="preserve">
+    <value>Newline (\\n)</value>
+  </data>
+  <data name="Refactoring_Only" xml:space="preserve">
+    <value>Refactoring Only</value>
+  </data>
+  <data name="Suggestion" xml:space="preserve">
+    <value>Suggestion</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Search_Settings" xml:space="preserve">
+    <value>Search Settings</value>
+  </data>
+  <data name="Error_updating_suppressions_0" xml:space="preserve">
+    <value>Error updating suppressions: {0}</value>
   </data>
 </root>

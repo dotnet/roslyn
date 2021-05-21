@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     internal static class TextChangeExtensions
     {
         public static TextChangeRange ToTextChangeRange(this ITextChange textChange)
-            => new TextChangeRange(textChange.OldSpan.ToTextSpan(), textChange.NewLength);
+            => new(textChange.OldSpan.ToTextSpan(), textChange.NewLength);
     }
 }

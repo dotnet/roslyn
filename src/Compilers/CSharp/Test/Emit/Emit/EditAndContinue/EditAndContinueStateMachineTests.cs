@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
@@ -55,6 +57,8 @@ class C
 
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
+
+            diff1.VerifyUpdatedTypes("0x02000002");
 
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
@@ -857,6 +861,8 @@ class C
 
                 // only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000004");
+
+                diff1.VerifyUpdatedTypes("0x02000002", "0x02000003");
 
                 using (var md1 = diff1.GetMetadata())
                 {
@@ -3319,6 +3325,8 @@ class C
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
+            diff1.VerifyUpdatedTypes("0x02000003", "0x02000004");
+
             diff1.VerifySynthesizedMembers(
                 "C: {<F>d__0}",
                 "C.<F>d__0: {<>1__state, <>2__current, <>l__initialThreadId, <>4__this, <x>5__1, System.IDisposable.Dispose, MoveNext, System.Collections.Generic.IEnumerator<System.Int32>.get_Current, System.Collections.IEnumerator.Reset, System.Collections.IEnumerator.get_Current, System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator, System.Collections.IEnumerable.GetEnumerator, System.Collections.Generic.IEnumerator<System.Int32>.Current, System.Collections.IEnumerator.Current}",
@@ -3330,6 +3338,8 @@ class C
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifyUpdatedTypes("0x02000003", "0x02000004");
 
             diff2.VerifySynthesizedMembers(
                  "C: {<F>d__0}",
@@ -5404,7 +5414,7 @@ class C
         var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
     }
 }
-", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
             var source1 = MarkedSource(@"
 using System;
 using System.Threading.Tasks;
@@ -5423,7 +5433,7 @@ class C
         var <N:3>z = H(<N:1>() => y.A</N:1>)</N:3>;
     }
 }
-", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+", options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
 
             var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);

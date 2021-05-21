@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -116,6 +115,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Visit(node.IterationVariableType);
                 Visit(node.AwaitOpt);
+                if (node.EnumeratorInfoOpt != null)
+                {
+                    Visit(node.EnumeratorInfoOpt.DisposeAwaitableInfo);
+                    if (node.EnumeratorInfoOpt.GetEnumeratorInfo.Method.IsExtensionMethod)
+                    {
+                        foreach (var arg in node.EnumeratorInfoOpt.GetEnumeratorInfo.Arguments)
+                        {
+                            Visit(arg);
+                        }
+                    }
+                }
                 Visit(node.Expression);
                 // https://github.com/dotnet/roslyn/issues/35010: handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);
@@ -224,6 +234,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     VerifyExpression(node.InitializerExpressionOpt, overrideSkippedExpression: true);
                 }
+                return null;
+            }
+
+            public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
+            {
+                // These nodes are only involved in return type inference for unbound lambdas. We don't analyze their subnodes, and no
+                // info is exposed to consumers.
                 return null;
             }
         }

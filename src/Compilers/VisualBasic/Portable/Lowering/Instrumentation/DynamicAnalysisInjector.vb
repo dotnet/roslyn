@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _methodEntryInstrumentation As BoundStatement
         Private ReadOnly _payloadType As ArrayTypeSymbol
         Private ReadOnly _methodPayload As LocalSymbol
-        Private ReadOnly _diagnostics As DiagnosticBag
+        Private ReadOnly _diagnostics As BindingDiagnosticBag
         Private ReadOnly _debugDocumentProvider As DebugDocumentProvider
         Private ReadOnly _methodBodyFactory As SyntheticBoundNodeFactory
 
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             method As MethodSymbol,
             methodBody As BoundStatement,
             methodBodyFactory As SyntheticBoundNodeFactory,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             debugDocumentProvider As DebugDocumentProvider,
             previous As Instrumenter) As DynamicAnalysisInjector
 
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             methodBodyFactory As SyntheticBoundNodeFactory,
             createPayloadForMethodsSpanningSingleFile As MethodSymbol,
             createPayloadForMethodsSpanningMultipleFiles As MethodSymbol,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             debugDocumentProvider As DebugDocumentProvider,
             previous As Instrumenter)
 
@@ -512,7 +512,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return statement.Syntax
         End Function
 
-        Private Shared Function GetCreatePayloadOverload(compilation As VisualBasicCompilation, overload As WellKnownMember, syntax As SyntaxNode, diagnostics As DiagnosticBag) As MethodSymbol
+        Private Shared Function GetCreatePayloadOverload(compilation As VisualBasicCompilation, overload As WellKnownMember, syntax As SyntaxNode, diagnostics As BindingDiagnosticBag) As MethodSymbol
             Return DirectCast(Binder.GetWellKnownTypeMember(compilation, overload, syntax, diagnostics), MethodSymbol)
         End Function
 

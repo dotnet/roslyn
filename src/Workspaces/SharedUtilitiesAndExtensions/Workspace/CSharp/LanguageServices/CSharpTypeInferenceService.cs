@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageService(typeof(ITypeInferenceService), LanguageNames.CSharp), Shared]
     internal partial class CSharpTypeInferenceService : AbstractTypeInferenceService
     {
-        public static readonly CSharpTypeInferenceService Instance = new CSharpTypeInferenceService();
+        public static readonly CSharpTypeInferenceService Instance = new();
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]

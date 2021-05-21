@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -573,6 +571,13 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append("}");
                     }
                 }
+
+                return true;
+            }
+
+            public override bool VisitDynamicType(IDynamicTypeSymbol symbol)
+            {
+                _builder.Append("System.Object");
 
                 return true;
             }
@@ -1214,7 +1219,7 @@ namespace Microsoft.CodeAnalysis
                                     ITypeSymbol? returnType = ParseTypeSymbol(id, ref index, compilation, methodSymbol);
 
                                     // if return type is specified, then it must match
-                                    if (returnType != null && methodSymbol.ReturnType.Equals(returnType))
+                                    if (returnType != null && methodSymbol.ReturnType.Equals(returnType, SymbolEqualityComparer.CLRSignature))
                                     {
                                         // return type matches
                                         results.Add(methodSymbol);
@@ -1357,7 +1362,7 @@ namespace Microsoft.CodeAnalysis
 
                 var parameterType = parameterInfo.Type;
 
-                return parameterType != null && symbol.Type.Equals(parameterType);
+                return parameterType != null && symbol.Type.Equals(parameterType, SymbolEqualityComparer.CLRSignature);
             }
 
             private static ITypeParameterSymbol GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)

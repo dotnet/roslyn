@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.SimplifyInterpolation
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.SimplifyInterpolation), [Shared]>
     Friend Class VisualBasicSimplifyInterpolationCodeFixProvider
         Inherits AbstractSimplifyInterpolationCodeFixProvider(Of
             InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,
@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides Function GetHelpers() As AbstractSimplifyInterpolationHelpers
+            Return VisualBasicSimplifyInterpolationHelpers.Instance
+        End Function
 
         Protected Overrides Function WithExpression(interpolation As InterpolationSyntax, expression As ExpressionSyntax) As InterpolationSyntax
             Return interpolation.WithExpression(expression)

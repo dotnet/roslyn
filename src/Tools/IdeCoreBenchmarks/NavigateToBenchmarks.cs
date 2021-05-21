@@ -2,25 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
-using BenchmarkDotNet.Engines;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.CodeAnalysis.SQLite.Interop;
-using Microsoft.CodeAnalysis.SQLite.v1;
 using Microsoft.CodeAnalysis.Storage;
 
 namespace IdeCoreBenchmarks
@@ -34,8 +32,8 @@ namespace IdeCoreBenchmarks
 
         public NavigateToBenchmarks()
         {
-            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Compilers.sln");
+            // var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            _solutionPath = @"C:\github\roslyn\Roslyn.sln";
 
             if (!File.Exists(_solutionPath))
                 throw new ArgumentException("Couldn't find Roslyn.sln");
@@ -64,7 +62,7 @@ namespace IdeCoreBenchmarks
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            using var storage = storageService.GetStorage(_workspace.CurrentSolution);
+            using var storage = storageService.GetStorageAsync(_workspace.CurrentSolution, CancellationToken.None).AsTask().GetAwaiter().GetResult();
         }
 
         [GlobalCleanup]
@@ -77,6 +75,8 @@ namespace IdeCoreBenchmarks
         [Benchmark]
         public async Task RunNavigateTo()
         {
+            var sw = new Stopwatch();
+            sw.Start();
             var solution = _workspace.CurrentSolution;
             // Search each project with an independent threadpool task.
             var searchTasks = solution.Projects.Select(
@@ -84,15 +84,24 @@ namespace IdeCoreBenchmarks
 
             var result = await Task.WhenAll(searchTasks).ConfigureAwait(false);
             var sum = result.Sum();
+            sw.Stop();
+
+            Console.WriteLine($"Time: {sw.ElapsedMilliseconds}");
         }
 
         private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
         {
-            var service = project.LanguageServices.GetService<INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate>();
-            var searchTask = service.SearchProjectAsync(project, priorityDocuments, "Document", service.KindsProvided, CancellationToken.None);
+            var service = project.LanguageServices.GetService<INavigateToSearchService>();
+            var count = 0;
+            await service.SearchProjectAsync(
+                project, priorityDocuments, "Document", service.KindsProvided,
+                r =>
+                {
+                    Interlocked.Increment(ref count);
+                    return Task.CompletedTask;
+                }, isFullyLoaded: true, CancellationToken.None);
 
-            var results = await searchTask.ConfigureAwait(false);
-            return results.Length;
+            return count;
         }
     }
 }

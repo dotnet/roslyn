@@ -19,11 +19,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 category:="Test",
                 defaultSeverity:=DiagnosticSeverity.Error,
                 isEnabledByDefault:=True)
-            Dim diagnosticItem = New LegacyDiagnosticItem(Nothing, descriptor, ReportDiagnostic.Error, LanguageNames.VisualBasic, Nothing)
+            Dim diagnosticItem = New DiagnosticItem(Nothing, Nothing, descriptor, ReportDiagnostic.Error, LanguageNames.VisualBasic, Nothing)
 
             Dim handler = New AnalyzersCommandHandler(Nothing, Nothing, Nothing)
             Dim shown = handler.DiagnosticContextMenuController.ShowContextMenu({diagnosticItem}, Nothing)
-            Debug.Assert(Not shown)
+            Assert.False(shown)
         End Sub
     End Class
 End Namespace

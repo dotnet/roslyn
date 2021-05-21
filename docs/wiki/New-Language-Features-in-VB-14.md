@@ -71,7 +71,7 @@ Dim x = customer.Address?.Country
 
 ' is shorthand for
 Dim _temp = customer.Address
-Dim x = If(_temp IsNot Nothing, _temp.Address.Country, Nothing)
+Dim x = If(_temp IsNot Nothing, _temp.Country, Nothing)
 ```
 
 You can also use it in a sequence and you can mix with the regular `.` operator, e.g. `a?.b.c?.d`. It reads left-to-right. Any null value before a `?.` will just stop the sequence short, and any null value before a `.` will raise a `NullReferenceException` as usual.

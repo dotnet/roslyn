@@ -2,14 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Reflection;
-using Microsoft.Cci;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -28,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedRecordClone(
             SourceMemberContainerTypeSymbol containingType,
             int memberOffset,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.CloneMethodName, hasBody: !containingType.IsAbstract, memberOffset, diagnostics)
         {
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, DiagnosticBag diagnostics)
+        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             DeclarationModifiers result = DeclarationModifiers.Public;
 
@@ -93,14 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!baseType.IsObjectType())
             {
-                HashSet<DiagnosticInfo>? ignoredUseSiteDiagnostics = null; // This is reported when we bind bases
-                return FindValidCloneMethod(baseType, ref ignoredUseSiteDiagnostics);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // This is reported when we bind bases
+                return FindValidCloneMethod(baseType, ref discardedUseSiteInfo);
             }
 
             return null;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             return (ReturnType: VirtualCloneInBase() is { } baseClone ?
                                      baseClone.ReturnTypeWithAnnotations : // Use covariant returns when available
@@ -112,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 0;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!IsAbstract);
 
@@ -147,20 +142,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // Note: this method was replicated in SymbolDisplayVisitor.FindValidCloneMethod
-        internal static MethodSymbol? FindValidCloneMethod(TypeSymbol containingType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        internal static MethodSymbol? FindValidCloneMethod(TypeSymbol containingType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            if (containingType.IsObjectType() || containingType is not NamedTypeSymbol containingNamedType)
+            {
+                return null;
+            }
+
+            // If this symbol is from metadata, getting all members can cause us to realize a lot of structures that we otherwise
+            // don't have to. Optimize for the common case here of there not being a method named <Clone>$. If there is a method
+            // with that name, it's most likely the one we're interested in, and we can't get around loading everything to find it.
+            if (!containingNamedType.HasPossibleWellKnownCloneMethod())
+            {
+                return null;
+            }
+
             MethodSymbol? candidate = null;
 
             foreach (var member in containingType.GetMembers(WellKnownMemberNames.CloneMethodName))
             {
                 if (member is MethodSymbol
-                {
-                    DeclaredAccessibility: Accessibility.Public,
-                    IsStatic: false,
-                    ParameterCount: 0,
-                    Arity: 0
-                } method)
+                    {
+                        DeclaredAccessibility: Accessibility.Public,
+                        IsStatic: false,
+                        ParameterCount: 0,
+                        Arity: 0
+                    } method)
                 {
                     if (candidate is object)
                     {
@@ -177,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !containingType.IsEqualToOrDerivedFrom(
                     candidate.ReturnType,
                     TypeCompareKind.AllIgnoreOptions,
-                    ref useSiteDiagnostics))
+                    ref useSiteInfo))
             {
                 return null;
             }

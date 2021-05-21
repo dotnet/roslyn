@@ -33,10 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         public VisualStudioDefinitionsAndReferencesFactory(SVsServiceProvider serviceProvider)
             => _serviceProvider = serviceProvider;
 
-        public override DefinitionItem GetThirdPartyDefinitionItem(
+        public override DefinitionItem? GetThirdPartyDefinitionItem(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
-            var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
+            var symbolNavigationService = solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
             if (!symbolNavigationService.WouldNavigateToSymbol(
                     definitionItem, solution, cancellationToken,
                     out var filePath, out var lineNumber, out var charOffset))
@@ -104,9 +104,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 _charOffset = charOffset;
             }
 
-            public override bool CanNavigateTo(Workspace workspace) => true;
+            public override bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken) => true;
 
-            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab)
+            public override bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
                 => TryOpenFile() && TryNavigateToPosition();
 
             private bool TryOpenFile()

@@ -12,6 +12,16 @@
         <target state="translated">Přidat složené závorky do příkazu {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
+        <source>Blank line not allowed after constructor initializer colon</source>
+        <target state="new">Blank line not allowed after constructor initializer colon</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
+        <source>Consecutive braces must not have blank line between them</source>
+        <target state="new">Consecutive braces must not have blank line between them</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
         <target state="translated">Převést příkaz switch na výraz</target>
@@ -25,6 +35,16 @@
       <trans-unit id="Delegate_invocation_can_be_simplified">
         <source>Delegate invocation can be simplified.</source>
         <target state="translated">Volání delegáta se dá zjednodušit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard_can_be_removed">
+        <source>Discard can be removed</source>
+        <target state="translated">Proměnná typu discard se dá odebrat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="new">Embedded statements must be on their own line</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -82,14 +102,19 @@
         <target state="translated">Odebrat nepotřebný operátor potlačení</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnessary_discard">
+        <source>Remove unnecessary discard</source>
+        <target state="translated">Odebrat nepotřebnou proměnnou typu discard</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">Zjednodušit výraz default</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="translated">Struct obsahuje přiřazení do this mimo konstruktor. Nastavte pole určená jen pro čtení jako zapisovatelná.</target>
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
+        <target state="needs-review-translation">Struct obsahuje přiřazení do this mimo konstruktor. Nastavte pole určená jen pro čtení jako zapisovatelná.</target>
         <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
@@ -202,6 +227,11 @@
         <target state="translated">Použít lokální funkci</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_new">
+        <source>Use 'new(...)'</source>
+        <target state="translated">Použít new(...)</target>
+        <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Použít porovnávání vzorů</target>
@@ -262,9 +292,14 @@
         <target state="translated">Příkaz if lze zjednodušit.</target>
         <note />
       </trans-unit>
+      <trans-unit id="new_expression_can_be_simplified">
+        <source>'new' expression can be simplified</source>
+        <target state="translated">Výraz new se dá zjednodušit.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">
         <source>'typeof' can be converted  to 'nameof'</source>
-        <target state="new">'typeof' can be converted  to 'nameof'</target>
+        <target state="translated">typeof se dá převést na nameof.</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

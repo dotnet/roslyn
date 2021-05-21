@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1267,15 +1269,18 @@ partial class Class
     }
 }";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
+                // (11,51): warning CS8848: Operator 'from' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             for (IEnumerable name = null; name == from name in "string" orderby name select name; ) ;             // 1931
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, @"from name in ""string""").WithArguments("from").WithLocation(11, 51),
                 // (10,34): error CS1931: The range variable 'name' conflicts with a previous declaration of 'name'
-                // for (var name = from name in "string" orderby name select name; name != null; ) ;                     // 1931
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "name").WithArguments("name"),
+                //             for (var name = from name in "string" orderby name select name; name != null; ) ;                     // 1931
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "name").WithArguments("name").WithLocation(10, 34),
                 // (11,56): error CS1931: The range variable 'name' conflicts with a previous declaration of 'name'
-                // for (IEnumerable name = null; name == from name in "string" orderby name select name; ) ;             // 1931
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "name").WithArguments("name"),
+                //             for (IEnumerable name = null; name == from name in "string" orderby name select name; ) ;             // 1931
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "name").WithArguments("name").WithLocation(11, 56),
                 // (12,69): error CS1931: The range variable 'name' conflicts with a previous declaration of 'name'
-                // for (IEnumerable name = null; name == null; name = from name in "string" orderby name select name ) ; // 1931
-                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "name").WithArguments("name"));
+                //             for (IEnumerable name = null; name == null; name = from name in "string" orderby name select name ) ; // 1931
+                Diagnostic(ErrorCode.ERR_QueryRangeVariableOverrides, "name").WithArguments("name").WithLocation(12, 69));
         }
 
         [WorkItem(792744, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792744")]

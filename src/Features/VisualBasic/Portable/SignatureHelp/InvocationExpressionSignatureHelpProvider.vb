@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.SelectAsArray(Function(m) If(Equals(matchedMethodSymbol.OriginalDefinition, m), matchedMethodSymbol, m))
             End If
 
-            Dim enclosingSymbol = semanticModel.GetEnclosingSymbol(position)
+            Dim enclosingSymbol = semanticModel.GetEnclosingSymbol(position, cancellationToken)
             If enclosingSymbol.IsConstructor() Then
                 memberGroup = memberGroup.WhereAsArray(Function(m) Not m.Equals(enclosingSymbol))
             End If
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Dim textSpan = GetSignatureHelpSpan(invocationExpression.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            Dim selectedItem = TryGetSelectedIndex(accessibleMembers, symbolInfo)
+            Dim selectedItem = TryGetSelectedIndex(accessibleMembers, symbolInfo.Symbol)
             Return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem)
         End Function
     End Class

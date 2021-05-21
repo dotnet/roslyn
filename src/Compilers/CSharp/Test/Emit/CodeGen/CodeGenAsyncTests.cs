@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -5806,6 +5808,33 @@ public class C {
       IL_00af:  ret
     }
 ");
+        }
+
+        [Fact, WorkItem(46843, "https://github.com/dotnet/roslyn/issues/46843")]
+        public void LockInAsyncMethodWithAwaitInFinally()
+        {
+            var source = @"
+using System.Threading.Tasks;
+public class C
+{
+    public async Task M(object o)
+    {
+        lock(o)
+        {
+        }
+
+        try
+        {
+        }
+        finally
+        {
+            await Task.Yield();
+        }
+    }
+}
+";
+            var comp = CSharpTestBase.CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

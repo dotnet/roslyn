@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -54,15 +52,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 writer.WriteInt32(ReceiverTypeNameToExtensionMethodMap.Count);
 
-                foreach (var kvp in ReceiverTypeNameToExtensionMethodMap)
+                foreach (var (name, indices) in ReceiverTypeNameToExtensionMethodMap)
                 {
-                    writer.WriteString(kvp.Key);
-                    writer.WriteInt32(kvp.Value.Length);
+                    writer.WriteString(name);
+                    writer.WriteInt32(indices.Length);
 
-                    foreach (var declaredSymbolInfoIndex in kvp.Value)
-                    {
+                    foreach (var declaredSymbolInfoIndex in indices)
                         writer.WriteInt32(declaredSymbolInfoIndex);
-                    }
                 }
             }
 

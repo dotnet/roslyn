@@ -17,12 +17,8 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public const string OptionName = "FeatureManager/Storage";
 
-        public static readonly Option<StorageDatabase> Database = new Option<StorageDatabase>(
+        public static readonly Option<StorageDatabase> Database = new(
             OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite);
-
-        public static readonly Option<bool> SQLiteInMemoryWriteCache = new Option<bool>(
-            OptionName, nameof(SQLiteInMemoryWriteCache), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SQLiteInMemoryWriteCache)));
     }
 
     [ExportOptionProvider, Shared]
@@ -35,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            StorageOptions.Database,
-            StorageOptions.SQLiteInMemoryWriteCache);
+            StorageOptions.Database);
     }
 }

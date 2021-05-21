@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis
 {
     internal static class SymbolDisplayPartKindTags
@@ -40,6 +42,8 @@ namespace Microsoft.CodeAnalysis
                 SymbolDisplayPartKind.EnumMemberName => TextTags.EnumMember,
                 SymbolDisplayPartKind.ExtensionMethodName => TextTags.ExtensionMethod,
                 SymbolDisplayPartKind.ConstantName => TextTags.Constant,
+                SymbolDisplayPartKind.RecordClassName => TextTags.Record,
+                SymbolDisplayPartKind.RecordStructName => TextTags.RecordStruct,
                 _ => string.Empty,
             };
     }

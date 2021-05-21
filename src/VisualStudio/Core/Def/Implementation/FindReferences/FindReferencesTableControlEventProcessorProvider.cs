@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Text.Classification;
 using System;
 using Microsoft.CodeAnalysis.Host.Mef;
+using System.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -42,7 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 if (entry.Identity is ISupportsNavigation supportsNavigation)
                 {
-                    if (supportsNavigation.TryNavigateTo(e.IsPreview))
+                    // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
+                    if (supportsNavigation.TryNavigateTo(e.IsPreview, CancellationToken.None))
                     {
                         e.Handled = true;
                         return;
@@ -51,7 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 if (entry.TryGetValue(StreamingFindUsagesPresenter.SelfKeyName, out var item) && item is ISupportsNavigation itemSupportsNavigation)
                 {
-                    if (itemSupportsNavigation.TryNavigateTo(e.IsPreview))
+                    // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
+                    if (itemSupportsNavigation.TryNavigateTo(e.IsPreview, CancellationToken.None))
                     {
                         e.Handled = true;
                         return;

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -175,7 +174,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public bool TryGetTextAndVersion(out TextAndVersion? textAndVersion)
+        public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? textAndVersion)
             => TextAndVersionSource.TryGetValue(out textAndVersion);
 
         public async ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)

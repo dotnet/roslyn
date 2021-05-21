@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -543,6 +544,101 @@ class C
         }
 
         [Fact]
+        public void TestWithCurrent_MissingGetterOnInterface()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C : IAsyncEnumerable<int>
+{
+    public static async Task M(C c)
+    {
+        await foreach (var i in c)
+        {
+        }
+    }
+    public IAsyncEnumerator<int> GetAsyncEnumerator(System.Threading.CancellationToken token = default) => throw null;
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.Task<bool> MoveNextAsync();
+        T Current { set; }
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,33): error CS8412: Asynchronous foreach requires that the return type 'IAsyncEnumerator<int>' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                //         await foreach (var i in c)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "c").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(8, 33),
+                // (24,9): error CS1961: Invalid variance: The type parameter 'T' must be contravariantly valid on 'IAsyncEnumerator<T>.Current'. 'T' is covariant.
+                //         T Current { set; }
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("System.Collections.Generic.IAsyncEnumerator<T>.Current", "T", "covariant", "contravariantly").WithLocation(24, 9)
+                );
+        }
+
+        [Fact]
+        public void TestWithCurrent_MissingPropertyOnInterface()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C : IAsyncEnumerable<int>
+{
+    public static async Task M(C c)
+    {
+        await foreach (var i in c)
+        {
+        }
+    }
+    public IAsyncEnumerator<int> GetAsyncEnumerator(System.Threading.CancellationToken token = default) => throw null;
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.Task<bool> MoveNextAsync();
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,33): error CS0117: 'IAsyncEnumerator<int>' does not contain a definition for 'Current'
+                //         await foreach (var i in c)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "c").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "Current").WithLocation(8, 33),
+                // (8,33): error CS8412: Asynchronous foreach requires that the return type 'IAsyncEnumerator<int>' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                //         await foreach (var i in c)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "c").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(8, 33)
+                );
+        }
+
+        [Fact]
         public void TestMoveNextAsync_ReturnsTask()
         {
             string source = @"
@@ -632,9 +728,9 @@ public class C
     }
     public sealed class Enumerator
     {
-        public async System.Threading.Tasks.Task<bool> MoveNextAsync(int ok = 0)
+        public async System.Threading.Tasks.Task<bool> MoveNextAsync(int ok = 1)
         {
-            System.Console.Write(""MoveNextAsync"");
+            System.Console.Write($""MoveNextAsync {ok}"");
             await System.Threading.Tasks.Task.Yield();
             return false;
         }
@@ -646,7 +742,7 @@ public class C
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
+            CompileAndVerify(comp, expectedOutput: "MoveNextAsync 1");
         }
 
         [Fact]
@@ -669,7 +765,7 @@ public class C
     {
         public async System.Threading.Tasks.Task<bool> MoveNextAsync(params int[] ok)
         {
-            System.Console.Write(""MoveNextAsync"");
+            System.Console.Write($""MoveNextAsync {ok.Length}"");
             await System.Threading.Tasks.Task.Yield();
             return false;
         }
@@ -681,7 +777,54 @@ public class C
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
+            CompileAndVerify(comp, expectedOutput: "MoveNextAsync 0");
+        }
+
+        [Fact]
+        public void TestMoveNextAsync_Missing()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C : IAsyncEnumerable<int>
+{
+    public static async Task M(C c)
+    {
+        await foreach (var i in c)
+        {
+        }
+    }
+    public IAsyncEnumerator<int> GetAsyncEnumerator(System.Threading.CancellationToken token = default) => throw null;
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        T Current { get; }
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,33): error CS0117: 'IAsyncEnumerator<int>' does not contain a definition for 'MoveNextAsync'
+                //         await foreach (var i in c)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "c").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "MoveNextAsync").WithLocation(8, 33),
+                // (8,33): error CS8412: Asynchronous foreach requires that the return type 'IAsyncEnumerator<int>' of 'C.GetAsyncEnumerator(CancellationToken)' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+                //         await foreach (var i in c)
+                Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "c").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(8, 33)
+                );
         }
 
         [Fact]
@@ -4237,6 +4380,186 @@ class C
         }
 
         [Fact]
+        [WorkItem(50182, "https://github.com/dotnet/roslyn/issues/50182")]
+        public void GetAsyncEnumerator_CancellationTokenMustBeOptional_OnIAsyncEnumerable()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    public static async Task M(IAsyncEnumerable<int> e)
+    {
+        await foreach (var i in e)
+        {
+        }
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in e)
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "e").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetAsyncEnumerator").WithLocation(8, 33)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50182, "https://github.com/dotnet/roslyn/issues/50182")]
+        public void GetAsyncEnumerator_CancellationTokenMustBeOptional_OnIAsyncEnumerable_ImplicitImplementation()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C : IAsyncEnumerable<int>
+{
+    public static async Task M(C c)
+    {
+        await foreach (var i in c)
+        {
+        }
+    }
+    public IAsyncEnumerator<int> GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in c)
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "c").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
+                );
+        }
+
+        [Fact]
+        [WorkItem(50182, "https://github.com/dotnet/roslyn/issues/50182")]
+        public void GetAsyncEnumerator_CancellationTokenMustBeOptional_OnIAsyncEnumerable_ExplicitImplementation()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C : IAsyncEnumerable<int>
+{
+    public static async Task M(C c)
+    {
+        await foreach (var i in c)
+        {
+        }
+    }
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token) => throw null;
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+                //         await foreach (var i in c)
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "c").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
+                );
+        }
+
+        [Fact]
+        public void GetAsyncEnumerator_Missing()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C : IAsyncEnumerable<int>
+{
+    public static async Task M(C c)
+    {
+        await foreach (var i in c)
+        {
+        }
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,33): error CS0656: Missing compiler required member 'System.Collections.Generic.IAsyncEnumerable`1.GetAsyncEnumerator'
+                //         await foreach (var i in c)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c").WithArguments("System.Collections.Generic.IAsyncEnumerable`1", "GetAsyncEnumerator").WithLocation(8, 33)
+                );
+        }
+
+        [Fact]
         public void GetAsyncEnumerator_WithOptionalParameter()
         {
             string source = @"
@@ -4796,6 +5119,51 @@ class C
         }
 
         [Fact]
+        public void PatternBasedDisposal_WithOptionalParameter()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+        System.Console.Write(""Done"");
+    }
+    public Enumerator GetAsyncEnumerator()
+    {
+        return new Enumerator();
+    }
+    public sealed class Enumerator
+    {
+        public async Task<bool> MoveNextAsync()
+        {
+            System.Console.Write(""MoveNextAsync "");
+            await Task.Yield();
+            return false;
+        }
+        public int Current
+        {
+            get => throw null;
+        }
+        public async Task<int> DisposeAsync(int i = 1)
+        {
+            System.Console.Write($""DisposeAsync {i} "");
+            await Task.Yield();
+            return 1;
+        }
+    }
+}
+";
+            // it's okay to await `Task<int>` even if we don't care about the result
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync 1 Done");
+        }
+
+        [Fact]
         [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
         public void GetAwaiterBoxingConversion()
         {
@@ -4865,7 +5233,7 @@ public class C
         }
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'object' because 'object' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                     //         await foreach (var i in (object)null)
@@ -4890,7 +5258,7 @@ public class C
         }
     }
 }";
-            CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (9,33): error CS0186: Use of null is not valid in this context
                     //         await foreach (var i in (IAsyncEnumerable<int>)null)
@@ -4917,7 +5285,7 @@ public class C
 
     public IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
 }";
-            CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (9,33): error CS0186: Use of null is not valid in this context
                     //         await foreach (var i in (C)null)
@@ -4944,7 +5312,7 @@ public struct C : IAsyncEnumerable<int>
 
     IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken cancellationToken) => throw null;
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
         }
@@ -4968,7 +5336,7 @@ public struct C
 
     public IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
         }
@@ -4989,7 +5357,7 @@ public class C
         }
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS0186: Use of null is not valid in this context
                     //         await foreach (var i in null)
@@ -5022,7 +5390,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this object self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS8716: There is no target type for the default literal.
                     //         await foreach (var i in default)
@@ -5055,7 +5423,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
 
@@ -5098,7 +5466,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this object self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5128,7 +5496,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this object self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5158,7 +5526,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5190,7 +5558,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this int self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (10,33): error CS1929: 'C' does not contain a definition for 'GetAsyncEnumerator' and the best extension method overload 'Extensions.GetAsyncEnumerator(int)' requires a receiver of type 'int'
                 //         await foreach (var i in new C())
@@ -5226,7 +5594,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this int? self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS1929: 'int' does not contain a definition for 'GetAsyncEnumerator' and the best extension method overload 'Extensions.GetAsyncEnumerator(int?)' requires a receiver of type 'int?'
                     //         await foreach (var i in 1)
@@ -5262,7 +5630,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this int self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS1929: 'object' does not contain a definition for 'GetAsyncEnumerator' and the best extension method overload 'Extensions.GetAsyncEnumerator(int)' requires a receiver of type 'int'
                     //         await foreach (var i in new object())
@@ -5298,7 +5666,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this int self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS1929: 'int?' does not contain a definition for 'GetAsyncEnumerator' and the best extension method overload 'Extensions.GetAsyncEnumerator(int)' requires a receiver of type 'int'
                     //         await foreach (var i in (int?)1)
@@ -5335,7 +5703,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this E self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (9,33): error CS1929: 'int' does not contain a definition for 'GetAsyncEnumerator' and the best extension method overload 'Extensions.GetAsyncEnumerator(E)' requires a receiver of type 'E'
                     //         await foreach (var i in 0)
@@ -5376,7 +5744,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this object self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5411,7 +5779,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this IConvertible self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5442,7 +5810,7 @@ public static class Extensions
     public static C.Enumerator GetAsyncEnumerator(this FormattableString self) => throw null;
     public static C.Enumerator GetAsyncEnumerator(this object self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5474,7 +5842,7 @@ public static class Extensions
     public static C.Enumerator GetAsyncEnumerator(this FormattableString self) => throw null;
     public static C.Enumerator GetAsyncEnumerator(this object self) => throw null;
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5504,7 +5872,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this FormattableString self) => throw null;
 }";
-            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS1929: 'string' does not contain a definition for 'GetAsyncEnumerator' and the best extension method overload 'Extensions.GetAsyncEnumerator(FormattableString)' requires a receiver of type 'FormattableString'
                     //         await foreach (var i in $" ")
@@ -5540,7 +5908,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this Func<int> self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS0446: Foreach cannot operate on a 'lambda expression'. Did you intend to invoke the 'lambda expression'?
                     //         await foreach (var i in () => 42)
@@ -5573,7 +5941,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this object self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5604,7 +5972,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this I self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5634,7 +6002,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this Func<int> self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5665,7 +6033,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this E self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5695,7 +6063,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this int? self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5725,7 +6093,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this object self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5755,7 +6123,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator<T>(this T self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5791,7 +6159,7 @@ public static class Extensions
             var comp = CreateCompilationWithTasksExtensions(
                 new[] { source, TestSources.Index, TestSources.Range, AsyncStreamsTypes },
                 options: TestOptions.DebugExe,
-                parseOptions: TestOptions.RegularPreview);
+                parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5823,7 +6191,7 @@ public static class Extensions
         yield return self.third;
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -5858,7 +6226,7 @@ public static class Extensions
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"1.1
 2.2
@@ -5891,7 +6259,7 @@ public static class Extensions
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
     public static bool MoveNext(this C.Enumerator e) => false;
 }";
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (8,33): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNextAsync'
                 //         await foreach (var i in new C())
@@ -5929,7 +6297,7 @@ public static class Extensions
 {
     public static bool MoveNext(this C.Enumerator e) => false;
 }";
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (8,33): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNextAsync'
                 //         await foreach (var i in new C())
@@ -5973,7 +6341,7 @@ public static class Extensions
 {
     public static C.Enumerator2 GetAsyncEnumerator(this C self) => throw null;
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -6009,7 +6377,7 @@ public static class Extensions
 {
     public static C.Enumerator2 GetAsyncEnumerator(this C self) => throw null;
 }";
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (8,33): error CS0117: 'C.Enumerator1' does not contain a definition for 'Current'
                 //         await foreach (var i in new C())
@@ -6060,7 +6428,7 @@ public static class Extensions
 {
     public static C.Enumerator2 GetAsyncEnumerator(this C self) => throw null;
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -6093,7 +6461,7 @@ public static class Extensions
 {
     public static C.Enumerator2 GetAsyncEnumerator(this C self) => throw null;
 }";
-            CreateCompilationWithCSharp(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithCSharp(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (9,33): error CS8416: Cannot use a collection of dynamic type in an asynchronous foreach
                     //         await foreach (var i in (dynamic)new C())
@@ -6130,7 +6498,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (8,33): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetAsyncEnumerator(C)' is ambiguous with 'Extensions2.GetAsyncEnumerator(C)'.
                 //         await foreach (var i in new C())
@@ -6170,7 +6538,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetAsyncEnumerator(C)' is ambiguous with 'Extensions2.GetAsyncEnumerator(C)'.
                     //         await foreach (var i in new C())
@@ -6210,7 +6578,7 @@ public static class Extensions2
 {
     public static bool GetAsyncEnumerator(this C self) => true;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetAsyncEnumerator(C)' is ambiguous with 'Extensions2.GetAsyncEnumerator(C)'.
                     //         await foreach (var i in new C())
@@ -6250,7 +6618,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -6284,7 +6652,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetAsyncEnumerator(this C self, bool _) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS1501: No overload for method 'GetAsyncEnumerator' takes 0 arguments
                     //         await foreach (var i in new C())
@@ -6328,7 +6696,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetAsyncEnumerator(this I2 self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (12,33): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetAsyncEnumerator(I1)' is ambiguous with 'Extensions2.GetAsyncEnumerator(I2)'.
                     //         await foreach (var i in new C())
@@ -6370,7 +6738,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -6406,7 +6774,7 @@ public static class Extensions2
 { 
     public static int GetAsyncEnumerator(this C self) => 42;
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (10,33): error CS0117: 'int' does not contain a definition for 'Current'
                     //         await foreach (var i in new C())
@@ -6446,7 +6814,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetAsyncEnumerator(this C self, int a = 0) => throw null;
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -6480,7 +6848,7 @@ public static class Extensions2
 {
     public static C.Enumerator GetAsyncEnumerator(this C self, int a = 0) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): warning CS0278: 'C' does not implement the 'collection' pattern. 'Extensions1.GetAsyncEnumerator(C, int, int)' is ambiguous with 'Extensions2.GetAsyncEnumerator(C, int)'.
                     //         await foreach (var i in new C())
@@ -6517,7 +6885,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self, int x = 1) => new C.Enumerator(x);
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "23");
         }
@@ -6547,7 +6915,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self, __arglist) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                  .VerifyDiagnostics(
                     // (8,33): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'Extensions.GetAsyncEnumerator(C, __arglist)'
                     //         await foreach (var i in new C())
@@ -6584,7 +6952,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self, params int[] x) => new C.Enumerator(x);
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -6614,7 +6982,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this ref C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (8,33): error CS1510: A ref or out value must be an assignable variable
                 //         await foreach (var i in new C())
@@ -6647,7 +7015,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this ref C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (9,33): error CS1510: A ref or out value must be an assignable variable
                 //         await foreach (var i in c)
@@ -6680,7 +7048,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this out C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (8,33): error CS1620: Argument 1 must be passed with the 'out' keyword
                 //         await foreach (var i in new C())
@@ -6718,7 +7086,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this in C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -6749,7 +7117,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this in C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -6781,9 +7149,9 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (8,33): error CS8652: The feature 'extension GetAsyncEnumerator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,33): error CS8400: Feature 'extension GetAsyncEnumerator' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new C()").WithArguments("extension GetAsyncEnumerator").WithLocation(8, 33)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "new C()").WithArguments("extension GetAsyncEnumerator", "9.0").WithLocation(8, 33)
                 );
         }
 
@@ -6812,7 +7180,7 @@ public static class Extensions
 {
     internal static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -6842,7 +7210,7 @@ internal static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -6871,7 +7239,7 @@ internal static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNextAsync'
                     //         await foreach (var i in new C())
@@ -6915,7 +7283,7 @@ internal static class Extensions
 {
     public static C.Enumerator2 GetAsyncEnumerator(this C self) => new C.Enumerator2();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS0117: 'C.Enumerator1' does not contain a definition for 'MoveNextAsync'
                     //         await foreach (var i in new C())
@@ -6954,7 +7322,7 @@ internal static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (8,33): warning CS0279: 'C' does not implement the 'async streams' pattern. 'C.GetAsyncEnumerator()' is not a public instance or extension method.
                 //         await foreach (var i in new C())
@@ -6991,7 +7359,7 @@ internal static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -7024,7 +7392,7 @@ internal static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -7057,7 +7425,7 @@ struct Enumerator : IAsyncDisposable
     public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
     public ValueTask DisposeAsync() { Console.Write(""Disposed""); return new ValueTask(); }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
         }
@@ -7091,7 +7459,7 @@ struct Enumerator : IAsyncDisposable
     ValueTask IAsyncDisposable.DisposeAsync() { Console.Write(""Disposed""); return new ValueTask(); }
 }";
 
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
         }
@@ -7124,7 +7492,7 @@ struct Enumerator
     public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
     public ValueTask DisposeAsync() { Console.Write(""Disposed""); return new ValueTask(); }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"123Disposed");
         }
@@ -7154,7 +7522,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -7190,7 +7558,7 @@ public static class Extensions
     [Obsolete]
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (8,15): warning CS0612: 'Extensions.GetAsyncEnumerator(C)' is obsolete
                 //         await foreach (var i in new C())
@@ -7234,7 +7602,7 @@ namespace N
         public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -7267,7 +7635,7 @@ namespace N
         public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
     }
 }";
-            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                     //         await foreach (var i in new C())
@@ -7301,7 +7669,7 @@ public static class Extensions
 {
     public static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (9,33): error CS0165: Use of unassigned local variable 'c'
                 //         await foreach (var i in c)
@@ -7352,7 +7720,7 @@ namespace N1
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -7401,7 +7769,7 @@ namespace N3
         public static int GetAsyncEnumerator(this C self) => throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,1): hidden CS8019: Unnecessary using directive.
                 // using N3;
@@ -7452,7 +7820,7 @@ namespace N1
         }
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (27,45): error CS0117: 'int' does not contain a definition for 'Current'
                     //                     await foreach (var i in new C())
@@ -7506,7 +7874,7 @@ namespace N3
         public static int GetAsyncEnumerator(this C self) => throw null;
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (5,1): hidden CS8019: Unnecessary using directive.
                     // using N2;
@@ -7546,7 +7914,7 @@ public class C
         public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -7581,7 +7949,7 @@ public class C
         public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123");
         }
@@ -7612,7 +7980,7 @@ public static class Extensions
     private static C.Enumerator GetAsyncEnumerator(this C self) => new C.Enumerator();
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9)
                 .VerifyDiagnostics(
                     // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                     //         await foreach (var i in new C())
@@ -7651,7 +8019,7 @@ public static class Extensions
     public static C.Enumerator Instance = new C.Enumerator();
     public static ref C.Enumerator GetAsyncEnumerator(this C self) => ref Instance;
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123123");
         }

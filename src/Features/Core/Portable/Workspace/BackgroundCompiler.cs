@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class BackgroundCompiler : IDisposable
     {
         private Workspace _workspace;
+        private readonly IDocumentTrackingService _documentTrackingService;
         private readonly TaskQueue _taskQueue;
 
 #pragma warning disable IDE0052 // Remove unread private members
@@ -23,12 +26,13 @@ namespace Microsoft.CodeAnalysis.Host
         private Compilation[] _mostRecentCompilations;
 #pragma warning restore IDE0052 // Remove unread private members
 
-        private readonly object _buildGate = new object();
+        private readonly object _buildGate = new();
         private CancellationTokenSource _cancellationSource;
 
         public BackgroundCompiler(Workspace workspace)
         {
             _workspace = workspace;
+            _documentTrackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
             // make a scheduler that runs on the thread pool
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
@@ -99,12 +103,13 @@ namespace Microsoft.CodeAnalysis.Host
                 // build the current compilations without rebuilding the entire DeclarationTable
                 CancelBuild(releasePreviousCompilations: false);
 
-                var allProjects = _workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
+                var allOpenProjects = _workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
+                var activeProject = _documentTrackingService.TryGetActiveDocument()?.ProjectId;
 
                 // don't even get started if there is nothing to do
-                if (allProjects.Count > 0)
+                if (allOpenProjects.Count > 0)
                 {
-                    _ = BuildCompilationsAsync(solution, initialProject, allProjects);
+                    _ = BuildCompilationsAsync(solution, initialProject, allOpenProjects, activeProject);
                 }
             }
         }
@@ -125,12 +130,13 @@ namespace Microsoft.CodeAnalysis.Host
         private Task BuildCompilationsAsync(
             Solution solution,
             ProjectId initialProject,
-            ISet<ProjectId> allProjects)
+            ISet<ProjectId> allOpenProjects,
+            ProjectId activeProject)
         {
             var cancellationToken = _cancellationSource.Token;
             return _taskQueue.ScheduleTask(
                 "BackgroundCompiler.BuildCompilationsAsync",
-                () => BuildCompilationsAsync(solution, initialProject, allProjects, cancellationToken),
+                () => BuildCompilationsAsync(solution, initialProject, allOpenProjects, activeProject, cancellationToken),
                 cancellationToken);
         }
 
@@ -138,6 +144,7 @@ namespace Microsoft.CodeAnalysis.Host
             Solution solution,
             ProjectId initialProject,
             ISet<ProjectId> projectsToBuild,
+            ProjectId activeProject,
             CancellationToken cancellationToken)
         {
             var allProjectIds = new List<ProjectId>();
@@ -154,7 +161,20 @@ namespace Microsoft.CodeAnalysis.Host
             // set the background analysis scope to only analyze active files.
             var compilationTasks = allProjectIds
                 .Select(solution.GetProject)
-                .Where(p => p != null && SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) != BackgroundAnalysisScope.ActiveFile)
+                .Where(p =>
+                {
+                    if (p is null)
+                        return false;
+
+                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) == BackgroundAnalysisScope.ActiveFile)
+                    {
+                        // For open files with Active File analysis scope, only build the compilation if the project is
+                        // active.
+                        return p.Id == activeProject;
+                    }
+
+                    return true;
+                })
                 .Select(p => p.GetCompilationAsync(cancellationToken))
                 .ToArray();
             return Task.WhenAll(compilationTasks).SafeContinueWith(t =>

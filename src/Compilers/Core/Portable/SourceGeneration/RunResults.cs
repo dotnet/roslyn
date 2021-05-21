@@ -8,9 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -114,7 +111,7 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
-    /// Represents the results of an <see cref="ISourceGenerator"/> calling <see cref="SourceGeneratorContext.AddSource(string, SourceText)"/>.
+    /// Represents the results of an <see cref="ISourceGenerator"/> calling <see cref="GeneratorExecutionContext.AddSource(string, SourceText)"/>.
     /// </summary>
     /// <remarks>
     /// This contains the original <see cref="SourceText"/> added by the generator, along with the parsed representation of that text in <see cref="SyntaxTree"/>.

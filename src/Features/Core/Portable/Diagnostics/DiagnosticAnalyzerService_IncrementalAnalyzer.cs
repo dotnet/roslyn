@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [ExportIncrementalAnalyzerProvider(
         highPriorityForActiveFile: true, name: WellKnownSolutionCrawlerAnalyzers.Diagnostic,
-        workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.CloudEnvironmentClientWorkspace })]
+        workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive })]
     internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
     {
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)

@@ -9,11 +9,16 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    public interface IPersistentStorage : IDisposable
+    /// <remarks>
+    /// Instances of <see cref="IPersistentStorage"/> support both synchronous and asynchronous disposal.  Asynchronous
+    /// disposal should always be preferred as the implementation of synchronous disposal may end up blocking the caller
+    /// on async work.
+    /// </remarks>
+    public interface IPersistentStorage : IDisposable, IAsyncDisposable
     {
-        Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default);
-        Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default);
-        Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default);
+        Task<Stream?> ReadStreamAsync(string name, CancellationToken cancellationToken = default);
+        Task<Stream?> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default);
+        Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken = default);
 
         Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken = default);
         Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default);

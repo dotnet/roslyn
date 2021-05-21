@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Public Overrides Function GetAdditionalTopLevelTypes(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Public Overrides Function GetAdditionalTopLevelTypes() As ImmutableArray(Of NamedTypeSymbol)
             Return _additionalTypes
         End Function
 

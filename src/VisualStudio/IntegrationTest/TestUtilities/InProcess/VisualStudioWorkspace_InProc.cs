@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -130,7 +134,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 WaitForProjectSystem(timeout);
             }
 
-            GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);
+            GetWaitingService().WaitForAllAsyncOperations(_visualStudioWorkspace, timeout, featureNames);
+        }
+
+        public void WaitForAllAsyncOperationsOrFail(TimeSpan timeout, params string[] featureNames)
+        {
+            try
+            {
+                WaitForAllAsyncOperations(timeout, featureNames);
+            }
+            catch (Exception e)
+            {
+                var listenerProvider = GetComponentModel().DefaultExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+                var messageBuilder = new StringBuilder("Failed to clean up listeners in a timely manner.");
+                foreach (var token in ((AsynchronousOperationListenerProvider)listenerProvider).GetTokens())
+                {
+                    messageBuilder.AppendLine().Append($"  {token}");
+                }
+
+                Environment.FailFast("Terminating test process due to unrecoverable timeout.", new TimeoutException(messageBuilder.ToString(), e));
+            }
         }
 
         private static void WaitForProjectSystem(TimeSpan timeout)
@@ -155,6 +178,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 LoadRoslynPackage();
                 _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
             });
+
+        /// <summary>
+        /// Reset options that are manipulated by integration tests back to their default values.
+        /// </summary>
+        public void ResetOptions()
+        {
+            ResetOption(CompletionOptions.EnableArgumentCompletionSnippets);
+            return;
+
+            // Local function
+            void ResetOption(IOption option)
+            {
+                if (option is IPerLanguageOption)
+                {
+                    SetOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
+                    SetOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);
+                }
+                else
+                {
+                    SetOption(new OptionKey(option), option.DefaultValue);
+                }
+            }
+        }
 
         public void CleanUpWaitingService()
             => InvokeOnUIThread(cancellationToken =>

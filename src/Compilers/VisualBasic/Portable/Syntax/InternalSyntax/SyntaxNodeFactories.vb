@@ -15,7 +15,7 @@ Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSynta
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Partial Class SyntaxFactory
+    Partial Friend Class SyntaxFactory
         Friend Shared Function IntegerLiteralToken(text As String, base As LiteralBase, typeSuffix As TypeCharacter, value As ULong, leadingTrivia As GreenNode, trailingTrivia As GreenNode) As IntegerLiteralTokenSyntax
             Debug.Assert(text IsNot Nothing)
             Select Case typeSuffix

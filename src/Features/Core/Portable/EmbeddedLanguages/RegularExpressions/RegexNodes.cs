@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -599,7 +601,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexAnchorNode(RegexKind kind, RegexToken anchorToken)
             : base(kind)
         {
-            Debug.Assert(anchorToken.Kind == RegexKind.DollarToken || anchorToken.Kind == RegexKind.CaretToken);
+            Debug.Assert(anchorToken.Kind is RegexKind.DollarToken or RegexKind.CaretToken);
             AnchorToken = anchorToken;
         }
 

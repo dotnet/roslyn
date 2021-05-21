@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         public CSharpUseImplicitTypeDiagnosticAnalyzer()
             : base(diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                   enforceOnBuild: EnforceOnBuildValues.UseImplicitType,
                    title: s_Title,
                    message: s_Message)
         {

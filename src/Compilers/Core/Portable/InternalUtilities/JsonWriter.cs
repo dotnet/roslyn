@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -165,7 +163,7 @@ namespace Roslyn.Utilities
         // String escaping implementation forked from System.Runtime.Serialization.Json to 
         // avoid a large dependency graph for this small amount of code:
         //
-        // https://github.com/dotnet/corefx/blob/master/src/System.Private.DataContractSerialization/src/System/Runtime/Serialization/Json/JavaScriptString.cs
+        // https://github.com/dotnet/corefx/blob/main/src/System.Private.DataContractSerialization/src/System/Runtime/Serialization/Json/JavaScriptString.cs
         //
         private static string EscapeString(string? value)
         {
