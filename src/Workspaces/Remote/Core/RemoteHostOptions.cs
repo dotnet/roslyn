@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -67,6 +68,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.ServiceHubCoreClr) == true
                 || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RoslynServiceHubCore"));
+        }
+
+        public static bool IsCurrentProcessRunningOnCoreClr()
+        {
+            return RuntimeInformation.FrameworkDescription.Equals(".NET") || RuntimeInformation.FrameworkDescription.Equals(".NET Core");
         }
 
         /// <summary>

@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly ConnectionPools? _connectionPools;
         private readonly bool _isRemoteHost64Bit;
         private readonly bool _isRemoteHostServerGC;
+        private readonly bool _isRemoteHostCoreClr;
 
         private ServiceHubRemoteHostClient(
             HostWorkspaceServices services,
@@ -74,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
             _isRemoteHost64Bit = RemoteHostOptions.IsServiceHubProcess64Bit(services);
             _isRemoteHostServerGC = RemoteHostOptions.IsServiceHubProcessServerGC(services);
+            _isRemoteHostCoreClr = RemoteHostOptions.IsServiceHubProcessCoreClr(services);
         }
 
         private void OnUnexpectedExceptionThrown(Exception unexpectedException)
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         internal RemoteServiceConnection<T> CreateConnection<T>(ServiceDescriptors descriptors, IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider, object? callbackTarget) where T : class
         {
-            var descriptor = descriptors.GetServiceDescriptor(typeof(T), _isRemoteHost64Bit, _isRemoteHostServerGC);
+            var descriptor = descriptors.GetServiceDescriptor(typeof(T), _isRemoteHost64Bit, _isRemoteHostServerGC, _isRemoteHostCoreClr);
             var callbackDispatcher = (descriptor.ClientInterface != null) ? callbackDispatcherProvider.GetDispatcher(typeof(T)) : null;
 
             return new BrokeredServiceConnection<T>(
