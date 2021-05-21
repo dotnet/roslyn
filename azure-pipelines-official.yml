@@ -65,7 +65,7 @@ stages:
         - DotNetFramework
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: NetCoreInternal-Pool
-        queue: BuildPool.Windows.10.Amd64.VS2019.Pre
+        queue: BuildPool.Server.Amd64.VS2017
 
     steps:        
     # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
