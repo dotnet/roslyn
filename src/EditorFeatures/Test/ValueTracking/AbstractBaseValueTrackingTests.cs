@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 
         protected abstract TestWorkspace CreateWorkspace(string code, TestComposition composition);
 
-
         internal static async Task<ImmutableArray<ValueTrackedItem>> GetTrackedItemsAsync(TestWorkspace testWorkspace, CancellationToken cancellationToken = default)
         {
             var cursorDocument = testWorkspace.DocumentWithCursor;
