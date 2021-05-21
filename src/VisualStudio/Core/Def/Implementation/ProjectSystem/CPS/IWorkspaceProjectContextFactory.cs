@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// <param name="projectUniqueName">Unique name for the project.</param>
         /// <param name="projectFilePath">Full path to the project file for the project.</param>
         /// <param name="projectGuid">Project guid.</param>
-        /// <param name="hierarchy">Obsolete. The argument is ignored.</param>
+        /// <param name="hierarchy">The IVsHierarchy for the project; this is used to track linked files across multiple projects when determining contexts.</param>
         /// <param name="binOutputPath">Initial project binary output path.</param>
         Task<IWorkspaceProjectContext> CreateProjectContextAsync(
             string languageName,
