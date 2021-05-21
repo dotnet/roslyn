@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly EventOrPropertyMapIndex _propertyMap;
         private readonly MethodImplIndex _methodImpls;
         private readonly List<int> _customAttributeRows;
+        private readonly Dictionary<int, EntityHandle> _customAttributesAdded;
 
         private readonly HeapOrReferenceIndex<AssemblyIdentity> _assemblyRefIndex;
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
@@ -89,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _propertyMap = new EventOrPropertyMapIndex(this.TryGetExistingPropertyMapIndex, sizes[(int)TableIndex.PropertyMap]);
             _methodImpls = new MethodImplIndex(this, sizes[(int)TableIndex.MethodImpl]);
             _customAttributeRows = new List<int>();
+            _customAttributesAdded = new Dictionary<int, EntityHandle>();
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this, lastRowId: sizes[(int)TableIndex.AssemblyRef]);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this, lastRowId: sizes[(int)TableIndex.ModuleRef]);
@@ -171,6 +173,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 eventMapAdded: AddRange(_previousGeneration.EventMapAdded, _eventMap.GetAdded()),
                 propertyMapAdded: AddRange(_previousGeneration.PropertyMapAdded, _propertyMap.GetAdded()),
                 methodImplsAdded: AddRange(_previousGeneration.MethodImplsAdded, _methodImpls.GetAdded()),
+                customAttributesAdded: AddRange(_previousGeneration.CustomAttributesAdded, _customAttributesAdded, replace: true),
                 tableEntriesAdded: ImmutableArray.Create(tableSizes),
                 // Blob stream is concatenated aligned.
                 blobStreamLengthAdded: metadataSizes.GetAlignedHeapSize(HeapIndex.Blob) + _previousGeneration.BlobStreamLengthAdded,
@@ -788,9 +791,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private void PopulateEncLogTableCustomAttributes()
         {
-            var attributeMap = CreateExistingAttributeMap(_previousGeneration.MetadataReader);
+            var attributeMap = CreateExistingAttributeMap(_previousGeneration.MetadataReader, _previousGeneration.CustomAttributesAdded, out var lastRow);
 
-            var nextCustomAttributeRow = _previousGeneration.MetadataReader.GetTableRowCount(TableIndex.CustomAttribute) + 1;
+            var nextCustomAttributeRow = lastRow + 1;
 
             foreach (var customAttributeTarget in _customAttributeTargets)
             {
@@ -807,6 +810,9 @@ namespace Microsoft.CodeAnalysis.Emit
                     // Otherwise, either this is a new parent that hasn't had an attribute before, or we've run
                     // out of existing rows to update. Either way, we want to add to the end of the table.
                     row = nextCustomAttributeRow++;
+
+                    // Keep track of the addition for passing to the next generation
+                    _customAttributesAdded[row] = customAttributeTarget;
                 }
 
                 _customAttributeRows.Add(row);
@@ -816,16 +822,33 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        private static Dictionary<EntityHandle, Queue<int>> CreateExistingAttributeMap(MetadataReader metadataReader)
+        private static Dictionary<EntityHandle, Queue<int>> CreateExistingAttributeMap(MetadataReader metadataReader, IReadOnlyDictionary<int, EntityHandle> customAttributesAdded, out int lastRow)
         {
             // For each custom attribute target, we need to keep a list of which row numbers are used in the CustomAttribute table
             // so that when we emit the new attributes we can overwrite them.
-            var result = new Dictionary<EntityHandle, Queue<int>>();
+            var result = new Dictionary<EntityHandle, Queue<int>>(HandleComparer.Default);
 
             int index = 1;
             foreach (var customAttributeHandle in metadataReader.CustomAttributes)
             {
                 var parent = metadataReader.GetCustomAttribute(customAttributeHandle).Parent;
+                AddCustomAttribute(result, index, parent);
+
+                index++;
+            }
+
+            lastRow = index - 1;
+
+            foreach (var pair in customAttributesAdded)
+            {
+                lastRow = pair.Key;
+                AddCustomAttribute(result, pair.Key, pair.Value);
+            }
+
+            return result;
+
+            static void AddCustomAttribute(Dictionary<EntityHandle, Queue<int>> result, int index, EntityHandle parent)
+            {
                 if (!result.TryGetValue(parent, out var queue))
                 {
                     queue = new Queue<int>();
@@ -833,11 +856,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 queue.Enqueue(index);
-
-                index++;
             }
-
-            return result;
         }
 
         private void PopulateEncLogTableRows<T>(DefinitionIndex<T> index, TableIndex tableIndex)
