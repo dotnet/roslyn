@@ -495,7 +495,57 @@ class Usages
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpAccessor_FromNameOf_Feature1(host As TestHost) As Task
+        Public Async Function TestCSharpAccessor_FromNameOf1_Api(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface IC
+{
+    int {|Definition:Prop|} { get; set; }
+}
+
+class C : IC
+{
+    public virtual int {|Definition:Prop|} { get; set; }
+}
+
+class D : C
+{
+    public override int {|Definition:Prop|} { get => base.[|Prop|]; set => base.[|Prop|] = value; }
+}
+
+class Usages
+{
+    void M()
+    {
+        IC ic;
+        var n1 = nameof(ic.[|$$Prop|]);
+        var v1 = ic.[|Prop|];
+        ic.[|Prop|] = 1;
+        ic.[|Prop|]++;
+
+        C c;
+        var n2 = nameof(c.[|Prop|]);
+        var v2 = c.[|Prop|];
+        c.[|Prop|] = 1;
+        c.[|Prop|]++;
+
+        D d;
+        var n3 = nameof(d.[|Prop|]);
+        var v3 = d.[|Prop|];
+        d.[|Prop|] = 1;
+        d.[|Prop|]++;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpAccessor_FromNameOf1_Feature(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

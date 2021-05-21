@@ -22,7 +22,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>The STA threads used by the scheduler.</summary>
         public Thread StaThread { get; }
 
-        public bool IsRunningInScheduler => StaThread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId;
+        public bool IsRunningInScheduler => StaThread.ManagedThreadId == Environment.CurrentManagedThreadId;
 
         static StaTaskScheduler()
         {

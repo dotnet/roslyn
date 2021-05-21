@@ -279,6 +279,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -289,7 +290,7 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="translated">완성 목록 설정 변경;가장 최근에 사용한 멤버 미리 선택; 완성 목록;
+        <target state="needs-review-translation">완성 목록 설정 변경;가장 최근에 사용한 멤버 미리 선택; 완성 목록;
 문자를 입력하면 완성 목록 표시;
 문자를 삭제하면 완성 목록 표시;
 인수 목록에 자동으로 완성 목록 표시(실험적);

@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -222,17 +223,16 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-
         /// <summary>
         /// Maps an immutable array through a function that returns ValueTasks, returning the new ImmutableArray.
         /// </summary>
-        public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, ValueTask<TResult>> selector)
+        public static async ValueTask<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, CancellationToken, ValueTask<TResult>> selector, CancellationToken cancellationToken)
         {
             var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
 
             foreach (var item in array)
             {
-                builder.Add(await selector(item).ConfigureAwait(false));
+                builder.Add(await selector(item, cancellationToken).ConfigureAwait(false));
             }
 
             return builder.ToImmutableAndFree();

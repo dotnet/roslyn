@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 #End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseConditionalExpressionForReturn), [Shared]>
     Friend Class VisualBasicUseConditionalExpressionForReturnCodeFixProvider
         Inherits AbstractUseConditionalExpressionForReturnCodeFixProvider(Of
             StatementSyntax, MultiLineIfBlockSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)

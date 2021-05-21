@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal sealed class CSharpSyntaxContext : SyntaxContext
     {
-        public readonly TypeDeclarationSyntax ContainingTypeDeclaration;
-        public readonly BaseTypeDeclarationSyntax ContainingTypeOrEnumDeclaration;
+        public readonly TypeDeclarationSyntax? ContainingTypeDeclaration;
+        public readonly BaseTypeDeclarationSyntax? ContainingTypeOrEnumDeclaration;
 
         public readonly bool IsInNonUserCode;
 
@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             int position,
             SyntaxToken leftToken,
             SyntaxToken targetToken,
-            TypeDeclarationSyntax containingTypeDeclaration,
-            BaseTypeDeclarationSyntax containingTypeOrEnumDeclaration,
+            TypeDeclarationSyntax? containingTypeDeclaration,
+            BaseTypeDeclarationSyntax? containingTypeOrEnumDeclaration,
             bool isInNonUserCode,
             bool isPreProcessorDirectiveContext,
             bool isPreProcessorKeywordContext,
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var isDestructorTypeContext = targetToken.IsKind(SyntaxKind.TildeToken) &&
                                             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
-                                            targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordDeclaration);
+                                            targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration);
 
             // Typing a dot after a numeric expression (numericExpression.) 
             // - maybe a start of MemberAccessExpression like numericExpression.Member.
@@ -321,11 +321,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = this.TargetToken;
 
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
-                token.Parent.IsKind(SyntaxKind.AttributeList) &&
-                this.SyntaxTree.IsMemberDeclarationContext(
-                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                token.Parent.IsKind(SyntaxKind.AttributeList))
             {
-                return true;
+                if (token.Parent.Parent is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } })
+                {
+                    return true;
+                }
+
+                if (SyntaxTree.IsMemberDeclarationContext(
+                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                {
+                    return true;
+                }
             }
 
             return false;

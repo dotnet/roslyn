@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities.TodoComments
@@ -12,7 +13,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
         Inherits AbstractTodoCommentTests
 
         Protected Overrides Function CreateWorkspace(codeWithMarker As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(codeWithMarker)
+            Dim workspace = TestWorkspace.CreateVisualBasic(codeWithMarker)
+            workspace.SetOptions(workspace.Options.WithChangedOption(TodoCommentOptions.TokenList, DefaultTokenList))
+            Return workspace
         End Function
 
         <Fact>

@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.EmbeddedStatementPlacement), Shared]
     internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]

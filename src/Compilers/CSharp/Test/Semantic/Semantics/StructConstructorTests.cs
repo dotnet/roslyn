@@ -6,7 +6,6 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -91,58 +90,58 @@ public class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (2,29): error CS8912: The parameterless struct constructor must be 'public'.
+                // (2,29): error CS8918: The parameterless struct constructor must be 'public'.
                 // public struct A1 { internal A1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A1").WithLocation(2, 29),
-                // (3,28): error CS8912: The parameterless struct constructor must be 'public'.
+                // (3,28): error CS8918: The parameterless struct constructor must be 'public'.
                 // public struct A2 { private A2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A2").WithLocation(3, 28),
-                // (4,20): error CS8912: The parameterless struct constructor must be 'public'.
+                // (4,20): error CS8918: The parameterless struct constructor must be 'public'.
                 // public struct A3 { A3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A3").WithLocation(4, 20),
-                // (7,31): error CS8912: The parameterless struct constructor must be 'public'.
+                // (7,31): error CS8918: The parameterless struct constructor must be 'public'.
                 // internal struct B1 { internal B1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "B1").WithLocation(7, 31),
-                // (8,30): error CS8912: The parameterless struct constructor must be 'public'.
+                // (8,30): error CS8918: The parameterless struct constructor must be 'public'.
                 // internal struct B2 { private B2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "B2").WithLocation(8, 30),
-                // (9,22): error CS8912: The parameterless struct constructor must be 'public'.
+                // (9,22): error CS8918: The parameterless struct constructor must be 'public'.
                 // internal struct B3 { B3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "B3").WithLocation(9, 22),
-                // (14,45): error CS8912: The parameterless struct constructor must be 'public'.
+                // (14,45): error CS8918: The parameterless struct constructor must be 'public'.
                 //     internal protected struct C1 { internal C1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "C1").WithLocation(14, 45),
-                // (15,44): error CS8912: The parameterless struct constructor must be 'public'.
+                // (15,44): error CS8918: The parameterless struct constructor must be 'public'.
                 //     internal protected struct C2 { private C2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "C2").WithLocation(15, 44),
-                // (16,36): error CS8912: The parameterless struct constructor must be 'public'.
+                // (16,36): error CS8918: The parameterless struct constructor must be 'public'.
                 //     internal protected struct C3 { C3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "C3").WithLocation(16, 36),
-                // (19,36): error CS8912: The parameterless struct constructor must be 'public'.
+                // (19,36): error CS8918: The parameterless struct constructor must be 'public'.
                 //     protected struct D1 { internal D1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "D1").WithLocation(19, 36),
-                // (20,35): error CS8912: The parameterless struct constructor must be 'public'.
+                // (20,35): error CS8918: The parameterless struct constructor must be 'public'.
                 //     protected struct D2 { private D2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "D2").WithLocation(20, 35),
-                // (21,27): error CS8912: The parameterless struct constructor must be 'public'.
+                // (21,27): error CS8918: The parameterless struct constructor must be 'public'.
                 //     protected struct D3 { D3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "D3").WithLocation(21, 27),
-                // (24,44): error CS8912: The parameterless struct constructor must be 'public'.
+                // (24,44): error CS8918: The parameterless struct constructor must be 'public'.
                 //     private protected struct E1 { internal E1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "E1").WithLocation(24, 44),
-                // (25,43): error CS8912: The parameterless struct constructor must be 'public'.
+                // (25,43): error CS8918: The parameterless struct constructor must be 'public'.
                 //     private protected struct E2 { private E2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "E2").WithLocation(25, 43),
-                // (26,35): error CS8912: The parameterless struct constructor must be 'public'.
+                // (26,35): error CS8918: The parameterless struct constructor must be 'public'.
                 //     private protected struct E3 { E3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "E3").WithLocation(26, 35),
-                // (29,34): error CS8912: The parameterless struct constructor must be 'public'.
+                // (29,34): error CS8918: The parameterless struct constructor must be 'public'.
                 //     private struct F1 { internal F1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "F1").WithLocation(29, 34),
-                // (30,33): error CS8912: The parameterless struct constructor must be 'public'.
+                // (30,33): error CS8918: The parameterless struct constructor must be 'public'.
                 //     private struct F2 { private F2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "F2").WithLocation(30, 33),
-                // (31,25): error CS8912: The parameterless struct constructor must be 'public'.
+                // (31,25): error CS8918: The parameterless struct constructor must be 'public'.
                 //     private struct F3 { F3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "F3").WithLocation(31, 25));
         }
@@ -496,71 +495,6 @@ True");
   IL_0002:  stfld      ""bool S2.Initialized""
   IL_0007:  ret
 }");
-        }
-
-        [Fact]
-        public void ThisInitializer_03A()
-        {
-            var source =
-@"using System;
-struct S0
-{
-    internal bool Initialized = true;
-    internal S0(object obj) : this() { }
-}
-class Program
-{
-    static void Main()
-    {
-        Console.WriteLine(new S0().Initialized);
-        Console.WriteLine(new S0(null).Initialized);
-    }
-}";
-
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
-@"False
-False");
-            verifier.VerifyMissing("S0..ctor()");
-            // PROTOTYPE: S0.Initialized should be set after initobj, not before, and
-            // expectedOutput should be False, True, ...
-            verifier.VerifyIL("S0..ctor(object)",
-@"{
-  // Code size       15 (0xf)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  stfld      ""bool S0.Initialized""
-  IL_0007:  ldarg.0
-  IL_0008:  initobj    ""S0""
-  IL_000e:  ret
-}");
-            Assert.False(true); // PROTOTYPE: Remove this method. It's a subset of _03.
-        }
-
-        [Fact]
-        public void ThisInitializer_03B()
-        {
-            var source =
-@"using System;
-record R(int X)
-{
-    object Y = X + 1;
-}
-";
-
-            var verifier = CompileAndVerify(source);
-            verifier.VerifyIL("R..ctor",
-@"{
-  // Code size       15 (0xf)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  stfld      ""bool S0.Initialized""
-  IL_0007:  ldarg.0
-  IL_0008:  initobj    ""S0""
-  IL_000e:  ret
-}");
-            Assert.False(true); // PROTOTYPE: Remove this method.
         }
 
         [Fact]
@@ -1335,10 +1269,10 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (3,22): error CS8912: The parameterless struct constructor must be 'public'.
+                // (3,22): error CS8918: The parameterless struct constructor must be 'public'.
                 // struct S3 { internal S3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S3").WithLocation(3, 22),
-                // (4,21): error CS8912: The parameterless struct constructor must be 'public'.
+                // (4,21): error CS8918: The parameterless struct constructor must be 'public'.
                 // struct S4 { private S4() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S4").WithLocation(4, 21),
                 // (12,27): error CS1736: Default parameter value for 's' must be a compile-time constant

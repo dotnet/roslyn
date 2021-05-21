@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.PullMemberUp
     <[UseExportProvider]>
@@ -253,7 +254,7 @@ class MyClass : Level1BaseClass, Level1Interface
                     Function(member) New PullMemberUpSymbolViewModel(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol), .IsCheckable = True, .MakeAbstract = False})
                 Dim memberToDependents = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, workspaceDoc.Project, CancellationToken.None)
                 Return New PullMemberUpDialogViewModel(
-                    workspace.GetService(Of IWaitIndicator),
+                    workspace.GetService(Of IUIThreadOperationExecutor),
                     membersViewModel,
                     baseTypeTree,
                     memberToDependents)

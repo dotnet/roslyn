@@ -524,9 +524,21 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project documents in the order by the specified document ids.
         /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
         /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="projectId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="documentIds"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">The solution does not contain <paramref name="projectId"/>.</exception>
+        /// <exception cref="ArgumentException">The number of documents specified in <paramref name="documentIds"/> is not equal to the number of documents in project <paramref name="projectId"/>.</exception>
+        /// <exception cref="InvalidOperationException">Document specified in <paramref name="documentIds"/> does not exist in project <paramref name="projectId"/>.</exception>
         public Solution WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
-            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds.ToImmutableArray());
+            CheckContainsProject(projectId);
+
+            if (documentIds == null)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
+
+            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
             if (newState == _state)
             {
                 return this;
@@ -1632,7 +1644,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken = default)
         {
             // we only log sessioninfo for actual changes committed to workspace which should exclude ones from preview
-            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution), logSessionInfo: solutionChanges != null);
+            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution));
 
             return (await session.MergeDiffsAsync(mergeConflictHandler, cancellationToken).ConfigureAwait(false)).MergedSolution;
         }
@@ -1715,6 +1727,21 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Returns a new Solution that will always produce a specific output for a generated file. This is used only in the
+        /// implementation of <see cref="TextExtensions.GetOpenDocumentInCurrentContextWithChanges"/> where if a user has a source
+        /// generated file open, we need to make sure everything lines up.
+        /// </summary>
+        internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
+        {
+            var newState = _state.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+            var newSolution = newState != _state ? new Solution(newState) : this;
+            var newDocumentState = newState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
+            Contract.ThrowIfNull(newDocumentState, "Because we just froze this document, it should always exist.");
+            var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
+            return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
         }
 
         /// <summary>

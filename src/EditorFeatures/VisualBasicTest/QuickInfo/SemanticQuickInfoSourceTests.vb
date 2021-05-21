@@ -1516,6 +1516,22 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")>
+        Public Async Function EnumNonDefaultUnderlyingType() As Task
+            Dim code =
+<Code>
+Enum Goo$$ As Byte
+    A
+    B
+    C
+End Enum
+</Code>.NormalizedValue()
+
+            Await TestAsync(code,
+                MainDescription("Enum Goo As Byte"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestTextOnlyDocComment() As Task
             Await TestAsync(<text><![CDATA[
 ''' <summary>

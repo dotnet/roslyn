@@ -181,6 +181,35 @@ public static class Test
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnWithExpressionInitializer_AnonymousType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void M()
+    {
+        var a = new { Property = 1 };
+        _ = a $$
+    }
+}
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=False)
+                state.SendTab()
+                state.SendTypeChars(" { ")
+                Await state.AssertSelectedCompletionItem(displayText:="Property", isHardSelected:=False)
+                state.SendTypeChars("P")
+                Await state.AssertSelectedCompletionItem(displayText:="Property", isHardSelected:=True)
+                state.SendTypeChars(" = 2")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("with { Property = 2", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WorkItem(44921, "https://github.com/dotnet/roslyn/issues/44921")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
@@ -2570,7 +2599,7 @@ public class Goo
         End Function
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/47610"), CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function LocalFunctionAttributeNamedPropertyCompletionCommitWithTab(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3272,7 +3301,7 @@ class C
 }
             ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
-                state.SendTypeChars("var @this = ""goo""")
+                state.SendTypeChars("var @this = ""goo"";")
                 state.SendReturn()
                 state.SendTypeChars("string str = this.ToString();")
                 state.SendReturn()
@@ -5277,7 +5306,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/49861")>
+        <WpfTheory>
         <InlineData("r")>
         <InlineData("load")>
         <WorkItem(49861, "https://github.com/dotnet/roslyn/issues/49861")>
@@ -7687,6 +7716,65 @@ class C
 
             End Using
         End Function
+
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/pull/47511")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub ConversionsOperatorsAndIndexerAreShownBelowMethodsAndPropertiesAndBeforeUnimportedItems()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace A
+{
+    using B;
+    public static class CExtensions{
+        public static void ExtensionUnimported(this C c) { }
+    }
+}
+namespace B
+{
+    public static class CExtensions{
+        public static void ExtensionImported(this C c) { }
+    }
+
+    public class C
+    {
+        public int A { get; } = default;
+        public int Z { get; } = default;
+        public void AM() { }
+        public void ZM() { }
+        public int this[int _] => default;
+        public static explicit operator int(C _) => default;
+        public static C operator +(C a, C b) => default;
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}                              </Document>)
+                state.Workspace.SetOptions(state.Workspace.Options.WithChangedOption(
+                                           CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
+                state.SendInvokeCompletionList()
+                state.AssertItemsInOrder(New String() {
+                    "A", ' Method, properties, and imported extension methods alphabetical ordered
+                    "AM",
+                    "Equals",
+                    "ExtensionImported",
+                    "GetHashCode",
+                    "GetType",
+                    "this[]", ' Indexer
+                    "ToString",
+                    "Z",
+                    "ZM",
+                    "(int)", ' Conversions
+                    "+", ' Operators
+                    "ExtensionUnimported" 'Unimported extension methods
+                })
+            End Using
+        End Sub
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>

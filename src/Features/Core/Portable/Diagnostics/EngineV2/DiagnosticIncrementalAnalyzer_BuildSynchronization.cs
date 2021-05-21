@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (onBuildCompleted && PreferLiveErrorsOnOpenedFiles(options))
                 {
                     // Enqueue re-analysis of active document with high-priority right away.
-                    if (_documentTrackingService?.GetActiveDocument(solution) is { } activeDocument)
+                    if (_documentTrackingService.GetActiveDocument(solution) is { } activeDocument)
                     {
                         AnalyzerService.Reanalyze(Workspace, documentIds: ImmutableArray.Create(activeDocument.Id), highPriority: true);
                     }

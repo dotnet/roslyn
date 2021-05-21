@@ -61,13 +61,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             var cscDllPath = Path.Combine(
                 Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
                 Path.Combine("dependency", "csc.dll"));
-            var dotnetExe = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+            var dotnetExe = DotNetCoreSdk.ExePath;
             var netStandardDllPath = AppDomain.CurrentDomain.GetAssemblies()
                 .FirstOrDefault(assembly => !assembly.IsDynamic && assembly.Location.EndsWith("netstandard.dll")).Location;
             var netStandardDllDir = Path.GetDirectoryName(netStandardDllPath);
+            // Since we are using references based on the UnitTest's runtime, we need to use
+            // its runtime config when executing out program.
+            var runtimeConfigPath = Path.ChangeExtension(Assembly.GetExecutingAssembly().Location, "runtimeconfig.json");
 
             s_CSharpCompilerExecutable = $@"""{dotnetExe}"" ""{cscDllPath}"" /r:""{netStandardDllPath}"" /r:""{netStandardDllDir}/System.Private.CoreLib.dll"" /r:""{netStandardDllDir}/System.Console.dll"" /r:""{netStandardDllDir}/System.Runtime.dll""";
-            s_DotnetCscRun = $@"""{dotnetExe}"" exec --runtimeconfig ""{Path.Combine(Path.GetDirectoryName(cscDllPath), "csc.runtimeconfig.json")}""";
+            s_DotnetCscRun = $@"""{dotnetExe}"" exec --runtimeconfig ""{runtimeConfigPath}""";
             s_CSharpScriptExecutable = s_CSharpCompilerExecutable.Replace("csc.dll", Path.Combine("csi", "csi.dll"));
 #else
             s_CSharpScriptExecutable = s_CSharpCompilerExecutable.Replace("csc.exe", Path.Combine("csi", "csi.exe"));
@@ -688,7 +691,7 @@ class C
             var parsedArgs = DefaultParse(args, WorkingDirectory);
             var compilation = CreateCompilation(new SyntaxTree[0]);
             IEnumerable<DiagnosticInfo> errors;
-            CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
+            CSharpCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, out errors);
             Assert.Equal(1, errors.Count());
             Assert.Equal((int)ErrorCode.ERR_CantOpenWin32Manifest, errors.First().Code);
             Assert.Equal(2, errors.First().Arguments.Count());
@@ -700,7 +703,7 @@ class C
 
             parsedArgs = DefaultParse(args, WorkingDirectory);
 
-            CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
+            CSharpCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, out errors);
             Assert.Equal(1, errors.Count());
             Assert.Equal((int)ErrorCode.ERR_CantOpenIcon, errors.First().Code);
             Assert.Equal(2, errors.First().Arguments.Count());
@@ -711,7 +714,7 @@ class C
             };
 
             parsedArgs = DefaultParse(args, WorkingDirectory);
-            CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
+            CSharpCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, out errors);
             Assert.Equal(1, errors.Count());
             Assert.Equal((int)ErrorCode.ERR_CantOpenWin32Res, errors.First().Code);
             Assert.Equal(2, errors.First().Arguments.Count());
@@ -722,7 +725,7 @@ class C
             };
 
             parsedArgs = DefaultParse(args, WorkingDirectory);
-            CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
+            CSharpCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, out errors);
             Assert.Equal(1, errors.Count());
             Assert.Equal((int)ErrorCode.ERR_CantOpenWin32Res, errors.First().Code);
             Assert.Equal(2, errors.First().Arguments.Count());
@@ -733,7 +736,7 @@ class C
             };
 
             parsedArgs = DefaultParse(args, WorkingDirectory);
-            CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
+            CSharpCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, out errors);
             Assert.Equal(1, errors.Count());
             Assert.Equal((int)ErrorCode.ERR_CantOpenIcon, errors.First().Code);
             Assert.Equal(2, errors.First().Arguments.Count());
@@ -744,7 +747,7 @@ class C
             };
 
             parsedArgs = DefaultParse(args, WorkingDirectory);
-            CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
+            CSharpCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, out errors);
             Assert.Equal(1, errors.Count());
             Assert.Equal((int)ErrorCode.ERR_CantOpenWin32Manifest, errors.First().Code);
             Assert.Equal(2, errors.First().Arguments.Count());
@@ -813,7 +816,7 @@ class C
             var compilation = CreateCompilation(new SyntaxTree[0]);
             IEnumerable<DiagnosticInfo> errors;
 
-            CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
+            CSharpCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, out errors);
             Assert.Equal(1, errors.Count());
             Assert.Equal((int)ErrorCode.ERR_ErrorBuildingWin32Resources, errors.First().Code);
             Assert.Equal(1, errors.First().Arguments.Count());
@@ -1806,35 +1809,6 @@ class C
                 Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex - 1]) >= 0);
                 Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex + version.Length]) >= 0);
             }
-        }
-
-
-        [Fact]
-        public void OptimizationLevelAdded_Canary()
-        {
-            // When OptimizationLevel is changed, this test will break. This list must be checked:
-            // - update OptimizationLevelFacts.ToPdbSerializedString
-            // - update tests that call this method
-            // - update docs\features\compilation-from-portable-pdb.md
-            // NOTE: release is duplicated because the return value for release is the same regardless of the debugPlusMode bool
-            AssertEx.SetEqual(new[] { "release", "release", "debug", "debug-plus" },
-                Enum.GetValues(typeof(OptimizationLevel)).Cast<OptimizationLevel>().SelectMany(l => new[] { l.ToPdbSerializedString(false), l.ToPdbSerializedString(true) }));
-        }
-
-        [Theory,
-            InlineData("release", true, OptimizationLevel.Release, false),
-            InlineData("debug", true, OptimizationLevel.Debug, false),
-            InlineData("debug-plus", true, OptimizationLevel.Debug, true),
-            InlineData("other", false, OptimizationLevel.Debug, false),
-            InlineData(null, false, OptimizationLevel.Debug, false)]
-        public void OptimizationLevel_ParsePdbSerializedString(string input, bool success, OptimizationLevel expected, bool expectedDebugPlusMode)
-        {
-            Assert.Equal(success, OptimizationLevelFacts.TryParsePdbSerializedString(input, out var optimization, out var debugPlusMode));
-            Assert.Equal(expected, optimization);
-            Assert.Equal(expectedDebugPlusMode, debugPlusMode);
-
-            // The canary check is a reminder that this test needs to be updated when an optimization level is added
-            OptimizationLevelAdded_Canary();
         }
 
         [Fact]
@@ -8698,7 +8672,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             var srcPath = MakeTrivialExe(Temp.CreateDirectory().Path);
             var exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe");
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/preferreduilang:en", $"/out:{exePath}", srcPath });
-            csc.FileOpen = (file, mode, access, share) =>
+            csc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc: (file, mode, access, share) =>
             {
                 if (file == exePath)
                 {
@@ -8707,7 +8681,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
                 }
 
                 return File.Open(file, mode, access, share);
-            };
+            });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             Assert.Equal(1, csc.Run(outWriter));
@@ -8721,7 +8695,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             var exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe");
             var pdbPath = Path.ChangeExtension(exePath, "pdb");
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/preferreduilang:en", "/debug", $"/out:{exePath}", srcPath });
-            csc.FileOpen = (file, mode, access, share) =>
+            csc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc: (file, mode, access, share) =>
             {
                 if (file == pdbPath)
                 {
@@ -8730,7 +8704,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
                 }
 
                 return File.Open(file, mode, access, share);
-            };
+            });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             Assert.Equal(1, csc.Run(outWriter));
@@ -8743,7 +8717,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             var srcPath = MakeTrivialExe(Temp.CreateDirectory().Path);
             var xmlPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.xml");
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/preferreduilang:en", $"/doc:{xmlPath}", srcPath });
-            csc.FileOpen = (file, mode, access, share) =>
+            csc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc: (file, mode, access, share) =>
             {
                 if (file == xmlPath)
                 {
@@ -8752,7 +8726,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
                 }
 
                 return File.Open(file, mode, access, share);
-            };
+            });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             Assert.Equal(1, csc.Run(outWriter));
@@ -8767,7 +8741,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             var srcPath = MakeTrivialExe(Temp.CreateDirectory().Path);
             var sourceLinkPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.json");
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/preferreduilang:en", "/debug:" + format, $"/sourcelink:{sourceLinkPath}", srcPath });
-            csc.FileOpen = (file, mode, access, share) =>
+            csc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc: (file, mode, access, share) =>
             {
                 if (file == sourceLinkPath)
                 {
@@ -8782,7 +8756,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
                 }
 
                 return File.Open(file, mode, access, share);
-            };
+            });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             Assert.Equal(1, csc.Run(outWriter));
@@ -8795,7 +8769,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             string sourcePath = MakeTrivialExe();
             string exePath = Path.Combine(Path.GetDirectoryName(sourcePath), "test.exe");
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/preferreduilang:en", $"/out:{exePath}", sourcePath });
-            csc.FileOpen = (file, mode, access, share) =>
+            csc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc: (file, mode, access, share) =>
             {
                 if (file == exePath)
                 {
@@ -8803,7 +8777,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
                 }
 
                 return File.Open(file, mode, access, share);
-            };
+            });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             Assert.Equal(1, csc.Run(outWriter));
@@ -8821,7 +8795,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             string exePath = Path.Combine(Path.GetDirectoryName(sourcePath), "test.exe");
             string pdbPath = Path.ChangeExtension(exePath, ".pdb");
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/debug-", $"/out:{exePath}", sourcePath });
-            csc.FileOpen = (file, mode, access, share) =>
+            csc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc: (file, mode, access, share) =>
             {
                 if (file == pdbPath)
                 {
@@ -8829,7 +8803,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
                 }
 
                 return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
-            };
+            });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             Assert.Equal(0, csc.Run(outWriter));
@@ -8846,7 +8820,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             string sourcePath = MakeTrivialExe();
             string xmlPath = Path.Combine(WorkingDirectory, "Test.xml");
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/preferreduilang:en", "/doc:" + xmlPath, sourcePath });
-            csc.FileOpen = (file, mode, access, share) =>
+            csc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc: (file, mode, access, share) =>
             {
                 if (file == xmlPath)
                 {
@@ -8856,7 +8830,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
                 {
                     return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
                 }
-            };
+            });
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = csc.Run(outWriter);
@@ -9151,7 +9125,7 @@ public class C { }
             Assert.Equal(0, exitCode);
             var output = outWriter.ToString();
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
-            Assert.Contains(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            Assert.Contains("WarningDiagnosticAnalyzer (Warning01)", output, StringComparison.Ordinal);
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
@@ -11845,10 +11819,32 @@ dotnet_diagnostic.{diagnosticId}.severity = warning
 dotnet_analyzer_diagnostic.category-{category}.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
 
+            // Verify global config based configuration before diagnostic ID configuration is not respected.
+            analyzerConfigText = $@"
+is_global = true
+dotnet_analyzer_diagnostic.category-{category}.severity = error
+dotnet_diagnostic.{diagnosticId}.severity = warning";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+
+            // Verify global config based configuration after diagnostic ID configuration is not respected.
+            analyzerConfigText = $@"
+is_global = true
+dotnet_diagnostic.{diagnosticId}.severity = warning
+dotnet_analyzer_diagnostic.category-{category}.severity = error";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
+
+
             // Verify disabled by default analyzer is not enabled by category based configuration.
             analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
             analyzerConfigText = $@"
 [*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = error";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+            // Verify disabled by default analyzer is not enabled by category based configuration in global config
+            analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
+            analyzerConfigText = $@"
+is_global=true
 dotnet_analyzer_diagnostic.category-{category}.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
 
@@ -11860,6 +11856,12 @@ dotnet_analyzer_diagnostic.category-{category}.severity = error";
                 TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText: string.Empty, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
 
                 // Verify that bulk configuration 'none' entry does not enable this analyzer.
+                analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = none";
+                TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Suppress);
+
+                // Verify that bulk configuration 'none' entry does not enable this analyzer via global config
                 analyzerConfigText = $@"
 [*.cs]
 dotnet_analyzer_diagnostic.category-{category}.severity = none";

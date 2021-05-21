@@ -606,21 +606,21 @@ public struct X1
                 // (4,13): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     private X()
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("parameterless struct constructors").WithLocation(4, 13),
-                // (4,13): error CS8912: The parameterless struct constructor must be 'public'.
+                // (4,13): error CS8918: The parameterless struct constructor must be 'public'.
                 //     private X()
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "X").WithLocation(4, 13),
                 // (11,5): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     X1()
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "X1").WithArguments("parameterless struct constructors").WithLocation(11, 5),
-                // (11,5): error CS8912: The parameterless struct constructor must be 'public'.
+                // (11,5): error CS8918: The parameterless struct constructor must be 'public'.
                 //     X1()
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "X1").WithLocation(11, 5));
 
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (4,13): error CS8912: The parameterless struct constructor must be 'public'.
+                // (4,13): error CS8918: The parameterless struct constructor must be 'public'.
                 //     private X()
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "X").WithLocation(4, 13),
-                // (11,5): error CS8912: The parameterless struct constructor must be 'public'.
+                // (11,5): error CS8918: The parameterless struct constructor must be 'public'.
                 //     X1()
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "X1").WithLocation(11, 5));
         }

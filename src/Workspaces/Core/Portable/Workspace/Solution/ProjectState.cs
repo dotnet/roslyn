@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis
 
         private AnalyzerOptions? _lazyAnalyzerOptions;
 
+        /// <summary>
+        /// Backing field for <see cref="SourceGenerators"/>; this is a default ImmutableArray if it hasn't been computed yet.
+        /// </summary>
+        private ImmutableArray<ISourceGenerator> _lazySourceGenerators;
+
         private ProjectState(
             ProjectInfo projectInfo,
             HostLanguageServices languageServices,
@@ -284,7 +289,7 @@ namespace Microsoft.CodeAnalysis
             return _lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(sourceFilePath);
         }
 
-        private sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+        internal sealed class WorkspaceAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
         {
             private readonly ProjectState _projectState;
 
@@ -302,6 +307,9 @@ namespace Microsoft.CodeAnalysis
                 // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
                 return new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(textFile.Path));
             }
+
+            public AnalyzerConfigOptions GetOptionsForSourcePath(string path)
+                => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(path));
 
             private sealed class WorkspaceAnalyzerConfigOptions : AnalyzerConfigOptions
             {
@@ -578,6 +586,20 @@ namespace Microsoft.CodeAnalysis
             return With(projectInfo: ProjectInfo.WithAnalyzerReferences(analyzerReferences).WithVersion(Version.GetNewerVersion()));
         }
 
+        public ImmutableArray<ISourceGenerator> SourceGenerators
+        {
+            get
+            {
+                if (_lazySourceGenerators.IsDefault)
+                {
+                    var generators = AnalyzerReferences.SelectMany(a => a.GetGenerators(this.Language)).ToImmutableArray();
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazySourceGenerators, generators);
+                }
+
+                return _lazySourceGenerators;
+            }
+        }
+
         public ProjectState AddDocuments(ImmutableArray<DocumentState> documents)
         {
             Debug.Assert(!documents.Any(d => DocumentStates.Contains(d.Id)));
@@ -709,40 +731,16 @@ namespace Microsoft.CodeAnalysis
             return CreateNewStateForChangedAnalyzerConfigDocuments(newDocumentStates);
         }
 
-        public ProjectState UpdateDocumentsOrder(ImmutableArray<DocumentId> documentIds)
+        public ProjectState UpdateDocumentsOrder(ImmutableList<DocumentId> documentIds)
         {
-            if (documentIds.IsEmpty)
-            {
-                throw new ArgumentOutOfRangeException("The specified documents are empty.", nameof(documentIds));
-            }
-
-            if (documentIds.Length != DocumentStates.Count)
-            {
-                throw new ArgumentException($"The specified documents do not equal the project document count.", nameof(documentIds));
-            }
-
-            var hasOrderChanged = false;
-
-            for (var i = 0; i < documentIds.Length; i++)
-            {
-                if (DocumentStates.Ids[i] != documentIds[i])
-                {
-                    hasOrderChanged = true;
-                    break;
-                }
-            }
-
-            if (!hasOrderChanged)
+            if (documentIds.SequenceEqual(DocumentStates.Ids))
             {
                 return this;
             }
 
-            var reorderedStates = documentIds.Select(id =>
-                DocumentStates.GetState(id) ?? throw new InvalidOperationException($"The document '{id}' does not exist in the project."));
-
             return With(
                 projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
-                documentStates: new(reorderedStates));
+                documentStates: DocumentStates.WithCompilationOrder(documentIds));
         }
 
         private void GetLatestDependentVersions(

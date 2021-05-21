@@ -149,8 +149,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Map from non-concurrent analyzers to the gate guarding callback into the analyzer. 
         /// </summary>
-        private ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>? _lazyAnalyzerGateMap;
-        private ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim> AnalyzerGateMap
+        private ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim> _lazyAnalyzerGateMap;
+        private ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim> AnalyzerGateMap
         {
             get
             {
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _hasDiagnosticSuppressors = this.Analyzers.Any(a => a is DiagnosticSuppressor);
             _programmaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Suppression>() : null;
             _diagnosticsProcessedForProgrammaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityComparer.Instance) : null;
-            _lazyAnalyzerGateMap = ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
+            _lazyAnalyzerGateMap = ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
         }
 
         /// <summary>
@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     await ProcessEventAsync(completedEvent, analysisScope, analysisState, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1467,7 +1467,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 return completedEvent;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -2141,13 +2141,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static async Task<ImmutableDictionary<DiagnosticAnalyzer, SemaphoreSlim>> CreateAnalyzerGateMapAsync(
+        private static async Task<ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim>> CreateAnalyzerGateMapAsync(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor,
             SeverityFilter severityFilter)
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, SemaphoreSlim>();
+            var builder = ImmutableSegmentedDictionary.CreateBuilder<DiagnosticAnalyzer, SemaphoreSlim>();
             foreach (var analyzer in analyzers)
             {
                 Debug.Assert(!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, severityFilter));
@@ -2687,7 +2687,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return GetOperationsToAnalyze(operationBlocksToAnalyze);
                 }
-                catch (Exception ex) when (ex is InsufficientExecutionStackException || FatalError.ReportAndCatchUnlessCanceled(ex))
+                catch (Exception ex) when (ex is InsufficientExecutionStackException || FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
                 {
                     // the exception filter will short-circuit if `ex` is `InsufficientExecutionStackException` (from OperationWalker)
                     // and no non-fatal-watson will be logged as a result.

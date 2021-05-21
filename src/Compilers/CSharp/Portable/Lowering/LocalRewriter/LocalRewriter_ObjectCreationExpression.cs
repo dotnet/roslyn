@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -103,15 +104,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitWithExpression(BoundWithExpression withExpr)
         {
-            RoslynDebug.AssertNotNull(withExpr.CloneMethod);
-            Debug.Assert(withExpr.CloneMethod.ParameterCount == 0);
-            Debug.Assert(withExpr.Receiver.Type!.Equals(withExpr.Type, TypeCompareKind.ConsiderEverything));
+            TypeSymbol type = withExpr.Type;
+            BoundExpression receiver = withExpr.Receiver;
+            Debug.Assert(receiver.Type!.Equals(type, TypeCompareKind.ConsiderEverything));
 
             // for a with expression of the form
             //
-            //      receiver with { P1 = e1, P2 = e2 }
+            //      receiver with { P1 = e1, P2 = e2 } // P3 is copied implicitly
             //
-            // we want to lower it to a call to the receiver's `Clone` method, then
+            // if the receiver is a struct, duplicate the value, then set the given struct properties:
+            //
+            //     var tmp = receiver;
+            //     tmp.P1 = e1;
+            //     tmp.P2 = e2;
+            //     tmp
+            //
+            // if the receiver is an anonymous type, then invoke its constructor:
+            //
+            //     new Type(e1, e2, receiver.P3);
+            //
+            // otherwise the receiver is a record class and we want to lower it to a call to its `Clone` method, then
             // set the given record properties. i.e.
             //
             //      var tmp = (ReceiverType)receiver.Clone();
@@ -119,17 +131,84 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      tmp.P2 = e2;
             //      tmp
 
-            var cloneCall = _factory.Convert(
-                withExpr.Type,
-                _factory.Call(
-                    VisitExpression(withExpr.Receiver),
-                    withExpr.CloneMethod));
+            BoundExpression rewrittenReceiver = VisitExpression(receiver);
+
+            if (type.IsAnonymousType)
+            {
+                var anonymousType = (AnonymousTypeManager.AnonymousTypePublicSymbol)type;
+                var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+                var temps = ArrayBuilder<LocalSymbol>.GetInstance();
+                BoundLocal oldValue = _factory.StoreToTemp(rewrittenReceiver, out BoundAssignmentOperator boundAssignmentToTemp);
+                temps.Add(oldValue.LocalSymbol);
+                sideEffects.Add(boundAssignmentToTemp);
+
+                BoundExpression value = _factory.New(anonymousType, getAnonymousTypeValues(withExpr, oldValue, anonymousType, sideEffects, temps));
+
+                return new BoundSequence(withExpr.Syntax, temps.ToImmutableAndFree(), sideEffects.ToImmutableAndFree(), value, type);
+            }
+
+            BoundExpression expression;
+            if (type.IsValueType)
+            {
+                expression = rewrittenReceiver;
+            }
+            else
+            {
+                Debug.Assert(withExpr.CloneMethod is not null);
+                Debug.Assert(withExpr.CloneMethod.ParameterCount == 0);
+
+                expression = _factory.Convert(
+                    type,
+                    _factory.Call(
+                        rewrittenReceiver,
+                        withExpr.CloneMethod));
+            }
 
             return MakeExpressionWithInitializer(
                 withExpr.Syntax,
-                cloneCall,
+                expression,
                 withExpr.InitializerExpression,
-                withExpr.Type);
+                type);
+
+            ImmutableArray<BoundExpression> getAnonymousTypeValues(BoundWithExpression withExpr, BoundExpression oldValue, AnonymousTypeManager.AnonymousTypePublicSymbol anonymousType,
+                ArrayBuilder<BoundExpression> sideEffects, ArrayBuilder<LocalSymbol> temps)
+            {
+                // map: [propertyIndex] -> valueTemp
+                var valueTemps = ArrayBuilder<BoundExpression?>.GetInstance(anonymousType.Properties.Length, fillWithValue: null);
+
+                foreach (BoundExpression initializer in withExpr.InitializerExpression.Initializers)
+                {
+                    var assignment = (BoundAssignmentOperator)initializer;
+                    var left = (BoundObjectInitializerMember)assignment.Left;
+                    Debug.Assert(left.MemberSymbol is not null);
+
+                    // We evaluate the values provided in source first
+                    BoundLocal valueTemp = _factory.StoreToTemp(assignment.Right, out BoundAssignmentOperator boundAssignmentToTemp);
+                    temps.Add(valueTemp.LocalSymbol);
+                    sideEffects.Add(boundAssignmentToTemp);
+
+                    var property = left.MemberSymbol;
+                    Debug.Assert(property.MemberIndexOpt!.Value >= 0 && property.MemberIndexOpt.Value < anonymousType.Properties.Length);
+                    valueTemps[property.MemberIndexOpt.Value] = valueTemp;
+                }
+
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(anonymousType.Properties.Length);
+                foreach (var property in anonymousType.Properties)
+                {
+                    if (valueTemps[property.MemberIndexOpt!.Value] is BoundExpression initializerValue)
+                    {
+                        builder.Add(initializerValue);
+                    }
+                    else
+                    {
+                        // The values that are implicitly copied over will get evaluated afterwards, in the order they are needed
+                        builder.Add(_factory.Property(oldValue, property));
+                    }
+                }
+
+                valueTemps.Free();
+                return builder.ToImmutableAndFree();
+            }
         }
 
         [return: NotNullIfNotNull("initializerExpressionOpt")]

@@ -59,13 +59,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim model = New Model()
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
             controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
-            controller.Setup(Sub(c) c.OnModelUpdated(model))
+            controller.Setup(Sub(c) c.OnModelUpdated(model, True))
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m) model)
             modelComputation.Wait()
 
-            controller.Verify(Sub(c) c.OnModelUpdated(model))
+            controller.Verify(Sub(c) c.OnModelUpdated(model, True))
         End Sub
 
         <WpfFact>
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim model = New Model()
             Dim controller = New Mock(Of IController(Of Model))(MockBehavior.Strict)
             controller.Setup(Function(c) c.BeginAsyncOperation("", Nothing, It.IsAny(Of String), It.IsAny(Of Integer))).Returns(EmptyAsyncToken.Instance)
-            controller.Setup(Sub(c) c.OnModelUpdated(model))
+            controller.Setup(Sub(c) c.OnModelUpdated(model, True))
             Dim modelComputation = TestModelComputation.Create(threadingContext, controller:=controller.Object)
             Dim gate = New Object
 
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Monitor.Exit(gate)
             modelComputation.Wait()
 
-            controller.Verify(Sub(c) c.OnModelUpdated(model), Times.Once)
+            controller.Verify(Sub(c) c.OnModelUpdated(model, True), Times.Once)
         End Sub
 
         <WpfFact>
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             checkpoint2.Release()
             Await checkpoint3.Task
 
-            controller.Verify(Sub(c) c.OnModelUpdated(model), Times.Never)
+            controller.Verify(Sub(c) c.OnModelUpdated(model, True), Times.Never)
         End Function
 
     End Class

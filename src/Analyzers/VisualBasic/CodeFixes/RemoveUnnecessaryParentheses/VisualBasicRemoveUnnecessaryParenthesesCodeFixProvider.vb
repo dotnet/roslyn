@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnnecessaryParentheses), [Shared]>
     Friend Class VisualBasicRemoveUnnecessaryParenthesesCodeFixProvider
         Inherits AbstractRemoveUnnecessaryParenthesesCodeFixProvider(Of ParenthesizedExpressionSyntax)
 

@@ -609,18 +609,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var param in symbol.Parameters)
                 {
-                    param.Accept(this.NotFirstVisitor);
+                    AddParameterRefKind(param.RefKind);
+
+                    AddCustomModifiersIfRequired(param.RefCustomModifiers);
+
+                    param.Type.Accept(this.NotFirstVisitor);
+
+                    AddCustomModifiersIfRequired(param.CustomModifiers, leadingSpace: true, trailingSpace: false);
+
                     AddPunctuation(SyntaxKind.CommaToken);
                     AddSpace();
                 }
 
                 if (symbol.ReturnsByRef)
                 {
-                    AddRefIfRequired();
+                    AddRef();
                 }
                 else if (symbol.ReturnsByRefReadonly)
                 {
-                    AddRefReadonlyIfRequired();
+                    AddRefReadonly();
                 }
 
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
@@ -679,9 +686,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // used on their own or in the context of methods.
 
             var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
-            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName)
-                              && !(symbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.FunctionPointerSignature });
+            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
+                symbol.Name.Length != 0;
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
+            var includeDefaultValue = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
+                format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
+                symbol.HasExplicitDefaultValue &&
+                CanAddConstant(symbol.Type, symbol.ExplicitDefaultValue);
 
             if (includeBrackets && symbol.IsOptional)
             {
@@ -703,26 +714,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
             }
 
-            if (includeName && includeType)
-            {
-                AddSpace();
-            }
-
             if (includeName)
             {
-                var kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
-                builder.Add(CreatePart(kind, symbol, symbol.Name));
-
-                if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
-                    symbol.HasExplicitDefaultValue &&
-                    CanAddConstant(symbol.Type, symbol.ExplicitDefaultValue))
+                if (includeType)
                 {
                     AddSpace();
-                    AddPunctuation(SyntaxKind.EqualsToken);
-                    AddSpace();
-
-                    AddConstantValue(symbol.Type, symbol.ExplicitDefaultValue);
                 }
+                var kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
+                builder.Add(CreatePart(kind, symbol, symbol.Name));
+            }
+
+            if (includeDefaultValue)
+            {
+                if (includeName || includeType)
+                {
+                    AddSpace();
+                }
+                AddPunctuation(SyntaxKind.EqualsToken);
+                AddSpace();
+
+                AddConstantValue(symbol.Type, symbol.ExplicitDefaultValue);
             }
 
             if (includeBrackets && symbol.IsOptional)
@@ -936,20 +947,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
             {
-                AddKeyword(SyntaxKind.RefKeyword);
-                AddSpace();
+                AddRef();
             }
+        }
+
+        private void AddRef()
+        {
+            AddKeyword(SyntaxKind.RefKeyword);
+            AddSpace();
         }
 
         private void AddRefReadonlyIfRequired()
         {
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
             {
-                AddKeyword(SyntaxKind.RefKeyword);
-                AddSpace();
-                AddKeyword(SyntaxKind.ReadOnlyKeyword);
-                AddSpace();
+                AddRefReadonly();
             }
+        }
+
+        private void AddRefReadonly()
+        {
+            AddKeyword(SyntaxKind.RefKeyword);
+            AddSpace();
+            AddKeyword(SyntaxKind.ReadOnlyKeyword);
+            AddSpace();
         }
 
         private void AddReadOnlyIfRequired()
@@ -967,21 +988,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
-                switch (refKind)
-                {
-                    case RefKind.Out:
-                        AddKeyword(SyntaxKind.OutKeyword);
-                        AddSpace();
-                        break;
-                    case RefKind.Ref:
-                        AddKeyword(SyntaxKind.RefKeyword);
-                        AddSpace();
-                        break;
-                    case RefKind.In:
-                        AddKeyword(SyntaxKind.InKeyword);
-                        AddSpace();
-                        break;
-                }
+                AddParameterRefKind(refKind);
+            }
+        }
+
+        private void AddParameterRefKind(RefKind refKind)
+        {
+            switch (refKind)
+            {
+                case RefKind.Out:
+                    AddKeyword(SyntaxKind.OutKeyword);
+                    AddSpace();
+                    break;
+                case RefKind.Ref:
+                    AddKeyword(SyntaxKind.RefKeyword);
+                    AddSpace();
+                    break;
+                case RefKind.In:
+                    AddKeyword(SyntaxKind.InKeyword);
+                    AddSpace();
+                    break;
             }
         }
     }

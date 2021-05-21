@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return Glyph.Assembly;
 
                 case SymbolKind.ArrayType:
-                    return ((IArrayTypeSymbol)symbol).ElementType.GetGlyph();
+                    return Glyph.ClassPublic;
 
                 case SymbolKind.DynamicType:
                     return Glyph.ClassPublic;
@@ -94,9 +95,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         var methodSymbol = (IMethodSymbol)symbol;
 
-                        if (methodSymbol.MethodKind == MethodKind.UserDefinedOperator ||
-                            methodSymbol.MethodKind == MethodKind.Conversion ||
-                            methodSymbol.MethodKind == MethodKind.BuiltinOperator)
+                        if (methodSymbol.MethodKind is MethodKind.UserDefinedOperator or
+                            MethodKind.Conversion or
+                            MethodKind.BuiltinOperator)
                         {
                             return Glyph.Operator;
                         }
@@ -176,19 +177,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return publicIcon;
         }
 
-        public static IEnumerable<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
-        => formatter.Format(GetDocumentation(symbol.OriginalDefinition, semanticModel.Compilation, cancellationToken),
-            symbol, semanticModel, position, CrefFormat, cancellationToken);
+        public static ImmutableArray<TaggedText> GetDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+            => formatter.Format(GetDocumentation(symbol.OriginalDefinition, semanticModel.Compilation, cancellationToken),
+                symbol, semanticModel, position, CrefFormat, cancellationToken);
 
-        public static IEnumerable<TaggedText> GetRemarksDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+        public static ImmutableArray<TaggedText> GetRemarksDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
             => formatter.Format(GetRemarksDocumentation(symbol.OriginalDefinition, semanticModel.Compilation, cancellationToken),
                 symbol, semanticModel, position, CrefFormat, cancellationToken);
 
-        public static IEnumerable<TaggedText> GetReturnsDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+        public static ImmutableArray<TaggedText> GetReturnsDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
             => formatter.Format(GetReturnsDocumentation(symbol.OriginalDefinition, semanticModel.Compilation, cancellationToken),
                 symbol, semanticModel, position, CrefFormat, cancellationToken);
 
-        public static IEnumerable<TaggedText> GetValueDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
+        public static ImmutableArray<TaggedText> GetValueDocumentationParts(this ISymbol symbol, SemanticModel semanticModel, int position, IDocumentationCommentFormattingService formatter, CancellationToken cancellationToken)
             => formatter.Format(GetValueDocumentation(symbol.OriginalDefinition, semanticModel.Compilation, cancellationToken),
                 symbol, semanticModel, position, CrefFormat, cancellationToken);
 
@@ -240,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return null;
                 }
 
-                if (symbolName == WellKnownMemberNames.DelegateInvokeName || symbolName == WellKnownMemberNames.DelegateBeginInvokeName)
+                if (symbolName is WellKnownMemberNames.DelegateInvokeName or WellKnownMemberNames.DelegateBeginInvokeName)
                 {
                     // We know that containingSymbol is the [Begin]Invoke() method of a delegate type, so we need to go up a level and take the method's containing symbol (i.e. the delegate), which contains the documentation.
                     containingSymbol = containingSymbol.ContainingSymbol;

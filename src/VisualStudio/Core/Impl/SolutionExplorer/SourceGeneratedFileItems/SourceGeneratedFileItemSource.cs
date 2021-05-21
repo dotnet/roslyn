@@ -70,10 +70,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            var sourceGeneratedDocumentsForGeneratorById = sourceGeneratedDocuments.Where(d => d.SourceGenerator == _parentGeneratorItem.Generator).ToDictionary(d => d.Id);
+            var sourceGeneratedDocumentsForGeneratorById =
+                sourceGeneratedDocuments.Where(d => d.SourceGeneratorAssemblyName == _parentGeneratorItem.GeneratorAssemblyName &&
+                                                    d.SourceGeneratorTypeName == _parentGeneratorItem.GeneratorTypeName)
+                .ToDictionary(d => d.Id);
 
             // We must update the list on the UI thread, since the WPF elements bound to our list expect that
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             try
             {
@@ -98,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     }
                 }
 
-                for (int i = 0; i < _items.Count; i++)
+                for (var i = 0; i < _items.Count; i++)
                 {
                     // If this item that we already have is still a generated document, we'll remove it from our list; the list when we're
                     // done is going to have the new items remaining. If it no longer exists, remove it from list.
@@ -121,12 +124,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 foreach (var document in sourceGeneratedDocumentsForGeneratorById.Values)
                 {
                     // Binary search to figure out where to insert
-                    int low = 0;
-                    int high = _items.Count;
+                    var low = 0;
+                    var high = _items.Count;
 
                     while (low < high)
                     {
-                        int mid = (low + high) / 2;
+                        var mid = (low + high) / 2;
 
                         if (StringComparer.OrdinalIgnoreCase.Compare(document.HintName, ((SourceGeneratedFileItem)_items[mid]).HintName) < 0)
                         {

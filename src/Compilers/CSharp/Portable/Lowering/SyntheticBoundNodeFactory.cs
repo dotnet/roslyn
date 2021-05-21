@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If necessary, add a conversion on the return expression.
                 var useSiteInfo =
 #if DEBUG
-                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
 #else
                     CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 #endif 
@@ -632,6 +632,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundObjectCreationExpression New(MethodSymbol ctor, params BoundExpression[] args)
             => New(ctor, args.ToImmutableArray());
+
+        public BoundObjectCreationExpression New(NamedTypeSymbol type, ImmutableArray<BoundExpression> args)
+        {
+            var ctor = type.InstanceConstructors.Single(c => c.ParameterCount == args.Length);
+            return New(ctor, args);
+        }
 
         public BoundObjectCreationExpression New(MethodSymbol ctor, ImmutableArray<BoundExpression> args)
             => new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
@@ -1236,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var useSiteInfo =
 #if DEBUG
-                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
 #else
                     CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 #endif 

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
     {
         private readonly ConcurrentDictionary<string, int> _stringToIdMap = new();
 
-        private int? TryGetStringId(SqlConnection connection, string value)
+        private int? TryGetStringId(SqlConnection connection, string? value)
         {
             // Null strings are not supported at all.  Just ignore these. Any read/writes 
             // to null values will fail and will return 'false/null' to indicate failure

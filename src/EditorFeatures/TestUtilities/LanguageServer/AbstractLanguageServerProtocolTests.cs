@@ -102,6 +102,14 @@ namespace Roslyn.Test.Utilities
 
                 return Task.FromResult(mappedResult);
             }
+
+            public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
+                Document oldDocument,
+                Document newDocument,
+                CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         protected class OrderLocations : Comparer<LSP.Location>
@@ -246,8 +254,7 @@ namespace Roslyn.Test.Utilities
             string? insertText = null,
             string? sortText = null,
             string? filterText = null,
-            string? displayText = null,
-            int resultId = 0)
+            long resultId = 0)
         {
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -265,10 +272,6 @@ namespace Roslyn.Test.Utilities
                 Kind = kind,
                 Data = JObject.FromObject(new CompletionResolveData()
                 {
-                    DisplayText = displayText ?? label,
-                    TextDocument = request.TextDocument,
-                    Position = request.Position,
-                    CompletionTrigger = completionTrigger,
                     ResultId = resultId,
                 }),
                 Preselect = preselect
@@ -294,8 +297,8 @@ namespace Roslyn.Test.Utilities
                 }
             };
 
-        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
-            => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));
+        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, IEnumerable<string>? customTags = null)
+            => new CodeActionResolveData(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri));
 
         /// <summary>
         /// Creates an LSP server backed by a workspace instance with a solution containing the markup.
