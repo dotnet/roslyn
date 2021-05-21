@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -312,6 +313,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetBooleanOption(FormattingOptions2.AutoFormattingOnSemicolon); }
             set { SetBooleanOption(FormattingOptions2.AutoFormattingOnSemicolon, value); }
+        }
+
+        public int AutoFormattingOnTyping
+        {
+            get { return GetBooleanOption(FormattingOptions2.AutoFormattingOnTyping); }
+            set { SetBooleanOption(FormattingOptions2.AutoFormattingOnTyping, value); }
         }
     }
 }

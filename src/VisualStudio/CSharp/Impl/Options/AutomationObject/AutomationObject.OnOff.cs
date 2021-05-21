@@ -56,12 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview, value); }
         }
 
-        public int AutoFormattingOnTyping
-        {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutoFormattingOnTyping); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutoFormattingOnTyping, value); }
-        }
-
         public int NavigateToDecompiledSources
         {
             get { return GetBooleanOption(FeatureOnOffOptions.NavigateToDecompiledSources); }
