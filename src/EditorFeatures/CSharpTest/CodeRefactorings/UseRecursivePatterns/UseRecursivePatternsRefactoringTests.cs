@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         [InlineData("this.CP1.P1 == 1 && this.CP1.CP2.P3 == 3", "this.CP1 is { P1: 1, CP2: { P3: 3 } }")]
         public async Task TestLogicalAndExpression(string actual, string expected)
         {
-            var initialMarkup = WrapInIfStatement(actual, "&&");
-            var expectedMarkup = WrapInIfStatement(expected, "&&");
-
-            await VerifyAsync(initialMarkup, expectedMarkup);
+            await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
         }
 
         [Theory]
@@ -49,10 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         [InlineData("NS.C.SCP1.P1 == 1 && NS.C.SCP2.P1 == 2")]
         public async Task TestLogicalAndExpressionMissing(string actual)
         {
-            var initialMarkup = WrapInIfStatement(actual, "&&");
-
-            await VerifyAsync(initialMarkup, initialMarkup);
-
+            var code = WrapInIfStatement(actual, "&&");
+            await VerifyAsync(code, code);
         }
 
         [Theory]
