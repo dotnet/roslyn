@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis
     {
         public IncrementalValueSources Sources { get; }
 
-        internal IncrementalGeneratorPipelineContext(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputBuilder)
+        internal IncrementalGeneratorPipelineContext(IncrementalValueSources valueSources)
         {
-            Sources = new IncrementalValueSources(syntaxInputBuilder, outputBuilder);
+            Sources = valueSources;
         }
     }
 

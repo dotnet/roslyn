@@ -21,15 +21,23 @@ namespace Microsoft.CodeAnalysis
             _outputNodes = outputNodes;
         }
 
-        public SyntaxValueSources Syntax => new SyntaxValueSources(_syntaxInputBuilder, _outputNodes.Add);
+        public SyntaxValueSources Syntax => new SyntaxValueSources(_syntaxInputBuilder, RegisterOutput);
 
-        public IncrementalValueSource<Compilation> Compilation => new IncrementalValueSource<Compilation>(SharedInputNodes.Compilation, _outputNodes.Add);
+        public IncrementalValueSource<Compilation> Compilation => new IncrementalValueSource<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
 
-        public IncrementalValueSource<ParseOptions> ParseOptions => new IncrementalValueSource<ParseOptions>(SharedInputNodes.ParseOptions, _outputNodes.Add);
+        public IncrementalValueSource<ParseOptions> ParseOptions => new IncrementalValueSource<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput));
 
-        public IncrementalValueSource<AdditionalText> AdditionalTexts => new IncrementalValueSource<AdditionalText>(SharedInputNodes.AdditionalTexts, _outputNodes.Add);
+        public IncrementalValueSource<AdditionalText> AdditionalTexts => new IncrementalValueSource<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput));
 
-        public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions, _outputNodes.Add);
+        public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput));
+
+        private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
+        {
+            if (!_outputNodes.Contains(outputNode))
+            {
+                _outputNodes.Add(outputNode);
+            }
+        }
     }
 
     /// <summary>

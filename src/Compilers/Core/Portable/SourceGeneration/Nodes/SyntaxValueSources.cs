@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         public IncrementalValueSource<T> Transform<T>(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
         {
             // registration of the input is deferred until we know the node is used
-            return new IncrementalValueSource<T>(new SyntaxInputNode<T>(filterFunc, transformFunc, RegisterInput, _registerOutput), _registerOutput);
+            return new IncrementalValueSource<T>(new SyntaxInputNode<T>(filterFunc, transformFunc, RegisterOutputAndDeferredInput));
         }
 
         /// <summary>
@@ -40,13 +40,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal IncrementalValueSource<ISyntaxContextReceiver> CreateSyntaxReceiverInput(SyntaxContextReceiverCreator creator)
         {
-            var node = new SyntaxReceiverInputNode(creator);
+            var node = new SyntaxReceiverInputNode(creator, _registerOutput);
             _inputNodes.Add(node);
-            return new IncrementalValueSource<ISyntaxContextReceiver>(node, _registerOutput);
+            return new IncrementalValueSource<ISyntaxContextReceiver>(node);
         }
 
-        private void RegisterInput(ISyntaxInputNode node)
+        private void RegisterOutputAndDeferredInput(ISyntaxInputNode node, IIncrementalGeneratorOutputNode output)
         {
+            _registerOutput(output);
             if (!_inputNodes.Contains(node))
             {
                 _inputNodes.Add(node);

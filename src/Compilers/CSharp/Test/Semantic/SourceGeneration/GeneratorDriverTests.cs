@@ -1581,6 +1581,43 @@ class C { }
         }
 
         [Fact]
+        public void IncrementalGenerator_Register_End_Node_Only_Once_Through_Joins()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<Compilation> compilationsCalledFor = new List<Compilation>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var source = ctx.Sources.Compilation;
+                var source2 = ctx.Sources.Compilation.Join(source);
+                var source3 = ctx.Sources.Compilation.Join(source2);
+                var source4 = ctx.Sources.Compilation.Join(source3);
+                var source5 = ctx.Sources.Compilation.Join(source4);
+
+                source5.GenerateSource((spc, c) =>
+                {
+                    compilationsCalledFor.Add(c.Item1);
+                });
+            }));
+
+            // run the generator and check that we didn't multiply register the generate source node through the join
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+
+
+        }
+
+        [Fact]
         public void IncrementalGenerator_PostInit_Source_Is_Cached()
         {
             var source = @"

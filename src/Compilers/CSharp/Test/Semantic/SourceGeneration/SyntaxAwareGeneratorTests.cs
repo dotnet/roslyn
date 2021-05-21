@@ -1383,6 +1383,97 @@ class C
             Assert.Equal(new[] { "Output2_fieldA", "Output2_fieldB", "Output2_fieldC" }, output2CalledFor);
         }
 
+        [Fact]
+        public void IncrementalGenerator_With_Syntax_Filter_Isnt_Duplicated_By_Joins()
+        {
+            var source1 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldA = null; 
+    string fieldB = null;
+    string fieldC = null;
+}
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            List<string> syntaxCalledFor = new List<string>();
+            List<string> outputCalledFor = new List<string>();
+
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c =>
+                {
+                    syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                    return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
+                });
+
+                var source2 = source.Join(context.Sources.AdditionalTexts)
+                                    .Join(context.Sources.AnalyzerConfigOptions)
+                                    .Join(context.Sources.ParseOptions);
+
+                source2.GenerateSource((spc, output) =>
+                {
+                    outputCalledFor.Add(output.Item1.Item1.Item1);
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            // verify we only ran the syntax transform once, even though we called through a join
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC", }, syntaxCalledFor);
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, outputCalledFor);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_With_Syntax_Filter_And_Comparer_Survive_Joins()
+        {
+            var source1 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldA = null; 
+    string fieldB = null;
+    string fieldC = null;
+}
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            List<string> syntaxCalledFor = new List<string>();
+            List<string> outputCalledFor = new List<string>();
+
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c =>
+                {
+                    syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                    return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
+                });
+
+                var comparerSource = source.WithComparer(new LambdaComparer<string>((a, b) => false));
+
+                // now join the two sources together
+                var joinedSource = source.Join(comparerSource);
+                joinedSource.GenerateSource((spc, fieldName) =>
+                {
+                    outputCalledFor.Add(fieldName.Item1);
+                });
+
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+
+            // verify we ran the syntax transform twice, one for each input node, but only called into the output once
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC", "fieldA", "fieldB", "fieldC" }, syntaxCalledFor);
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, outputCalledFor);
+        }
+
         private class TestReceiverBase<T>
         {
             private readonly Action<T>? _callback;

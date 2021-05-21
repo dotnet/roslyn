@@ -301,6 +301,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             }
 
             public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => this;
+
+            public void RegisterOutput(IIncrementalGeneratorOutputNode output) { }
         }
     }
 }

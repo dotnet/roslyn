@@ -16,5 +16,7 @@ namespace Microsoft.CodeAnalysis
         NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken);
 
         IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer);
+
+        void RegisterOutput(IIncrementalGeneratorOutputNode output);
     }
 }

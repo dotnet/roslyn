@@ -14,10 +14,12 @@ namespace Microsoft.CodeAnalysis
     internal sealed class SyntaxReceiverInputNode : ISyntaxInputNode, IIncrementalGeneratorNode<ISyntaxContextReceiver>
     {
         private readonly SyntaxContextReceiverCreator _receiverCreator;
+        private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
 
-        public SyntaxReceiverInputNode(SyntaxContextReceiverCreator receiverCreator)
+        public SyntaxReceiverInputNode(SyntaxContextReceiverCreator receiverCreator, Action<IIncrementalGeneratorOutputNode> registerOutput)
         {
             _receiverCreator = receiverCreator;
+            _registerOutput = registerOutput;
         }
 
         public NodeStateTable<ISyntaxContextReceiver> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<ISyntaxContextReceiver> previousTable, CancellationToken cancellationToken)
@@ -32,6 +34,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         public ISyntaxInputBuilder GetBuilder(DriverStateTable table) => new Builder(this, table);
+
+        public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(output);
 
         private sealed class Builder : ISyntaxInputBuilder
         {

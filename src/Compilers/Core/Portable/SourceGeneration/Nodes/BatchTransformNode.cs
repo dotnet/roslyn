@@ -63,5 +63,7 @@ namespace Microsoft.CodeAnalysis
 
             return newTable.ToImmutableAndFree();
         }
+
+        public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _sourceNode.RegisterOutput(output);
     }
 }

@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis
 
         IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable;
 
+        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable;
+
         public void AppendOutputs(IncrementalExecutionContext context)
         {
             // get our own state table
