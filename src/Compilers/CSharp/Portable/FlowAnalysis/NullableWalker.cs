@@ -4004,6 +4004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Get all nested conditional slots for those sub-expressions. For example in a?.b?.c we'll set a, b, and c.
         /// Only returns slots for tracked expressions.
         /// </summary>
+        /// <remarks>https://github.com/dotnet/roslyn/issues/53397 This method should potentially be removed.</remarks>
         private void GetSlotsToMarkAsNotNullable(BoundExpression operand, ArrayBuilder<int> slotBuilder)
         {
             Debug.Assert(operand != null);
@@ -4098,7 +4099,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(improved-definite-assignment): eventually, GetSlotsToMarkAsNotNullable should be removed
         private void LearnFromNonNullTest(BoundExpression expression, ref LocalState state)
         {
             if (expression.Kind == BoundKind.AwaitableValuePlaceholder)
@@ -9336,11 +9336,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operand = node.Operand;
             var typeExpr = node.TargetType;
 
-            VisitRvalue(operand);
+            VisitPossibleConditionalAccess(operand, out var conditionalStateWhenNotNull);
+            Unsplit();
+
+            LocalState stateWhenNotNull;
+            if (!conditionalStateWhenNotNull.IsConditionalState)
+            {
+                stateWhenNotNull = conditionalStateWhenNotNull.State;
+            }
+            else
+            {
+                stateWhenNotNull = conditionalStateWhenNotNull.StateWhenTrue;
+                Join(ref stateWhenNotNull, ref conditionalStateWhenNotNull.StateWhenFalse);
+            }
+
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Boolean);
 
-            Split();
-            LearnFromNonNullTest(operand, ref StateWhenTrue);
+            SetConditionalState(stateWhenNotNull, State);
             if (typeExpr.Type?.SpecialType == SpecialType.System_Object)
             {
                 LearnFromNullTest(operand, ref StateWhenFalse);

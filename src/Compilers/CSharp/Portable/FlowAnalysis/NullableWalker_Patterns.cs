@@ -844,16 +844,95 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             LearnFromAnyNullPatterns(node.Expression, node.Pattern);
             VisitPatternForRewriting(node.Pattern);
-            Visit(node.Expression);
-            var expressionState = ResultType;
-            var state = PossiblyConditionalState.Create(this);
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref state);
-            var trueState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenFalseLabel : node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();
-            var falseState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenTrueLabel : node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
-            labelStateMap.Free();
-            SetConditionalState(trueState, falseState);
+            if (!VisitPossibleConditionalAccess(node.Expression, out var conditionalStateWhenNotNull)
+                || !trySetStateWhenNotNull(node.Pattern, conditionalStateWhenNotNull))
+            {
+                var expressionState = ResultType;
+                var state = PossiblyConditionalState.Create(this);
+                var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref state);
+                var trueState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenFalseLabel : node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();
+                var falseState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenTrueLabel : node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
+                labelStateMap.Free();
+                SetConditionalState(trueState, falseState);
+            }
             SetNotNullResult(node);
             return null;
+
+            bool trySetStateWhenNotNull(BoundPattern pattern, PossiblyConditionalState conditionalStateWhenNotNull)
+            {
+                Debug.Assert(!IsConditionalState);
+
+                if (conditionalStateWhenNotNull.IsConditionalState)
+                {
+                    switch (getMatchingBoolValues(pattern))
+                    {
+                        case (hasTrue: true, hasFalse: false, hasNull: false):
+                            SetConditionalState(conditionalStateWhenNotNull.StateWhenTrue, State);
+                            return true;
+                        case (hasTrue: false, hasFalse: true, hasNull: false):
+                            SetConditionalState(conditionalStateWhenNotNull.StateWhenFalse, State);
+                            return true;
+                        case (hasTrue: false, hasFalse: true, hasNull: true):
+                            SetConditionalState(State, conditionalStateWhenNotNull.StateWhenTrue);
+                            return true;
+                        case (hasTrue: true, hasFalse: false, hasNull: true):
+                            SetConditionalState(State, conditionalStateWhenNotNull.StateWhenFalse);
+                            return true;
+                    }
+                }
+
+                switch (IsTopLevelNonNullTest(node.Pattern))
+                {
+                    case true:
+                        SetConditionalState(CloneAndUnsplit(ref conditionalStateWhenNotNull), State);
+                        return true;
+                    case false:
+                        SetConditionalState(State, CloneAndUnsplit(ref conditionalStateWhenNotNull));
+                        return true;
+                }
+
+                return false;
+            }
+
+            // Returns a struct with flags set to 'true' for each nullable boolean value that is accepted by the pattern.
+            static (bool hasTrue, bool hasFalse, bool hasNull) getMatchingBoolValues(BoundPattern pattern)
+            {
+                switch (pattern)
+                {
+                    case BoundConstantPattern { ConstantValue: { IsBoolean: true, BooleanValue: var boolValue } }:
+                        return (hasTrue: boolValue, hasFalse: !boolValue, hasNull: false);
+
+                    case BoundConstantPattern { ConstantValue: { IsNull: true } }:
+                        return (hasTrue: false, hasFalse: false, hasNull: true);
+
+                    case BoundConstantPattern:
+                        return (hasTrue: false, hasFalse: false, hasNull: false);
+
+                    case BoundDeclarationPattern { IsVar: true }:
+                    case BoundDiscardPattern:
+                        return (hasTrue: true, hasFalse: true, hasNull: true);
+
+                    case BoundDeclarationPattern { IsVar: false }:
+                    case BoundTypePattern:
+                    case BoundRecursivePattern:
+                    case BoundITuplePattern:
+                    case BoundRelationalPattern:
+                        return (hasTrue: true, hasFalse: true, hasNull: false);
+
+                    case BoundNegatedPattern negated:
+                        var innerValues = getMatchingBoolValues(negated.Negated);
+                        return (hasTrue: !innerValues.hasTrue, hasFalse: !innerValues.hasFalse, hasNull: !innerValues.hasNull);
+
+                    case BoundBinaryPattern binary:
+                        var (innerLeft, innerRight) = (getMatchingBoolValues(binary.Left), getMatchingBoolValues(binary.Right));
+
+                        return binary.Disjunction
+                            ? (hasTrue: innerLeft.hasTrue || innerRight.hasTrue, hasFalse: innerLeft.hasFalse || innerRight.hasFalse, hasNull: innerLeft.hasNull || innerRight.hasNull)
+                            : (hasTrue: innerLeft.hasTrue && innerRight.hasTrue, hasFalse: innerLeft.hasFalse && innerRight.hasFalse, hasNull: innerLeft.hasNull && innerRight.hasNull);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+                }
+            }
         }
     }
 }
