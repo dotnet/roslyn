@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
 
                     var intermediateProjects = state is InProgressState inProgressState
                         ? inProgressState.IntermediateProjects
-                        : ImmutableArray.Create<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>();
+                        : ImmutableArray.Create<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)>();
 
                     var newIntermediateProjects = translate == null
                          ? intermediateProjects
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().state : this.ProjectState;
+                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().oldState : this.ProjectState;
 
                 // if we already have a final compilation we are done.
                 if (compilationWithoutGeneratedDocuments != null && state is FinalState finalState)
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis
                             // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
                             // the generated documents, or if don't have any source generators in the first place.
                             if (intermediateProject.action.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
-                                intermediateProject.state.SourceGenerators.Any())
+                                intermediateProject.oldState.SourceGenerators.Any())
                             {
                                 compilationWithGenerators = await intermediateProject.action.TransformCompilationAsync(compilationWithGenerators, cancellationToken).ConfigureAwait(false);
                             }
