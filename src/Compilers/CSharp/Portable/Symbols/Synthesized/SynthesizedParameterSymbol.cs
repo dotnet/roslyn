@@ -83,27 +83,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsIDispatchConstant
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsIUnknownConstant
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerLineNumber
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerFilePath
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerMemberName
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
@@ -289,8 +289,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue;
 
-        internal override bool IsIDispatchConstant => throw ExceptionUtilities.Unreachable;
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get
+            {
+                Debug.Assert(_baseParameterForAttributes is null);
+                return base.FlowAnalysisAnnotations;
+            }
+        }
 
-        internal override bool IsIUnknownConstant => throw ExceptionUtilities.Unreachable;
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get
+            {
+                Debug.Assert(_baseParameterForAttributes is null);
+                return base.NotNullIfParameterNotNull;
+            }
+        }
     }
 }
