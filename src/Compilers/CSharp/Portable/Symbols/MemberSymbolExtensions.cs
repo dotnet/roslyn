@@ -378,13 +378,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)sourceMethod != null)
                 {
                     ConstructorDeclarationSyntax constructorSyntax = sourceMethod.SyntaxNode as ConstructorDeclarationSyntax;
-                    if (constructorSyntax != null)
+                    if (constructorSyntax?.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer)
                     {
-                        if (constructorSyntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer)
-                        {
-                            initializerSyntax = constructorSyntax.Initializer;
-                            return true;
-                        }
+                        initializerSyntax = constructorSyntax.Initializer;
+                        return true;
                     }
                 }
             }
@@ -409,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
                 var constructor = containingType.InstanceConstructors.SingleOrDefault(m => m.ParameterCount == 0);
-                return constructor?.IsDefaultValueTypeConstructor(requireNoInitializers: true) == true;
+                return constructor?.IsDefaultValueTypeConstructor(requireZeroInit: true) == true;
             }
         }
 
@@ -422,21 +419,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if the method is the default zero-init constructor synthesized for struct types.
-        /// If the struct type is from metadata, the default constructor is synthesized when there
-        /// is no accessible parameterless constructor. If the struct type is from source, a parameterless
-        /// constructor is synthesized if there is no explicit parameterless constructor, but the synthesized
-        /// constructor is only considered the default zero-init constructor if the synthesized constructor
-        /// would not be emitted. (The default constructor will be emitted if the struct type has field
-        /// initializers and no explicit constructors.)
+        /// Returns true if the method is the default constructor synthesized for struct types, and
+        /// if <paramref name="requireZeroInit"/> is true, the constructor simply zero-inits the instance.
+        /// If the containing struct type is from metadata, the default constructor is synthesized when there
+        /// is no accessible parameterless constructor. (That synthesized constructor from metadata zero-inits
+        /// the instance.) If the containing struct type is from source, the parameterless constructor is synthesized
+        /// if there is no explicit parameterless constructor. And if the source type has no field initializers, or
+        /// the type has field initializers and at least one explicit constructor with parameters, the synthesized
+        /// parameterless constructor simply zero-inits the instance (and is not emitted).
         /// </summary>
-        internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method, bool requireNoInitializers = false)
+        internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method, bool requireZeroInit)
         {
             if (method.IsImplicitlyDeclared &&
                 method.ContainingType.IsValueType &&
                 method.IsParameterlessConstructor())
             {
-                if (!requireNoInitializers)
+                if (!requireZeroInit)
                 {
                     return true;
                 }
@@ -453,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool ShouldEmit(this MethodSymbol method)
         {
             // Don't emit the default value type constructor - the runtime handles that
-            if (method.IsDefaultValueTypeConstructor(requireNoInitializers: true))
+            if (method.IsDefaultValueTypeConstructor(requireZeroInit: true))
             {
                 return false;
             }

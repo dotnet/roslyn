@@ -1488,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // NOTE: constructor invocations are represented as BoundObjectCreationExpressions,
             // rather than BoundCalls.  This is why we can be confident that if we see a call to a
             // constructor, it has this very specific form.
-            if (method.IsDefaultValueTypeConstructor(requireNoInitializers: true))
+            if (method.IsDefaultValueTypeConstructor(requireZeroInit: true))
             {
                 Debug.Assert(method.IsImplicitlyDeclared);
                 Debug.Assert(TypeSymbol.Equals(method.ContainingType, receiver.Type, TypeCompareKind.ConsiderEverything2));
@@ -1911,7 +1911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitObjectCreationExpression(BoundObjectCreationExpression expression, bool used)
         {
             MethodSymbol constructor = expression.Constructor;
-            if (constructor.IsDefaultValueTypeConstructor(requireNoInitializers: true))
+            if (constructor.IsDefaultValueTypeConstructor(requireZeroInit: true))
             {
                 EmitInitObj(expression.Type, used, expression.Syntax);
             }

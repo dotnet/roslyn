@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class StructsTests : CompilingTestBase
     {
-        // Cannot have instance field initializers in structs
         [WorkItem(540982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540982")]
         [Fact()]
         public void TestInitFieldStruct()

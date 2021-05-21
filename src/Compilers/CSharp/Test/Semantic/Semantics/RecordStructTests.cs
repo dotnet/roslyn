@@ -967,7 +967,7 @@ public record struct S
         {
             var src =
 @"record struct S0();
-record struct S1 { }
+record struct S1;
 ";
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
@@ -1063,6 +1063,9 @@ public record struct S
             comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
         }
+
+        // PROTOTYPE: Verify initializers are executed from synthesized and explicit parameterless constructors.
+        // PROTOTYPE: Verify explicit parameterless constructor calls 'this(...)' for primary constructor.
 
         [Fact]
         public void TypeDeclaration_NoDestructor()

@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var method = (MethodSymbol)members[index];
 
                     // Don't emit the default value type constructor - the runtime handles that
-                    if (!method.IsDefaultValueTypeConstructor())
+                    if (!method.IsDefaultValueTypeConstructor(requireZeroInit: false))
                     {
                         yield return method;
                     }

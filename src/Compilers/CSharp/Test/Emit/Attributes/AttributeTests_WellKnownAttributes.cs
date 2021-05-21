@@ -13362,7 +13362,7 @@ second",
         }
 
         [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
-        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_01()
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute()
         {
             var code = @"
 namespace System.Runtime.CompilerServices
@@ -13383,52 +13383,47 @@ class Test
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
         }
 
-        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
-        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_02()
-        {
-            var code = @"
-#pragma warning disable 414
+        [Theory]
+        [InlineData(
+@"#pragma warning disable 414
 namespace System.Runtime.CompilerServices
 {
     public struct IsReadOnlyAttribute
     {
         private int F = 1; // requires synthesized parameterless .ctor
     }
-}
-class Test
-{
-    void M(in int x)
-    {
-    }
-}";
-
-            CreateCompilation(code, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics().VerifyEmitDiagnostics(
-                // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
-                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
-        }
-
-        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
-        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_03()
-        {
-            var code = @"
-namespace System.Runtime.CompilerServices
+}")]
+        [InlineData(
+@"namespace System.Runtime.CompilerServices
 {
     public struct IsReadOnlyAttribute
     {
         // explicit parameterless .ctor
         public IsReadOnlyAttribute() { }
     }
-}
-class Test
+}")]
+        public void WellKnownTypeAsStruct_ParameterlessConstructor_IsReadOnlyAttribute(string sourceAttribute)
+        {
+            var sourceA =
+@"public class A
 {
-    void M(in int x)
+    public static void M(in int i)
     {
+        System.Console.WriteLine(i);
     }
 }";
-
-            CreateCompilation(code, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics().VerifyEmitDiagnostics(
-                // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
-                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
+            var sourceB =
+@"class B
+{
+    static void Main()
+    {
+        int i = 42;
+        A.M(in i);
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceAttribute, sourceA }, parseOptions: TestOptions.RegularPreview);
+            var refA = comp.EmitToImageReference();
+            CompileAndVerify(sourceB, references: new[] { refA }, expectedOutput: "42");
         }
 
         [Fact]

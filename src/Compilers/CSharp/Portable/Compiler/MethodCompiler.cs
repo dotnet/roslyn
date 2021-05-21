@@ -965,7 +965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // no need to emit the default ctor, we are not emitting those
-                if (methodSymbol.IsDefaultValueTypeConstructor(requireNoInitializers: true))
+                if (methodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: true))
                 {
                     return;
                 }
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!hasErrors && (hasBody || includeNonEmptyInitializersInBody))
                     {
                         Debug.Assert(!(methodSymbol.IsImplicitInstanceConstructor && methodSymbol.ParameterCount == 0) ||
-                                     !methodSymbol.IsDefaultValueTypeConstructor(requireNoInitializers: true));
+                                     !methodSymbol.IsDefaultValueTypeConstructor(requireZeroInit: true));
 
                         // Fields must be initialized before constructor initializer (which is the first statement of the analyzed body, if specified),
                         // so that the initialization occurs before any method overridden by the declaring class can be invoked from the base constructor
@@ -1709,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ExecutableCodeBinder bodyBinder = sourceMethod.TryGetBodyBinder();
 
-                if (sourceMethod.IsExtern || sourceMethod.IsDefaultValueTypeConstructor())
+                if (sourceMethod.IsExtern || sourceMethod.IsDefaultValueTypeConstructor(requireZeroInit: false))
                 {
                     return null;
                 }
