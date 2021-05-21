@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -43,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             _serviceProvider = (Shell.IAsyncServiceProvider)serviceProvider;
         }
 
-        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath)
+        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object? hierarchy, string? binOutputPath)
         {
             return _threadingContext.JoinableTaskFactory.Run(() =>
                 this.CreateProjectContextAsync(languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, CancellationToken.None));
@@ -52,10 +50,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(
             string languageName,
             string projectUniqueName,
-            string projectFilePath,
+            string? projectFilePath,
             Guid projectGuid,
-            object hierarchy,
-            string binOutputPath,
+            object? hierarchy,
+            string? binOutputPath,
             CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
