@@ -589,7 +589,7 @@ param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArgumentExpressionInAttributeConstructor_NamedAndOptionalParameters()
         {
             string source = @"
