@@ -11,6 +11,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 {
@@ -59,6 +60,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
             return new GraphicsResult(border,
                 () => view.ViewportWidthChanged -= viewportWidthChangedHandler);
+        }
+
+        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format)
+        {
+            throw new NotImplementedException();
         }
     }
 }

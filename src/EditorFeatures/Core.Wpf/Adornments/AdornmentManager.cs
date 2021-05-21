@@ -24,31 +24,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     /// </summary>
     internal abstract class AdornmentManager<T> where T : GraphicsTag
     {
-        private readonly object _invalidatedSpansLock = new object();
+        protected readonly object _invalidatedSpansLock = new object();
 
-        private readonly IThreadingContext _threadingContext;
+        protected readonly IThreadingContext _threadingContext;
 
         /// <summary>View that created us.</summary>
-        private readonly IWpfTextView _textView;
+        protected readonly IWpfTextView _textView;
 
         /// <summary>Layer where we draw adornments.</summary>
-        private readonly IAdornmentLayer _adornmentLayer;
+        protected readonly IAdornmentLayer _adornmentLayer;
 
         /// <summary>Aggregator that tells us where to draw.</summary>
-        private readonly ITagAggregator<T> _tagAggregator;
+        protected readonly ITagAggregator<T> _tagAggregator;
 
         /// <summary>Notification system about operations we do</summary>
-        private readonly IAsynchronousOperationListener _asyncListener;
+        protected readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>Spans that are invalidated, and need to be removed from the layer..</summary>
-        private List<IMappingSpan> _invalidatedSpans;
+        protected List<IMappingSpan> _invalidatedSpans;
 
-        public abstract AdornmentManager<T> Create(
+        /*public abstract AdornmentManager<T> Create(
             IThreadingContext threadingContext,
             IWpfTextView textView,
             IViewTagAggregatorFactoryService aggregatorService,
             IAsynchronousOperationListener asyncListener,
-            string adornmentLayerName);
+            string adornmentLayerName);*/
 
         internal AdornmentManager(
             IThreadingContext threadingContext,
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// It happens when another region of the view becomes visible or there is a change in tags.
         /// For us the end result is the same - get tags from tagger and update visuals correspondingly.
         /// </summary>        
-        private void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
+        protected virtual void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
         {
             Contract.ThrowIfNull(changedSpanCollection);
 
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         // topology, originally single span may be mapped into several spans. Visual adornments do
         // not make much sense on disjoint spans. We will not decorate spans that could not make it
         // in one piece.
-        private static bool TryMapToSingleSnapshotSpan(IMappingSpan mappingSpan, ITextSnapshot viewSnapshot, out SnapshotSpan span)
+        protected static bool TryMapToSingleSnapshotSpan(IMappingSpan mappingSpan, ITextSnapshot viewSnapshot, out SnapshotSpan span)
         {
             // IMappingSpan.GetSpans is a surprisingly expensive function that allocates multiple
             // lists and collection if the view buffer is same as anchor we could just map the

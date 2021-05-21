@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
     internal class InlineErrorTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineErrorTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
-        private readonly IClassificationFormatMapService _classificationFormatMapService;
-        private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
         protected internal override bool IsEnabled => true;
 
         [ImportingConstructor]
@@ -35,15 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
         public InlineErrorTaggerProvider(
             IThreadingContext threadingContext,
             IEditorFormatMapService editorFormatMapService,
-            IClassificationFormatMapService classificationFormatMapService,
-            IClassificationTypeRegistryService classificationTypeRegistryService,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext, diagnosticService, listenerProvider)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
-            _classificationFormatMapService = classificationFormatMapService;
-            _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
         protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
@@ -57,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             var length = Math.Min(Math.Max(span.Length, minimumLength), maximumLength);
 
             // make sure start + length is smaller than snapshot.Length and start is >= 0
-            var start = Math.Max(0, Math.Min(span.End, snapshot.Length - length));
+            var start = Math.Max(0, Math.Min(span.Start, snapshot.Length - length));
 
             // make sure length is smaller than snapshot.Length which can happen if start == 0
             return new SnapshotSpan(snapshot, start, Math.Min(start + length, snapshot.Length) - start);
@@ -79,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 return null;
             }
 
-            return new InlineErrorTag(errorType, diagnostic, _editorFormatMap, _classificationFormatMapService, _classificationTypeRegistryService);
+            return new InlineErrorTag(errorType, diagnostic, _editorFormatMap);
         }
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)

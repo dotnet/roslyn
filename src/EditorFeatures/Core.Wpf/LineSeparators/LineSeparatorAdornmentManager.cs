@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
         {
         }
 
-        public override AdornmentManager<GraphicsTag> Create(
+        /*public override AdornmentManager<GraphicsTag> Create(
             IThreadingContext threadingContext,
             IWpfTextView textView,
             IViewTagAggregatorFactoryService aggregatorService,
@@ -37,6 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
             Contract.ThrowIfNull(asyncListener);
 
             return new LineSeparatorAdornmentManager(threadingContext, textView, aggregatorService, asyncListener, adornmentLayerName);
-        }
+        }*/
     }
 }

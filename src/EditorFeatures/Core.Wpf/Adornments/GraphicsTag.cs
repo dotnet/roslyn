@@ -7,6 +7,7 @@
 using System.Windows.Media;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
@@ -46,5 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// This method allows corresponding adornment manager to ask for a graphical glyph.
         /// </summary>
         public abstract GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds);
+
+        public abstract GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format);
     }
 }

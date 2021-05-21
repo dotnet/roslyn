@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -22,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     internal class InlineErrorAdornmentManagerProvider : AbstractAdornmentManagerProvider<InlineErrorTag>
     {
         private const string LayerName = "RoslynInlineErrors";
+        private readonly IClassificationFormatMapService _classificationFormatMapService;
+        private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
 
         [Export]
         [Name(LayerName)]
@@ -38,9 +41,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
             IThreadingContext threadingContext,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
-            IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, tagAggregatorFactoryService, listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IClassificationFormatMapService classificationFormatMapService,
+            IClassificationTypeRegistryService classificationTypeRegistryService
+            ) : base(threadingContext, tagAggregatorFactoryService, listenerProvider)
         {
+            _classificationFormatMapService = classificationFormatMapService;
+            _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
         protected override string FeatureAttributeName => FeatureAttribute.InlineErrors;
@@ -59,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 return;
             }
 
-            var manager = new InlineErrorAdornmentManager(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
+            var manager = new InlineErrorAdornmentManager(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
             // the manager keeps itself alive by listening to text view events.
             //LineSeparatorAdornmentManager.Create(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
         }
