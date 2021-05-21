@@ -3,12 +3,18 @@
     "Visual Studio Extension": {
       "commandName": "Executable",
       "executablePath": "$(DevEnvDir)devenv.exe",
-      "commandLineArgs": "/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log"
+      "commandLineArgs": "/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log",
+      "environmentVariables": {
+        "SERVICEHUBDEBUGHOSTONSTARTUP": "All"
+      }
     },
     "Visual Studio Extension (with Native Debugging)": {
       "commandName": "Executable",
       "executablePath": "$(DevEnvDir)devenv.exe",
       "commandLineArgs": "/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log",
+      "environmentVariables": {
+        "SERVICEHUBDEBUGHOSTONSTARTUP": "All"
+      },
       "nativeDebugging": true
     }
   }
