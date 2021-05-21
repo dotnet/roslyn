@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                     };
 
                 case (PatternSyntax leftPattern, _):
-                    if (TryFindDesignation(leftPattern, rightReceiver, semanticModel) is not var (designation, names))
+                    if (TryFindSingleVariableDesignation(leftPattern, rightReceiver, semanticModel) is not var (designation, names))
                         return null;
 
                     RoslynDebug.AssertNotNull(leftPattern.Parent);
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
         private static Func<SyntaxNode, SyntaxNode>? CombineWhenClauseCondition(PatternSyntax pattern, ExpressionSyntax condition, SemanticModel semanticModel)
         {
             if (TryDetermineReceiver(condition, semanticModel, inWhenClause: true) is not var (receiver, target, flipped) ||
-                TryFindDesignation(pattern, receiver, semanticModel) is not var (designation, names))
+                TryFindSingleVariableDesignation(pattern, receiver, semanticModel) is not var (designation, names))
             {
                 return null;
             }
@@ -181,8 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             };
         }
 
-        private static (SingleVariableDesignationSyntax Designation, ImmutableArray<IdentifierNameSyntax> Names)?
-            TryFindDesignation(PatternSyntax leftPattern, ExpressionSyntax rightReceiver, SemanticModel semanticModel)
+        private static (SingleVariableDesignationSyntax VariableDesignation, ImmutableArray<IdentifierNameSyntax> Names)?
+            TryFindSingleVariableDesignation(PatternSyntax leftPattern, ExpressionSyntax rightReceiver, SemanticModel semanticModel)
         {
             if (GetInnermostReceiver(rightReceiver, semanticModel) is not IdentifierNameSyntax identifierName)
                 return null;
@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
 
         private static PatternSyntax CreatePattern(ExpressionSyntax receiver, ExpressionSyntax target, bool flipped)
         {
+            RoslynDebug.AssertNotNull(receiver.Parent);
             return receiver.Parent switch
             {
                 BinaryExpressionSyntax(EqualsExpression) => ConstantPattern(target),
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                                        LessThanOrEqualExpression or
                                        LessThanExpression) e
                     => RelationalPattern(flipped ? Flip(e.OperatorToken) : e.OperatorToken, target),
-                var v => throw ExceptionUtilities.UnexpectedValue(v?.Kind()),
+                var v => throw ExceptionUtilities.UnexpectedValue(v.Kind()),
             };
 
             static SyntaxToken Flip(SyntaxToken token)
