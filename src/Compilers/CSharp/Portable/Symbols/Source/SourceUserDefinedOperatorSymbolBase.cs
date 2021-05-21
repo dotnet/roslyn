@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -269,8 +270,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_explicitInterfaceType is object)
             {
-                var syntax = (OperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
-                return this.FindExplicitlyImplementedMethod(isOperator: true, _explicitInterfaceType, OperatorFacts.OperatorNameFromDeclaration(syntax), syntax.ExplicitInterfaceSpecifier, diagnostics);
+                string interfaceMethodName;
+                ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier;
+
+                switch (syntaxReferenceOpt.GetSyntax())
+                {
+                    case OperatorDeclarationSyntax operatorDeclaration:
+                        interfaceMethodName = OperatorFacts.OperatorNameFromDeclaration(operatorDeclaration);
+                        explicitInterfaceSpecifier = operatorDeclaration.ExplicitInterfaceSpecifier;
+                        break;
+
+                    case ConversionOperatorDeclarationSyntax conversionDeclaration:
+                        interfaceMethodName = OperatorFacts.OperatorNameFromDeclaration(conversionDeclaration);
+                        explicitInterfaceSpecifier = conversionDeclaration.ExplicitInterfaceSpecifier;
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
+
+                return this.FindExplicitlyImplementedMethod(isOperator: true, _explicitInterfaceType, interfaceMethodName, explicitInterfaceSpecifier, diagnostics);
             }
 
             return null;
@@ -745,9 +764,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if ((object)_explicitInterfaceType != null)
             {
-                var syntax = (OperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
-                Debug.Assert(syntax.ExplicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
+                NameSyntax name;
+
+                switch (syntaxReferenceOpt.GetSyntax())
+                {
+                    case OperatorDeclarationSyntax operatorDeclaration:
+                        Debug.Assert(operatorDeclaration.ExplicitInterfaceSpecifier != null);
+                        name = operatorDeclaration.ExplicitInterfaceSpecifier.Name;
+                        break;
+
+                    case ConversionOperatorDeclarationSyntax conversionDeclaration:
+                        Debug.Assert(conversionDeclaration.ExplicitInterfaceSpecifier != null);
+                        name = conversionDeclaration.ExplicitInterfaceSpecifier.Name;
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
+
+                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(name), diagnostics);
             }
         }
 

@@ -23,8 +23,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
-        <source>User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</source>
-        <target state="new">User-defined conversion in an interface must convert to or from the enclosing type type parameter constrained to the enclosing type</target>
+        <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
+        <target state="new">User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">

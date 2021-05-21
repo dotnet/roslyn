@@ -451,9 +451,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var operatorDeclaration = (OperatorDeclarationSyntax)baseMethodDeclarationSyntax;
                         return ExplicitInterfaceHelpers.GetMemberName(outerBinder, operatorDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDeclaration));
                     case SyntaxKind.ConversionOperatorDeclaration:
-                        return ((ConversionOperatorDeclarationSyntax)baseMethodDeclarationSyntax).ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword
-                            ? WellKnownMemberNames.ImplicitConversionName
-                            : WellKnownMemberNames.ExplicitConversionName;
+                        var conversionDeclaration = (ConversionOperatorDeclarationSyntax)baseMethodDeclarationSyntax;
+                        return ExplicitInterfaceHelpers.GetMemberName(outerBinder, conversionDeclaration.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(conversionDeclaration));
                     case SyntaxKind.MethodDeclaration:
                         MethodDeclarationSyntax methodDeclSyntax = (MethodDeclarationSyntax)baseMethodDeclarationSyntax;
                         return ExplicitInterfaceHelpers.GetMemberName(outerBinder, methodDeclSyntax.ExplicitInterfaceSpecifier, methodDeclSyntax.Identifier.ValueText);
