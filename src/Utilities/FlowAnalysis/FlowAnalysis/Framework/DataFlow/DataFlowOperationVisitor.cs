@@ -2167,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Check if we are already at the maximum allowed interprocedural call chain length.
-            int currentMethodCallCount = currentMethodsBeingAnalyzed.Where(m => !(m.OwningSymbol is IMethodSymbol ms && ms.IsLambdaOrLocalFunctionOrDelegate())).Count();
+            int currentMethodCallCount = currentMethodsBeingAnalyzed.Count(m => !(m.OwningSymbol is IMethodSymbol ms && ms.IsLambdaOrLocalFunctionOrDelegate()));
             int currentLambdaOrLocalFunctionCallCount = currentMethodsBeingAnalyzed.Count - currentMethodCallCount;
 
             if (currentMethodCallCount >= MaxInterproceduralMethodCallChain ||
