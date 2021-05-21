@@ -7723,7 +7723,8 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(
@@ -18406,7 +18407,8 @@ class Derived : Base<string>
 }
 ";
             // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
-            CSharpCompilation comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(

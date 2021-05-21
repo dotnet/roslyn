@@ -680,11 +680,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">缺少控制字符</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">修改包含 switch 表达式的“{0}”将阻止调试会话继续执行。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
         <target state="translated">修改“{0}”的主体将阻止调试会话继续，因为主体包含的语句过多。</target>
@@ -2378,7 +2373,7 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 如果使用 "f" 格式说明符而没有其他自定义格式说明符，该说明符将被解释为 "f" 标准日期和时间格式说明符。
 
 将 "f" 格式说明符用作提供给 ParseExact、TryParseExact、ParseExact 或 TryParseExact 方法的格式字符串的一部分时，"f" 格式说明符的数目指示能够成功分析的字符串的秒部分的最高有效位的最大数目。</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
