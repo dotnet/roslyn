@@ -8941,5 +8941,48 @@ class C : IGoo<string>
 }
 ");
         }
+
+        [WorkItem(51779, "https://github.com/dotnet/roslyn/issues/51779")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementTwoPropertiesOfCSharp5()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest
+{
+    int Bar { get; }
+    int Foo { get; }
+}
+
+class Program : [|ITest|]
+{
+}
+",
+@"
+interface ITest
+{
+    int Bar { get; }
+    int Foo { get; }
+}
+
+class Program : ITest
+{
+    public int Bar
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+    public int Foo
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+        }
     }
 }
