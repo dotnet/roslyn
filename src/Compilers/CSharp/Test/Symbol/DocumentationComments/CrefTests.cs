@@ -6715,5 +6715,20 @@ class C
 
             Assert.Equal("F:System.ValueTuple`2.Item1", cref);
         }
+
+        [Fact]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecord()
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// </summary>
+record CacheContext(string RelativePathBase);
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
     }
 }
