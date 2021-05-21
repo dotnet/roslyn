@@ -3621,13 +3621,67 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void VisitBinaryOperatorChildren(ArrayBuilder<BoundBinaryOperator> stack)
         {
             var binary = stack.Pop();
-
             var (leftOperand, leftConversion) = RemoveConversion(binary.Left, includeExplicitConversions: false);
-            Visit(leftOperand);
+
+            // Only the leftmost operator of a left-associative binary operator chain can learn from a conditional access on the left
+            // For simplicity, we just special case it here.
+            // For example, `a?.b(out x) == true` has a conditional access on the left of the operator,
+            // but `expr == a?.b(out x) == true` has a conditional access on the right of the operator
+            if (VisitPossibleConditionalAccess(leftOperand, out var conditionalStateWhenNotNull)
+                && CanPropagateStateWhenNotNull(leftConversion)
+                && binary.OperatorKind.Operator() is BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual)
+            {
+                Debug.Assert(!IsConditionalState);
+                var leftType = ResultType;
+                var (rightOperand, rightConversion) = RemoveConversion(binary.Right, includeExplicitConversions: false);
+
+                // Consider the following two scenarios:
+                // `a?.b(x = new object()) == c.d(x = null)` // `x` is maybe-null after expression
+                // `a?.b(x = null) == c.d(x = new object())` // `x` is not-null after expression
+
+                // In this scenario, we visit the RHS twice:
+                // (1) Once using the single "stateWhenNotNull" after the LHS, in order to update the "stateWhenNotNull" with the effects of the RHS
+                // (2) Once using the "worst case" state after the LHS for diagnostics and public API
+
+                // After the two visits of the RHS, we may set a conditional state using the state after (1) as the StateWhenTrue and the state after (2) as the StateWhenFalse.
+                // Depending on whether `==` or `!=` was used, and depending on the value of the RHS, we may then swap the StateWhenTrue with the StateWhenFalse.
+
+                var oldDisableDiagnostics = _disableDiagnostics;
+                _disableDiagnostics = true;
+
+                var stateAfterLeft = this.State;
+                SetState(getUnconditionalStateWhenNotNull(rightOperand, conditionalStateWhenNotNull));
+                VisitRvalue(rightOperand);
+                var stateWhenNotNull = this.State;
+
+                _disableDiagnostics = oldDisableDiagnostics;
+
+                // Now visit the right side for public API and diagnostics using the worst-case state from the LHS.
+                // Note that we do this visit last to try and make sure that the "visit for public API" overwrites walker state recorded during previous visits where possible.
+                SetState(stateAfterLeft);
+                var rightType = VisitRvalueWithState(rightOperand);
+                ReinferBinaryOperatorAndSetResult(leftOperand, leftConversion, leftType, rightOperand, rightConversion, rightType, binary);
+                if (isKnownNullOrNotNull(rightOperand, rightType))
+                {
+                    var isNullConstant = rightOperand.ConstantValue?.IsNull == true;
+                    SetConditionalState(isNullConstant == isEquals(binary)
+                        ? (State, stateWhenNotNull)
+                        : (stateWhenNotNull, State));
+                }
+
+                if (stack.Count == 0)
+                {
+                    return;
+                }
+
+                leftOperand = binary;
+                leftConversion = Conversion.Identity;
+                binary = stack.Pop();
+            }
 
             while (true)
             {
-                if (!learnFromBooleanConstantTest())
+                if (!learnFromConditionalAccessOrBoolConstant())
                 {
                     Unsplit(); // VisitRvalue does this
                     UseRvalueOnly(leftOperand); // drop lvalue part
@@ -3645,57 +3699,93 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binary = stack.Pop();
             }
 
-            // learn from true/false constant
-            bool learnFromBooleanConstantTest()
+            static bool isEquals(BoundBinaryOperator binary)
+                => binary.OperatorKind.Operator() == BinaryOperatorKind.Equal;
+
+            static bool isKnownNullOrNotNull(BoundExpression expr, TypeWithState resultType)
             {
-                if (!IsConditionalState)
+                return resultType.State.IsNotNull()
+                    || expr.ConstantValue is object;
+            }
+
+            LocalState getUnconditionalStateWhenNotNull(BoundExpression otherOperand, PossiblyConditionalState conditionalStateWhenNotNull)
+            {
+                LocalState stateWhenNotNull;
+                if (!conditionalStateWhenNotNull.IsConditionalState)
+                {
+                    stateWhenNotNull = conditionalStateWhenNotNull.State;
+                }
+                else if (isEquals(binary) && otherOperand.ConstantValue is { IsBoolean: true, BooleanValue: var boolValue })
+                {
+                    // can preserve conditional state from `.TryGetValue` in `dict?.TryGetValue(key, out value) == true`,
+                    // but not in `dict?.TryGetValue(key, out value) != false`
+                    stateWhenNotNull = boolValue ? conditionalStateWhenNotNull.StateWhenTrue : conditionalStateWhenNotNull.StateWhenFalse;
+                }
+                else
+                {
+                    stateWhenNotNull = conditionalStateWhenNotNull.StateWhenTrue;
+                    Join(ref stateWhenNotNull, ref conditionalStateWhenNotNull.StateWhenFalse);
+                }
+                return stateWhenNotNull;
+            }
+
+            // Returns true if `binary.Right` was visited by the call.
+            bool learnFromConditionalAccessOrBoolConstant()
+            {
+                if (binary.OperatorKind.Operator() is not (BinaryOperatorKind.Equal or BinaryOperatorKind.NotEqual))
                 {
                     return false;
                 }
 
-                if (!leftConversion.IsIdentity)
+                var leftResult = ResultType;
+                var (rightOperand, rightConversion) = RemoveConversion(binary.Right, includeExplicitConversions: false);
+                // `true == a?.b(out x)`
+                if (isKnownNullOrNotNull(leftOperand, leftResult)
+                    && CanPropagateStateWhenNotNull(rightConversion)
+                    && TryVisitConditionalAccess(rightOperand, out var conditionalStateWhenNotNull))
+                {
+                    ReinferBinaryOperatorAndSetResult(leftOperand, leftConversion, leftResult, rightOperand, rightConversion, rightType: ResultType, binary);
+
+                    var stateWhenNotNull = getUnconditionalStateWhenNotNull(leftOperand, conditionalStateWhenNotNull);
+                    var isNullConstant = leftOperand.ConstantValue?.IsNull == true;
+                    SetConditionalState(isNullConstant == isEquals(binary)
+                        ? (State, stateWhenNotNull)
+                        : (stateWhenNotNull, State));
+
+                    return true;
+                }
+
+                // can only learn from a bool constant operand here if it's using the built in `bool operator ==(bool left, bool right)`
+                if (binary.OperatorKind.IsUserDefined())
                 {
                     return false;
                 }
 
-                BinaryOperatorKind op = binary.OperatorKind.Operator();
-                if (op != BinaryOperatorKind.Equal && op != BinaryOperatorKind.NotEqual)
+                // `(x != null) == true`
+                if (IsConditionalState && binary.Right.ConstantValue is { IsBoolean: true } rightConstant)
                 {
-                    return false;
-                }
-
-                bool isSense;
-                if (binary.Right.ConstantValue?.IsBoolean == true)
-                {
-                    UseRvalueOnly(leftOperand); // record result for the left
-
-                    var stateWhenTrue = this.StateWhenTrue.Clone();
-                    var stateWhenFalse = this.StateWhenFalse.Clone();
-
+                    var (stateWhenTrue, stateWhenFalse) = (StateWhenTrue.Clone(), StateWhenFalse.Clone());
                     Unsplit();
                     Visit(binary.Right);
                     UseRvalueOnly(binary.Right); // record result for the right
-
-                    SetConditionalState(stateWhenTrue, stateWhenFalse);
-                    isSense = (op == BinaryOperatorKind.Equal) == binary.Right.ConstantValue.BooleanValue;
+                    SetConditionalState(isEquals(binary) == rightConstant.BooleanValue
+                        ? (stateWhenTrue, stateWhenFalse)
+                        : (stateWhenFalse, stateWhenTrue));
                 }
-                else if (binary.Left.ConstantValue?.IsBoolean == true)
+                // `true == (x != null)`
+                else if (binary.Left.ConstantValue is { IsBoolean: true } leftConstant)
                 {
                     Unsplit();
-                    UseRvalueOnly(leftOperand); // record result for the left
-
                     Visit(binary.Right);
-                    UseRvalueOnly(binary.Right); // record result for the right
-                    isSense = (op == BinaryOperatorKind.Equal) == binary.Left.ConstantValue.BooleanValue;
+                    UseRvalueOnly(binary.Right);
+                    if (IsConditionalState && isEquals(binary) != leftConstant.BooleanValue)
+                    {
+                        SetConditionalState(StateWhenFalse, StateWhenTrue);
+                    }
                 }
                 else
                 {
                     return false;
-                }
-
-                if (!isSense && IsConditionalState)
-                {
-                    SetConditionalState(StateWhenFalse, StateWhenTrue);
                 }
 
                 // record result for the binary
@@ -3705,14 +3795,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AfterLeftChildHasBeenVisited(BoundExpression leftOperand, Conversion leftConversion, BoundBinaryOperator binary)
+        private void ReinferBinaryOperatorAndSetResult(
+            BoundExpression leftOperand,
+            Conversion leftConversion,
+            TypeWithState leftType,
+            BoundExpression rightOperand,
+            Conversion rightConversion,
+            TypeWithState rightType,
+            BoundBinaryOperator binary)
         {
-            Debug.Assert(!IsConditionalState);
-            TypeWithState leftType = ResultType;
-
-            var (rightOperand, rightConversion) = RemoveConversion(binary.Right, includeExplicitConversions: false);
-            var rightType = VisitRvalueWithState(rightOperand);
-
             Debug.Assert(!IsConditionalState);
             // At this point, State.Reachable may be false for
             // invalid code such as `s + throw new Exception()`.
@@ -3805,6 +3896,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             var inferredResult = InferResultNullability(binary.OperatorKind, method, binary.Type, leftType, rightType);
             SetResult(binary, inferredResult, inferredResult.ToTypeWithAnnotations(compilation));
 
+            TypeSymbol? getTypeIfContainingType(TypeSymbol baseType, TypeSymbol? derivedType)
+            {
+                if (derivedType is null)
+                {
+                    return null;
+                }
+                derivedType = derivedType.StrippedType();
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                var conversion = _conversions.ClassifyBuiltInConversion(derivedType, baseType, ref discardedUseSiteInfo);
+                if (conversion.Exists && !conversion.IsExplicit)
+                {
+                    return derivedType;
+                }
+                return null;
+            }
+        }
+
+        private void AfterLeftChildHasBeenVisited(
+            BoundExpression leftOperand,
+            Conversion leftConversion,
+            BoundBinaryOperator binary)
+        {
+            Debug.Assert(!IsConditionalState);
+            var leftType = ResultType;
+
+            var (rightOperand, rightConversion) = RemoveConversion(binary.Right, includeExplicitConversions: false);
+            VisitRvalue(rightOperand);
+
+            var rightType = ResultType;
+            ReinferBinaryOperatorAndSetResult(leftOperand, leftConversion, leftType, rightOperand, rightConversion, rightType, binary);
+
             BinaryOperatorKind op = binary.OperatorKind.Operator();
 
             if (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual)
@@ -3873,22 +3995,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MarkSlotsAsNotNull(slotBuilder, ref stateToUpdate);
                 }
                 slotBuilder.Free();
-            }
-
-            TypeSymbol? getTypeIfContainingType(TypeSymbol baseType, TypeSymbol? derivedType)
-            {
-                if (derivedType is null)
-                {
-                    return null;
-                }
-                derivedType = derivedType.StrippedType();
-                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                var conversion = _conversions.ClassifyBuiltInConversion(derivedType, baseType, ref discardedUseSiteInfo);
-                if (conversion.Exists && !conversion.IsExplicit)
-                {
-                    return derivedType;
-                }
-                return null;
             }
         }
 
@@ -4248,9 +4354,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(improved-definite-assignment):
-        // this is not used outside 'VisitPossibleConditionalAccess' yet, but is expected to be used
-        // when refactoring 'VisitBinaryOperatorChildren'
         /// <summary>
         /// Visits a node only if it is a conditional access.
         /// Returns 'true' if and only if the node was visited.
@@ -4258,7 +4361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryVisitConditionalAccess(BoundExpression node, out PossiblyConditionalState stateWhenNotNull)
         {
             var (operand, conversion) = RemoveConversion(node, includeExplicitConversions: true);
-            if (operand is not BoundConditionalAccess access || !CanPropagateStateWhenNotNull(access, conversion))
+            if (operand is not BoundConditionalAccess access || !CanPropagateStateWhenNotNull(conversion))
             {
                 stateWhenNotNull = default;
                 return false;
@@ -4291,28 +4394,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Unconditionally visits an expression and returns the "state when not null" for the expression.
         /// </summary>
-        private void VisitPossibleConditionalAccess(BoundExpression node, out PossiblyConditionalState stateWhenNotNull)
+        private bool VisitPossibleConditionalAccess(BoundExpression node, out PossiblyConditionalState stateWhenNotNull)
         {
-            if (!TryVisitConditionalAccess(node, out stateWhenNotNull))
+            if (TryVisitConditionalAccess(node, out stateWhenNotNull))
             {
-                // in case we *didn't* have a conditional access, the only thing we learn in the "state when not null"
-                // is that the top-level expression was non-null.
-                Visit(node);
-                stateWhenNotNull = PossiblyConditionalState.Create(this);
-                var slot = MakeSlot(node);
-                if (slot > -1)
+                return true;
+            }
+
+            // in case we *didn't* have a conditional access, the only thing we learn in the "state when not null"
+            // is that the top-level expression was non-null.
+            Visit(node);
+            stateWhenNotNull = PossiblyConditionalState.Create(this);
+
+            (node, _) = RemoveConversion(node, includeExplicitConversions: true);
+            var slot = MakeSlot(node);
+            if (slot > -1)
+            {
+                if (IsConditionalState)
                 {
-                    if (IsConditionalState)
-                    {
-                        LearnFromNonNullTest(slot, ref stateWhenNotNull.StateWhenTrue);
-                        LearnFromNonNullTest(slot, ref stateWhenNotNull.StateWhenFalse);
-                    }
-                    else
-                    {
-                        LearnFromNonNullTest(slot, ref stateWhenNotNull.State);
-                    }
+                    LearnFromNonNullTest(slot, ref stateWhenNotNull.StateWhenTrue);
+                    LearnFromNonNullTest(slot, ref stateWhenNotNull.StateWhenFalse);
+                }
+                else
+                {
+                    LearnFromNonNullTest(slot, ref stateWhenNotNull.State);
                 }
             }
+            return false;
         }
 
         private void VisitConditionalAccess(BoundConditionalAccess node, out PossiblyConditionalState stateWhenNotNull)
@@ -4320,7 +4428,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var receiver = node.Receiver;
-            VisitRvalue(receiver);
+
+            // handle scenarios like `(a?.b)?.c()`
+            VisitPossibleConditionalAccess(receiver, out stateWhenNotNull);
+            Unsplit();
+
             _currentConditionalReceiverVisitResult = _visitResult;
             var previousConditionalAccessSlot = _lastConditionalAccessSlot;
 
@@ -4346,6 +4458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // In the other branch, the receiver is known to be non-null.
                     LearnFromNullTest(receiver, ref savedState);
                     makeAndAdjustReceiverSlot(receiver);
+                    SetPossiblyConditionalState(stateWhenNotNull);
                 }
 
                 // We want to preserve stateWhenNotNull from accesses in the same "chain":
@@ -4357,6 +4470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // we assume that non-conditional accesses can never contain conditional accesses from the same "chain".
                     // that is, we never have to dig through non-conditional accesses to find and handle conditional accesses.
+                    Debug.Assert(innerCondAccess.Receiver is not (BoundConditionalAccess or BoundConversion));
                     VisitRvalue(innerCondAccess.Receiver);
                     _currentConditionalReceiverVisitResult = _visitResult;
                     makeAndAdjustReceiverSlot(innerCondAccess.Receiver);
@@ -4415,12 +4529,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             void makeAndAdjustReceiverSlot(BoundExpression receiver)
             {
                 var slot = MakeSlot(receiver);
+                if (slot > -1)
+                    LearnFromNonNullTest(slot, ref State);
+
+                // given `a?.b()`, when `a` is a nullable value type,
+                // the conditional receiver for `?.b()` must be linked to `a.Value`, not to `a`.
                 if (slot > 0 && receiver.Type?.IsNullableType() == true)
                     slot = GetNullableOfTValueSlot(receiver.Type, slot, out _);
 
                 _lastConditionalAccessSlot = slot;
-                if (slot > -1)
-                    LearnFromNonNullTest(slot, ref State);
             }
         }
 

@@ -2697,7 +2697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var access = node switch
             {
                 BoundConditionalAccess ca => ca,
-                BoundConversion { Conversion: Conversion innerConversion, Operand: BoundConditionalAccess ca } when CanPropagateStateWhenNotNull(ca, innerConversion) => ca,
+                BoundConversion { Conversion: Conversion conversion, Operand: BoundConditionalAccess ca } when CanPropagateStateWhenNotNull(conversion) => ca,
                 _ => null
             };
 
@@ -2713,30 +2713,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stateWhenNotNull = default;
             return false;
-
         }
 
         /// <summary>
         /// "State when not null" can only propagate out of a conditional access if
         /// it is not subject to a user-defined conversion whose parameter is not of a non-nullable value type.
         /// </summary>
-        protected static bool CanPropagateStateWhenNotNull(BoundConditionalAccess operand, Conversion conversion)
+        protected static bool CanPropagateStateWhenNotNull(Conversion conversion)
         {
-            if (conversion.Kind is not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined))
+            if (!conversion.IsValid)
+            {
+                return false;
+            }
+
+            if (!conversion.IsUserDefined)
             {
                 return true;
             }
 
             var method = conversion.Method;
-            Debug.Assert(method is not null);
+            Debug.Assert(method is object);
             Debug.Assert(method.ParameterCount is 1);
             var param = method.Parameters[0];
-            if (operand.Type.IsNullableType() && param.Type.IsNonNullableValueType())
-            {
-                return true;
-            }
-
-            return false;
+            return param.Type.IsNonNullableValueType();
         }
 
         /// <summary>
@@ -2759,7 +2758,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitConditionalAccess(BoundConditionalAccess node, out TLocalState stateWhenNotNull)
         {
-            VisitRvalue(node.Receiver);
+            // The receiver may also be a conditional access.
+            // `(a?.b(x = 1))?.c(y = 1)`
+            if (VisitPossibleConditionalAccess(node.Receiver, out var receiverStateWhenNotNull))
+            {
+                stateWhenNotNull = receiverStateWhenNotNull;
+            }
+            else
+            {
+                Unsplit();
+                stateWhenNotNull = this.State.Clone();
+            }
 
             if (node.Receiver.ConstantValue != null && !IsConstantNull(node.Receiver))
             {
@@ -2767,9 +2776,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We can "know" that `.M0(x = 1)` was evaluated unconditionally but not `M0(y = 1)`.
                 // Therefore we do a VisitPossibleConditionalAccess here which unconditionally includes the "after receiver" state in State
                 // and includes the "after subsequent conditional accesses" in stateWhenNotNull
-                if (VisitPossibleConditionalAccess(node.AccessExpression, out var innerStateWhenNotNull))
+                if (VisitPossibleConditionalAccess(node.AccessExpression, out var firstAccessStateWhenNotNull))
                 {
-                    stateWhenNotNull = innerStateWhenNotNull;
+                    stateWhenNotNull = firstAccessStateWhenNotNull;
                 }
                 else
                 {
@@ -2784,6 +2793,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     SetUnreachable();
                 }
+                else
+                {
+                    SetState(stateWhenNotNull);
+                }
 
                 // We want to preserve stateWhenNotNull from accesses in the same "chain":
                 // a?.b(out x)?.c(out y); // expected to preserve stateWhenNotNull from both ?.b(out x) and ?.c(out y)
@@ -2792,6 +2805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression expr = node.AccessExpression;
                 while (expr is BoundConditionalAccess innerCondAccess)
                 {
+                    Debug.Assert(innerCondAccess.Receiver is not (BoundConditionalAccess or BoundConversion));
                     // we assume that non-conditional accesses can never contain conditional accesses from the same "chain".
                     // that is, we never have to dig through non-conditional accesses to find and handle conditional accesses.
                     VisitRvalue(innerCondAccess.Receiver);
