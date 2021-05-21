@@ -1301,9 +1301,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Binder binder = (object)typeDeclSyntax == null
                 ? factory.GetBinder(memberSyntax)
-                : factory.GetBinder(memberSyntax, typeDeclSyntax.OpenBraceToken.SpanStart);
+                : factory.GetBinder(memberSyntax, getPosition(typeDeclSyntax));
 
             return MakeCrefBinderInternal(crefSyntax, binder, inParameterOrReturnType);
+
+            static int getPosition(BaseTypeDeclarationSyntax baseTypeDeclaration)
+            {
+                if (baseTypeDeclaration is RecordDeclarationSyntax { SemicolonToken: { IsMissing: false } } recordDeclaration)
+                {
+                    return recordDeclaration.SemicolonToken.SpanStart;
+                }
+
+                return baseTypeDeclaration.OpenBraceToken.SpanStart;
+            }
         }
 
         /// <summary>
