@@ -86,35 +86,37 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 return null;
             }
 
-            switch (leftTarget, rightTarget)
+            switch (leftTarget)
             {
-                case (ExpressionSyntax leftConstant, ExpressionSyntax rightConstant):
-                    if (TryGetCommonReceiver(leftReceiver, rightReceiver, semanticModel) is not (var commonReceiver, var leftNames, var rightNames))
-                        return null;
-
-                    return root =>
+                case ExpressionSyntax leftConstant:
                     {
-                        ExpressionSyntax replacement =
-                            IsPatternExpression(commonReceiver, RecursivePattern(
-                                CreateSubpattern(leftNames, CreatePattern(leftReceiver, leftConstant, leftFlipped)),
-                                CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightConstant, rightFlipped))));
-                        return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
-                    };
+                        if (TryGetCommonReceiver(leftReceiver, rightReceiver, semanticModel) is not (var commonReceiver, var leftNames, var rightNames))
+                            return null;
 
-                case (PatternSyntax leftPattern, _):
-                    if (TryFindSingleVariableDesignation(leftPattern, rightReceiver, semanticModel) is not var (designation, names))
-                        return null;
-
-                    RoslynDebug.AssertNotNull(leftPattern.Parent);
-                    RoslynDebug.AssertNotNull(designation.Parent);
-
-                    return root =>
+                        return root =>
+                        {
+                            var subpattern = CreateSubpattern(rightReceiver, rightTarget, rightFlipped, rightNames);
+                            ExpressionSyntax replacement = IsPatternExpression(commonReceiver, RecursivePattern(
+                                CreateSubpattern(leftNames, CreatePattern(leftReceiver, leftConstant, leftFlipped)), subpattern));
+                            return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
+                        };
+                    }
+                case PatternSyntax leftPattern:
                     {
-                        var containingPattern = RewriteContainingPattern(rightReceiver, rightTarget, rightFlipped, designation, names);
-                        var replacement = ((IsPatternExpressionSyntax)leftPattern.Parent).ReplaceNode(designation.Parent, containingPattern);
-                        return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
-                    };
+                        if (TryFindSingleVariableDesignation(leftPattern, rightReceiver, semanticModel) is not var (designation, rightNames))
+                            return null;
 
+                        RoslynDebug.AssertNotNull(leftPattern.Parent);
+                        RoslynDebug.AssertNotNull(designation.Parent);
+
+                        return root =>
+                        {
+                            var subpattern = CreateSubpattern(rightReceiver, rightTarget, rightFlipped, rightNames);
+                            var containingPattern = RewriteContainingPattern(subpattern, designation);
+                            var replacement = ((IsPatternExpressionSyntax)leftPattern.Parent).ReplaceNode(designation.Parent, containingPattern);
+                            return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
+                        };
+                    }
                 default:
                     return null;
             }
@@ -153,25 +155,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                         throw ExceptionUtilities.UnexpectedValue(v.Kind());
                 }
 
-                var containingPattern = RewriteContainingPattern(receiver, target, flipped, designation, names);
+                var subpattern = CreateSubpattern(receiver, target, flipped, names);
+                var containingPattern = RewriteContainingPattern(subpattern, designation);
                 editor.ReplaceNode(designation.Parent, containingPattern);
                 return editor.GetChangedRoot();
             };
         }
 
         private static PatternSyntax RewriteContainingPattern(
-            ExpressionSyntax receiver, ExpressionOrPatternSyntax target, bool flipped,
-            SingleVariableDesignationSyntax designation, ImmutableArray<IdentifierNameSyntax> names)
+            SubpatternSyntax subpattern,
+            SingleVariableDesignationSyntax designation)
         {
-            var subpattern = CreateSubpattern(names, target switch
-            {
-                ExpressionSyntax constant => CreatePattern(receiver, constant, flipped),
-                PatternSyntax pattern => pattern,
-                var v => throw ExceptionUtilities.UnexpectedValue(v.Kind()),
-            });
-
             RoslynDebug.AssertNotNull(designation.Parent);
-
             return designation.Parent switch
             {
                 VarPatternSyntax => RecursivePattern(properties: PropertyPatternClause(SingletonSeparatedList(subpattern)), designation: designation),
@@ -179,6 +174,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 RecursivePatternSyntax p => p.AddPropertyPatternClauseSubpatterns(subpattern),
                 var p => throw ExceptionUtilities.UnexpectedValue(p.Kind())
             };
+        }
+
+        private static SubpatternSyntax CreateSubpattern(ExpressionSyntax receiver, ExpressionOrPatternSyntax target, bool flipped, ImmutableArray<IdentifierNameSyntax> names)
+        {
+            return CreateSubpattern(names, target switch
+            {
+                ExpressionSyntax constant => CreatePattern(receiver, constant, flipped),
+                PatternSyntax pattern => pattern,
+                var v => throw ExceptionUtilities.UnexpectedValue(v.Kind()),
+            });
         }
 
         private static (SingleVariableDesignationSyntax VariableDesignation, ImmutableArray<IdentifierNameSyntax> Names)?
