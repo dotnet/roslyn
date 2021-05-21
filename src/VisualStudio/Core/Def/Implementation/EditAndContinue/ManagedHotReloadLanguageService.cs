@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     [Shared]
-    [Export(typeof(IManagedEditAndContinueLanguageService))]
+    [Export(typeof(IManagedHotReloadLanguageService))]
     [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class ManagedHotReloadLanguageService : IManagedHotReloadLanguageService
     {

@@ -813,16 +813,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             private ImmutableHashSet<string> GetOrCreateSupportedLiveDiagnostics(Project project)
             {
+                var fullSolutionAnalysis = SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
+                if (!project.SupportsCompilation || fullSolutionAnalysis)
+                {
+                    // Defer to _allDiagnosticIdMap so we avoid placing FSA diagnostics in _liveDiagnosticIdMap
+                    return GetOrCreateSupportedDiagnosticIds(project.Id);
+                }
+
                 return GetOrCreateDiagnosticIds(project.Id, _liveDiagnosticIdMap, ComputeSupportedLiveDiagnosticIds);
 
                 ImmutableHashSet<string> ComputeSupportedLiveDiagnosticIds()
                 {
-                    var fullSolutionAnalysis = SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
-                    if (!project.SupportsCompilation || fullSolutionAnalysis)
-                    {
-                        return GetOrCreateSupportedDiagnosticIds(project.Id);
-                    }
-
                     // set ids set
                     var builder = ImmutableHashSet.CreateBuilder<string>();
                     var infoCache = _owner._diagnosticService.AnalyzerInfoCache;

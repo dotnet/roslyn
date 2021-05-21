@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
@@ -22,9 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         public AbstractDiagnosticsAdornmentTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
+            : base(threadingContext, diagnosticService, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
         {
         }
 

@@ -149,33 +149,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
         [WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880")]
+        [WorkItem(53361, "https://github.com/dotnet/roslyn/issues/53361")]
         public void DeeplyNestedGeneric()
         {
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
                 // Legacy baselines are indicated by comments
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) when ExecutionConditionUtil.IsMacOS => 180, // 100
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) when ExecutionConditionUtil.IsMacOS => 520, // 100
-                _ when ExecutionConditionUtil.IsCoreClrUnix => 1200, // 1200
-                _ when ExecutionConditionUtil.IsMonoDesktop => 730, // 730
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 450, // 270
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 370, // 270
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290, // 1290
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 250, // 170
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 270, // 170
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730, // 730
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
             // Un-comment loop below and use above commands to figure out the new limits
-            // for (int i = nestingLevel; i < int.MaxValue; i = i + 10)
-            // {
-            //     var start = DateTime.UtcNow;
-            //     Console.Write($"Depth: {i}");
-            //     runDeeplyNestedGenericTest(i);
-            //     Console.WriteLine($" - {DateTime.UtcNow - start}");
-            // }
+            //Console.WriteLine($"Using architecture: {ExecutionConditionUtil.Architecture}, configuration: {ExecutionConditionUtil.Configuration}");
+            //for (int i = nestingLevel; i < int.MaxValue; i = i + 10)
+            //{
+            //    var start = DateTime.UtcNow;
+            //    Console.Write($"Depth: {i}");
+            //    runDeeplyNestedGenericTest(i);
+            //    Console.WriteLine($" - {DateTime.UtcNow - start}");
+            //}
 
             runDeeplyNestedGenericTest(nestingLevel);
 

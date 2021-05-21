@@ -38,11 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _lazyAnalyzers = lazyAnalyzers;
 
                         Processor = processor;
-
-                        if (Processor._documentTracker != null)
-                        {
-                            Processor._documentTracker.NonRoslynBufferTextChanged += OnNonRoslynBufferTextChanged;
-                        }
+                        Processor._documentTracker.NonRoslynBufferTextChanged += OnNonRoslynBufferTextChanged;
                     }
 
                     public ImmutableArray<IIncrementalAnalyzer> Analyzers
@@ -107,10 +103,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         base.Shutdown();
 
-                        if (Processor._documentTracker != null)
-                        {
-                            Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
-                        }
+                        Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
                     }
 
                     private void OnNonRoslynBufferTextChanged(object? sender, EventArgs e)

@@ -183,13 +183,12 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
-                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 testData: new CompilationTestData() { SymWriterFactory = _ => new MockSymUnmanagedWriter() });
 
             result.Diagnostics.Verify(
@@ -216,13 +215,12 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
-                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 testData: new CompilationTestData() { SymWriterFactory = SymWriterTestUtilities.ThrowingFactory });
 
             result.Diagnostics.Verify(
@@ -249,13 +247,12 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
-                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 testData: new CompilationTestData() { SymWriterFactory = SymWriterTestUtilities.ThrowingFactory });
 
             result.Diagnostics.Verify(
@@ -282,13 +279,12 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
-                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 testData: new CompilationTestData() { SymWriterFactory = _ => throw new DllNotFoundException("xxx") });
 
             result.Diagnostics.Verify(
@@ -4282,6 +4278,64 @@ public class C
       IL_00a1:  ret
     }
 ", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
+        }
+
+        [Fact]
+        public void SwitchExpressionWithPattern()
+        {
+            string source = WithWindowsLineBreaks(@"
+class C
+{
+    static string M(object o)
+    {
+        return o switch
+        {
+            int i => $""Number: {i}"",
+            _ => ""Don't know""
+        };
+    }
+}
+");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.M",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""55"" />
+          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""10"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x4"" startLine=""6"" startColumn=""18"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x5"" hidden=""true"" document=""1"" />
+        <entry offset=""0x14"" hidden=""true"" document=""1"" />
+        <entry offset=""0x16"" hidden=""true"" document=""1"" />
+        <entry offset=""0x18"" startLine=""8"" startColumn=""22"" endLine=""8"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""9"" startColumn=""18"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x33"" hidden=""true"" document=""1"" />
+        <entry offset=""0x36"" startLine=""6"" startColumn=""9"" endLine=""10"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x37"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3b"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x3d"">
+        <scope startOffset=""0x16"" endOffset=""0x2b"">
+          <local name=""i"" il_index=""0"" il_start=""0x16"" il_end=""0x2b"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
         }
 
         #endregion
@@ -9625,9 +9679,9 @@ public class C
               <namespace usingCount=""1"" />
             </using>
             <encLocalSlotMap>
-              <slot kind=""30"" offset=""238"" />
+              <slot kind=""30"" offset=""11"" />
               <slot kind=""temp"" />
-              <slot kind=""30"" offset=""238"" ordinal=""1"" />
+              <slot kind=""30"" offset=""22"" />
               <slot kind=""temp"" />
               <slot kind=""35"" offset=""22"" />
               <slot kind=""35"" offset=""22"" ordinal=""1"" />
@@ -9641,7 +9695,7 @@ public class C
               <slot kind=""35"" offset=""63"" ordinal=""3"" />
               <slot kind=""35"" offset=""63"" ordinal=""4"" />
               <slot kind=""35"" offset=""63"" ordinal=""5"" />
-              <slot kind=""30"" offset=""238"" ordinal=""2"" />
+              <slot kind=""30"" offset=""238"" />
               <slot kind=""35"" offset=""238"" />
               <slot kind=""35"" offset=""238"" ordinal=""1"" />
               <slot kind=""35"" offset=""238"" ordinal=""2"" />
@@ -9649,8 +9703,8 @@ public class C
             </encLocalSlotMap>
             <encLambdaMap>
               <methodOrdinal>0</methodOrdinal>
-              <closure offset=""238"" />
-              <closure offset=""238"" />
+              <closure offset=""11"" />
+              <closure offset=""22"" />
               <closure offset=""63"" />
               <closure offset=""238"" />
               <lambda offset=""511"" closure=""0"" />
@@ -9729,6 +9783,453 @@ public class C
       </methods>
     </symbols>
 ");
+        }
+
+        [WorkItem(50321, "https://github.com/dotnet/roslyn/issues/50321")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void NestedSwitchExpressions_Closures_01()
+        {
+            string source = WithWindowsLineBreaks(
+@"using System;
+class C
+{
+    static int F(object o)
+    {
+        return o switch
+        {
+            int i => new Func<int>(() => i + i switch
+            {
+                1 => 2,
+                _ => 3
+            })(),
+            _ => 4
+        };
+    }
+}");
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyTypeIL("C",
+@".class private auto ansi beforefieldinit C
+	extends [netstandard]System.Object
+{
+	// Nested Types
+	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+		extends [netstandard]System.Object
+	{
+		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public int32 '<i>5__2'
+		// Methods
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x20a1
+			// Code size 8 (0x8)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [netstandard]System.Object::.ctor()
+			IL_0006: nop
+			IL_0007: ret
+		} // end of method '<>c__DisplayClass0_0'::.ctor
+		.method assembly hidebysig 
+			instance int32 '<F>b__0' () cil managed 
+		{
+			// Method begins at RVA 0x20ac
+			// Code size 38 (0x26)
+			.maxstack 2
+			.locals init (
+				[0] int32,
+				[1] int32
+			)
+			IL_0000: ldarg.0
+			IL_0001: ldfld int32 C/'<>c__DisplayClass0_0'::'<i>5__2'
+			IL_0006: stloc.0
+			IL_0007: ldc.i4.1
+			IL_0008: brtrue.s IL_000b
+			IL_000a: nop
+			IL_000b: ldarg.0
+			IL_000c: ldfld int32 C/'<>c__DisplayClass0_0'::'<i>5__2'
+			IL_0011: ldc.i4.1
+			IL_0012: beq.s IL_0016
+			IL_0014: br.s IL_001a
+			IL_0016: ldc.i4.2
+			IL_0017: stloc.1
+			IL_0018: br.s IL_001e
+			IL_001a: ldc.i4.3
+			IL_001b: stloc.1
+			IL_001c: br.s IL_001e
+			IL_001e: ldc.i4.1
+			IL_001f: brtrue.s IL_0022
+			IL_0021: nop
+			IL_0022: ldloc.0
+			IL_0023: ldloc.1
+			IL_0024: add
+			IL_0025: ret
+		} // end of method '<>c__DisplayClass0_0'::'<F>b__0'
+	} // end of class <>c__DisplayClass0_0
+	// Methods
+	.method private hidebysig static 
+		int32 F (
+			object o
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 69 (0x45)
+		.maxstack 2
+		.locals init (
+			[0] class C/'<>c__DisplayClass0_0',
+			[1] int32,
+			[2] int32
+		)
+		IL_0000: nop
+		IL_0001: newobj instance void C/'<>c__DisplayClass0_0'::.ctor()
+		IL_0006: stloc.0
+		IL_0007: ldc.i4.1
+		IL_0008: brtrue.s IL_000b
+		IL_000a: nop
+		IL_000b: ldarg.0
+		IL_000c: isinst [netstandard]System.Int32
+		IL_0011: brfalse.s IL_0037
+		IL_0013: ldloc.0
+		IL_0014: ldarg.0
+		IL_0015: unbox.any [netstandard]System.Int32
+		IL_001a: stfld int32 C/'<>c__DisplayClass0_0'::'<i>5__2'
+		IL_001f: br.s IL_0021
+		IL_0021: br.s IL_0023
+		IL_0023: ldloc.0
+		IL_0024: ldftn instance int32 C/'<>c__DisplayClass0_0'::'<F>b__0'()
+		IL_002a: newobj instance void class [netstandard]System.Func`1<int32>::.ctor(object, native int)
+		IL_002f: callvirt instance !0 class [netstandard]System.Func`1<int32>::Invoke()
+		IL_0034: stloc.1
+		IL_0035: br.s IL_003b
+		IL_0037: ldc.i4.4
+		IL_0038: stloc.1
+		IL_0039: br.s IL_003b
+		IL_003b: ldc.i4.1
+		IL_003c: brtrue.s IL_003f
+		IL_003e: nop
+		IL_003f: ldloc.1
+		IL_0040: stloc.2
+		IL_0041: br.s IL_0043
+		IL_0043: ldloc.2
+		IL_0044: ret
+	} // end of method C::F
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20a1
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: nop
+		IL_0007: ret
+	} // end of method C::.ctor
+} // end of class C
+");
+            verifier.VerifyPdb(
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""11"" />
+          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""11"" />
+          <lambda offset=""80"" closure=""0"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa"" startLine=""6"" startColumn=""18"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" hidden=""true"" document=""1"" />
+        <entry offset=""0x23"" startLine=""8"" startColumn=""22"" endLine=""12"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x37"" startLine=""13"" startColumn=""18"" endLine=""13"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x3b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3e"" startLine=""6"" startColumn=""9"" endLine=""14"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x3f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x43"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x45"">
+        <namespace name=""System"" />
+        <scope startOffset=""0x1"" endOffset=""0x43"">
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x43"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+    <method containingType=""C+&lt;&gt;c__DisplayClass0_0"" name=""&lt;F&gt;b__0"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" parameterNames=""o"" />
+        <encLocalSlotMap>
+          <slot kind=""28"" offset=""86"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""42"" endLine=""12"" endColumn=""14"" document=""1"" />
+        <entry offset=""0xa"" startLine=""8"" startColumn=""48"" endLine=""12"" endColumn=""14"" document=""1"" />
+        <entry offset=""0xb"" hidden=""true"" document=""1"" />
+        <entry offset=""0x16"" startLine=""10"" startColumn=""22"" endLine=""10"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x1a"" startLine=""11"" startColumn=""22"" endLine=""11"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x1e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" startLine=""8"" startColumn=""42"" endLine=""12"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x22"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [WorkItem(50321, "https://github.com/dotnet/roslyn/issues/50321")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void NestedSwitchExpressions_Closures_02()
+        {
+            string source = WithWindowsLineBreaks(
+@"using System;
+class C
+{
+    static string F(object o)
+    {
+        return o switch
+        {
+            int i => new Func<string>(() => ""1"" + i switch
+            {
+                1 => new Func<string>(() => ""2"" + i)(),
+                _ => ""3""
+            })(),
+            _ => ""4""
+        };
+    }
+}");
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyTypeIL("C",
+@".class private auto ansi beforefieldinit C
+	extends [netstandard]System.Object
+{
+	// Nested Types
+	.class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass0_0'
+		extends [netstandard]System.Object
+	{
+		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public int32 '<i>5__2'
+		.field public class [netstandard]System.Func`1<string> '<>9__1'
+		// Methods
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x20a5
+			// Code size 8 (0x8)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [netstandard]System.Object::.ctor()
+			IL_0006: nop
+			IL_0007: ret
+		} // end of method '<>c__DisplayClass0_0'::.ctor
+		.method assembly hidebysig 
+			instance string '<F>b__0' () cil managed 
+		{
+			// Method begins at RVA 0x20b0
+			// Code size 78 (0x4e)
+			.maxstack 3
+			.locals init (
+				[0] string,
+				[1] class [netstandard]System.Func`1<string>
+			)
+			IL_0000: ldc.i4.1
+			IL_0001: brtrue.s IL_0004
+			IL_0003: nop
+			IL_0004: ldarg.0
+			IL_0005: ldfld int32 C/'<>c__DisplayClass0_0'::'<i>5__2'
+			IL_000a: ldc.i4.1
+			IL_000b: beq.s IL_000f
+			IL_000d: br.s IL_0036
+			IL_000f: ldarg.0
+			IL_0010: ldfld class [netstandard]System.Func`1<string> C/'<>c__DisplayClass0_0'::'<>9__1'
+			IL_0015: dup
+			IL_0016: brtrue.s IL_002e
+			IL_0018: pop
+			IL_0019: ldarg.0
+			IL_001a: ldarg.0
+			IL_001b: ldftn instance string C/'<>c__DisplayClass0_0'::'<F>b__1'()
+			IL_0021: newobj instance void class [netstandard]System.Func`1<string>::.ctor(object, native int)
+			IL_0026: dup
+			IL_0027: stloc.1
+			IL_0028: stfld class [netstandard]System.Func`1<string> C/'<>c__DisplayClass0_0'::'<>9__1'
+			IL_002d: ldloc.1
+			IL_002e: callvirt instance !0 class [netstandard]System.Func`1<string>::Invoke()
+			IL_0033: stloc.0
+			IL_0034: br.s IL_003e
+			IL_0036: ldstr ""3""
+			IL_003b: stloc.0
+			IL_003c: br.s IL_003e
+			IL_003e: ldc.i4.1
+			IL_003f: brtrue.s IL_0042
+			IL_0041: nop
+			IL_0042: ldstr ""1""
+			IL_0047: ldloc.0
+			IL_0048: call string [netstandard]System.String::Concat(string, string)
+			IL_004d: ret
+		} // end of method '<>c__DisplayClass0_0'::'<F>b__0'
+		.method assembly hidebysig 
+			instance string '<F>b__1' () cil managed 
+		{
+			// Method begins at RVA 0x210a
+			// Code size 22 (0x16)
+			.maxstack 8
+			IL_0000: ldstr ""2""
+			IL_0005: ldarg.0
+			IL_0006: ldflda int32 C/'<>c__DisplayClass0_0'::'<i>5__2'
+			IL_000b: call instance string [netstandard]System.Int32::ToString()
+			IL_0010: call string [netstandard]System.String::Concat(string, string)
+			IL_0015: ret
+		} // end of method '<>c__DisplayClass0_0'::'<F>b__1'
+	} // end of class <>c__DisplayClass0_0
+	// Methods
+	.method private hidebysig static 
+		string F (
+			object o
+		) cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 73 (0x49)
+		.maxstack 2
+		.locals init (
+			[0] class C/'<>c__DisplayClass0_0',
+			[1] string,
+			[2] string
+		)
+		IL_0000: nop
+		IL_0001: newobj instance void C/'<>c__DisplayClass0_0'::.ctor()
+		IL_0006: stloc.0
+		IL_0007: ldc.i4.1
+		IL_0008: brtrue.s IL_000b
+		IL_000a: nop
+		IL_000b: ldarg.0
+		IL_000c: isinst [netstandard]System.Int32
+		IL_0011: brfalse.s IL_0037
+		IL_0013: ldloc.0
+		IL_0014: ldarg.0
+		IL_0015: unbox.any [netstandard]System.Int32
+		IL_001a: stfld int32 C/'<>c__DisplayClass0_0'::'<i>5__2'
+		IL_001f: br.s IL_0021
+		IL_0021: br.s IL_0023
+		IL_0023: ldloc.0
+		IL_0024: ldftn instance string C/'<>c__DisplayClass0_0'::'<F>b__0'()
+		IL_002a: newobj instance void class [netstandard]System.Func`1<string>::.ctor(object, native int)
+		IL_002f: callvirt instance !0 class [netstandard]System.Func`1<string>::Invoke()
+		IL_0034: stloc.1
+		IL_0035: br.s IL_003f
+		IL_0037: ldstr ""4""
+		IL_003c: stloc.1
+		IL_003d: br.s IL_003f
+		IL_003f: ldc.i4.1
+		IL_0040: brtrue.s IL_0043
+		IL_0042: nop
+		IL_0043: ldloc.1
+		IL_0044: stloc.2
+		IL_0045: br.s IL_0047
+		IL_0047: ldloc.2
+		IL_0048: ret
+	} // end of method C::F
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x20a5
+		// Code size 8 (0x8)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: nop
+		IL_0007: ret
+	} // end of method C::.ctor
+} // end of class C
+");
+            verifier.VerifyPdb(
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""30"" offset=""11"" />
+          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""11"" />
+          <lambda offset=""83"" closure=""0"" />
+          <lambda offset=""158"" closure=""0"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" hidden=""true"" document=""1"" />
+        <entry offset=""0xa"" startLine=""6"" startColumn=""18"" endLine=""14"" endColumn=""10"" document=""1"" />
+        <entry offset=""0xb"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" hidden=""true"" document=""1"" />
+        <entry offset=""0x23"" startLine=""8"" startColumn=""22"" endLine=""12"" endColumn=""17"" document=""1"" />
+        <entry offset=""0x37"" startLine=""13"" startColumn=""18"" endLine=""13"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x3f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x42"" startLine=""6"" startColumn=""9"" endLine=""14"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x43"" hidden=""true"" document=""1"" />
+        <entry offset=""0x47"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x49"">
+        <namespace name=""System"" />
+        <scope startOffset=""0x1"" endOffset=""0x47"">
+          <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x47"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+    <method containingType=""C+&lt;&gt;c__DisplayClass0_0"" name=""&lt;F&gt;b__0"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" parameterNames=""o"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""45"" endLine=""12"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x3"" startLine=""8"" startColumn=""53"" endLine=""12"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x4"" hidden=""true"" document=""1"" />
+        <entry offset=""0xf"" startLine=""10"" startColumn=""22"" endLine=""10"" endColumn=""55"" document=""1"" />
+        <entry offset=""0x36"" startLine=""11"" startColumn=""22"" endLine=""11"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x3e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x41"" startLine=""8"" startColumn=""45"" endLine=""12"" endColumn=""14"" document=""1"" />
+        <entry offset=""0x42"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C+&lt;&gt;c__DisplayClass0_0"" name=""&lt;F&gt;b__1"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" parameterNames=""o"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""45"" endLine=""10"" endColumn=""52"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
         }
 
         [WorkItem(37261, "https://github.com/dotnet/roslyn/issues/37261")]
@@ -12171,10 +12672,9 @@ class Program
                 var compilation = CreateCompilation("");
                 var result = compilation.Emit(outStream, options: new EmitOptions(pdbFilePath: "test\\?.pdb", debugInformationFormat: DebugInformationFormat.Embedded));
 
-                Assert.False(result.Success);
-                result.Diagnostics.Verify(
-                    // error CS2021: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1));
+                // This is fine because EmitOptions just controls what is written into the PE file and it's 
+                // valid for this to be an illegal file name (path map can easily create these).
+                Assert.True(result.Success);
             }
         }
 

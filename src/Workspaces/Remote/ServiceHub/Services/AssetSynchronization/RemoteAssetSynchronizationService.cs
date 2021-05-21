@@ -12,6 +12,11 @@ using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// This service is used by the <see cref="SolutionChecksumUpdater"/> to proactively update the solution snapshot in
+    /// the out-of-process workspace. We do this to limit the amount of time required to synchronize a solution over after an edit
+    /// once a feature is asking for a snapshot.
+    /// </summary>
     internal sealed class RemoteAssetSynchronizationService : BrokeredServiceBase, IRemoteAssetSynchronizationService
     {
         internal sealed class Factory : FactoryBase<IRemoteAssetSynchronizationService>

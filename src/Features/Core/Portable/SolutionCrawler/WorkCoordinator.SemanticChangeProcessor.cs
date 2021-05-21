@@ -195,9 +195,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private static bool IsInternal(ISymbol symbol)
                 {
-                    return symbol.DeclaredAccessibility == Accessibility.Internal ||
-                           symbol.DeclaredAccessibility == Accessibility.ProtectedAndInternal ||
-                           symbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
+                    return symbol.DeclaredAccessibility is Accessibility.Internal or
+                           Accessibility.ProtectedAndInternal or
+                           Accessibility.ProtectedOrInternal;
                 }
 
                 private static bool IsType(ISymbol symbol)
@@ -205,10 +205,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private static bool IsMember(ISymbol symbol)
                 {
-                    return symbol.Kind == SymbolKind.Event ||
-                           symbol.Kind == SymbolKind.Field ||
-                           symbol.Kind == SymbolKind.Method ||
-                           symbol.Kind == SymbolKind.Property;
+                    return symbol.Kind is SymbolKind.Event or
+                           SymbolKind.Field or
+                           SymbolKind.Method or
+                           SymbolKind.Property;
                 }
 
                 private void EnqueueFullProjectDependency(Document document, IAssemblySymbol? internalVisibleToAssembly = null)
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         using (data.AsyncToken)
                         {
-                            var project = _registration.CurrentSolution.GetProject(data.ProjectId);
+                            var project = _registration.GetSolutionToAnalyze().GetProject(data.ProjectId);
                             if (project == null)
                             {
                                 return;
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             }
 
                             // do dependency tracking here with current solution
-                            var solution = _registration.CurrentSolution;
+                            var solution = _registration.GetSolutionToAnalyze();
                             foreach (var projectId in GetProjectsToAnalyze(solution, data.ProjectId))
                             {
                                 project = solution.GetProject(projectId);

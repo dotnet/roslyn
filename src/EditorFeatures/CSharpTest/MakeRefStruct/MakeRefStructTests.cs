@@ -62,6 +62,18 @@ ref struct S
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
+        public async Task FieldInRecordStruct()
+        {
+            var text = CreateTestSource(@"
+record struct S
+{
+    Span<int>[||] m;
+}
+");
+            await TestMissingInRegularAndScriptAsync(text, new TestParameters(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeRefStruct)]
         public async Task FieldInNestedClassInsideNotRefStruct()
         {
             var text = CreateTestSource(@"

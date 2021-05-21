@@ -32,6 +32,11 @@
         <target state="new">Parameter cannot be null, empty, or contain whitespace.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Path_for_additional_document_0_was_null">
+        <source>Path for additional document '{0}' was null}</source>
+        <target state="new">Path for additional document '{0}' was null}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Path_for_document_0_was_null">
         <source>Path for document '{0}' was null</source>
         <target state="new">Path for document '{0}' was null</target>
