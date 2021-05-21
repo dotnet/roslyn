@@ -1618,7 +1618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 foreach (BoundSubpattern sub in pat.Properties)
                                 {
-                                    if (sub is BoundPropertySubpattern { Member: var member } )
+                                    if (sub is BoundPropertySubpattern { Member: var member })
                                     {
                                         while (member is not null && !member.HasErrors)
                                         {
