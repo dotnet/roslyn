@@ -822,6 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (!IsEarlyAttributeBinder && syntax.ArgumentList is not null &&
                 getCallerArgumentArgumentIndex(parameter, constructorArgumentNamesOpt) is int argumentIndex && argumentIndex > -1 && argumentIndex < argumentsCount)
             {
+                CheckFeatureAvailability(syntax.ArgumentList, MessageID.IDS_FeatureCallerArgumentExpression, diagnostics);
                 parameterType = Compilation.GetSpecialType(SpecialType.System_String);
                 kind = TypedConstantKind.Primitive;
                 defaultValue = syntax.ArgumentList.Arguments[argumentIndex].Expression.ToString();

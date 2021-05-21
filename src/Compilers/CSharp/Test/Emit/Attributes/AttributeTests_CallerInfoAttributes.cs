@@ -437,7 +437,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'");
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
@@ -470,7 +470,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'");
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
@@ -503,7 +503,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'");
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
@@ -537,7 +537,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'");
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
@@ -546,6 +546,45 @@ public class Program
             Assert.Equal("Hello", attributeArguments[0].Value);
             Assert.Equal("World", attributeArguments[1].Value);
             Assert.Equal("\"Hello\"", attributeArguments[2].Value);
+        }
+
+        [Fact]
+        public void TestArgumentExpressionInAttributeConstructor_NamedAndOptionalParameters()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(int a = 1, int b = 2, int c = 3, [CallerArgumentExpression(""a"")] string expr_a = """", [CallerArgumentExpression(""b"")] string expr_b = """", [CallerArgumentExpression(""c"")] string expr_c = """")
+    {
+        Console.WriteLine($""'{a}', '{b}', '{c}', '{expr_a}', '{expr_b}', '{expr_c}'"");
+        A = a;
+        B = b;
+        C = c;
+    }
+
+    public int X;
+    public int A;
+    public int B;
+    public int C;
+}
+
+[My(0+0, c:1+1, X=2+2)]
+class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttribute(typeof(MyAttribute));
+        _ = new MyAttribute(0+0, c: 1+1);
+    }
+}";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"'0', '2', '2', '0+0', '', '1+1'
+'0', '2', '2', '0+0', '', '1+1'");
         }
 
         [Fact]
