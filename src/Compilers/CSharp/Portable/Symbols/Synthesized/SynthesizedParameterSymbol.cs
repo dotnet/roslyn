@@ -289,7 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue;
 
-        internal override bool IsIDispatchConstant => throw ExceptionUtilities.Unreachable
+        internal override bool IsIDispatchConstant => throw ExceptionUtilities.Unreachable;
+
         internal override bool IsIUnknownConstant => throw ExceptionUtilities.Unreachable;
     }
 }
