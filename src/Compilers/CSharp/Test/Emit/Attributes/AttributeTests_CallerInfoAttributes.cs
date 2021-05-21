@@ -548,6 +548,47 @@ public class Program
             Assert.Equal("\"Hello\"", attributeArguments[2].Value);
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionInAttributeConstructor_Complex()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public class MyAttribute : Attribute
+{
+    public MyAttribute([CallerArgumentExpression(""param2"")] string param1 = ""param1_default"", [CallerArgumentExpression(""param1"")] string param2 = ""param2_default"") => Console.WriteLine($""param1: {param1}, param2: {param2}"");
+}
+
+[My]
+[My()]
+[My(""param1_value"")]
+[My(param1: ""param1_value"")]
+[My(param2: ""param2_value"")]
+[My(param1: ""param1_value"", param2: ""param2_value"")]
+[My(param2: ""param2_value"", param1: ""param1_value"")]
+public class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttributes(typeof(MyAttribute), false);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:
+@"param1: param1_default, param2: param2_default
+param1: param1_default, param2: param2_default
+param1: param1_value, param2: ""param1_value""
+param1: param1_value, param2: ""param1_value""
+param1: ""param2_value"", param2: param2_value
+param1: param1_value, param2: param2_value
+param1: param1_value, param2: param2_value");
+        }
+
         [Fact]
         public void TestArgumentExpressionInAttributeConstructor_NamedAndOptionalParameters()
         {

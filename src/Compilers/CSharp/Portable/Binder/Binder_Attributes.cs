@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 constructorArguments = GetRewrittenAttributeConstructorArguments(out constructorArgumentsSourceIndices, attributeConstructor,
-                    constructorArgsArray, boundAttribute.ConstructorArgumentNamesOpt, (AttributeSyntax)boundAttribute.Syntax, diagnostics, ref hasErrors);
+                    constructorArgsArray, boundAttribute.ConstructorArgumentNamesOpt, (AttributeSyntax)boundAttribute.Syntax, boundAttribute.ConstructorArgumentsToParamsOpt, diagnostics, ref hasErrors);
             }
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -593,6 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypedConstant> constructorArgsArray,
             ImmutableArray<string> constructorArgumentNamesOpt,
             AttributeSyntax syntax,
+            ImmutableArray<int> argumentsToParams,
             BindingDiagnosticBag diagnostics,
             ref bool hasErrors)
         {
@@ -663,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // consumed a named argument. For the latter case, argsConsumedCount stays same.
                         int matchingArgumentIndex;
                         reorderedArgument = GetMatchingNamedOrOptionalConstructorArgument(out matchingArgumentIndex, constructorArgsArray,
-                            constructorArgumentNamesOpt, parameter, firstNamedArgIndex, argumentsCount, ref argsConsumedCount, syntax, diagnostics);
+                            constructorArgumentNamesOpt, parameter, firstNamedArgIndex, argumentsCount, ref argsConsumedCount, syntax, argumentsToParams, diagnostics);
 
                         sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
                         sourceIndices[i] = matchingArgumentIndex;
@@ -671,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    reorderedArgument = GetDefaultValueArgument(parameter, syntax, constructorArgumentNamesOpt, argumentsCount, diagnostics);
+                    reorderedArgument = GetDefaultValueArgument(parameter, syntax, argumentsToParams, diagnostics);
                     sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
                 }
 
@@ -727,6 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argumentsCount,
             ref int argsConsumedCount,
             AttributeSyntax syntax,
+            ImmutableArray<int> argumentsToParams,
             BindingDiagnosticBag diagnostics)
         {
             int index = GetMatchingNamedConstructorArgumentIndex(parameter.Name, constructorArgumentNamesOpt, startIndex, argumentsCount);
@@ -744,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 matchingArgumentIndex = -1;
-                return GetDefaultValueArgument(parameter, syntax, constructorArgumentNamesOpt, argumentsCount, diagnostics);
+                return GetDefaultValueArgument(parameter, syntax, argumentsToParams, diagnostics);
             }
         }
 
@@ -775,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return argIndex;
         }
 
-        private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, ImmutableArray<string> constructorArgumentNamesOpt, int argumentsCount, BindingDiagnosticBag diagnostics)
+        private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, ImmutableArray<int> argumentsToParams, BindingDiagnosticBag diagnostics)
         {
             var parameterType = parameter.Type;
             ConstantValue? defaultConstantValue = parameter.IsOptional ? parameter.ExplicitDefaultConstantValue : ConstantValue.NotAvailable;
@@ -820,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultValue = ((ContextualAttributeBinder)this).AttributedMember.GetMemberCallerName();
             }
             else if (!IsEarlyAttributeBinder && syntax.ArgumentList is not null &&
-                getCallerArgumentArgumentIndex(parameter, constructorArgumentNamesOpt) is int argumentIndex && argumentIndex > -1 && argumentIndex < argumentsCount)
+                getCallerArgumentArgumentIndex(parameter, argumentsToParams) is int argumentIndex && argumentIndex > -1 && argumentIndex < syntax.ArgumentList.Arguments.Count)
             {
                 CheckFeatureAvailability(syntax.ArgumentList, MessageID.IDS_FeatureCallerArgumentExpression, diagnostics);
                 parameterType = Compilation.GetSpecialType(SpecialType.System_String);
@@ -883,18 +885,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new TypedConstant(parameterType, kind, defaultValue);
             }
 
-            static int getCallerArgumentArgumentIndex(ParameterSymbol parameter, ImmutableArray<string> constructorArgumentNamesOpt)
+            static int getCallerArgumentArgumentIndex(ParameterSymbol parameter, ImmutableArray<int> argumentsToParams)
             {
-                if (constructorArgumentNamesOpt.IsDefault || parameter.CallerArgumentExpressionParameterIndex == -1)
-                {
-                    return parameter.CallerArgumentExpressionParameterIndex;
-                }
-
-
-                Debug.Assert(parameter.ContainingSymbol is MethodSymbol);
-                var methodSymbol = (MethodSymbol)parameter.ContainingSymbol;
-                var callerArgumentParameter = methodSymbol.Parameters[parameter.CallerArgumentExpressionParameterIndex];
-                return GetMatchingNamedConstructorArgumentIndex(callerArgumentParameter.Name, constructorArgumentNamesOpt, startIndex: 0, constructorArgumentNamesOpt.Length);
+                return argumentsToParams.IsDefault
+                        ? parameter.CallerArgumentExpressionParameterIndex
+                        : argumentsToParams.IndexOf(parameter.CallerArgumentExpressionParameterIndex);
             }
         }
 
