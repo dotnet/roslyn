@@ -5,13 +5,14 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -66,51 +67,127 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 BinaryExpressionSyntax(LogicalAndExpression) logicalAnd
                     => CombineLogicalAndOperands(logicalAnd, semanticModel),
                 CasePatternSwitchLabelSyntax { WhenClause: { } whenClause } switchLabel
-                    => Combine(switchLabel, switchLabel.Pattern, whenClause.Condition, semanticModel),
+                    => CombineWhenClauseCondition(switchLabel.Pattern, whenClause.Condition, semanticModel),
                 SwitchExpressionArmSyntax { WhenClause: { } whenClause } switchArm
-                    => Combine(switchArm, switchArm.Pattern, whenClause.Condition, semanticModel),
+                    => CombineWhenClauseCondition(switchArm.Pattern, whenClause.Condition, semanticModel),
                 WhenClauseSyntax { Parent: CasePatternSwitchLabelSyntax switchLabel } whenClause
-                    => Combine(switchLabel, switchLabel.Pattern, whenClause.Condition, semanticModel),
+                    => CombineWhenClauseCondition(switchLabel.Pattern, whenClause.Condition, semanticModel),
                 WhenClauseSyntax { Parent: SwitchExpressionArmSyntax switchArm } whenClause
-                    => Combine(switchArm, switchArm.Pattern, whenClause.Condition, semanticModel),
+                    => CombineWhenClauseCondition(switchArm.Pattern, whenClause.Condition, semanticModel),
                 _ => null
             };
         }
 
         private static Func<SyntaxNode, SyntaxNode>? CombineLogicalAndOperands(BinaryExpressionSyntax logicalAnd, SemanticModel semanticModel)
         {
-            if (logicalAnd.Left is IsPatternExpressionSyntax left)
-            {
-                return Combine(logicalAnd, left.Pattern, logicalAnd.Right, semanticModel);
-            }
-
-            if (TryDetermineReceiver(logicalAnd.Left, semanticModel) is not var (leftReceiver, leftTarget, leftFlipped) ||
-                TryDetermineReceiver(logicalAnd.Right, semanticModel) is not var (rightReceiver, rightTarget, rightFlipped) ||
-                TryGetCommonReceiver(leftReceiver, rightReceiver, semanticModel) is not var (commonReceiver, leftNames, rightNames) ||
-                leftNames.IsDefault ||
-                rightNames.IsDefault)
+            if (TryDetermineReceiver(logicalAnd.Left, semanticModel, inWhenClause: false) is not var (leftReceiver, leftTarget, leftFlipped) ||
+                TryDetermineReceiver(logicalAnd.Right, semanticModel, inWhenClause: false) is not var (rightReceiver, rightTarget, rightFlipped))
             {
                 return null;
             }
 
-            return root => root.ReplaceNode(logicalAnd, IsPatternExpression(commonReceiver, RecursivePattern(
-                CreateSubpattern(leftNames, CreatePattern(logicalAnd.Left, leftTarget, leftFlipped)),
-                CreateSubpattern(rightNames, CreatePattern(logicalAnd.Right, rightTarget, rightFlipped)))));
+            switch (leftTarget, rightTarget)
+            {
+                case (ExpressionSyntax leftConstant, ExpressionSyntax rightConstant):
+                    if (TryGetCommonReceiver(leftReceiver, rightReceiver, semanticModel) is not (var commonReceiver, var leftNames, var rightNames))
+                        return null;
+
+                    return root =>
+                    {
+                        ExpressionSyntax replacement =
+                            IsPatternExpression(commonReceiver, RecursivePattern(
+                                CreateSubpattern(leftNames, CreatePattern(leftReceiver, leftConstant, leftFlipped)),
+                                CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightConstant, rightFlipped))));
+                        return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
+                    };
+
+                case (PatternSyntax leftPattern, _):
+                    if (GetInnermostReceiver(rightReceiver, semanticModel) is not IdentifierNameSyntax identifierName ||
+                        TryFindDesignation(leftPattern, identifierName) is not var (designation, names))
+                    {
+                        return null;
+                    }
+
+                    RoslynDebug.AssertNotNull(leftPattern.Parent);
+                    RoslynDebug.AssertNotNull(designation.Parent);
+
+                    return root =>
+                    {
+                        var containingPattern = RewriteContainingPattern(rightReceiver, rightTarget, rightFlipped, designation, names);
+                        var replacement = ((IsPatternExpressionSyntax)leftPattern.Parent).ReplaceNode(designation.Parent, containingPattern);
+                        return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
+                    };
+
+                default:
+                    return null;
+            }
         }
 
-        private static Func<SyntaxNode, SyntaxNode>? Combine(SyntaxNode nodeToReplace, PatternSyntax pattern, ExpressionSyntax expression, SemanticModel semanticModel)
+        private static ExpressionSyntax AdjustBinaryExpressionOperands(BinaryExpressionSyntax logicalAnd, ExpressionSyntax replacement)
         {
-            Debug.Assert(nodeToReplace is
-                SwitchExpressionArmSyntax or
-                CasePatternSwitchLabelSyntax or
-                BinaryExpressionSyntax(LogicalAndExpression) { Left: IsPatternExpressionSyntax });
+            if (logicalAnd.Left is BinaryExpressionSyntax(LogicalAndExpression) leftExpression)
+                replacement = leftExpression.WithRight(replacement);
+            return replacement.WithAdditionalAnnotations(Formatter.Annotation);
+        }
 
-            if (TryDetermineReceiver(expression, semanticModel) is not var (receiver, target, flipped) ||
-                GetInnermostReceiver(receiver, semanticModel) is not IdentifierNameSyntax identifierName)
+        private static Func<SyntaxNode, SyntaxNode>? CombineWhenClauseCondition(PatternSyntax pattern, ExpressionSyntax condition, SemanticModel semanticModel)
+        {
+            if (TryDetermineReceiver(condition, semanticModel, inWhenClause: true) is not var (receiver, target, flipped) ||
+                GetInnermostReceiver(receiver, semanticModel) is not IdentifierNameSyntax identifierName ||
+                TryFindDesignation(pattern, identifierName) is not var (designation, names))
             {
                 return null;
             }
 
+            RoslynDebug.AssertNotNull(designation.Parent);
+            RoslynDebug.AssertNotNull(receiver.Parent?.Parent);
+
+            return root =>
+            {
+                var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
+                switch (receiver.Parent.Parent)
+                {
+                    case BinaryExpressionSyntax(LogicalAndExpression) logicalAnd:
+                        editor.ReplaceNode(logicalAnd, logicalAnd.Right);
+                        break;
+                    case WhenClauseSyntax whenClause:
+                        editor.RemoveNode(whenClause, SyntaxRemoveOptions.AddElasticMarker);
+                        break;
+                    case var v:
+                        throw ExceptionUtilities.UnexpectedValue(v.Kind());
+                }
+
+                var containingPattern = RewriteContainingPattern(receiver, target, flipped, designation, names);
+                editor.ReplaceNode(designation.Parent, containingPattern);
+                return editor.GetChangedRoot();
+            };
+        }
+
+        private static PatternSyntax RewriteContainingPattern(
+            ExpressionSyntax receiver, ExpressionOrPatternSyntax target, bool flipped,
+            SingleVariableDesignationSyntax designation, ImmutableArray<IdentifierNameSyntax> names)
+        {
+            var subpattern = CreateSubpattern(names, target switch
+            {
+                ExpressionSyntax constant => CreatePattern(receiver, constant, flipped),
+                PatternSyntax pattern => pattern,
+                var v => throw ExceptionUtilities.UnexpectedValue(v.Kind()),
+            });
+
+            RoslynDebug.AssertNotNull(designation.Parent);
+
+            return designation.Parent switch
+            {
+                VarPatternSyntax => RecursivePattern(properties: PropertyPatternClause(SingletonSeparatedList(subpattern)), designation: designation),
+                DeclarationPatternSyntax p => RecursivePattern(p.Type, PropertyPatternClause(SingletonSeparatedList(subpattern)), designation: designation),
+                RecursivePatternSyntax p => p.AddPropertyPatternClauseSubpatterns(subpattern),
+                var p => throw ExceptionUtilities.UnexpectedValue(p.Kind())
+            };
+        }
+
+        private static (SingleVariableDesignationSyntax Designation, ImmutableArray<IdentifierNameSyntax> Names)?
+            TryFindDesignation(PatternSyntax pattern, IdentifierNameSyntax identifierName)
+        {
             var designation = pattern.DescendantNodes()
                 .OfType<SingleVariableDesignationSyntax>()
                 .Where(d => AreEquivalent(d.Identifier, identifierName.Identifier))
@@ -119,47 +196,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             if (!designation.IsParentKind(SyntaxKind.VarPattern, SyntaxKind.DeclarationPattern, SyntaxKind.RecursivePattern))
                 return null;
 
-            RoslynDebug.AssertNotNull(designation.Parent);
-
-            var names = GetParentNames(identifierName);
-            if (names.IsDefault)
+            if (!TryGetParentNames(identifierName, out var names))
                 return null;
 
-            return root =>
-            {
-                var newParent = CreateDesignationParent(designation, CreateSubpattern(names, CreatePattern(expression, target, flipped)));
-                return root.ReplaceNode(nodeToReplace, nodeToReplace.ReplaceNode(designation.Parent, newParent) switch
-                {
-                    SwitchExpressionArmSyntax switchArm => switchArm.WithWhenClause(null).WithAdditionalAnnotations(Formatter.Annotation),
-                    CasePatternSwitchLabelSyntax switchLabel => switchLabel.WithWhenClause(null).WithAdditionalAnnotations(Formatter.Annotation),
-                    var node => node
-                });
-            };
-
-            static PatternSyntax CreateDesignationParent(SingleVariableDesignationSyntax designation, SubpatternSyntax subpattern)
-            {
-                return designation.Parent switch
-                {
-                    VarPatternSyntax p => RecursivePattern(properties: PropertyPatternClause(SingletonSeparatedList(subpattern)), designation: designation),
-                    DeclarationPatternSyntax p => RecursivePattern(p.Type, PropertyPatternClause(SingletonSeparatedList(subpattern)), designation: designation),
-                    RecursivePatternSyntax p => p.AddPropertyPatternClauseSubpatterns(subpattern),
-                    var p => throw ExceptionUtilities.UnexpectedValue(p?.Kind())
-                };
-            }
+            return (designation, names);
         }
 
-        private static PatternSyntax CreatePattern(SyntaxNode node, ExpressionSyntax constant, bool flipped)
+        private static PatternSyntax CreatePattern(ExpressionSyntax receiver, ExpressionSyntax target, bool flipped)
         {
-            return node switch
+            return receiver.Parent switch
             {
-                BinaryExpressionSyntax(EqualsExpression) => ConstantPattern(constant),
-                BinaryExpressionSyntax(NotEqualsExpression) => UnaryPattern(ConstantPattern(constant)),
+                BinaryExpressionSyntax(EqualsExpression) => ConstantPattern(target),
+                BinaryExpressionSyntax(NotEqualsExpression) => UnaryPattern(ConstantPattern(target)),
                 BinaryExpressionSyntax(GreaterThanExpression or
                                        GreaterThanOrEqualExpression or
                                        LessThanOrEqualExpression or
                                        LessThanExpression) e
-                    => RelationalPattern(flipped ? Flip(e.OperatorToken) : e.OperatorToken, constant),
-                var v => throw ExceptionUtilities.UnexpectedValue(v.Kind()),
+                    => RelationalPattern(flipped ? Flip(e.OperatorToken) : e.OperatorToken, target),
+                var v => throw ExceptionUtilities.UnexpectedValue(v?.Kind()),
             };
 
             static SyntaxToken Flip(SyntaxToken token)
@@ -176,19 +230,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             }
         }
 
-        private static (ExpressionSyntax Receiver, ExpressionSyntax Target, bool Flipped)? TryDetermineReceiver(
+        private static (ExpressionSyntax Receiver, ExpressionOrPatternSyntax Target, bool Flipped)? TryDetermineReceiver(
             ExpressionSyntax node,
-            SemanticModel semanticModel)
+            SemanticModel semanticModel,
+            bool inWhenClause)
         {
             return node switch
             {
+                BinaryExpressionSyntax(LogicalAndExpression) expr
+                    => TryDetermineReceiver(inWhenClause ? expr.Left : expr.Right, semanticModel, inWhenClause),
                 BinaryExpressionSyntax(EqualsExpression or
                                        NotEqualsExpression or
                                        GreaterThanExpression or
                                        GreaterThanOrEqualExpression or
                                        LessThanOrEqualExpression or
-                                       LessThanExpression) e
-                    => TryDetermineConstant(e, semanticModel),
+                                       LessThanExpression) expr
+                    => TryDetermineConstant(expr, semanticModel),
+                IsPatternExpressionSyntax expr
+                    => (expr.Expression, expr.Pattern, false),
                 _ => null,
             };
         }
@@ -262,31 +321,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             }
 
             // Collect any names on the right-hand-side of the final receiver that we want to convert to subpatterns.
-            return (leftReceiver, GetParentNames(leftReceiver), GetParentNames(rightReceiver));
+            if (!TryGetParentNames(leftReceiver, out var leftNames) ||
+                !TryGetParentNames(rightReceiver, out var rightNames))
+            {
+                return null;
+            }
+
+            return (leftReceiver, leftNames, rightNames);
         }
 
         /// <summary>
         /// Walks up the recever and collect any names on the right-hand-side. 
         /// These are already verified in <see cref="GetInnermostReceiver(ExpressionSyntax, SemanticModel)"/> below to have a proper name.
         /// </summary>
-        private static ImmutableArray<IdentifierNameSyntax> GetParentNames(ExpressionSyntax node)
+        private static bool TryGetParentNames(ExpressionSyntax node, out ImmutableArray<IdentifierNameSyntax> names)
         {
-            using var _ = ArrayBuilder<IdentifierNameSyntax>.GetInstance(out var names);
-            CollectNames(node.Parent, names);
-            return names.ToImmutableOrNull();
+            using var _ = ArrayBuilder<IdentifierNameSyntax>.GetInstance(out var builder);
+            CollectNames(node.Parent, builder);
+            names = builder.ToImmutableOrNull();
+            return !names.IsDefault;
 
             // We collect names inside out, so that the outermost name ends up in the innermost subpattern.
-            static void CollectNames(SyntaxNode? node, ArrayBuilder<IdentifierNameSyntax> names)
+            static void CollectNames(SyntaxNode? node, ArrayBuilder<IdentifierNameSyntax> builder)
             {
                 switch (node)
                 {
                     case MemberAccessExpressionSyntax(SimpleMemberAccessExpression) { Name: IdentifierNameSyntax name } memberAccess:
-                        CollectNames(memberAccess.Parent, names);
-                        names.Add(name);
+                        CollectNames(memberAccess.Parent, builder);
+                        builder.Add(name);
                         break;
                     case ConditionalAccessExpressionSyntax { WhenNotNull: IdentifierNameSyntax name } memberAccess:
-                        CollectNames(memberAccess.Parent, names);
-                        names.Add(name);
+                        CollectNames(memberAccess.Parent, builder);
+                        builder.Add(name);
                         break;
                 }
             }
@@ -297,17 +363,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
         /// </summary>
         private static ExpressionSyntax GetInnermostReceiver(ExpressionSyntax node, SemanticModel semanticModel)
         {
-            switch (node)
+            return node switch
             {
-                case MemberAccessExpressionSyntax(SimpleMemberAccessExpression) { Name: IdentifierNameSyntax name } memberAccess
-                    when semanticModel.GetSymbolInfo(name).Symbol?.IsStatic == false:
-                    return GetInnermostReceiver(memberAccess.Expression, semanticModel);
-                case ConditionalAccessExpressionSyntax { WhenNotNull: IdentifierNameSyntax name } memberAccess
-                    when semanticModel.GetSymbolInfo(name).Symbol?.IsStatic == false:
-                    return GetInnermostReceiver(memberAccess.Expression, semanticModel);
-                default:
-                    return node;
-            }
+                MemberAccessExpressionSyntax(SimpleMemberAccessExpression) { Name: IdentifierNameSyntax name } memberAccess
+                    when semanticModel.GetSymbolInfo(name).Symbol?.IsStatic == false
+                    => GetInnermostReceiver(memberAccess.Expression, semanticModel),
+                ConditionalAccessExpressionSyntax { WhenNotNull: IdentifierNameSyntax name } memberAccess
+                    when semanticModel.GetSymbolInfo(name).Symbol?.IsStatic == false
+                    => GetInnermostReceiver(memberAccess.Expression, semanticModel),
+                _ => node,
+            };
         }
 
         private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction

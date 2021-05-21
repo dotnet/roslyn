@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
             }.RunAsync();
         }
 
+        private static Task VerifyMissingAsync(string initialMarkup)
+        {
+            return VerifyAsync(initialMarkup, initialMarkup);
+        }
+
         [Theory]
         [InlineData("NS.C.SCP1.P1 == 1 && NS.C.SCP1.P2 == 2", "NS.C.SCP1 is { P1: 1, P2: 2 }")]
         [InlineData("this.P1 == 1 && this.P2 == 2", "this is { P1: 1, P2: 2 }")]
@@ -42,16 +47,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         }
 
         [Theory]
+        [InlineData("this.CP1 is var c [||]&& c.P1 == 0", "this.CP1 is { P1: 0 } c")]
+        [InlineData("this.P1 == 1 && this.CP1 is var c [||]&& c.P1 == 0 && this.P2 == 2", "this.P1 == 1 && this.CP1 is { P1: 0 } c && this.P2 == 2")]
+        [InlineData("this.P1 == 1 && this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3", "this.P1 == 1 && this.CP1 is { P1: 1, CP2: { P3: 3 } }")]
+        [InlineData("this.P1 == 1 && this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3 && this.P2 == 2", "this.P1 == 1 && this.CP1 is { P1: 1, CP2: { P3: 3 } } && this.P2 == 2")]
+        public async Task TestLogicalAndExpressionChildren(string actual, string expected)
+        {
+            await VerifyAsync(WrapInIfStatement(actual, entry: null), WrapInIfStatement(expected, entry: null));
+        }
+
+        [Theory]
         [InlineData("NS.C.SCP1 == null && NS.C.SCP2 == null")]
         [InlineData("NS.C.SCP1.P1 == 1 && NS.C.SCP2.P1 == 2")]
         public async Task TestLogicalAndExpressionMissing(string actual)
         {
-            var code = WrapInIfStatement(actual, "&&");
-            await VerifyAsync(code, code);
+            await VerifyMissingAsync(WrapInIfStatement(actual, "&&"));
         }
 
         [Theory]
+        [InlineData("{ CP1: var c } when c.P1 is 1", "{ CP1: { P1: 1 } c }")]
         [InlineData("{ CP1: var c } when c.P1 == 1", "{ CP1: { P1: 1 } c }")]
+        [InlineData("{ CP1: var c } when c.P1 == 1 && c.P2 == 2", "{ CP1: { P1: 1 } c } when c.P2 == 2")]
         [InlineData("{ CP1: C c } when c.P1 == 1", "{ CP1: C { P1: 1 } c }")]
         [InlineData("{ CP1: C { P2: 2 } c } when c.P1 == 1", "{ CP1: C { P2: 2, P1: 1 } c }")]
         public async Task TestWhenClause(string actual, string expected)
@@ -60,6 +76,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
             await VerifyAsync(WrapInSwitchArm(actual, "=>"), WrapInSwitchArm(expected, "=>"));
             await VerifyAsync(WrapInSwitchLabel(actual, "when"), WrapInSwitchLabel(expected, "when"));
             await VerifyAsync(WrapInSwitchLabel(actual, "case"), WrapInSwitchLabel(expected, "case"));
+        }
+
+        [Theory]
+        [InlineData("{ CP1: var c } when c is { P1: 1 }")]
+        public async Task TestWhenClauseMissing(string actual)
+        {
+            await VerifyMissingAsync(WrapInSwitchArm(actual, "when"));
+            await VerifyMissingAsync(WrapInSwitchArm(actual, "=>"));
+            await VerifyMissingAsync(WrapInSwitchLabel(actual, "when"));
+            await VerifyMissingAsync(WrapInSwitchLabel(actual, "case"));
         }
 
         private static string WrapInIfStatement(string actual, string entry)
@@ -114,7 +140,7 @@ namespace NS
         }
     }
 }";
-            return markup.Replace(entry, "[||]" + entry);
+            return entry is null ? markup : markup.Replace(entry, "[||]" + entry);
         }
     }
 }
