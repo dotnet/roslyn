@@ -784,6 +784,8 @@ namespace Microsoft.CodeAnalysis
             Func<TIntermediate, TSource, TResult> func,
             Func<TResult, TIntermediate> transform)
         {
+            Debug.Assert(!array.IsDefaultOrEmpty);
+
             var e = array.GetEnumerator();
             if (!e.MoveNext())
             {

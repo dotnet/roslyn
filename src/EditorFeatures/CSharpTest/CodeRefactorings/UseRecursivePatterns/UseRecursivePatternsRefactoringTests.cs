@@ -28,66 +28,82 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
             }.RunAsync();
         }
 
-        private static string CreateExpressionMarkup(string actual)
-        {
-            return @"
-namespace NS
-{
-    class C
-    {
-        public int P1, P2, P3;
-        public C CP1, CP2, CP3;
-        public static C SCP1, SCP2;
-        public static int SP1, SP2;
-
-        void M()
-        {
-            if (" + actual + @") {}
-        }
-    }
-}";
-        }
-
         [Theory]
-        [InlineData("NS.C.SCP1.P1 == 1 [||]&& NS.C.SCP1.P2 == 2", "NS.C.SCP1 is { P1: 1, P2: 2 }")]
-        [InlineData("this.P1 == 1 [||]&& this.P2 == 2", "this is { P1: 1, P2: 2 }")]
-        [InlineData("this.P1 < 1 [||]&& this.P2 <= 2", "this is { P1: < 1, P2: <= 2 }")]
-        [InlineData("this.P1 > 1 [||]&& this.P2 >= 2", "this is { P1: > 1, P2: >= 2 }")]
-        [InlineData("this.P1 != 1 [||]&& this.P2 != 2", "this is { P1: not 1, P2: not 2 }")]
-        [InlineData("this.P1 == 1 [||]&& this.CP2.P3 == 3", "this is { P1: 1, CP2: { P3: 3 } }")]
-        [InlineData("this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3", "this.CP1 is { P1: 1, CP2: { P3: 3 } }")]
+        [InlineData("NS.C.SCP1.P1 == 1 && NS.C.SCP1.P2 == 2", "NS.C.SCP1 is { P1: 1, P2: 2 }")]
+        [InlineData("this.P1 == 1 && this.P2 == 2", "this is { P1: 1, P2: 2 }")]
+        [InlineData("this.P1 < 1 && this.P2 <= 2", "this is { P1: < 1, P2: <= 2 }")]
+        [InlineData("this.P1 > 1 && this.P2 >= 2", "this is { P1: > 1, P2: >= 2 }")]
+        [InlineData("this.P1 != 1 && this.P2 != 2", "this is { P1: not 1, P2: not 2 }")]
+        [InlineData("this.P1 == 1 && this.CP2.P3 == 3", "this is { P1: 1, CP2: { P3: 3 } }")]
+        [InlineData("this.CP1.P1 == 1 && this.CP1.CP2.P3 == 3", "this.CP1 is { P1: 1, CP2: { P3: 3 } }")]
         public async Task TestLogicalAndExpression(string actual, string expected)
         {
-            var initialMarkup = CreateExpressionMarkup(actual);
-            var expectedMarkup = CreateExpressionMarkup(expected);
+            var initialMarkup = WrapInIfStatement(actual, "&&");
+            var expectedMarkup = WrapInIfStatement(expected, "&&");
 
             await VerifyAsync(initialMarkup, expectedMarkup);
         }
 
         [Theory]
-        [InlineData("NS.C.SCP1 == null [||]&& NS.C.SCP2 == null")]
-        [InlineData("NS.C.SCP1.P1 == 1 [||]&& NS.C.SCP2.P1 == 2")]
+        [InlineData("NS.C.SCP1 == null && NS.C.SCP2 == null")]
+        [InlineData("NS.C.SCP1.P1 == 1 && NS.C.SCP2.P1 == 2")]
         public async Task TestLogicalAndExpressionMissing(string actual)
         {
-            var initialMarkup = CreateExpressionMarkup(actual);
+            var initialMarkup = WrapInIfStatement(actual, "&&");
 
             await VerifyAsync(initialMarkup, initialMarkup);
 
         }
 
         [Theory]
-        [InlineData("{ CP1: var c } [||]when c.P1 == 1", "{ CP1: { P1: 1 } c }")]
+        [InlineData("{ CP1: var c } when c.P1 == 1", "{ CP1: { P1: 1 } c }")]
+        [InlineData("{ CP1: C c } when c.P1 == 1", "{ CP1: C { P1: 1 } c }")]
+        [InlineData("{ CP1: C { P2: 2 } c } when c.P1 == 1", "{ CP1: C { P2: 2, P1: 1 } c }")]
         public async Task TestWhenClause(string actual, string expected)
         {
-            var initialMarkup = CreateSwitchExpressionMarkup(actual);
-            var expectedMarkup = CreateSwitchExpressionMarkup(expected);
-
-            await VerifyAsync(initialMarkup, expectedMarkup);
+            await VerifyAsync(WrapInSwitchArm(actual, "when"), WrapInSwitchArm(expected, "when"));
+            await VerifyAsync(WrapInSwitchArm(actual, "=>"), WrapInSwitchArm(expected, "=>"));
+            await VerifyAsync(WrapInSwitchLabel(actual, "when"), WrapInSwitchLabel(expected, "when"));
+            await VerifyAsync(WrapInSwitchLabel(actual, "case"), WrapInSwitchLabel(expected, "case"));
         }
 
-        private static string CreateSwitchExpressionMarkup(string actual)
+        private static string WrapInIfStatement(string actual, string entry)
         {
-            return @"
+            var markup =
+@"
+            if (" + actual + @") {}
+";
+            return CreateMarkup(markup, entry);
+        }
+
+        private static string WrapInSwitchArm(string actual, string entry)
+        {
+            var markup =
+@"
+            _ = this switch
+            {
+                " + actual + @" => 0
+            };
+";
+            return CreateMarkup(markup, entry);
+        }
+
+        private static string WrapInSwitchLabel(string actual, string entry)
+        {
+            var markup =
+@"
+            switch (this)
+            {
+                case " + actual + @":
+                    break;
+            };
+";
+            return CreateMarkup(markup, entry);
+        }
+
+        private static string CreateMarkup(string actual, string entry)
+        {
+            var markup = @"
 namespace NS
 {
     class C
@@ -99,13 +115,11 @@ namespace NS
 
         void M()
         {
-            _ = this switch
-            {
-                 " + actual + @" => 0
-            };
+            " + actual + @"
         }
     }
 }";
+            return markup.Replace(entry, "[||]" + entry);
         }
     }
 }
