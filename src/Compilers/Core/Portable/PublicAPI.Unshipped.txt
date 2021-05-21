@@ -17,11 +17,8 @@ Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.CancellationTok
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.IncrementalGeneratorInitializationContext() -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterExecutionPipeline(System.Action<Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext>! callback) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorOutput
-Microsoft.CodeAnalysis.IncrementalGeneratorOutput.IncrementalGeneratorOutput() -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.IncrementalGeneratorPipelineContext() -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.RegisterOutput(Microsoft.CodeAnalysis.IncrementalGeneratorOutput output) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.Sources.get -> Microsoft.CodeAnalysis.IncrementalValueSources
 Microsoft.CodeAnalysis.IncrementalValueSource<T>
 Microsoft.CodeAnalysis.IncrementalValueSource<T>.IncrementalValueSource() -> void
