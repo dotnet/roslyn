@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);
             }
 
-            if (symbol is ITypeSymbol { IsReferenceType: true })
+            if (symbol is ITypeSymbol { IsReferenceType: true } type)
             {
                 var additionalAnnotation = type.NullableAnnotation switch
                 {
