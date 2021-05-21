@@ -31,9 +31,8 @@ namespace Microsoft.CodeAnalysis
         /// <returns>An <see cref="IncrementalValueSource{T}"/> that provides the results of the transformation</returns>
         public IncrementalValueSource<T> Transform<T>(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
         {
-            var node = new SyntaxInputNode<T>(filterFunc, transformFunc, RegisterInput, _registerOutput);
             // registration of the input is deferred until we know the node is used
-            return new IncrementalValueSource<T>(node, node.RegisterOutputNode);
+            return new IncrementalValueSource<T>(new SyntaxInputNode<T>(filterFunc, transformFunc, RegisterInput, _registerOutput), _registerOutput);
         }
 
         /// <summary>
