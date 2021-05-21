@@ -42,7 +42,7 @@
   "hostGroupAllowed": true,
   "serviceOverride": true, 
   "entryPoint": {
-    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))$(ServiceHubCoreSubPath)\\Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
+    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
     "fullClassName": "%(_ServicesWithBitness.ClassName)"
   }
 }
@@ -62,7 +62,8 @@
 
     <ItemGroup>
       <FileWrites Include="@(ServiceHubServiceJsonFile->'%(Identity)')"/>
-      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')" />
+      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')" Condition="'%(ServiceHubServiceJsonFile.Runtime)' == 'core'" VSIXSubPath="$(ServiceHubCoreSubPath)" />
+      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')" Condition="'%(ServiceHubServiceJsonFile.Runtime)' == 'desktop'"/>
     </ItemGroup>
   </Target>
 </Project>

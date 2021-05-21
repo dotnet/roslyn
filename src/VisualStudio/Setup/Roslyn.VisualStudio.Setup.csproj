@@ -22,7 +22,6 @@
     <!-- Path to our servicehub entry point dll in the vsix directory relative 
          to our servicehub.servicehub.json files in the same vsix directory -->
     <ServiceHubAssemblyBasePath>.\</ServiceHubAssemblyBasePath>
-    <ServiceHubCoreSubPath>ServiceHubCore</ServiceHubCoreSubPath>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
