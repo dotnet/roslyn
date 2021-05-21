@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(parameter.ContainingSymbol is MethodSymbol);
                 var methodSymbol = (MethodSymbol)parameter.ContainingSymbol;
                 var callerArgumentParameter = methodSymbol.Parameters[parameter.CallerArgumentExpressionParameterIndex];
-                return constructorArgumentNamesOpt.IndexOf(callerArgumentParameter.Name);
+                return GetMatchingNamedConstructorArgumentIndex(callerArgumentParameter.Name, constructorArgumentNamesOpt, startIndex: 0, constructorArgumentNamesOpt.Length);
             }
         }
 
