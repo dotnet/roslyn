@@ -209,6 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+            internal override bool IsInterpolatedStringHandlerType => false;
+
             internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
             {
                 get { return GetTypeParametersAsTypeArguments(); }

@@ -113,5 +113,23 @@ namespace Microsoft.CodeAnalysis
             }
         }
         #endregion
+
+        #region InterpolatedStringHandlerAttribute
+        private bool _hasInterpolatedStringHandlerAttribute;
+        public bool HasInterpolatedStringHandlerAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasInterpolatedStringHandlerAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasInterpolatedStringHandlerAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
     }
 }

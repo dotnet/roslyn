@@ -847,13 +847,14 @@ next:;
             return (TypeWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
+#nullable enable
         /// <summary>
         /// Returns data decoded from special early bound well-known attributes applied to the symbol or null if there are no applied attributes.
         /// </summary>
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonTypeEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
+        internal CommonTypeEarlyWellKnownAttributeData? GetEarlyDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
@@ -864,7 +865,7 @@ next:;
             return (CommonTypeEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
-        internal override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        internal override CSharpAttributeData? EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             bool hasAnyDiagnostics;
             CSharpAttributeData boundAttribute;
@@ -904,7 +905,7 @@ next:;
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
                 if (!boundAttribute.HasErrors)
                 {
-                    string name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
+                    string? name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
                     arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
                     if (!hasAnyDiagnostics)
                     {
@@ -950,8 +951,32 @@ next:;
                 return null;
             }
 
+            // We want to decode this early because it can influence overload resolution, which could affect attribute binding itself. Consider an attribute with these
+            // constructors:
+            //
+            //   MyAttribute(string s)
+            //   MyAttribute(CustomBuilder c) // CustomBuilder has InterpolatedStringHandlerAttribute on the type
+            //
+            // If it's applied with [MyAttribute($"{1}")], overload resolution rules say that we should prefer the CustomBuilder overload over the string overload. This
+            // is an error scenario regardless (non-constant interpolated string), but it's good to get right as it will affect public API results.
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.InterpolatedStringHandlerAttribute))
+            {
+                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!boundAttribute.HasErrors)
+                {
+                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasInterpolatedStringHandlerAttribute = true;
+                    if (!hasAnyDiagnostics)
+                    {
+                        return boundAttribute;
+                    }
+                }
+
+                return null;
+            }
+
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
+#nullable disable
 
         internal override AttributeUsageInfo GetAttributeUsageInfo()
         {
@@ -1256,6 +1281,11 @@ next:;
                 return data != null && data.HasCodeAnalysisEmbeddedAttribute;
             }
         }
+
+#nullable enable
+        internal sealed override bool IsInterpolatedStringHandlerType
+            => GetEarlyDecodedWellKnownAttributeData()?.HasInterpolatedStringHandlerAttribute == true;
+#nullable disable
 
         internal sealed override bool ShouldAddWinRTMembers
         {

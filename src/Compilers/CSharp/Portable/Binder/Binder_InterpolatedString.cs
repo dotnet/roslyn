@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
             }
 
-            if (tryBindAsBuilderType(out var result))
+            if (tryBindAsHandlerType(out var result))
             {
                 // Case 2
                 return result;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unconvertedInterpolatedString.Type,
                     unconvertedInterpolatedString.HasErrors);
 
-            bool tryBindAsBuilderType([NotNullWhen(true)] out BoundInterpolatedString? result)
+            bool tryBindAsHandlerType([NotNullWhen(true)] out BoundInterpolatedString? result)
             {
                 result = null;
                 if (unconvertedInterpolatedString.Parts.ContainsAwaitExpression())
@@ -184,95 +184,112 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var interpolatedStringBuilderType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler);
-                if (interpolatedStringBuilderType is MissingMetadataTypeSymbol)
+                var interpolatedStringHandlerType = Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler);
+                if (interpolatedStringHandlerType is MissingMetadataTypeSymbol)
                 {
                     return false;
                 }
 
-                diagnostics.Add(interpolatedStringBuilderType.GetUseSiteInfo(), unconvertedInterpolatedString.Syntax.Location);
+                result = BindUnconvertedInterpolatedStringToHandlerType(unconvertedInterpolatedString, interpolatedStringHandlerType, diagnostics, isHandlerConversion: false);
 
-                // We satisfy the conditions for using an interpolated string builder. Bind all the builder calls unconditionally, so that if
-                // there are errors we get better diagnostics than "could not convert to object."
-                var (appendCalls, usesBoolReturn) = BindInterpolatedStringAppendCalls(unconvertedInterpolatedString, interpolatedStringBuilderType, diagnostics);
-
-                // Prior to C# 10, all types in an interpolated string expression needed to be convertible to `object`. After 10, some types
-                // (such as Span<T>) that are not convertible to `object` are permissible as interpolated string components, provided there
-                // is an applicable AppendFormatted method that accepts them. To preserve langversion, we therefore make sure all components
-                // are convertible to object if the current langversion is lower than the interpolation feature
-                TypeSymbol? objectType = null;
-                BindingDiagnosticBag? conversionDiagnostics = null;
-                var needToCheckConversionToObject = !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) && diagnostics.AccumulatesDiagnostics;
-                if (needToCheckConversionToObject)
-                {
-                    objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
-                    conversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
-                }
-
-                Debug.Assert(appendCalls.Length == unconvertedInterpolatedString.Parts.Length);
-                Debug.Assert(appendCalls.All(a => a is { HasErrors: true } or BoundCall { Arguments: { Length: > 0 } } or BoundDynamicInvocation));
-                int baseStringLength = 0;
-                int numFormatHoles = 0;
-
-                foreach (var currentPart in unconvertedInterpolatedString.Parts)
-                {
-                    if (currentPart is BoundStringInsert insert)
-                    {
-                        numFormatHoles++;
-
-                        if (needToCheckConversionToObject)
-                        {
-                            Debug.Assert(conversionDiagnostics is not null);
-                            var value = insert.Value;
-                            bool reported = false;
-                            if (value.Type is not null)
-                            {
-                                value = BindToNaturalType(value, conversionDiagnostics);
-                                if (conversionDiagnostics.HasAnyErrors())
-                                {
-                                    CheckFeatureAvailability(value.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
-                                    reported = true;
-                                }
-                            }
-
-                            if (!reported)
-                            {
-                                _ = GenerateConversionForAssignment(objectType, value, conversionDiagnostics);
-                                if (conversionDiagnostics.HasAnyErrors())
-                                {
-                                    CheckFeatureAvailability(value.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
-                                }
-                            }
-
-                            conversionDiagnostics.Clear();
-                        }
-                    }
-                    else
-                    {
-                        Debug.Assert(currentPart is { ConstantValue: { IsString: true } } and BoundLiteral);
-                        baseStringLength += currentPart.ConstantValue.RopeValue!.Length;
-                    }
-                }
-
-                conversionDiagnostics?.Free();
-
-                var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, unconvertedInterpolatedString.Syntax);
-                var arguments = ImmutableArray.Create<BoundExpression>(
-                    new BoundLiteral(unconvertedInterpolatedString.Syntax, ConstantValue.Create(baseStringLength), intType) { WasCompilerGenerated = true },
-                    new BoundLiteral(unconvertedInterpolatedString.Syntax, ConstantValue.Create(numFormatHoles), intType) { WasCompilerGenerated = true });
-
-                // PROTOTYPE(interp-string): Support optional out param for whether the builder was created successfully and passing in other required args
-                BoundExpression? createExpression = MakeClassCreationExpression(interpolatedStringBuilderType, arguments, unconvertedInterpolatedString.Syntax, diagnostics);
-
-                result = constructWithData(
-                    appendCalls,
-                    new InterpolatedStringHandlerData(
-                        interpolatedStringBuilderType,
-                        createExpression,
-                        usesBoolReturn,
-                        LocalScopeDepth));
                 return true;
             }
+        }
+
+        private BoundInterpolatedString BindUnconvertedInterpolatedStringToHandlerType(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, NamedTypeSymbol interpolatedStringHandlerType, BindingDiagnosticBag diagnostics, bool isHandlerConversion)
+        {
+            diagnostics.Add(interpolatedStringHandlerType.GetUseSiteInfo(), unconvertedInterpolatedString.Syntax.Location);
+
+            // We satisfy the conditions for using an interpolated string builder. Bind all the builder calls unconditionally, so that if
+            // there are errors we get better diagnostics than "could not convert to object."
+            var (appendCalls, usesBoolReturn) = BindInterpolatedStringAppendCalls(unconvertedInterpolatedString, interpolatedStringHandlerType, diagnostics);
+
+            // Prior to C# 10, all types in an interpolated string expression needed to be convertible to `object`. After 10, some types
+            // (such as Span<T>) that are not convertible to `object` are permissible as interpolated string components, provided there
+            // is an applicable AppendFormatted method that accepts them. To preserve langversion, we therefore make sure all components
+            // are convertible to object if the current langversion is lower than the interpolation feature and we're converting this
+            // interpolation into an actual string.
+            TypeSymbol? objectType = null;
+            BindingDiagnosticBag? conversionDiagnostics = null;
+            var needToCheckConversionToObject = !isHandlerConversion && !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) && diagnostics.AccumulatesDiagnostics;
+            if (needToCheckConversionToObject)
+            {
+                objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
+                conversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            }
+            else if (isHandlerConversion)
+            {
+                CheckFeatureAvailability(unconvertedInterpolatedString.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
+            }
+
+            Debug.Assert(appendCalls.Length == unconvertedInterpolatedString.Parts.Length);
+            Debug.Assert(appendCalls.All(a => a is { HasErrors: true } or BoundCall { Arguments: { Length: > 0 } } or BoundDynamicInvocation));
+            int baseStringLength = 0;
+            int numFormatHoles = 0;
+
+            foreach (var currentPart in unconvertedInterpolatedString.Parts)
+            {
+                if (currentPart is BoundStringInsert insert)
+                {
+                    numFormatHoles++;
+
+                    if (needToCheckConversionToObject)
+                    {
+                        Debug.Assert(conversionDiagnostics is not null);
+                        var value = insert.Value;
+                        bool reported = false;
+                        if (value.Type is not null)
+                        {
+                            value = BindToNaturalType(value, conversionDiagnostics);
+                            if (conversionDiagnostics.HasAnyErrors())
+                            {
+                                CheckFeatureAvailability(value.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
+                                reported = true;
+                            }
+                        }
+
+                        if (!reported)
+                        {
+                            _ = GenerateConversionForAssignment(objectType, value, conversionDiagnostics);
+                            if (conversionDiagnostics.HasAnyErrors())
+                            {
+                                CheckFeatureAvailability(value.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
+                            }
+                        }
+
+                        conversionDiagnostics.Clear();
+                    }
+                }
+                else
+                {
+                    Debug.Assert(currentPart is { ConstantValue: { IsString: true } } and BoundLiteral);
+                    baseStringLength += currentPart.ConstantValue.RopeValue!.Length;
+                }
+            }
+
+            conversionDiagnostics?.Free();
+
+            var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, unconvertedInterpolatedString.Syntax);
+            var arguments = ImmutableArray.Create<BoundExpression>(
+                new BoundLiteral(unconvertedInterpolatedString.Syntax, ConstantValue.Create(baseStringLength), intType) { WasCompilerGenerated = true },
+                new BoundLiteral(unconvertedInterpolatedString.Syntax, ConstantValue.Create(numFormatHoles), intType) { WasCompilerGenerated = true });
+
+            // PROTOTYPE(interp-string): Support optional out param for whether the builder was created successfully and passing in other required args
+            BoundExpression createExpression = MakeConstructorInvocation(interpolatedStringHandlerType, arguments, unconvertedInterpolatedString.Syntax, diagnostics);
+            // PROTOTYPE(interp-string): Support dynamic
+            Debug.Assert(createExpression.HasErrors || createExpression is BoundObjectCreationExpression);
+
+            return new BoundInterpolatedString(
+                unconvertedInterpolatedString.Syntax,
+                new InterpolatedStringHandlerData(
+                    interpolatedStringHandlerType,
+                    createExpression,
+                    usesBoolReturn,
+                    LocalScopeDepth),
+                appendCalls,
+                unconvertedInterpolatedString.ConstantValue,
+                unconvertedInterpolatedString.Type,
+                unconvertedInterpolatedString.HasErrors);
         }
 
         private ImmutableArray<BoundExpression> BindInterpolatedStringParts(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, BindingDiagnosticBag diagnostics)

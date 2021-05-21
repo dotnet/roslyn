@@ -149,6 +149,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unconvertedSource.HasErrors);
             }
 
+            if (conversion.Kind == ConversionKind.InterpolatedStringHandler)
+            {
+                var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
+                return new BoundConversion(
+                    syntax,
+                    BindUnconvertedInterpolatedStringToHandlerType(unconvertedSource, (NamedTypeSymbol)destination, diagnostics, isHandlerConversion: true),
+                    conversion,
+                    @checked: false,
+                    explicitCastInCode: false,
+                    conversionGroupOpt,
+                    constantValueOpt: default,
+                    destination);
+            }
+
             if (source.Kind == BoundKind.UnconvertedSwitchExpression)
             {
                 TypeSymbol? type = source.Type;

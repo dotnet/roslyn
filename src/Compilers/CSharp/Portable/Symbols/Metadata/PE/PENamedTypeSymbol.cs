@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
+            internal ThreeState lazyHasInterpolatedStringBuilderAttribute = ThreeState.Unknown;
 
 #if DEBUG
             internal bool IsDefaultValue()
@@ -154,7 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyContainsExtensionMethods.HasValue() &&
                     lazyDefaultMemberName == null &&
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
-                    !lazyHasEmbeddedAttribute.HasValue();
+                    !lazyHasEmbeddedAttribute.HasValue() &&
+                    !lazyHasInterpolatedStringBuilderAttribute.HasValue();
             }
 #endif
         }
@@ -384,6 +386,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal sealed override bool IsInterpolatedStringHandlerType
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyHasInterpolatedStringBuilderAttribute.HasValue())
+                {
+                    uncommon.lazyHasInterpolatedStringBuilderAttribute = ContainingPEModule.Module.HasInterpolatedStringBuilderAttribute(_handle).ToThreeState();
+                }
+
+                return uncommon.lazyHasInterpolatedStringBuilderAttribute.Value();
+            }
+        }
 
         internal override bool HasCodeAnalysisEmbeddedAttribute
         {

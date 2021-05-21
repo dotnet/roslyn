@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
 
+        internal override bool IsInterpolatedStringHandlerType => false;
+
         internal override bool HasSpecialName => false;
 
         internal override bool IsComImport => false;

@@ -6721,6 +6721,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = NullableFlowState.NotNull;
                     break;
 
+                case ConversionKind.InterpolatedStringHandler:
+                    // PROTOTYPE(interp-string): Handle
+                    resultState = NullableFlowState.NotNull;
+                    break;
+
                 case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:

@@ -1002,6 +1002,11 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.CodeAnalysisEmbeddedAttribute).HasValue;
         }
 
+        internal bool HasInterpolatedStringBuilderAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.InterpolatedStringHandlerAttribute).HasValue;
+        }
+
         internal bool HasDefaultMemberAttribute(EntityHandle token, out string memberName)
         {
             return HasStringValuedAttribute(token, AttributeDescription.DefaultMemberAttribute, out memberName);
