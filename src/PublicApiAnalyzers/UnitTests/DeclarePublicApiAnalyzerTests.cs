@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
-        private async Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, string? editorConfigText, params DiagnosticResult[] expected)
+        private async Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, string editorConfigText, params DiagnosticResult[] expected)
         {
             var test = new CSharpCodeFixVerifier<DeclarePublicApiAnalyzer, DeclarePublicApiFix>.Test
             {
@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalFiles = { },
+                    AnalyzerConfigFiles = { ("/.editorconfig", editorConfigText) },
                 },
-                AnalyzerConfigDocument = editorConfigText,
             };
 
             if (shippedApiText != null)
@@ -223,12 +223,11 @@ public class C
         }
 
         [Theory]
-        [InlineData(null)]
         [InlineData("")]
         [InlineData("dotnet_public_api_analyzer.require_api_files = false")]
         [InlineData("dotnet_public_api_analyzer.require_api_files = true")]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
-        public async Task AnalyzerFileMissing_Both(string? editorconfigText)
+        public async Task AnalyzerFileMissing_Both(string editorconfigText)
         {
             var source = @"
 public class C
@@ -241,13 +240,12 @@ public class C
             string? unshippedText = null;
 
             var expectedDiagnostics = Array.Empty<DiagnosticResult>();
-            if (editorconfigText == null ||
-                !editorconfigText.EndsWith("true", StringComparison.OrdinalIgnoreCase))
+            if (!editorconfigText.EndsWith("true", StringComparison.OrdinalIgnoreCase))
             {
                 expectedDiagnostics = new[] { GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C") };
             }
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, editorconfigText, expectedDiagnostics);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, $"[*]\r\n{editorconfigText}", expectedDiagnostics);
         }
 
         [Fact]
