@@ -102,11 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                     };
 
                 case (PatternSyntax leftPattern, _):
-                    if (GetInnermostReceiver(rightReceiver, semanticModel) is not IdentifierNameSyntax identifierName ||
-                        TryFindDesignation(leftPattern, identifierName) is not var (designation, names))
-                    {
+                    if (TryFindDesignation(leftPattern, rightReceiver, semanticModel) is not var (designation, names))
                         return null;
-                    }
 
                     RoslynDebug.AssertNotNull(leftPattern.Parent);
                     RoslynDebug.AssertNotNull(designation.Parent);
@@ -133,8 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
         private static Func<SyntaxNode, SyntaxNode>? CombineWhenClauseCondition(PatternSyntax pattern, ExpressionSyntax condition, SemanticModel semanticModel)
         {
             if (TryDetermineReceiver(condition, semanticModel, inWhenClause: true) is not var (receiver, target, flipped) ||
-                GetInnermostReceiver(receiver, semanticModel) is not IdentifierNameSyntax identifierName ||
-                TryFindDesignation(pattern, identifierName) is not var (designation, names))
+                TryFindDesignation(pattern, receiver, semanticModel) is not var (designation, names))
             {
                 return null;
             }
@@ -186,9 +182,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
         }
 
         private static (SingleVariableDesignationSyntax Designation, ImmutableArray<IdentifierNameSyntax> Names)?
-            TryFindDesignation(PatternSyntax pattern, IdentifierNameSyntax identifierName)
+            TryFindDesignation(PatternSyntax leftPattern, ExpressionSyntax rightReceiver, SemanticModel semanticModel)
         {
-            var designation = pattern.DescendantNodes()
+            if (GetInnermostReceiver(rightReceiver, semanticModel) is not IdentifierNameSyntax identifierName)
+                return null;
+
+            var designation = leftPattern.DescendantNodes()
                 .OfType<SingleVariableDesignationSyntax>()
                 .Where(d => AreEquivalent(d.Identifier, identifierName.Identifier))
                 .FirstOrDefault();
