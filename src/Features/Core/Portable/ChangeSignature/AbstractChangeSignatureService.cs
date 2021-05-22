@@ -75,6 +75,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// </summary>
         protected abstract bool SupportsOptionalAndParamsArrayParametersSimultaneously();
 
+        protected abstract bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor);
+
+        /// <summary>
+        /// A temporarily hack that should be removed once/if https://github.com/dotnet/roslyn/issues/53092 is fixed.
+        /// </summary>
+        protected abstract ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol);
+
         protected abstract SyntaxGenerator Generator { get; }
         protected abstract ISyntaxFacts SyntaxFacts { get; }
 
@@ -178,8 +185,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return new ChangeSignatureAnalysisSucceededContext(
                 declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
         }
-
-        protected abstract bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor);
 
         internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
         {
@@ -556,8 +561,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return newArguments.ToImmutableAndFree();
         }
-
-        protected abstract ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol);
 
         /// <summary>
         /// Sometimes signature changes can cascade from a declaration with m parameters to one with n > m parameters, such as
