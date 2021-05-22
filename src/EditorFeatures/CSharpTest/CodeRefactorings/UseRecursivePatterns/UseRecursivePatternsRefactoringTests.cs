@@ -34,24 +34,63 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         }
 
         [Theory]
-        [InlineData("NS.C.SCP1.P1 == 1 && NS.C.SCP1.P2 == 2", "NS.C.SCP1 is { P1: 1, P2: 2 }")]
-        [InlineData("this.P1 == 1 && this.P2 == 2", "this is { P1: 1, P2: 2 }")]
-        [InlineData("this.P1 < 1 && this.P2 <= 2", "this is { P1: < 1, P2: <= 2 }")]
-        [InlineData("this.P1 > 1 && this.P2 >= 2", "this is { P1: > 1, P2: >= 2 }")]
-        [InlineData("this.P1 != 1 && this.P2 != 2", "this is { P1: not 1, P2: not 2 }")]
-        [InlineData("this.P1 == 1 && this.CP2.P3 == 3", "this is { P1: 1, CP2: { P3: 3 } }")]
-        [InlineData("this.CP1.P1 == 1 && this.CP1.CP2.P3 == 3", "this.CP1 is { P1: 1, CP2: { P3: 3 } }")]
-        public async Task TestLogicalAndExpression(string actual, string expected)
+        [InlineData("this.P1 < 1 && 2 >= this.P2", "this is { P1: < 1, P2: <= 2 }")]
+        [InlineData("this.P1 > 1 && 2 <= this.P2", "this is { P1: > 1, P2: >= 2 }")]
+        [InlineData("this.P1 <= 1 && 2 > this.P2", "this is { P1: <= 1, P2: < 2 }")]
+        [InlineData("this.P1 >= 1 && 2 < this.P2", "this is { P1: >= 1, P2: > 2 }")]
+        // Nested
+        [InlineData("this.CP1.P1 < 1 && 2 >= this.CP2.P2", "this is { CP1: { P1: < 1 }, CP2: { P2: <= 2 } }")]
+        [InlineData("this.CP1.P1 > 1 && 2 <= this.CP2.P2", "this is { CP1: { P1: > 1 }, CP2: { P2: >= 2 } }")]
+        [InlineData("this.CP1.P1 <= 1 && 2 > this.CP2.P2", "this is { CP1: { P1: <= 1 }, CP2: { P2: < 2 } }")]
+        [InlineData("this.CP1.P1 >= 1 && 2 < this.CP2.P2", "this is { CP1: { P1: >= 1 }, CP2: { P2: > 2 } }")]
+        public async Task TestLogicalAndExpression_Relational(string actual, string expected)
         {
             await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
         }
 
         [Theory]
-        [InlineData("this.CP1 is var c [||]&& c.P1 == 0", "this.CP1 is { P1: 0 } c")]
+        [InlineData("!this.B1 && this.P2 == 1", "this is { B1: false, P2: 1 }")]
+        [InlineData("!this.B1 && this.B2", "this is { B1: false, B2: true }")]
+        [InlineData("this.CP1.B1 && !this.CP2.B2", "this is { CP1: { B1: true }, CP2: { B2: false } }")]
+        public async Task TestLogicalAndExpression_Boolean(string actual, string expected)
+        {
+            await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
+        }
+
+        [Theory]
+        [InlineData("this.P1 == 1 && 2 == this.P2", "this is { P1: 1, P2: 2 }")]
+        [InlineData("this.P1 != 1 && 2 != this.P2", "this is { P1: not 1, P2: not 2 }")]
+        // Nested
+        [InlineData("this.CP1.P1 == 1 && 2 == this.CP2.P2", "this is { CP1: { P1: 1 }, CP2: { P2: 2 } }")]
+        [InlineData("this.CP1.P1 != 1 && 2 != this.CP2.P2", "this is { CP1: { P1: not 1 }, CP2: { P2: not 2 } }")]
+        public async Task TestLogicalAndExpression_Equality(string actual, string expected)
+        {
+            await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
+        }
+
+        [Theory]
+        [InlineData("NS.C.SCP1.P1 == 1 && NS.C.SCP1.P2 == 2", "NS.C.SCP1 is { P1: 1, P2: 2 }")]
+        // Nested
+        [InlineData("NS.C.SCP1.CP1.P1 == 1 && NS.C.SCP1.CP2.P2 == 2", "NS.C.SCP1 is { CP1: { P1: 1 }, CP2: { P2: 2 } }")]
+        public async Task TestLogicalAndExpression_StaticMembers(string actual, string expected)
+        {
+            await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
+        }
+
+        [Theory]
+        [InlineData("this.CP1 is var c && c.P1 == 0", "this.CP1 is { P1: 0 } c")]
+        [InlineData("this.CP1 is C c && c.P1 == 0", "this.CP1 is C { P1: 0 } c")]
+        [InlineData("this.CP1 is C { P2: 2 } c && c.P1 == 0", "this.CP1 is C { P2: 2, P1: 0 } c")]
+        public async Task TestLogicalAndExpression_Pattern(string actual, string expected)
+        {
+            await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
+        }
+
+        [Theory]
         [InlineData("this.P1 == 1 && this.CP1 is var c [||]&& c.P1 == 0 && this.P2 == 2", "this.P1 == 1 && this.CP1 is { P1: 0 } c && this.P2 == 2")]
         [InlineData("this.P1 == 1 && this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3", "this.P1 == 1 && this.CP1 is { P1: 1, CP2: { P3: 3 } }")]
         [InlineData("this.P1 == 1 && this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3 && this.P2 == 2", "this.P1 == 1 && this.CP1 is { P1: 1, CP2: { P3: 3 } } && this.P2 == 2")]
-        public async Task TestLogicalAndExpressionChildren(string actual, string expected)
+        public async Task TestLogicalAndExpression_Children(string actual, string expected)
         {
             await VerifyAsync(WrapInIfStatement(actual, entry: null), WrapInIfStatement(expected, entry: null));
         }
@@ -70,22 +109,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         [InlineData("{ CP1: var c } when c.P1 == 1 && c.P2 == 2", "{ CP1: { P1: 1 } c } when c.P2 == 2")]
         [InlineData("{ CP1: C c } when c.P1 == 1", "{ CP1: C { P1: 1 } c }")]
         [InlineData("{ CP1: C { P2: 2 } c } when c.P1 == 1", "{ CP1: C { P2: 2, P1: 1 } c }")]
+        [InlineData("{ CP1: var c } when c is { P1: 1 }", "{ CP1: { P1: 1 } c }")]
         public async Task TestWhenClause(string actual, string expected)
         {
             await VerifyAsync(WrapInSwitchArm(actual, "when"), WrapInSwitchArm(expected, "when"));
             await VerifyAsync(WrapInSwitchArm(actual, "=>"), WrapInSwitchArm(expected, "=>"));
             await VerifyAsync(WrapInSwitchLabel(actual, "when"), WrapInSwitchLabel(expected, "when"));
             await VerifyAsync(WrapInSwitchLabel(actual, "case"), WrapInSwitchLabel(expected, "case"));
-        }
-
-        [Theory]
-        [InlineData("{ CP1: var c } when c is { P1: 1 }")]
-        public async Task TestWhenClauseMissing(string actual)
-        {
-            await VerifyMissingAsync(WrapInSwitchArm(actual, "when"));
-            await VerifyMissingAsync(WrapInSwitchArm(actual, "=>"));
-            await VerifyMissingAsync(WrapInSwitchLabel(actual, "when"));
-            await VerifyMissingAsync(WrapInSwitchLabel(actual, "case"));
         }
 
         private static string WrapInIfStatement(string actual, string entry)
@@ -130,7 +160,8 @@ namespace NS
     class C
     {
         public int P1, P2, P3;
-        public C CP1, CP2, CP3;
+        public bool B1, B2;
+        public C CP1, CP2;
         public static C SCP1, SCP2;
         public static int SP1, SP2;
 
