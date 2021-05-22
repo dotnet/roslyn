@@ -360,7 +360,7 @@ class Test
             var @struct = c2.GlobalNamespace.GetMember<RetargetingNamedTypeSymbol>("S");
             var method = (RetargetingMethodSymbol)@struct.GetMembers().Single();
 
-            Assert.True(method.IsDefaultValueTypeConstructor());
+            Assert.True(method.IsDefaultValueTypeConstructor(requireZeroInit: false));
 
             //TODO (tomat)
             CompileAndVerify(c2).VerifyIL("C.M", @"
