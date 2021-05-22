@@ -433,22 +433,36 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a 
     IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ Prop1.Pro ... op3: null }') (InputType: A, NarrowedType: A, DeclaredSymbol: null, MatchedType: A, DeconstructSymbol: null)
       DeconstructionSubpatterns (0)
       PropertySubpatterns (1):
-          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Prop1.Prop2.Prop3: null')
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1')
             Member:
-              IPropertyReferenceOperation: System.Object C.Prop3 { get; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'Prop1.Prop2.Prop3')
+              IPropertyReferenceOperation: B A.Prop1 { get; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Prop1')
                 Instance Receiver:
-                  IPropertyReferenceOperation: C B.Prop2 { get; } (OperationKind.PropertyReference, Type: C) (Syntax: 'Prop1.Prop2')
-                    Instance Receiver:
-                      IPropertyReferenceOperation: B A.Prop1 { get; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Prop1')
-                        Instance Receiver:
-                          IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Prop1')
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Prop1')
             Pattern:
-              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
-                Value:
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
-                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Prop1') (InputType: B, NarrowedType: B, DeclaredSymbol: null, MatchedType: B, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2')
+                      Member:
+                        IPropertyReferenceOperation: C B.Prop2 { get; } (OperationKind.PropertyReference, Type: C) (Syntax: 'Prop1.Prop2')
+                          Instance Receiver:
+                            IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: 'Prop1.Prop2')
+                      Pattern:
+                        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                          DeconstructionSubpatterns (0)
+                          PropertySubpatterns (1):
+                              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2.Prop3')
+                                Member:
+                                  IPropertyReferenceOperation: System.Object C.Prop3 { get; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'Prop1.Prop2.Prop3')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop1.Prop2.Prop3')
+                                Pattern:
+                                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
+                                    Value:
+                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                        Operand:
+                                          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ");
 
             var expectedFlowGraph = @"
@@ -471,23 +485,37 @@ Block[B1] - Block
                     IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ Prop1.Pro ... op3: null }') (InputType: A, NarrowedType: A, DeclaredSymbol: null, MatchedType: A, DeconstructSymbol: null)
                       DeconstructionSubpatterns (0)
                       PropertySubpatterns (1):
-                          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Prop1.Prop2.Prop3: null')
+                          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1')
                             Member:
-                              IPropertyReferenceOperation: System.Object C.Prop3 { get; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'Prop1.Prop2.Prop3')
+                              IPropertyReferenceOperation: B A.Prop1 { get; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Prop1')
                                 Instance Receiver:
-                                  IPropertyReferenceOperation: C B.Prop2 { get; } (OperationKind.PropertyReference, Type: C) (Syntax: 'Prop1.Prop2')
-                                    Instance Receiver:
-                                      IPropertyReferenceOperation: B A.Prop1 { get; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Prop1')
-                                        Instance Receiver:
-                                          IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Prop1')
+                                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Prop1')
                             Pattern:
-                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
-                                Value:
-                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
-                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                      (ImplicitReference)
-                                    Operand:
-                                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Prop1') (InputType: B, NarrowedType: B, DeclaredSymbol: null, MatchedType: B, DeconstructSymbol: null)
+                                DeconstructionSubpatterns (0)
+                                PropertySubpatterns (1):
+                                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2')
+                                      Member:
+                                        IPropertyReferenceOperation: C B.Prop2 { get; } (OperationKind.PropertyReference, Type: C) (Syntax: 'Prop1.Prop2')
+                                          Instance Receiver:
+                                            IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: 'Prop1.Prop2')
+                                      Pattern:
+                                        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                                          DeconstructionSubpatterns (0)
+                                          PropertySubpatterns (1):
+                                              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2.Prop3')
+                                                Member:
+                                                  IPropertyReferenceOperation: System.Object C.Prop3 { get; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'Prop1.Prop2.Prop3')
+                                                    Instance Receiver:
+                                                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop1.Prop2.Prop3')
+                                                Pattern:
+                                                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
+                                                    Value:
+                                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                                          (ImplicitReference)
+                                                        Operand:
+                                                          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
@@ -542,25 +570,39 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a 
     IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ Field1.Fi ... ld4: null }') (InputType: A, NarrowedType: A, DeclaredSymbol: null, MatchedType: A, DeconstructSymbol: null)
       DeconstructionSubpatterns (0)
       PropertySubpatterns (2):
-          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Field1.Fiel ... ield3: null')
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1')
             Member:
-              IFieldReferenceOperation: System.Object C.Field3 (OperationKind.FieldReference, Type: System.Object) (Syntax: 'Field1.Field2.Field3')
+              IFieldReferenceOperation: B? A.Field1 (OperationKind.FieldReference, Type: B?) (Syntax: 'Field1')
                 Instance Receiver:
-                  IFieldReferenceOperation: C? B.Field2 (OperationKind.FieldReference, Type: C) (Syntax: 'Field1.Field2')
-                    Instance Receiver:
-                      IFieldReferenceOperation: B? A.Field1 (OperationKind.FieldReference, Type: B) (Syntax: 'Field1')
-                        Instance Receiver:
-                          IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Field1')
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Field1')
             Pattern:
-              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
-                Value:
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    Operand:
-                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Field1') (InputType: B, NarrowedType: B, DeclaredSymbol: null, MatchedType: B, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2')
+                      Member:
+                        IFieldReferenceOperation: C? B.Field2 (OperationKind.FieldReference, Type: C?) (Syntax: 'Field1.Field2')
+                          Instance Receiver:
+                            IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: 'Field1.Field2')
+                      Pattern:
+                        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                          DeconstructionSubpatterns (0)
+                          PropertySubpatterns (1):
+                              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2.Field3')
+                                Member:
+                                  IFieldReferenceOperation: System.Object C.Field3 (OperationKind.FieldReference, Type: System.Object) (Syntax: 'Field1.Field2.Field3')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Field1.Field2.Field3')
+                                Pattern:
+                                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
+                                    Value:
+                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                        Operand:
+                                          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
           IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Field4: null')
             Member:
-              IFieldReferenceOperation: B? A.Field4 (OperationKind.FieldReference, Type: B) (Syntax: 'Field4')
+              IFieldReferenceOperation: B? A.Field4 (OperationKind.FieldReference, Type: B?) (Syntax: 'Field4')
                 Instance Receiver:
                   IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Field4')
             Pattern:
@@ -592,26 +634,40 @@ Block[B1] - Block
                     IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ Field1.Fi ... ld4: null }') (InputType: A, NarrowedType: A, DeclaredSymbol: null, MatchedType: A, DeconstructSymbol: null)
                       DeconstructionSubpatterns (0)
                       PropertySubpatterns (2):
-                          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Field1.Fiel ... ield3: null')
+                          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1')
                             Member:
-                              IFieldReferenceOperation: System.Object C.Field3 (OperationKind.FieldReference, Type: System.Object) (Syntax: 'Field1.Field2.Field3')
+                              IFieldReferenceOperation: B? A.Field1 (OperationKind.FieldReference, Type: B?) (Syntax: 'Field1')
                                 Instance Receiver:
-                                  IFieldReferenceOperation: C? B.Field2 (OperationKind.FieldReference, Type: C) (Syntax: 'Field1.Field2')
-                                    Instance Receiver:
-                                      IFieldReferenceOperation: B? A.Field1 (OperationKind.FieldReference, Type: B) (Syntax: 'Field1')
-                                        Instance Receiver:
-                                          IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Field1')
+                                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Field1')
                             Pattern:
-                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
-                                Value:
-                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
-                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                      (ImplicitReference)
-                                    Operand:
-                                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Field1') (InputType: B, NarrowedType: B, DeclaredSymbol: null, MatchedType: B, DeconstructSymbol: null)
+                                DeconstructionSubpatterns (0)
+                                PropertySubpatterns (1):
+                                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2')
+                                      Member:
+                                        IFieldReferenceOperation: C? B.Field2 (OperationKind.FieldReference, Type: C?) (Syntax: 'Field1.Field2')
+                                          Instance Receiver:
+                                            IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: 'Field1.Field2')
+                                      Pattern:
+                                        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                                          DeconstructionSubpatterns (0)
+                                          PropertySubpatterns (1):
+                                              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2.Field3')
+                                                Member:
+                                                  IFieldReferenceOperation: System.Object C.Field3 (OperationKind.FieldReference, Type: System.Object) (Syntax: 'Field1.Field2.Field3')
+                                                    Instance Receiver:
+                                                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Field1.Field2.Field3')
+                                                Pattern:
+                                                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
+                                                    Value:
+                                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                                          (ImplicitReference)
+                                                        Operand:
+                                                          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
                           IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Field4: null')
                             Member:
-                              IFieldReferenceOperation: B? A.Field4 (OperationKind.FieldReference, Type: B) (Syntax: 'Field4')
+                              IFieldReferenceOperation: B? A.Field4 (OperationKind.FieldReference, Type: B?) (Syntax: 'Field4')
                                 Instance Receiver:
                                   IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Field4')
                             Pattern:
@@ -710,6 +766,159 @@ class C
                 );
         }
 
+        [Fact]
+        public void ExtendedPropertyPatterns_IOperationOnMissing()
+        {
+            var program = @"
+class C
+{
+    public void M()
+    {
+        _ = this is { Missing: null };
+    }
+}
+";
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (6,23): error CS0117: 'C' does not contain a definition for 'Missing'
+                //         _ = this is { Missing: null };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("C", "Missing").WithLocation(6, 23)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(isPattern), @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is { M ... ing: null }')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+  Pattern:
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ Missing: null }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'Missing: null')
+            Member:
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Missing')
+                Children(0)
+            Pattern:
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
+                Value:
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsImplicit) (Syntax: 'null')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    Operand:
+                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+");
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_IOperationOnNestedMissing()
+        {
+            var program = @"
+class C
+{
+    int Property { get; set; }
+    public void M()
+    {
+        _ = this is { Property.Missing: null };
+    }
+}
+";
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (7,32): error CS0117: 'int' does not contain a definition for 'Missing'
+                //         _ = this is { Property.Missing: null };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("int", "Missing").WithLocation(7, 32)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(isPattern), @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is { P ... ing: null }')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+  Pattern:
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ Property. ... ing: null }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Property')
+            Member:
+              IPropertyReferenceOperation: System.Int32 C.Property { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Property')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Property')
+            Pattern:
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Property') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: null, MatchedType: System.Int32, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'Property.Missing')
+                      Member:
+                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Property.Missing')
+                          Children(0)
+                      Pattern:
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
+                          Value:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsImplicit) (Syntax: 'null')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+");
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_IOperationOnTwoMissing()
+        {
+            var program = @"
+class C
+{
+    public void M()
+    {
+        _ = this is { Missing1.Missing2: null };
+    }
+}
+";
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (6,23): error CS0117: 'C' does not contain a definition for 'Missing1'
+                //         _ = this is { Missing1.Missing2: null };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing1").WithArguments("C", "Missing1").WithLocation(6, 23)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(isPattern), @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is { M ... ng2: null }')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+  Pattern:
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ Missing1. ... ng2: null }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'Missing1')
+            Member:
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Missing1')
+                Children(0)
+            Pattern:
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'Missing1') (InputType: ?, NarrowedType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'Missing1.Missing2')
+                      Member:
+                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Missing1.Missing2')
+                          Children(0)
+                      Pattern:
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
+                          Value:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsImplicit) (Syntax: 'null')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+");
+        }
+
         [Fact, WorkItem(53484, "https://github.com/dotnet/roslyn/issues/53484")]
         public void ExtendedPropertyPatterns_SuppressionOnPattern()
         {
@@ -724,29 +933,23 @@ public class ContainerType
             const Type c = null!;
             if (this is c!) {}
             if (this is (c!)) {}
-            if (this is Type!) {}
-            if (this is ContainerType!.Type) {}
-            if (this is ContainerType.Type!) {}
+            if (this is Type!) {} // 1
+            if (this is ContainerType!.Type) {} // 2
+            if (this is ContainerType.Type!) {} // 3
         }
     }
 }
 ";
             var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
             compilation.VerifyEmitDiagnostics(
-                // (10,25): error CS8598: The suppression operator is not allowed in this context
-                //             if (this is c!) {}
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(10, 25),
-                // (11,25): error CS8598: The suppression operator is not allowed in this context
-                //             if (this is (c!)) {}
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "(c!)").WithLocation(11, 25),
                 // (12,25): error CS8598: The suppression operator is not allowed in this context
-                //             if (this is Type!) {}
+                //             if (this is Type!) {} // 1
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "Type!").WithLocation(12, 25),
                 // (13,25): error CS8598: The suppression operator is not allowed in this context
-                //             if (this is ContainerType!.Type) {}
+                //             if (this is ContainerType!.Type) {} // 2
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType").WithLocation(13, 25),
                 // (14,25): error CS8598: The suppression operator is not allowed in this context
-                //             if (this is ContainerType.Type!) {}
+                //             if (this is ContainerType.Type!) {} // 3
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType.Type!").WithLocation(14, 25)
                 );
         }

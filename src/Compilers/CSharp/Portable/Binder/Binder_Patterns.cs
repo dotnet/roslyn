@@ -200,12 +200,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
-            if (hasSuppression(expression))
-            {
-                diagnostics.Add(ErrorCode.ERR_IllegalSuppression, expression.Location);
-                hasErrors = true;
-            }
-
             ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression);
             if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
             {
@@ -223,6 +217,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!hasErrors)
                     CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureTypePattern, diagnostics);
+
+                if (hasSuppression(expression))
+                {
+                    diagnostics.Add(ErrorCode.ERR_IllegalSuppression, expression.Location);
+                    hasErrors = true;
+                }
 
                 var boundType = (BoundTypeExpression)convertedExpression;
                 bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;

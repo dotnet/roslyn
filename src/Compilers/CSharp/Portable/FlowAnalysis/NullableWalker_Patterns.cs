@@ -17,6 +17,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class NullableWalker
     {
+        /// <summary>
+        /// Learn something about the input from a test of a given expression against a given pattern.  The given
+        /// state is updated to note that any slots that are tested against `null` may be null.
+        /// </summary>
+        /// <returns>true if there is a top-level explicit null check</returns>
+        private void LearnFromAnyNullPatterns(
+            BoundExpression expression,
+            BoundPattern pattern)
+        {
+            int slot = MakeSlot(expression);
+            LearnFromAnyNullPatterns(slot, expression.Type, pattern);
+        }
+
         private void VisitPatternForRewriting(BoundPattern pattern)
         {
             // Don't let anything under the pattern actually affect current state,
@@ -97,8 +110,106 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        /// <summary>
+        /// Learn from any constant null patterns appearing in the pattern.
+        /// </summary>
+        /// <param name="inputType">Type type of the input expression (before nullable analysis).
+        /// Used to determine which types can contain null.</param>
+        private void LearnFromAnyNullPatterns(
+            int inputSlot,
+            TypeSymbol inputType,
+            BoundPattern pattern)
+        {
+            if (inputSlot <= 0)
+                return;
+
+            // https://github.com/dotnet/roslyn/issues/35041 We only need to do this when we're rewriting, so we
+            // can get information for any nodes in the pattern.
+            VisitPatternForRewriting(pattern);
+
+            switch (pattern)
+            {
+                case BoundConstantPattern cp:
+                    bool isExplicitNullCheck = cp.Value.ConstantValue == ConstantValue.Null;
+                    if (isExplicitNullCheck)
+                    {
+                        // Since we're not branching on this null test here, we just infer the top level
+                        // nullability.  We'll branch on it later.
+                        LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
+                    }
+                    break;
+                case BoundDeclarationPattern _:
+                case BoundDiscardPattern _:
+                case BoundITuplePattern _:
+                case BoundRelationalPattern _:
+                    break; // nothing to learn
+                case BoundTypePattern tp:
+                    if (tp.IsExplicitNotNullTest)
+                    {
+                        LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
+                    }
+                    break;
+                case BoundRecursivePattern rp:
+                    {
+                        if (rp.IsExplicitNotNullTest)
+                        {
+                            LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
+                        }
+
+                        // for positional part: we only learn from tuples (not Deconstruct)
+                        if (rp.DeconstructMethod is null && !rp.Deconstruction.IsDefault)
+                        {
+                            var elements = inputType.TupleElements;
+                            for (int i = 0, n = Math.Min(rp.Deconstruction.Length, elements.IsDefault ? 0 : elements.Length); i < n; i++)
+                            {
+                                BoundSubpattern item = rp.Deconstruction[i];
+                                FieldSymbol element = elements[i];
+                                LearnFromAnyNullPatterns(GetOrCreateSlot(element, inputSlot), element.Type, item.Pattern);
+                            }
+                        }
+
+                        // for property part
+                        if (!rp.Properties.IsDefault)
+                        {
+                            foreach (BoundPropertySubpattern subpattern in rp.Properties)
+                            {
+                                // PROTOTYPE(extended-property-patterns): Investigate if we need to visit nested members; is there a test gap?
+                                if (subpattern.Member is { Symbol: Symbol symbol } member)
+                                {
+                                    LearnFromAnyNullPatterns(GetOrCreateSlot(symbol, inputSlot), member.Type, subpattern.Pattern);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case BoundNegatedPattern p:
+                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Negated);
+                    break;
+                case BoundBinaryPattern p:
+                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Left);
+                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Right);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(pattern);
+            }
+        }
+
         protected override LocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
+            // first, learn from any null tests in the patterns
+            int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
+            if (slot > 0)
+            {
+                var originalInputType = node.Expression.Type;
+                foreach (var section in node.SwitchSections)
+                {
+                    foreach (var label in section.SwitchLabels)
+                    {
+                        LearnFromAnyNullPatterns(slot, originalInputType, label.Pattern);
+                    }
+                }
+            }
+
             // visit switch header
             Visit(node.Expression);
             var expressionState = ResultType;
@@ -616,6 +727,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitSwitchExpressionCore(BoundSwitchExpression node, bool inferType)
         {
+            // first, learn from any null tests in the patterns
+            int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
+            if (slot > 0)
+            {
+                var originalInputType = node.Expression.Type;
+                foreach (var arm in node.SwitchArms)
+                {
+                    LearnFromAnyNullPatterns(slot, originalInputType, arm.Pattern);
+                }
+            }
+
             Visit(node.Expression);
             var expressionState = ResultType;
             var state = PossiblyConditionalState.Create(this);
@@ -725,6 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             Debug.Assert(!IsConditionalState);
+            LearnFromAnyNullPatterns(node.Expression, node.Pattern);
             VisitPatternForRewriting(node.Pattern);
             Visit(node.Expression);
             var expressionState = ResultType;
