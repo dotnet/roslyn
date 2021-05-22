@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     foreach (var output in generatorState.OutputNodes)
                     {
-                        // PROTOTYPE(source-generators):
+                        // https://github.com/dotnet/roslyn/issues/53608
                         // right now, we always run all output types. We'll add a mechanism to allow the host
                         // to control what types they care about in the future
                         output.AppendOutputs(context);
