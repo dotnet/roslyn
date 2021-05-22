@@ -97,6 +97,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract IEnumerable<string> GetExistingTopLevelAttributeValues(TSyntax syntax, string tagName, string attributeName);
 
+        protected abstract IEnumerable<string> GetKeywordNames();
+
+        protected abstract ImmutableArray<IParameterSymbol> GetParameters(ISymbol symbol);
+
         private CompletionItem GetItem(string name)
         {
             if (s_tagMap.TryGetValue(name, out var values))
@@ -202,8 +206,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
-        protected abstract IEnumerable<string> GetKeywordNames();
-
         protected ImmutableArray<CompletionItem> GetTopLevelItems(ISymbol symbol, TSyntax syntax)
         {
             using var _1 = ArrayBuilder<CompletionItem>.GetInstance(out var items);
@@ -242,8 +244,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return items.ToImmutable();
         }
-
-        protected abstract ImmutableArray<IParameterSymbol> GetParameters(ISymbol symbol);
 
         protected IEnumerable<CompletionItem> GetItemTagItems()
             => new[] { TermElementName, DescriptionElementName }.Select(GetItem);
