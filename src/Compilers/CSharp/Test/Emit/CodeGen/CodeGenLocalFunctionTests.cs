@@ -2094,7 +2094,7 @@ public class C
         [Fact, WorkItem(53478, "https://github.com/dotnet/roslyn/issues/53478")]
         public void OptionalParameterCodeGen_Reflection()
         {
-            VerifyOutputInMain(@"void TestAction(int goo = 5) { }
+            VerifyOutputInMain(@"void TestAction(int i = 5) { }
 
         var d = (Action<int>)TestAction;
         var p2 = d.Method.GetParameters();
