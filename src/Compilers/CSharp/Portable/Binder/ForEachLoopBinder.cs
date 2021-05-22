@@ -493,6 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We're wrapping the collection expression in a (non-synthesized) conversion so that its converted
             // type (i.e. builder.CollectionType) will be available in the binding API.
+            Debug.Assert(!builder.CollectionConversion.IsUserDefined);
             BoundConversion convertedCollectionExpression = new BoundConversion(
                 collectionExpr.Syntax,
                 collectionExpr,
@@ -1259,6 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(_syntax, useSiteInfo);
 
                 // Unconditionally convert here, to match what we set the ConvertedExpression to in the main BoundForEachStatement node.
+                Debug.Assert(!collectionConversion.IsUserDefined);
                 collectionExpr = new BoundConversion(
                     collectionExpr.Syntax,
                     collectionExpr,

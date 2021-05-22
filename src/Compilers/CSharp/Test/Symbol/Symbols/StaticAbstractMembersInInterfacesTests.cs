@@ -23984,5 +23984,1108 @@ class C2 : I1<C2>
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "I1<C2>").WithArguments("I1<T>", "T", "C2").WithLocation(14, 21)
                 );
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_01([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            string cast = (op == "explicit" ? "(int)" : "");
+
+            var source1 =
+@"
+interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator int(T x);
+
+    static int M02(I1<T> x)
+    {
+        return " + cast + @"x;
+    }
+
+    int M03(I1<T> y)
+    {
+        return " + cast + @"y;
+    }
+}
+
+class Test<T> where T : I1<T>
+{
+    static int MT1(I1<T> a)
+    {
+        return " + cast + @"a;
+    }
+
+    static void MT2()
+    {
+        _ = (System.Linq.Expressions.Expression<System.Func<T, int>>)((T b) => " + cast + @"b);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var error = (op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv);
+
+            compilation1.VerifyDiagnostics(
+                // (8,16): error CS0030: Cannot convert type 'I1<T>' to 'int'
+                //         return (int)x;
+                Diagnostic(error, cast + "x").WithArguments("I1<T>", "int").WithLocation(8, 16),
+                // (13,16): error CS0030: Cannot convert type 'I1<T>' to 'int'
+                //         return (int)y;
+                Diagnostic(error, cast + "y").WithArguments("I1<T>", "int").WithLocation(13, 16),
+                // (21,16): error CS0030: Cannot convert type 'I1<T>' to 'int'
+                //         return (int)a;
+                Diagnostic(error, cast + "a").WithArguments("I1<T>", "int").WithLocation(21, 16),
+                // (26,80): error CS9108: An expression tree may not contain an access of static abstract interface member
+                //         _ = (System.Linq.Expressions.Expression<System.Func<T, int>>)((T b) => (int)b);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, cast + "b").WithLocation(26, 80)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_03([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            string metadataName = ConversionOperatorName(op);
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator int(T x);
+}
+
+class Test
+{
+    static int M02<T, U>(T x) where T : U where U : I1<T>
+    {
+        return " + (needCast ? "(int)" : "") + @"x;
+    }
+
+    static int? M03<T, U>(T y) where T : U where U : I1<T>
+    {
+        return " + (needCast ? "(int?)" : "") + @"y;
+    }
+
+    static int? M04<T, U>(T? y) where T : struct, U where U : I1<T>
+    {
+        return " + (needCast ? "(int?)" : "") + @"y;
+    }
+
+    static int? M05<T, U>() where T : struct, U where U : I1<T>
+    {
+        return " + (needCast ? "(int?)" : "") + @"(T?)new T();
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""int I1<T>." + metadataName + @"(T)""
+  IL_000d:  stloc.0
+  IL_000e:  br.s       IL_0010
+  IL_0010:  ldloc.0
+  IL_0011:  ret
+}
+");
+            verifier.VerifyIL("Test.M03<T, U>(T)",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""int I1<T>." + metadataName + @"(T)""
+  IL_000d:  newobj     ""int?..ctor(int)""
+  IL_0012:  stloc.0
+  IL_0013:  br.s       IL_0015
+  IL_0015:  ldloc.0
+  IL_0016:  ret
+}
+");
+            verifier.VerifyIL("Test.M04<T, U>(T?)",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (T? V_0,
+                int? V_1,
+                int? V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""readonly bool T?.HasValue.get""
+  IL_000a:  brtrue.s   IL_0017
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  initobj    ""int?""
+  IL_0014:  ldloc.1
+  IL_0015:  br.s       IL_002e
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001e:  constrained. ""T""
+  IL_0024:  call       ""int I1<T>." + metadataName + @"(T)""
+  IL_0029:  newobj     ""int?..ctor(int)""
+  IL_002e:  stloc.2
+  IL_002f:  br.s       IL_0031
+  IL_0031:  ldloc.2
+  IL_0032:  ret
+}
+");
+            verifier.VerifyIL("Test.M05<T, U>()",
+@"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T System.Activator.CreateInstance<T>()""
+  IL_0006:  constrained. ""T""
+  IL_000c:  call       ""int I1<T>." + metadataName + @"(T)""
+  IL_0011:  newobj     ""int?..ctor(int)""
+  IL_0016:  stloc.0
+  IL_0017:  br.s       IL_0019
+  IL_0019:  ldloc.0
+  IL_001a:  ret
+}
+");
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""int I1<T>." + metadataName + @"(T)""
+  IL_000c:  ret
+}
+");
+            verifier.VerifyIL("Test.M03<T, U>(T)",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""int I1<T>." + metadataName + @"(T)""
+  IL_000c:  newobj     ""int?..ctor(int)""
+  IL_0011:  ret
+}
+");
+            verifier.VerifyIL("Test.M04<T, U>(T?)",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (T? V_0,
+                int? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""readonly bool T?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""int?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001c:  constrained. ""T""
+  IL_0022:  call       ""int I1<T>." + metadataName + @"(T)""
+  IL_0027:  newobj     ""int?..ctor(int)""
+  IL_002c:  ret
+}
+");
+            verifier.VerifyIL("Test.M05<T, U>()",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  call       ""T System.Activator.CreateInstance<T>()""
+  IL_0005:  constrained. ""T""
+  IL_000b:  call       ""int I1<T>." + metadataName + @"(T)""
+  IL_0010:  newobj     ""int?..ctor(int)""
+  IL_0015:  ret
+}
+");
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().First();
+
+            Assert.Equal("return " + (needCast ? "(int)" : "") + @"x;", node.ToString());
+
+            VerifyOperationTreeForNode(compilation1, model, node,
+// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
+//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                               to expose this information? 
+@"
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return " + (needCast ? "(int)" : "") + @"x;')
+  ReturnedValue: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 I1<T>." + metadataName + @"(T x)) (OperationKind.Conversion, Type: System.Int32" + (needCast ? "" : ", IsImplicit") + @") (Syntax: '" + (needCast ? "(int)" : "") + @"x')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 I1<T>." + metadataName + @"(T x))
+      Operand: 
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: T) (Syntax: 'x')
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_04([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator int(T x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static int M02<T>(T x) where T : I1<T>
+    {
+        return " + (needCast ? "(int)" : "") + @"x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,16): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //         return (int)x;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, (needCast ? "(int)" : "") + "x").WithLocation(6, 16)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (12,39): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static explicit operator int(T x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(12, 39)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_06([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator int(T x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static int M02<T>(T x) where T : I1<T>
+    {
+        return " + (needCast ? "(int)" : "") + @"x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,16): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, (needCast ? "(int)" : "") + "x").WithArguments("static abstract members in interfaces").WithLocation(6, 16)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (12,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static implicit operator int(T x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(12, 39)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_07([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            // Same as ConsumeAbstractConversionOperator_03 only direction of conversion is flipped
+
+            string metadataName = ConversionOperatorName(op);
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator T(int x);
+}
+
+class Test
+{
+    static T M02<T, U>(int x) where T : U where U : I1<T>
+    {
+        return " + (needCast ? "(T)" : "") + @"x;
+    }
+
+    static T? M03<T, U>(int y) where T : struct, U where U : I1<T>
+    {
+        return " + (needCast ? "(T?)" : "") + @"y;
+    }
+
+    static T? M04<T, U>(int? y) where T : struct, U where U : I1<T>
+    {
+        return " + (needCast ? "(T?)" : "") + @"y;
+    }
+
+    static T? M05<T, U>() where T : struct, U where U : I1<T>
+    {
+        return " + (needCast ? "(T?)" : "") + @"(T?)0;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(int)",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(int)""
+  IL_000d:  stloc.0
+  IL_000e:  br.s       IL_0010
+  IL_0010:  ldloc.0
+  IL_0011:  ret
+}
+");
+            verifier.VerifyIL("Test.M03<T, U>(int)",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (T? V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(int)""
+  IL_000d:  newobj     ""T?..ctor(T)""
+  IL_0012:  stloc.0
+  IL_0013:  br.s       IL_0015
+  IL_0015:  ldloc.0
+  IL_0016:  ret
+}
+");
+            verifier.VerifyIL("Test.M04<T, U>(int?)",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (int? V_0,
+                T? V_1,
+                T? V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  call       ""readonly bool int?.HasValue.get""
+  IL_000a:  brtrue.s   IL_0017
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  initobj    ""T?""
+  IL_0014:  ldloc.1
+  IL_0015:  br.s       IL_002e
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""readonly int int?.GetValueOrDefault()""
+  IL_001e:  constrained. ""T""
+  IL_0024:  call       ""T I1<T>." + metadataName + @"(int)""
+  IL_0029:  newobj     ""T?..ctor(T)""
+  IL_002e:  stloc.2
+  IL_002f:  br.s       IL_0031
+  IL_0031:  ldloc.2
+  IL_0032:  ret
+}
+");
+            verifier.VerifyIL("Test.M05<T, U>()",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (T? V_0)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(int)""
+  IL_000d:  newobj     ""T?..ctor(T)""
+  IL_0012:  stloc.0
+  IL_0013:  br.s       IL_0015
+  IL_0015:  ldloc.0
+  IL_0016:  ret
+}
+");
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(int)",
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""T I1<T>." + metadataName + @"(int)""
+  IL_000c:  ret
+}
+");
+            verifier.VerifyIL("Test.M03<T, U>(int)",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""T I1<T>." + metadataName + @"(int)""
+  IL_000c:  newobj     ""T?..ctor(T)""
+  IL_0011:  ret
+}
+");
+            verifier.VerifyIL("Test.M04<T, U>(int?)",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  1
+  .locals init (int? V_0,
+                T? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""readonly bool int?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""T?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""readonly int int?.GetValueOrDefault()""
+  IL_001c:  constrained. ""T""
+  IL_0022:  call       ""T I1<T>." + metadataName + @"(int)""
+  IL_0027:  newobj     ""T?..ctor(T)""
+  IL_002c:  ret
+}
+");
+            verifier.VerifyIL("Test.M05<T, U>()",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  call       ""T I1<T>." + metadataName + @"(int)""
+  IL_000c:  newobj     ""T?..ctor(T)""
+  IL_0011:  ret
+}
+");
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().First();
+
+            Assert.Equal("return " + (needCast ? "(T)" : "") + @"x;", node.ToString());
+
+            VerifyOperationTreeForNode(compilation1, model, node,
+// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
+//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                               to expose this information? 
+@"
+IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return " + (needCast ? "(T)" : "") + @"x;')
+  ReturnedValue: 
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: T I1<T>." + metadataName + @"(System.Int32 x)) (OperationKind.Conversion, Type: T" + (needCast ? "" : ", IsImplicit") + @") (Syntax: '" + (needCast ? "(T)" : "") + @"x')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: T I1<T>." + metadataName + @"(System.Int32 x))
+      Operand: 
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_08([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            // Don't look in interfaces of the effective base
+
+            string metadataName = ConversionOperatorName(op);
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator int(T x);
+}
+
+class C1<T> : I1<C1<T>>
+{
+    static " + op + @" I1<C1<T>>.operator int(C1<T> x) => default;
+}
+
+class Test
+{
+    static int M02<T, U>(T x) where T : U where U : C1<T>
+    {
+        return " + (needCast ? "(int)" : "") + @"x;
+    }
+
+    static int M03<T>(C1<T> y) where T : I1<C1<T>>
+    {
+        return " + (needCast ? "(int)" : "") + @"y;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var error = (op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv);
+
+            compilation1.VerifyDiagnostics(
+                // (16,16): error CS0030: Cannot convert type 'T' to 'int'
+                //         return (int)x;
+                Diagnostic(error, (needCast ? "(int)" : "") + "x").WithArguments("T", "int").WithLocation(16, 16),
+                // (21,16): error CS0030: Cannot convert type 'C1<T>' to 'int'
+                //         return (int)y;
+                Diagnostic(error, (needCast ? "(int)" : "") + "y").WithArguments("C1<T>", "int").WithLocation(21, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_09([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            // Same as ConsumeAbstractConversionOperator_08 only direction of conversion is flipped
+
+            string metadataName = ConversionOperatorName(op);
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator T(int x);
+}
+
+class C1<T> : I1<C1<T>>
+{
+    static " + op + @" I1<C1<T>>.operator C1<T>(int x) => default;
+}
+
+class Test
+{
+    static T M02<T, U>(int x) where T : U where U : C1<T>
+    {
+        return " + (needCast ? "(T)" : "") + @"x;
+    }
+
+    static C1<T> M03<T>(int y) where T : I1<C1<T>>
+    {
+        return " + (needCast ? "(C1<T>)" : "") + @"y;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var error = (op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv);
+
+            compilation1.VerifyDiagnostics(
+                // (16,16): error CS0030: Cannot convert type 'int' to 'T'
+                //         return (T)x;
+                Diagnostic(error, (needCast ? "(T)" : "") + "x").WithArguments("int", "T").WithLocation(16, 16),
+                // (21,16): error CS0030: Cannot convert type 'int' to 'C1<T>'
+                //         return (C1<T>)y;
+                Diagnostic(error, (needCast ? "(C1<T>)" : "") + "y").WithArguments("int", "C1<T>").WithLocation(21, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_10([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            // Look in derived interfaces
+
+            string metadataName = ConversionOperatorName(op);
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator int(T x);
+}
+
+public interface I2<T> : I1<T> where T : I1<T>
+{}
+
+class Test
+{
+    static int M02<T, U>(T x) where T : U where U : I2<T>
+    {
+        return " + (needCast ? "(int)" : "") + @"x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""int I1<T>." + metadataName + @"(T)""
+  IL_000d:  stloc.0
+  IL_000e:  br.s       IL_0010
+  IL_0010:  ldloc.0
+  IL_0011:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_11([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            // Same as ConsumeAbstractConversionOperator_10 only direction of conversion is flipped
+
+            string metadataName = ConversionOperatorName(op);
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator T(int x);
+}
+
+public interface I2<T> : I1<T> where T : I1<T>
+{}
+
+class Test
+{
+    static T M02<T, U>(int x) where T : U where U : I2<T>
+    {
+        return " + (needCast ? "(T)" : "") + @"x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(int)",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(int)""
+  IL_000d:  stloc.0
+  IL_000e:  br.s       IL_0010
+  IL_0010:  ldloc.0
+  IL_0011:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_12([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            // Ignore duplicate candidates
+
+            string metadataName = ConversionOperatorName(op);
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T, U> where T : I1<T, U> where U : I1<T, U>
+{
+    abstract static " + op + @" operator U(T x);
+}
+
+class Test
+{
+    static U M02<T, U>(T x) where T : I1<T, U> where U : I1<T, U>
+    {
+        return " + (needCast ? "(U)" : "") + @"x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (U V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""U I1<T, U>." + metadataName + @"(T)""
+  IL_000d:  stloc.0
+  IL_000e:  br.s       IL_0010
+  IL_0010:  ldloc.0
+  IL_0011:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_13([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            // Look in effective base
+
+            string metadataName = ConversionOperatorName(op);
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public class C1<T>
+{
+    public static " + op + @" operator int(C1<T> x) => default;
+}
+
+class Test
+{
+    static int M02<T, U>(T x) where T : U where U : C1<T>
+    {
+        return " + (needCast ? "(int)" : "") + @"x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  box        ""T""
+  IL_0007:  call       ""int C1<T>." + metadataName + @"(C1<T>)""
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_000f
+  IL_000f:  ldloc.0
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConsumeAbstractConversionOperator_14()
+        {
+            // Same as ConsumeAbstractConversionOperator_13 only direction of conversion is flipped
+            var source1 =
+@"
+public class C1<T>
+{
+    public static explicit operator C1<T>(int x) => default;
+}
+
+class Test
+{
+    static T M02<T, U>(int x) where T : U where U : C1<T>
+    {
+        return (T)x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(int)",
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""C1<T> C1<T>.op_Explicit(int)""
+  IL_0007:  unbox.any  ""T""
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_000f
+  IL_000f:  ldloc.0
+  IL_0010:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_15([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            // If there is a non-trivial class constraint, interfaces are not looked at.
+
+            string metadataName = ConversionOperatorName(op);
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator int(T x);
+}
+
+public class C1 : I1<C1>
+{
+    public static " + op + @" operator int(C1 x) => default;
+}
+
+class Test
+{
+    static int M02<T, U>(T x) where T : U where U : C1, I1<C1>
+    {
+        return " + (needCast ? "(int)" : "") + @"x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(T)",
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  box        ""T""
+  IL_0007:  call       ""int C1." + metadataName + @"(C1)""
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_000f
+  IL_000f:  ldloc.0
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConsumeAbstractConversionOperator_16()
+        {
+            // Same as ConsumeAbstractConversionOperator_15 only direction of conversion is flipped
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator T(int x);
+}
+
+public class C1 : I1<C1>
+{
+    public static explicit operator C1(int x) => default;
+}
+
+class Test
+{
+    static T M02<T, U>(int x) where T : U where U : C1, I1<C1>
+    {
+        return (T)x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.M02<T, U>(int)",
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""C1 C1.op_Explicit(int)""
+  IL_0007:  unbox.any  ""T""
+  IL_000c:  stloc.0
+  IL_000d:  br.s       IL_000f
+  IL_000f:  ldloc.0
+  IL_0010:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_17([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            // If there is a non-trivial class constraint, interfaces are not looked at.
+
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator int(T x);
+}
+
+public class C1 
+{
+}
+
+class Test
+{
+    static int M02<T, U>(T x) where T : U where U : C1, I1<T>
+    {
+        return " + (needCast ? "(int)" : "") + @"x;
+    }
+
+    static int M03<T, U>(T y) where T : U where U : I1<T>
+    {
+        return " + (needCast ? "(int)" : "") + @"y;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (15,16): error CS0030: Cannot convert type 'T' to 'int'
+                //         return (int)x;
+                Diagnostic((op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv), (needCast ? "(int)" : "") + "x").WithArguments("T", "int").WithLocation(15, 16)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperator_18([CombinatorialValues("implicit", "explicit")] string op)
+        {
+            // Same as ConsumeAbstractConversionOperator_17 only direction of conversion is flipped
+
+            bool needCast = op == "explicit";
+
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator T(int x);
+}
+
+public class C1 
+{
+}
+
+class Test
+{
+    static T M02<T, U>(int x) where T : U where U : C1, I1<T>
+    {
+        return " + (needCast ? "(T)" : "") + @"x;
+    }
+
+    static T M03<T, U>(int y) where T : U where U : I1<T>
+    {
+        return " + (needCast ? "(T)" : "") + @"y;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (15,16): error CS0030: Cannot convert type 'int' to 'T'
+                //         return (T)x;
+                Diagnostic((op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv), (needCast ? "(T)" : "") + "x").WithArguments("int", "T").WithLocation(15, 16)
+                );
+        }
     }
 }
