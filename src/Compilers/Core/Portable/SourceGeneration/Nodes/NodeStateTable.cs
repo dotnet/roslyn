@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -95,16 +96,9 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var inputEntry in _states)
             {
-                if (inputEntry.IsSingle)
+                for (int i = 0; i < inputEntry.Count; i++)
                 {
-                    yield return (inputEntry.Item, inputEntry.State.Value);
-                }
-                else
-                {
-                    for (int i = 0; i < inputEntry.Items.Length; i++)
-                    {
-                        yield return (inputEntry.Items[i], inputEntry.State ?? inputEntry.States[i]);
-                    }
+                    yield return (inputEntry.GetItem(i), inputEntry.GetState(i));
                 }
             }
         }
@@ -117,7 +111,7 @@ namespace Microsoft.CodeAnalysis
             var compacted = ArrayBuilder<TableEntry>.GetInstance();
             foreach (var entry in _states)
             {
-                if (entry.State != EntryState.Removed)
+                if (!entry.IsRemoved)
                 {
                     compacted.Add(entry.AsCached());
                 }
@@ -206,46 +200,32 @@ namespace Microsoft.CodeAnalysis
                 // - Added when new item position < previousTable.length
 
                 var previousEntry = _previous._states[_states.Count];
-                var modifiedEntries = ArrayBuilder<T>.GetInstance();
-                var modifiedStates = ArrayBuilder<EntryState>.GetInstance();
-
-                var previousEnumerator = previousEntry.Items.GetEnumerator();
-                var outputEnumerator = outputs.GetEnumerator();
-
-                bool previousHasItems = previousEntry.IsSingle || previousEnumerator.MoveNext();
-                bool outputHasItems = outputEnumerator.MoveNext();
+                var modified = new TableEntry.Builder();
+                var sharedCount = Math.Min(previousEntry.Count, outputs.Length);
 
                 // cached or modified items
-                while (previousHasItems && outputHasItems)
+                for (int i = 0; i < sharedCount; i++)
                 {
-                    var previous = previousEntry.IsSingle ? previousEntry.Item : previousEnumerator.Current;
-                    var replacement = outputEnumerator.Current;
+                    var previous = previousEntry.GetItem(i);
+                    var replacement = outputs[i];
 
                     var entryState = comparer.Equals(previous, replacement) ? EntryState.Cached : EntryState.Modified;
-                    modifiedEntries.Add(replacement);
-                    modifiedStates.Add(entryState);
-
-                    previousHasItems = !previousEntry.IsSingle && previousEnumerator.MoveNext();
-                    outputHasItems = outputEnumerator.MoveNext();
+                    modified.Add(replacement, entryState);
                 }
 
                 // removed
-                while (previousHasItems)
+                for (int i = sharedCount; i < previousEntry.Count; i++)
                 {
-                    modifiedEntries.Add(previousEntry.IsSingle ? previousEntry.Item : previousEnumerator.Current);
-                    modifiedStates.Add(EntryState.Removed);
-                    previousHasItems = previousEnumerator.MoveNext();
+                    modified.Add(previousEntry.GetItem(i), EntryState.Removed);
                 }
 
                 // added
-                while (outputHasItems)
+                for (int i = sharedCount; i < outputs.Length; i++)
                 {
-                    modifiedEntries.Add(outputEnumerator.Current);
-                    modifiedStates.Add(EntryState.Modified);
-                    outputHasItems = outputEnumerator.MoveNext();
+                    modified.Add(outputs[i], EntryState.Modified);
                 }
 
-                _states.Add(new TableEntry(modifiedEntries.ToImmutableAndFree(), modifiedStates.ToImmutableAndFree()));
+                _states.Add(modified.ToImmutableAndFree());
                 return true;
             }
 
@@ -283,50 +263,102 @@ namespace Microsoft.CodeAnalysis
 
             internal ImmutableArray<T> GetLastEntries()
             {
-                var nodeStateTableEntry = _states[_states.Count - 1];
-                return nodeStateTableEntry.Item is object ? ImmutableArray.Create<T>(nodeStateTableEntry.Item) : nodeStateTableEntry.Items;
+                Debug.Assert(_states.Count > 0);
+                return _states[_states.Count - 1].GetItems();
             }
         }
 
         private readonly struct TableEntry
         {
-            internal readonly ImmutableArray<T> Items;
+            private static readonly ImmutableArray<EntryState> s_allAddedEntries = ImmutableArray.Create(EntryState.Added);
+            private static readonly ImmutableArray<EntryState> s_allCachedEntries = ImmutableArray.Create(EntryState.Cached);
+            private static readonly ImmutableArray<EntryState> s_allModifiedEntries = ImmutableArray.Create(EntryState.Modified);
+            private static readonly ImmutableArray<EntryState> s_allRemovedEntries = ImmutableArray.Create(EntryState.Removed);
 
-            internal readonly T? Item;
-
-            internal readonly EntryState? State;
-
-            internal readonly ImmutableArray<EntryState> States;
+            private readonly ImmutableArray<T> _items;
+            private readonly T? _item;
+            private readonly ImmutableArray<EntryState> _states;
 
             public TableEntry(T item, EntryState state)
-                : this(item, default, state, default) { }
+                : this(item, default, GetSingleArray(state)) { }
 
             public TableEntry(ImmutableArray<T> items, EntryState state)
-                : this(default, items, state, default) { }
+                : this(default, items, GetSingleArray(state)) { }
 
-            public TableEntry(ImmutableArray<T> items, ImmutableArray<EntryState> states)
-                : this(default, items, null, states) { }
-
-            private TableEntry(T? item, ImmutableArray<T> items, EntryState? state, ImmutableArray<EntryState> states)
+            private TableEntry(T? item, ImmutableArray<T> items, ImmutableArray<EntryState> states)
             {
                 Debug.Assert(item is object || !items.IsDefault);
-                Debug.Assert(state is object || !states.IsDefault);
+                Debug.Assert(!states.IsDefault);
 
-                this.Item = item;
-                this.Items = items;
-                this.State = state;
-                this.States = states;
+                this._item = item;
+                this._items = items;
+                this._states = states;
             }
 
-            public bool IsCached => this.State == EntryState.Cached;
+            public bool IsCached => this._states == s_allCachedEntries || this._states.All(s => s == EntryState.Cached);
 
-            [MemberNotNullWhen(true, new[] { nameof(Item), nameof(State) })]
-            public bool IsSingle => this.Items.IsDefault;
+            public bool IsRemoved => this._states == s_allRemovedEntries || this._states.All(s => s == EntryState.Removed);
 
-            public TableEntry AsCached() => new(Item, Items, EntryState.Cached, default);
+            public int Count => IsSingle ? 1 : _items.Length;
 
-            public TableEntry AsRemoved() => new(Item, Items, EntryState.Removed, default);
+            public T GetItem(int index)
+            {
+                Debug.Assert(!IsSingle || index == 0);
+                return IsSingle ? _item : _items[index];
+            }
 
+            public EntryState GetState(int index) => _states.Length == 1 ? _states[0] : _states[index];
+
+            public ImmutableArray<T> GetItems() => IsSingle ? ImmutableArray.Create(_item) : _items;
+
+            public TableEntry AsCached() => new(_item, _items, s_allCachedEntries);
+
+            public TableEntry AsRemoved() => new(_item, _items, s_allRemovedEntries);
+
+            [MemberNotNullWhen(true, new[] { nameof(_item) })]
+            private bool IsSingle => this._items.IsDefault;
+
+            private static ImmutableArray<EntryState> GetSingleArray(EntryState state) => state switch
+            {
+                EntryState.Added => s_allAddedEntries,
+                EntryState.Cached => s_allCachedEntries,
+                EntryState.Modified => s_allModifiedEntries,
+                EntryState.Removed => s_allRemovedEntries,
+                _ => throw ExceptionUtilities.Unreachable
+            };
+
+            public class Builder
+            {
+                readonly ArrayBuilder<T> _items = ArrayBuilder<T>.GetInstance();
+
+                ArrayBuilder<EntryState>? _states;
+
+                EntryState? _currentState;
+
+                public void Add(T item, EntryState state)
+                {
+                    _items.Add(item);
+                    if (!_currentState.HasValue)
+                    {
+                        _currentState = state;
+                    }
+                    else if (_states is object)
+                    {
+                        _states.Add(state);
+                    }
+                    else if (_currentState != state)
+                    {
+                        _states = ArrayBuilder<EntryState>.GetInstance(_items.Count - 1, _currentState.Value);
+                        _states.Add(state);
+                    }
+                }
+
+                public TableEntry ToImmutableAndFree()
+                {
+                    Debug.Assert(_currentState.HasValue, "Created a builder with no values?");
+                    return new TableEntry(item: default, _items.ToImmutableAndFree(), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
+                }
+            }
         }
     }
 }
