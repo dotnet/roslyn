@@ -270,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             CancellationToken cancellationToken)
         {
             var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
+
             // Update <param> tags.
             // TODO: Record structs
             if (updatedNode.IsKind(SyntaxKind.MethodDeclaration) ||
@@ -906,8 +907,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 Debug.Assert(declaredParameters.IsDefaultOrEmpty, "If GetParameters extension handles record, we can remove the handling here.");
                 // A bit hacky to determine the parameters of primary constructor associated with a given record.
                 // Simplifying is tracked by: https://github.com/dotnet/roslyn/issues/53092.
-                // Note: When the issue is handled, we can remove the logic here and handle things in GetParameters. BUT
-                // make sure none of the other callers doesn't need records to be handled.
+                // Note: When the issue is handled, we can remove the logic here and handle things in GetParameters extension. BUT
+                // if GetParameters extension method gets updated to handle records, we need to test EVERY usage
+                // of the extension method and make sure the change is applicable to all these usages.
                 var primaryConstructor = recordSymbol.InstanceConstructors.FirstOrDefault(
                     c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is RecordDeclarationSyntax);
 
