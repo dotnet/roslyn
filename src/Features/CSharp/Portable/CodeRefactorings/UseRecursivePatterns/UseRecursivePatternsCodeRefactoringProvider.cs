@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                     case BinaryExpressionSyntax(LogicalAndExpression) logicalAnd:
                         editor.ReplaceNode(logicalAnd, logicalAnd.Right);
                         break;
-                    // If we reach here, there's no other expression left in the when-clase. Remove.
+                    // If we reach here, there's no other expression left in the when-clause. Remove.
                     // For instance, `case { p: var v } when v.q == 1:` would be converted to `case { p: { q: 1 } v }:`
                     case WhenClauseSyntax whenClause:
                         editor.RemoveNode(whenClause, SyntaxRemoveOptions.AddElasticMarker);
