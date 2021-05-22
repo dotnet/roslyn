@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <see langword="not"/>.</summary>
         NotKeyword = 8440,
 
-        // open for future use.
+        // 8441 open for future use.
 
         /// <summary>Represents <see langword="with"/>.</summary>
         WithKeyword = 8442,
