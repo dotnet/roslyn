@@ -3539,6 +3539,33 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ISymbol IndexerSymbol { get; }
     }
+    /// <summary>
+    /// Represents the application of an attribute.
+    /// <para>
+    ///   Current usage:
+    ///   (1) C# attribute application.
+    ///   (2) C# attribute application.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.Attribute"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IAttributeOperation : IOperation
+    {
+        /// <summary>
+        /// The arguments passed to the attribute constructor.
+        /// </summary>
+        ImmutableArray<IArgumentOperation> Arguments { get; }
+        /// <summary>
+        /// TBD
+        /// </summary>
+        ImmutableArray<ISimpleAssignmentOperation> NamedArguments { get; }
+    }
     #endregion
 
     #region Implementations
@@ -10062,6 +10089,77 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitImplicitIndexerReference(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitImplicitIndexerReference(this, argument);
     }
+    internal sealed partial class AttributeOperation : Operation, IAttributeOperation
+    {
+        internal AttributeOperation(ImmutableArray<IArgumentOperation> arguments, ImmutableArray<ISimpleAssignmentOperation> namedArguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Arguments = SetParentOperation(arguments, this);
+            NamedArguments = SetParentOperation(namedArguments, this);
+            Type = type;
+        }
+        public ImmutableArray<IArgumentOperation> Arguments { get; }
+        public ImmutableArray<ISimpleAssignmentOperation> NamedArguments { get; }
+        internal override int ChildOperationsCount =>
+            Arguments.Length +
+            NamedArguments.Length;
+        internal override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when index < Arguments.Length
+                    => Arguments[index],
+                1 when index < NamedArguments.Length
+                    => NamedArguments[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Arguments.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Arguments.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                    if (!NamedArguments.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+                case 1 when previousIndex + 1 < NamedArguments.Length:
+                    return (true, 1, previousIndex + 1);
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case int.MaxValue:
+                    if (!NamedArguments.IsEmpty) return (true, 1, NamedArguments.Length - 1);
+                    else goto case 1;
+                case 1 when previousIndex > 0:
+                    return (true, 1, previousIndex - 1);
+                case 1:
+                    if (!Arguments.IsEmpty) return (true, 0, Arguments.Length - 1);
+                    else goto case 0;
+                case 0 when previousIndex > 0:
+                    return (true, 0, previousIndex - 1);
+                case 0:
+                case -1:
+                    return (false, -1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Attribute;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitAttribute(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAttribute(this, argument);
+    }
     #endregion
     #region Cloner
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
@@ -10660,6 +10758,11 @@ namespace Microsoft.CodeAnalysis.Operations
             var internalOperation = (ImplicitIndexerReferenceOperation)operation;
             return new ImplicitIndexerReferenceOperation(Visit(internalOperation.Instance), Visit(internalOperation.Argument), internalOperation.LengthSymbol, internalOperation.IndexerSymbol, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
+        public override IOperation VisitAttribute(IAttributeOperation operation, object? argument)
+        {
+            var internalOperation = (AttributeOperation)operation;
+            return new AttributeOperation(VisitArray(internalOperation.Arguments), VisitArray(internalOperation.NamedArguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
     }
     #endregion
     
@@ -10797,6 +10900,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitListPattern(IListPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitSlicePattern(ISlicePatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitAttribute(IAttributeOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -10931,6 +11035,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitListPattern(IListPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitSlicePattern(ISlicePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitAttribute(IAttributeOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }

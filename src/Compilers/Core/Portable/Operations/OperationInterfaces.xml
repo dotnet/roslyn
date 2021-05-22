@@ -3273,4 +3273,26 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="IAttributeOperation" Base="IOperation" ChildrenOrder="Arguments,NamedArguments" HasType="true">
+    <Comments>
+      <summary>
+        Represents the application of an attribute.
+        <para>
+          Current usage:
+          (1) C# attribute application.
+          (2) C# attribute application.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="Arguments" Type="ImmutableArray&lt;IArgumentOperation&gt;">
+      <Comments>
+        <summary>The arguments passed to the attribute constructor.</summary>
+      </Comments>
+    </Property>
+    <Property Name="NamedArguments" Type="ImmutableArray&lt;ISimpleAssignmentOperation&gt;">
+      <Comments>
+        <summary>TBD</summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>

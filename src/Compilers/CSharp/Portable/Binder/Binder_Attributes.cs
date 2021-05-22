@@ -217,8 +217,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             analyzedArguments.ConstructorArguments.Free();
 
+            BitVector defaultArguments = default;
+            if (argsToParamsOpt != default && attributeConstructor is not null)
+            {
+                defaultArguments = BitVector.Create(attributeConstructor.ParameterCount);
+                for (int i = 0; i < attributeConstructor.ParameterCount; i++)
+                {
+                    if (!argsToParamsOpt.Contains(i))
+                    {
+                        defaultArguments[i] = true;
+                    }
+                }
+            }
+
             return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
-                boundNamedArguments, resultKind, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
+                boundNamedArguments, resultKind, defaultArguments, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
         }
 
         private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, BindingDiagnosticBag diagnostics)

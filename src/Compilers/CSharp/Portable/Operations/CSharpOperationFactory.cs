@@ -286,8 +286,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundInterpolatedStringArgumentPlaceholder((BoundInterpolatedStringArgumentPlaceholder)boundNode);
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
                     return CreateBoundInterpolatedStringHandlerPlaceholder((BoundInterpolatedStringHandlerPlaceholder)boundNode);
-
                 case BoundKind.Attribute:
+                    return CreateBoundAttributeOperation((BoundAttribute)boundNode);
+
                 case BoundKind.ArgList:
                 case BoundKind.ArgListOperator:
                 case BoundKind.ConvertedStackAllocExpression:
@@ -481,6 +482,27 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundUnconvertedAddressOf.Syntax,
                 boundUnconvertedAddressOf.GetPublicTypeSymbol(),
                 boundUnconvertedAddressOf.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundAttributeOperation(BoundAttribute boundAttribute)
+        {
+            if (boundAttribute.Constructor is null)
+            {
+                // PROTOTYPE: write a test that reaches this and see whether I should return NoneOperation, or InvalidOperation or something else.
+                throw new System.NotImplementedException();
+            }
+
+            var arguments = DeriveArguments(
+                methodOrIndexer: boundAttribute.Constructor,
+                boundArguments: boundAttribute.ConstructorArguments,
+                argumentsToParametersOpt: boundAttribute.ConstructorArgumentsToParamsOpt,
+                defaultArguments: boundAttribute.DefaultArguments,
+                boundAttribute.ConstructorExpanded,
+                boundAttribute.Syntax);
+
+            var namedArguments = CreateFromArray<BoundAssignmentOperator, ISimpleAssignmentOperation>(boundAttribute.NamedArguments);
+
+            return new AttributeOperation(arguments, namedArguments, _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.WasCompilerGenerated);
         }
 
         internal ImmutableArray<IOperation> CreateIgnoredDimensions(BoundNode declaration, SyntaxNode declarationSyntax)

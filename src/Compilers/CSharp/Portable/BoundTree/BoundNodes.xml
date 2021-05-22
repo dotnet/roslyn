@@ -1757,6 +1757,7 @@
     <Field Name="ConstructorExpanded" Type="bool" />
     <Field Name="NamedArguments" Type ="ImmutableArray&lt;BoundAssignmentOperator&gt;"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="DefaultArguments" Type="BitVector" />
   </Node>
 
   <!--
