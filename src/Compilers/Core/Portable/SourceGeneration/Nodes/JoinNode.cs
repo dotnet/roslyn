@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
             var input1Table = graphState.GetLatestStateTableForNode(_input1);
             var input2Table = graphState.GetLatestStateTableForNode(_input2);
 
-            if (input1Table.IsCompacted && input2Table.IsCompacted)
+            if (input1Table.IsCached && input2Table.IsCached)
             {
                 return previousTable;
             }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
             // State of input1[i] otherwise.
 
             // gather the input2 items
-            var isInput2Cached = input2Table.IsCompacted;
+            var isInput2Cached = input2Table.IsCached;
             ImmutableArray<TInput2> input2 = input2Table.Batch();
 
             // append the input2 items to each item in input1 

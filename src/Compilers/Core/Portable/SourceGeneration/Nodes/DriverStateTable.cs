@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
                 var keys = _tableBuilder.Keys.ToArray();
                 foreach (var key in keys)
                 {
-                    _tableBuilder[key] = _tableBuilder[key].Compact();
+                    _tableBuilder[key] = _tableBuilder[key].AsCached();
                 }
 
                 return new DriverStateTable(_tableBuilder.ToImmutable());

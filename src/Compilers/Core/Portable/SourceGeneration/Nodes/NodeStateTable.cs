@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
 
     internal interface IStateTable
     {
-        IStateTable Compact();
+        IStateTable AsCached();
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(!isCompacted || states.All(s => s.IsCached));
 
             _states = states;
-            IsCompacted = isCompacted;
+            IsCached = isCompacted;
             _exception = null;
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
         {
             _exception = exception;
             _states = ImmutableArray<TableEntry>.Empty;
-            IsCompacted = false;
+            IsCached = false;
         }
 
         public int Count { get => _states.Length; }
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
         /// </summary>
-        public bool IsCompacted { get; }
+        public bool IsCached { get; }
 
         public bool IsFaulted { get => _exception is not null; }
 
@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public NodeStateTable<T> Compact()
+        public NodeStateTable<T> AsCached()
         {
-            if (IsCompacted || IsFaulted)
+            if (IsCached || IsFaulted)
                 return this;
 
             var compacted = ArrayBuilder<TableEntry>.GetInstance();
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
             return new NodeStateTable<T>(compacted.ToImmutableAndFree(), isCompacted: true);
         }
 
-        IStateTable IStateTable.Compact() => Compact();
+        IStateTable IStateTable.AsCached() => AsCached();
 
         public ImmutableArray<T> Batch()
         {

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
-            if (sourceTable.IsCompacted)
+            if (sourceTable.IsCached)
             {
                 return previousTable;
             }
