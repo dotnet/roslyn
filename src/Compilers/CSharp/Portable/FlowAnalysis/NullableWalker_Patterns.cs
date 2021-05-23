@@ -173,11 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (BoundPropertySubpattern subpattern in rp.Properties)
                             {
-                                // PROTOTYPE(extended-property-patterns): Investigate if we need to visit nested members; is there a test gap?
-                                if (subpattern.Member is { Symbol: Symbol symbol } member)
-                                {
-                                    LearnFromAnyNullPatterns(GetOrCreateSlot(symbol, inputSlot), member.Type, subpattern.Pattern);
-                                }
+                                var member = subpattern.Member;
+                                LearnFromAnyNullPatterns(getExtendedPropertySlot(member, inputSlot), member.Type, subpattern.Pattern);
                             }
                         }
                     }
@@ -191,6 +188,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern);
+            }
+
+            int getExtendedPropertySlot(BoundPropertySubpatternMember member, int inputSlot)
+            {
+                if (member is null || member.Symbol is null)
+                {
+                    return -1;
+                }
+
+                if (member.Receiver is not null)
+                {
+                    inputSlot = getExtendedPropertySlot(member.Receiver, inputSlot);
+                }
+
+                if (inputSlot < 0)
+                {
+                    return inputSlot;
+                }
+
+                return GetOrCreateSlot(member.Symbol, inputSlot);
             }
         }
 

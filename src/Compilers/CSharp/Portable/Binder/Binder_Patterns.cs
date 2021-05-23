@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var subPattern = node.Subpatterns[i];
                 // If the expression before the colon isn't just a name, we'll have reported a parsing error.
-                Debug.Assert(subPattern.NameColon is not null || subPattern.ExpressionColon is null || subPattern.ExpressionColon.HasErrors);
+                Debug.Assert(subPattern.NameColon is not null || subPattern.ExpressionColon.HasErrors);
 
                 bool isError = hasErrors || outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                 TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var subpatternSyntax in node.Subpatterns)
             {
                 // If the expression before the colon isn't just a name, we'll have reported a parsing error.
-                Debug.Assert(subpatternSyntax.NameColon is not null || subpatternSyntax.ExpressionColon is null || subpatternSyntax.ExpressionColon.HasErrors);
+                Debug.Assert(subpatternSyntax.NameColon is not null || subpatternSyntax.ExpressionColon.HasErrors);
 
                 if (subpatternSyntax.NameColon != null)
                 {
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var subpatternSyntax = node.Subpatterns[i];
                 // If the expression before the colon isn't just a name, we'll have reported a parsing error.
-                Debug.Assert(subpatternSyntax.NameColon is not null || subpatternSyntax.ExpressionColon is null || subpatternSyntax.ExpressionColon.HasErrors);
+                Debug.Assert(subpatternSyntax.NameColon is not null || subpatternSyntax.ExpressionColon.HasErrors);
 
                 bool isError = i >= elementTypesWithAnnotations.Length;
                 TypeSymbol elementType = isError ? CreateErrorType() : elementTypesWithAnnotations[i].Type;
