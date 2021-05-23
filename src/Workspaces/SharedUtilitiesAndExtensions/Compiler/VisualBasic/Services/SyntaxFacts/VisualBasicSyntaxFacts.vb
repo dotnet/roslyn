@@ -2207,13 +2207,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                     Return DeclarationKind.Namespace
                 Case SyntaxKind.ImportsStatement
                     Return DeclarationKind.NamespaceImport
-                Case SyntaxKind.ClassBlock, SyntaxKind.ClassStatement
+                Case SyntaxKind.ClassBlock
                     Return DeclarationKind.Class
-                Case SyntaxKind.StructureBlock, SyntaxKind.StructureStatement
+                Case SyntaxKind.StructureBlock
                     Return DeclarationKind.Struct
-                Case SyntaxKind.InterfaceBlock, SyntaxKind.InterfaceStatement
+                Case SyntaxKind.InterfaceBlock
                     Return DeclarationKind.Interface
-                Case SyntaxKind.EnumBlock, SyntaxKind.EnumStatement
+                Case SyntaxKind.EnumBlock
                     Return DeclarationKind.Enum
                 Case SyntaxKind.EnumMemberDeclaration
                     Return DeclarationKind.EnumMember
@@ -2285,15 +2285,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                     If list.Attributes.Count = 1 Then
                         Return DeclarationKind.Attribute
                     End If
-                Case SyntaxKind.GetAccessorBlock, SyntaxKind.GetAccessorStatement
+                Case SyntaxKind.GetAccessorBlock
                     Return DeclarationKind.GetAccessor
-                Case SyntaxKind.SetAccessorBlock, SyntaxKind.SetAccessorStatement
+                Case SyntaxKind.SetAccessorBlock
                     Return DeclarationKind.SetAccessor
-                Case SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.AddHandlerAccessorStatement
+                Case SyntaxKind.AddHandlerAccessorBlock
                     Return DeclarationKind.AddAccessor
-                Case SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorStatement
+                Case SyntaxKind.RemoveHandlerAccessorBlock
                     Return DeclarationKind.RemoveAccessor
-                Case SyntaxKind.RaiseEventAccessorBlock, SyntaxKind.RaiseEventAccessorStatement
+                Case SyntaxKind.RaiseEventAccessorBlock
                     Return DeclarationKind.RaiseAccessor
             End Select
             Return DeclarationKind.None

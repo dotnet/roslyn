@@ -2366,8 +2366,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim isDefault As Boolean
             SyntaxFacts.GetAccessibilityAndModifiers(tokens, acc, currentMods, isDefault)
 
-            If (currentMods <> modifiers) Then
-                Dim newTokens = GetModifierList(acc, modifiers And GetAllowedModifiers(declaration.Kind), GetDeclarationKind(declaration), isDefault)
+            If currentMods <> modifiers Then
+                Dim declarationKind = GetDeclarationKind(declaration)
+                If declarationKind = DeclarationKind.None AndAlso declaration.IsKind(SyntaxKind.ClassKeyword) Then
+                    ' GetDeclarationKind *intentionally* doesn't handle statements (e.g, ClassStatement), but handles blocks (e.g, ClassBlock).
+                    ' For the purpose of "WithModifiers", we want it to work with both.
+                    ' No need to handle structures, interfaces, etc. There is no special logic for them in GetModifierList.
+                    declarationKind = DeclarationKind.Class
+                End If
+                Dim newTokens = GetModifierList(acc, modifiers And GetAllowedModifiers(declaration.Kind), declarationKind, isDefault)
                 Return WithModifierTokens(declaration, Merge(tokens, newTokens))
             Else
                 Return declaration
