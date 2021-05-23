@@ -1307,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static int getPosition(BaseTypeDeclarationSyntax baseTypeDeclaration)
             {
-                if (baseTypeDeclaration is RecordDeclarationSyntax { SemicolonToken: { IsMissing: false } } recordDeclaration)
+                if (baseTypeDeclaration is RecordDeclarationSyntax { SemicolonToken: { RawKind: (int)SyntaxKind.SemicolonToken } } recordDeclaration)
                 {
                     return recordDeclaration.SemicolonToken.SpanStart;
                 }
