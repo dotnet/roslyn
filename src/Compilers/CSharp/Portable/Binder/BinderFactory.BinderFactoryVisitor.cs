@@ -684,6 +684,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     extraInfo = NodeUsage.NamedTypeBodyOrTypeParameters;
                 }
+                else if (parent.SemicolonToken != default &&
+                    parent is RecordDeclarationSyntax &&
+                    LookupPosition.IsBetweenTokens(_position, parent.GetFirstToken(), parent.SemicolonToken.GetNextToken()))
+                {
+                    extraInfo = NodeUsage.NamedTypeBodyOrTypeParameters;
+                }
                 else if (LookupPosition.IsInTypeParameterList(_position, parent))
                 {
                     extraInfo = NodeUsage.NamedTypeBodyOrTypeParameters;
