@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                     var rightPattern = CreatePattern(rightReceiver, rightTarget, rightFlipped);
                     var rewrittenPattern = RewriteContainingPattern(containingPattern, rightPattern, rightNamesOpt);
                     var replacement = isPatternExpression.ReplaceNode(containingPattern, rewrittenPattern);
-                    return ReplaceAndAdjustBinaryExpressionOperands(root, logicalAnd, replacement);
+                    return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
                 };
             }
 
@@ -111,15 +111,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             {
                 var leftSubpattern = CreateSubpattern(leftNames, CreatePattern(leftReceiver, leftTarget, leftFlipped));
                 var rightSubpattern = CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightTarget, rightFlipped));
-                ExpressionSyntax replacement = IsPatternExpression(commonReceiver, RecursivePattern(leftSubpattern, rightSubpattern));
-                return ReplaceAndAdjustBinaryExpressionOperands(root, logicalAnd, replacement);
+                var replacement = IsPatternExpression(commonReceiver, RecursivePattern(leftSubpattern, rightSubpattern));
+                return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
             };
 
-            static SyntaxNode ReplaceAndAdjustBinaryExpressionOperands(SyntaxNode root, BinaryExpressionSyntax logicalAnd, ExpressionSyntax replacement)
+            static SyntaxNode AdjustBinaryExpressionOperands(BinaryExpressionSyntax logicalAnd, ExpressionSyntax replacement)
             {
                 if (logicalAnd.Left is BinaryExpressionSyntax(LogicalAndExpression) leftExpression)
                     replacement = leftExpression.WithRight(replacement);
-                return root.ReplaceNode(logicalAnd, replacement.WithAdditionalAnnotations(Formatter.Annotation));
+                return replacement.WithAdditionalAnnotations(Formatter.Annotation);
             }
         }
 
@@ -226,16 +226,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 .Where(d => AreEquivalent(d.Identifier, identifierName.Identifier))
                 .FirstOrDefault();
 
-            // For simplicity, we only support replacement when the designation is contained in one of the following patterns.
-            // This excludes a parenthesized variable designation, for example, which would require rewriting the whole thing.
-            var parent = designation.Parent;
+            // UNDONE: For simplicity, we only support replacement when the designation is contained in one of the following patterns.
+            // UNDONE: This excludes a parenthesized variable designation, for example, which would require rewriting the whole thing.
+            var parent = designation?.Parent;
             if (!parent.IsKind(SyntaxKind.VarPattern, SyntaxKind.DeclarationPattern, SyntaxKind.RecursivePattern))
                 return null;
 
             // Since we're looking for a variable designation, we permit a replacement with no subpatterns.
             // For instance, `e is C v && v is { p: 1 }` would be converted to `e is C { p: 1 } v`
-            _ = TryGetParentNames(identifierName, out var names);
-            return ((PatternSyntax)parent, names);
+            _ = TryGetParentNames(identifierName, out var namesOpt);
+            return ((PatternSyntax)parent, namesOpt);
         }
 
         private static PatternSyntax CreatePattern(ExpressionSyntax receiver, ExpressionSyntax target, bool flipped)
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 //  2) Otherwise, we will return the operand that *appears* to be on the left in the source.
                 //     For instance, we return `a` if we have `x && a && b` with the cursor on the second operator.
                 //     Since `&&` is left-associative, it's guaranteed to be the expression that we want.
-                //     Note: For simplicity, we won't descend into any parenthesized expression here.
+                //     UNDONE: For simplicity, we won't descend into any parenthesized expression here.
                 //
                 BinaryExpressionSyntax(LogicalAndExpression) expr
                     => TryDetermineReceiver(inWhenClause ? expr.Left : expr.Right, model, inWhenClause),
@@ -308,7 +308,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 // For instance, `a.b && !a.c` will be converted to `a is { b: true, c: false }`
                 PrefixUnaryExpressionSyntax(LogicalNotExpression) expr
                     => (expr.Operand, s_falseConstantPattern, false),
-
                 var expr => (expr, s_trueConstantPattern, false),
             };
         }
@@ -370,6 +369,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 leftReceiver = leftParent;
                 rightReceiver = rightParent;
             }
+
+            // UNDONE: For now, we won't support pattern-matching on nullable types.
+            if (model.GetTypeInfo(leftReceiver).Type?.IsNullable() == true)
+                return null;
 
             // Collect any names on the right-hand-side of the final receiver that we want to convert to subpatterns.
             if (!TryGetParentNames(leftReceiver, out var leftNames) ||
