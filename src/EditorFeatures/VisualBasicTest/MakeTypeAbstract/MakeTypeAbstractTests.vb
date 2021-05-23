@@ -22,7 +22,7 @@ Public Class [|Foo|]
     Public MustOverride Sub M()
 End Class",
 "
-Public MustOverride Class Foo
+Public MustInherit Class Foo
     Public MustOverride Sub M()
 End Class")
         End Function
