@@ -2368,7 +2368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             If currentMods <> modifiers Then
                 Dim declarationKind = GetDeclarationKind(declaration)
-                If declarationKind = DeclarationKind.None AndAlso declaration.IsKind(SyntaxKind.ClassKeyword) Then
+                If declarationKind = DeclarationKind.None AndAlso declaration.IsKind(SyntaxKind.ClassStatement) Then
                     ' GetDeclarationKind *intentionally* doesn't handle statements (e.g, ClassStatement), but handles blocks (e.g, ClassBlock).
                     ' For the purpose of "WithModifiers", we want it to work with both.
                     ' No need to handle structures, interfaces, etc. There is no special logic for them in GetModifierList.
