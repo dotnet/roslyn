@@ -2290,13 +2290,6 @@ namespace Microsoft.CodeAnalysis.Operations
             // `c is { ...: { Prop: <pattern> } }` 
 
             SyntaxNode syntax = subpattern.Syntax;
-
-            //IOperation member = CreatePropertySubpatternMember(subpattern.Member, matchedType) ??
-            //                    OperationFactory.CreateInvalidOperation(_semanticModel, syntax, ImmutableArray<IOperation>.Empty, isImplicit: true);
-            //IPatternOperation pattern = (IPatternOperation)Create(subpattern.Pattern);
-            //return new PropertySubpatternOperation(member, pattern, _semanticModel, syntax, isImplicit: false);
-            // TODO2
-
             var member = subpattern.Member;
             IPropertySubpatternOperation? result = null;
 

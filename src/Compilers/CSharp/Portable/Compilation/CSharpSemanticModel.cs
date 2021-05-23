@@ -2035,7 +2035,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (lowestBoundNode is BoundPropertySubpatternMember member)
             {
-                // PROTOTYPE(extended-property-patterns) Should we capture unwrapped nullables in nested members as the ConvertedType?
                 return new CSharpTypeInfo(member.Type, member.Type, nullability: default, convertedNullability: default, Conversion.Identity);
             }
 

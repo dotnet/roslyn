@@ -1499,16 +1499,9 @@ class C
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyEmitDiagnostics(
-                // (8,22): error CS1001: Identifier expected
+                // (8,22): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = this is (Property.Property: null, Property: null);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "Property.Property").WithLocation(8, 22),
-                // (8,47): error CS8517: The name 'Property' does not match the corresponding 'Deconstruct' parameter 'c2'.
-                //         _ = this is (Property.Property: null, Property: null);
-                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "Property").WithArguments("Property", "c2").WithLocation(8, 47)
-                );
-
-            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
-            compilation.VerifyEmitDiagnostics(
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property.Property").WithArguments("extended property patterns").WithLocation(8, 22),
                 // (8,22): error CS1001: Identifier expected
                 //         _ = this is (Property.Property: null, Property: null);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "Property.Property").WithLocation(8, 22),

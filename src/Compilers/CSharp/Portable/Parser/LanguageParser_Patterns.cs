@@ -305,8 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     subPatterns: out SeparatedSyntaxList<SubpatternSyntax> subPatterns,
                     closeToken: out SyntaxToken closeParenToken,
                     openKind: SyntaxKind.OpenParenToken,
-                    closeKind: SyntaxKind.CloseParenToken,
-                    allowExtendedProperties: false);
+                    closeKind: SyntaxKind.CloseParenToken);
 
                 parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause0);
                 parseDesignation(out VariableDesignationSyntax designation0);
@@ -521,8 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 subPatterns: out SeparatedSyntaxList<SubpatternSyntax> subPatterns,
                 closeToken: out SyntaxToken closeBraceToken,
                 openKind: SyntaxKind.OpenBraceToken,
-                closeKind: SyntaxKind.CloseBraceToken,
-                allowExtendedProperties: true);
+                closeKind: SyntaxKind.CloseBraceToken);
             return _syntaxFactory.PropertyPatternClause(openBraceToken, subPatterns, closeBraceToken);
         }
 
@@ -531,8 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             out SeparatedSyntaxList<SubpatternSyntax> subPatterns,
             out SyntaxToken closeToken,
             SyntaxKind openKind,
-            SyntaxKind closeKind,
-            bool allowExtendedProperties)
+            SyntaxKind closeKind)
         {
             Debug.Assert(openKind == SyntaxKind.OpenParenToken || openKind == SyntaxKind.OpenBraceToken);
             Debug.Assert(closeKind == SyntaxKind.CloseParenToken || closeKind == SyntaxKind.CloseBraceToken);
@@ -548,7 +545,7 @@ tryAgain:
                 if (this.IsPossibleSubpatternElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // first pattern
-                    list.Add(this.ParseSubpatternElement(allowExtendedProperties));
+                    list.Add(this.ParseSubpatternElement());
 
                     // additional patterns
                     int lastTokenPosition = -1;
@@ -567,7 +564,7 @@ tryAgain:
                             {
                                 break;
                             }
-                            list.Add(this.ParseSubpatternElement(allowExtendedProperties));
+                            list.Add(this.ParseSubpatternElement());
                             continue;
                         }
                         else if (this.SkipBadPatternListTokens(ref openToken, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
@@ -590,7 +587,7 @@ tryAgain:
             }
         }
 
-        private SubpatternSyntax ParseSubpatternElement(bool allowExtendedProperties)
+        private SubpatternSyntax ParseSubpatternElement()
         {
             BaseExpressionColonSyntax exprColon = null;
 
@@ -599,17 +596,9 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.ColonToken && ConvertPatternToExpressionIfPossible(pattern, permitTypeArguments: true) is ExpressionSyntax expr)
             {
                 var colon = EatToken();
-                if (expr is IdentifierNameSyntax identifierName)
-                {
-                    exprColon = _syntaxFactory.NameColon(identifierName, colon);
-                }
-                else
-                {
-                    expr = allowExtendedProperties
-                        ? CheckFeatureAvailability(expr, MessageID.IDS_FeatureExtendedPropertyPatterns)
-                        : AddError(expr, ErrorCode.ERR_IdentifierExpected);
-                    exprColon = _syntaxFactory.ExpressionColon(expr, colon);
-                }
+                exprColon = expr is IdentifierNameSyntax identifierName
+                    ? _syntaxFactory.NameColon(identifierName, colon)
+                    : _syntaxFactory.ExpressionColon(CheckFeatureAvailability(expr, MessageID.IDS_FeatureExtendedPropertyPatterns), colon);
 
                 pattern = ParsePattern(Precedence.Conditional);
             }
