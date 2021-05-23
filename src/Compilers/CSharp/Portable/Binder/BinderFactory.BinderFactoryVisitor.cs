@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1297,22 +1298,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(crefSyntax != null);
             Debug.Assert(memberSyntax != null);
 
-            BaseTypeDeclarationSyntax typeDeclSyntax = memberSyntax as BaseTypeDeclarationSyntax;
-
-            Binder binder = (object)typeDeclSyntax == null
-                ? factory.GetBinder(memberSyntax)
-                : factory.GetBinder(memberSyntax, getPosition(typeDeclSyntax));
+            Binder binder = memberSyntax is BaseTypeDeclarationSyntax typeDeclSyntax
+                ? getBinder(typeDeclSyntax)
+                : factory.GetBinder(memberSyntax);
 
             return MakeCrefBinderInternal(crefSyntax, binder, inParameterOrReturnType);
 
-            static int getPosition(BaseTypeDeclarationSyntax baseTypeDeclaration)
+            Binder getBinder(BaseTypeDeclarationSyntax baseTypeDeclaration)
             {
                 if (baseTypeDeclaration is RecordDeclarationSyntax { SemicolonToken: { RawKind: (int)SyntaxKind.SemicolonToken } } recordDeclaration)
                 {
-                    return recordDeclaration.SemicolonToken.SpanStart;
+                    return factory.GetInRecordBodyBinder(recordDeclaration);
                 }
 
-                return baseTypeDeclaration.OpenBraceToken.SpanStart;
+                return factory.GetBinder(baseTypeDeclaration, baseTypeDeclaration.OpenBraceToken.SpanStart);
             }
         }
 
