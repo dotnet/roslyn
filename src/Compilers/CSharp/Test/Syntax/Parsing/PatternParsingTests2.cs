@@ -869,11 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ExtendedPropertySubpattern_InPositionalPattern()
         {
-            UsingExpression(@"e is ( a.b.c: p )",
-                // (1,8): error CS1001: Identifier expected
-                // e is ( a.b.c: p )
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "a.b.c:").WithLocation(1, 8)
-                );
+            UsingExpression(@"e is ( a.b.c: p )");
 
             N(SyntaxKind.IsPatternExpression);
             {

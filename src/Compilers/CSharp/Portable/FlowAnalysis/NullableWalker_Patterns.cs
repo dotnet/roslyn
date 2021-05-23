@@ -173,8 +173,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (BoundPropertySubpattern subpattern in rp.Properties)
                             {
-                                var member = subpattern.Member;
-                                LearnFromAnyNullPatterns(getExtendedPropertySlot(member, inputSlot), member.Type, subpattern.Pattern);
+                                if (subpattern.Member is BoundPropertySubpatternMember member)
+                                {
+                                    LearnFromAnyNullPatterns(getExtendedPropertySlot(member, inputSlot), member.Type, subpattern.Pattern);
+                                }
                             }
                         }
                     }

@@ -2289,23 +2289,30 @@ namespace Microsoft.CodeAnalysis.Operations
             // We treat `c is { ... .Prop: <pattern> }` as
             // `c is { ...: { Prop: <pattern> } }` 
 
-            SyntaxNode syntax = subpattern.Syntax;
+            SyntaxNode subpatternSyntax = subpattern.Syntax;
             var member = subpattern.Member;
             IPropertySubpatternOperation? result = null;
+
+            if (member is null)
+            {
+                IPatternOperation pattern = (IPatternOperation)Create(subpattern.Pattern);
+                var reference = OperationFactory.CreateInvalidOperation(_semanticModel, subpatternSyntax, ImmutableArray<IOperation>.Empty, isImplicit: true);
+                return new PropertySubpatternOperation(reference, pattern, _semanticModel, subpatternSyntax, isImplicit: false);
+            }
 
             ITypeSymbol previousType = matchedType;
             do
             {
-                var nameSyntax = member?.Syntax ?? syntax;
-                var inputType = member?.Receiver?.Type.StrippedType().GetPublicSymbol() ?? matchedType;
-                if (result is null || member is null)
+                var nameSyntax = member.Syntax;
+                var inputType = member.Receiver?.Type.StrippedType().GetPublicSymbol() ?? matchedType;
+                if (result is null)
                 {
                     // Create an operation for last property access:
                     // `{ SingleProp: <pattern operation> }`
                     // or
                     // `.LastProp: <pattern operation>` portion (treated as `{ LastProp: <pattern operation> }`)
                     IPatternOperation pattern = (IPatternOperation)Create(subpattern.Pattern);
-                    result = createPropertySubpattern(member?.Symbol, pattern, inputType, nameSyntax, isSingle: member?.Receiver is null);
+                    result = createPropertySubpattern(member.Symbol, pattern, inputType, nameSyntax, isSingle: member.Receiver is null);
                 }
                 else
                 {
@@ -2315,12 +2322,11 @@ namespace Microsoft.CodeAnalysis.Operations
                         propertySubpatterns: ImmutableArray.Create(result), declaredSymbol: null,
                         previousType, narrowedType: previousType, semanticModel: _semanticModel, nameSyntax, isImplicit: true);
 
-                    Debug.Assert(member is not null);
                     result = createPropertySubpattern(member.Symbol, pattern, inputType, nameSyntax, isSingle: false);
                 }
 
                 previousType = inputType;
-                member = member?.Receiver;
+                member = member.Receiver;
             }
             while (member is not null);
 
@@ -2328,6 +2334,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             IPropertySubpatternOperation createPropertySubpattern(Symbol? symbol, IPatternOperation pattern, ITypeSymbol receiverType, SyntaxNode nameSyntax, bool isSingle)
             {
+                Debug.Assert(nameSyntax is not null);
                 IOperation reference;
                 switch (symbol)
                 {
@@ -2353,10 +2360,11 @@ namespace Microsoft.CodeAnalysis.Operations
                         }
                 }
 
-                return new PropertySubpatternOperation(reference, pattern, _semanticModel, isSingle ? syntax : nameSyntax, isImplicit: !isSingle);
+                var syntaxForPropertySubpattern = isSingle ? subpatternSyntax : nameSyntax;
+                return new PropertySubpatternOperation(reference, pattern, _semanticModel, syntaxForPropertySubpattern, isImplicit: nameSyntax == syntaxForPropertySubpattern);
 
                 IOperation? createReceiver()
-                    => symbol?.IsStatic == false ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, receiverType, isImplicit: true) : null;
+                    => symbol?.IsStatic == false ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax!, receiverType, isImplicit: true) : null;
             }
         }
 
