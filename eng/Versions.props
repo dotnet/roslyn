@@ -49,8 +49,8 @@
   -->
   <PropertyGroup>
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
-    <BenchmarkDotNetVersion>0.12.1</BenchmarkDotNetVersion>
-    <BenchmarkDotNetDiagnosticsWindowsVersion>0.12.1</BenchmarkDotNetDiagnosticsWindowsVersion>
+    <BenchmarkDotNetVersion>0.13.0</BenchmarkDotNetVersion>
+    <BenchmarkDotNetDiagnosticsWindowsVersion>0.13.0</BenchmarkDotNetDiagnosticsWindowsVersion>
     <DiffPlexVersion>1.4.4</DiffPlexVersion>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
