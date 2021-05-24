@@ -1580,12 +1580,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitPattern(pattern);
             var whenFail = StateWhenFalse;
             SetState(StateWhenTrue);
-            assignPatternVariablesAndMarkReadProperties(pattern);
+            assignPatternVariablesAndMarkReadFields(pattern);
             SetConditionalState(this.State, whenFail);
 
             // Find the pattern variables of the pattern, and make them definitely assigned if <paramref name="definitely"/>.
             // That would be false under "not" and "or" patterns.
-            void assignPatternVariablesAndMarkReadProperties(BoundPattern pattern, bool definitely = true)
+            void assignPatternVariablesAndMarkReadFields(BoundPattern pattern, bool definitely = true)
             {
                 switch (pattern.Kind)
                 {
@@ -1611,7 +1611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 foreach (var subpat in pat.Deconstruction)
                                 {
-                                    assignPatternVariablesAndMarkReadProperties(subpat.Pattern, definitely);
+                                    assignPatternVariablesAndMarkReadFields(subpat.Pattern, definitely);
                                 }
                             }
                             if (!pat.Properties.IsDefaultOrEmpty)
@@ -1630,7 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             member = member.Receiver;
                                         }
                                     }
-                                    assignPatternVariablesAndMarkReadProperties(sub.Pattern, definitely);
+                                    assignPatternVariablesAndMarkReadFields(sub.Pattern, definitely);
                                 }
                             }
                             if (definitely)
@@ -1642,7 +1642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var pat = (BoundITuplePattern)pattern;
                             foreach (var subpat in pat.Subpatterns)
                             {
-                                assignPatternVariablesAndMarkReadProperties(subpat.Pattern, definitely);
+                                assignPatternVariablesAndMarkReadFields(subpat.Pattern, definitely);
                             }
                             break;
                         }
@@ -1657,15 +1657,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.NegatedPattern:
                         {
                             var pat = (BoundNegatedPattern)pattern;
-                            assignPatternVariablesAndMarkReadProperties(pat.Negated, definitely: false);
+                            assignPatternVariablesAndMarkReadFields(pat.Negated, definitely: false);
                             break;
                         }
                     case BoundKind.BinaryPattern:
                         {
                             var pat = (BoundBinaryPattern)pattern;
                             bool def = definitely && !pat.Disjunction;
-                            assignPatternVariablesAndMarkReadProperties(pat.Left, def);
-                            assignPatternVariablesAndMarkReadProperties(pat.Right, def);
+                            assignPatternVariablesAndMarkReadFields(pat.Left, def);
+                            assignPatternVariablesAndMarkReadFields(pat.Right, def);
                             break;
                         }
                     default:
