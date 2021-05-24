@@ -2373,7 +2373,7 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 Если описатель формата "f" используется без других описателей формата, он интерпретируется как описатель стандартного формата даты и времени "f".
 
 При использовании описателей формата "f" в качестве части строки формата, передаваемой методу ParseExact, TryParseExact, ParseExact или TryParseExact, число описателей формата "f" указывает количество наиболее значащих цифр в дробной части секунды, которые должны присутствовать для успешного анализа строки.</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>

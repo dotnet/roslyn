@@ -7256,6 +7256,19 @@ public class Student : Person { public Student() : $$base(0) { } }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoReadOnlyRecordStruct()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"readonly record struct Person(string First, string Last)
+{
+    void M($$Person p)
+    {
+    }
+}", MainDescription("readonly record struct Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(51615, "https://github.com/dotnet/roslyn/issues/51615")]
         public async Task TestVarPatternOnVarKeyword()
         {
