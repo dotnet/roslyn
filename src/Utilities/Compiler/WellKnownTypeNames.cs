@@ -7,6 +7,7 @@ namespace Analyzer.Utilities
     {
         public const string MicrosoftAspNetCoreAntiforgeryIAntiforgery = "Microsoft.AspNetCore.Antiforgery.IAntiforgery";
         public const string MicrosoftAspNetCoreHttpCookieOptions = "Microsoft.AspNetCore.Http.CookieOptions";
+        public const string MicrosoftAspNetCoreHttpHttpRequest = "Microsoft.AspNetCore.Http.HttpRequest";
         public const string MicrosoftAspNetCoreHttpInternalResponseCookies = "Microsoft.AspNetCore.Http.Internal.ResponseCookies";
         public const string MicrosoftAspNetCoreHttpIResponseCookies = "Microsoft.AspNetCore.Http.IResponseCookies";
         public const string MicrosoftAspNetCoreMvcController = "Microsoft.AspNetCore.Mvc.Controller";
@@ -241,6 +242,7 @@ namespace Analyzer.Utilities
         public const string SystemObject = "System.Object";
         public const string SystemObsoleteAttribute = "System.ObsoleteAttribute";
         public const string SystemOperatingSystem = "System.OperatingSystem";
+        public const string SystemOperationCanceledException = "System.OperationCanceledException";
         public const string SystemOutOfMemoryException = "System.OutOfMemoryException";
         public const string SystemPlatformNotSupportedException = "System.PlatformNotSupportedException";
         public const string SystemRandom = "System.Random";
