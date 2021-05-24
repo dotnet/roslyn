@@ -4127,9 +4127,27 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"");
+            var verifier = CompileAndVerify(comp, expectedOutput: @"1.000Literal");
 
-            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"1.000Literal");
+            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    ""CustomHandler""
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
+  IL_0011:  ret
+  IL_0012:  ldstr      ""{0,2:f}Literal""
+  IL_0017:  ldc.i4.1
+  IL_0018:  box        ""int""
+  IL_001d:  call       ""string string.Format(string, object)""
+  IL_0022:  ret
+}
+");
         }
 
         [Fact]
