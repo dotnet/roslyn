@@ -6765,5 +6765,53 @@ record struct CacheContext(string RelativePathBase)" + terminator;
                 // /// See also <see cref="InvalidCref"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(6, 25));
         }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecord_WithoutPrimaryCtor(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record CacheContext" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25),
+                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        [WorkItem(50330, "https://github.com/dotnet/roslyn/issues/50330")]
+        public void OnRecordStruct_WithoutPrimaryCtor(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// See also <see cref=""InvalidCref""/>.
+/// </summary>
+record struct CacheContext" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25),
+                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
+                // /// See also <see cref="InvalidCref"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25));
+        }
     }
 }
