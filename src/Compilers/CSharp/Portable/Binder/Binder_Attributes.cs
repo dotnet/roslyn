@@ -611,9 +611,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!hasNamedCtorArguments ||
                 constructorArgumentNamesOpt.Length == argumentsCount);
 
-            // index of the first named constructor argument
-            int firstNamedArgIndex = -1;
-
             ImmutableArray<ParameterSymbol> parameters = attributeConstructor.Parameters;
             int parameterCount = parameters.Length;
 
@@ -651,20 +648,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // named constructor argument
-
-                        // Store the index of the first named constructor argument
-                        if (firstNamedArgIndex == -1)
-                        {
-                            firstNamedArgIndex = argsConsumedCount;
-                        }
-
                         // Current parameter must either have a matching named argument or a default value
                         // For the former case, argsConsumedCount must be incremented to note that we have
                         // consumed a named argument. For the latter case, argsConsumedCount stays same.
                         int matchingArgumentIndex;
-                        reorderedArgument = GetMatchingNamedOrOptionalConstructorArgument(out matchingArgumentIndex, constructorArgsArray,
-                            constructorArgumentNamesOpt, parameter, firstNamedArgIndex, argumentsCount, ref argsConsumedCount, syntax, argumentsToParams, diagnostics);
+                        reorderedArgument = getMatchingNamedOrOptionalConstructorArgument(out matchingArgumentIndex, constructorArgsArray,
+                            parameter, argumentsCount, ref argsConsumedCount, syntax, argumentsToParams, diagnostics);
 
                         sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
                         sourceIndices[i] = matchingArgumentIndex;
@@ -698,6 +687,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             constructorArgumentsSourceIndices = sourceIndices != null ? sourceIndices.AsImmutableOrNull() : default(ImmutableArray<int>);
             return reorderedArguments.AsImmutableOrNull();
+
+            // Local functions
+            TypedConstant getMatchingNamedOrOptionalConstructorArgument(
+                out int matchingArgumentIndex,
+                ImmutableArray<TypedConstant> constructorArgsArray,
+                ParameterSymbol parameter,
+                int argumentsCount,
+                ref int argsConsumedCount,
+                AttributeSyntax syntax,
+                ImmutableArray<int> argumentsToParams,
+                BindingDiagnosticBag diagnostics)
+            {
+                matchingArgumentIndex = argumentsToParams.IsDefaultOrEmpty
+                    ? parameter.Ordinal
+                    : argumentsToParams.IndexOf(parameter.Ordinal);
+
+                if (matchingArgumentIndex > -1)
+                {
+                    // found a matching named argument
+                    Debug.Assert(matchingArgumentIndex < argumentsCount);
+
+                    // increment argsConsumedCount
+                    argsConsumedCount++;
+                    return constructorArgsArray[matchingArgumentIndex];
+                }
+                else
+                {
+                    return GetDefaultValueArgument(parameter, syntax, argumentsToParams, diagnostics);
+                }
+            }
         }
 
         private static int[] CreateSourceIndicesArray(int paramIndex, int parameterCount)
@@ -717,64 +736,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return sourceIndices;
-        }
-
-        private TypedConstant GetMatchingNamedOrOptionalConstructorArgument(
-            out int matchingArgumentIndex,
-            ImmutableArray<TypedConstant> constructorArgsArray,
-            ImmutableArray<string> constructorArgumentNamesOpt,
-            ParameterSymbol parameter,
-            int startIndex,
-            int argumentsCount,
-            ref int argsConsumedCount,
-            AttributeSyntax syntax,
-            ImmutableArray<int> argumentsToParams,
-            BindingDiagnosticBag diagnostics)
-        {
-            int index = GetMatchingNamedConstructorArgumentIndex(parameter.Name, constructorArgumentNamesOpt, startIndex, argumentsCount);
-
-            if (index < argumentsCount)
-            {
-                // found a matching named argument
-                Debug.Assert(index >= startIndex);
-
-                // increment argsConsumedCount
-                argsConsumedCount++;
-                matchingArgumentIndex = index;
-                return constructorArgsArray[index];
-            }
-            else
-            {
-                matchingArgumentIndex = -1;
-                return GetDefaultValueArgument(parameter, syntax, argumentsToParams, diagnostics);
-            }
-        }
-
-        private static int GetMatchingNamedConstructorArgumentIndex(string parameterName, ImmutableArray<string> argumentNamesOpt, int startIndex, int argumentsCount)
-        {
-            RoslynDebug.Assert(parameterName != null);
-            Debug.Assert(startIndex >= 0 && startIndex < argumentsCount);
-
-            if (parameterName.IsEmpty() || !argumentNamesOpt.Any())
-            {
-                return argumentsCount;
-            }
-
-            // get the matching named (constructor) argument
-            int argIndex = startIndex;
-            while (argIndex < argumentsCount)
-            {
-                var name = argumentNamesOpt[argIndex];
-
-                if (string.Equals(name, parameterName, StringComparison.Ordinal))
-                {
-                    break;
-                }
-
-                argIndex++;
-            }
-
-            return argIndex;
         }
 
         private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, ImmutableArray<int> argumentsToParams, BindingDiagnosticBag diagnostics)
