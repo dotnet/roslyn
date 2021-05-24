@@ -610,9 +610,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!hasNamedCtorArguments ||
                 constructorArgumentNamesOpt.Length == argumentsCount);
 
-            // index of the first named constructor argument
-            int firstNamedArgIndex = -1;
-
             ImmutableArray<ParameterSymbol> parameters = attributeConstructor.Parameters;
             int parameterCount = parameters.Length;
 
@@ -650,20 +647,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // named constructor argument
-
-                        // Store the index of the first named constructor argument
-                        if (firstNamedArgIndex == -1)
-                        {
-                            firstNamedArgIndex = argsConsumedCount;
-                        }
-
                         // Current parameter must either have a matching named argument or a default value
                         // For the former case, argsConsumedCount must be incremented to note that we have
                         // consumed a named argument. For the latter case, argsConsumedCount stays same.
                         int matchingArgumentIndex;
                         reorderedArgument = GetMatchingNamedOrOptionalConstructorArgument(out matchingArgumentIndex, constructorArgsArray,
-                            constructorArgumentNamesOpt, parameter, firstNamedArgIndex, argumentsCount, ref argsConsumedCount, syntax, diagnostics);
+                            constructorArgumentNamesOpt, parameter, 0, argumentsCount, ref argsConsumedCount, syntax, diagnostics);
 
                         sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
                         sourceIndices[i] = matchingArgumentIndex;
