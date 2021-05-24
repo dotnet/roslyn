@@ -1889,7 +1889,7 @@ Although it's possible to display the ten thousandths of a second component of a
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</value>
-    <comment>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</comment>
+    <comment>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</comment>
   </data>
   <data name="_10ths_of_a_second_non_zero" xml:space="preserve">
     <value>10ths of a second (non-zero)</value>

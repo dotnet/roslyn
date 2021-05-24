@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
@@ -85,6 +86,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private static async Task<NavigationBarModel> ComputeModelAsync(
             NavigationBarModel lastCompletedModel, ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
+            // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures
+            // that any IO that performs is not potentially on the UI thread.
+            await TaskScheduler.Default;
+
             // When computing items just get the partial semantics workspace.  This will ensure we can get data for this
             // file, and hopefully have enough loaded to get data for other files in the case of partial types.  In the
             // event the other files aren't available, then partial-type information won't be correct.  That's ok though

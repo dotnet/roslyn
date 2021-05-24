@@ -2373,7 +2373,7 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 "f" biçim belirticisi başka biçim belirticileri olmadan kullanılırsa, standart tarih ve saat biçim belirticisi "f" olarak yorumlanır.
 
 "f" biçim belirticisi Parse, TryParse, ParseExact veya TryParseExact yöntemine geçilen bir biçim dizesinde kullanıldığında, "f" biçim belirticilerinin sayısı, dizenin başarıyla ayrıştırılması için saniye kesirinde bulunması gereken anlamlı basamak sayısını gösterir.</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>

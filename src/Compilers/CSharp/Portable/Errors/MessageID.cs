@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLambdaAttributes = MessageBase + 12800,
 
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 13000, // PROTOTYPE(interp-string): condense
+        IDS_FeatureWithOnAnonymousTypes = MessageBase + 12801,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -337,6 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureImprovedInterpolatedStrings: // semantic check
                 case MessageID.IDS_FeatureRecordStructs:
                 case MessageID.IDS_FeatureWithOnStructs: // semantic check
+                case MessageID.IDS_FeatureWithOnAnonymousTypes: // semantic check
                 case MessageID.IDS_FeaturePositionalFieldsInRecords: // semantic check
                 case MessageID.IDS_FeatureGlobalUsing:
                 case MessageID.IDS_FeatureInferredDelegateType: // semantic check

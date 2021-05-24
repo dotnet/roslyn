@@ -38,8 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
     internal enum NewLineSetting
     {
         Newline,
-        CarrageReturn,
-        CarrageReturnNewline,
+        CarriageReturn,
+        CarriageReturnNewline,
         NotSet
     }
 
@@ -59,10 +59,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
                 case NewLineSetting.Newline:
                     _setting.SetValue("\n");
                     break;
-                case NewLineSetting.CarrageReturn:
+                case NewLineSetting.CarriageReturn:
                     _setting.SetValue("\r");
                     break;
-                case NewLineSetting.CarrageReturnNewline:
+                case NewLineSetting.CarriageReturnNewline:
                     _setting.SetValue("\r\n");
                     break;
                 case NewLineSetting.NotSet:
@@ -76,8 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
             return _setting.GetValue() switch
             {
                 "\n" => NewLineSetting.Newline,
-                "\r" => NewLineSetting.CarrageReturn,
-                "\r\n" => NewLineSetting.CarrageReturnNewline,
+                "\r" => NewLineSetting.CarriageReturn,
+                "\r\n" => NewLineSetting.CarriageReturnNewline,
                 _ => NewLineSetting.NotSet,
             };
         }
@@ -89,8 +89,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
             static IEnumerable<(string description, NewLineSetting value)> EnumerateOptions()
             {
                 yield return (ServicesVSResources.Newline_n, NewLineSetting.Newline);
-                yield return (ServicesVSResources.Carrage_Return_r, NewLineSetting.CarrageReturn);
-                yield return (ServicesVSResources.Carrage_Return_Newline_rn, NewLineSetting.CarrageReturnNewline);
+                yield return (ServicesVSResources.Carriage_Return_r, NewLineSetting.CarriageReturn);
+                yield return (ServicesVSResources.Carriage_Return_Newline_rn, NewLineSetting.CarriageReturnNewline);
             }
         }
     }
