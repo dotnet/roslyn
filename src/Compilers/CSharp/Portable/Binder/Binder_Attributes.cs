@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    reorderedArgument = GetDefaultValueArgument(parameter, syntax, argumentsToParams, diagnostics);
+                    reorderedArgument = GetDefaultValueArgument(parameter, syntax, argumentsToParams, argumentsCount, diagnostics);
                     sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
                 }
 
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    return GetDefaultValueArgument(parameter, syntax, argumentsToParams, diagnostics);
+                    return GetDefaultValueArgument(parameter, syntax, argumentsToParams, argumentsCount, diagnostics);
                 }
             }
         }
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return sourceIndices;
         }
 
-        private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, ImmutableArray<int> argumentsToParams, BindingDiagnosticBag diagnostics)
+        private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, ImmutableArray<int> argumentsToParams, int argumentsCount, BindingDiagnosticBag diagnostics)
         {
             var parameterType = parameter.Type;
             ConstantValue? defaultConstantValue = parameter.IsOptional ? parameter.ExplicitDefaultConstantValue : ConstantValue.NotAvailable;
@@ -783,8 +783,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultValue = ((ContextualAttributeBinder)this).AttributedMember.GetMemberCallerName();
             }
             else if (!IsEarlyAttributeBinder && syntax.ArgumentList is not null &&
-                getCallerArgumentArgumentIndex(parameter, argumentsToParams) is int argumentIndex && argumentIndex > -1 && argumentIndex < syntax.ArgumentList.Arguments.Count)
+                getCallerArgumentArgumentIndex(parameter, argumentsToParams) is int argumentIndex && argumentIndex > -1 && argumentIndex < argumentsCount)
             {
+                Debug.Assert(argumentsCount <= syntax.ArgumentList.Arguments.Count);
                 CheckFeatureAvailability(syntax.ArgumentList, MessageID.IDS_FeatureCallerArgumentExpression, diagnostics);
                 parameterType = Compilation.GetSpecialType(SpecialType.System_String);
                 kind = TypedConstantKind.Primitive;

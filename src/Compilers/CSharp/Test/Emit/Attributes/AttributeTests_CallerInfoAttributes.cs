@@ -628,6 +628,38 @@ class Program
 '0', '2', '2', '0+0', '', '1+1'");
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionInAttributeConstructor_OptionalAndFieldInitializer()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute([CallerArgumentExpression(""a"")] string expr_a = ""<default0>"", string a = ""<default1>"")
+    {
+        Console.WriteLine($""'{a}', '{expr_a}'"");
+    }
+
+    public int A;
+    public int B;
+}
+
+[My(A=1, B=2)]
+class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttribute(typeof(MyAttribute));
+    }
+}";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "'<default1>', '<default0>'");
+        }
+
         [Fact]
         public void TestCallerInfoAttributesWithSaneDefaultValues()
         {
