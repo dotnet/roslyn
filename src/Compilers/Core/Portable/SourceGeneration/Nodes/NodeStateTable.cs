@@ -185,6 +185,19 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
+            public bool TryUseCachedEntries(out ImmutableArray<T> usedEntries)
+            {
+                if (TryUseCachedEntries())
+                {
+                    usedEntries = _states[_states.Count - 1].ToImmutableArray();
+                    return true;
+                }
+                {
+                    usedEntries = default;
+                    return false;
+                }
+            }
+
             public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer)
             {
                 if (_previous._states.Length <= _states.Count)
@@ -222,7 +235,7 @@ namespace Microsoft.CodeAnalysis
                 // added
                 for (int i = sharedCount; i < outputs.Length; i++)
                 {
-                    modified.Add(outputs[i], EntryState.Modified);
+                    modified.Add(outputs[i], EntryState.Added);
                 }
 
                 _states.Add(modified.ToImmutableAndFree());
@@ -260,12 +273,6 @@ namespace Microsoft.CodeAnalysis
                 var hasNonCached = _states.Any(static s => !s.IsCached);
                 return new NodeStateTable<T>(_states.ToImmutableAndFree(), isCompacted: !hasNonCached);
             }
-
-            internal ImmutableArray<T> GetLastEntries()
-            {
-                Debug.Assert(_states.Count > 0);
-                return _states[_states.Count - 1].GetItems();
-            }
         }
 
         private readonly struct TableEntry
@@ -277,6 +284,11 @@ namespace Microsoft.CodeAnalysis
 
             private readonly ImmutableArray<T> _items;
             private readonly T? _item;
+
+            /// <summary>
+            /// Represents the corresponding state of each item in <see cref="_items"/>,
+            /// or contains a single state when <see cref="_item"/> is populated or when every state of <see cref="_items"/> has the same value.
+            /// </summary>
             private readonly ImmutableArray<EntryState> _states;
 
             public TableEntry(T item, EntryState state)
@@ -289,6 +301,7 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(item is object || !items.IsDefault);
                 Debug.Assert(!states.IsDefault);
+                Debug.Assert(states.Length == 1 || states.Distinct().Count() > 1);
 
                 this._item = item;
                 this._items = items;
@@ -309,7 +322,7 @@ namespace Microsoft.CodeAnalysis
 
             public EntryState GetState(int index) => _states.Length == 1 ? _states[0] : _states[index];
 
-            public ImmutableArray<T> GetItems() => IsSingle ? ImmutableArray.Create(_item) : _items;
+            public ImmutableArray<T> ToImmutableArray() => IsSingle ? ImmutableArray.Create(_item) : _items;
 
             public TableEntry AsCached() => new(_item, _items, s_allCachedEntries);
 
@@ -327,13 +340,13 @@ namespace Microsoft.CodeAnalysis
                 _ => throw ExceptionUtilities.Unreachable
             };
 
-            public class Builder
+            public sealed class Builder
             {
-                readonly ArrayBuilder<T> _items = ArrayBuilder<T>.GetInstance();
+                private readonly ArrayBuilder<T> _items = ArrayBuilder<T>.GetInstance();
 
-                ArrayBuilder<EntryState>? _states;
+                private ArrayBuilder<EntryState>? _states;
 
-                EntryState? _currentState;
+                private EntryState? _currentState;
 
                 public void Add(T item, EntryState state)
                 {

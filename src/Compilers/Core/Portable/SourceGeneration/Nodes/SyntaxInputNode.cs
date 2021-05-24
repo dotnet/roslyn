@@ -74,11 +74,7 @@ namespace Microsoft.CodeAnalysis
 
                     // get the syntax nodes from cache, or a syntax walk using the filter
                     ImmutableArray<SyntaxNode> nodes;
-                    if (state == EntryState.Cached && _filterTable.TryUseCachedEntries())
-                    {
-                        nodes = _filterTable.GetLastEntries();
-                    }
-                    else
+                    if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(out nodes))
                     {
                         nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root, _owner._filterFunc);
                         _filterTable.AddEntries(nodes, EntryState.Added);

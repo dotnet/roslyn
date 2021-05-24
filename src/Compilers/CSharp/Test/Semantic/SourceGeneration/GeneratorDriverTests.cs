@@ -1608,13 +1608,11 @@ class C { }
                 });
             }));
 
-            // run the generator and check that we didn't multiply register the generate source node through the join
+            // run the generator and check that we didn't multiple register the generate source node through the join
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGenerators(compilation);
             Assert.Equal(1, compilationsCalledFor.Count);
             Assert.Equal(compilation, compilationsCalledFor[0]);
-
-
         }
 
         [Fact]
