@@ -11537,7 +11537,7 @@ class C
 {
     void M()
     {
-        var x = new Func<int, int, int>((a, b) => a + b + 1);
+        var x = new Func<int, int, int>(<N:0>(a, b) => a + b + 1</N:0>);
         Console.WriteLine(x(1, 2));
     }
 }");
@@ -11547,7 +11547,7 @@ class C
 {
     void M()
     {
-        var x = new Func<int, int, int>((_, _) => 10);
+        var x = new Func<int, int, int>(<N:0>(_, _) => 10</N:0>);
         Console.WriteLine(x(1, 2));
     }
 }");
@@ -11558,45 +11558,52 @@ class C
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
             var method1 = compilation1.GetMember<MethodSymbol>("C.M");
 
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
+
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
             var diff = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
+                    SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             // There should be no diagnostics from rude edits
             diff.EmitResult.Diagnostics.Verify();
 
             diff.VerifySynthesizedMembers(
                 "C: {<>c}",
-                "C.<>c: {<>9__0#1_0#1, <M>b__0#1_0#1}");
+                "C.<>c: {<>9__0_0, <M>b__0_0}");
 
             diff.VerifyIL("C.M",
                 @"
-{
-    // Code size       48 (0x30)
-    .maxstack  3
-    .locals init (System.Func<int, int, int> V_0) //x
-    IL_0000:  nop
-    IL_0001:  ldsfld     ""System.Func<int, int, int> C.<>c.<>9__0#1_0#1""
-    IL_0006:  dup
-    IL_0007:  brtrue.s   IL_0020
-    IL_0009:  pop
-    IL_000a:  ldsfld     ""C.<>c C.<>c.<>9""
-    IL_000f:  ldftn      ""int C.<>c.<M>b__0#1_0#1(int, int)""
-    IL_0015:  newobj     ""System.Func<int, int, int>..ctor(object, System.IntPtr)""
-    IL_001a:  dup
-    IL_001b:  stsfld     ""System.Func<int, int, int> C.<>c.<>9__0#1_0#1""
-    IL_0020:  stloc.0
-    IL_0021:  ldloc.0
-    IL_0022:  ldc.i4.1
-    IL_0023:  ldc.i4.2
-    IL_0024:  callvirt   ""int System.Func<int, int, int>.Invoke(int, int)""
-    IL_0029:  call       ""void System.Console.WriteLine(int)""
-    IL_002e:  nop
-    IL_002f:  ret
+ {
+      // Code size       48 (0x30)
+      .maxstack  3
+      .locals init ([unchanged] V_0,
+                    System.Func<int, int, int> V_1) //x
+      IL_0000:  nop
+      IL_0001:  ldsfld     ""System.Func<int, int, int> C.<>c.<>9__0_0""
+      IL_0006:  dup
+      IL_0007:  brtrue.s   IL_0020
+      IL_0009:  pop
+      IL_000a:  ldsfld     ""C.<>c C.<>c.<>9""
+      IL_000f:  ldftn      ""int C.<>c.<M>b__0_0(int, int)""
+      IL_0015:  newobj     ""System.Func<int, int, int>..ctor(object, System.IntPtr)""
+      IL_001a:  dup
+      IL_001b:  stsfld     ""System.Func<int, int, int> C.<>c.<>9__0_0""
+      IL_0020:  stloc.1
+      IL_0021:  ldloc.1
+      IL_0022:  ldc.i4.1
+      IL_0023:  ldc.i4.2
+      IL_0024:  callvirt   ""int System.Func<int, int, int>.Invoke(int, int)""
+      IL_0029:  call       ""void System.Console.WriteLine(int)""
+      IL_002e:  nop
+      IL_002f:  ret
 }");
 
-            diff.VerifyIL("C.<>c.<M>b__0#1_0#1(int, int)", @"
+            diff.VerifyIL("C.<>c.<M>b__0_0(int, int)", @"
 {
     // Code size        3 (0x3)
     .maxstack  1
