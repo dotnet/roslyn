@@ -82,7 +82,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\ICategorizedAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\AggregateCategorizedAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\AbstractCategorizedAnalyzerConfigOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\EmptyCategorizedAnalyzerConfigOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EnumValuesPrefixTrigger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerConfigOptionsProviderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolNamesWithValueOption.cs" />
