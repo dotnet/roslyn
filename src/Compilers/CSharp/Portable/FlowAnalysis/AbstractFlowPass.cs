@@ -2363,8 +2363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && canLearnFromOperator(binary)
                 && isKnownNullOrNotNull(binary.Right))
             {
-                VisitRvalue(binary.Right);
-                Meet(ref stateWhenNotNull, ref State);
+                visitRightOperandWithAnyTransferFunction(binary.Right, ref stateWhenNotNull);
                 var isNullConstant = binary.Right.ConstantValue?.IsNull == true;
                 SetConditionalState(isNullConstant == isEquals(binary)
                     ? (State, stateWhenNotNull)
@@ -2451,6 +2450,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return false;
+            }
+
+            // This function is only for the specific scenario where the LHS of a binary '=='/'!=' operator is a conditional access
+            // and the RHS is either a constant value or is of a non-nullable value type.
+            void visitRightOperandWithAnyTransferFunction(BoundExpression rightOperand, ref TLocalState leftStateWhenNotNull)
+            {
+                if (_nonMonotonicTransfer)
+                {
+                    Optional<TLocalState> oldState = NonMonotonicState;
+                    NonMonotonicState = ReachableBottomState();
+
+                    VisitRvalue(rightOperand);
+
+                    var tempStateValue = NonMonotonicState.Value;
+                    Join(ref leftStateWhenNotNull, ref tempStateValue);
+                    if (oldState.HasValue)
+                    {
+                        var oldStateValue = oldState.Value;
+                        Join(ref oldStateValue, ref tempStateValue);
+                        oldState = oldStateValue;
+                    }
+
+                    NonMonotonicState = oldState;
+                }
+                else
+                {
+                    VisitRvalue(rightOperand);
+                    Meet(ref leftStateWhenNotNull, ref State);
+                }
             }
         }
 #nullable disable

@@ -2546,6 +2546,76 @@ class C
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.CapturedOutside));
         }
 
+        [Theory]
+        [InlineData("c?.M0(x = 0)")]
+        [InlineData("c!.M0(x = 0)")]
+        public void CondAccess_Equals_DataFlowsOut_01(string leftOperand)
+        {
+            var dataFlowAnalysis = CompileAndAnalyzeDataFlowExpression(@"
+#nullable enable
+class C
+{
+    bool M0(object? obj) => false;
+
+    public static void M(C? c)
+    {
+        int x = 0;
+        if (" + leftOperand + @" == /*<bind>*/c!.M0(x = 0)/*</bind>*/)
+        {
+            x.ToString();
+        }
+
+        x.ToString();
+    }
+}
+");
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysis.AlwaysAssigned));
+            Assert.Equal("c", GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsOut));
+            Assert.Equal("c", GetSymbolNamesJoined(dataFlowAnalysis.ReadInside));
+            Assert.Equal("c, x", GetSymbolNamesJoined(dataFlowAnalysis.ReadOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside));
+            Assert.Equal("c, x", GetSymbolNamesJoined(dataFlowAnalysis.WrittenOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.CapturedOutside));
+        }
+
+        [Theory]
+        [InlineData("c?.M0(x = 0)")]
+        [InlineData("c!.M0(x = 0)")]
+        public void CondAccess_Equals_DataFlowsOut_02(string leftOperand)
+        {
+            var dataFlowAnalysis = CompileAndAnalyzeDataFlowExpression(@"
+#nullable enable
+class C
+{
+    bool M0(object? obj) => false;
+
+    public static void M(C? c)
+    {
+        int x = 0;
+        if (" + leftOperand + @" == /*<bind>*/c!.M0(x = 0)/*</bind>*/)
+        {
+            x.ToString();
+        }
+    }
+}
+");
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysis.AlwaysAssigned));
+            Assert.Equal("c", GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsOut));
+            Assert.Equal("c", GetSymbolNamesJoined(dataFlowAnalysis.ReadInside));
+            Assert.Equal("c, x", GetSymbolNamesJoined(dataFlowAnalysis.ReadOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside));
+            Assert.Equal("c, x", GetSymbolNamesJoined(dataFlowAnalysis.WrittenOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.CapturedOutside));
+        }
+
         #endregion
 
         #region "Statements"
