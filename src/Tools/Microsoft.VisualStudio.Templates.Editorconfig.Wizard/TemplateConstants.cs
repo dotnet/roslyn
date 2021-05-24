@@ -15,6 +15,15 @@ root = true
 # All files
 [*]
 indent_style = space
+
+# XML project files
+[*.{{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}}]
+indent_size = 2
+
+# XML config files
+[*.{{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}}]
+indent_size = 2
+
 # Code files
 [*.{{cs,csx,vb,vbx}}]
 indent_size = 4
@@ -139,6 +148,15 @@ visual_basic_preferred_modifier_order = Partial,Default,Private,Protected,Public
 # All files
 [*]
 indent_style = space
+
+# XML project files
+[*.{{csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj}}]
+indent_size = 2
+
+# XML config files
+[*.{{props,targets,ruleset,config,nuspec,resx,vsixmanifest,vsct}}]
+indent_size = 2
+
 # Code files
 [*.{{cs,csx,vb,vbx}}]
 indent_size = 4
