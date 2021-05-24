@@ -72,12 +72,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 return false;
 
             return services.GetRequiredService<IOptionService>().GetOption(OOPCoreClr)
-                || services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.OOPCoreClr) == true
-                || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RoslynServiceHubCore"));
+                || services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.OOPCoreClr) == true;
         }
 
         public static bool IsCurrentProcessRunningOnCoreClr()
-            => RuntimeInformation.FrameworkDescription.Equals(".NET") || RuntimeInformation.FrameworkDescription.Equals(".NET Core");
+        {
+            return !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework")
+                && !RuntimeInformation.FrameworkDescription.StartsWith(".NET Native");
+        }
 
         /// <summary>
         /// Determines whether ServiceHub out-of-process execution is enabled for Roslyn.
