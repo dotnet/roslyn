@@ -136,9 +136,24 @@ namespace Microsoft.CodeAnalysis.Remote
             var prefixLength = qualifiedServiceName.LastIndexOf('.') + 1;
             Contract.ThrowIfFalse(prefixLength > 0);
 
-            var suffixLength = qualifiedServiceName.EndsWith(RemoteServiceName.Suffix64, StringComparison.Ordinal)
-                ? RemoteServiceName.Suffix64.Length
-                : qualifiedServiceName.EndsWith(RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, StringComparison.Ordinal) ? RemoteServiceName.Suffix64.Length + RemoteServiceName.SuffixServerGC.Length : 0;
+            int suffixLength;
+            if (qualifiedServiceName.EndsWith(RemoteServiceName.SuffixCoreClr + RemoteServiceName.Suffix64, StringComparison.Ordinal))
+            {
+                suffixLength = RemoteServiceName.SuffixCoreClr.Length + RemoteServiceName.Suffix64.Length;
+            }
+            else if (qualifiedServiceName.EndsWith(RemoteServiceName.Suffix64, StringComparison.Ordinal))
+            {
+                suffixLength = RemoteServiceName.Suffix64.Length;
+            }
+            else if (qualifiedServiceName.EndsWith(RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, StringComparison.Ordinal))
+            {
+                suffixLength = RemoteServiceName.Suffix64.Length + RemoteServiceName.SuffixServerGC.Length;
+            }
+            else
+            {
+                suffixLength = 0;
+            }
+
             var shortName = qualifiedServiceName.Substring(prefixLength, qualifiedServiceName.Length - prefixLength - suffixLength);
 
             return RemoteWorkspacesResources.GetResourceString("FeatureName_" + shortName);

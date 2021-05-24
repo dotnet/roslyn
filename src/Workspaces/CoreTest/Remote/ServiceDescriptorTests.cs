@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         [Theory]
         [MemberData(nameof(AllServiceDescriptors))]
-        internal void GetFeatureDisplayName(Type serviceInterface, ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)
+        internal void GetFeatureDisplayName(Type serviceInterface, ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC, ServiceDescriptor descriptorCoreClr64)
         {
             Assert.NotNull(serviceInterface);
 
@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             Assert.Equal(expectedName, descriptor64.GetFeatureDisplayName());
             Assert.Equal(expectedName, descriptor64ServerGC.GetFeatureDisplayName());
+            Assert.Equal(expectedName, descriptorCoreClr64.GetFeatureDisplayName());
         }
 
         [Fact]

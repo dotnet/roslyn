@@ -282,9 +282,9 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             public void RegisterService(RemoteServiceName name, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceFactory)
             {
                 _factoryMap.Add(name, serviceFactory);
-                var isRemoteHost64Bit = IntPtr.Size == 8;
-                var isRemoteHostCoreClr = isRemoteHost64Bit && RemoteHostOptions.IsCurrentProcessRunningOnCoreClr();
-                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit, isRemoteHostServerGC: GCSettings.IsServerGC, isRemoteHostCoreClr), name.WellKnownService);
+                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit: IntPtr.Size == 8,
+                                                  isRemoteHostServerGC: GCSettings.IsServerGC,
+                                                  isRemoteHostCoreClr: RemoteHostOptions.IsCurrentProcessRunningOnCoreClr()), name.WellKnownService);
             }
 
             public Task<Stream> RequestServiceAsync(RemoteServiceName serviceName)

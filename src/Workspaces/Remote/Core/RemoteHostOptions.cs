@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.Remote
             FeatureName, nameof(OOPServerGC), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOPServerGC)));
 
+        // use coreclr host for OOP
+        public static readonly Option2<bool> OOPCoreClr = new Option2<bool>(
+            FeatureName, nameof(OOPCoreClr), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOPCoreClr)));
+
         // Override 64-bit OOP option to force use of a 32-bit process. This option exists as a registry-based
         // workaround for cases where the new 64-bit mode fails and 32-bit in-process fails to provide a viable
         // fallback.
@@ -66,14 +71,13 @@ namespace Microsoft.CodeAnalysis.Remote
             if (!IsServiceHubProcess64Bit(services))
                 return false;
 
-            return services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.ServiceHubCoreClr) == true
+            return services.GetRequiredService<IOptionService>().GetOption(OOPCoreClr)
+                || services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.OOPCoreClr) == true
                 || !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("RoslynServiceHubCore"));
         }
 
         public static bool IsCurrentProcessRunningOnCoreClr()
-        {
-            return RuntimeInformation.FrameworkDescription.Equals(".NET") || RuntimeInformation.FrameworkDescription.Equals(".NET Core");
-        }
+            => RuntimeInformation.FrameworkDescription.Equals(".NET") || RuntimeInformation.FrameworkDescription.Equals(".NET Core");
 
         /// <summary>
         /// Determines whether ServiceHub out-of-process execution is enabled for Roslyn.

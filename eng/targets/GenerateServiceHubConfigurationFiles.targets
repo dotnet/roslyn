@@ -11,15 +11,15 @@
 
   <Target Name="CalculateServiceHubConfigurationFiles">
     <ItemGroup>
-      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Desktop" HostSuffix=".x86" HostIdSuffix="32" RuntimePrefix="desktop"/>
-      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Desktop64" HostSuffix="" HostIdSuffix="" RuntimePrefix="desktop"/>
-      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Desktop64S" HostSuffix="" HostIdSuffix="S" RuntimePrefix="desktop"/>
-      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Core64" HostSuffix="" HostIdSuffix="" RuntimePrefix="core"/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" Runtime="desktop"/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" Runtime="desktop"/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64S" HostSuffix="" HostIdSuffix="S" Runtime="desktop"/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Core64" HostSuffix="" HostIdSuffix="Core" Runtime="core"/>
 
-      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.RuntimePrefix)" Condition="'%(_ServicesWithBitness.RuntimePrefix)' == 'desktop'" >
+      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.Runtime)" Condition="'%(_ServicesWithBitness.Runtime)' == 'desktop'" >
         <Content>
           <![CDATA[{
-  "host": "%(_ServicesWithBitness.RuntimePrefix)Clr%(_ServicesWithBitness.HostSuffix)",
+  "host": "desktopClr%(_ServicesWithBitness.HostSuffix)",
   "hostId": "RoslynCodeAnalysisService%(_ServicesWithBitness.HostIdSuffix)",
   "hostGroupAllowed": true,
   "serviceOverride": true, 
@@ -34,10 +34,10 @@
         </Content>
       </ServiceHubServiceJsonFile>
 
-      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.RuntimePrefix)" Condition="'%(_ServicesWithBitness.RuntimePrefix)' == 'core'" >
+      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.Runtime)" Condition="'%(_ServicesWithBitness.Runtime)' == 'core'" >
         <Content>
           <![CDATA[{
-  "host": "%(_ServicesWithBitness.RuntimePrefix)Clr%(_ServicesWithBitness.HostSuffix)",
+  "host": "coreClr%(_ServicesWithBitness.HostSuffix)",
   "hostId": "RoslynCodeAnalysisService%(_ServicesWithBitness.HostIdSuffix)",
   "hostGroupAllowed": true,
   "serviceOverride": true, 
