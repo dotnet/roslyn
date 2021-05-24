@@ -264,7 +264,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
-                await broker.TriggerQuickInfoAsync(GetActiveTextView());
+                var session = await broker.TriggerQuickInfoAsync(GetActiveTextView());
+                Contract.ThrowIfNull(session);
             });
         }
 
@@ -277,7 +278,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var view = GetActiveTextView();
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
 
-                var session = Helper.Retry(() => broker.GetSession(view), Helper.HangMitigatingTimeout);
+                var session = broker.GetSession(view);
+
+                // GetSession will not return null if preceded by a call to InvokeQuickInfo
+                Contract.ThrowIfNull(session);
 
                 using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
                 while (session.State != QuickInfoSessionState.Visible)

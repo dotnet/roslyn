@@ -37,12 +37,21 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         }
 
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
-            Document document,
-            SyntaxToken token,
-            CancellationToken cancellationToken)
+            QuickInfoContext context,
+            SyntaxToken token)
         {
+            var document = context.Document;
             return GetQuickinfoForPragmaWarning(document, token) ??
-                (await GetQuickInfoForSuppressMessageAttributeAsync(document, token, cancellationToken).ConfigureAwait(false));
+                (await GetQuickInfoForSuppressMessageAttributeAsync(document, token, context.CancellationToken).ConfigureAwait(false));
+        }
+
+        protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
+            CommonQuickInfoContext context,
+            SyntaxToken token)
+        {
+            // TODO: This provider currently needs access to Document/Project to compute applicable analyzers
+            //       and provide quick info, which is not available in CommonQuickInfoContext.
+            return Task.FromResult<QuickInfoItem?>(null);
         }
 
         private QuickInfoItem? GetQuickinfoForPragmaWarning(Document document, SyntaxToken token)

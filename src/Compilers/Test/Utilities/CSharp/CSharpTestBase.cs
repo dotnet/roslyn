@@ -1881,6 +1881,7 @@ namespace System.Runtime.CompilerServices
         {
             var tree = compilation.SyntaxTrees[0];
             SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+            Debug.Assert(syntaxNode is not null, "Did you forget to place /*<bind>*/ comments in your source?");
             VerifyFlowGraph(compilation, syntaxNode, expectedFlowGraph);
         }
 

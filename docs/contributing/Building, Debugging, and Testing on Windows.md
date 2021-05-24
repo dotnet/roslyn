@@ -73,7 +73,7 @@ The Rosyln solution is designed to support easy debugging via F5.  Several of ou
 projects produce VSIX which deploy into Visual Studio during build.  The F5 operation
 will start a new Visual Studio instance using those VSIX which override our installed
 binaries.  This means trying out a change to the language, IDE or debugger is as
-simple as hitting F5.
+simple as hitting F5. Note that for changes to the compiler, out-of-process builds won't use the privately built version of the compiler.
 
 The startup project needs to be set to `RoslynDeployment`.  This should be
 the default but in some cases will need to be set explicitly.
