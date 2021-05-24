@@ -3267,7 +3267,7 @@ public " + type + " " + name + @"
             Assert.Null(semanticInfo.ImplicitConversion.Method);
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(NoIOperationValidation))]
         [CombinatorialData]
         public void CustomHandlerLocal([CombinatorialValues("class", "struct")] string type, bool useBoolReturns)
         {
@@ -3352,7 +3352,7 @@ format:f");
             };
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void CustomHandlerMethodArgument()
         {
             var code = @"
@@ -3399,7 +3399,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void HandlerConversionPreferredOverStringForNonConstant()
         {
             var code = @"
@@ -3454,7 +3454,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void StringPreferredOverHandlerConversionForConstant()
         {
             var code = @"
@@ -3486,7 +3486,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void HandlerConversionPreferredOverStringForNonConstant_AttributeConstructor()
         {
             var code = @"
@@ -3512,7 +3512,7 @@ class Attr : Attribute
             Assert.Equal("Attr..ctor(CustomHandler c)", attr.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void StringPreferredOverHandlerConversionForConstant_AttributeConstructor()
         {
             var code = @"
@@ -3536,7 +3536,7 @@ class Attr : Attribute
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void MultipleBuilderTypes()
         {
             var code = @"
@@ -3562,7 +3562,7 @@ class C
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void GenericOverloadResolution_01()
         {
             var code = @"
@@ -3614,7 +3614,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void GenericOverloadResolution_02()
         {
             var code = @"
@@ -3666,7 +3666,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void GenericOverloadResolution_03()
         {
             var code = @"
@@ -3686,7 +3686,7 @@ class C
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void GenericInference_01()
         {
             var code = @"
@@ -3710,7 +3710,7 @@ class C
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void GenericInference_02()
         {
             var code = @"
@@ -3731,7 +3731,7 @@ class C
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void GenericInference_03()
         {
             var code = @"
@@ -3787,7 +3787,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void GenericInference_04()
         {
             var code = @"
@@ -3841,7 +3841,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaReturnInference_01()
         {
             var code = @"
@@ -3886,7 +3886,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaReturnInference_02()
         {
             var code = @"
@@ -3903,7 +3903,7 @@ class C
             // Interpolated string handler conversions are not considered when determining the natural type of an expression: the natural return type of this lambda is string,
             // so we don't even consider that there is a conversion from interpolated string expression to CustomHandler here (Sections 12.6.3.13 and 12.6.3.15 of the spec).
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"1.000Literal");
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsWindows ? @"1.00Literal" : @"1.000Literal");
 
             // No DefaultInterpolatedStringHandler was included in the compilation, so it falls back to string.Format
             verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
@@ -3919,7 +3919,7 @@ class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaReturnInference_03()
         {
             // Same as 2, but using a type that isn't allowed in an interpolated string. There is an implicit conversion error on the ref struct
@@ -3971,7 +3971,7 @@ public ref struct S
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaReturnInference_04()
         {
             // Same as 3, but with S added to DefaultInterpolatedStringHandler (which then allows the lambda to be bound as Func<string>, matching the natural return type)
@@ -4044,7 +4044,7 @@ namespace System.Runtime.CompilerServices
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaReturnInference_05()
         {
             var code = @"
@@ -4100,7 +4100,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaReturnInference_06()
         {
             // Same as 5, but with an implicit conversion from the builder type to string. This implicit conversion
@@ -4127,7 +4127,7 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"1.000Literal");
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsWindows ? @"1.00Literal" : @"1.000Literal");
 
             verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"
 {
@@ -4150,7 +4150,7 @@ public partial struct CustomHandler
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaReturnInference_07()
         {
             // Same as 5, but with an implicit conversion from string to the builder type.
@@ -4210,7 +4210,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaReturnInference_08()
         {
             // Same as 5, but with an implicit conversion from the builder type to string and from string to the builder type.
@@ -4242,7 +4242,7 @@ public partial struct CustomHandler
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void TernaryTypes_01()
         {
             var code = @"
@@ -4294,7 +4294,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void TernaryTypes_02()
         {
             // Same as 01, but with a conversion from CustomHandler to string. The rules here are similar to LambdaReturnInference_06
@@ -4311,7 +4311,7 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"1.000Literal");
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsWindows ? @"1.00Literal" : @"1.000Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -4337,7 +4337,7 @@ public partial struct CustomHandler
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void TernaryTypes_03()
         {
             // Same as 02, but with a target-type
@@ -4361,7 +4361,7 @@ public partial struct CustomHandler
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void TernaryTypes_04()
         {
             // Same 01, but with a conversion from string to CustomHandler. The rules here are similar to LambdaReturnInference_07
@@ -4418,7 +4418,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void TernaryTypes_05()
         {
             // Same 01, but with a conversion from string to CustomHandler and CustomHandler to string.
@@ -4443,7 +4443,7 @@ public partial struct CustomHandler
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void TernaryTypes_06()
         {
             // Same 05, but with a target type
@@ -4502,7 +4502,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void SwitchTypes_01()
         {
             // Switch expressions infer a best type based on _types_, not based on expressions (section 12.6.3.15 of the spec). Because this is based on types
@@ -4523,7 +4523,7 @@ Console.WriteLine(x);
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void SwitchTypes_02()
         {
             // Same as 01, but with a conversion from CustomHandler. This allows the switch expression to infer a best-common type, which is string.
@@ -4540,7 +4540,7 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"1.000Literal");
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsWindows ? @"1.00Literal" : @"1.000Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -4570,7 +4570,7 @@ public partial struct CustomHandler
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void SwitchTypes_03()
         {
             // Same 02, but with a target-type. The natural type will fail to compile, so the switch will use a target type (unlike TernaryTypes_03, which fails to compile).
@@ -4632,7 +4632,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void SwitchTypes_04()
         {
             // Same as 01, but with a conversion to CustomHandler. This allows the switch expression to infer a best-common type, which is CustomHandler.
@@ -4694,7 +4694,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void SwitchTypes_05()
         {
             // Same as 01, but with conversions in both directions. No best common type can be found.
@@ -4719,7 +4719,7 @@ public partial struct CustomHandler
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void SwitchTypes_06()
         {
             // Same as 05, but with a target type.
@@ -4782,7 +4782,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void PassAsRefWithoutKeyword_01()
         {
             var code = @"
@@ -4823,7 +4823,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void PassAsRefWithoutKeyword_02()
         {
             var code = @"
@@ -4843,7 +4843,7 @@ void M(ref CustomHandler c) => System.Console.WriteLine(c);";
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void PassAsRefWithoutKeyword_03()
         {
             var code = @"
@@ -4884,7 +4884,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void PassAsRefWithoutKeyword_04()
         {
             var code = @"
@@ -4925,7 +4925,7 @@ literal:Literal");
 ");
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(NoIOperationValidation))]
         [CombinatorialData]
         public void RefOverloadResolution_Struct([CombinatorialValues("in", "ref")] string refKind)
         {
@@ -4971,7 +4971,7 @@ literal:Literal");
 ");
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(NoIOperationValidation))]
         [CombinatorialData]
         public void RefOverloadResolution_Class([CombinatorialValues("in", "ref")] string refKind)
         {
@@ -5017,7 +5017,7 @@ literal:Literal");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void RefOverloadResolution_MultipleBuilderTypes()
         {
             var code = @"
