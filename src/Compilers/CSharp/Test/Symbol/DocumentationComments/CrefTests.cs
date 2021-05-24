@@ -6784,9 +6784,6 @@ record CacheContext" + terminator;
             comp.VerifyDiagnostics(
                 // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
                 // /// See also <see cref="InvalidCref"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25),
-                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
-                // /// See also <see cref="InvalidCref"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25));
         }
 
@@ -6808,10 +6805,31 @@ record struct CacheContext" + terminator;
             comp.VerifyDiagnostics(
                 // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
                 // /// See also <see cref="InvalidCref"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25),
-                // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
-                // /// See also <see cref="InvalidCref"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "InvalidCref").WithArguments("InvalidCref").WithLocation(5, 25));
+        }
+
+        [Theory]
+        [InlineData(" { }")]
+        [InlineData(";")]
+        public void Record_TypeAndPropertyWithSameNameInScope(string terminator)
+        {
+            var source = @"using System;
+
+/// <summary>
+/// Something with a <see cref=""String""/> instance.
+/// </summary>
+record CacheContext(string String)" + terminator;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
+
+            var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var crefSyntaxes = GetCrefSyntaxes(comp);
+            var symbol = model.GetSymbolInfo(crefSyntaxes.Single()).Symbol;
+            Assert.Equal(SymbolKind.Property, symbol.Kind);
         }
     }
 }
