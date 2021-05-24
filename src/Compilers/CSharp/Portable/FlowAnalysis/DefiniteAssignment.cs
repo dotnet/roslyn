@@ -1622,7 +1622,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         while (member is not null && !member.HasErrors)
                                         {
-                                            NoteRead(member.Symbol);
+                                            if (_sourceAssembly is not null && member.Symbol is FieldSymbol field)
+                                            {
+                                                _sourceAssembly.NoteFieldAccess(field, read: true, write: false);
+                                            }
+
                                             member = member.Receiver;
                                         }
                                     }
