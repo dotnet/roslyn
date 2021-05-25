@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     explicitCastInCode: false,
                     conversionGroupOpt,
-                    constantValueOpt: default,
+                    constantValueOpt: null,
                     destination);
             }
 

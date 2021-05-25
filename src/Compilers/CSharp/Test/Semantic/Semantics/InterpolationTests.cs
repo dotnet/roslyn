@@ -3219,12 +3219,22 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        private string GetCustomHandlerType(string name, string type, bool useBoolReturns, bool includeAttributeDefinition = true)
+        private string GetCustomHandlerType(string name, string type, bool useBoolReturns, bool includeOneTimeHelpers = true)
         {
             var returnType = useBoolReturns ? "bool" : "void";
             var returnStatement = useBoolReturns ? "return true;" : "return;";
 
-            return @"
+            var cultureInfoHandler = @"
+public class CultureInfoNormalizer
+{
+    public static void Normalize()
+    {
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(""en - US"");
+    }
+}
+";
+
+            return (includeOneTimeHelpers ? "using System.Globalization;\n" : "") + @"
 using System.Text;
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
 public " + type + " " + name + @"
@@ -3248,7 +3258,7 @@ public " + type + " " + name + @"
     }
     public override string ToString() => _builder.ToString();
 }
-" + (includeAttributeDefinition ? InterpolatedStringHandlerAttribute : "");
+" + (includeOneTimeHelpers ? InterpolatedStringHandlerAttribute + cultureInfoHandler : "");
         }
 
         private void VerifyInterpolatedStringExpression(CSharpCompilation comp, string handlerType = "CustomHandler")
@@ -3552,7 +3562,7 @@ class C
             {
                 code,
                 GetCustomHandlerType("CustomHandler1", "struct", useBoolReturns: false),
-                GetCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeAttributeDefinition: false)
+                GetCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeOneTimeHelpers: false)
             }, parseOptions: TestOptions.RegularPreview);
 
             comp.VerifyDiagnostics(
@@ -3891,6 +3901,7 @@ literal:Literal");
         {
             var code = @"
 using System;
+CultureInfoNormalizer.Normalize();
 C.M(() => $""{1,2:f}Literal"");
 
 class C
@@ -3903,7 +3914,7 @@ class C
             // Interpolated string handler conversions are not considered when determining the natural type of an expression: the natural return type of this lambda is string,
             // so we don't even consider that there is a conversion from interpolated string expression to CustomHandler here (Sections 12.6.3.13 and 12.6.3.15 of the spec).
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
-            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsWindows ? @"1.00Literal" : @"1.000Literal");
+            var verifier = CompileAndVerify(comp, expectedOutput: @"1.000Literal");
 
             // No DefaultInterpolatedStringHandler was included in the compilation, so it falls back to string.Format
             verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
@@ -3948,7 +3959,7 @@ public ref struct S
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"value:Field");
+            var verifier = CompileAndVerify(comp, expectedOutput: @"value:Field", verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
 
             verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
 {
@@ -4017,7 +4028,7 @@ namespace System.Runtime.CompilerServices
             );
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"value:Field");
+            var verifier = CompileAndVerify(comp, expectedOutput: @"value:Field", verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
 
             verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
 {
@@ -4064,7 +4075,7 @@ static class C
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4109,6 +4120,7 @@ literal:Literal");
             // has an identity conversion to the return type of Func<bool, string>, that is preferred.
             var code = @"
 using System;
+CultureInfoNormalizer.Normalize();
 C.M(b => 
     {
         if (b) return default(CustomHandler);
@@ -4127,7 +4139,7 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsWindows ? @"1.00Literal" : @"1.000Literal");
+            var verifier = CompileAndVerify(comp, expectedOutput: @"1.000Literal", verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
 
             verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"
 {
@@ -4174,7 +4186,7 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4254,7 +4266,7 @@ Console.WriteLine(x);
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4301,6 +4313,7 @@ literal:Literal");
             var code = @"
 using System;
 
+CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false ? default(CustomHandler) : $""{1,2:f}Literal"";
 Console.WriteLine(x);
 
@@ -4311,28 +4324,29 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsWindows ? @"1.00Literal" : @"1.000Literal");
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"1.000Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       51 (0x33)
+  // Code size       56 (0x38)
   .maxstack  2
   .locals init (CustomHandler V_0)
-  IL_0000:  ldc.i4.0
-  IL_0001:  box        ""bool""
-  IL_0006:  unbox.any  ""bool""
-  IL_000b:  brtrue.s   IL_001f
-  IL_000d:  ldstr      ""{0,2:f}Literal""
-  IL_0012:  ldc.i4.1
-  IL_0013:  box        ""int""
-  IL_0018:  call       ""string string.Format(string, object)""
-  IL_001d:  br.s       IL_002d
-  IL_001f:  ldloca.s   V_0
-  IL_0021:  initobj    ""CustomHandler""
-  IL_0027:  ldloc.0
-  IL_0028:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
-  IL_002d:  call       ""void System.Console.WriteLine(string)""
-  IL_0032:  ret
+  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  IL_0005:  ldc.i4.0
+  IL_0006:  box        ""bool""
+  IL_000b:  unbox.any  ""bool""
+  IL_0010:  brtrue.s   IL_0024
+  IL_0012:  ldstr      ""{0,2:f}Literal""
+  IL_0017:  ldc.i4.1
+  IL_0018:  box        ""int""
+  IL_001d:  call       ""string string.Format(string, object)""
+  IL_0022:  br.s       IL_0032
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  initobj    ""CustomHandler""
+  IL_002c:  ldloc.0
+  IL_002d:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
+  IL_0032:  call       ""void System.Console.WriteLine(string)""
+  IL_0037:  ret
 }
 ");
         }
@@ -4378,7 +4392,7 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4462,7 +4476,7 @@ public partial struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4530,6 +4544,7 @@ Console.WriteLine(x);
             var code = @"
 using System;
 
+CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false switch { true => default(CustomHandler), false => $""{1,2:f}Literal"" };
 Console.WriteLine(x);
 
@@ -4540,32 +4555,33 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsWindows ? @"1.00Literal" : @"1.000Literal");
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"1.000Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       54 (0x36)
+  // Code size       59 (0x3b)
   .maxstack  2
   .locals init (string V_0,
                 CustomHandler V_1)
-  IL_0000:  ldc.i4.0
-  IL_0001:  box        ""bool""
-  IL_0006:  unbox.any  ""bool""
-  IL_000b:  brfalse.s  IL_001e
-  IL_000d:  ldloca.s   V_1
-  IL_000f:  initobj    ""CustomHandler""
-  IL_0015:  ldloc.1
-  IL_0016:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
-  IL_001b:  stloc.0
-  IL_001c:  br.s       IL_002f
-  IL_001e:  ldstr      ""{0,2:f}Literal""
-  IL_0023:  ldc.i4.1
-  IL_0024:  box        ""int""
-  IL_0029:  call       ""string string.Format(string, object)""
-  IL_002e:  stloc.0
-  IL_002f:  ldloc.0
-  IL_0030:  call       ""void System.Console.WriteLine(string)""
-  IL_0035:  ret
+  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  IL_0005:  ldc.i4.0
+  IL_0006:  box        ""bool""
+  IL_000b:  unbox.any  ""bool""
+  IL_0010:  brfalse.s  IL_0023
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  initobj    ""CustomHandler""
+  IL_001a:  ldloc.1
+  IL_001b:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
+  IL_0020:  stloc.0
+  IL_0021:  br.s       IL_0034
+  IL_0023:  ldstr      ""{0,2:f}Literal""
+  IL_0028:  ldc.i4.1
+  IL_0029:  box        ""int""
+  IL_002e:  call       ""string string.Format(string, object)""
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  call       ""void System.Console.WriteLine(string)""
+  IL_003a:  ret
 }
 ");
         }
@@ -4588,7 +4604,7 @@ public partial struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4650,7 +4666,7 @@ public partial struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4738,7 +4754,7 @@ public partial struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4792,7 +4808,7 @@ void M(ref CustomHandler c) => System.Console.WriteLine(c);";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4853,7 +4869,7 @@ void M(in CustomHandler c) => System.Console.WriteLine(c);";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4894,7 +4910,7 @@ void M(in CustomHandler c) => System.Console.WriteLine(c);";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4940,7 +4956,7 @@ class C
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -4986,7 +5002,7 @@ class C
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
@@ -5033,10 +5049,10 @@ class C
             {
                 code,
                 GetCustomHandlerType("CustomHandler1", "struct", useBoolReturns: false),
-                GetCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeAttributeDefinition: false)
+                GetCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeOneTimeHelpers: false)
             }, parseOptions: TestOptions.RegularPreview);
             VerifyInterpolatedStringExpression(comp, "CustomHandler1");
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped, expectedOutput: @"
 value:1
 alignment:2
 format:f
