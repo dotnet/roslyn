@@ -998,7 +998,7 @@ struct S2
 }
 struct S3
 {
-    internal object X { get; set; } = 3;
+    internal object X { get; private set; } = 3;
     internal object Y { get; set; }
     public S3(object _) { Y = 3; }
     public override string ToString() => (X, Y).ToString();
@@ -1615,6 +1615,55 @@ class Program
                 // (19,23): error CS0133: The expression being assigned to 'Program.s2' must be constant
                 //     const object s2 = new S2();
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "new S2()").WithArguments("Program.s2").WithLocation(19, 23));
+        }
+
+        [Fact]
+        public void NoPIA()
+        {
+            var sourceA =
+@"using System.Runtime.InteropServices;
+[assembly: ImportedFromTypeLib(""_.dll"")]
+[assembly: Guid(""9758B46C-5297-4832-BB58-F2B5B78B0D01"")]
+[ComImport()]
+[Guid(""6D947BE5-75B1-4D97-B444-2720624761D7"")]
+public interface I
+{
+    S0 F0();
+    S1 F1();
+    S2 F2();
+}
+public struct S0
+{
+}
+public struct S1
+{
+    public S1() { }
+}
+public struct S2
+{
+    object F = 2;
+}";
+            var comp = CreateCompilationWithMscorlib40(sourceA, parseOptions: TestOptions.RegularPreview);
+            var refA = comp.EmitToImageReference(embedInteropTypes: true);
+
+            var sourceB =
+@"class Program
+{
+    static void M(I i)
+    {
+        var s0 = i.F0();
+        var s1 = i.F1();
+        var s2 = i.F2();
+    }
+}";
+            comp = CreateCompilationWithMscorlib40(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (6,18): error CS1757: Embedded interop struct 'S1' can contain only public instance fields.
+                //         var s1 = i.F1();
+                Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "i.F1()").WithArguments("S1").WithLocation(6, 18),
+                // (7,18): error CS1757: Embedded interop struct 'S2' can contain only public instance fields.
+                //         var s2 = i.F2();
+                Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "i.F2()").WithArguments("S2").WithLocation(7, 18));
         }
     }
 }

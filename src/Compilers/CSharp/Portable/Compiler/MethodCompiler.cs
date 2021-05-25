@@ -1707,13 +1707,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         constructorSyntax.Identifier.ValueText);
                 }
 
-                ExecutableCodeBinder bodyBinder = sourceMethod.TryGetBodyBinder();
-
-                if (sourceMethod.IsExtern || sourceMethod.IsDefaultValueTypeConstructor(requireZeroInit: false))
+                if (sourceMethod.IsExtern)
                 {
                     return null;
                 }
 
+                ExecutableCodeBinder bodyBinder = sourceMethod.TryGetBodyBinder();
                 if (bodyBinder != null)
                 {
                     importChain = bodyBinder.ImportChain;
