@@ -2353,7 +2353,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
 
                 var syntaxForPropertySubpattern = isSingle ? subpatternSyntax : nameSyntax;
-                return new PropertySubpatternOperation(reference, pattern, _semanticModel, syntaxForPropertySubpattern, isImplicit: nameSyntax == syntaxForPropertySubpattern);
+                return new PropertySubpatternOperation(reference, pattern, _semanticModel, syntaxForPropertySubpattern, isImplicit: !isSingle);
 
                 IOperation? createReceiver()
                     => symbol?.IsStatic == false ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax!, receiverType, isImplicit: true) : null;
