@@ -2302,7 +2302,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // or
             // `.LastProp: <pattern operation>` portion (treated as `{ LastProp: <pattern operation> }`)
             var nameSyntax = member.Syntax;
-            var inputType = member.Receiver?.Type.StrippedType().GetPublicSymbol() ?? matchedType;
+            var inputType = getInputType(member, matchedType);
             IPropertySubpatternOperation? result = createPropertySubpattern(member.Symbol, pattern, inputType, nameSyntax, isSingle: member.Receiver is null);
 
             while (member.Receiver is not null)
@@ -2310,7 +2310,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 member = member.Receiver;
                 nameSyntax = member.Syntax;
                 ITypeSymbol previousType = inputType;
-                inputType = member.Receiver?.Type.StrippedType().GetPublicSymbol() ?? matchedType;
+                inputType = getInputType(member, matchedType);
 
                 // Create an operation for a preceding property access:
                 // { PrecedingProp: <previous pattern operation> }
@@ -2358,6 +2358,9 @@ namespace Microsoft.CodeAnalysis.Operations
                 IOperation? createReceiver()
                     => symbol?.IsStatic == false ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax!, receiverType, isImplicit: true) : null;
             }
+
+            static ITypeSymbol getInputType(BoundPropertySubpatternMember member, ITypeSymbol matchedType)
+                => member.Receiver?.Type.StrippedType().GetPublicSymbol() ?? matchedType;
         }
 
         private IInstanceReferenceOperation CreateCollectionValuePlaceholderOperation(BoundObjectOrCollectionValuePlaceholder placeholder)

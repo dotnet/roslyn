@@ -737,6 +737,7 @@ class C
         _ = new C() is { Field1!.Field2: {} }; // 2
         _ = new C() is { Missing: null }; // 3
         _ = new C() is { Field3.Missing: {} }; // 4
+        _ = new C() is { Missing1.Missing2: {} }; // 5
     }
 }
 ";
@@ -762,7 +763,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("C", "Missing").WithLocation(9, 26),
                 // (10,33): error CS0117: 'C' does not contain a definition for 'Missing'
                 //         _ = new C() is { Field3.Missing: {} }; // 4
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("C", "Missing").WithLocation(10, 33)
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("C", "Missing").WithLocation(10, 33),
+                // (11,26): error CS0117: 'C' does not contain a definition for 'Missing1'
+                //         _ = new C() is { Missing1.Missing2: {} }; // 5
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing1").WithArguments("C", "Missing1").WithLocation(11, 26)
                 );
         }
 

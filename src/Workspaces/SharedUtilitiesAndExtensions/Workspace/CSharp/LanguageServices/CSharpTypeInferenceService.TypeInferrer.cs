@@ -1463,44 +1463,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (subpattern.NameColon != null)
                     {
-                        var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
-
-                        foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpattern.NameColon.Name).GetAllSymbols())
-                        {
-                            switch (symbol)
-                            {
-                                case IFieldSymbol field:
-                                    result.Add(new TypeInferenceInfo(field.Type));
-                                    break;
-                                case IPropertySymbol property:
-                                    result.Add(new TypeInferenceInfo(property.Type));
-                                    break;
-                            }
-                        }
-
-                        return result.ToImmutableAndFree();
+                        return InferTypeInSubpatternCore(subpattern.NameColon.Name);
                     }
                     else if (subpattern.ExpressionColon is { Expression: MemberAccessExpressionSyntax memberAccess })
                     {
-                        var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
-                        foreach (var symbol in this.SemanticModel.GetSymbolInfo(memberAccess.Name).GetAllSymbols())
-                        {
-                            switch (symbol)
-                            {
-                                case IFieldSymbol field:
-                                    result.Add(new TypeInferenceInfo(field.Type));
-                                    break;
-                                case IPropertySymbol property:
-                                    result.Add(new TypeInferenceInfo(property.Type));
-                                    break;
-                            }
-                        }
-
-                        return result.ToImmutableAndFree();
+                        return InferTypeInSubpatternCore(memberAccess.Name);
                     }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+
+                IEnumerable<TypeInferenceInfo> InferTypeInSubpatternCore(ExpressionSyntax expression)
+                {
+                    var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
+
+                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(expression).GetAllSymbols())
+                    {
+                        switch (symbol)
+                        {
+                            case IFieldSymbol field:
+                                result.Add(new TypeInferenceInfo(field.Type));
+                                break;
+                            case IPropertySymbol property:
+                                result.Add(new TypeInferenceInfo(property.Type));
+                                break;
+                        }
+                    }
+
+                    return result.ToImmutableAndFree();
+                }
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeForSingleVariableDesignation(SingleVariableDesignationSyntax singleVariableDesignation)
