@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -17,6 +18,7 @@ using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LogHub;
+using Microsoft.VisualStudio.RpcContracts.Logging;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
@@ -195,7 +197,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
             var serverTypeName = languageClient.GetType().Name;
-            var logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+
+            LogHubLspLogger? logger = null;
+            // In 16.10 preview 2 LogHub moved to MS.VS.Utilities and MS.VS.RpcContracts and the old assembly was removed.
+            // To allow LSP integration tests to run on 16.10 preview 1, we only setup the loghub
+            // logger if the MS.VS.Utilities assembly contains the LogHub types.
+            // FeatureFlags.IFeatureFlags is a known type in the MS.VS.Utilities assembly.
+            // Removal tracked by https://github.com/dotnet/roslyn/issues/52454
+            var traceConfigurationType = typeof(FeatureFlags.IFeatureFlags).Assembly.GetType("Microsoft.VisualStudio.LogHub.TraceConfiguration", throwOnError: false);
+            if (traceConfigurationType != null)
+            {
+                logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+            }
 
             var server = languageClient.Create(
                 jsonRpc,
@@ -207,6 +220,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return server;
         }
 
+        // Make sure this isn't inlined so these types are only loaded
+        // after the type check in CreateAsync.
+        // Removal tracked by https://github.com/dotnet/roslyn/issues/52454
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static async Task<LogHubLspLogger?> CreateLoggerAsync(
             VSShell.IAsyncServiceProvider? asyncServiceProvider,
             string serverTypeName,
@@ -224,9 +241,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var service = serviceContainer.GetFullAccessServiceBroker();
 
             var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
-            var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
-
-            traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
+            var logOptions = new RpcContracts.Logging.LoggerOptions(new LoggingLevelSettings(SourceLevels.ActivityTracing | SourceLevels.Information));
+            var traceSource = await configuration.RegisterLogSourceAsync(logId, logOptions, cancellationToken).ConfigureAwait(false);
 
             // Associate this trace source with the jsonrpc conduit.  This ensures that we can associate logs we report
             // with our callers and the operations they are performing.
