@@ -31,7 +31,7 @@ The rule of thumb is that we (**dotnet/roslyn**) review every public API that is
 
  There are three methods to get an API review (this section applies to API area owners, but is included for transparency into the process):
 
-* **Get into the backlog**. Generally speaking, filing an issue in `dotnet/roslyn` and applying the label `api-ready-for-review` on it will make your issue show up during API reviews. The downside is that we generally walk the backlog oldest-newest, so your issue might not be looked at for a while. Progress of issues can be tracked via https://apireview.net/backlog/roslyn (PROTOTYPE: make this link actually work).
+* **Get into the backlog**. Generally speaking, filing an issue in `dotnet/roslyn` and applying the label `api-ready-for-review` on it will make your issue show up during API reviews. The downside is that we generally walk the backlog oldest-newest, so your issue might not be looked at for a while. Progress of issues can be tracked via https://apireview.net/backlog?g=Roslyn.
 * **Fast track**. If you need to bypass the backlog apply both `api-ready-for-review` and `blocking`. All blocking issues are looked at before we walk the backlog.
 * **Dedicated review**. If an issue you are the area owner for needs an hour or longer, send an email to roslynapiowners and we book dedicated time. We also book dedicated time for language feature APIs: any APIs added as part of a new language feature need to have a dedicated review session. Rule of thumb: if the API proposal has more than a dozen APIs, the APIs have complex policy, or the APIs are part of a feature branch, then you need 60 min or more. When in doubt, send mail to roslynapiowners.
 
