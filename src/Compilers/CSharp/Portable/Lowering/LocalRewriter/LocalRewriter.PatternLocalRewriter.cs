@@ -367,8 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: default,
                         argumentRefKindsOpt: ref argumentRefKindsOpt,
                         temps: out _,
-                        invokedAsExtensionMethod: false,
-                        enableCallerInfo: ThreeState.Unknown);
+                        invokedAsExtensionMethod: false);
                     return _factory.Call(input, getMethod, args);
                 }
             }
