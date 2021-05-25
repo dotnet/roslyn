@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Classification
             var classifyReassignedVariables = options.GetOption(ClassificationOptions.ClassifyReassignedVariables);
             if (classifyReassignedVariables)
             {
-                var reassignedVariableSpans = await reassignedVariableService.GetReassignedVariablesAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                var reassignedVariableSpans = await reassignedVariableService.GetLocationsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 foreach (var span in reassignedVariableSpans)
                     result.Add(new ClassifiedSpan(span, ClassificationTypeNames.ReassignedVariable));
             }

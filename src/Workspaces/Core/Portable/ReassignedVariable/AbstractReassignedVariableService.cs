@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
         protected abstract SyntaxToken GetIdentifierOfVariable(TVariableSyntax variable);
         protected abstract SyntaxToken GetIdentifierOfSingleVariableDesignation(TSingleVariableDesignationSyntax variable);
 
-        public async Task<ImmutableArray<TextSpan>> GetReassignedVariablesAsync(
+        public async Task<ImmutableArray<TextSpan>> GetLocationsAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();

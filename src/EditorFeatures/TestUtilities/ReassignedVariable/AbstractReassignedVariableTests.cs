@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReassignedVariable
             var text = await document.GetTextAsync();
 
             var service = document.GetRequiredLanguageService<IReassignedVariableService>();
-            var result = await service.GetReassignedVariablesAsync(document, new TextSpan(0, text.Length), CancellationToken.None);
+            var result = await service.GetLocationsAsync(document, new TextSpan(0, text.Length), CancellationToken.None);
 
             var expectedSpans = workspace.Documents.Single().SelectedSpans.OrderBy(s => s.Start);
             var actualSpans = result.OrderBy(s => s.Start);
