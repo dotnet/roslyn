@@ -274,6 +274,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeInteropServicesComVisibleAttribute = "System.Runtime.InteropServices.ComVisibleAttribute";
         public const string SystemRuntimeInteropServicesDefaultDllImportSearchPathsAttribute = "System.Runtime.InteropServices.DefaultDllImportSearchPathsAttribute";
         public const string SystemRuntimeInteropServicesDllImportAttribute = "System.Runtime.InteropServices.DllImportAttribute";
+        public const string SystemRuntimeInteropServicesDynamicInterfaceCastableImplementationAttribute = "System.Runtime.InteropServices.DynamicInterfaceCastableImplementationAttribute";
         public const string SystemRuntimeInteropServicesFieldOffsetAttribute = "System.Runtime.InteropServices.FieldOffsetAttribute";
         public const string SystemRuntimeInteropServicesGCHandle = "System.Runtime.InteropServices.GCHandle";
         public const string SystemRuntimeInteropServicesHandleRef = "System.Runtime.InteropServices.HandleRef";
