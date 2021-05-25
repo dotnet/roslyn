@@ -1618,11 +1618,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 foreach (BoundSubpattern sub in pat.Properties)
                                 {
-                                    if (sub is BoundPropertySubpattern { Member: var member })
+                                    if (sub is BoundPropertySubpattern { Member: var member }
+                                        && _sourceAssembly is not null)
                                     {
-                                        while (member is not null && !member.HasErrors)
+                                        while (member is not null)
                                         {
-                                            if (_sourceAssembly is not null && member.Symbol is FieldSymbol field)
+                                            if (member.Symbol is FieldSymbol field)
                                             {
                                                 _sourceAssembly.NoteFieldAccess(field, read: true, write: false);
                                             }

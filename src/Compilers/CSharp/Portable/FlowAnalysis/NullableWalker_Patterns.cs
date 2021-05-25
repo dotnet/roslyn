@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int getExtendedPropertySlot(BoundPropertySubpatternMember member, int inputSlot)
             {
-                if (member is null || member.Symbol is null)
+                if (member.Symbol is null)
                 {
                     return -1;
                 }

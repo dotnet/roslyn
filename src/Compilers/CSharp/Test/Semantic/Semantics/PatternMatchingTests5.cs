@@ -748,9 +748,9 @@ class C
                 // (4,15): warning CS0169: The field 'C.Field2' is never used
                 //     C Field1, Field2, Field3;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Field2").WithArguments("C.Field2").WithLocation(4, 15),
-                // (4,23): warning CS0169: The field 'C.Field3' is never used
+                // (4,23): warning CS0649: Field 'C.Field3' is never assigned to, and will always have its default value null
                 //     C Field1, Field2, Field3;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field3").WithArguments("C.Field3").WithLocation(4, 23),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field3").WithArguments("C.Field3", "null").WithLocation(4, 23),
                 // (7,26): error CS8918: Identifier or a simple member access expected.
                 //         _ = new C() is { Field1?.Field2: {} }; // 1
                 Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Field1?.Field2").WithLocation(7, 26),

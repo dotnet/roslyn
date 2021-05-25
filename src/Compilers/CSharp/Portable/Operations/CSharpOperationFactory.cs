@@ -2286,49 +2286,41 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal IPropertySubpatternOperation CreatePropertySubpattern(BoundPropertySubpattern subpattern, ITypeSymbol matchedType)
         {
-            // We treat `c is { ... .Prop: <pattern> }` as
-            // `c is { ...: { Prop: <pattern> } }` 
+            // We treat `c is { ... .Prop: <pattern> }` as `c is { ...: { Prop: <pattern> } }`
 
             SyntaxNode subpatternSyntax = subpattern.Syntax;
-            var member = subpattern.Member;
-            IPropertySubpatternOperation? result = null;
-
+            BoundPropertySubpatternMember? member = subpattern.Member;
+            IPatternOperation pattern = (IPatternOperation)Create(subpattern.Pattern);
             if (member is null)
             {
-                IPatternOperation pattern = (IPatternOperation)Create(subpattern.Pattern);
                 var reference = OperationFactory.CreateInvalidOperation(_semanticModel, subpatternSyntax, ImmutableArray<IOperation>.Empty, isImplicit: true);
                 return new PropertySubpatternOperation(reference, pattern, _semanticModel, subpatternSyntax, isImplicit: false);
             }
 
-            ITypeSymbol previousType = matchedType;
-            do
+            // Create an operation for last property access:
+            // `{ SingleProp: <pattern operation> }`
+            // or
+            // `.LastProp: <pattern operation>` portion (treated as `{ LastProp: <pattern operation> }`)
+            var nameSyntax = member.Syntax;
+            var inputType = member.Receiver?.Type.StrippedType().GetPublicSymbol() ?? matchedType;
+            IPropertySubpatternOperation? result = createPropertySubpattern(member.Symbol, pattern, inputType, nameSyntax, isSingle: member.Receiver is null);
+
+            while (member.Receiver is not null)
             {
-                var nameSyntax = member.Syntax;
-                var inputType = member.Receiver?.Type.StrippedType().GetPublicSymbol() ?? matchedType;
-                if (result is null)
-                {
-                    // Create an operation for last property access:
-                    // `{ SingleProp: <pattern operation> }`
-                    // or
-                    // `.LastProp: <pattern operation>` portion (treated as `{ LastProp: <pattern operation> }`)
-                    IPatternOperation pattern = (IPatternOperation)Create(subpattern.Pattern);
-                    result = createPropertySubpattern(member.Symbol, pattern, inputType, nameSyntax, isSingle: member.Receiver is null);
-                }
-                else
-                {
-                    // Create an operation for a preceding property acess:
-                    // { PrecedingProp: <previous pattern operation> }
-                    IPatternOperation pattern = new RecursivePatternOperation(matchedType: previousType, deconstructSymbol: null, deconstructionSubpatterns: ImmutableArray<IPatternOperation>.Empty,
-                        propertySubpatterns: ImmutableArray.Create(result), declaredSymbol: null,
-                        previousType, narrowedType: previousType, semanticModel: _semanticModel, nameSyntax, isImplicit: true);
-
-                    result = createPropertySubpattern(member.Symbol, pattern, inputType, nameSyntax, isSingle: false);
-                }
-
-                previousType = inputType;
                 member = member.Receiver;
+                nameSyntax = member.Syntax;
+                ITypeSymbol previousType = inputType;
+                inputType = member.Receiver?.Type.StrippedType().GetPublicSymbol() ?? matchedType;
+
+                // Create an operation for a preceding property access:
+                // { PrecedingProp: <previous pattern operation> }
+                IPatternOperation nestedPattern = new RecursivePatternOperation(
+                    matchedType: previousType, deconstructSymbol: null, deconstructionSubpatterns: ImmutableArray<IPatternOperation>.Empty,
+                    propertySubpatterns: ImmutableArray.Create(result), declaredSymbol: null,
+                    previousType, narrowedType: previousType, semanticModel: _semanticModel, nameSyntax, isImplicit: true);
+
+                result = createPropertySubpattern(member.Symbol, nestedPattern, inputType, nameSyntax, isSingle: false);
             }
-            while (member is not null);
 
             return result;
 
