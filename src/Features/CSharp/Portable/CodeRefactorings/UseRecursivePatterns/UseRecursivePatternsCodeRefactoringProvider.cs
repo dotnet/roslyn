@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -22,8 +23,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
 {
-    using static SyntaxKind;
     using static SyntaxFactory;
+    using static SyntaxKind;
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseRecursivePatterns), Shared]
     internal sealed class UseRecursivePatternsCodeRefactoringProvider : CodeRefactoringProvider
