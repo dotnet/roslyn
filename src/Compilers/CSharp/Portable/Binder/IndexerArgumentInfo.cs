@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly ImmutableArray<BoundExpression> ArgumentsOpt;
         public readonly bool Expanded;
 
-        public IndexerArgumentInfo(Symbol symbol, ImmutableArray<BoundExpression> argumentsOpt = default, bool expanded = default)
+        public IndexerArgumentInfo(Symbol symbol, ImmutableArray<BoundExpression> argumentsOpt, bool expanded)
         {
             Debug.Assert(
                 symbol is PropertySymbol { IsIndexer: true } ||
@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol = symbol;
             ArgumentsOpt = argumentsOpt;
             Expanded = expanded;
+        }
+
+        public static IndexerArgumentInfo CreateImplicitIndexOrRangeIndexerInfo(Symbol symbol)
+        {
+            return new IndexerArgumentInfo(symbol, argumentsOpt: default, expanded: default);
         }
 
         public bool IsImplicit => ArgumentsOpt.IsDefault;

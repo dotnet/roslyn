@@ -781,13 +781,14 @@ namespace Roslyn.Test.Utilities
 
         /// <summary>
         /// Run multiple assertions at once and collect the result.
-        /// This is useful when you want to verity multiple assertions but don't want to re-run to adjust every other case.
+        /// This is useful when you want to verify multiple assertions but don't want to re-run to adjust every other case.
         /// </summary>
         public static void Multiple(params Action[] assertions)
         {
             Multiple(includeStackTrace: false, assertions);
         }
 
+        /// <inheritdoc cref="Multiple(System.Action[])"/>
         public static void Multiple(bool includeStackTrace, params Action[] assertions)
         {
             List<(int, Exception)> exceptions = null;
@@ -805,25 +806,25 @@ namespace Roslyn.Test.Utilities
                 }
             }
 
-            if (exceptions is not null)
-            {
-                var stringBuilder = new StringBuilder($"{exceptions.Count} out of {assertions.Length} assertions failed.");
-                foreach (var (index, ex) in exceptions)
-                {
-                    var stack = ex.StackTrace.Split(new[] { "\r\n" }, StringSplitOptions.None);
-                    stringBuilder
-                        .AppendLine($"Assertion failed at index {index}:")
-                        .AppendLine(stack[^2]) // Prints the failing line in the original test case.
-                        .AppendLine(ex.Message);
-                    if (includeStackTrace)
-                        stringBuilder.AppendLine(ex.StackTrace);
-                    stringBuilder
-                        .AppendLine()
-                        .AppendLine();
-                }
+            if (exceptions is null)
+                return;
 
-                Fail(stringBuilder.ToString());
+            var stringBuilder = new StringBuilder($"{exceptions.Count} out of {assertions.Length} assertions failed.");
+            foreach (var (index, ex) in exceptions)
+            {
+                var stack = ex.StackTrace.Split(new[] { "\r\n" }, StringSplitOptions.None);
+                stringBuilder
+                    .AppendLine($"Assertion failed at index {index}:")
+                    .AppendLine(stack[^2]) // Prints the failing line in the original test case.
+                    .AppendLine(ex.Message);
+                if (includeStackTrace)
+                    stringBuilder.AppendLine(ex.StackTrace);
+                stringBuilder
+                    .AppendLine()
+                    .AppendLine();
             }
+
+            Fail(stringBuilder.ToString());
         }
 
 #nullable enable

@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out Symbol? patternSymbol, diagnostics, ref useSiteInfo))
             {
-                info = new IndexerArgumentInfo(patternSymbol);
+                info = IndexerArgumentInfo.CreateImplicitIndexOrRangeIndexerInfo(patternSymbol);
                 diagnostics.Add(syntax, useSiteInfo);
                 lookupResult.Free();
                 return true;
@@ -393,8 +393,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                     PropertySymbol indexer = resolutionResult.Member;
-                    if (indexer.GetMethod is not null && IsAccessible(indexer, ref useSiteInfo))
+                    if (indexer.GetMethod is not null &&
+                        IsAccessible(indexer.GetMethod, ref useSiteInfo))
                     {
+                        // PTOTOTYPE(list-patterns) Can this be ever true? If so, move to if above
                         Debug.Assert(!indexer.IsStatic);
                         ReportDiagnosticsIfObsolete(diagnostics, indexer, syntax, hasBaseReceiver: false);
                         CoerceArguments(resolutionResult, analyzedArguments.Arguments, diagnostics);
