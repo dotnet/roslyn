@@ -13,13 +13,15 @@ namespace Microsoft.CodeAnalysis
     internal sealed class SyntaxInputNode<T> : IIncrementalGeneratorNode<T>, ISyntaxInputNode
     {
         private readonly Func<GeneratorSyntaxContext, T> _transformFunc;
+        private readonly Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> _registerOutputAndNode;
         private readonly Func<SyntaxNode, bool> _filterFunc;
         private readonly IEqualityComparer<T> _comparer;
         private readonly object _filterKey = new object();
 
-        internal SyntaxInputNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc, IEqualityComparer<T>? comparer = null)
+        internal SyntaxInputNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc, Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutputAndNode, IEqualityComparer<T>? comparer = null)
         {
             _transformFunc = transformFunc;
+            _registerOutputAndNode = registerOutputAndNode;
             _filterFunc = filterFunc;
             _comparer = comparer ?? EqualityComparer<T>.Default;
         }
@@ -29,9 +31,11 @@ namespace Microsoft.CodeAnalysis
             return (NodeStateTable<T>)graphState.GetSyntaxInputTable(this);
         }
 
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, comparer);
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _registerOutputAndNode, comparer);
 
         public ISyntaxInputBuilder GetBuilder(DriverStateTable table) => new Builder(this, table);
+
+        public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutputAndNode(this, output);
 
         private sealed class Builder : ISyntaxInputBuilder
         {
@@ -70,11 +74,7 @@ namespace Microsoft.CodeAnalysis
 
                     // get the syntax nodes from cache, or a syntax walk using the filter
                     ImmutableArray<SyntaxNode> nodes;
-                    if (state == EntryState.Cached && _filterTable.TryUseCachedEntries())
-                    {
-                        nodes = _filterTable.GetLastEntries();
-                    }
-                    else
+                    if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(out nodes))
                     {
                         nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root, _owner._filterFunc);
                         _filterTable.AddEntries(nodes, EntryState.Added);

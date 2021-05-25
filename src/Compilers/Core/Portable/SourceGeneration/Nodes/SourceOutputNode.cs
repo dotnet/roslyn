@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         _action(context, entry.item);
-                        nodeTable.AddEntries(ImmutableArray.Create<TOutput>((sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly())), EntryState.Added);
+                        nodeTable.AddEntry((sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly()), EntryState.Added);
                     }
                     finally
                     {
@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable;
+
+        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable;
 
         public void AppendOutputs(IncrementalExecutionContext context)
         {

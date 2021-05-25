@@ -1460,10 +1460,10 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.RegisterOutput(ctx.Sources.Compilation.GenerateSource((spc, c) =>
+                ctx.Sources.Compilation.GenerateSource((spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
-                }));
+                });
             }));
 
             // run the generator once, and check it was passed the compilation
@@ -1498,15 +1498,15 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.RegisterOutput(ctx.Sources.Compilation.GenerateSource((spc, c) =>
+                ctx.Sources.Compilation.GenerateSource((spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
-                }));
+                });
 
-                ctx.RegisterOutput(ctx.Sources.AdditionalTexts.GenerateSource((spc, c) =>
+                ctx.Sources.AdditionalTexts.GenerateSource((spc, c) =>
                 {
                     textsCalledFor.Add(c);
-                }));
+                });
             }));
 
 
@@ -1561,10 +1561,10 @@ class C { }
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
                 var compilationSource = ctx.Sources.Compilation.WithComparer(new LambdaComparer<Compilation>((c1, c2) => true, 0));
-                ctx.RegisterOutput(compilationSource.GenerateSource((spc, c) =>
+                compilationSource.GenerateSource((spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
-                }));
+                });
             }));
 
             // run the generator once, and check it was passed the compilation
@@ -1576,6 +1576,41 @@ class C { }
             // now edit the compilation, run the generator, and confirm that the output was not called again this time
             Compilation newCompilation = compilation.WithOptions(compilation.Options.WithModuleName("newCompilation"));
             driver = driver.RunGenerators(newCompilation);
+            Assert.Equal(1, compilationsCalledFor.Count);
+            Assert.Equal(compilation, compilationsCalledFor[0]);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Register_End_Node_Only_Once_Through_Joins()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<Compilation> compilationsCalledFor = new List<Compilation>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var source = ctx.Sources.Compilation;
+                var source2 = ctx.Sources.Compilation.Join(source);
+                var source3 = ctx.Sources.Compilation.Join(source2);
+                var source4 = ctx.Sources.Compilation.Join(source3);
+                var source5 = ctx.Sources.Compilation.Join(source4);
+
+                source5.GenerateSource((spc, c) =>
+                {
+                    compilationsCalledFor.Add(c.Item1);
+                });
+            }));
+
+            // run the generator and check that we didn't multiple register the generate source node through the join
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
             Assert.Equal(1, compilationsCalledFor.Count);
             Assert.Equal(compilation, compilationsCalledFor[0]);
         }
@@ -1599,9 +1634,7 @@ class C { }
                 ic.RegisterForPostInitialization(c => c.AddSource("a", "class D {}"));
                 ic.RegisterExecutionPipeline(pc =>
                 {
-                    pc.RegisterOutput(
-                        pc.Sources.Syntax.Transform(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node).GenerateSource((spc, node) => classes.Add(node))
-                    );
+                    pc.Sources.Syntax.Transform(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node).GenerateSource((spc, node) => classes.Add(node));
                 });
             }));
 

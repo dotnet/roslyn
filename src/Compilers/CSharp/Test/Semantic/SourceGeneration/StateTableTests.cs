@@ -53,6 +53,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
+        public void Node_Table_Entries_Can_Be_Null()
+        {
+            object? o = new object();
+
+            var builder = NodeStateTable<object?>.Empty.ToBuilder();
+            builder.AddEntry(o, EntryState.Added);
+            builder.AddEntry(null, EntryState.Added);
+            builder.AddEntry(o, EntryState.Added);
+            var table = builder.ToImmutableAndFree();
+
+            var expected = ImmutableArray.Create((o, EntryState.Added), (null, EntryState.Added), (o, EntryState.Added));
+            AssertTableEntries(table, expected);
+        }
+
+        [Fact]
         public void Node_Builder_Can_Add_Entries_From_Previous_Table()
         {
             var builder = NodeStateTable<int>.Empty.ToBuilder();
@@ -301,6 +316,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             }
 
             public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => this;
+
+            public void RegisterOutput(IIncrementalGeneratorOutputNode output) { }
         }
     }
 }

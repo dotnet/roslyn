@@ -56,17 +56,12 @@ namespace Microsoft.CodeAnalysis
 
     public readonly struct IncrementalGeneratorPipelineContext
     {
-        private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputBuilder;
-
         public IncrementalValueSources Sources { get; }
 
-        internal IncrementalGeneratorPipelineContext(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputBuilder)
+        internal IncrementalGeneratorPipelineContext(IncrementalValueSources valueSources)
         {
-            Sources = new IncrementalValueSources(syntaxInputBuilder);
-            _outputBuilder = outputBuilder;
+            Sources = valueSources;
         }
-
-        public void RegisterOutput(IncrementalGeneratorOutput output) => _outputBuilder.Add(output.node);
     }
 
     /// <summary>

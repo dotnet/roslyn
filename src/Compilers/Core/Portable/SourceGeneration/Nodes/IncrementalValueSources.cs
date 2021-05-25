@@ -13,21 +13,31 @@ namespace Microsoft.CodeAnalysis
     public readonly struct IncrementalValueSources
     {
         private readonly ArrayBuilder<ISyntaxInputNode> _syntaxInputBuilder;
+        private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
 
-        internal IncrementalValueSources(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder)
+        internal IncrementalValueSources(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes)
         {
             _syntaxInputBuilder = syntaxInputBuilder;
+            _outputNodes = outputNodes;
         }
 
-        public SyntaxValueSources Syntax => new SyntaxValueSources(_syntaxInputBuilder);
+        public SyntaxValueSources Syntax => new SyntaxValueSources(_syntaxInputBuilder, RegisterOutput);
 
-        public IncrementalValueSource<Compilation> Compilation => new IncrementalValueSource<Compilation>(SharedInputNodes.Compilation);
+        public IncrementalValueSource<Compilation> Compilation => new IncrementalValueSource<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
 
-        public IncrementalValueSource<ParseOptions> ParseOptions => new IncrementalValueSource<ParseOptions>(SharedInputNodes.ParseOptions);
+        public IncrementalValueSource<ParseOptions> ParseOptions => new IncrementalValueSource<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput));
 
-        public IncrementalValueSource<AdditionalText> AdditionalTexts => new IncrementalValueSource<AdditionalText>(SharedInputNodes.AdditionalTexts);
+        public IncrementalValueSource<AdditionalText> AdditionalTexts => new IncrementalValueSource<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput));
 
-        public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions);
+        public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptions => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput));
+
+        private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
+        {
+            if (!_outputNodes.Contains(outputNode))
+            {
+                _outputNodes.Add(outputNode);
+            }
+        }
     }
 
     /// <summary>

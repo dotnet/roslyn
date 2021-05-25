@@ -17,11 +17,18 @@ namespace Microsoft.CodeAnalysis
         // 1 => many (or none) transform
         public static IncrementalValueSource<U> TransformMany<T, U>(this IncrementalValueSource<T> source, Func<T, ImmutableArray<U>> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.Node, func.WrapUserFunction()));
 
+        // 1 => many (or none) transform with enumerable
+        public static IncrementalValueSource<U> TransformMany<T, U>(this IncrementalValueSource<T> source, Func<T, IEnumerable<U>> func) => new IncrementalValueSource<U>(new TransformNode<T, U>(source.Node, t => func.WrapUserFunction()(t).AsImmutable()));
+
         // collection => collection
         public static IncrementalValueSource<U> BatchTransform<T, U>(this IncrementalValueSource<T> source, Func<ImmutableArray<T>, U> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()));
 
         // single
         public static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<ImmutableArray<T>, ImmutableArray<U>> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()));
+
+        // single (enumerable)
+        public static IncrementalValueSource<U> BatchTransformMany<T, U>(this IncrementalValueSource<T> source, Func<ImmutableArray<T>, IEnumerable<U>> func) => new IncrementalValueSource<U>(new BatchTransformNode<T, U>(source.Node, t => func.WrapUserFunction()(t).ToImmutableArray()));
+
 
         // join many => many ((source1[0], source2), (source1[0], source2) ...)
         public static IncrementalValueSource<(T, ImmutableArray<U>)> Join<T, U>(this IncrementalValueSource<T> source1, IncrementalValueSource<U> source2) => new IncrementalValueSource<(T, ImmutableArray<U>)>(new JoinNode<T, U>(source1.Node, source2.Node));
@@ -33,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // 1 => 1 production
-        public static IncrementalGeneratorOutput GenerateSource<T>(this IncrementalValueSource<T> source, Action<SourceProductionContext, T> action) => new IncrementalGeneratorOutput(new SourceOutputNode<T>(source.Node, action.WrapUserAction()));
+        public static void GenerateSource<T>(this IncrementalValueSource<T> source, Action<SourceProductionContext, T> action) => source.Node.RegisterOutput(new SourceOutputNode<T>(source.Node, action.WrapUserAction()));
 
         // custom comparer for given node
         public static IncrementalValueSource<T> WithComparer<T>(this IncrementalValueSource<T> source, IEqualityComparer<T> comparer) => new IncrementalValueSource<T>(source.Node.WithComparer(comparer));

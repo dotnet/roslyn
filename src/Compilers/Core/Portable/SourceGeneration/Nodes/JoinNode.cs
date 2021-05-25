@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
                     _ => entry1.state
                 };
 
-                builder.AddEntries(ImmutableArray.Create((entry1.item, input2)), state);
+                builder.AddEntry((entry1.item, input2), state);
             }
 
             return builder.ToImmutableAndFree();
@@ -71,5 +71,13 @@ namespace Microsoft.CodeAnalysis
         // PROTOTYPE(source-generators): Is it actually ever meaningful to have a comparer for a join? Perhaps we should just put comparer on the transform nodes?
         //                             : We could run the compare when the input would show up as modified. It's... kind of odd, but at least means something
         public IIncrementalGeneratorNode<(TInput1, ImmutableArray<TInput2>)> WithComparer(IEqualityComparer<(TInput1, ImmutableArray<TInput2>)> comparer) => this;
+
+        public void RegisterOutput(IIncrementalGeneratorOutputNode output)
+        {
+            // We have to call register on both branches of the join, as they may chain up to different input nodes
+            _input1.RegisterOutput(output);
+            _input2.RegisterOutput(output);
+        }
+
     }
 }

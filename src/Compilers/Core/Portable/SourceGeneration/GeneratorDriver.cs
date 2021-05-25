@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
                         var inputBuilder = ArrayBuilder<ISyntaxInputNode>.GetInstance();
-                        var pipelineContext = new IncrementalGeneratorPipelineContext(inputBuilder, outputBuilder);
+                        var pipelineContext = new IncrementalGeneratorPipelineContext(new IncrementalValueSources(inputBuilder, outputBuilder));
                         try
                         {
                             generatorState.Info.PipelineCallback(pipelineContext);

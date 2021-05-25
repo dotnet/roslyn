@@ -17,11 +17,8 @@ Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.CancellationTok
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.IncrementalGeneratorInitializationContext() -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterExecutionPipeline(System.Action<Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext>! callback) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorOutput
-Microsoft.CodeAnalysis.IncrementalGeneratorOutput.IncrementalGeneratorOutput() -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.IncrementalGeneratorPipelineContext() -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.RegisterOutput(Microsoft.CodeAnalysis.IncrementalGeneratorOutput output) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.Sources.get -> Microsoft.CodeAnalysis.IncrementalValueSources
 Microsoft.CodeAnalysis.IncrementalValueSource<T>
 Microsoft.CodeAnalysis.IncrementalValueSource<T>.IncrementalValueSource() -> void
@@ -71,11 +68,13 @@ override Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.Visit(Micr
 static Microsoft.CodeAnalysis.GeneratorDriver.GetGeneratorType(Microsoft.CodeAnalysis.ISourceGenerator! generator) -> System.Type!
 static Microsoft.CodeAnalysis.GeneratorDriver.WrapGenerator(Microsoft.CodeAnalysis.IIncrementalGenerator! incrementalGenerator) -> Microsoft.CodeAnalysis.ISourceGenerator!
 static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.BatchTransform<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<System.Collections.Immutable.ImmutableArray<T>, U>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
+static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.BatchTransformMany<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<System.Collections.Immutable.ImmutableArray<T>, System.Collections.Generic.IEnumerable<U>!>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
 static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.BatchTransformMany<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<System.Collections.Immutable.ImmutableArray<T>, System.Collections.Immutable.ImmutableArray<U>>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
 static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.Filter<T>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<T, bool>! filter) -> Microsoft.CodeAnalysis.IncrementalValueSource<T>
-static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.GenerateSource<T>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, T>! action) -> Microsoft.CodeAnalysis.IncrementalGeneratorOutput
+static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.GenerateSource<T>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, T>! action) -> void
 static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.Join<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source1, Microsoft.CodeAnalysis.IncrementalValueSource<U> source2) -> Microsoft.CodeAnalysis.IncrementalValueSource<(T, System.Collections.Immutable.ImmutableArray<U>)>
 static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.Transform<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<T, U>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
+static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.TransformMany<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<T, System.Collections.Generic.IEnumerable<U>!>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
 static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.TransformMany<T, U>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Func<T, System.Collections.Immutable.ImmutableArray<U>>! func) -> Microsoft.CodeAnalysis.IncrementalValueSource<U>
 static Microsoft.CodeAnalysis.IncrementalValueSourceExtensions.WithComparer<T>(this Microsoft.CodeAnalysis.IncrementalValueSource<T> source, System.Collections.Generic.IEqualityComparer<T>! comparer) -> Microsoft.CodeAnalysis.IncrementalValueSource<T>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
