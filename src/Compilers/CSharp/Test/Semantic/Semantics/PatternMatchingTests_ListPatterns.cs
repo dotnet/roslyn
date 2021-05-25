@@ -335,6 +335,29 @@ class X
         }
 
         [Fact]
+        public void LengthPattern_InputType()
+        {
+            var source = @"
+class X
+{
+    public void M(int[] a)
+    {
+        _ = a is [long];
+        _ = a is [short];
+    } 
+}
+";
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (6,19): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'long'.
+                //         _ = a is [long];
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("int", "long").WithLocation(6, 19),
+                // (7,19): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'short'.
+                //         _ = a is [short];
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "short").WithArguments("int", "short").WithLocation(7, 19));
+        }
+
+        [Fact]
         public void ListPattern_Index()
         {
             var source = @"
@@ -1207,7 +1230,7 @@ class X
         public void ListPattern_MemberLookup_Range_ErrorCases(string member, bool valid = false)
         {
             var source = @"
-#pragma warning disable CS8019 // Unused using
+#pragma warning disable 8019 // Unused using
 using System;
 class Test1
 {
@@ -1226,13 +1249,13 @@ class X
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
             if (valid)
             {
-                compilation.VerifyEmitDiagnostics();
+                compilation.VerifyDiagnostics();
                 return;
             }
             compilation.VerifyEmitDiagnostics(
-                // (13,29): error CS9201: Slice patterns may not be used for a value of type 'Test1'.
+                // (14,29): error CS9201: Slice patterns may not be used for a value of type 'Test1'.
                 //         _ = new Test1() is {..};
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..").WithArguments("Test1").WithLocation(13, 29));
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..").WithArguments("Test1").WithLocation(14, 29));
         }
 
         [Fact]
@@ -1486,35 +1509,50 @@ class X
             var source =
 @"class X
 {
-    public static void Main()
+    public void Test1()
     {
         _ = new string[0] is [var length1];
         _ = new string[0] is {var element1};
         _ = new string[0] is {..var slice1};
+
         _ = new int[0] is [var length2];
         _ = new int[0] is {var element2};
         _ = new int[0] is {..var slice2};
-        _ = new int[0] is {..int[] slice3};
-        _ = new string[0] is {..string[] slice4};
+
+        _ = new string[0] is [int length3];
+        _ = new string[0] is {string element3};
+        _ = new string[0] is {..string[] slice3};
+
+        _ = new int[0] is [int length4];
+        _ = new int[0] is {int element4};
+        _ = new int[0] is {..int[] slice4};
     }
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var nodes = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>();
             Assert.Collection(nodes,
-                d => verify(d, "int"),
-                d => verify(d, "string?", "string"),
-                d => verify(d, "string[]?", "string[]"),
-                d => verify(d, "int"),
-                d => verify(d, "int"),
-                d => verify(d, "int[]?", "int[]"),
-                d => verify(d, "int[]"),
-                d => verify(d, "string[]")
+                d => verify(d, "var length1", "int", "int"),
+                d => verify(d, "var element1", "string?", "string"),
+                d => verify(d, "var slice1", "string[]?", "string[]"),
+
+                d => verify(d, "var length2", "int", "int"),
+                d => verify(d, "var element2", "int", "int"),
+                d => verify(d, "var slice2", "int[]?", "int[]"),
+
+                d => verify(d, "int length3", "int", "int"),
+                d => verify(d, "string element3", "string", "string"),
+                d => verify(d, "string[] slice3", "string[]", "string[]"),
+
+                d => verify(d, "int length4", "int", "int"),
+                d => verify(d, "int element4", "int", "int"),
+                d => verify(d, "int[] slice4", "int[]", "int[]")
             );
 
-            void verify(SyntaxNode designation, string declaredType, string type = null)
+            void verify(SyntaxNode designation, string syntax, string declaredType, string type)
             {
+                Assert.Equal(syntax, designation.Parent.ToString());
                 var model = compilation.GetSemanticModel(tree);
                 var symbol = model.GetDeclaredSymbol(designation);
                 Assert.Equal(SymbolKind.Local, symbol.Kind);
@@ -1523,8 +1561,8 @@ class X
                 Assert.Null(typeInfo.Type);
                 Assert.Null(typeInfo.ConvertedType);
                 typeInfo = model.GetTypeInfo(designation.Parent);
-                Assert.Equal(type ?? declaredType, typeInfo.Type.ToDisplayString());
-                Assert.Equal(type ?? declaredType, typeInfo.ConvertedType.ToDisplayString());
+                Assert.Equal(type, typeInfo.Type.ToDisplayString());
+                Assert.Equal(type, typeInfo.ConvertedType.ToDisplayString());
             }
         }
     }
