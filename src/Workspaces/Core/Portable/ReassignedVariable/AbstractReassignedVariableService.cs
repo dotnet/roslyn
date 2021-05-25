@@ -160,7 +160,9 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 if (methodOrProperty.DeclaringSyntaxReferences.Length == 0)
                     return false;
 
-                // Potentially a reference to a parameter in another file.
+                // Be resilient to cases where the parameter might have multiple locations.  This
+                // should not normally happen, but we want to be resilient in case it occurs in
+                // error scenarios.
                 var methodOrPropertyDeclaration = methodOrProperty.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
                 if (methodOrPropertyDeclaration.SyntaxTree != semanticModel.SyntaxTree)
                     return false;
@@ -175,6 +177,9 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
             bool TryGetParameterLocation(IParameterSymbol parameter, out TextSpan location)
             {
+                // Be resilient to cases where the parameter might have multiple locations.  This
+                // should not normally happen, but we want to be resilient in case it occurs in
+                // error scenarios.
                 if (parameter.Locations.Length > 0)
                 {
                     var parameterLocation = parameter.Locations[0];
