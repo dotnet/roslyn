@@ -64,7 +64,7 @@ stages:
         - DotNetFramework
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: NetCoreInternal-Pool
-        queue: BuildPool.Windows.10.Amd64.VS2019.Pre
+        queue: BuildPool.Server.Amd64.VS2017
 
     steps:
     # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
@@ -77,6 +77,7 @@ stages:
           arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven even'
         ${{ if eq(variables['System.TeamProject'], 'internal') }}:
           arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven odd'
+      condition: eq(variables['System.JobAttempt'], '1')
 
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable

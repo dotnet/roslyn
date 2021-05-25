@@ -2373,7 +2373,7 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 Jeśli specyfikator formatu „f” zostanie użyty bez innych indywidualnych specyfikatorów formatu, będzie interpretowany jako standardowy specyfikator daty i godziny „f”.
 
 Gdy specyfikator formatu „f” jest używany jako część ciągu formatu podanego dla metody arseExact, TryParseExact, ParseExact lub TryParseExact, liczba specyfikatorów formatu „f” wskazuje liczbę najważniejszych cyfr ułamka sekund, jaka musi być reprezentowana, aby pomyślnie przeanalizować ciąg.</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
