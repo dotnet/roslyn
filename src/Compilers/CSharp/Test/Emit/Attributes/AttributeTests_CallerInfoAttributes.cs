@@ -660,6 +660,98 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "'<default1>', '<default0>'");
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionInAttributeConstructor_LangVersion9()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(int a = 1, [CallerArgumentExpression(""a"")] string expr_a = """")
+    {
+        Console.WriteLine($""'{a}', '{expr_a}'"");
+    }
+}
+
+[My(1+2)]
+class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttribute(typeof(MyAttribute));
+    }
+}";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            compilation.VerifyDiagnostics(
+                // (14,4): error CS8652: The feature 'caller argument expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // [My(1+2)]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(1+2)").WithArguments("caller argument expression").WithLocation(14, 4));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpression_ImplicitConversionFromStringExists()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(int a = 1, [CallerArgumentExpression(""a"")] object expr_a = null)
+    {
+        Console.WriteLine($""'{a}', '{expr_a}'"");
+    }
+}
+
+[My(1+2)]
+class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttribute(typeof(MyAttribute));
+    }
+}";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"'3', '1+2'");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpression_ImplicitConversionFromStringDoesNotExists()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(int a = 1, [CallerArgumentExpression(""a"")] int expr_a = 0)
+    {
+        Console.WriteLine($""'{a}', '{expr_a}'"");
+    }
+}
+
+[My(1+2)]
+class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttribute(typeof(MyAttribute));
+    }
+}";
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (8,36): error CS8913: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+                //     public MyAttribute(int a = 1, [CallerArgumentExpression("a")] int expr_a = 0)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(8, 36)
+            );
+        }
+
         [Fact]
         public void TestCallerInfoAttributesWithSaneDefaultValues()
         {
