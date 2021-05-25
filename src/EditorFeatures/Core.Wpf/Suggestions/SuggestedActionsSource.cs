@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private partial class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource4
+        private partial class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSourceExperimental
         {
             private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
 
@@ -190,10 +190,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             public async IAsyncEnumerable<SuggestedActionSet> GetSuggestedActionsAsync(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
-                IUIThreadOperationContext operationContext)
+                [EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 AssertIsForeground();
-                var cancellationToken = operationContext.UserCancellationToken;
 
                 using var state = _state.TryAddReference();
                 if (state is null)
@@ -203,10 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (workspace == null)
                     yield break;
 
-                using (operationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
-                {
-                    await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(true);
-                }
+                await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(true);
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActionsAsync, cancellationToken))
                 {
@@ -216,20 +212,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // Compute and return the high pri set of fixes and refactorings first so the user
                     // can act on them immediately without waiting on the regular set.
-                    var highPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, AddOperationScope, highPriority: true, cancellationToken);
+                    var highPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, _ => null, highPriority: true, cancellationToken);
                     await foreach (var set in highPriSet)
                         yield return set;
 
-                    var lowPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, AddOperationScope, highPriority: false, cancellationToken);
+                    var lowPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, _ => null, highPriority: false, cancellationToken);
                     await foreach (var set in lowPriSet)
                         yield return set;
-                }
-
-                yield break;
-
-                IDisposable? AddOperationScope(string description)
-                {
-                    return operationContext.AddScope(allowCancellation: true, string.Format(EditorFeaturesResources.Gathering_Suggestions_0, description));
                 }
             }
 
