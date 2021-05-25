@@ -766,19 +766,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // Boxing or identity conversion:
-                    parameterType = Compilation.GetSpecialType(SpecialType.System_Int32);
+                    parameterType = GetSpecialType(SpecialType.System_Int32, diagnostics, syntax);
                     defaultValue = line;
                 }
             }
             else if (!IsEarlyAttributeBinder && parameter.IsCallerFilePath)
             {
-                parameterType = Compilation.GetSpecialType(SpecialType.System_String);
+                parameterType = GetSpecialType(SpecialType.System_String, diagnostics, syntax);
                 kind = TypedConstantKind.Primitive;
                 defaultValue = syntax.SyntaxTree.GetDisplayPath(syntax.Name.Span, Compilation.Options.SourceReferenceResolver);
             }
             else if (!IsEarlyAttributeBinder && parameter.IsCallerMemberName && (object)((ContextualAttributeBinder)this).AttributedMember != null)
             {
-                parameterType = Compilation.GetSpecialType(SpecialType.System_String);
+                parameterType = GetSpecialType(SpecialType.System_String, diagnostics, syntax);
                 kind = TypedConstantKind.Primitive;
                 defaultValue = ((ContextualAttributeBinder)this).AttributedMember.GetMemberCallerName();
             }
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(argumentsCount <= syntax.ArgumentList.Arguments.Count);
                 CheckFeatureAvailability(syntax.ArgumentList, MessageID.IDS_FeatureCallerArgumentExpression, diagnostics);
-                parameterType = Compilation.GetSpecialType(SpecialType.System_String);
+                parameterType = GetSpecialType(SpecialType.System_String, diagnostics, syntax);
                 kind = TypedConstantKind.Primitive;
                 defaultValue = syntax.ArgumentList.Arguments[argumentIndex].Expression.ToString();
             }
