@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints
 {
-    internal struct OmniSharpInlineHintsService
+    internal static class OmniSharpInlineHintsService
     {
         public async Task<ImmutableArray<OmniSharpInlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {

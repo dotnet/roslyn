@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Navigation
 {
-    internal struct OmniSharpNavigableItem
+    internal readonly struct OmniSharpNavigableItem
     {
         public OmniSharpNavigableItem(ImmutableArray<TaggedText> displayTaggedParts, Document document, TextSpan sourceSpan)
         {
