@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor;
@@ -16,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.LineSeparators
 {
-    internal class LineSeparatorAdornmentManager : AdornmentManager<GraphicsTag>
+    internal class LineSeparatorAdornmentManager : AdornmentManager<LineSeparatorTag>
     {
         public LineSeparatorAdornmentManager(IThreadingContext threadingContext, IWpfTextView textView, IViewTagAggregatorFactoryService tagAggregatorFactoryService, IAsynchronousOperationListener asyncListener, string adornmentLayerName)
             : base(threadingContext, textView, tagAggregatorFactoryService, asyncListener, adornmentLayerName)

@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 {
-    internal class InlineErrorAdornmentManager : AdornmentManager<GraphicsTag>
+    internal class InlineErrorAdornmentManager : AdornmentManager<InlineErrorTag>
     {
         private readonly IClassificationType _classificationType;
         private readonly IClassificationFormatMap _formatMap;
@@ -70,6 +70,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             }
         }
 
+        private Dictionary<IMappingTagSpan<GraphicsTag>, SnapshotPoint> GetPointToTagSpan()
+        {
+
+        }
+
         private Dictionary<int, List<IMappingTagSpan<GraphicsTag>>> GetSpansOnOwnLine(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
             var map = new Dictionary<int, List<IMappingTagSpan<GraphicsTag>>>();
@@ -111,6 +116,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                     {
                         // span is outside of the view so we will not get geometry for it, but may 
                         // spent a lot of time trying.
+                        continue;
+                    }
+
+                    var textViewLine = _textView.GetTextViewLineContainingBufferPosition(point.Value);
+                    if (textViewLine.End.Position >= point.Value.Position)
+                    {
                         continue;
                     }
 
@@ -165,6 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                     {
                         var tag = tagMappingSpanList[0].Tag;
                         var graphicsResult = tag.GetGraphics(_textView, geometry, Format);
+                        if (graphicsResult.VisualElement.DesiredSize.Width 
                         _adornmentLayer.AddAdornment(
                             behavior: AdornmentPositioningBehavior.TextRelative,
                             visualSpan: span,
@@ -174,60 +186,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                     }
                 }
             }
-            /*foreach (var changedSpan in changedSpanCollection)
-            {
-                // is there any effect on the view?
-                if (!viewLines.IntersectsBufferSpan(changedSpan))
-                {
-                    continue;
-                }
-
-                var tagSpans = _tagAggregator.GetTags(changedSpan);
-                foreach (var tagMappingSpan in tagSpans)
-                {
-                    // We don't want to draw line separators if they would intersect a collapsed outlining
-                    // region.  So we test if we can map the start of the line separator up to our visual 
-                    // snapshot. If we can't, then we just skip it.
-                    var point = tagMappingSpan.Span.Start.GetPoint(changedSpan.Snapshot, PositionAffinity.Predecessor);
-                    if (point == null)
-                    {
-                        continue;
-                    }
-
-                    var mappedPoint = _textView.BufferGraph.MapUpToSnapshot(
-                        point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, _textView.VisualSnapshot);
-                    if (mappedPoint == null)
-                    {
-                        continue;
-                    }
-
-                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, viewSnapshot, out var span))
-                    {
-                        continue;
-                    }
-
-                    if (!viewLines.IntersectsBufferSpan(span))
-                    {
-                        // span is outside of the view so we will not get geometry for it, but may 
-                        // spent a lot of time trying.
-                        continue;
-                    }
-
-                    // add the visual to the adornment layer.
-                    var geometry = viewLines.GetMarkerGeometry(span);
-                    if (geometry != null)
-                    {
-                        var tag = tagMappingSpan.Tag;
-                        var graphicsResult = tag.GetGraphics(_textView, geometry);
-                        _adornmentLayer.AddAdornment(
-                            behavior: AdornmentPositioningBehavior.TextRelative,
-                            visualSpan: span,
-                            tag: tag,
-                            adornment: graphicsResult.VisualElement,
-                            removedCallback: delegate { graphicsResult.Dispose(); });
-                    }
-                }
-            }*/
         }
     }
 }

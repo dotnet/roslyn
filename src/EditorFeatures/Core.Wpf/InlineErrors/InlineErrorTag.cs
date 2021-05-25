@@ -83,46 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)
         {
-            var block = new TextBlock
-            {
-                FontStyle = FontStyles.Normal,
-                Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-
-            block.Inlines.Add("TESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTESTTEST");
-            block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            block.Arrange(new Rect(block.DesiredSize));
-
-            var color = _editorFormatMap.GetProperties(_errorType)[EditorFormatDefinition.ForegroundBrushId];
-            var border = new Border
-            {
-                Background = (Brush)color,
-                Child = block,
-                CornerRadius = new CornerRadius(2),
-                // Highlighting lines are 2px buffer.  So shift us up by one from the bottom so we feel centered between them.
-                Margin = new Thickness(0, top: 0, 0, bottom: 5),
-            };
-
-            border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-
-            view.ViewportWidthChanged += ViewportWidthChangedHandler;
-            // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
-            // affect layout
-            TextOptions.SetTextFormattingMode(border, TextOptions.GetTextFormattingMode(view.VisualElement));
-            TextOptions.SetTextHintingMode(border, TextOptions.GetTextHintingMode(view.VisualElement));
-            TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(view.VisualElement));
-
-            Canvas.SetTop(border, bounds.Bounds.Bottom - border.DesiredSize.Height);
-            Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
-
-            return new GraphicsResult(border,
-                () => view.ViewportWidthChanged -= ViewportWidthChangedHandler);
-
-            void ViewportWidthChangedHandler(object s, EventArgs e)
-            {
-                Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
-            }
+            throw new NotImplementedException();
         }
 
         protected override Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap)
