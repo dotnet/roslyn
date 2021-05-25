@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -88,6 +89,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
 
+        public static readonly PerLanguageOption2<bool> ShowInheritanceMargin =
+            new(nameof(FeatureOnOffOptions),
+                nameof(ShowInheritanceMargin),
+                defaultValue: false,
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin"));
+
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
             nameof(FeatureOnOffOptions), nameof(AutomaticallyCompleteStatementOnSemicolon), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(AutomaticallyCompleteStatementOnSemicolon)}"));
@@ -123,6 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.UseEnhancedColors,
             FeatureOnOffOptions.AddImportsOnPaste,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
+            FeatureOnOffOptions.ShowInheritanceMargin,
             FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
     }
 }
