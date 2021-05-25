@@ -1375,6 +1375,136 @@ class C
 
         #endregion
 
+        #region Properties
+
+        [Fact]
+        public void Indexer1()
+        {
+            var src1 = @"
+class C
+{
+    int this[int a] { get { return 1; } }
+}
+";
+            var src2 = @"
+class C
+{
+    int this[int a] { get { return 
+                                   1; } }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                Array.Empty<SequencePointUpdates>(),
+                new string[] { "get { return " });
+        }
+
+        [Fact]
+        public void Indexer2()
+        {
+            var src1 = @"
+class C
+{
+    int this[int a] { get { return 1; } }
+}
+";
+            var src2 = @"
+class C
+{
+    int this[int a] { get 
+                          { return 1; } }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new SourceLineUpdate(3, 4) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Indexer3()
+        {
+            var src1 = @"
+class C
+{
+    int this[int a] { get { return 1; } set { } }
+}
+";
+            var src2 = @"
+class C
+{
+    
+    int this[int a] { get { return 1; } set { } }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new SourceLineUpdate(3, 4) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Indexer_ExpressionBody1()
+        {
+            var src1 = @"
+class C
+{
+    int this[int a] => 1;
+}
+";
+            var src2 = @"
+class C
+{
+    int this[int a] => 
+                       1;
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new SourceLineUpdate(3, 4) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Indexer_GetterExpressionBody1()
+        {
+            var src1 = @"
+class C
+{
+    int this[int a] { get => 1; }
+}
+";
+            var src2 = @"
+class C
+{
+    int this[int a] { get => 
+                             1; }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new SourceLineUpdate(3, 4) },
+                Array.Empty<string>());
+        }
+
+        [Fact]
+        public void Indexer_SetterExpressionBody1()
+        {
+            var src1 = @"
+class C
+{
+    int this[int a] { set => F(); }
+}
+";
+            var src2 = @"
+class C
+{
+    int this[int a] { set => 
+                             F(); }
+}";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new SourceLineUpdate(3, 4) },
+                Array.Empty<string>());
+        }
+
+        #endregion
+
         #region Events
 
         [Fact]

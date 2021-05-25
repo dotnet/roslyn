@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using Roslyn.Test.Utilities;
@@ -14,36 +12,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
 {
     public class OneOrManyTests : TestBase
     {
-        [Fact]
-        public void Zero()
-        {
-            Verify(OneOrMany.Create(ImmutableArray<int>.Empty));
-            Verify(new OneOrMany<int>(ImmutableArray<int>.Empty));
-        }
-
-        [Fact]
-        public void One()
-        {
-            Verify(OneOrMany.Create(1), 1);
-            Verify(OneOrMany.Create(ImmutableArray.Create(2)), 2);
-            Verify(OneOrMany.Create(ImmutableArray<int>.Empty).Add(3), 3);
-            Verify(new OneOrMany<int>(1), 1);
-            Verify(new OneOrMany<int>(ImmutableArray.Create(2)), 2);
-            Verify(new OneOrMany<int>(ImmutableArray<int>.Empty).Add(3), 3);
-        }
-
-        [Fact]
-        public void Many()
-        {
-            Verify(OneOrMany.Create(ImmutableArray.Create(1, 2, 3)).Add(4), 1, 2, 3, 4);
-            Verify(OneOrMany.Create(ImmutableArray.Create(1, 2, 3, 4)), 1, 2, 3, 4);
-            Verify(OneOrMany.Create(ImmutableArray<int>.Empty).Add(1).Add(2).Add(3).Add(4), 1, 2, 3, 4);
-            Verify(new OneOrMany<int>(ImmutableArray.Create(1, 2, 3)).Add(4), 1, 2, 3, 4);
-            Verify(new OneOrMany<int>(ImmutableArray.Create(1, 2, 3, 4)), 1, 2, 3, 4);
-            Verify(new OneOrMany<int>(ImmutableArray<int>.Empty).Add(1).Add(2).Add(3).Add(4), 1, 2, 3, 4);
-        }
-
         private static void Verify<T>(OneOrMany<T> actual, params T[] expected)
+            where T : notnull
         {
             Assert.Equal(actual.Count, expected.Length);
             int n = actual.Count;
@@ -59,6 +29,83 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
                 i++;
             }
             Assert.Equal(n, i);
+        }
+
+        [Fact]
+        public void CreateZero()
+        {
+            Verify(OneOrMany.Create(ImmutableArray<int>.Empty));
+            Verify(new OneOrMany<int>(ImmutableArray<int>.Empty));
+        }
+
+        [Fact]
+        public void CreateOne()
+        {
+            Verify(OneOrMany.Create(1), 1);
+            Verify(OneOrMany.Create(ImmutableArray.Create(2)), 2);
+            Verify(OneOrMany.Create(ImmutableArray<int>.Empty).Add(3), 3);
+            Verify(new OneOrMany<int>(1), 1);
+            Verify(new OneOrMany<int>(ImmutableArray.Create(2)), 2);
+            Verify(new OneOrMany<int>(ImmutableArray<int>.Empty).Add(3), 3);
+        }
+
+        [Fact]
+        public void CreateArray()
+        {
+            Verify(OneOrMany.Create(ImmutableArray.Create(1, 2, 3)).Add(4), 1, 2, 3, 4);
+            Verify(OneOrMany.Create(ImmutableArray.Create(1, 2, 3, 4)), 1, 2, 3, 4);
+            Verify(OneOrMany.Create(ImmutableArray<int>.Empty).Add(1).Add(2).Add(3).Add(4), 1, 2, 3, 4);
+            Verify(new OneOrMany<int>(ImmutableArray.Create(1, 2, 3)).Add(4), 1, 2, 3, 4);
+            Verify(new OneOrMany<int>(ImmutableArray.Create(1, 2, 3, 4)), 1, 2, 3, 4);
+            Verify(new OneOrMany<int>(ImmutableArray<int>.Empty).Add(1).Add(2).Add(3).Add(4), 1, 2, 3, 4);
+            Verify(OneOrMany.Create(ImmutableArray.Create(1)).Add(4), 1, 4);
+            Verify(OneOrMany.Create(ImmutableArray.Create(1)), 1);
+        }
+
+        [Fact]
+        public void Contains()
+        {
+            Assert.True(OneOrMany.Create(1).Contains(1));
+            Assert.False(OneOrMany.Create(1).Contains(0));
+
+            Assert.False(OneOrMany.Create(ImmutableArray<int>.Empty).Contains(0));
+
+            Assert.True(OneOrMany.Create(ImmutableArray.Create(1)).Contains(1));
+            Assert.False(OneOrMany.Create(ImmutableArray.Create(1)).Contains(0));
+
+            Assert.True(OneOrMany.Create(ImmutableArray.Create(1, 2)).Contains(1));
+            Assert.True(OneOrMany.Create(ImmutableArray.Create(1, 2)).Contains(2));
+            Assert.False(OneOrMany.Create(ImmutableArray.Create(1, 2)).Contains(0));
+        }
+
+        [Fact]
+        public void Select()
+        {
+            Verify(OneOrMany.Create(1).Select(i => i + 1), 2);
+            Verify(OneOrMany.Create(ImmutableArray<int>.Empty).Select(i => i + 1));
+            Verify(OneOrMany.Create(ImmutableArray.Create(1)).Select(i => i + 1), 2);
+            Verify(OneOrMany.Create(ImmutableArray.Create(1, 2)).Select(i => i + 1), 2, 3);
+        }
+
+        [Fact]
+        public void SelectWithArg()
+        {
+            Verify(OneOrMany.Create(1).Select((i, a) => i + a, 1), 2);
+            Verify(OneOrMany.Create(ImmutableArray<int>.Empty).Select((i, a) => i + a, 1));
+            Verify(OneOrMany.Create(ImmutableArray.Create(1)).Select((i, a) => i + a, 1), 2);
+            Verify(OneOrMany.Create(ImmutableArray.Create(1, 2)).Select((i, a) => i + a, 1), 2, 3);
+        }
+
+        [Fact]
+        public void FirstOrDefault()
+        {
+            Assert.Equal(1, OneOrMany.Create(1).FirstOrDefault(i => i < 2));
+            Assert.Equal(0, OneOrMany.Create(1).FirstOrDefault(i => i > 2));
+            Assert.Equal(0, OneOrMany.Create(ImmutableArray<int>.Empty).FirstOrDefault(i => i > 2));
+            Assert.Equal(1, OneOrMany.Create(ImmutableArray.Create(1)).FirstOrDefault(i => i < 2));
+            Assert.Equal(0, OneOrMany.Create(ImmutableArray.Create(1)).FirstOrDefault(i => i > 2));
+            Assert.Equal(1, OneOrMany.Create(ImmutableArray.Create(1, 3)).FirstOrDefault(i => i < 2));
+            Assert.Equal(2, OneOrMany.Create(ImmutableArray.Create(1, 3)).FirstOrDefault(i => i > 2));
         }
 
         [Fact]

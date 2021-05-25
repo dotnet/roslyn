@@ -466,19 +466,19 @@ End Class
                 Dim oldStatementSpan = oldText.Lines.GetLinePositionSpan(oldStatementTextSpan)
                 Dim oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan)
 
-                Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-
                 Dim baseActiveStatements = New ActiveStatementsMap(
                     ImmutableDictionary.CreateRange(
                     {
-                        KeyValuePairUtil.Create("file.vb", ImmutableArray.Create(
+                        KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
                             New ActiveStatement(
                                 ordinal:=0,
                                 ActiveStatementFlags.IsLeafFrame,
-                                New SourceFileSpan("file.vb", oldStatementSpan),
+                                New SourceFileSpan(newDocument.FilePath, oldStatementSpan),
                                 instructionId:=Nothing)))
                     }),
                     ActiveStatementsMap.Empty.InstructionMap)
+
+                Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
 
                 Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
 

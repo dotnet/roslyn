@@ -1475,7 +1475,7 @@ End Class
 
             Dim src2 = "
 Class C
-    Dim <AS:0>a</AS:0>, <AS:1>b</AS:1> = 20
+    Dim a, b = 20
 
     Sub Main
         Dim <AS:2>a</AS:2>, <AS:3>b</AS:3> = 20
@@ -1484,8 +1484,9 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "d = 3"))
+
+            ' Since the code is semantically incorrect it's acceptable to misreport active statements.
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
@@ -1568,56 +1569,36 @@ End Class
         Public Sub Initializer_AsNewMulti_Update1()
             Dim src1 = "
 Class C
-    Dim <AS:0>a</AS:0>, b As New D(1)
+    Dim <AS:1>a</AS:1>, b As New D(1)
+    Dim c, <AS:2>d</AS:2> As New D(1)
+    Dim <AS:3>e</AS:3>, <AS:4>f</AS:4> As New D(1)
 
     Sub Main
-        Dim <AS:1>c</AS:1>, d As New D(1)
-    End Sub
+        Dim <AS:5>x</AS:5>, y As New D(1)
+    <AS:0>End Sub</AS:0>
 End Class
 "
 
             Dim src2 = "
 Class C
-    Dim <AS:0>a</AS:0>, b As New D(2)
+    Dim <AS:1>a</AS:1>, b As New D(2)
+    Dim c, <AS:2>d</AS:2> As New D(2)
+    Dim <AS:3>e</AS:3>, <AS:4>f</AS:4> As New D(2)
 
     Sub Main
-        Dim <AS:1>c</AS:1>, d As New D(2)
-    End Sub
+        Dim <AS:5>x</AS:5>, y As New D(2)
+    <AS:0>End Sub</AS:0>
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "c"))
-        End Sub
-
-        <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
-        Public Sub Initializer_AsNewMulti_Update2()
-            Dim src1 = "
-Class C
-    Dim a, <AS:0>b</AS:0> As New D(1)
-
-    Sub Main
-        Dim c, <AS:1>d</AS:1> As New D(1)
-    End Sub
-End Class
-"
-
-            Dim src2 = "
-Class C
-    Dim a, <AS:0>b</AS:0> As New D(2)
-
-    Sub Main
-        Dim c, <AS:1>d</AS:1> As New D(2)
-    End Sub
-End Class
-"
-
-            Dim edits = GetTopEdits(src1, src2)
-            Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "d"))
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "a"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "d"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "e"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "f"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "x"))
         End Sub
 
         <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
@@ -1766,8 +1747,12 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
+
+            ' since the code is semantically incorrect we only care about not crashing
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "d = 3"))
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "c(10)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "d(20)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "b(20)"))
         End Sub
 
         <Fact, WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>

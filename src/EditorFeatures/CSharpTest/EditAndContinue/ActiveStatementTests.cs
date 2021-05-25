@@ -1110,11 +1110,6 @@ class D
 class C : D
 {
     <AS:1>public C()</AS:1> {}
-
-    static void Main(string[] args)
-    {
-        <AS:2>C c = new C();</AS:2>
-    }
 }";
             var src2 = @"
 class D
@@ -1125,11 +1120,6 @@ class D
 class C : D
 {
     public C() : <AS:1>base(1)</AS:1> {}
-
-    static void Main(string[] args)
-    {
-        <AS:2>C c = new C();</AS:2>
-    }
 }";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
@@ -1496,26 +1486,12 @@ class C
 {
     int a { get; } = <AS:0>1</AS:0>;
     int b { get; } = 2;
-
-    public C() {}
-
-    static void Main(string[] args)
-    {
-        <AS:1>C c = new C();</AS:1>
-    }
 }";
             var src2 = @"
 class C
 {
     int a { get { return 1; } }
     int b { get; } = <AS:0>2</AS:0>;
-
-    public C() { }
-
-    static void Main(string[] args)
-    {
-        <AS:1>C c = new C();</AS:1>
-    }
 }";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
@@ -1656,13 +1632,6 @@ class C
     int a { get; } = <AS:0>1</AS:0>;
     static int s { get; } = 2;
     int b = 2;
-
-    public C() {}
-
-    static void Main(string[] args)
-    {
-        <AS:1>C c = new C();</AS:1>
-    }
 }";
             var src2 = @"
 class C
@@ -1670,13 +1639,6 @@ class C
     int a { get; }
     static int s { get; } = 2;
     <AS:0>int b = 3;</AS:0>
-
-    public C() { }
-
-    static void Main(string[] args)
-    {
-        <AS:1>C c = new C();</AS:1>
-    }
 }";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);

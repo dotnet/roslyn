@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
@@ -39,16 +40,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Syntax Analysis"
 
-        ''' <returns>
-        ''' <see cref="MethodBlockBaseSyntax"/> for methods, constructors, operators and accessors.
-        ''' <see cref="PropertyStatementSyntax"/> for auto-properties.
-        ''' <see cref="VariableDeclaratorSyntax"/> for fields with single identifier in the declaration.
-        ''' <see cref="ModifiedIdentifierSyntax"/> for fields with multiple identifiers in the declaration.
-        ''' A null reference otherwise.
-        ''' </returns>
-        Friend Overrides Function FindMemberDeclaration(rootOpt As SyntaxNode, node As SyntaxNode) As SyntaxNode
-            While node IsNot rootOpt
-                Select Case node.Kind
+        Friend Overrides Function TryFindMemberDeclaration(rootOpt As SyntaxNode, node As SyntaxNode, <Out> ByRef declarations As OneOrMany(Of SyntaxNode)) As Boolean
+            Dim current = node
+            While current IsNot rootOpt
+                Select Case current.Kind
                     Case SyntaxKind.SubBlock,
                          SyntaxKind.FunctionBlock,
                          SyntaxKind.ConstructorBlock,
@@ -58,39 +53,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                          SyntaxKind.AddHandlerAccessorBlock,
                          SyntaxKind.RemoveHandlerAccessorBlock,
                          SyntaxKind.RaiseEventAccessorBlock
-                        Return node
+                        declarations = OneOrMany.Create(current)
+                        Return True
 
                     Case SyntaxKind.PropertyStatement
                         ' Property a As Integer = 1
                         ' Property a As New T
-                        If Not node.Parent.IsKind(SyntaxKind.PropertyBlock) Then
-                            Return node
+                        If Not current.Parent.IsKind(SyntaxKind.PropertyBlock) Then
+                            declarations = OneOrMany.Create(current)
+                            Return True
                         End If
 
                     Case SyntaxKind.VariableDeclarator
-                        ' Dim a = 0
-                        ' Dim a(n) = 0
-                        ' Dim a = 0, b = 0
-                        ' Dim b as Integer = 0
-                        ' Dim b(n) as Integer = 0
-                        ' Dim a As New T
-                        If IsFieldDeclaration(CType(node, VariableDeclaratorSyntax)) Then
-                            Return node
+                        If current.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
+
+                            Dim variableDeclarator = CType(current, VariableDeclaratorSyntax)
+                            If variableDeclarator.Names.Count = 1 Then
+                                declarations = OneOrMany.Create(current)
+                            Else
+                                declarations = OneOrMany.Create(variableDeclarator.Names.SelectAsArray(Function(n) CType(n, SyntaxNode)))
+                            End If
+
+                            Return True
                         End If
 
                     Case SyntaxKind.ModifiedIdentifier
-                        ' Dim a, b As T
-                        ' Dim a(n), b(n) As T
-                        ' Dim a, b As New T
-                        If IsFieldDeclaration(CType(node, ModifiedIdentifierSyntax)) Then
-                            Return node
+                        If current.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                            declarations = OneOrMany.Create(current)
+                            Return True
                         End If
                 End Select
 
-                node = node.Parent
+                current = current.Parent
             End While
 
-            Return Nothing
+            declarations = Nothing
+            Return False
         End Function
 
         ''' <summary>
@@ -201,6 +199,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' Note: A method without body is represented by a SubStatement.
                     Return Nothing
             End Select
+        End Function
+
+        Friend Overrides Function IsDeclarationWithSharedBody(declaration As SyntaxNode) As Boolean
+            If declaration.Kind = SyntaxKind.ModifiedIdentifier AndAlso declaration.Parent.Kind = SyntaxKind.VariableDeclarator Then
+                Dim variableDeclarator = CType(declaration.Parent, VariableDeclaratorSyntax)
+                Return variableDeclarator.Names.Count > 1 AndAlso variableDeclarator.Initializer IsNot Nothing OrElse HasAsNewClause(variableDeclarator)
+            End If
+
+            Return False
         End Function
 
         Protected Overrides Function GetCapturedVariables(model As SemanticModel, memberBody As SyntaxNode) As ImmutableArray(Of ISymbol)
@@ -316,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.VariableDeclarator
                     Dim variableDeclarator = DirectCast(node, VariableDeclaratorSyntax)
-                    If Not variableDeclarator.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                    If Not IsFieldDeclaration(variableDeclarator) Then
                         Return Nothing
                     End If
 
@@ -332,13 +339,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     End If
 
                     ' Dim a As New C()
-                    ' Dim a, b As New C()
                     If HasAsNewClause(variableDeclarator) Then
                         Return variableDeclarator.DescendantTokens()
                     End If
 
                     ' Dim a(n) As Integer
-                    ' Dim a(n), b(n) As Integer
                     Dim modifiedIdentifier = variableDeclarator.Names.Single()
                     If modifiedIdentifier.ArrayBounds IsNot Nothing Then
                         Return variableDeclarator.DescendantTokens()
@@ -348,16 +353,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.ModifiedIdentifier
                     Dim modifiedIdentifier = DirectCast(node, ModifiedIdentifierSyntax)
-                    If Not modifiedIdentifier.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                    If Not IsFieldDeclaration(modifiedIdentifier) Then
                         Return Nothing
                     End If
 
-                    Dim variableDeclarator = DirectCast(node.Parent, VariableDeclaratorSyntax)
-                    If variableDeclarator.Names.Count = 1 Then
-                        Return TryGetActiveTokens(node.Parent)
-                    End If
-
                     ' Dim a, b As New C()
+                    Dim variableDeclarator = DirectCast(node.Parent, VariableDeclaratorSyntax)
                     If HasAsNewClause(variableDeclarator) Then
                         Return node.DescendantTokens().Concat(DirectCast(variableDeclarator.AsClause, AsNewClauseSyntax).NewExpression.DescendantTokens())
                     End If
@@ -374,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Friend Overrides Function GetActiveSpanEnvelope(declaration As SyntaxNode) As TextSpan
+        Friend Overrides Function GetActiveSpanEnvelope(declaration As SyntaxNode) As (envelope As TextSpan, hole As TextSpan)
             Select Case declaration.Kind
                 Case SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
@@ -386,25 +387,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.RemoveHandlerAccessorBlock,
                      SyntaxKind.RaiseEventAccessorBlock
                     ' the body is the Statements list of the block
-                    Return declaration.Span
+                    Return (declaration.Span, Nothing)
 
                 Case SyntaxKind.PropertyStatement
                     ' Property: Attributes Modifiers [|Identifier AsClause Initializer|] ImplementsClause
                     ' Property: Attributes Modifiers [|Identifier$ Initializer|] ImplementsClause
                     Dim propertyStatement = DirectCast(declaration, PropertyStatementSyntax)
                     If propertyStatement.Initializer IsNot Nothing Then
-                        Return TextSpan.FromBounds(propertyStatement.Identifier.Span.Start, propertyStatement.Initializer.Span.End)
+                        Return (TextSpan.FromBounds(propertyStatement.Identifier.Span.Start, propertyStatement.Initializer.Span.End), Nothing)
                     End If
 
                     If HasAsNewClause(propertyStatement) Then
-                        Return TextSpan.FromBounds(propertyStatement.Identifier.Span.Start, propertyStatement.AsClause.Span.End)
+                        Return (TextSpan.FromBounds(propertyStatement.Identifier.Span.Start, propertyStatement.AsClause.Span.End), Nothing)
                     End If
 
                     Return Nothing
 
                 Case SyntaxKind.VariableDeclarator
                     Dim variableDeclarator = DirectCast(declaration, VariableDeclaratorSyntax)
-                    If Not variableDeclarator.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                    If Not declaration.Parent.IsKind(SyntaxKind.FieldDeclaration) OrElse variableDeclarator.Names.Count > 1 Then
                         Return Nothing
                     End If
 
@@ -416,43 +417,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                     ' Dim a = initializer
                     If variableDeclarator.Initializer IsNot Nothing Then
-                        Return variableDeclarator.Span
+                        Return (variableDeclarator.Span, Nothing)
                     End If
 
                     ' Dim a As New C()
-                    ' Dim a, b As New C()
                     If HasAsNewClause(variableDeclarator) Then
-                        Return variableDeclarator.Span
+                        Return (variableDeclarator.Span, Nothing)
                     End If
 
                     ' Dim a(n) As Integer
-                    ' Dim a(n), b(n) As Integer
                     Dim modifiedIdentifier = variableDeclarator.Names.Single()
                     If modifiedIdentifier.ArrayBounds IsNot Nothing Then
-                        Return variableDeclarator.Span
+                        Return (variableDeclarator.Span, Nothing)
                     End If
 
                     Return Nothing
 
                 Case SyntaxKind.ModifiedIdentifier
-                    Dim modifiedIdentifier = DirectCast(declaration, ModifiedIdentifierSyntax)
-                    If Not modifiedIdentifier.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                    If Not declaration.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
                         Return Nothing
                     End If
 
-                    Dim variableDeclarator = DirectCast(declaration.Parent, VariableDeclaratorSyntax)
-                    If variableDeclarator.Names.Count = 1 Then
-                        Return GetActiveSpanEnvelope(declaration.Parent)
-                    End If
-
                     ' Dim a, b As New C()
+                    Dim variableDeclarator = DirectCast(declaration.Parent, VariableDeclaratorSyntax)
                     If HasAsNewClause(variableDeclarator) Then
-                        Return TextSpan.FromBounds(declaration.Span.Start, DirectCast(variableDeclarator.AsClause, AsNewClauseSyntax).NewExpression.Span.End)
+                        Dim asNewClause = DirectCast(variableDeclarator.AsClause, AsNewClauseSyntax)
+                        Return (envelope:=TextSpan.FromBounds(declaration.Span.Start, asNewClause.NewExpression.Span.End),
+                                hole:=TextSpan.FromBounds(declaration.Span.End, asNewClause.NewExpression.Span.Start))
                     End If
 
+                    ' Dim a(n) As Integer
                     ' Dim a(n), b(n) As Integer
+                    Dim modifiedIdentifier = DirectCast(declaration, ModifiedIdentifierSyntax)
                     If modifiedIdentifier.ArrayBounds IsNot Nothing Then
-                        Return declaration.Span
+                        Return (declaration.Span, Nothing)
                     End If
 
                     Return Nothing
@@ -616,78 +614,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return node
         End Function
 
-        Friend Overrides Function FindPartnerInMemberInitializer(leftModel As SemanticModel, leftType As INamedTypeSymbol, leftNode As SyntaxNode, rightType As INamedTypeSymbol, cancellationToken As CancellationToken) As SyntaxNode
-            Dim leftInitializer = leftNode.FirstAncestorOrSelf(Of SyntaxNode)(
-                Function(node)
-                    Return node.IsKind(SyntaxKind.EqualsValue) AndAlso (node.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) OrElse node.Parent.IsKind(SyntaxKind.PropertyStatement)) OrElse
-                           node.IsKind(SyntaxKind.AsNewClause) AndAlso node.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) OrElse
-                           IsArrayBoundsArgument(node)
-                End Function)
+        Friend Overrides Function FindDeclarationBodyPartner(leftDeclaration As SyntaxNode, rightDeclaration As SyntaxNode, leftNode As SyntaxNode) As SyntaxNode
+            Debug.Assert(leftDeclaration.Kind = rightDeclaration.Kind)
 
-            If leftInitializer Is Nothing Then
-                Return Nothing
+            ' Special case modified identifiers with AsNew clause - the node we are seeking can be in the AsNew clause. 
+            If leftDeclaration.Kind = SyntaxKind.ModifiedIdentifier Then
+                Dim leftDeclarator = CType(leftDeclaration.Parent, VariableDeclaratorSyntax)
+                Dim rightDeclarator = CType(rightDeclaration.Parent, VariableDeclaratorSyntax)
+
+                If leftDeclarator.AsClause IsNot Nothing AndAlso leftNode.SpanStart >= leftDeclarator.AsClause.SpanStart Then
+                    Return SyntaxUtilities.FindPartner(leftDeclarator.AsClause, rightDeclarator.AsClause, leftNode)
+                End If
             End If
 
-            Dim rightInitializer As SyntaxNode
-            If leftInitializer.Parent.IsKind(SyntaxKind.PropertyStatement) Then
-                ' property initializer
-                Dim leftDeclaration = DirectCast(leftInitializer.Parent, PropertyStatementSyntax)
-                Dim leftSymbol = leftModel.GetDeclaredSymbol(leftDeclaration, cancellationToken)
-                Debug.Assert(leftSymbol IsNot Nothing)
-
-                Dim rightProperty = rightType.GetMembers(leftSymbol.Name).Single()
-                Dim rightDeclaration = DirectCast(rightProperty.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken), PropertyStatementSyntax)
-
-                rightInitializer = rightDeclaration.Initializer
-            ElseIf leftInitializer.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
-                ' field initializer or AsNewClause
-                Dim leftDeclarator = DirectCast(leftInitializer.Parent, VariableDeclaratorSyntax)
-
-                Dim leftSymbol = leftModel.GetDeclaredSymbol(leftDeclarator.Names.First(), cancellationToken)
-                Debug.Assert(leftSymbol IsNot Nothing)
-
-                Dim rightSymbol = rightType.GetMembers(leftSymbol.Name).Single()
-                Dim rightDeclarator = DirectCast(rightSymbol.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken).Parent, VariableDeclaratorSyntax)
-
-                rightInitializer = If(leftInitializer.IsKind(SyntaxKind.EqualsValue), rightDeclarator.Initializer, DirectCast(rightDeclarator.AsClause, SyntaxNode))
-            Else
-                ' ArrayBounds argument
-                Dim leftArguments = DirectCast(leftInitializer.Parent, ArgumentListSyntax)
-                Dim argumentIndex = GetItemIndexByPosition(leftArguments.Arguments, leftInitializer.Span.Start)
-
-                Dim leftIdentifier = leftArguments.Parent
-                Debug.Assert(leftIdentifier.IsKind(SyntaxKind.ModifiedIdentifier))
-
-                Dim leftSymbol = leftModel.GetDeclaredSymbol(leftIdentifier, cancellationToken)
-                Debug.Assert(leftSymbol IsNot Nothing)
-
-                Dim rightSymbol = rightType.GetMembers(leftSymbol.Name).Single()
-                Dim rightIdentifier = DirectCast(rightSymbol.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken), ModifiedIdentifierSyntax)
-
-                rightInitializer = rightIdentifier.ArrayBounds.Arguments(argumentIndex)
-            End If
-
-            If rightInitializer Is Nothing Then
-                Return Nothing
-            End If
-
-            Return FindPartner(leftInitializer, rightInitializer, leftNode)
-        End Function
-
-        Friend Overrides Function FindPartner(leftRoot As SyntaxNode, rightRoot As SyntaxNode, leftNode As SyntaxNode) As SyntaxNode
-            Return SyntaxUtilities.FindPartner(leftRoot, rightRoot, leftNode)
-        End Function
-
-        Private Shared Function IsArrayBoundsArgument(node As SyntaxNode) As Boolean
-            Dim argumentSyntax = TryCast(node, ArgumentSyntax)
-
-            If argumentSyntax IsNot Nothing Then
-                Debug.Assert(argumentSyntax.Parent.IsKind(SyntaxKind.ArgumentList))
-                Dim identifier = argumentSyntax.Parent.Parent
-                Return identifier.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso identifier.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration)
-            End If
-
-            Return False
+            Return SyntaxUtilities.FindPartner(leftDeclaration, rightDeclaration, leftNode)
         End Function
 
         Friend Overrides Function IsClosureScope(node As SyntaxNode) As Boolean
@@ -1191,6 +1131,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.FunctionStatement
                     Return If(parent.Kind = SyntaxKind.FunctionBlock, parent, syntax)
 
+                Case SyntaxKind.PropertyStatement
+                    Return If(parent.Kind = SyntaxKind.PropertyBlock, parent, syntax)
+
+                Case SyntaxKind.EventStatement
+                    Return If(parent.Kind = SyntaxKind.EventBlock, parent, syntax)
+
                 ' declarations that never have a block
 
                 Case SyntaxKind.ModifiedIdentifier
@@ -1255,14 +1201,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    DirectCast(syntaxRefs.Single().GetSyntax(), TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword)
         End Function
 
-        Protected Overrides Function GetSymbolForEdit(model As SemanticModel,
-                                                      node As SyntaxNode,
-                                                      editKind As EditKind,
-                                                      editMap As IReadOnlyDictionary(Of SyntaxNode, EditKind),
-                                                      <Out> ByRef isAmbiguous As Boolean,
-                                                      cancellationToken As CancellationToken) As ISymbol
+        Protected Overrides Function GetSymbolsForEdit(
+            editKind As EditKind,
+            oldNode As SyntaxNode,
+            newNode As SyntaxNode,
+            oldModel As SemanticModel,
+            newModel As SemanticModel,
+            editMap As IReadOnlyDictionary(Of SyntaxNode, EditKind),
+            cancellationToken As CancellationToken) As OneOrMany(Of (oldSymbol As ISymbol, newSymbol As ISymbol))
 
-            isAmbiguous = False
+            Dim oldSymbols As OneOrMany(Of ISymbol) = Nothing
+            Dim newSymbols As OneOrMany(Of ISymbol) = Nothing
+
+            If editKind = EditKind.Delete Then
+                If Not TryGetSyntaxNodesForEdit(oldNode, oldModel, oldSymbols, cancellationToken) Then
+                    Return OneOrMany(Of (ISymbol, ISymbol)).Empty
+                End If
+
+                Return oldSymbols.Select(Function(s) New ValueTuple(Of ISymbol, ISymbol)(s, Nothing))
+            End If
+
+            If editKind = EditKind.Insert Then
+                If Not TryGetSyntaxNodesForEdit(newNode, newModel, newSymbols, cancellationToken) Then
+                    Return OneOrMany(Of (ISymbol, ISymbol)).Empty
+                End If
+
+                Return newSymbols.Select(Function(s) New ValueTuple(Of ISymbol, ISymbol)(Nothing, s))
+            End If
+
+            If editKind = EditKind.Update Then
+                If Not TryGetSyntaxNodesForEdit(oldNode, oldModel, oldSymbols, cancellationToken) OrElse
+                   Not TryGetSyntaxNodesForEdit(newNode, newModel, newSymbols, cancellationToken) Then
+                    Return OneOrMany(Of (ISymbol, ISymbol)).Empty
+                End If
+
+                If oldSymbols.Count = 1 AndAlso newSymbols.Count = 1 Then
+                    Return OneOrMany.Create((oldSymbols(0), newSymbols(0)))
+                End If
+
+                ' This only occurs when field dentifiers are deleted/inserted/reordered from/to/within their variable declarator list,
+                ' or their shared initializer is updated. The particular inserted and deleted fields will be represented by separate edits,
+                ' but the AsNew clause of the declarator may have been updated as well, which needs to update the remaining (matching) fields.
+                Dim builder = ArrayBuilder(Of (ISymbol, ISymbol)).GetInstance()
+                For Each oldSymbol In oldSymbols
+                    Dim newSymbol = newSymbols.FirstOrDefault(Function(s, o) CaseInsensitiveComparison.Equals(s.Name, o.Name), oldSymbol)
+                    If newSymbol IsNot Nothing Then
+                        builder.Add((oldSymbol, newSymbol))
+                    End If
+                Next
+
+                Return OneOrMany.Create(builder.ToImmutableAndFree())
+            End If
+
+            Throw ExceptionUtilities.UnexpectedValue(editKind)
+        End Function
+
+        Private Shared Function TryGetSyntaxNodesForEdit(
+            node As SyntaxNode,
+            model As SemanticModel,
+            <Out> ByRef symbols As OneOrMany(Of ISymbol),
+            cancellationToken As CancellationToken) As Boolean
 
             ' Avoid duplicate semantic edits - don't return symbols for statements within blocks.
             Select Case node.Kind()
@@ -1279,59 +1277,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.ModuleStatement,
                      SyntaxKind.EnumStatement,
                      SyntaxKind.NamespaceStatement
-                    Return Nothing
+                    Return False
 
                 Case SyntaxKind.EventStatement
                     If node.Parent.IsKind(SyntaxKind.EventBlock) Then
-                        Return Nothing
+                        Return False
                     End If
 
                 Case SyntaxKind.PropertyStatement  ' autoprop or interface property
                     If node.Parent.IsKind(SyntaxKind.PropertyBlock) Then
-                        Return Nothing
+                        Return False
                     End If
 
                 Case SyntaxKind.SubStatement       ' interface method
                     If node.Parent.IsKind(SyntaxKind.SubBlock) Then
-                        Return Nothing
+                        Return False
                     End If
 
                 Case SyntaxKind.FunctionStatement  ' interface method
                     If node.Parent.IsKind(SyntaxKind.FunctionBlock) Then
-                        Return Nothing
+                        Return False
                     End If
 
                 Case SyntaxKind.Parameter,
                      SyntaxKind.TypeParameter,
                      SyntaxKind.ImportsStatement,
                      SyntaxKind.NamespaceBlock
-                    Return Nothing
+                    Return False
 
                 Case SyntaxKind.ModifiedIdentifier
                     If Not node.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
-                        Return Nothing
+                        Return False
                     End If
 
                 Case SyntaxKind.VariableDeclarator
                     If Not node.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
-                        Return Nothing
+                        Return False
                     End If
 
                     Dim variableDeclarator = CType(node, VariableDeclaratorSyntax)
-                    isAmbiguous = variableDeclarator.Names.Count > 1
-                    node = variableDeclarator.Names.First
+                    If variableDeclarator.Names.Count > 1 Then
+                        symbols = OneOrMany.Create(variableDeclarator.Names.SelectAsArray(Function(n) model.GetDeclaredSymbol(n, cancellationToken)))
+                        Return True
+                    End If
+                    node = variableDeclarator.Names(0)
             End Select
 
             Dim symbol = model.GetDeclaredSymbol(node, cancellationToken)
+            If symbol Is Nothing Then
+                Return False
+            End If
 
             ' Ignore partial method definition parts.
             ' Partial method that does not have implementation part is not emitted to metadata.
             ' Partial method without a definition part is a compilation error.
-            If symbol IsNot Nothing AndAlso symbol.Kind = SymbolKind.Method AndAlso CType(symbol, IMethodSymbol).IsPartialDefinition Then
-                Return Nothing
+            If symbol.Kind = SymbolKind.Method AndAlso CType(symbol, IMethodSymbol).IsPartialDefinition Then
+                Return False
             End If
 
-            Return symbol
+            symbols = OneOrMany.Create(symbol)
+            Return True
         End Function
 
         Friend Overrides Function ContainsLambda(declaration As SyntaxNode) As Boolean
