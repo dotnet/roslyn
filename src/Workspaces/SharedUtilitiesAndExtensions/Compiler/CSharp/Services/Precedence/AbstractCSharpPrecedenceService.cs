@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Precedence
                 case OperatorPrecedence.Equality: return PrecedenceKind.Equality;
                 case OperatorPrecedence.RelationalAndTypeTesting: return PrecedenceKind.Relational;
                 case OperatorPrecedence.Shift: return PrecedenceKind.Shift;
+                case OperatorPrecedence.Slice: return PrecedenceKind.Logical;
                 case OperatorPrecedence.Additive:
                 case OperatorPrecedence.Multiplicative: return PrecedenceKind.Arithmetic;
                 default: return PrecedenceKind.Other;

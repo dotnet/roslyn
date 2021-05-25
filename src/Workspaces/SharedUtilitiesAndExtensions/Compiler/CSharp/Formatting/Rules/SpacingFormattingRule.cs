@@ -214,6 +214,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(_options.SpaceWithinSquareBrackets);
             }
 
+            if (previousKind == SyntaxKind.OpenBracketToken && previousParentKind == SyntaxKind.ListPattern)
+            {
+                // is [$$> 0 ]
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            if (currentKind == SyntaxKind.CloseBracketToken && currentParentKind == SyntaxKind.ListPattern)
+            {
+                // is [ > 0$$]
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // attribute case ] *
             // Place a space between the attribute and the next member if they're on the same line.
             if (previousKind == SyntaxKind.CloseBracketToken && previousToken.Parent.IsKind(SyntaxKind.AttributeList))
@@ -416,6 +428,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (previousToken.Parent.IsKind(SyntaxKind.NotPattern))
             {
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            // Slice pattern:
+            // ..var x
+            if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.SlicePattern)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // No space after $" and $@" and @$" at the start of an interpolated string

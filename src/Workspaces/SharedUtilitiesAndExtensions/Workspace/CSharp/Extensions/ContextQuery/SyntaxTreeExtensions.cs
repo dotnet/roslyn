@@ -1390,6 +1390,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // e is [$$
+            // e is [..., $$
+            if (leftToken.IsKind(SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken) && leftToken.Parent.IsKind(SyntaxKind.ListPattern))
+            {
+                return true;
+            }
+
             // e is { P: $$
             // e is { ..., P: $$
             if (leftToken.IsKind(SyntaxKind.ColonToken) && leftToken.Parent.IsKind(SyntaxKind.NameColon) &&
@@ -1437,7 +1444,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         leftToken.IsKind(SyntaxKind.AndKeyword) ||
                         leftToken.IsKind(SyntaxKind.NotKeyword) ||
                         leftToken.IsKind(SyntaxKind.OpenParenToken) ||
-                        leftToken.IsKind(SyntaxKind.ColonColonToken));
+                        leftToken.IsKind(SyntaxKind.ColonColonToken) ||
+                        leftToken.IsKind(SyntaxKind.DotDotToken));
                 }
 
                 // We want to make sure that IsAtEndOfPattern returns true even when the user is in the middle of typing a keyword
@@ -2658,6 +2666,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     return true;
                 }
+            }
+
+            // List and slice patterns
+            // is [ |
+            // is [ 0, |
+            if (token.IsKind(SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken)
+                && token.Parent.IsKind(SyntaxKind.ListPattern))
+            {
+                return true;
+            }
+
+            // is [ ..|
+            if (token.IsKind(SyntaxKind.DotDotToken)
+                && token.Parent.IsKind(SyntaxKind.SlicePattern))
+            {
+                return true;
             }
 
             // $"{ |

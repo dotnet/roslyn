@@ -9973,5 +9973,85 @@ record struct R(int X);
 record  struct  R(int X);
 ");
         }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatListPattern()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is[1,2,>=3];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is [ 1, 2, >= 3 ];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSlicePattern()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is[ 0,.. var  rest];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is [ 0, ..var rest ];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSlicePatternWithAnd()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is[ 0,.. {Count: >0} and var  rest];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is [ 0, ..{ Count: > 0 } and var rest ];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatLengthAndListPattern()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is{Count:>0 and var x}and[1,2,3];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is { Count: > 0 and var x } and [ 1, 2, 3 ];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
     }
 }

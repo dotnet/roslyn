@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
         protected override ImmutableArray<SyntaxKind> GetSyntaxNodeKinds()
             => s_kinds;
 
-        protected override int GetPrecedence(BinaryPatternSyntax pattern)
+        protected override int GetPrecedence(PatternSyntax pattern)
             => (int)pattern.GetOperatorPrecedence();
 
         protected override bool IsBinaryLike(PatternSyntax node)
-            => node is BinaryPatternSyntax;
+            => node is BinaryPatternSyntax or SlicePatternSyntax;
 
         protected override (PatternSyntax, SyntaxToken, PatternSyntax) GetPartsOfBinaryLike(BinaryPatternSyntax binaryPattern)
         {

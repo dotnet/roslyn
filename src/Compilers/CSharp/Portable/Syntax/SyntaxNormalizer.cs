@@ -520,6 +520,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return false;
         }
 
+        private static bool NeedsSeparatorForListPattern(SyntaxToken token, SyntaxToken next)
+        {
+            ListPatternSyntax? listPattern;
+            if (token.Parent.IsKind(SyntaxKind.ListPattern))
+            {
+                listPattern = (ListPatternSyntax)token.Parent;
+            }
+            else if (next.Parent.IsKind(SyntaxKind.ListPattern))
+            {
+                listPattern = (ListPatternSyntax)next.Parent;
+            }
+            else
+            {
+                return false;
+            }
+
+            // is [$$1 ]
+            var tokenIsOpenBracket = token.IsKind(SyntaxKind.OpenBracketToken);
+            if (tokenIsOpenBracket)
+            {
+                return true;
+            }
+
+            // is$$[ 1 ]
+            var nextIsOpenBracket = next.IsKind(SyntaxKind.OpenBracketToken);
+            if (nextIsOpenBracket)
+            {
+                return true;
+            }
+
+            // is [ 1$$]
+            var nextIsCloseBracket = next.IsKind(SyntaxKind.CloseBracketToken);
+            if (nextIsCloseBracket)
+            {
+                return true;
+            }
+
+            // is [ 1 ]$$list
+            if (tokenIsOpenBracket)
+            {
+                return listPattern.Designation is not null;
+            }
+
+            return false;
+        }
+
         private static bool NeedsSeparator(SyntaxToken token, SyntaxToken next)
         {
             if (token.Parent == null || next.Parent == null)
@@ -811,6 +857,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
             if (NeedsSeparatorForPositionalPattern(token, next))
+            {
+                return true;
+            }
+            if (NeedsSeparatorForListPattern(token, next))
             {
                 return true;
             }

@@ -7304,5 +7304,69 @@ public class Student : Person { public Student() : $$base(0) { } }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string? x"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVarKeyword_InListPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [ va$$r one ])
+      {
+      }
+    }
+}",
+                MainDescription("struct System.Char"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVariableItself_InListPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [ var o$$ne ])
+      {
+      }
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) char one"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVarKeyword_InSlicePattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [..va$$r one ])
+      {
+      }
+    }
+}",
+                MainDescription("char[]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVarPatternOnVariableItself_InSlicePattern()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(char[] array)
+    {
+      if (array is [ ..var o$$ne ])
+      {
+      }
+    }
+}",
+                MainDescription($"({FeaturesResources.local_variable}) char[]? one"));
+        }
     }
 }

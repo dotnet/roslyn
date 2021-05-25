@@ -729,6 +729,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (node.Parent is IsPatternExpressionSyntax)
                 return true;
 
+            // x is [ ..(<...>) ]  ->  x is [ ..<...> ]
+            if (node.Parent is SlicePatternSyntax)
+                return true;
+
             // (x or y) => ...  ->    x or y => ...
             if (node.Parent is SwitchExpressionArmSyntax)
                 return true;
@@ -768,17 +772,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             switch (pattern)
             {
-                case ConstantPatternSyntax _:
-                case DiscardPatternSyntax _:
-                case DeclarationPatternSyntax _:
-                case RecursivePatternSyntax _:
-                case TypePatternSyntax _:
-                case VarPatternSyntax _:
+                case ConstantPatternSyntax:
+                case DiscardPatternSyntax:
+                case DeclarationPatternSyntax:
+                case RecursivePatternSyntax:
+                case TypePatternSyntax:
+                case VarPatternSyntax:
                     return OperatorPrecedence.Primary;
 
-                case UnaryPatternSyntax _:
-                case RelationalPatternSyntax _:
+                case UnaryPatternSyntax:
+                case RelationalPatternSyntax:
                     return OperatorPrecedence.Unary;
+
+                case SlicePatternSyntax:
+                    return OperatorPrecedence.Slice;
 
                 case BinaryPatternSyntax binaryPattern:
                     if (binaryPattern.IsKind(SyntaxKind.AndPattern))
