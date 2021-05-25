@@ -298,7 +298,6 @@ namespace Microsoft.CodeAnalysis
 
             private TableEntry(T? item, ImmutableArray<T> items, ImmutableArray<EntryState> states)
             {
-                Debug.Assert(item is object || !items.IsDefault);
                 Debug.Assert(!states.IsDefault);
                 Debug.Assert(states.Length == 1 || states.Distinct().Count() > 1);
 
