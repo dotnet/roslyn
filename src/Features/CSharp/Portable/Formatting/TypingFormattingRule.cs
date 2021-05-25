@@ -2,17 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
+namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class TypingFormattingRule : BaseFormattingRule
     {
@@ -76,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return false;
             }
 
-            if (node.IsKind(SyntaxKind.Block, out BlockSyntax block) && block.Statements.Count >= 1)
+            if (node is BlockSyntax { Statements: { Count: >= 1 } statements })
             {
                 // In the case of a block, see if the first statement is on the same line 
                 // as the open curly.  If so then we'll want to consider the end of the
@@ -85,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 //  try { }
                 //  catch { return;     // <-- the end of this block is the end of the return statement.
                 //  Method();
-                var firstStatement = ((BlockSyntax)node).Statements[0];
+                var firstStatement = statements[0];
                 if (FormattingRangeHelper.AreTwoTokensOnSameLine(firstTokenOfNode, firstStatement.GetFirstToken()))
                 {
                     endToken = firstStatement.GetLastToken();
@@ -104,12 +99,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return true;
         }
 
-        private static bool SomeParentHasMissingCloseBrace(SyntaxNode node)
+        private static bool SomeParentHasMissingCloseBrace(SyntaxNode? node)
         {
             while (node != null && node.Kind() != SyntaxKind.CompilationUnit)
             {
-                var bracePair = node.GetBracePair();
-                if (bracePair.Item2.IsMissing)
+                var (_, closeBrace) = node.GetBracePair();
+                if (closeBrace.IsMissing)
                 {
                     return true;
                 }

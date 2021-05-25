@@ -1115,8 +1115,6 @@ tryAgain:
                     return DeclarationModifiers.Async;
                 case SyntaxKind.RefKeyword:
                     return DeclarationModifiers.Ref;
-                case SyntaxKind.DataKeyword:
-                    return DeclarationModifiers.Data;
                 case SyntaxKind.IdentifierToken:
                     switch (contextualKind)
                     {
@@ -1124,8 +1122,6 @@ tryAgain:
                             return DeclarationModifiers.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return DeclarationModifiers.Async;
-                        case SyntaxKind.DataKeyword:
-                            return DeclarationModifiers.Data;
                     }
 
                     goto default;
@@ -1215,9 +1211,6 @@ tryAgain:
                         modTok = ConvertToKeyword(this.EatToken());
                         modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
                         break;
-
-                    case DeclarationModifiers.Data:
-                        return;
 
                     default:
                         modTok = this.EatToken();
@@ -2593,7 +2586,6 @@ parse_member_name:;
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
                 this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
                 this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
-                this.CurrentToken.ContextualKind != SyntaxKind.DataKeyword &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;

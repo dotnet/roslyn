@@ -4,18 +4,18 @@
 
 using System;
 using System.Threading;
-using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Editor.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     [Obsolete("This is just a wrapper around the public Visual Studio API IUIThreadOperationContext, please use it directly.")]
     internal readonly struct VSTypeScriptWaitContextWrapper
     {
-        private readonly IUIThreadOperationContext _context;
+        private readonly IWaitContext _underlyingObject;
 
-        public VSTypeScriptWaitContextWrapper(IUIThreadOperationContext context)
-            => _context = context;
+        public VSTypeScriptWaitContextWrapper(IWaitContext underlyingObject)
+            => _underlyingObject = underlyingObject;
 
-        public CancellationToken CancellationToken => _context.UserCancellationToken;
+        public CancellationToken CancellationToken => _underlyingObject.CancellationToken;
     }
 }

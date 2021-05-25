@@ -680,11 +680,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Eksik denetim karakteri</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">Switch ifadesi içeren '{0}' öğesinin değiştirilmesi hata ayıklama oturumunun devam etmesini engeller.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
         <target state="translated">'{0}' gövdesinin değiştirilmesi, gövdede çok fazla deyim olduğundan hata ayıklama oturumunun devam etmesini engeller.</target>
@@ -2377,8 +2372,8 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+"f" biçim belirticisi Parse, TryParse, ParseExact veya TryParseExact yöntemine geçilen bir biçim dizesinde kullanıldığında, "f" biçim belirticilerinin sayısı, dizenin başarıyla ayrıştırılması için saniye kesirinde bulunması gereken anlamlı basamak sayısını gösterir.</target>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>

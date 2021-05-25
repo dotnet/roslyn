@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // The prefix matches, consume the matching prefix from the lsp completion item label.
-            var displayTextWithSuffix = lspCompletionItem.Label.Substring(completionItem.DisplayTextPrefix.Length, lspCompletionItem.Label.Length);
+            var displayTextWithSuffix = lspCompletionItem.Label.Substring(completionItem.DisplayTextPrefix.Length, lspCompletionItem.Label.Length - completionItem.DisplayTextPrefix.Length);
             if (!displayTextWithSuffix.EndsWith(completionItem.DisplayTextSuffix, StringComparison.Ordinal))
             {
                 return false;

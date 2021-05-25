@@ -1668,11 +1668,11 @@ I agree to all of the foregoing:</value>
   <data name="Analyzers" xml:space="preserve">
     <value>Analyzers</value>
   </data>
-  <data name="Carrage_Return_Newline_rn" xml:space="preserve">
-    <value>Carrage Return + Newline (\\r\\n)</value>
+  <data name="Carriage_Return_Newline_rn" xml:space="preserve">
+    <value>Carriage Return + Newline (\r\n)</value>
   </data>
-  <data name="Carrage_Return_r" xml:space="preserve">
-    <value>Carrage Return (\\r)</value>
+  <data name="Carriage_Return_r" xml:space="preserve">
+    <value>Carriage Return (\r)</value>
   </data>
   <data name="Category" xml:space="preserve">
     <value>Category</value>
@@ -1743,5 +1743,8 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Error_updating_suppressions_0" xml:space="preserve">
     <value>Error updating suppressions: {0}</value>
+  </data>
+  <data name="Underline_reassigned_variables" xml:space="preserve">
+    <value>Underline reassigned variables</value>
   </data>
 </root>
