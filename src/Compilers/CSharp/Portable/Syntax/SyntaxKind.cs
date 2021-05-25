@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <see langword="not"/>.</summary>
         NotKeyword = 8440,
 
-        // 8441 open for future use.
+        // Don't use 8441. It corresponds to a deleted kind (DataKeyword) that was previously shipped.
 
         /// <summary>Represents <see langword="with"/>.</summary>
         WithKeyword = 8442,

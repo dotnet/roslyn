@@ -1122,6 +1122,11 @@
         <target state="translated">Il nome di tipo è riconosciuto</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
+      <trans-unit id="Underline_reassigned_variables">
+        <source>Underline reassigned variables</source>
+        <target state="new">Underline reassigned variables</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">Il valore inutilizzato viene assegnato in modo esplicito a una variabile locale inutilizzata</target>
