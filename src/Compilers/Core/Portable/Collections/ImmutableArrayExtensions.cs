@@ -777,28 +777,5 @@ namespace Microsoft.CodeAnalysis
 
         internal static int IndexOf<T>(this ImmutableArray<T> array, T item, IEqualityComparer<T> comparer)
             => array.IndexOf(item, startIndex: 0, comparer);
-
-        internal static TResult Aggregate<TSource, TIntermediate, TResult>(
-            this ImmutableArray<TSource> array,
-            TIntermediate seed,
-            Func<TIntermediate, TSource, TResult> func,
-            Func<TResult, TIntermediate> transform)
-        {
-            Debug.Assert(!array.IsDefaultOrEmpty);
-
-            var e = array.GetEnumerator();
-            if (!e.MoveNext())
-            {
-                throw new InvalidOperationException();
-            }
-
-            var result = func(seed, e.Current);
-            while (e.MoveNext())
-            {
-                result = func(transform(result), e.Current);
-            }
-
-            return result;
-        }
     }
 }

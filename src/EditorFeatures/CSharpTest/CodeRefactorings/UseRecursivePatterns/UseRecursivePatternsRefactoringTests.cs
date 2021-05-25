@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns;
@@ -39,11 +37,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         [InlineData("this.P1 <= 1 && 2 > this.P2", "this is { P1: <= 1, P2: < 2 }")]
         [InlineData("this.P1 >= 1 && 2 < this.P2", "this is { P1: >= 1, P2: > 2 }")]
         // Nested
-        [InlineData("this.CP1.P1 < 1 && 2 >= this.CP2.P2", "this is { CP1: { P1: < 1 }, CP2: { P2: <= 2 } }")]
-        [InlineData("this.CP1.P1 > 1 && 2 <= this.CP2.P2", "this is { CP1: { P1: > 1 }, CP2: { P2: >= 2 } }")]
-        [InlineData("this.CP1.P1 <= 1 && 2 > this.CP2.P2", "this is { CP1: { P1: <= 1 }, CP2: { P2: < 2 } }")]
-        [InlineData("this.CP1.P1 >= 1 && 2 < this.CP2.P2", "this is { CP1: { P1: >= 1 }, CP2: { P2: > 2 } }")]
+        [InlineData("this.CP1?.P1 < 1 && 2 >= this.CP2.P2", "this is { CP1: { P1: < 1 }, CP2: { P2: <= 2 } }")]
+        [InlineData("this.CP1?.P1 > 1 && 2 <= this.CP2.P2", "this is { CP1: { P1: > 1 }, CP2: { P2: >= 2 } }")]
+        [InlineData("this.CP1.P1 <= 1 && 2 > this.CP2?.P2", "this is { CP1: { P1: <= 1 }, CP2: { P2: < 2 } }")]
+        [InlineData("this.CP1.P1 >= 1 && 2 < this.CP2?.P2", "this is { CP1: { P1: >= 1 }, CP2: { P2: > 2 } }")]
         public async Task TestLogicalAndExpression_Relational(string actual, string expected)
+        {
+            await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
+        }
+
+        [Theory]
+        [InlineData("this.CP1?.CP1?.CP1?.CP1.CP1.CP1?.CP1.CP1.CP1 == null && this.CP1?.CP1?.CP1?.CP1.CP1.CP1?.CP1.CP1.CP2 == null", "this.CP1?.CP1?.CP1?.CP1.CP1.CP1?.CP1.CP1 is { CP1: null, CP2: null }")]
+        public async Task TestLogicalAndExpression_Relational0(string actual, string expected)
         {
             await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
         }
@@ -87,9 +92,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         }
 
         [Theory]
-        [InlineData("this.P1 == 1 && this.CP1 is var c [||]&& c.P1 == 0 && this.P2 == 2", "this.P1 == 1 && this.CP1 is { P1: 0 } c && this.P2 == 2")]
-        [InlineData("this.P1 == 1 && this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3", "this.P1 == 1 && this.CP1 is { P1: 1, CP2: { P3: 3 } }")]
-        [InlineData("this.P1 == 1 && this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3 && this.P2 == 2", "this.P1 == 1 && this.CP1 is { P1: 1, CP2: { P3: 3 } } && this.P2 == 2")]
+        [InlineData("this.B1 && this.CP1 is var c [||]&& c.P1 == 0 && this.P2 == 2", "this.B1 && this.CP1 is { P1: 0 } c && this.P2 == 2")]
+        [InlineData("this.B1 && this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3", "this.B1 && this.CP1 is { P1: 1, CP2: { P3: 3 } }")]
+        [InlineData("this.B1 && this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3 && this.P2 == 2", "this.B1 && this.CP1 is { P1: 1, CP2: { P3: 3 } } && this.P2 == 2")]
         public async Task TestLogicalAndExpression_Children(string actual, string expected)
         {
             await VerifyAsync(WrapInIfStatement(actual, entry: null), WrapInIfStatement(expected, entry: null));
@@ -118,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
             await VerifyAsync(WrapInSwitchLabel(actual, "case"), WrapInSwitchLabel(expected, "case"));
         }
 
-        private static string WrapInIfStatement(string actual, string entry)
+        private static string WrapInIfStatement(string actual, string? entry)
         {
             var markup =
 @"
@@ -127,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
             return CreateMarkup(markup, entry);
         }
 
-        private static string WrapInSwitchArm(string actual, string entry)
+        private static string WrapInSwitchArm(string actual, string? entry)
         {
             var markup =
 @"
@@ -139,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
             return CreateMarkup(markup, entry);
         }
 
-        private static string WrapInSwitchLabel(string actual, string entry)
+        private static string WrapInSwitchLabel(string actual, string? entry)
         {
             var markup =
 @"
@@ -152,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
             return CreateMarkup(markup, entry);
         }
 
-        private static string CreateMarkup(string actual, string entry)
+        private static string CreateMarkup(string actual, string? entry)
         {
             var markup = @"
 namespace NS
