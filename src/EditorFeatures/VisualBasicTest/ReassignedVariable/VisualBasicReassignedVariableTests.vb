@@ -390,5 +390,29 @@ Structure S
     End Sub
 End Structure")
         End Function
+
+        <Fact>
+        Public Async Function TestDuplicateMethod() As Task
+            Await TestAsync(
+"Class C
+    Sub M([|p|] As Integer)
+        [|p|] = 1
+    End Sub
+
+    Sub M([|p|] As Integer)
+        [|p|] = 1
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestDuplicateParameter() As Task
+            Await TestAsync(
+"Class C
+    Sub M([|p|] As Integer, p As Integer)
+        [|p|] = 1
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

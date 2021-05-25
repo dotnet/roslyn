@@ -965,5 +965,36 @@ class C
     }
 }");
         }
+
+        [Fact]
+        public async Task TestDuplicateMethod()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(int [|p|])
+    {
+        [|p|] = 1;
+    }
+
+    void M(int [|p|])
+    {
+        [|p|] = 1;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestDuplicateParameter()
+        {
+            await TestAsync(
+@"class C
+{
+    void M(int p, int p)
+    {
+        p = 1;
+    }
+}");
+        }
     }
 }
