@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             {
                 // If there were some common names in the path, we rewrite the receiver to include those.
                 // For instance, in `a.b.c && a.b.d`, we have `b` as the last common name in the path,
-                // So we want `a.b` a the receiver so that we convert it to `a.b is { c: true, d: true }`.
+                // So we want `a.b` aa the receiver so that we convert it to `a.b is { c: true, d: true }`.
                 commonReceiver = GetReceiver(lastName, originalReceiver: left);
             }
 
