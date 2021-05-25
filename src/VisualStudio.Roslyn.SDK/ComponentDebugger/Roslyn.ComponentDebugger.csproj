@@ -7,9 +7,9 @@
     <TargetFramework>net472</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWpf>true</UseWpf>
-    <NoWarn>NU1603;NU1605</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed" Version="$(MicrosoftVisualStudioProjectSystemManaged)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" Version="$(MicrosoftVisualStudioProjectSystemManagedVS)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" PrivateAssets="all" />
@@ -19,5 +19,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.1.DesignTime" Version="$(MicrosoftVisualStudioShellInterop151DesignTimeVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.6.DesignTime" Version="$(MicrosoftVisualStudioShellInterop156DesignTimeVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" PrivateAssets="all" />
+    <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" PrivateAssets="all" />
+    <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudio)" PrivateAssets="all" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" PrivateAssets="all" />
   </ItemGroup>
 </Project>
