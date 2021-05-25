@@ -10597,12 +10597,12 @@ interface IA
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,13): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         clx a = new clx();   // CS8036
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("parameterless struct constructors").WithLocation(12, 13),
-                // (13,13): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("struct field initializers").WithLocation(12, 13),
+                // (13,13): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("parameterless struct constructors").WithLocation(13, 13),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("struct field initializers").WithLocation(13, 13),
                 // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
                 //         int i = 7;           // CS8036
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),

@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -663,21 +664,21 @@ struct S0
 {
     object X;
     object Y;
-    public override string ToString() => string.Format($""({X}, {Y})"");
+    public override string ToString() => (X, Y).ToString();
 }
 struct S1
 {
     object X;
     object Y;
     public S1() { Y = 1; }
-    public override string ToString() => string.Format($""({X}, {Y})"");
+    public override string ToString() => (X, Y).ToString();
 }
 struct S2
 {
     object X;
     object Y;
     public S2(object y) { Y = y; }
-    public override string ToString() => string.Format($""({X}, {Y})"");
+    public override string ToString() => (X, Y).ToString();
 }
 class Program
 {
@@ -721,21 +722,21 @@ struct S1
 {
     object X = null;
     object Y;
-    public override string ToString() => string.Format($""({X}, {Y})"");
+    public override string ToString() => (X, Y).ToString();
 }
 struct S2
 {
     object X = null;
     object Y;
     public S2() { Y = 1; }
-    public override string ToString() => string.Format($""({X}, {Y})"");
+    public override string ToString() => (X, Y).ToString();
 }
 struct S3
 {
     object X;
     object Y = null;
     public S3(object x) { X = x; }
-    public override string ToString() => string.Format($""({X}, {Y})"");
+    public override string ToString() => (X, Y).ToString();
 }
 class Program
 {
@@ -749,18 +750,18 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (5,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,12): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     object X = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("parameterless struct constructors").WithLocation(5, 12),
-                // (11,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("struct field initializers").WithLocation(5, 12),
+                // (11,12): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     object X = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("parameterless struct constructors").WithLocation(11, 12),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("struct field initializers").WithLocation(11, 12),
                 // (13,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S2() { Y = 1; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("parameterless struct constructors").WithLocation(13, 12),
-                // (19,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (19,12): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     object Y = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Y").WithArguments("parameterless struct constructors").WithLocation(19, 12));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Y").WithArguments("struct field initializers").WithLocation(19, 12));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
@@ -834,21 +835,21 @@ struct S1
 {
     internal object X = 1;
     internal object Y;
-    public override string ToString() => string.Format($""({X}, {Y})"");
+    public override string ToString() => (X, Y).ToString();
 }
 struct S2
 {
     internal object X = 2;
     internal object Y;
     public S2() { Y = 2; }
-    public override string ToString() => string.Format($""({X}, {Y})"");
+    public override string ToString() => (X, Y).ToString();
 }
 struct S3
 {
     internal object X = 3;
     internal object Y;
     public S3(object _) { Y = 3; }
-    public override string ToString() => string.Format($""({X}, {Y})"");
+    public override string ToString() => (X, Y).ToString();
 }
 class Program
 {
@@ -975,8 +976,148 @@ class Program
 }");
         }
 
+        // As above but with auto-properties.
         [Fact]
         public void FieldInitializers_03()
+        {
+            var source =
+@"#pragma warning disable 649
+using System;
+struct S1
+{
+    internal object X { get; } = 1;
+    internal object Y { get; }
+    public override string ToString() => (X, Y).ToString();
+}
+struct S2
+{
+    internal object X { get; init; } = 2;
+    internal object Y { get; init; }
+    public S2() { Y = 2; }
+    public override string ToString() => (X, Y).ToString();
+}
+struct S3
+{
+    internal object X { get; set; } = 3;
+    internal object Y { get; set; }
+    public S3(object _) { Y = 3; }
+    public override string ToString() => (X, Y).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1());
+        Console.WriteLine(new S2());
+        Console.WriteLine(new S3());
+        Console.WriteLine(new S1 { });
+        Console.WriteLine(new S2 { });
+        Console.WriteLine(new S3 { });
+        Console.WriteLine(new S2 { Y = 4 });
+        Console.WriteLine(new S3 { Y = 6 });
+    }
+}";
+
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(1, )
+(2, 2)
+(, )
+(1, )
+(2, 2)
+(, )
+(2, 4)
+(, 6)");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size      162 (0xa2)
+  .maxstack  2
+  .locals init (S3 V_0,
+                S2 V_1)
+  IL_0000:  newobj     ""S1..ctor()""
+  IL_0005:  box        ""S1""
+  IL_000a:  call       ""void System.Console.WriteLine(object)""
+  IL_000f:  newobj     ""S2..ctor()""
+  IL_0014:  box        ""S2""
+  IL_0019:  call       ""void System.Console.WriteLine(object)""
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  initobj    ""S3""
+  IL_0026:  ldloc.0
+  IL_0027:  box        ""S3""
+  IL_002c:  call       ""void System.Console.WriteLine(object)""
+  IL_0031:  newobj     ""S1..ctor()""
+  IL_0036:  box        ""S1""
+  IL_003b:  call       ""void System.Console.WriteLine(object)""
+  IL_0040:  newobj     ""S2..ctor()""
+  IL_0045:  box        ""S2""
+  IL_004a:  call       ""void System.Console.WriteLine(object)""
+  IL_004f:  ldloca.s   V_0
+  IL_0051:  initobj    ""S3""
+  IL_0057:  ldloc.0
+  IL_0058:  box        ""S3""
+  IL_005d:  call       ""void System.Console.WriteLine(object)""
+  IL_0062:  ldloca.s   V_1
+  IL_0064:  call       ""S2..ctor()""
+  IL_0069:  ldloca.s   V_1
+  IL_006b:  ldc.i4.4
+  IL_006c:  box        ""int""
+  IL_0071:  call       ""void S2.Y.init""
+  IL_0076:  ldloc.1
+  IL_0077:  box        ""S2""
+  IL_007c:  call       ""void System.Console.WriteLine(object)""
+  IL_0081:  ldloca.s   V_0
+  IL_0083:  initobj    ""S3""
+  IL_0089:  ldloca.s   V_0
+  IL_008b:  ldc.i4.6
+  IL_008c:  box        ""int""
+  IL_0091:  call       ""void S3.Y.set""
+  IL_0096:  ldloc.0
+  IL_0097:  box        ""S3""
+  IL_009c:  call       ""void System.Console.WriteLine(object)""
+  IL_00a1:  ret
+}");
+            verifier.VerifyIL("S1..ctor()",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S1.<X>k__BackingField""
+  IL_000c:  ret
+}");
+            verifier.VerifyIL("S2..ctor()",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S2.<X>k__BackingField""
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.2
+  IL_000e:  box        ""int""
+  IL_0013:  call       ""void S2.Y.init""
+  IL_0018:  ret
+}");
+            verifier.VerifyMissing("S3..ctor()");
+            verifier.VerifyIL("S3..ctor(object)",
+@"{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.3
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S3.<X>k__BackingField""
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.3
+  IL_000e:  box        ""int""
+  IL_0013:  call       ""void S3.Y.set""
+  IL_0018:  ret
+}");
+        }
+
+        [Fact]
+        public void FieldInitializers_04()
         {
             var source =
 @"#pragma warning disable 649
@@ -1019,16 +1160,16 @@ class Program
         }
 
         [Fact]
-        public void FieldInitializers_04()
+        public void FieldInitializers_05()
         {
             var source =
 @"#pragma warning disable 649
 using System;
 class A<T>
 {
-    internal struct S1 { internal int X = 1; }
-    internal struct S2 { internal int X = 2; public S2() { } }
-    internal struct S3 { internal int X = 3; public S3(int _) { } }
+    internal struct S1 { internal int X { get; } = 1; }
+    internal struct S2 { internal int X { get; init; } = 2; public S2() { } }
+    internal struct S3 { internal int X { get; set; } = 3; public S3(int _) { } }
 }
 class Program
 {
@@ -1040,27 +1181,131 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe, expectedOutput:
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
 @"1
 2
 0");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size       50 (0x32)
-  .maxstack  1
-  .locals init (A<object>.S3 V_0)
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (A<object>.S1 V_0,
+                A<object>.S2 V_1,
+                A<object>.S3 V_2)
   IL_0000:  newobj     ""A<object>.S1..ctor()""
-  IL_0005:  ldfld      ""int A<object>.S1.X""
-  IL_000a:  call       ""void System.Console.WriteLine(int)""
-  IL_000f:  newobj     ""A<object>.S2..ctor()""
-  IL_0014:  ldfld      ""int A<object>.S2.X""
-  IL_0019:  call       ""void System.Console.WriteLine(int)""
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  initobj    ""A<object>.S3""
-  IL_0026:  ldloc.0
-  IL_0027:  ldfld      ""int A<object>.S3.X""
-  IL_002c:  call       ""void System.Console.WriteLine(int)""
-  IL_0031:  ret
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       ""readonly int A<object>.S1.X.get""
+  IL_000d:  call       ""void System.Console.WriteLine(int)""
+  IL_0012:  newobj     ""A<object>.S2..ctor()""
+  IL_0017:  stloc.1
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  call       ""readonly int A<object>.S2.X.get""
+  IL_001f:  call       ""void System.Console.WriteLine(int)""
+  IL_0024:  ldloca.s   V_2
+  IL_0026:  dup
+  IL_0027:  initobj    ""A<object>.S3""
+  IL_002d:  call       ""readonly int A<object>.S3.X.get""
+  IL_0032:  call       ""void System.Console.WriteLine(int)""
+  IL_0037:  ret
+}");
+            verifier.VerifyIL("A<T>.S1..ctor()",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int A<T>.S1.<X>k__BackingField""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("A<T>.S2..ctor()",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.2
+  IL_0002:  stfld      ""int A<T>.S2.<X>k__BackingField""
+  IL_0007:  ret
+}");
+            verifier.VerifyIL("A<T>.S3..ctor(int)",
+@"{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.3
+  IL_0002:  stfld      ""int A<T>.S3.<X>k__BackingField""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void ExpressionTrees()
+        {
+            var source =
+@"#pragma warning disable 649
+using System;
+using System.Linq.Expressions;
+struct S0
+{
+    int X;
+    public override string ToString() => X.ToString();
+}
+struct S1
+{
+    int X = 1;
+    public override string ToString() => X.ToString();
+}
+struct S2
+{
+    int X = 2;
+    public S2() { }
+    public override string ToString() => X.ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Report(() => new S0());
+        Report(() => new S1());
+        Report(() => new S2());
+    }
+    static void Report<T>(Expression<Func<T>> e)
+    {
+        var t = e.Compile().Invoke();
+        Console.WriteLine(t);
+    }
+}";
+
+            // PROTOTYPE: S1..ctor() is not being called.
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe, expectedOutput:
+@"0
+0
+2");
+            verifier.VerifyIL("Program.Main",
+@"{
+  // Code size      101 (0x65)
+  .maxstack  2
+  IL_0000:  ldtoken    ""S0""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  call       ""System.Linq.Expressions.NewExpression System.Linq.Expressions.Expression.New(System.Type)""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+  IL_0014:  call       ""System.Linq.Expressions.Expression<System.Func<S0>> System.Linq.Expressions.Expression.Lambda<System.Func<S0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0019:  call       ""void Program.Report<S0>(System.Linq.Expressions.Expression<System.Func<S0>>)""
+  IL_001e:  ldtoken    ""S1""
+  IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0028:  call       ""System.Linq.Expressions.NewExpression System.Linq.Expressions.Expression.New(System.Type)""
+  IL_002d:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+  IL_0032:  call       ""System.Linq.Expressions.Expression<System.Func<S1>> System.Linq.Expressions.Expression.Lambda<System.Func<S1>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0037:  call       ""void Program.Report<S1>(System.Linq.Expressions.Expression<System.Func<S1>>)""
+  IL_003c:  ldtoken    ""S2..ctor()""
+  IL_0041:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0046:  castclass  ""System.Reflection.ConstructorInfo""
+  IL_004b:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
+  IL_0050:  call       ""System.Linq.Expressions.NewExpression System.Linq.Expressions.Expression.New(System.Reflection.ConstructorInfo, System.Collections.Generic.IEnumerable<System.Linq.Expressions.Expression>)""
+  IL_0055:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+  IL_005a:  call       ""System.Linq.Expressions.Expression<System.Func<S2>> System.Linq.Expressions.Expression.Lambda<System.Func<S2>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_005f:  call       ""void Program.Report<S2>(System.Linq.Expressions.Expression<System.Func<S2>>)""
+  IL_0064:  ret
 }");
         }
 
@@ -1324,6 +1569,52 @@ class Program
                 // (21,27): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     static void G2(S2 s = new()) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(21, 27));
+        }
+
+        [Fact]
+        public void Constants()
+        {
+            var source =
+@"struct S0
+{
+}
+struct S1
+{
+    object X = 1;
+}
+struct S2
+{
+    public S2() { }
+}
+class Program
+{
+    const object d0 = default(S0);
+    const object d1 = default(S1);
+    const object d2 = default(S2);
+    const object s0 = new S0();
+    const object s1 = new S1();
+    const object s2 = new S2();
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (14,23): error CS0133: The expression being assigned to 'Program.d0' must be constant
+                //     const object d0 = default(S0);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(S0)").WithArguments("Program.d0").WithLocation(14, 23),
+                // (15,23): error CS0133: The expression being assigned to 'Program.d1' must be constant
+                //     const object d1 = default(S1);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(S1)").WithArguments("Program.d1").WithLocation(15, 23),
+                // (16,23): error CS0133: The expression being assigned to 'Program.d2' must be constant
+                //     const object d2 = default(S2);
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "default(S2)").WithArguments("Program.d2").WithLocation(16, 23),
+                // (17,23): error CS0133: The expression being assigned to 'Program.s0' must be constant
+                //     const object s0 = new S0();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "new S0()").WithArguments("Program.s0").WithLocation(17, 23),
+                // (18,23): error CS0133: The expression being assigned to 'Program.s1' must be constant
+                //     const object s1 = new S1();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "new S1()").WithArguments("Program.s1").WithLocation(18, 23),
+                // (19,23): error CS0133: The expression being assigned to 'Program.s2' must be constant
+                //     const object s2 = new S2();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "new S2()").WithArguments("Program.s2").WithLocation(19, 23));
         }
     }
 }

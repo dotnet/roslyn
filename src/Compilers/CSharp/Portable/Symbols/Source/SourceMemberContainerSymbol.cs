@@ -3450,7 +3450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (FieldOrPropertyInitializer initializer in initializers)
                 {
                     var symbol = initializer.FieldOpt.AssociatedSymbol ?? initializer.FieldOpt;
-                    MessageID.IDS_FeatureParameterlessStructConstructors.CheckFeatureAvailability(diagnostics, symbol.DeclaringCompilation, symbol.Locations[0]);
+                    MessageID.IDS_FeatureStructFieldInitializers.CheckFeatureAvailability(diagnostics, symbol.DeclaringCompilation, symbol.Locations[0]);
                 }
             }
         }

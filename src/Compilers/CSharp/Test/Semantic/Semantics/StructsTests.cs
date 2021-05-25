@@ -27,9 +27,9 @@ public struct A
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (4,7): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,7): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     A a = new A();   // CS8036
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("parameterless struct constructors").WithLocation(4, 7),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("struct field initializers").WithLocation(4, 7),
                 // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
                 //     A a = new A();   // CS8036
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
@@ -53,9 +53,9 @@ struct S {
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (3,25): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,25): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     event System.Action E = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("parameterless struct constructors").WithLocation(3, 25));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("struct field initializers").WithLocation(3, 25));
 
             CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
@@ -637,9 +637,9 @@ public struct X1
                 // (3,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int I { get { throw null; } set {} } = 9;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16),
-                // (3,16): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,16): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public int I { get { throw null; } set {} } = 9;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I").WithArguments("parameterless struct constructors").WithLocation(3, 16));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I").WithArguments("struct field initializers").WithLocation(3, 16));
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(

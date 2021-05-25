@@ -968,7 +968,10 @@ public record struct S
             var src =
 @"record struct S0();
 record struct S1;
-";
+record struct S2
+{
+    public S2() { }
+}";
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
@@ -976,22 +979,36 @@ record struct S1;
                 // record struct S0();
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(1, 8),
                 // (2,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // record struct S1 { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(2, 8));
+                // record struct S1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(2, 8),
+                // (3,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // record struct S2
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(3, 8),
+                // (5,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("parameterless struct constructors").WithLocation(5, 12));
 
-            comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, parseOptions: TestOptions.RegularPreview);
+            verifier.VerifyIL("S0..ctor()",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyMissing("S1..ctor()");
+            verifier.VerifyIL("S2..ctor()",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
         }
 
         [Fact]
         public void TypeDeclaration_ParameterlessConstructor_02()
         {
             var src =
-@"record struct S0
-{
-    public S0() { }
-}
-record struct S1
+@"record struct S1
 {
     S1() { }
 }
@@ -1003,38 +1020,32 @@ record struct S2
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // record struct S0
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(1, 8),
-                // (3,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public S0() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S0").WithArguments("parameterless struct constructors").WithLocation(3, 12),
-                // (5,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct S1
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(5, 8),
-                // (7,5): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(1, 8),
+                // (3,5): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     S1() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("parameterless struct constructors").WithLocation(7, 5),
-                // (7,5): error CS8918: The parameterless struct constructor must be 'public'.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("parameterless struct constructors").WithLocation(3, 5),
+                // (3,5): error CS8918: The parameterless struct constructor must be 'public'.
                 //     S1() { }
-                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S1").WithLocation(7, 5),
-                // (9,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S1").WithLocation(3, 5),
+                // (5,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct S2
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(9, 8),
-                // (11,14): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(5, 8),
+                // (7,14): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     internal S2() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("parameterless struct constructors").WithLocation(11, 14),
-                // (11,14): error CS8918: The parameterless struct constructor must be 'public'.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("parameterless struct constructors").WithLocation(7, 14),
+                // (7,14): error CS8918: The parameterless struct constructor must be 'public'.
                 //     internal S2() { }
-                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(11, 14));
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(7, 14));
 
             comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (7,5): error CS8918: The parameterless struct constructor must be 'public'.
+                // (3,5): error CS8918: The parameterless struct constructor must be 'public'.
                 //     S1() { }
-                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S1").WithLocation(7, 5),
-                // (11,14): error CS8918: The parameterless struct constructor must be 'public'.
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S1").WithLocation(3, 5),
+                // (7,14): error CS8918: The parameterless struct constructor must be 'public'.
                 //     internal S2() { }
-                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(11, 14));
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(7, 14));
         }
 
         [Fact]
@@ -1053,12 +1064,12 @@ public record struct S
                 // (2,15): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // public record struct S
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(2, 15),
-                // (4,16): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,16): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public int field = 42;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "field").WithArguments("parameterless struct constructors").WithLocation(4, 16),
-                // (5,16): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "field").WithArguments("struct field initializers").WithLocation(4, 16),
+                // (5,16): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public int Property { get; set; } = 43;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("parameterless struct constructors").WithLocation(5, 16));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property").WithArguments("struct field initializers").WithLocation(5, 16));
 
             comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
