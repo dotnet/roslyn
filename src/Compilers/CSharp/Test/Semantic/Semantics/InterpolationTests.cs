@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -3229,7 +3230,7 @@ public class CultureInfoNormalizer
 {
     public static void Normalize()
     {
-        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(""en - US"");
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
     }
 }
 ";
@@ -3291,7 +3292,7 @@ public " + type + " " + name + @"
 CustomHandler builder = $""Literal{1,2:f}"";
 System.Console.WriteLine(builder.ToString());";
 
-            var builder = GetCustomHandlerType("CustomHandler", "struct", useBoolReturns);
+            var builder = GetCustomHandlerType("CustomHandler", type, useBoolReturns);
             var comp = CreateCompilation(new[] { code, builder }, parseOptions: TestOptions.RegularPreview);
             VerifyInterpolatedStringExpression(comp);
 
@@ -3303,9 +3304,9 @@ format:f");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", getIl());
 
-            string getIl() => useBoolReturns switch
+            string getIl() => (type, useBoolReturns) switch
             {
-                true => @"
+                (type: "struct", useBoolReturns: true) => @"
 {
   // Code size       67 (0x43)
   .maxstack  4
@@ -3337,7 +3338,7 @@ format:f");
   IL_0042:  ret
 }
 ",
-                false => @"
+                (type: "struct", useBoolReturns: false) => @"
 {
   // Code size       61 (0x3d)
   .maxstack  4
@@ -3364,7 +3365,57 @@ format:f");
   IL_0037:  call       ""void System.Console.WriteLine(string)""
   IL_003c:  ret
 }
-"
+",
+                (type: "class", useBoolReturns: true) => @"
+{
+  // Code size       55 (0x37)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldstr      ""Literal""
+  IL_000e:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
+  IL_0013:  brfalse.s  IL_0029
+  IL_0015:  ldloc.0
+  IL_0016:  ldc.i4.1
+  IL_0017:  box        ""int""
+  IL_001c:  ldc.i4.2
+  IL_001d:  ldstr      ""f""
+  IL_0022:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  pop
+  IL_002b:  ldloc.0
+  IL_002c:  callvirt   ""string object.ToString()""
+  IL_0031:  call       ""void System.Console.WriteLine(string)""
+  IL_0036:  ret
+}
+",
+                (type: "class", useBoolReturns: false) => @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  5
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  dup
+  IL_0008:  ldstr      ""Literal""
+  IL_000d:  callvirt   ""void CustomHandler.AppendLiteral(string)""
+  IL_0012:  dup
+  IL_0013:  ldc.i4.1
+  IL_0014:  box        ""int""
+  IL_0019:  ldc.i4.2
+  IL_001a:  ldstr      ""f""
+  IL_001f:  callvirt   ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0024:  callvirt   ""string object.ToString()""
+  IL_0029:  call       ""void System.Console.WriteLine(string)""
+  IL_002e:  ret
+}
+",
+                _ => throw ExceptionUtilities.Unreachable
             };
         }
 
@@ -3920,7 +3971,7 @@ class C
             // Interpolated string handler conversions are not considered when determining the natural type of an expression: the natural return type of this lambda is string,
             // so we don't even consider that there is a conversion from interpolated string expression to CustomHandler here (Sections 12.6.3.13 and 12.6.3.15 of the spec).
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
-            var verifier = CompileAndVerify(comp, expectedOutput: @"1.000Literal");
+            var verifier = CompileAndVerify(comp, expectedOutput: @"1.00Literal");
 
             // No DefaultInterpolatedStringHandler was included in the compilation, so it falls back to string.Format
             verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
@@ -4145,7 +4196,7 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.000Literal");
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"
 {
@@ -4330,7 +4381,7 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.000Literal");
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -4561,7 +4612,7 @@ public partial struct CustomHandler
 ";
 
             var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.000Literal");
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
