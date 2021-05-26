@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     yield break;
 
                 var workspace = state.Target.Workspace;
-                if (workspace == null)
+                if (workspace is null)
                     yield break;
 
                 await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(true);
