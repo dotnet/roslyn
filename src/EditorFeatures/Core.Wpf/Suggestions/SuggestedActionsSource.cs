@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     addOperationScope, CodeActionProviderPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
-            private static async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync(
+            private static Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync(
                 ReferenceCountedDisposable<State> state,
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
@@ -334,23 +334,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     // this is here to fail test and see why it is failed.
                     Trace.WriteLine("given range is not current");
-                    return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                    return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
 
                 if (!workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
                     state.Target.Owner._codeRefactoringService == null ||
                     !supportsFeatureService.SupportsRefactorings(state.Target.SubjectBuffer))
                 {
-                    return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                    return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
 
                 // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
                 // then we want to filter out refactorings outside the selection span.
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
-                return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
+                return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
                     workspace, state.Target.Owner._codeRefactoringService, document, selection.Value, priority, isBlocking,
-                    addOperationScope, filterOutsideSelection, cancellationToken).ConfigureAwait(false);
+                    addOperationScope, filterOutsideSelection, cancellationToken);
             }
 
             public Task<bool> HasSuggestedActionsAsync(
