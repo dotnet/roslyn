@@ -49,11 +49,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // Compute and return the high pri set of fixes and refactorings first so the user
                     // can act on them immediately without waiting on the regular set.
-                    var highPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, _ => null, CodeActionProviderPriority.High, cancellationToken);
+                    var highPriSet = GetCodeFixesAndRefactoringsAsync(
+                        state, requestedActionCategories, document, range, _ => null, CodeActionProviderPriority.High, cancellationToken);
                     await foreach (var set in highPriSet)
                         yield return set;
 
-                    var lowPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, _ => null, CodeActionProviderPriority.Normal, cancellationToken);
+                    var lowPriSet = GetCodeFixesAndRefactoringsAsync(
+                        state, requestedActionCategories, document, range, _ => null, CodeActionProviderPriority.Normal, cancellationToken);
                     await foreach (var set in lowPriSet)
                         yield return set;
                 }
