@@ -726,6 +726,11 @@ namespace Microsoft.CodeAnalysis
             /// <param name="nonAuthoritativeGeneratedDocuments">The generated documents from a previous pass which may
             /// or may not be correct for the current compilation. These states may be used to access cached results, if
             /// and when applicable for the current compilation.</param>
+            /// <param name="compilationWithStaleGeneratedTrees">The compilation from a prior run that contains generated trees, which
+            /// match the states included in <paramref name="nonAuthoritativeGeneratedDocuments"/>. If a generator run here produces
+            /// the same set of generated documents as are in <paramref name="nonAuthoritativeGeneratedDocuments"/>, and we don't need to make any other
+            /// changes to references, we can then use this compilation instead of re-adding source generated files again to the
+            /// <paramref name="compilationWithoutGenerators"/>.</param>
             private async Task<CompilationInfo> FinalizeCompilationAsync(
                 SolutionState solution,
                 Compilation compilationWithoutGenerators,
