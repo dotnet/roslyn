@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActionsAsync, cancellationToken))
                 {
                     var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document == null)
+                    if (document is null)
                         yield break;
 
                     // Compute and return the high pri set of fixes and refactorings first so the user
