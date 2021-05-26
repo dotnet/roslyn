@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex);
         /// <summary>
-        /// A slot of -1 means start from the end.
+        /// A slot of int.MaxValue means start from the end.
         /// </summary>
         internal abstract (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex);
 
