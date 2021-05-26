@@ -132,12 +132,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     using var _3 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticDocumentBasedAnalyzers);
                     foreach (var stateSet in _stateSets)
                     {
-                        if (!await TryGetCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
-                        {
+                        if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
                             syntaxAnalyzers.Add(stateSet.Analyzer);
-                        }
 
-                        if (!await TryGetCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false))
+                        if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false))
                         {
                             // Check whether we want up-to-date document wide semantic diagnostics
                             var spanBased = stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
@@ -168,7 +166,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private async Task<bool> TryGetCachedDocumentDiagnosticsAsync(
+            /// <summary>
+            /// Returns <see langword="true"/> if we were able to add the cached diagnostics and we do not need to compute them fresh.
+            /// </summary>
+            private async Task<bool> TryAddCachedDocumentDiagnosticsAsync(
                 StateSet stateSet,
                 AnalysisKind kind,
                 ArrayBuilder<DiagnosticData> list,
@@ -177,6 +178,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (!stateSet.Analyzer.SupportAnalysisKind(kind) ||
                     !MatchesPriority(stateSet.Analyzer))
                 {
+                    // In the case where the analyzer doesn't support the requested kind or priority, act as if we succeeded, but just
+                    // added no items to the result.  Effectively we did add the cached values, just that all the values that could have
+                    // been added have been filtered out.  We do not want to then compute the up to date values in the caller.
                     return true;
                 }
 
