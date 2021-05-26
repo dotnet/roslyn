@@ -62,10 +62,35 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 var isImplicit = operation.IsImplicit;
 
+                var count = ((Operation)operation).ChildOperationsCount;
+                var builder = count == 0 ? null : ArrayBuilder<IOperation>.GetInstance(count);
                 foreach (IOperation child in operation.ChildOperations)
                 {
                     Assert.NotNull(child);
+                    builder.Add(child);
                 }
+
+                Assert.Equal(count, builder?.Count ?? 0);
+
+                if (count > 0)
+                {
+                    Assert.Same(builder[0], operation.ChildOperations.First());
+                    Assert.Same(builder[^1], operation.ChildOperations.Last());
+                }
+                else
+                {
+                    Assert.Throws<InvalidOperationException>(() => operation.ChildOperations.First());
+                    Assert.Throws<InvalidOperationException>(() => operation.ChildOperations.Last());
+                }
+
+                foreach (IOperation child in operation.ChildOperations.Reverse())
+                {
+                    Assert.NotNull(child);
+                    Assert.Same(child, builder[--count]);
+                }
+
+                Assert.Equal(0, count);
+                builder?.Free();
 
                 if (operation.SemanticModel != null)
                 {

@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 yield return operation;
             }
 
-            var stack = ArrayBuilder<ChildOperationEnumerable.Enumerator>.GetInstance();
+            var stack = ArrayBuilder<IOperation.ChildCollection.Enumerator>.GetInstance();
             stack.Push(((Operation)operation).ChildOperations.GetEnumerator());
 
             while (stack.Any())

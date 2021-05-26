@@ -115,10 +115,18 @@ namespace Microsoft.CodeAnalysis
         IEnumerable<IOperation> IOperation.Children => this.ChildOperations;
 
         /// <inheritdoc/>
-        public ChildOperationEnumerable ChildOperations => new ChildOperationEnumerable(this);
+        public IOperation.ChildCollection ChildOperations => new IOperation.ChildCollection(this);
 
+        internal abstract int ChildOperationsCount { get; }
         internal abstract IOperation GetCurrent(int slot, int index);
+        /// <summary>
+        /// A slot of -1 means start at the beginning.
+        /// </summary>
         internal abstract (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex);
+        /// <summary>
+        /// A slot of -1 means start from the end.
+        /// </summary>
+        internal abstract (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex);
 
         SemanticModel? IOperation.SemanticModel => _owningSemanticModelOpt?.ContainingModelOrSelf;
 

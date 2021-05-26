@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index))
             };
 
+        internal override int ChildOperationsCount => Children.Length;
+
         internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
             switch (previousSlot)
@@ -49,6 +51,14 @@ namespace Microsoft.CodeAnalysis.Operations
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
+
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+            => previousSlot switch
+            {
+                int.MaxValue when !Children.IsEmpty => (true, 0, Children.Length - 1),
+                0 when previousIndex > 0 => (true, 0, previousIndex - 1),
+                _ => (false, -1, 0)
+            };
 
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue { get; }
@@ -92,6 +102,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index))
             };
 
+        internal override int ChildOperationsCount => Children.Length;
+
         internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
         {
             switch (previousSlot)
@@ -108,6 +120,14 @@ namespace Microsoft.CodeAnalysis.Operations
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
+
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+            => previousSlot switch
+            {
+                int.MaxValue when !Children.IsEmpty => (true, 0, Children.Length - 1),
+                0 when previousIndex > 0 => (true, 0, previousIndex - 1),
+                _ => (false, -1, 0)
+            };
 
         public override ITypeSymbol? Type { get; }
         internal override ConstantValue? OperationConstantValue { get; }
@@ -138,11 +158,14 @@ namespace Microsoft.CodeAnalysis.Operations
         public IMethodSymbol Symbol => Original.Symbol;
 
         internal override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        internal override int ChildOperationsCount => 0;
         internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
 
         public override OperationKind Kind => OperationKind.FlowAnonymousFunction;
         public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
+
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -233,6 +256,8 @@ namespace Microsoft.CodeAnalysis.Operations
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.DynamicObjectCreation;
 
+        internal override int ChildOperationsCount => (Initializer is null ? 0 : 1) + Arguments.Length;
+
         internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
@@ -267,6 +292,30 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case int.MaxValue:
+                    if (Initializer == null) goto case 1;
+                    else return (true, 1, 0);
+
+                case 1:
+                    if (!Arguments.IsEmpty) return (true, 0, Arguments.Length - 1);
+                    else goto case 0;
+
+                case 0 when previousIndex > 0:
+                    return (true, 0, previousIndex - 1);
+
+                case 0:
+                case -1:
+                    return (false, -1, 0);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitDynamicObjectCreation(this);
@@ -284,6 +333,95 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Operation = SetParentOperation(operation, this);
         }
+
+        internal override int ChildOperationsCount => (Operation is null ? 0 : 1) + Arguments.Length;
+
+        internal override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when Operation != null
+                    => Operation,
+                1 when index < Arguments.Length
+                    => Arguments[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+
+
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+
+                case 0:
+                    if (!Arguments.IsEmpty) return (true, 1, 0);
+                    else goto case 1;
+
+                case 1 when previousIndex + 1 < Arguments.Length:
+                    return (true, 1, previousIndex + 1);
+
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case int.MaxValue:
+                    if (Arguments.IsEmpty) goto case 1;
+                    else return (true, 1, Arguments.Length - 1);
+
+                case 1 when previousIndex > 0:
+                    return (true, 1, previousIndex - 1);
+
+                case 1:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+
+                case 0:
+                case -1:
+                    return (false, -1, 0);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+
+        public IOperation Operation { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.DynamicInvocation;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDynamicInvocation(this);
+        }
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default
+        {
+            return visitor.VisitDynamicInvocation(this, argument);
+        }
+    }
+
+    internal sealed partial class DynamicIndexerAccessOperation : HasDynamicArgumentsExpression, IDynamicIndexerAccessOperation
+    {
+        public DynamicIndexerAccessOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
+            base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
+        {
+            Operation = SetParentOperation(operation, this);
+        }
+
+        public IOperation Operation { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.DynamicIndexerAccess;
+
+        internal override int ChildOperationsCount => (Operation is null ? 0 : 1) + Arguments.Length;
 
         internal override IOperation GetCurrent(int slot, int index)
             => slot switch
@@ -319,60 +457,24 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        public IOperation Operation { get; }
-        internal override ConstantValue? OperationConstantValue => null;
-        public override OperationKind Kind => OperationKind.DynamicInvocation;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitDynamicInvocation(this);
-        }
-        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default
-        {
-            return visitor.VisitDynamicInvocation(this, argument);
-        }
-    }
-
-    internal sealed partial class DynamicIndexerAccessOperation : HasDynamicArgumentsExpression, IDynamicIndexerAccessOperation
-    {
-        public DynamicIndexerAccessOperation(IOperation operation, ImmutableArray<IOperation> arguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit) :
-            base(arguments, argumentNames, argumentRefKinds, semanticModel, syntax, type, isImplicit)
-        {
-            Operation = SetParentOperation(operation, this);
-        }
-
-        public IOperation Operation { get; }
-        internal override ConstantValue? OperationConstantValue => null;
-        public override OperationKind Kind => OperationKind.DynamicIndexerAccess;
-
-        internal override IOperation GetCurrent(int slot, int index)
-            => slot switch
-            {
-                0 when Operation != null
-                    => Operation,
-                1 when index < Arguments.Length
-                    => Arguments[index],
-                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
-            };
-
-        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
         {
             switch (previousSlot)
             {
-                case -1:
+                case int.MaxValue:
+                    if (Arguments.IsEmpty) goto case 1;
+                    else return (true, 1, Arguments.Length - 1);
+
+                case 1 when previousIndex > 0:
+                    return (true, 1, previousIndex - 1);
+
+                case 1:
                     if (Operation != null) return (true, 0, 0);
                     else goto case 0;
 
                 case 0:
-                    if (!Arguments.IsEmpty) return (true, 1, 0);
-                    else goto case 1;
-
-                case 1 when previousIndex + 1 < Arguments.Length:
-                    return (true, 1, previousIndex + 1);
-
-                case 1:
-                case 2:
-                    return (false, 2, 0);
+                case -1:
+                    return (false, -1, 0);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
@@ -476,6 +578,53 @@ namespace Microsoft.CodeAnalysis.Operations
                     case 2:
                     case 3:
                         return (false, 3, 0);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+                }
+            }
+        }
+
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            return ConditionIsTop ? moveNextConditionIsTop() : moveNextConditionIsBottom();
+
+            (bool hasNext, int nextSlot, int nextIndex) moveNextConditionIsTop()
+            {
+                switch (previousSlot)
+                {
+                    case int.MaxValue:
+                        if (IgnoredCondition != null) return (true, 2, 0);
+                        else goto case 2;
+                    case 2:
+                        if (Body != null) return (true, 1, 0);
+                        else goto case 1;
+                    case 1:
+                        if (Condition != null) return (true, 0, 0);
+                        else goto case 0;
+                    case 0:
+                    case -1:
+                        return (false, -1, 0);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+                }
+            }
+
+            (bool hasNext, int nextSlot, int nextIndex) moveNextConditionIsBottom()
+            {
+                switch (previousSlot)
+                {
+                    case int.MaxValue:
+                        if (IgnoredCondition != null) return (true, 2, 0);
+                        else goto case 2;
+                    case 2:
+                        if (Condition != null) return (true, 1, 0);
+                        else goto case 1;
+                    case 1:
+                        if (Body != null) return (true, 0, 0);
+                        else goto case 0;
+                    case 0:
+                    case -1:
+                        return (false, -1, 0);
                     default:
                         throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
                 }

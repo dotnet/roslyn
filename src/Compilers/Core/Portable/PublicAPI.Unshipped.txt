@@ -13,15 +13,29 @@ Microsoft.CodeAnalysis.GeneratorSyntaxContext.GeneratorSyntaxContext() -> void
 Microsoft.CodeAnalysis.GeneratorSyntaxContext.Node.get -> Microsoft.CodeAnalysis.SyntaxNode!
 Microsoft.CodeAnalysis.GeneratorSyntaxContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel!
 Microsoft.CodeAnalysis.IMethodSymbol.IsPartialDefinition.get -> bool
-Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.ChildOperationEnumerable
-Microsoft.CodeAnalysis.ChildOperationEnumerable
-Microsoft.CodeAnalysis.ChildOperationEnumerable.ChildOperationEnumerable() -> void
-Microsoft.CodeAnalysis.ChildOperationEnumerable.GetEnumerator() -> Microsoft.CodeAnalysis.ChildOperationEnumerable.Enumerator
-Microsoft.CodeAnalysis.ChildOperationEnumerable.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
-Microsoft.CodeAnalysis.ChildOperationEnumerable.Enumerator
-Microsoft.CodeAnalysis.ChildOperationEnumerable.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
-Microsoft.CodeAnalysis.ChildOperationEnumerable.Enumerator.Enumerator() -> void
-Microsoft.CodeAnalysis.ChildOperationEnumerable.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.ChildCollection
+Microsoft.CodeAnalysis.IOperation.ChildCollection
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Any() -> bool
+Microsoft.CodeAnalysis.IOperation.ChildCollection.ChildCollection() -> void
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Count.get -> int
+Microsoft.CodeAnalysis.IOperation.ChildCollection.First() -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.ChildCollection.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.ChildCollection.Enumerator
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Last() -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Reverse() -> Microsoft.CodeAnalysis.IOperation.ChildCollection.Reversed
+Microsoft.CodeAnalysis.IOperation.ChildCollection.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Enumerator
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Enumerator.Enumerator() -> void
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Reversed.Enumerator
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Reversed.Enumerator.Current.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Reversed.Enumerator.Enumerator() -> void
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Reversed.Enumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Reversed
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Reversed.Reversed() -> void
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Reversed.Count.get -> int
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.ChildCollection.Reversed.Enumerator
+Microsoft.CodeAnalysis.IOperation.ChildCollection.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
 Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void
 Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void
