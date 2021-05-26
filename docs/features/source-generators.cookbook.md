@@ -626,7 +626,7 @@ public class MyGenerator : ISourceGenerator
 
 **Solution A**:
 
-The recommended approach is to use [Microsoft.CodeAnalaysis.Testing](https://github.com/dotnet/roslyn-sdk/tree/main/src/Microsoft.CodeAnalysis.Testing#microsoftcodeanalysistesting) packages:
+The recommended approach is to use [Microsoft.CodeAnalysis.Testing](https://github.com/dotnet/roslyn-sdk/tree/main/src/Microsoft.CodeAnalysis.Testing#microsoftcodeanalysistesting) packages:
 
 - `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest`
 - `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest`
