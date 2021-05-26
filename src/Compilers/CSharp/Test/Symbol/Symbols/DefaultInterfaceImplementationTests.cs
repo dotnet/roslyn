@@ -43457,6 +43457,277 @@ I2.-
         }
 
         [Fact]
+        [WorkItem(52202, "https://github.com/dotnet/roslyn/issues/52202")]
+        public void Operators_32()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static I1 operator +(I1 x)
+    {
+        System.Console.WriteLine(""+"");
+        return x;
+    }
+
+    static I1 operator -(I1 x)
+    {
+        System.Console.WriteLine(""-"");
+        return x;
+    }
+
+    static I1 operator !(I1 x)
+    {
+        System.Console.WriteLine(""!"");
+        return x;
+    }
+
+    static I1 operator ~(I1 x)
+    {
+        System.Console.WriteLine(""~"");
+        return x;
+    }
+
+    static I1 operator ++(I1 x)
+    {
+        System.Console.WriteLine(""++"");
+        return x;
+    }
+
+    static I1 operator --(I1 x)
+    {
+        System.Console.WriteLine(""--"");
+        return x;
+    }
+
+    static bool operator true(I1 x)
+    {
+        System.Console.WriteLine(""true"");
+        return true;
+    }
+
+    static bool operator false(I1 x)
+    {
+        System.Console.WriteLine(""false"");
+        return false;
+    }
+
+    static I1 operator +(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""+2"");
+        return x;
+    }
+
+    static I1 operator -(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""-2"");
+        return x;
+    }
+
+    static I1 operator *(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""*"");
+        return x;
+    }
+
+    static I1 operator /(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""/"");
+        return x;
+    }
+
+    static I1 operator %(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""%"");
+        return x;
+    }
+
+    static I1 operator &(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""&"");
+        return x;
+    }
+
+    static I1 operator |(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""|"");
+        return x;
+    }
+
+    static I1 operator ^(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""^"");
+        return x;
+    }
+
+    static I1 operator <<(I1 x, int y)
+    {
+        System.Console.WriteLine(""<<"");
+        return x;
+    }
+
+    static I1 operator >>(I1 x, int y)
+    {
+        System.Console.WriteLine("">>"");
+        return x;
+    }
+
+    static I1 operator >(I1 x, I1 y)
+    {
+        System.Console.WriteLine("">"");
+        return x;
+    }
+
+    static I1 operator <(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""<"");
+        return x;
+    }
+
+    static I1 operator >=(I1 x, I1 y)
+    {
+        System.Console.WriteLine("">="");
+        return x;
+    }
+
+    static I1 operator <=(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""<="");
+        return x;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test2();
+        I1 y = new Test2();
+
+        x = +x;
+        x = -x;
+        x = !x;
+        x = ~x;
+        x = ++x;
+        x = x--;
+
+        x = x + y;
+        x = x - y;
+        x = x * y;
+        x = x / y;
+        x = x % y;
+        if (x && y) { }
+        x = x | y;
+        x = x ^ y;
+        x = x << 1;
+        x = x >> 2;
+        x = x > y;
+        x = x < y;
+        x = x >= y;
+        x = x <= y;
+    }
+}
+";
+
+            var expectedOutput =
+@"
++
+-
+!
+~
+++
+--
++2
+-2
+*
+/
+%
+false
+&
+true
+|
+^
+<<
+>>
+>
+<
+>=
+<=
+";
+
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 parseOptions: TestOptions.Regular);
+
+            var i1 = compilation1.GlobalNamespace.GetTypeMember("I1");
+
+            foreach (var member in i1.GetMembers())
+            {
+                Assert.Equal(Accessibility.Public, member.DeclaredAccessibility);
+            }
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+
+            var compilation3 = CreateCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(52202, "https://github.com/dotnet/roslyn/issues/52202")]
+        public void Operators_33()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static implicit operator int(I1 x)
+    {
+        return 0;
+    }
+
+    static explicit operator byte(I1 x)
+    {
+        return 0;
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 parseOptions: TestOptions.Regular);
+
+            var i1 = compilation1.GlobalNamespace.GetTypeMember("I1");
+
+            foreach (var member in i1.GetMembers())
+            {
+                Assert.Equal(Accessibility.Public, member.DeclaredAccessibility);
+            }
+
+            compilation1.VerifyDiagnostics(
+                // (4,30): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                //     static implicit operator int(I1 x)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 30),
+                // (9,30): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                //     static explicit operator byte(I1 x)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "byte").WithLocation(9, 30)
+                );
+        }
+
+        [Fact]
         public void RuntimeFeature_01()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,

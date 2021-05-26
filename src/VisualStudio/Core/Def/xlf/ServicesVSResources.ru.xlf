@@ -167,14 +167,14 @@
         <target state="translated">Место вызова</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_Newline_rn">
-        <source>Carrage Return + Newline (\\r\\n)</source>
-        <target state="new">Carrage Return + Newline (\\r\\n)</target>
+      <trans-unit id="Carriage_Return_Newline_rn">
+        <source>Carriage Return + Newline (\r\n)</source>
+        <target state="new">Carriage Return + Newline (\r\n)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_r">
-        <source>Carrage Return (\\r)</source>
-        <target state="new">Carrage Return (\\r)</target>
+      <trans-unit id="Carriage_Return_r">
+        <source>Carriage Return (\r)</source>
+        <target state="new">Carriage Return (\r)</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
@@ -302,6 +302,11 @@
         <target state="new">Enable all features in opened files from source generators (experimental)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_file_logging_for_diagnostics">
+        <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
+        <target state="new">Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
         <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
         <target state="translated">Включить диагностику "pull" (экспериментальная функция, требуется перезапуск)</target>
@@ -330,6 +335,11 @@
       <trans-unit id="Error">
         <source>Error</source>
         <target state="new">Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_updating_suppressions_0">
+        <source>Error updating suppressions: {0}</source>
+        <target state="new">Error updating suppressions: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -1071,6 +1081,11 @@
         <source>Type name is recognized</source>
         <target state="translated">Имя типа распознано.</target>
         <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Underline_reassigned_variables">
+        <source>Underline reassigned variables</source>
+        <target state="new">Underline reassigned variables</target>
+        <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>

@@ -3873,7 +3873,7 @@ class C
             var alias2 = model2.GetAliasInfo(node);
 
             Assert.Equal(alias1, alias2);
-            Assert.NotSame(alias1, alias2);
+            Assert.Same(alias1, alias2);
         }
 
         [WorkItem(542475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542475")]
@@ -3937,7 +3937,7 @@ class C
 
             // This symbol we generate on-demand.
             var alias2b = model.GetDeclaredSymbol(usingDirectives[1]);
-            Assert.NotSame(alias2, alias2b);
+            Assert.Same(alias2, alias2b);
             Assert.Equal(alias2, alias2b);
         }
 

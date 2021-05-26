@@ -64,6 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool SupportsRecord(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
 
+        public bool SupportsRecordStruct(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion.IsCSharp10OrAbove();
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -708,8 +711,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public bool IsElementAccessExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.ElementAccessExpression;
+        public bool IsElementAccessExpression(SyntaxNode? node)
+            => node.IsKind(SyntaxKind.ElementAccessExpression);
 
         [return: NotNullIfNotNull("node")]
         public SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false)
@@ -724,8 +727,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             closeParen = parenthesizedExpression.CloseParenToken;
         }
 
-        public bool IsIndexerMemberCRef(SyntaxNode node)
-            => node.Kind() == SyntaxKind.IndexerMemberCref;
+        public bool IsIndexerMemberCRef(SyntaxNode? node)
+            => node.IsKind(SyntaxKind.IndexerMemberCref);
 
         public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true)
         {
@@ -1793,6 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
@@ -1927,6 +1931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.RecordDeclaration:
                     return DeclarationKind.Class;
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return DeclarationKind.Struct;
                 case SyntaxKind.InterfaceDeclaration:
                     return DeclarationKind.Interface;

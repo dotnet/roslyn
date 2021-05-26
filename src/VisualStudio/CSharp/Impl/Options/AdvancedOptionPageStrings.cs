@@ -82,15 +82,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_DisplayLineSeparators
             => CSharpVSResources.Show_procedure_line_separators;
 
+        public static string Option_Underline_reassigned_variables
+            => ServicesVSResources.Underline_reassigned_variables;
+
         public static string Option_DontPutOutOrRefOnStruct
-        {
-            get { return CSharpVSResources.Don_t_put_ref_or_out_on_custom_struct; }
-        }
+            => CSharpVSResources.Don_t_put_ref_or_out_on_custom_struct;
 
         public static string Option_EditorHelp
-        {
-            get { return CSharpVSResources.Editor_Help; }
-        }
+            => CSharpVSResources.Editor_Help;
 
         public static string Option_EnableHighlightKeywords
         {
@@ -270,5 +269,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Enable_all_features_in_opened_files_from_source_generators_experimental
             => ServicesVSResources.Enable_all_features_in_opened_files_from_source_generators_experimental;
+
+        public static string Option_Enable_file_logging_for_diagnostics
+            => ServicesVSResources.Enable_file_logging_for_diagnostics;
     }
 }

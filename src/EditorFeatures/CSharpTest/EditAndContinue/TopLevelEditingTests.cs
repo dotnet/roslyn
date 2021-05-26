@@ -588,6 +588,21 @@ namespace N
         }
 
         [Fact]
+        public void TypeKindUpdate3()
+        {
+            var src1 = "record C { }";
+            var src2 = "record struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [record C { }]@0 -> [record struct C { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeKindUpdate, "record struct C", CSharpFeaturesResources.record_struct));
+        }
+
+        [Fact]
         public void Class_Modifiers_Update()
         {
             var src1 = "public static class C { }";
@@ -1694,6 +1709,55 @@ partial record C { }";
         }
 
         [Fact]
+        public void RecordStruct_NoModifiers_Insert()
+        {
+            var src1 = "";
+            var src2 = "record struct C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void RecordStruct_AddField()
+        {
+            var src1 = @"
+record struct C(int X)
+{
+}";
+            var src2 = @"
+record struct C(int X)
+{
+    private int _y = 0;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                 Diagnostic(RudeEditKind.InsertIntoStruct, "_y = 0", FeaturesResources.field, CSharpFeaturesResources.record_struct));
+        }
+
+        [Fact]
+        public void RecordStruct_AddProperty()
+        {
+            var src1 = @"
+record struct C(int X)
+{
+}";
+            var src2 = @"
+record struct C(int X)
+{
+    public int Y { get; set; } = 0;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                 Diagnostic(RudeEditKind.InsertIntoStruct, "public int Y { get; set; } = 0;", FeaturesResources.auto_property, CSharpFeaturesResources.record_struct));
+        }
+
+        [Fact]
         public void Record_NoModifiers_Insert()
         {
             var src1 = "";
@@ -1824,7 +1888,28 @@ public abstract record C<T>
             var src2 = @"
 record C
 {
-    protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+    protected bool PrintMembers(System.Text.StringBuilder builder)
+    {
+        return true;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void RecordStruct_ImplementSynthesized_PrintMembers()
+        {
+            var src1 = "record struct C { }";
+            var src2 = @"
+record struct C
+{
+    private bool PrintMembers(System.Text.StringBuilder builder)
     {
         return true;
     }
@@ -6207,27 +6292,6 @@ class C
         }
 
         [Fact]
-        [WorkItem(37172, "https://github.com/dotnet/roslyn/issues/37172")]
-        [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
-        public void MethodUpdate_UpdateSwitchExpression()
-        {
-            var src1 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 1 };
-}";
-            var src2 = @"
-class C
-{
-    static int F(int a) => a switch { 0 => 0, _ => 2 };
-}";
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
-        }
-
-        [Fact]
         public void MethodUpdate_UpdateStackAllocInLambda1()
         {
             var src1 = "unsafe class C { void M() { F(1, () => { int* a = stackalloc int[10]; }); } }";
@@ -8957,8 +9021,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -9008,8 +9071,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -9035,8 +9097,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.constructor));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]

@@ -280,6 +280,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Convertir en registro</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="new">Convert to record struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Convertir a struct</target>
@@ -674,11 +679,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <source>Missing control character</source>
         <target state="translated">Falta de carácter de control</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">Si se modifica "{0}", que contiene una expresión switch, la sesión de depuración no podrá continuar.</target>
-        <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
@@ -2373,7 +2373,7 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 Si el especificador de formato "f" se usa sin otros especificadores de formato, se interpreta como el especificador de formato de fecha y hora estándar "f".
 
 Cuando se usan especificadores de formato "f" como parte de una cadena de formato proporcionada al método ParseExact, TryParseExact, ParseExact o TryParseExact, el número de especificadores de formato "f" indica el número de dígitos más significativos de la fracción de segundos que deben estar presentes para analizar correctamente la cadena.</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>

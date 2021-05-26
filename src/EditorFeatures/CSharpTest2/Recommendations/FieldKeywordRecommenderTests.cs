@@ -52,6 +52,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInEmptyStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -66,13 +73,16 @@ $$");
     [$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInAttributeInsideRecord()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TestInAttributeInsideRecord(string record)
         {
             // The recommender doesn't work in record in script
             // Tracked by https://github.com/dotnet/roslyn/issues/44865
             await VerifyWorkerAsync(
-@"record C {
+$@"{record} C {{
     [$$", absent: false, TestOptions.RegularPreview);
         }
 

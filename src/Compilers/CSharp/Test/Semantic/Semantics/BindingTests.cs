@@ -244,30 +244,43 @@ class B
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (11,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
+                //         a.E += a.E;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "a.E").WithArguments("E", "method group").WithLocation(11, 9),
-                // (12,13): error CS0019: Operator '!=' cannot be applied to operands of type 'method group' and '<null>'
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a.E != null").WithArguments("!=", "method group", "<null>").WithLocation(12, 13),
-                // (14,15): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
+                // (12,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         if (a.E != null)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a.E").WithArguments("inferred delegate type").WithLocation(12, 13),
+                // (14,15): error CS1503: Argument 1: cannot convert from 'method group' to 'A'
+                //             M(a.E);
                 Diagnostic(ErrorCode.ERR_BadArgType, "a.E").WithArguments("1", "method group", "A").WithLocation(14, 15),
-                // (15, 15): error CS0119: 'A.E()' is a 'method', which is not valid in the given context
+                // (15,15): error CS0119: 'A.E()' is a method, which is not valid in the given context
+                //             a.E.ToString();
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("A.E()", "method").WithLocation(15, 15),
                 // (16,17): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
+                //             o = !a.E;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!a.E").WithArguments("!", "method group").WithLocation(16, 17),
                 // (17,26): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             o = a.E ?? a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(17, 26),
                 // (19,11): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         a.F += a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(19, 11),
                 // (19,18): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         a.F += a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(19, 18),
                 // (20,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         if (a.F != null)
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(20, 15),
                 // (22,17): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             M(a.F);
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(22, 17),
                 // (23,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             a.F.ToString();
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(23, 15),
                 // (24,20): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             o = !a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(24, 20),
                 // (25,39): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             o = (o != null) ? a.E : a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(25, 39));
         }
 

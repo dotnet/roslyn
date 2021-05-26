@@ -172,6 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ITypeSymbol.IsReadOnly => UnderlyingTypeSymbol.IsReadOnly;
 
-        bool ITypeSymbol.IsRecord => UnderlyingTypeSymbol.IsRecord;
+        bool ITypeSymbol.IsRecord => UnderlyingTypeSymbol.IsRecord || UnderlyingTypeSymbol.IsRecordStruct;
     }
 }

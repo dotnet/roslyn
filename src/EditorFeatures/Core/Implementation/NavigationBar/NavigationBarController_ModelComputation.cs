@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
@@ -85,6 +86,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private static async Task<NavigationBarModel> ComputeModelAsync(
             NavigationBarModel lastCompletedModel, ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
+            // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures
+            // that any IO that performs is not potentially on the UI thread.
+            await TaskScheduler.Default;
+
             // When computing items just get the partial semantics workspace.  This will ensure we can get data for this
             // file, and hopefully have enough loaded to get data for other files in the case of partial types.  In the
             // event the other files aren't available, then partial-type information won't be correct.  That's ok though
@@ -95,8 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             if (document == null)
                 return null;
 
-            // TODO: remove .FirstOrDefault()
-            var languageService = GetNavBarService(document);
+            var languageService = document.GetLanguageService<INavigationBarItemService>();
             if (languageService != null)
             {
                 // check whether we can re-use lastCompletedModel. otherwise, update lastCompletedModel here.
@@ -197,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// positioned after the cursor.
         /// </summary>
         /// <returns>A tuple of the matching item, and if it should be shown grayed.</returns>
-        private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
+        private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemService itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
         {
             T exactItem = null;
             var exactItemStart = 0;

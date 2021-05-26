@@ -69,16 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 using var _2 = PooledHashSet<(string? filePath, TextSpan span)>.GetInstance(out var seenLocations);
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
-                    // Because of things like linked files, we may have a source symbol showing up in multiple
-                    // different locations that are effectively at the exact same navigation location for the user.
-                    // i.e. they're the same file/span.  Showing multiple entries for these is just noisy and
-                    // gets worse and worse with shared projects and whatnot.  So, we collapse things down to
-                    // only show a single entry for each unique file/span pair.  Note that we check filepath,
-                    // not 'Document' as linked files will have unique Document instances in each project context
-                    // they are linked into.
-                    if (!seenLocations.Add((declarationLocation.Document.FilePath, declarationLocation.SourceSpan)))
-                        continue;
-
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
                         definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None,
                         additionalProperties: definition.DisplayableProperties, cancellationToken).ConfigureAwait(false);

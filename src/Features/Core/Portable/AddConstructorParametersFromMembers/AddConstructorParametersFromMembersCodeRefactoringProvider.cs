@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -157,7 +155,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
         }
 
-        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, string serializedIntentData, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, string? serializedIntentData, CancellationToken cancellationToken)
         {
             var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, cancellationToken).ConfigureAwait(false);
             if (addConstructorParametersResult == null)
@@ -175,6 +173,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             foreach (var action in actions)
             {
                 var changedSolution = await action.GetChangedSolutionInternalAsync(postProcessChanges: true, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(changedSolution);
                 var intent = new IntentProcessorResult(changedSolution, action.Title, action.ActionName);
                 results.Add(intent);
             }
