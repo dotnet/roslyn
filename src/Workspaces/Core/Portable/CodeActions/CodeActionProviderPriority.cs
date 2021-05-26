@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
     internal enum CodeActionProviderPriority
     {
         /// <summary>
-        /// No priority specified, all refactoring, code fixes, and analyzers should be run.
+        /// No priority specified, all refactoring, code fixes, and analyzers should be run.  This is equivalent
+        /// to <see cref="Normal"/> and <see cref="High"/> combined.
         /// </summary>
         None = 0,
         /// <summary>
