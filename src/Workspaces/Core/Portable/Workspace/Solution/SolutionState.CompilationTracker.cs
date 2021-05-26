@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (ProjectState.SourceGenerators.Any())
                         {
-                            var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray<AdditionalText>(state => new AdditionalTextWithState(state));
+                            var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray(AdditionalTextWithState.FromState);
                             var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
                             var generatorDriver = compilationFactory.CreateGeneratorDriver(
