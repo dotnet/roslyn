@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Span = span;
             Analyzers = analyzers;
             Kind = kind;
+
             _lazyAdditionalFile = new Lazy<AdditionalText>(ComputeAdditionalFile);
         }
 
