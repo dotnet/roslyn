@@ -121,7 +121,11 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class InProgressState : State
             {
-                public ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
+                /// <summary>
+                /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
+                /// the state of the project prior to the mutation.
+                /// </summary>
+                public ImmutableArray<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
 
                 /// <summary>
                 /// The result of taking the original completed compilation that had generated documents and updating them by
