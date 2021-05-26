@@ -171,6 +171,19 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            public bool TryUseCachedEntries(out ImmutableArray<T> entries)
+            {
+                if (TryUseCachedEntries())
+                {
+                    entries = _states[_states.Count - 1].ToImmutableArray();
+                    return true;
+                }
+                {
+                    entries = default;
+                    return false;
+                }
+            }
+
             public bool TryUseCachedEntries()
             {
                 if (_previous._states.Length <= _states.Count)
@@ -194,6 +207,18 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 usedEntries = _states[_states.Count - 1].ToImmutableArray();
+                return true;
+            }
+
+            public bool TryModifyEntry(T value, IEqualityComparer<T> comparer)
+            {
+                if (_previous._states.Length <= _states.Count)
+                {
+                    return false;
+                }
+
+                Debug.Assert(_previous._states[_states.Count].Count == 1);
+                _states.Add(new TableEntry(value, comparer.Equals(_previous._states[0].GetItem(0), value) ? EntryState.Cached : EntryState.Modified));
                 return true;
             }
 

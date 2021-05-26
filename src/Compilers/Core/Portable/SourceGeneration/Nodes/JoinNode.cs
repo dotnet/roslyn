@@ -63,14 +63,11 @@ namespace Microsoft.CodeAnalysis
                     _ => entry1.state
                 };
 
-                // allow the comparer to override modified -> cached
                 var entry = (entry1.item, input2);
-                if (state == EntryState.Modified && _comparer is object)
+                if (state != EntryState.Modified || _comparer is null || !builder.TryModifyEntry(entry, _comparer))
                 {
-                    state = _comparer.Equals(builder.GetLastEntries()[0], entry) ? EntryState.Cached : EntryState.Modified;
+                    builder.AddEntry(entry, state);
                 }
-
-                builder.AddEntry(entry, state);
             }
 
             return builder.ToImmutableAndFree();
