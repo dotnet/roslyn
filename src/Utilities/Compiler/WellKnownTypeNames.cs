@@ -83,6 +83,7 @@ namespace Analyzer.Utilities
         public const string NewtonsoftJsonJsonSerializerSettings = "Newtonsoft.Json.JsonSerializerSettings";
         public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
         public const string NUnitFrameworkAssert = "NUnit.Framework.Assert";
+        public const string NUnitFrameworkInterfacesITestBuilder = "NUnit.Framework.Interfaces.ITestBuilder";
         public const string NUnitFrameworkOneTimeSetUpAttribute = "NUnit.Framework.OneTimeSetUpAttribute";
         public const string NUnitFrameworkOneTimeTearDownAttribute = "NUnit.Framework.OneTimeTearDownAttribute";
         public const string NUnitFrameworkSetUpAttribute = "NUnit.Framework.SetUpAttribute";
