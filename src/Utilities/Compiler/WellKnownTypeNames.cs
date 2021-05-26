@@ -89,9 +89,6 @@ namespace Analyzer.Utilities
         public const string NUnitFrameworkSetUpAttribute = "NUnit.Framework.SetUpAttribute";
         public const string NUnitFrameworkTearDownAttribute = "NUnit.Framework.TearDownAttribute";
         public const string NUnitFrameworkTestAttribute = "NUnit.Framework.TestAttribute";
-        public const string NUnitFrameworkTestCaseAttribute = "NUnit.Framework.TestCaseAttribute";
-        public const string NUnitFrameworkTestCaseSourceAttribute = "NUnit.Framework.TestCaseSourceAttribute";
-        public const string NUnitFrameworkTheoryAttribute = "NUnit.Framework.TheoryAttribute";
         public const string RoslynUtilitiesNonDefaultableAttribute = "Roslyn.Utilities.NonDefaultableAttribute";
         public const string SystemActivator = "System.Activator";
         public const string SystemAppContext = "System.AppContext";
