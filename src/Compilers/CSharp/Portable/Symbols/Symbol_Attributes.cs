@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var binder = rootBinderOpt ?? compilation.GetBinderFactory(syntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
 
                         binder = new ContextualAttributeBinder(binder, this);
-                        Debug.Assert(!binder.InAttributeArgument, "Possible cycle in attribute binding");
+                        Debug.Assert(!binder.InAttributeArgument || this is MethodSymbol { MethodKind: MethodKind.LambdaMethod }, "Possible cycle in attribute binding");
 
                         for (int i = 0; i < attributesToBindCount - prevCount; i++)
                         {

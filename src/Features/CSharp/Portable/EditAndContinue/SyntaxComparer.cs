@@ -567,6 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return Label.TypeDeclaration;
 
                 case SyntaxKind.MethodDeclaration:
@@ -1346,6 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return ((TypeDeclarationSyntax)node).Identifier;
 
                 case SyntaxKind.EnumDeclaration:

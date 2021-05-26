@@ -280,6 +280,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Преобразовать в запись</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="new">Convert to record struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Преобразовать в структуру</target>
@@ -674,11 +679,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Missing control character</source>
         <target state="translated">Отсутствует управляющий символ</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">Изменение "{0}", которое содержит выражение switch, сделает продолжение сеанса отладки невозможным.</target>
-        <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
@@ -2373,7 +2373,7 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 Если описатель формата "f" используется без других описателей формата, он интерпретируется как описатель стандартного формата даты и времени "f".
 
 При использовании описателей формата "f" в качестве части строки формата, передаваемой методу ParseExact, TryParseExact, ParseExact или TryParseExact, число описателей формата "f" указывает количество наиболее значащих цифр в дробной части секунды, которые должны присутствовать для успешного анализа строки.</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>

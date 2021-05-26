@@ -317,6 +317,11 @@
         <target state="new">Qualify property access with 'this' or 'Me'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="new">Reassigned variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">重命名文件(类型与文件名不匹配)(_F)</target>
@@ -455,6 +460,11 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">用户类型 - 接口</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Record_Structs">
+        <source>User Types - Record Structs</source>
+        <target state="new">User Types - Record Structs</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Records">

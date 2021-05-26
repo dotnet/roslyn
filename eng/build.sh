@@ -155,7 +155,9 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --sourcebuild)
+    --sourcebuild|/p:arcadebuildfromsource=true)
+      # Arcade specifies /p:ArcadeBuildFromSource=true instead of --sourceBuild, but that's not developer friendly so we
+      # have an alias.
       source_build=true
       ;;
     /p:*)
@@ -278,7 +280,7 @@ function BuildSolution {
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
-    /p:DotNetBuildFromSource=$source_build \
+    /p:ArcadeBuildFromSource=$source_build \
     $test_runtime \
     $mono_tool \
     $generate_documentation_file \
@@ -291,7 +293,7 @@ if [[ "$restore" == true || "$test_core_clr" == true ]]; then
   install=true
 fi
 InitializeDotNetCli $install
-if [[ "$restore" == true ]]; then
+if [[ "$restore" == true && "$source_build" != true ]]; then
   dotnet tool restore
 fi
 

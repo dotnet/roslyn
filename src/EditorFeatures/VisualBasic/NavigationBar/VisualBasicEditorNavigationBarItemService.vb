@@ -15,7 +15,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
-    <ExportLanguageService(GetType(INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(INavigationBarItemService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicEditorNavigationBarItemService
         Inherits AbstractEditorNavigationBarItemService
 
