@@ -834,67 +834,64 @@ namespace Microsoft.CodeAnalysis
                                     this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
                                     additionalTexts);
 
-                            if (generatorDriver != null)
+                            generatorDriver = generatorDriver.RunGenerators(compilationWithoutGenerators, cancellationToken);
+                            var runResult = generatorDriver.GetRunResult();
+
+                            // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
+                            // to compilationWithStaleGeneratedTrees if we at any point realize it can't be used. We'll first check the count of trees
+                            // if that changed then we absolutely can't reuse it. But if the counts match, we'll then see if each generated tree
+                            // content is identical to the prior generation run; if we find a match each time, then the set of the generated trees
+                            // and the prior generated trees are identical.
+                            if (compilationWithStaleGeneratedTrees != null)
                             {
-                                generatorDriver = generatorDriver.RunGenerators(compilationWithoutGenerators, cancellationToken);
-                                var runResult = generatorDriver.GetRunResult();
-
-                                // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
-                                // to compilationWithStaleGeneratedTrees if we at any point realize it can't be used. We'll first check the count of trees
-                                // if that changed then we absolutely can't reuse it. But if the counts match, we'll then see if each generated tree
-                                // content is identical to the prior generation run; if we find a match each time, then the set of the generated trees
-                                // and the prior generated trees are identical.
-                                if (compilationWithStaleGeneratedTrees != null)
+                                if (nonAuthoritativeGeneratedDocuments.Count != runResult.Results.Sum(r => r.GeneratedSources.Length))
                                 {
-                                    if (nonAuthoritativeGeneratedDocuments.Count != runResult.Results.Sum(r => r.GeneratedSources.Length))
-                                    {
-                                        compilationWithStaleGeneratedTrees = null;
-                                    }
+                                    compilationWithStaleGeneratedTrees = null;
                                 }
+                            }
 
-                                foreach (var generatorResult in runResult.Results)
+                            foreach (var generatorResult in runResult.Results)
+                            {
+                                foreach (var generatedSource in generatorResult.GeneratedSources)
                                 {
-                                    foreach (var generatedSource in generatorResult.GeneratedSources)
+                                    var existing = FindExistingGeneratedDocumentState(
+                                        nonAuthoritativeGeneratedDocuments,
+                                        generatorResult.Generator,
+                                        generatedSource.HintName);
+
+                                    if (existing != null)
                                     {
-                                        var existing = FindExistingGeneratedDocumentState(
-                                            nonAuthoritativeGeneratedDocuments,
-                                            generatorResult.Generator,
-                                            generatedSource.HintName);
+                                        var newDocument = existing.WithUpdatedGeneratedContent(
+                                                generatedSource.SourceText,
+                                                this.ProjectState.ParseOptions!);
 
-                                        if (existing != null)
-                                        {
-                                            var newDocument = existing.WithUpdatedGeneratedContent(
-                                                    generatedSource.SourceText,
-                                                    this.ProjectState.ParseOptions!);
+                                        generatedDocumentsBuilder.Add(newDocument);
 
-                                            generatedDocumentsBuilder.Add(newDocument);
-
-                                            if (newDocument != existing)
-                                                compilationWithStaleGeneratedTrees = null;
-                                        }
-                                        else
-                                        {
-                                            // NOTE: the use of generatedSource.SyntaxTree to fetch the path and options is OK,
-                                            // since the tree is a lazy tree and that won't trigger the parse.
-                                            var identity = SourceGeneratedDocumentIdentity.Generate(
-                                                ProjectState.Id,
-                                                generatedSource.HintName,
-                                                generatorResult.Generator,
-                                                generatedSource.SyntaxTree.FilePath);
-
-                                            generatedDocumentsBuilder.Add(
-                                                SourceGeneratedDocumentState.Create(
-                                                    identity,
-                                                    generatedSource.SourceText,
-                                                    generatedSource.SyntaxTree.Options,
-                                                    this.ProjectState.LanguageServices,
-                                                    solution.Services));
-
-                                            // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
-                                            // was added, and an equal number must have been removed. Rather than trying to incrementally update
-                                            // this compilation, we'll just toss this and re-add all the trees.
+                                        if (newDocument != existing)
                                             compilationWithStaleGeneratedTrees = null;
-                                        }
+                                    }
+                                    else
+                                    {
+                                        // NOTE: the use of generatedSource.SyntaxTree to fetch the path and options is OK,
+                                        // since the tree is a lazy tree and that won't trigger the parse.
+                                        var identity = SourceGeneratedDocumentIdentity.Generate(
+                                            ProjectState.Id,
+                                            generatedSource.HintName,
+                                            generatorResult.Generator,
+                                            generatedSource.SyntaxTree.FilePath);
+
+                                        generatedDocumentsBuilder.Add(
+                                            SourceGeneratedDocumentState.Create(
+                                                identity,
+                                                generatedSource.SourceText,
+                                                generatedSource.SyntaxTree.Options,
+                                                this.ProjectState.LanguageServices,
+                                                solution.Services));
+
+                                        // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
+                                        // was added, and an equal number must have been removed. Rather than trying to incrementally update
+                                        // this compilation, we'll just toss this and re-add all the trees.
+                                        compilationWithStaleGeneratedTrees = null;
                                     }
                                 }
                             }
