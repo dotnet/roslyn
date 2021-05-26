@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -212,11 +213,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // Compute and return the high pri set of fixes and refactorings first so the user
                     // can act on them immediately without waiting on the regular set.
-                    var highPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, _ => null, highPriority: true, cancellationToken);
+                    var highPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, _ => null, CodeActionProviderPriority.High, cancellationToken);
                     await foreach (var set in highPriSet)
                         yield return set;
 
-                    var lowPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, _ => null, highPriority: false, cancellationToken);
+                    var lowPriSet = GetCodeFixesAndRefactoringsAsync(state, requestedActionCategories, document, range, _ => null, CodeActionProviderPriority.Normal, cancellationToken);
                     await foreach (var set in lowPriSet)
                         yield return set;
                 }
@@ -228,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Document document,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
-                bool highPriority,
+                CodeActionProviderPriority priority,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 var workspace = document.Project.Solution.Workspace;
@@ -238,12 +239,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                    addOperationScope, highPriority, isBlocking: false, cancellationToken);
+                    addOperationScope, priority, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
-                    addOperationScope, highPriority, isBlocking: false, cancellationToken);
+                    addOperationScope, priority, isBlocking: false, cancellationToken);
 
-                if (highPriority)
+                if (priority == CodeActionProviderPriority.High)
                 {
                     // in a high pri scenario, return data as soon as possible so that the user can interact with them.
                     // this is especially important for state-machine oriented refactorings (like rename) where the user
@@ -348,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                    addOperationScope, highPriority: null, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
+                    addOperationScope, CodeActionProviderPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
             private static async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync(
@@ -359,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Document document,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
-                bool? highPriority,
+                CodeActionProviderPriority priority,
                 bool isBlocking,
                 CancellationToken cancellationToken)
             {
@@ -376,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
-                    includeSuppressionFixes, highPriority, isBlocking, addOperationScope, cancellationToken).ConfigureAwait(false);
+                    includeSuppressionFixes, priority, isBlocking, addOperationScope, cancellationToken).ConfigureAwait(false);
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
@@ -407,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 this.AssertIsForeground();
                 return GetRefactoringsAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
-                    addOperationScope, highPriority: null, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
+                    addOperationScope, CodeActionProviderPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
             private static async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync(
@@ -418,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Document document,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
-                bool? highPriority,
+                CodeActionProviderPriority priority,
                 bool isBlocking,
                 CancellationToken cancellationToken)
             {
@@ -437,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                 return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                    workspace, state.Target.Owner._codeRefactoringService, document, selection.Value, highPriority, isBlocking,
+                    workspace, state.Target.Owner._codeRefactoringService, document, selection.Value, priority, isBlocking,
                     addOperationScope, filterOutsideSelection, cancellationToken).ConfigureAwait(false);
             }
 

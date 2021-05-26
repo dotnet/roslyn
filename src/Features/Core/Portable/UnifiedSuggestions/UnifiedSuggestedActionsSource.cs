@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             Document document,
             TextSpan selection,
             bool includeSuppressionFixes,
-            bool? highPriority,
+            CodeActionProviderPriority priority,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // the UI thread.
             var fixes = await Task.Run(
                 () => codeFixService.GetFixesAsync(
-                document, selection, includeSuppressionFixes, highPriority, isBlocking,
+                document, selection, includeSuppressionFixes, priority, isBlocking,
                 addOperationScope, cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeRefactoringService codeRefactoringService,
             Document document,
             TextSpan selection,
-            bool? highPriority,
+            CodeActionProviderPriority priority,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // the UI thread.
             var refactorings = await Task.Run(
                 () => codeRefactoringService.GetRefactoringsAsync(
-                    document, selection, highPriority, isBlocking, addOperationScope,
+                    document, selection, priority, isBlocking, addOperationScope,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredRefactorings = FilterOnAnyThread(refactorings, selection, filterOutsideSelection);

@@ -27,5 +27,4 @@ namespace Microsoft.CodeAnalysis.CodeActions
         Medium = 2,
         High = 3
     }
-#pragma warning restore CA1200 // Avoid using cref tags with a prefix
 }

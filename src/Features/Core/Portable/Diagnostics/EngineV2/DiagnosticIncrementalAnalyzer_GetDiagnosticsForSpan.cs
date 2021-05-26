@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
             Document document, TextSpan range, ArrayBuilder<DiagnosticData> result, string? diagnosticId,
-            bool includeSuppressedDiagnostics, bool? highPriority, bool blockForData,
+            bool includeSuppressedDiagnostics, CodeActionProviderPriority priority, bool blockForData,
             Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
                 this, document, range, blockForData, addOperationScope, includeSuppressedDiagnostics,
-                highPriority, diagnosticId, cancellationToken).ConfigureAwait(false);
+                priority, diagnosticId, cancellationToken).ConfigureAwait(false);
             return await getter.TryGetAsync(result, cancellationToken).ConfigureAwait(false);
         }
 
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             TextSpan range,
             string? diagnosticId,
             bool includeSuppressedDiagnostics,
-            bool? highPriority,
+            CodeActionProviderPriority priority,
             bool blockForData,
             Func<string, IDisposable?>? addOperationScope,
             CancellationToken cancellationToken)
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
             var result = await TryAppendDiagnosticsForSpanAsync(
                 document, range, list, diagnosticId, includeSuppressedDiagnostics,
-                highPriority, blockForData, addOperationScope, cancellationToken).ConfigureAwait(false);
+                priority, blockForData, addOperationScope, cancellationToken).ConfigureAwait(false);
             Debug.Assert(result);
             return list.ToImmutable();
         }
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly TextSpan _range;
             private readonly bool _blockForData;
             private readonly bool _includeSuppressedDiagnostics;
-            private readonly bool? _highPriority;
+            private readonly CodeActionProviderPriority _priority;
             private readonly string? _diagnosticId;
             private readonly Func<string, IDisposable?>? _addOperationScope;
 
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  bool blockForData,
                  Func<string, IDisposable?>? addOperationScope,
                  bool includeSuppressedDiagnostics,
-                 bool? highPriority,
+                 CodeActionProviderPriority priority,
                  string? diagnosticId,
                  CancellationToken cancellationToken)
             {
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, stateSets, diagnosticId, range,
-                    blockForData, addOperationScope, includeSuppressedDiagnostics, highPriority);
+                    blockForData, addOperationScope, includeSuppressedDiagnostics, priority);
             }
 
             private LatestDiagnosticsForSpanGetter(
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool blockForData,
                 Func<string, IDisposable?>? addOperationScope,
                 bool includeSuppressedDiagnostics,
-                bool? highPriority)
+                CodeActionProviderPriority priority)
             {
                 _owner = owner;
                 _compilationWithAnalyzers = compilationWithAnalyzers;
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _blockForData = blockForData;
                 _addOperationScope = addOperationScope;
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
-                _highPriority = highPriority;
+                _priority = priority;
             }
 
             public async Task<bool> TryGetAsync(ArrayBuilder<DiagnosticData> list, CancellationToken cancellationToken)
@@ -234,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private bool MatchesPriority(DiagnosticAnalyzer analyzer)
             {
                 // If caller isn't asking for prioritized result, then run all analyzers.
-                if (_highPriority == null)
+                if (_priority == CodeActionProviderPriority.None)
                     return true;
 
                 // Otherwise, check our special internal flag to tell.
@@ -244,7 +245,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // add-using fixer is high pri, and it works off of compiler diagnostics.  So we always have
                 // to run that one up front.
                 var analyzerIsHighPri = analyzer.IsCompilerAnalyzer() || analyzer is IBuiltInAnalyzer { IsHighPriority: true };
-                return analyzerIsHighPri == _highPriority;
+                var highPriority = _priority == CodeActionProviderPriority.High;
+                return analyzerIsHighPri == highPriority;
             }
 
             private bool ShouldInclude(DiagnosticData diagnostic)

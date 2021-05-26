@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(
-                    document, range, diagnostics, diagnosticId: null, includeSuppressedDiagnostics, highPriority: null, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
+                    document, range, diagnostics, diagnosticId: null, includeSuppressedDiagnostics, CodeActionProviderPriority.None, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.False;
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Document document, TextSpan range,
             string? diagnosticId,
             bool includeSuppressedDiagnostics,
-            bool? highPriority,
+            CodeActionProviderPriority priority,
             Func<string, IDisposable?>? addOperationScope,
             CancellationToken cancellationToken)
         {
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
-                    document, range, diagnosticId, includeSuppressedDiagnostics, highPriority,
+                    document, range, diagnosticId, includeSuppressedDiagnostics, priority,
                     blockForData: true, addOperationScope, cancellationToken), cancellationToken);
             }
 

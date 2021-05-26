@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             TextSpan range,
             bool includeConfigurationFixes,
-            bool? highPriority,
+            CodeActionProviderPriority priority,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // order diagnostics by span.
             SortedDictionary<TextSpan, List<DiagnosticData>>? aggregatedDiagnostics = null;
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
-                document, range, diagnosticIdOpt: null, includeConfigurationFixes, highPriority, addOperationScope, cancellationToken).ConfigureAwait(false);
+                document, range, diagnosticIdOpt: null, includeConfigurationFixes, priority, addOperationScope, cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.IsSuppressed)
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 await AppendFixesAsync(
                     document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan: false,
-                    highPriority, isBlocking, result, addOperationScope, cancellationToken).ConfigureAwait(false);
+                    priority, isBlocking, result, addOperationScope, cancellationToken).ConfigureAwait(false);
             }
 
             if (result.Count > 0 && TryGetWorkspaceFixersPriorityMap(document, out var fixersForLanguage))
@@ -239,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
-            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, highPriority: null, isBlocking: false, result, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
+            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, CodeActionProviderPriority.None, isBlocking: false, result, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
@@ -333,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextSpan span,
             IEnumerable<DiagnosticData> diagnostics,
             bool fixAllForInSpan,
-            bool? highPriority,
+            CodeActionProviderPriority priority,
             bool isBlocking,
             ArrayBuilder<CodeFixCollection> result,
             Func<string, IDisposable?> addOperationScope,
@@ -398,8 +399,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (highPriority != null && highPriority != fixer.IsHighPriority)
-                        continue;
+                    if (priority != CodeActionProviderPriority.None)
+                    {
+                        var highPriority = priority == CodeActionProviderPriority.High;
+                        if (highPriority != fixer.IsHighPriority)
+                            continue;
+                    }
 
                     await AppendFixesOrConfigurationsAsync(
                         document, span, diagnostics, fixAllForInSpan, result, fixer,

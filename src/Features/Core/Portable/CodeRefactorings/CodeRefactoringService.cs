@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public async Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
             Document document,
             TextSpan state,
-            bool? highPriority,
+            CodeActionProviderPriority priority,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
@@ -120,8 +120,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                 foreach (var provider in GetProviders(document))
                 {
-                    if (highPriority != null && highPriority != provider.IsHighPriority)
-                        continue;
+                    if (priority != CodeActionProviderPriority.None)
+                    {
+                        var highPriority = priority == CodeActionProviderPriority.High;
+                        if (highPriority != provider.IsHighPriority)
+                            continue;
+                    }
 
                     tasks.Add(Task.Run(() =>
                         {
