@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
-using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 {
@@ -20,14 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
     {
         public const string TagId = "inline error";
 
-        private readonly string _errorType;
+        public readonly string ErrorType;
         private readonly DiagnosticData _diagnostic;
         private readonly IEditorFormatMap _editorFormatMap;
 
         public InlineErrorTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap)
             : base(editorFormatMap)
         {
-            _errorType = errorType;
+            ErrorType = errorType;
             _diagnostic = diagnostic;
             _editorFormatMap = editorFormatMap;
         }
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             block.Arrange(new Rect(block.DesiredSize));
 
-            var color = _editorFormatMap.GetProperties(_errorType)[EditorFormatDefinition.ForegroundBrushId];
+            var color = _editorFormatMap.GetProperties(ErrorType)[EditorFormatDefinition.ForegroundBrushId];
             var border = new Border
             {
                 Background = (Brush)color,
@@ -88,11 +87,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
         protected override Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap)
         {
-            if (_errorType is PredefinedErrorTypeNames.SyntaxError)
+            if (ErrorType is PredefinedErrorTypeNames.SyntaxError)
             {
                 return Colors.Red;
             }
-            else if (_errorType is PredefinedErrorTypeNames.Warning)
+            else if (ErrorType is PredefinedErrorTypeNames.Warning)
             {
                 return Colors.Green;
             }

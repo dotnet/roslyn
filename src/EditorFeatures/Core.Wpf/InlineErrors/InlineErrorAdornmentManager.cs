@@ -18,12 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 {
     internal class InlineErrorAdornmentManager : AdornmentManager<InlineErrorTag>
     {
-        private readonly IClassificationType _classificationType;
+        private readonly IClassificationTypeRegistryService _classificationRegistryService;
         private readonly IClassificationFormatMap _formatMap;
-        /// <summary>
-        /// Lazy initialized, use <see cref="Format"/> for access
-        /// </summary>
         private TextFormattingRunProperties? _format;
+        private readonly Dictionary<IMappingTagSpan<InlineErrorTag>, SnapshotPoint> _tagSpanToPointMap;
 
         public InlineErrorAdornmentManager(IThreadingContext threadingContext,
             IWpfTextView textView, IViewTagAggregatorFactoryService tagAggregatorFactoryService,
@@ -32,9 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             IClassificationTypeRegistryService classificationTypeRegistryService)
             : base(threadingContext, textView, tagAggregatorFactoryService, asyncListener, adornmentLayerName)
         {
-            _classificationType = classificationTypeRegistryService.GetClassificationType(InlineErrorTag.TagId);
+            _classificationRegistryService = classificationTypeRegistryService;
             _formatMap = classificationFormatMapService.GetClassificationFormatMap(textView);
             _formatMap.ClassificationFormatMappingChanged += OnClassificationFormatMappingChanged;
+            _tagSpanToPointMap = new Dictionary<IMappingTagSpan<InlineErrorTag>, SnapshotPoint>();
         }
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
@@ -61,23 +60,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             return new InlineErrorAdornmentManager(threadingContext, textView, aggregatorService, asyncListener, adornmentLayerName);
         }*/
 
-        private TextFormattingRunProperties Format
+        private TextFormattingRunProperties GetFormat(IClassificationType classificationType)
         {
-            get
-            {
-                _format ??= _formatMap.GetTextProperties(_classificationType);
-                return _format;
-            }
+            _format ??= _formatMap.GetTextProperties(classificationType);
+            return _format;
         }
 
-        private Dictionary<IMappingTagSpan<GraphicsTag>, SnapshotPoint> GetPointToTagSpan()
+        private Dictionary<int, List<IMappingTagSpan<InlineErrorTag>>> GetSpansOnOwnLine(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
-
-        }
-
-        private Dictionary<int, List<IMappingTagSpan<GraphicsTag>>> GetSpansOnOwnLine(NormalizedSnapshotSpanCollection changedSpanCollection)
-        {
-            var map = new Dictionary<int, List<IMappingTagSpan<GraphicsTag>>>();
+            _tagSpanToPointMap.Clear();
+            var map = new Dictionary<int, List<IMappingTagSpan<InlineErrorTag>>>();
             var viewSnapshot = _textView.TextSnapshot;
             var viewLines = _textView.TextViewLines;
 
@@ -119,20 +111,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                         continue;
                     }
 
-                    var textViewLine = _textView.GetTextViewLineContainingBufferPosition(point.Value);
-                    if (textViewLine.End.Position >= point.Value.Position)
-                    {
-                        continue;
-                    }
-
                     var lineNum = mappedPoint.Value.GetContainingLine().LineNumber;
                     if (!map.TryGetValue(lineNum, out var list))
                     {
-                        list = new List<IMappingTagSpan<GraphicsTag>>();
+                        list = new List<IMappingTagSpan<InlineErrorTag>>();
                         map.Add(lineNum, list);
                     }
 
                     list.Add(tagMappingSpan);
+                    _tagSpanToPointMap.Add(tagMappingSpan, point.Value);
                 }
             }
 
@@ -175,14 +162,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                     if (geometry != null)
                     {
                         var tag = tagMappingSpanList[0].Tag;
-                        var graphicsResult = tag.GetGraphics(_textView, geometry, Format);
-                        if (graphicsResult.VisualElement.DesiredSize.Width 
-                        _adornmentLayer.AddAdornment(
-                            behavior: AdornmentPositioningBehavior.TextRelative,
-                            visualSpan: span,
-                            tag: tag,
-                            adornment: graphicsResult.VisualElement,
-                            removedCallback: delegate { graphicsResult.Dispose(); });
+                        var graphicsResult = tag.GetGraphics(_textView, geometry, GetFormat(_classificationRegistryService.GetClassificationType(tag.ErrorType)));
+                        if (!_tagSpanToPointMap.TryGetValue(tagMappingSpanList[0], out var point))
+                        {
+                            continue;
+                        }
+
+                        var lineView = _textView.GetTextViewLineContainingBufferPosition(point);
+
+                        if (lineView.Right < _textView.ViewportWidth - graphicsResult.VisualElement.DesiredSize.Width)
+                        {
+                            _adornmentLayer.AddAdornment(
+                                behavior: AdornmentPositioningBehavior.TextRelative,
+                                visualSpan: span,
+                                tag: tag,
+                                adornment: graphicsResult.VisualElement,
+                                removedCallback: delegate { graphicsResult.Dispose(); });
+                        }
                     }
                 }
             }

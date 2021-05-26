@@ -1077,7 +1077,13 @@ Do you want to proceed?</value>
   <data name="All_methods" xml:space="preserve">
     <value>All methods</value>
   </data>
-  <data name="Inline_Errors" xml:space="preserve">
-    <value>Inline Errors</value>
+  <data name="Inline_Errors_Error" xml:space="preserve">
+    <value>Inline Errors - Error</value>
+  </data>
+  <data name="Inline_Errors_Rude_Edit" xml:space="preserve">
+    <value>Inline Errors - Rude Edit</value>
+  </data>
+  <data name="Inline_Errors_Warning" xml:space="preserve">
+    <value>Inline Errors - Warning</value>
   </data>
 </root>
