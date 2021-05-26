@@ -10,6 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" PrivateAssets="all" />
+    <PackageReference Include="EnvDTE90" Version="$(EnvDTE90Version)" PrivateAssets="all" />
+    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Embeddable" Version="$(MicrosoftInternalVisualStudioShellEmbeddableVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed" Version="$(MicrosoftVisualStudioProjectSystemManaged)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" Version="$(MicrosoftVisualStudioProjectSystemManagedVS)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" PrivateAssets="all" />
@@ -18,9 +21,11 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="$(MicrosoftVisualStudioShellInterop80Version)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.1.DesignTime" Version="$(MicrosoftVisualStudioShellInterop151DesignTimeVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.6.DesignTime" Version="$(MicrosoftVisualStudioShellInterop156DesignTimeVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" PrivateAssets="all" />
     <PackageReference Include="NuGet.SolutionRestoreManager.Interop" Version="$(NuGetSolutionRestoreManagerInteropVersion)" PrivateAssets="all" />
     <PackageReference Include="NuGet.VisualStudio" Version="$(NuGetVisualStudio)" PrivateAssets="all" />
+    <PackageReference Include="RoslynTools.SignTool" Version="$(RoslynToolsSignTool)" PrivateAssets="all" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" PrivateAssets="all" />
   </ItemGroup>
 </Project>
