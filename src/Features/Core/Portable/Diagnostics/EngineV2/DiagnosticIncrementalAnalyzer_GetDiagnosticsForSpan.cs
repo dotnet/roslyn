@@ -189,9 +189,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
                 if (existingData.Version == version)
                 {
-                    if (!existingData.Items.IsEmpty)
+                    foreach (var item in existingData.Items)
                     {
-                        list.AddRange(existingData.Items.Where(ShouldInclude));
+                        if (ShouldInclude(item))
+                            list.Add(item);
                     }
 
                     return true;
