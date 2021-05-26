@@ -173,7 +173,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 ArrayBuilder<DiagnosticData> list,
                 CancellationToken cancellationToken)
             {
-                if (!stateSet.Analyzer.SupportAnalysisKind(kind))
+                if (!stateSet.Analyzer.SupportAnalysisKind(kind) ||
+                    !MatchesPriority(stateSet.Analyzer))
                 {
                     return true;
                 }
