@@ -257,8 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 _ => null,
             };
 
-        public static BaseParameterListSyntax? GetParameterList(this SyntaxNode declaration)
-            => declaration.Kind() switch
+        public static BaseParameterListSyntax? GetParameterList(this SyntaxNode? declaration)
+            => declaration?.Kind() switch
             {
                 SyntaxKind.DelegateDeclaration => ((DelegateDeclarationSyntax)declaration).ParameterList,
                 SyntaxKind.MethodDeclaration => ((MethodDeclarationSyntax)declaration).ParameterList,
@@ -270,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
                 SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
                 SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
+                SyntaxKind.RecordDeclaration => ((RecordDeclarationSyntax)declaration).ParameterList,
                 _ => null,
             };
 
@@ -933,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBrackets(this SyntaxNode node)
+        public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBrackets(this SyntaxNode node)
         {
             switch (node)
             {
@@ -952,6 +953,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
                 case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
+                case LocalFunctionStatementSyntax localFunction: return localFunction.Modifiers;
+                case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.Modifiers;
             }
 
             return default;
@@ -963,6 +966,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
                 case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
+                case LocalFunctionStatementSyntax localFunction: return localFunction.WithModifiers(modifiers);
+                case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.WithModifiers(modifiers);
             }
 
             return null;

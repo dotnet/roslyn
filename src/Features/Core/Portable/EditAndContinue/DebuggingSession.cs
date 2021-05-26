@@ -97,61 +97,79 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
 
+        /// <summary>
+        /// Gets the capabilities of the runtime with respect to applying code changes.
+        /// </summary>
+        internal readonly EditAndContinueCapabilities Capabilities;
+
+        private readonly DebuggingSessionTelemetry _telemetry;
+        internal EditSession EditSession;
+
         internal DebuggingSession(
             Solution solution,
             IManagedEditAndContinueDebuggerService debuggerService,
+            EditAndContinueCapabilities capabilities,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
-            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates)
+            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
+            DebuggingSessionTelemetry debuggingSessionTelemetry,
+            EditSessionTelemetry editSessionTelemetry)
         {
             _compilationOutputsProvider = compilationOutputsProvider;
+            _telemetry = debuggingSessionTelemetry;
 
+            Capabilities = capabilities;
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
             NonRemappableRegions = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
-        }
-
-        // test only
-        internal void Test_SetNonRemappableRegions(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
-            => NonRemappableRegions = nonRemappableRegions;
-
-        // test only
-        internal ImmutableHashSet<Guid> Test_GetModulesPreparedForUpdate()
-        {
-            lock (_modulesPreparedForUpdateGuard)
-            {
-                return _modulesPreparedForUpdate.ToImmutableHashSet();
-            }
-        }
-
-        // test only
-        internal EmitBaseline Test_GetProjectEmitBaseline(ProjectId id)
-        {
-            lock (_projectEmitBaselinesGuard)
-            {
-                return _projectEmitBaselines[id];
-            }
-        }
-
-        // internal for testing
-        internal ImmutableArray<IDisposable> GetBaselineModuleReaders()
-        {
-            lock (_projectEmitBaselinesGuard)
-            {
-                return _initialBaselineModuleReaders.ToImmutableArrayOrEmpty();
-            }
+            EditSession = new EditSession(this, editSessionTelemetry, inBreakState: false);
         }
 
         internal CancellationToken CancellationToken => _cancellationSource.Token;
-        internal void Cancel() => _cancellationSource.Cancel();
 
         public void Dispose()
         {
+            _cancellationSource.Cancel();
+
             foreach (var reader in GetBaselineModuleReaders())
             {
                 reader.Dispose();
             }
 
             _cancellationSource.Dispose();
+        }
+
+        private void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            documentsToReanalyze = EditSession.GetDocumentsWithReportedDiagnostics();
+
+            var editSessionTelemetryData = EditSession.Telemetry.GetDataAndClear();
+
+            // TODO: report a separate telemetry data for hot reload sessions to preserve the semantics of the current telemetry data
+            if (EditSession.InBreakState)
+            {
+                _telemetry.LogEditSession(editSessionTelemetryData);
+            }
+        }
+
+        public void EndSession(out ImmutableArray<DocumentId> documentsToReanalyze, out DebuggingSessionTelemetry.Data telemetryData)
+        {
+            EndEditSession(out documentsToReanalyze);
+            telemetryData = _telemetry.GetDataAndClear();
+            Dispose();
+        }
+
+        internal void RestartEditSession(bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            EndEditSession(out documentsToReanalyze);
+            EditSession = new EditSession(this, EditSession.Telemetry, inBreakState);
+        }
+
+        private ImmutableArray<IDisposable> GetBaselineModuleReaders()
+        {
+            lock (_projectEmitBaselinesGuard)
+            {
+                return _initialBaselineModuleReaders.ToImmutableArrayOrEmpty();
+            }
         }
 
         internal CompilationOutputs GetCompilationOutputs(Project project)
@@ -217,7 +235,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return (outputs.ReadAssemblyModuleVersionId(), Error: null);
                 }
-                catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
+                catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
                 {
                     return (Mvid: Guid.Empty, Error: null);
                 }
@@ -361,6 +379,39 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             return builder.ToImmutable();
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly DebuggingSession _instance;
+
+            public TestAccessor(DebuggingSession instance)
+                => _instance = instance;
+
+            public void SetNonRemappableRegions(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
+                => _instance.NonRemappableRegions = nonRemappableRegions;
+
+            public ImmutableHashSet<Guid> GetModulesPreparedForUpdate()
+            {
+                lock (_instance._modulesPreparedForUpdateGuard)
+                {
+                    return _instance._modulesPreparedForUpdate.ToImmutableHashSet();
+                }
+            }
+
+            public EmitBaseline GetProjectEmitBaseline(ProjectId id)
+            {
+                lock (_instance._projectEmitBaselinesGuard)
+                {
+                    return _instance._projectEmitBaselines[id];
+                }
+            }
+
+            public ImmutableArray<IDisposable> GetBaselineModuleReaders()
+                => _instance.GetBaselineModuleReaders();
         }
     }
 }

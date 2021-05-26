@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.Utilities;
@@ -32,24 +33,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 IFindAllReferencesWindow findReferencesWindow,
                 ImmutableArray<ITableColumnDefinition> customColumns,
                 bool includeContainingTypeAndMemberColumns,
-                bool includeKindColumn,
-                CancellationToken cancellationToken)
-                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken)
+                bool includeKindColumn)
+                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 
-            protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition)
+            protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
                 // If this is a definition we always want to show, then create entries for all the declaration locations
                 // immediately.  Otherwise, we'll create them on demand when we hear about references for this
                 // definition.
                 if (definition.DisplayIfNoReferences)
-                    await AddDeclarationEntriesAsync(definition, expandedByDefault: true).ConfigureAwait(false);
+                    await AddDeclarationEntriesAsync(definition, expandedByDefault: true, cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task AddDeclarationEntriesAsync(DefinitionItem definition, bool expandedByDefault)
+            private async Task AddDeclarationEntriesAsync(DefinitionItem definition, bool expandedByDefault, CancellationToken cancellationToken)
             {
-                CancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // Don't do anything if we already have declaration entries for this definition 
                 // (i.e. another thread beat us to this).
@@ -64,11 +64,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // lock, and I'd like to avoid that.  That does mean that we might do extra
                 // work if multiple threads end up down this path.  But only one of them will
                 // win when we access the lock below.
-                using var _ = ArrayBuilder<Entry>.GetInstance(out var declarations);
+
+                using var _1 = ArrayBuilder<Entry>.GetInstance(out var declarations);
+                using var _2 = PooledHashSet<(string? filePath, TextSpan span)>.GetInstance(out var seenLocations);
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
                     var definitionEntry = await TryCreateDocumentSpanEntryAsync(
-                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None, additionalProperties: definition.DisplayableProperties).ConfigureAwait(false);
+                        definitionBucket, declarationLocation, HighlightSpanKind.Definition, SymbolUsageInfo.None,
+                        additionalProperties: definition.DisplayableProperties, cancellationToken).ConfigureAwait(false);
                     declarations.AddIfNotNull(definitionEntry);
                 }
 
@@ -102,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
+            protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
             {
                 // Normal references go into both sets of entries.  We ensure an entry for the definition, and an entry
                 // for the reference itself.
@@ -112,46 +115,48 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         bucket, reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
                         reference.SymbolUsageInfo,
-                        reference.AdditionalProperties),
+                        reference.AdditionalProperties,
+                        cancellationToken),
                     addToEntriesWhenGroupingByDefinition: true,
-                    addToEntriesWhenNotGroupingByDefinition: true);
+                    addToEntriesWhenNotGroupingByDefinition: true,
+                    expandedByDefault: true,
+                    cancellationToken);
             }
 
-            protected async ValueTask OnEntryFoundAsync(
+            private async ValueTask OnEntryFoundAsync(
                 DefinitionItem definition,
                 Func<RoslynDefinitionBucket, Task<Entry?>> createEntryAsync,
                 bool addToEntriesWhenGroupingByDefinition,
                 bool addToEntriesWhenNotGroupingByDefinition,
-                bool expandedByDefault = true)
+                bool expandedByDefault,
+                CancellationToken cancellationToken)
             {
                 Debug.Assert(addToEntriesWhenGroupingByDefinition || addToEntriesWhenNotGroupingByDefinition);
-                CancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 // OK, we got a *reference* to some definition item.  This may have been a reference for some definition
                 // that we haven't created any declaration entries for (i.e. because it had DisplayIfNoReferences =
                 // false).  Because we've now found a reference, we want to make sure all its declaration entries are
                 // added.
-                await AddDeclarationEntriesAsync(definition, expandedByDefault).ConfigureAwait(false);
+                await AddDeclarationEntriesAsync(definition, expandedByDefault, cancellationToken).ConfigureAwait(false);
 
                 // First find the bucket corresponding to our definition.
                 var definitionBucket = GetOrCreateDefinitionBucket(definition, expandedByDefault);
                 var entry = await createEntryAsync(definitionBucket).ConfigureAwait(false);
-                if (entry == null)
-                {
-                    return;
-                }
+
+                // Proceed, even if we didn't create an entry.  It's possible that we augmented
+                // an existing entry and we want the UI to refresh to show the results of that.
 
                 lock (Gate)
                 {
-                    // Once we can make the new entry, add it to the appropriate list.
-                    if (addToEntriesWhenGroupingByDefinition)
+                    if (entry != null)
                     {
-                        EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.Add(entry);
-                    }
+                        // Once we can make the new entry, add it to the appropriate list.
+                        if (addToEntriesWhenGroupingByDefinition)
+                            EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.Add(entry);
 
-                    if (addToEntriesWhenNotGroupingByDefinition)
-                    {
-                        EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.Add(entry);
+                        if (addToEntriesWhenNotGroupingByDefinition)
+                            EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.Add(entry);
                     }
 
                     CurrentVersionNumber++;
@@ -161,22 +166,22 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 NotifyChange();
             }
 
-            protected override async Task OnCompletedAsyncWorkerAsync()
+            protected override async Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken)
             {
                 // Now that we know the search is over, create and display any error messages
                 // for definitions that were not found.
-                await CreateMissingReferenceEntriesIfNecessaryAsync().ConfigureAwait(false);
-                await CreateNoResultsFoundEntryIfNecessaryAsync().ConfigureAwait(false);
+                await CreateMissingReferenceEntriesIfNecessaryAsync(cancellationToken).ConfigureAwait(false);
+                await CreateNoResultsFoundEntryIfNecessaryAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task CreateMissingReferenceEntriesIfNecessaryAsync()
+            private async Task CreateMissingReferenceEntriesIfNecessaryAsync(CancellationToken cancellationToken)
             {
-                await CreateMissingReferenceEntriesIfNecessaryAsync(whenGroupingByDefinition: true).ConfigureAwait(false);
-                await CreateMissingReferenceEntriesIfNecessaryAsync(whenGroupingByDefinition: false).ConfigureAwait(false);
+                await CreateMissingReferenceEntriesIfNecessaryAsync(whenGroupingByDefinition: true, cancellationToken).ConfigureAwait(false);
+                await CreateMissingReferenceEntriesIfNecessaryAsync(whenGroupingByDefinition: false, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task CreateMissingReferenceEntriesIfNecessaryAsync(
-                bool whenGroupingByDefinition)
+                bool whenGroupingByDefinition, CancellationToken cancellationToken)
             {
                 // Go through and add dummy entries for any definitions that 
                 // that we didn't find any references for.
@@ -189,7 +194,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         await OnEntryFoundAsync(definition,
                             bucket => SimpleMessageEntry.CreateAsync(bucket, bucket, ServicesVSResources.External_reference_found)!,
                             addToEntriesWhenGroupingByDefinition: whenGroupingByDefinition,
-                            addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition).ConfigureAwait(false);
+                            addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition,
+                            expandedByDefault: true,
+                            cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -204,7 +211,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                                 string.Format(ServicesVSResources.No_references_found_to_0, definition.NameDisplayParts.JoinText()))!,
                             addToEntriesWhenGroupingByDefinition: whenGroupingByDefinition,
                             addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition,
-                            expandedByDefault: false).ConfigureAwait(false);
+                            expandedByDefault: false,
+                            cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -247,7 +255,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            private async Task CreateNoResultsFoundEntryIfNecessaryAsync()
+            private async Task CreateNoResultsFoundEntryIfNecessaryAsync(CancellationToken cancellationToken)
             {
                 bool noDefinitions;
                 lock (Gate)
@@ -261,7 +269,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     await OnEntryFoundAsync(NoResultsDefinitionItem,
                         bucket => SimpleMessageEntry.CreateAsync(bucket, null, ServicesVSResources.Search_found_no_results)!,
                         addToEntriesWhenGroupingByDefinition: true,
-                        addToEntriesWhenNotGroupingByDefinition: true).ConfigureAwait(false);
+                        addToEntriesWhenNotGroupingByDefinition: true,
+                        expandedByDefault: true,
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
 

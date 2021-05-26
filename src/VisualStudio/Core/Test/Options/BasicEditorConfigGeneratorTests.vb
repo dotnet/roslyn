@@ -99,6 +99,7 @@ visual_basic_preferred_modifier_order = partial,default,private,protected,public
 
 # Expression-level preferences
 visual_basic_style_prefer_isnot_expression = true
+visual_basic_style_prefer_simplified_object_creation = true
 visual_basic_style_unused_value_assignment_preference = unused_local_variable
 visual_basic_style_unused_value_expression_statement_preference = unused_local_variable
 
@@ -236,6 +237,7 @@ visual_basic_preferred_modifier_order = partial,default,private,protected,public
 
 # Expression-level preferences
 visual_basic_style_prefer_isnot_expression = true
+visual_basic_style_prefer_simplified_object_creation = true
 visual_basic_style_unused_value_assignment_preference = unused_local_variable
 visual_basic_style_unused_value_expression_statement_preference = unused_local_variable
 

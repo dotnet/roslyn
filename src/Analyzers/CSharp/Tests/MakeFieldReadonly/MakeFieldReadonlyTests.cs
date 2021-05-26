@@ -1746,5 +1746,38 @@ class Program
     private static object [|t_obj|];
 }");
         }
+
+        [WorkItem(50925, "https://github.com/dotnet/roslyn/issues/50925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
+        public async Task Test_MemberUsedInGeneratedCode()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\File1.cs"">
+public sealed partial class Test
+{
+    private int [|_value|];
+
+    public static void M()
+        => _ = new Test { Value = 1 };
+}
+        </Document>
+        <Document FilePath = ""z:\\File2.g.cs"">
+using System.CodeDom.Compiler;
+
+[GeneratedCode(null, null)]
+public sealed partial class Test
+{
+    public int Value
+    {
+        get => _value;
+        set => _value = value;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
     }
 }

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var set = new HashSet<ErrorCode>();
             foreach (ErrorCode value in values)
             {
-                Assert.True(set.Add(value));
+                Assert.True(set.Add(value), $"{value} is duplicated!");
             }
         }
 

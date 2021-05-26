@@ -6111,6 +6111,46 @@ class C
         }
 
         [Fact]
+        public void SwitchExpression_Lambda1()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main() => <AS:1>F() switch { 0 => new Func<int>(() => <AS:0>1</AS:0>)(), _ => 2}</AS:1>;
+}";
+            var src2 = @"
+class C
+{
+	public static int Main() => <AS:1>F() switch { 0 => new Func<int>(() => <AS:0>3</AS:0>)(), _ => 2}</AS:1>;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void SwitchExpression_Lambda2()
+        {
+            var src1 = @"
+class C
+{
+	public static int Main() => <AS:1>F() switch { i => new Func<int>(() => <AS:0>i + 1</AS:0>)(), _ => 2}</AS:1>;
+}";
+            var src2 = @"
+class C
+{
+	public static int Main() => <AS:1>F() switch { i => new Func<int>(() => <AS:0>i + 3</AS:0>)(), _ => 2}</AS:1>;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
         [WorkItem(43099, "https://github.com/dotnet/roslyn/issues/43099")]
         public void SwitchExpression_MemberExpressionBody()
         {
@@ -6127,8 +6167,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -6200,9 +6239,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method),
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -6256,8 +6293,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -6283,8 +6319,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         [Fact]
@@ -6310,8 +6345,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.SwitchExpressionUpdate, "switch", FeaturesResources.method));
+            edits.VerifyRudeDiagnostics(active);
         }
 
         #endregion
@@ -10584,6 +10618,87 @@ class C
                         activeStatements: GetActiveStatements(srcB1, srcB2),
                         diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
                 });
+        }
+
+        #endregion
+
+        #region Records
+
+        [Fact]
+        public void Record()
+        {
+            var src1 = @"
+record C(int X)
+{
+    public int X { get; init; } = <AS:0>1</AS:0>;
+}";
+            var src2 = @"
+record C(int X)
+{
+    public int X { get; init; } = <AS:0>2</AS:0>;
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Record_Constructor()
+        {
+            var src1 = @"
+record C(int X)
+{
+    public int X { get; init; } = <AS:0>1</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>var x = new C(1);</AS:1>
+    }
+}";
+            var src2 = @"
+record C(int X)
+{
+    public int X { get; init; } = <AS:0>2</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>var x = new C(1);</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void Record_FieldInitializer_Lambda2()
+        {
+            var src1 = @"
+record C(int X)
+{
+    Func<int, Func<int>> a = z => () => <AS:0>z + 1</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>new C(1).a(1)();</AS:1>
+    }
+}";
+            var src2 = @"
+record C(int X)
+{
+    Func<int, Func<int>> a = z => () => <AS:0>z + 2</AS:0>;
+
+    static void Main(string[] args)
+    {
+        <AS:1>new C(1).a(1)();</AS:1>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
         }
 
         #endregion

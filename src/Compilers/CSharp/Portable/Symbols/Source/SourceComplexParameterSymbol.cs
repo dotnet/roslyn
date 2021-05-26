@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -49,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(owner, parameterType, ordinal, refKind, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
-            Debug.Assert(!(owner is LambdaSymbol)); // therefore we're not dealing with discard parameters
 
             _lazyHasOptionalAttribute = ThreeState.Unknown;
             _syntaxRef = syntaxRef;
@@ -73,15 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyDefaultSyntaxValue = ConstantValue.Unset;
         }
 
-        private Binder ParameterBinderOpt => (ContainingSymbol as LocalFunctionSymbol)?.ParameterBinder;
+        private Binder ParameterBinderOpt => (ContainingSymbol as SourceMethodSymbolWithAttributes)?.ParameterBinder;
 
-        internal override SyntaxReference SyntaxReference => _syntaxRef;
+        internal sealed override SyntaxReference SyntaxReference => _syntaxRef;
 
-        internal ParameterSyntax CSharpSyntaxNode => (ParameterSyntax)_syntaxRef?.GetSyntax();
+        private ParameterSyntax CSharpSyntaxNode => (ParameterSyntax)_syntaxRef?.GetSyntax();
 
-        public sealed override bool IsDiscard => false;
+        public override bool IsDiscard => false;
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        internal sealed override ConstantValue ExplicitDefaultConstantValue
         {
             get
             {
@@ -99,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ConstantValue DefaultValueFromAttributes
+        internal sealed override ConstantValue DefaultValueFromAttributes
         {
             get
             {
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsIDispatchConstant
+        internal sealed override bool IsIDispatchConstant
             => GetDecodedWellKnownAttributeData()?.HasIDispatchConstantAttribute == true;
 
         internal override bool IsIUnknownConstant
@@ -1060,13 +1058,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!IsValidCallerInfoContext(node))
             {
-                // CS8912: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a
+                // CS9000: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (!compilation.Conversions.HasCallerInfoStringConversion(TypeWithAnnotations.Type, ref useSiteInfo))
             {
-                // CS8913: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
+                // CS9001: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
                 TypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
                 diagnostics.Add(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, node.Name.Location, stringType, TypeWithAnnotations.Type);
             }
@@ -1074,28 +1072,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Unconsumed location checks happen first, so we require a default value.
 
-                // CS8914: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                // CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 diagnostics.Add(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, node.Name.Location);
             }
             else if (IsCallerLineNumber)
             {
-                // CS8915: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
+                // CS9002: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (IsCallerFilePath)
             {
-                // CS8916: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
+                // CS9003: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (IsCallerMemberName)
             {
-                // CS8917: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.
+                // CS9004: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (attribute.CommonConstructorArguments.Length == 1 &&
                 GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == -1)
             {
-                // CS8918: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.
+                // CS9005: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 

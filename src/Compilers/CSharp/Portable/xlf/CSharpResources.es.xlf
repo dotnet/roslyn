@@ -77,6 +77,11 @@
         <target state="translated">El atributo "{0}" no es válido en descriptores de acceso de eventos. Solo es válido en declaraciones "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
+        <source>Attributes on lambda expressions require a parenthesized parameter list.</source>
+        <target state="new">Attributes on lambda expressions require a parenthesized parameter list.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
         <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
         <target state="translated">La propiedad implementada automáticamente "{0}" no se puede marcar como "readonly" porque tiene un descriptor de acceso "set".</target>
@@ -158,8 +163,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
-        <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="translated">El miembro de registro "{0}" debe ser una propiedad de instancia legible de tipo "{1}" para que coincida con el parámetro de posición "{2}".</target>
+        <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
+        <target state="needs-review-translation">El miembro de registro "{0}" debe ser una propiedad de instancia legible de tipo "{1}" para que coincida con el parámetro de posición "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -167,9 +172,19 @@
         <target state="translated">Error de sintaxis de la línea de comandos: "{0}" no es un valor válido para la opción "{1}". El valor debe tener el formato "{2}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotClone">
+        <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
+        <target state="new">The receiver type '{0}' is not a valid record type and is not a struct type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
         <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
         <target state="translated">No se puede convertir el grupo de &amp;métodos "{0}" en el tipo delegado "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotInferDelegateType">
+        <source>The delegate type could not be inferred.</source>
+        <target state="new">The delegate type could not be inferred.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -442,6 +457,16 @@
         <target state="translated">No se puede llamar a un puntero a función con argumentos con nombre.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_GlobalUsingInNamespace">
+        <source>A global using directive cannot be used in a namespace declaration.</source>
+        <target state="new">A global using directive cannot be used in a namespace declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingOutOfOrder">
+        <source>A global using directive must precede all non-global using directives.</source>
+        <target state="new">A global using directive must precede all non-global using directives.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">Una instrucción goto no puede saltar a una ubicación antes que una declaración using dentro del mismo bloque.</target>
@@ -450,6 +475,11 @@
       <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
         <source>A goto cannot jump to a location after a using declaration.</source>
         <target state="translated">Una instrucción goto no puede saltar a una ubicación después de una declaración using.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="new">The positional member '{0}' found corresponding to this parameter is hidden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -485,6 +515,11 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">No se pueden usar argumentos con el modificador "in" en expresiones distribuidas dinámicamente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
+        <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
+        <target state="new">Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitCannotBeReadonly">
@@ -650,11 +685,6 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">No se pudo determinar el directorio de salida.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NoSingleCloneMethod">
-        <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="translated">El tipo de receptor "{0}" no es un tipo de registro válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -982,9 +1012,44 @@
         <target state="translated">descartes</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureGlobalUsing">
+        <source>global using directive</source>
+        <target state="new">global using directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">creación de objetos con tipo de destino</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInferredDelegateType">
+        <source>inferred delegate type</source>
+        <target state="new">inferred delegate type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaAttributes">
+        <source>lambda attributes</source>
+        <target state="new">lambda attributes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
+        <source>positional fields in records</source>
+        <target state="new">positional fields in records</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRecordStructs">
+        <source>record structs</source>
+        <target state="new">record structs</target>
+        <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSealedToStringInRecord">
+        <source>sealed ToString in record</source>
+        <target state="new">sealed ToString in record</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureWithOnStructs">
+        <source>with on structs</source>
+        <target state="new">with on structs</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -4217,8 +4282,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
-        <target state="translated">Las declaraciones parciales de "{0}" deben ser todas clases, todos registros, todas estructuras o todas interfaces</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
+        <target state="needs-review-translation">Las declaraciones parciales de "{0}" deben ser todas clases, todos registros, todas estructuras o todas interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -5156,8 +5221,8 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
-        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation</source>
-        <target state="translated">El atributo Conditional no es válido en '{0}' porque es un constructor, destructor, operador o la implementación de interfaz explícita</target>
+        <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
+        <target state="needs-review-translation">El atributo Conditional no es válido en '{0}' porque es un constructor, destructor, operador o la implementación de interfaz explícita</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">
@@ -8468,8 +8533,8 @@ Indique al compilador alguna forma de diferenciar los métodos. Por ejemplo, pue
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">Los parámetros o las variables locales de tipo '{0}' no se pueden declarar en métodos asincrónicos o expresiones lambda.</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="needs-review-translation">Los parámetros o las variables locales de tipo '{0}' no se pueden declarar en métodos asincrónicos o expresiones lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">

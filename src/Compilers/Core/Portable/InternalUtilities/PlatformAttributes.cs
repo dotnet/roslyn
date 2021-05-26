@@ -4,7 +4,7 @@
 
 #nullable enable
 
-#if !NET5_0
+#if !NET5_0_OR_GREATER
 
 namespace System.Runtime.Versioning
 {

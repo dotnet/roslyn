@@ -264,18 +264,35 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
-                await broker.TriggerQuickInfoAsync(GetActiveTextView());
+                var session = await broker.TriggerQuickInfoAsync(GetActiveTextView());
+                Contract.ThrowIfNull(session);
             });
         }
 
         public string GetQuickInfo()
-            => ExecuteOnActiveView(view =>
+        {
+            return ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var view = GetActiveTextView();
                 var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
 
                 var session = broker.GetSession(view);
+
+                // GetSession will not return null if preceded by a call to InvokeQuickInfo
+                Contract.ThrowIfNull(session);
+
+                using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
+                while (session.State != QuickInfoSessionState.Visible)
+                {
+                    cts.Token.ThrowIfCancellationRequested();
+                    await Task.Delay(50, cts.Token).ConfigureAwait(true);
+                }
+
                 return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
             });
+        }
 
         public void VerifyTags(string tagTypeName, int expectedCount)
             => ExecuteOnActiveView(view =>

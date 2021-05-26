@@ -88,6 +88,43 @@ internal class Program
             return AssertCodeCleanupResult(expected, code);
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public Task SortGlobalUsings()
+        {
+            var code = @"using System.Threading.Tasks;
+using System.Threading;
+global using System.Collections.Generic;
+global using System;
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        Barrier b = new Barrier(0);
+        var list = new List<int>();
+        Console.WriteLine(list.Count);
+    }
+}
+";
+
+            var expected = @"global using System;
+global using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+internal class Program
+{
+    private static async Task Main(string[] args)
+    {
+        Barrier b = new Barrier(0);
+        List<int> list = new List<int>();
+        Console.WriteLine(list.Count);
+    }
+}
+";
+            return AssertCodeCleanupResult(expected, code);
+        }
+
         [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public Task GroupUsings()

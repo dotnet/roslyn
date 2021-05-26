@@ -37,6 +37,18 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
         }
 
+        public ValueTask HydrateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
+            {
+                // All we need to do is request the solution.  This will ensure that all assets are
+                // pulled over from the host side to the remote side.  Once this completes, the next
+                // call to SearchFullyLoadedDocumentAsync or SearchFullyLoadedProjectAsync will be
+                // quick as very little will need to by sync'ed over.
+                await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+        }
+
         public ValueTask SearchFullyLoadedDocumentAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,

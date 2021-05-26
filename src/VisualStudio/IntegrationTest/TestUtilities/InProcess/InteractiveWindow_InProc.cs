@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -151,7 +152,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Reset(bool waitForPrompt = true)
         {
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_Reset);
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var interactiveWindow = AcquireInteractiveWindow();
+                var operations = (IInteractiveWindowOperations)interactiveWindow;
+                var result = await operations.ResetAsync();
+                Contract.ThrowIfFalse(result.IsSuccessful);
+            });
 
             if (waitForPrompt)
             {
@@ -188,10 +197,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForReplPrompt()
-            => WaitForPredicate(GetReplText, ReplPromptText, s_endsWith);
+            => WaitForPredicate(GetReplText, ReplPromptText, s_endsWith, "end with");
 
         public void WaitForReplOutput(string outputText)
-            => WaitForPredicate(GetReplText, outputText + Environment.NewLine + ReplPromptText, s_endsWith);
+            => WaitForPredicate(GetReplText, outputText + Environment.NewLine + ReplPromptText, s_endsWith, "end with");
 
         public void ClearScreen()
             => ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ClearScreen);
@@ -200,31 +209,38 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => InvokeOnUIThread(cancellationToken => _interactiveWindow.InsertCode(text));
 
         public void WaitForLastReplOutput(string outputText)
-            => WaitForPredicate(GetLastReplOutput, outputText, s_contains);
+            => WaitForPredicate(GetLastReplOutput, outputText, s_contains, "contain");
 
         public void WaitForLastReplOutputContains(string outputText)
-            => WaitForPredicate(GetLastReplOutput, outputText, s_contains);
+            => WaitForPredicate(GetLastReplOutput, outputText, s_contains, "contain");
 
         public void WaitForLastReplInputContains(string outputText)
-            => WaitForPredicate(GetLastReplInput, outputText, s_contains);
+            => WaitForPredicate(GetLastReplInput, outputText, s_contains, "contain");
 
-        private void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer)
+        private void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer, string verb)
         {
             var beginTime = DateTime.UtcNow;
-            while (!valueComparer(expectedValue, getValue()) && DateTime.UtcNow < beginTime + Helper.HangMitigatingTimeout)
-            {
-                Thread.Sleep(50);
-            }
 
-            var actualValue = getValue();
-            if (!valueComparer(expectedValue, getValue()))
+            while (true)
             {
-                throw new Exception(
-                    $"Unable to find expected content in REPL within {Helper.HangMitigatingTimeout.TotalMilliseconds} milliseconds and no exceptions were thrown.{Environment.NewLine}" +
-                    $"Expected:{Environment.NewLine}" +
-                    $"[[{expectedValue}]]" +
-                    $"Actual:{Environment.NewLine}" +
-                    $"[[{actualValue}]]");
+                var actualValue = getValue();
+
+                if (valueComparer(expectedValue, actualValue))
+                {
+                    return;
+                }
+
+                if (DateTime.UtcNow > beginTime + Helper.HangMitigatingTimeout)
+                {
+                    throw new Exception(
+                        $"Unable to find expected content in REPL within {Helper.HangMitigatingTimeout.TotalMilliseconds} milliseconds and no exceptions were thrown.{Environment.NewLine}" +
+                        $"Buffer content is expected to {verb}: {Environment.NewLine}" +
+                        $"[[{expectedValue}]]" +
+                        $"Actual content:{Environment.NewLine}" +
+                        $"[[{actualValue}]]");
+                }
+
+                Thread.Sleep(50);
             }
         }
 
