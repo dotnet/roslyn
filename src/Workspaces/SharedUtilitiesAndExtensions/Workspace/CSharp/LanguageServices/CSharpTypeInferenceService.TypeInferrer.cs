@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -1475,7 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 IEnumerable<TypeInferenceInfo> InferTypeInSubpatternCore(ExpressionSyntax expression)
                 {
-                    var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
+                    using var result = TemporaryArray<TypeInferenceInfo>.Empty;
 
                     foreach (var symbol in this.SemanticModel.GetSymbolInfo(expression).GetAllSymbols())
                     {
@@ -1490,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    return result.ToImmutableAndFree();
+                    return result.ToImmutableAndClear();
                 }
             }
 
