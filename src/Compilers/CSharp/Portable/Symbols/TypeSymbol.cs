@@ -2254,5 +2254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal abstract bool IsRecord { get; }
+
+        internal abstract bool IsRecordStruct { get; }
     }
 }

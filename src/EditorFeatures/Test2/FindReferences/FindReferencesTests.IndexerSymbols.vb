@@ -294,7 +294,7 @@ End Class
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharp_IndexerInSourceGeneratedDocument(kind As TestKind) As Task
+        Public Async Function TestCSharp_IndexerInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -317,7 +317,7 @@ class D
         </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+            Await TestAPIAndFeature(input, kind, host)
         End Function
     End Class
 End Namespace

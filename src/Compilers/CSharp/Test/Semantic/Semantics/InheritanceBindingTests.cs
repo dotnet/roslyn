@@ -4937,7 +4937,8 @@ public class Derived : Base<short, int>
     public override void Method(short s, int i) { }
 }
 ";
-            CSharpCompilation comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(
@@ -4995,7 +4996,8 @@ class Derived : Base<int>
     public override void Method(int @in, ref int @ref) { }
 }
 ";
-            var compilation = CreateCompilation(text);
+            var compilation = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (compilation.Assembly.RuntimeSupportsCovariantReturnsOfClasses)
             {
                 // We no longer report a runtime ambiguous override because the compiler

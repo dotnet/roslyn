@@ -7,7 +7,6 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddParameter
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -41,14 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddParameter
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(Of String)(
-            IDEDiagnosticIds.UnboundConstructorId,
             BC30057, BC30272, BC30274, BC30311, BC30389, BC30512, BC32006, BC30387, BC30516, BC36582, BC36625)
 
         Protected Overrides ReadOnly Property TooManyArgumentsDiagnosticIds As ImmutableArray(Of String) =
-        GenerateConstructorDiagnosticIds.TooManyArgumentsDiagnosticIds
+            GenerateConstructorDiagnosticIds.TooManyArgumentsDiagnosticIds
 
         Protected Overrides ReadOnly Property CannotConvertDiagnosticIds As ImmutableArray(Of String) =
             GenerateConstructorDiagnosticIds.CannotConvertDiagnosticIds
-
     End Class
 End Namespace

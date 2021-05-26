@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     if (identifierName.Identifier.ValueText == local.Name &&
                         local.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol()))
                     {
-                        if (identifierName.IsWrittenTo())
+                        if (identifierName.IsWrittenTo(semanticModel, cancellationToken))
                         {
                             // Can't change this to a local function if it is assigned to.
                             return false;

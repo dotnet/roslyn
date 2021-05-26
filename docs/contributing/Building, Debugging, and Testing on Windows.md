@@ -17,10 +17,10 @@ The minimal required version of .NET Framework is 4.7.2.
 
 1. [Visual Studio 2019 16.9](https://visualstudio.microsoft.com/downloads/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "16.8" or greater
+    - Ensure Visual Studio is on Version "16.9" or greater
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
-1. [.NET 6.0 Preview 1 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-preview.1-windows-x64-installer)
+1. [.NET 6.0 Preview 3 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-preview.3-windows-x64-installer)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
@@ -73,7 +73,7 @@ The Rosyln solution is designed to support easy debugging via F5.  Several of ou
 projects produce VSIX which deploy into Visual Studio during build.  The F5 operation
 will start a new Visual Studio instance using those VSIX which override our installed
 binaries.  This means trying out a change to the language, IDE or debugger is as
-simple as hitting F5.
+simple as hitting F5. Note that for changes to the compiler, out-of-process builds won't use the privately built version of the compiler.
 
 The startup project needs to be set to `RoslynDeployment`.  This should be
 the default but in some cases will need to be set explicitly.

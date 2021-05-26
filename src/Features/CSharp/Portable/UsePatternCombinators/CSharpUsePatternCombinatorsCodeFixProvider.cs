@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument)
+                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpUsePatternCombinatorsCodeFixProvider))
             {
             }
 

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             var optionValues = _options.Where(pair => pair.optionName == optionName).ToArray();
             if (optionValues.Length != 1)
             {
-                throw new InvalidOperationException($"{optionName} exists {optionValues.Length} times in compilation options");
+                throw new InvalidOperationException(string.Format(RebuildResources._0_exists_1_times_in_compilation_options, optionName, optionValues.Length));
             }
 
             return optionValues[0].value;

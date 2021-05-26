@@ -939,6 +939,9 @@ Do you want to proceed?</value>
   <data name="User_Types_Records" xml:space="preserve">
     <value>User Types - Records</value>
   </data>
+  <data name="User_Types_Record_Structs" xml:space="preserve">
+    <value>User Types - Record Structs</value>
+  </data>
   <data name="Get_help_for_0" xml:space="preserve">
     <value>Get help for '{0}'</value>
   </data>
@@ -950,6 +953,9 @@ Do you want to proceed?</value>
   </data>
   <data name="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load" xml:space="preserve">
     <value>Gathering Suggestions - Waiting for the solution to fully load</value>
+  </data>
+  <data name="Reassigned_variable" xml:space="preserve">
+    <value>Reassigned variable</value>
   </data>
   <data name="No" xml:space="preserve">
     <value>No</value>

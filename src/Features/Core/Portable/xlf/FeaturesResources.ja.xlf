@@ -280,6 +280,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">レコードへの変換</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="new">Convert to record struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">構造体に変換</target>
@@ -674,11 +679,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Missing control character</source>
         <target state="translated">コントロール文字がありません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">switch 式を含む '{0}' を変更すると、デバッグ セッションは続行されません。</target>
-        <note />
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
@@ -2373,7 +2373,7 @@ When you use "f" format specifiers as part of a format string supplied to the Pa
 "f" 書式指定子を他の書式指定子なしで使用すると、"f" 標準日時書式指定子として解釈されます。
 
 "f" 書式指定子を、ParseExact、TryParseExact、ParseExact、または TryParseExact メソッドに指定する書式文字列の一部として使用した場合、"f" 書式指定子の数は、文字列を正常に解析するために必要な秒の小数点以下の有効桁数を示します。</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
