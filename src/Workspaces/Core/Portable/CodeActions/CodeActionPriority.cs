@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Internal priority used to bluntly place items in a light bulb in strict orderings.  Priorities take
-    /// the highest precedence when ordering items so that we can ensure very important items get top prominance,
+    /// the highest precedence when ordering items so that we can ensure very important items get top prominence,
     /// and low priority items do not.
     /// </summary>
     /// <remarks>
