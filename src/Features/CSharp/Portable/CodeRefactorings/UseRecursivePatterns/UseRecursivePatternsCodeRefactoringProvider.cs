@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -42,18 +43,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
         {
             var (document, textSpan, cancellationToken) = context;
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-            {
                 return;
-            }
 
             if (textSpan.Length > 0)
-            {
                 return;
-            }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            if (((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8)
+                return;
 
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindToken(textSpan.Start).Parent;
             var replacementFunc = GetReplacementFunc(node, model);
             if (replacementFunc is null)
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    "Use recursive patterns",
+                    CSharpFeaturesResources.Use_recursive_patterns,
                     _ => Task.FromResult(document.WithSyntaxRoot(replacementFunc(root)))));
         }
 
@@ -108,27 +107,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 };
             }
 
-            if (TryGetCommonReceiver(leftReceiver, rightReceiver, model) is not var (commonReceiverOpt, leftNames, rightNames))
-                return null;
-
-            return root =>
+            if (TryGetCommonReceiver(leftReceiver, rightReceiver, model) is var (commonReceiverOpt, leftNames, rightNames))
             {
-                var leftSubpattern = CreateSubpattern(leftNames, CreatePattern(leftReceiver, leftTarget, leftFlipped));
-                var rightSubpattern = CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightTarget, rightFlipped));
-                // If the common receiver is null, it's an implicit `this` reference in source.
-                // For instance, `prop == 1 && field == 2` would be converted to `this is { prop: 1, field: 2 }`
-                var replacement = IsPatternExpression(commonReceiverOpt ?? ThisExpression(), RecursivePattern(leftSubpattern, rightSubpattern));
-                return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
-            };
+                return root =>
+                {
+                    var leftSubpattern = CreateSubpattern(leftNames, CreatePattern(leftReceiver, leftTarget, leftFlipped));
+                    var rightSubpattern = CreateSubpattern(rightNames, CreatePattern(rightReceiver, rightTarget, rightFlipped));
+                    // If the common receiver is null, it's an implicit `this` reference in source.
+                    // For instance, `prop == 1 && field == 2` would be converted to `this is { prop: 1, field: 2 }`
+                    var replacement = IsPatternExpression(commonReceiverOpt ?? ThisExpression(), RecursivePattern(leftSubpattern, rightSubpattern));
+                    return root.ReplaceNode(logicalAnd, AdjustBinaryExpressionOperands(logicalAnd, replacement));
+                };
+            }
+
+            return null;
 
             static SyntaxNode AdjustBinaryExpressionOperands(BinaryExpressionSyntax logicalAnd, ExpressionSyntax replacement)
             {
-                // If there's a `&&` on the left we have picked the right-hand-side for the combination.
+                // If there's a `&&` on the left, we have picked the right-hand-side for the combination.
                 // In which case, we should replace that instead of the whole `&&` operator in a chain.
                 // For instance, `expr && a.b == 1 && a.c == 2` is converted to `expr && a is { b: 1, c: 2 }`
                 if (logicalAnd.Left is BinaryExpressionSyntax(LogicalAndExpression) leftExpression)
                     replacement = leftExpression.WithRight(replacement);
-                return replacement.WithAdditionalAnnotations(Formatter.Annotation);
+                return replacement.ConvertToSingleLine().WithAdditionalAnnotations(Formatter.Annotation);
             }
         }
 
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             return root =>
             {
                 var editor = new SyntaxEditor(root, CSharpSyntaxGenerator.Instance);
-                switch (receiver.Parent!.Parent)
+                switch (receiver.GetRequiredParent().Parent)
                 {
                     // This is the leftmost `&&` operand in a when-clause. Remove the left-hand-side which we've just morphed in the switch pattern.
                     // For instance, `case { p: var v } when v.q == 1 && expr:` would be converted to `case { p: { q: 1 } } v when expr:`
@@ -179,33 +180,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 // Otherwise, we generate a subpattern per each name and rewrite as a recursive pattern.
                 : AddSubpattern(containingPattern, CreateSubpattern(namesOpt, generatedPattern));
 
-            // We must have preserved the existing variable designation.
-            Debug.Assert(containingPattern switch
-            {
-                VarPatternSyntax p => p.Designation,
-                DeclarationPatternSyntax p => p.Designation,
-                RecursivePatternSyntax p => p.Designation,
-                var p => throw ExceptionUtilities.UnexpectedValue(p)
-            } is var d && rewrittenPattern.DescendantNodes().Any(node => AreEquivalent(node, d)));
-
-            return rewrittenPattern
-                .WithAdditionalAnnotations(Formatter.Annotation)
-                .WithAdditionalAnnotations(Simplifier.Annotation);
+            return rewrittenPattern.ConvertToSingleLine().WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
 
             static PatternSyntax Combine(PatternSyntax containingPattern, PatternSyntax generatedPattern)
             {
+                // We know we have a var-pattern, declaration-pattern or a recursive-pattern on the left as the containing node of the variable designation.
+                // Depending on the generated pattern off of the expression on the right, we can give a better result by morphing it into the existing match.
                 return (containingPattern, generatedPattern) switch
                 {
-                    // We know we have a var-pattern, declaration-pattern or a recursive-pattern on the left as the containing node of the variable designation.
-                    // Depending on the generated pattern off of the expression on the right, we can give a better result by morphing it into the existing match.
-
                     // e.g. `e is var x && x is { p: 1 }` => `e is { p: 1 } x`
                     (VarPatternSyntax var, RecursivePatternSyntax { Designation: null } recursive)
                         => recursive.WithDesignation(var.Designation),
-
-                    // e.g. `e is var x && x is C` => `e is C x`
-                    (VarPatternSyntax var, TypePatternSyntax type)
-                        => DeclarationPattern(type.Type, var.Designation),
 
                     // e.g. `e is C x && x is { p: 1 }` => `is C { p: 1 } x`
                     (DeclarationPatternSyntax decl, RecursivePatternSyntax { Type: null, Designation: null } recursive)
@@ -215,14 +200,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                     (RecursivePatternSyntax { Type: null } recursive, TypePatternSyntax type)
                         => recursive.WithType(type.Type),
 
-                    // e.g. `e is { p: 1 } x && x is C { p: 2 }` => `e is C { p: 1, p: 2 } x`
-                    (RecursivePatternSyntax left, RecursivePatternSyntax { Designation: null } right)
-                        when (left.Type is null || right.Type is null) &&
-                             (left.PositionalPatternClause is null || right.PositionalPatternClause is null)
-                        => left
-                            .WithType(left.Type ?? right.Type)
-                            .WithPositionalPatternClause(left.PositionalPatternClause ?? right.PositionalPatternClause)
-                            .WithPropertyPatternClause(Concat(left.PropertyPatternClause, right.PropertyPatternClause)),
+                    // e.g. `e is { p: 1 } x && x is { q: 2 }` => `e is { p: 1, q: 2 } x`
+                    (RecursivePatternSyntax recursive, RecursivePatternSyntax { Type: null, Designation: null } other)
+                        when recursive.PositionalPatternClause is null || other.PositionalPatternClause is null
+                        => recursive
+                            .WithPositionalPatternClause(recursive.PositionalPatternClause ?? other.PositionalPatternClause)
+                            .WithPropertyPatternClause(Concat(recursive.PropertyPatternClause, other.PropertyPatternClause)),
 
                     // In any other case, we fallback to an `and` pattern.
                     // UNDONE: This may result in a few unused variables which should be removed in a later pass.
@@ -261,44 +244,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             }
         }
 
-        private static PatternSyntax CreatePattern(ExpressionSyntax receiver, ExpressionOrPatternSyntax target, bool flipped)
+        private static PatternSyntax CreatePattern(ExpressionSyntax originalReceiver, ExpressionOrPatternSyntax target, bool flipped)
         {
             return target switch
             {
                 // A type or pattern come from an `is` expression on either side of `&&`
                 PatternSyntax pattern => pattern,
+                NullableTypeSyntax type => TypePattern(type.ElementType),
                 TypeSyntax type => TypePattern(type),
-                // Otherwise this is a constant. Depending on the original receiver, we create an appropriate pattern.
-                ExpressionSyntax constant => CreatePattern(receiver, constant, flipped),
-                var v => throw ExceptionUtilities.UnexpectedValue(v),
-            };
-
-            static PatternSyntax CreatePattern(ExpressionSyntax receiver, ExpressionSyntax target, bool flipped)
-            {
-                return receiver.Parent switch
+                // Otherwise, this is a constant. Depending on the original receiver, we create an appropriate pattern.
+                ExpressionSyntax constant => originalReceiver.Parent switch
                 {
-                    BinaryExpressionSyntax(EqualsExpression) => ConstantPattern(target),
-                    BinaryExpressionSyntax(NotEqualsExpression) => UnaryPattern(ConstantPattern(target)),
+                    BinaryExpressionSyntax(EqualsExpression) => ConstantPattern(constant),
+                    BinaryExpressionSyntax(NotEqualsExpression) => UnaryPattern(ConstantPattern(constant)),
                     BinaryExpressionSyntax(GreaterThanExpression or
                                            GreaterThanOrEqualExpression or
                                            LessThanOrEqualExpression or
                                            LessThanExpression) e
-                        => RelationalPattern(flipped ? Flip(e.OperatorToken) : e.OperatorToken, target),
+                        => RelationalPattern(flipped ? Flip(e.OperatorToken) : e.OperatorToken, constant),
                     var v => throw ExceptionUtilities.UnexpectedValue(v),
-                };
-            }
+                },
+                var v => throw ExceptionUtilities.UnexpectedValue(v),
+            };
 
             static SyntaxToken Flip(SyntaxToken token)
             {
-                var kind = token.Kind() switch
+                return Token(token.Kind() switch
                 {
                     LessThanToken => GreaterThanToken,
                     LessThanEqualsToken => GreaterThanEqualsToken,
                     GreaterThanEqualsToken => LessThanEqualsToken,
                     GreaterThanToken => LessThanToken,
                     var v => throw ExceptionUtilities.UnexpectedValue(v)
-                };
-                return Token(token.LeadingTrivia, kind, token.TrailingTrivia);
+                });
             }
         }
 
@@ -307,28 +285,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             ExpressionSyntax rightReceiver,
             SemanticModel model)
         {
-            if (GetInnermostReceiver(rightReceiver, out var namesOpt, model) is not IdentifierNameSyntax identifierName)
+            using var _ = ArrayBuilder<IdentifierNameSyntax>.GetInstance(out var names);
+            if (GetInnermostReceiver(rightReceiver, names, model) is not IdentifierNameSyntax identifierName)
                 return null;
 
             var designation = leftPattern.DescendantNodes()
                 .OfType<SingleVariableDesignationSyntax>()
-                .Where(d => AreEquivalent(d.Identifier, identifierName.Identifier))
+                .Where(d => d.Identifier.ValueText == identifierName.Identifier.ValueText)
                 .FirstOrDefault();
 
-            // For simplicity, we only support replacement when the designation is contained in one of the following patterns.
-            // This excludes a parenthesized variable designation, for example, which would require rewriting the whole thing.
-            if (designation is not { Parent: PatternSyntax(SyntaxKind.VarPattern or SyntaxKind.DeclarationPattern or SyntaxKind.RecursivePattern) containingPattern })
+            if (designation is not { Parent: PatternSyntax containingPattern })
                 return null;
 
-            return (containingPattern, namesOpt);
-
-            static ExpressionSyntax? GetInnermostReceiver(ExpressionSyntax node, out ImmutableArray<IdentifierNameSyntax> namesOpt, SemanticModel model)
-            {
-                using var _ = ArrayBuilder<IdentifierNameSyntax>.GetInstance(out var builder);
-                TryGetInnermostReceiver(node, builder, out var receiver, model);
-                namesOpt = builder.ToImmutableOrNull();
-                return receiver;
-            }
+            // Only the following patterns can directly contain a variable designation.
+            // Note: While a parenthesized designation can also contain other variables,
+            // it is not a pattern, so it would not get past the PatternSyntax test above.
+            Debug.Assert(containingPattern.IsKind(SyntaxKind.VarPattern, SyntaxKind.DeclarationPattern, SyntaxKind.RecursivePattern));
+            return (containingPattern, names.ToImmutableOrNull());
         }
 
         private static (ExpressionSyntax Receiver, ExpressionOrPatternSyntax Target, bool Flipped)? TryDetermineReceiver(
@@ -353,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 //  1) If we're in a when-clause, we look for the leftmost expression
                 //     which we will try to combine with the switch arm/label pattern.
                 //     For instance, we return `a` if we have `case <pat> when a && b && c`.
-
+                //
                 //  2) Otherwise, we will return the operand that *appears* to be on the left in the source.
                 //     For instance, we return `a` if we have `x && a && b` with the cursor on the second operator.
                 //     Since `&&` is left-associative, it's guaranteed to be the expression that we want.
@@ -389,24 +362,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
         private static SubpatternSyntax CreateSubpattern(ImmutableArray<IdentifierNameSyntax> names, PatternSyntax pattern)
         {
             Debug.Assert(!names.IsDefaultOrEmpty);
-
             var subpattern = Subpattern(names[0], pattern);
             for (var i = 1; i < names.Length; i++)
                 subpattern = Subpattern(names[i], RecursivePattern(subpattern));
             return subpattern;
         }
 
-        public static SubpatternSyntax Subpattern(IdentifierNameSyntax name, PatternSyntax pattern)
+        private static SubpatternSyntax Subpattern(IdentifierNameSyntax name, PatternSyntax pattern)
             => SyntaxFactory.Subpattern(NameColon(name), pattern);
 
-        public static RecursivePatternSyntax RecursivePattern(params SubpatternSyntax[] subpatterns)
+        private static RecursivePatternSyntax RecursivePattern(params SubpatternSyntax[] subpatterns)
             => SyntaxFactory.RecursivePattern(null, null, PropertyPatternClause(SeparatedList(subpatterns)), null);
 
-        public static RecursivePatternSyntax RecursivePattern(SubpatternSyntax subpattern)
-            => SyntaxFactory.RecursivePattern(null, null, PropertyPatternClause(SingletonSeparatedList(subpattern)), null);
-
-        public static RecursivePatternSyntax RecursivePattern(TypeSyntax? type, SubpatternSyntax subpattern, VariableDesignationSyntax designation)
+        private static RecursivePatternSyntax RecursivePattern(TypeSyntax? type, SubpatternSyntax subpattern, VariableDesignationSyntax? designation)
             => SyntaxFactory.RecursivePattern(type, null, PropertyPatternClause(SingletonSeparatedList(subpattern)), designation);
+
+        private static RecursivePatternSyntax RecursivePattern(SubpatternSyntax subpattern)
+            => RecursivePattern(type: null, subpattern, designation: null);
 
         /// <summary>
         /// Obtain the outermost common receiver between two expressions.
@@ -434,11 +406,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             {
                 // If there were some common names in the path, we rewrite the receiver to include those.
                 // For instance, in `a.b.c && a.b.d`, we have `b` as the last common name in the path,
-                // So we want `a.b` aa the receiver so that we convert it to `a.b is { c: true, d: true }`.
+                // So we want `a.b` as the receiver so that we convert it to `a.b is { c: true, d: true }`.
                 commonReceiver = GetReceiver(lastName, originalReceiver: left);
             }
 
             return (commonReceiver, leftNames.ToImmutable(), rightNames.ToImmutable());
+
+            static bool TryGetInnermostReceiver(ExpressionSyntax node, ArrayBuilder<IdentifierNameSyntax> builder, out ExpressionSyntax? receiver, SemanticModel model)
+            {
+                receiver = GetInnermostReceiver(node, builder, model);
+                return builder.Any();
+            }
 
             static ExpressionSyntax GetReceiver(ExpressionSyntax lastName, ExpressionSyntax originalReceiver)
             {
@@ -450,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                     // For instance, if we had `a?.b.c && a?.b.d` we rewrite it as `a?.b is { c: true, d: false }`
                     MemberAccessExpressionSyntax memberAccess => originalReceiver.ReplaceNode(memberAccess, memberAccess.Expression),
                     // Similarly, if we had `a?.b && a?.c` we rewrite it as `a is { b: true, c: true }`
-                    MemberBindingExpressionSyntax { Parent: ConditionalAccessExpressionSyntax p } => p.Expression,
+                    MemberBindingExpressionSyntax { Parent: ConditionalAccessExpressionSyntax parent } => parent.Expression,
                     // There should be no other possibility as we have walked downwards already and verified each node in the path.
                     var v => throw ExceptionUtilities.UnexpectedValue(v),
                 };
@@ -460,6 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             {
                 ExpressionSyntax? lastName = null;
                 int leftIndex, rightIndex;
+                // Note: we don't want to skip the first name to still be able to convert to a subpattern, hence checking `> 0` below.
                 for (leftIndex = leftNames.Count - 1, rightIndex = rightNames.Count - 1; leftIndex > 0 && rightIndex > 0; leftIndex--, rightIndex--)
                 {
                     var leftName = leftNames[leftIndex];
@@ -475,14 +454,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             }
         }
 
-        private static bool TryGetInnermostReceiver(
-            ExpressionSyntax node,
-            ArrayBuilder<IdentifierNameSyntax> builder,
-            out ExpressionSyntax? receiver,
-            SemanticModel model)
+        private static ExpressionSyntax? GetInnermostReceiver(ExpressionSyntax node, ArrayBuilder<IdentifierNameSyntax> builder, SemanticModel model)
         {
-            receiver = GetInnermostReceiver(node);
-            return builder.Any();
+            return GetInnermostReceiver(node);
 
             ExpressionSyntax? GetInnermostReceiver(ExpressionSyntax node)
             {
@@ -493,30 +467,40 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                     when CanConvertToSubpattern(name):
                         builder.Add(name);
                         // This is a member reference with an implicit `this` receiver.
+                        // We know this is true because we already checked CanConvertToSubpattern.
+                        // Any other name outside the receiver position is captured in the cases below.
+                        Debug.Assert(model.GetOperation(name) is IMemberReferenceOperation
+                        {
+                            Instance: IInstanceReferenceOperation { IsImplicit: true, ReferenceKind: InstanceReferenceKind.ContainingTypeInstance }
+                        });
                         return null;
+
                     case MemberBindingExpressionSyntax { Name: IdentifierNameSyntax name }
                     when CanConvertToSubpattern(name):
                         builder.Add(name);
                         // We only reach here from a parent conditional-access.
-                        // Returning null here means that all the names on the right are convertible to a property pattern.
+                        // Returning null here means that all the names on the right were convertible to a property pattern.
                         return null;
-                    case MemberAccessExpressionSyntax(SimpleMemberAccessExpression) { Name: IdentifierNameSyntax name } e
-                    when CanConvertToSubpattern(name):
+
+                    case MemberAccessExpressionSyntax(SimpleMemberAccessExpression) { Name: IdentifierNameSyntax name } memberAccess
+                    when CanConvertToSubpattern(name) && !memberAccess.Expression.IsKind(SyntaxKind.BaseExpression):
                         builder.Add(name);
                         // For a simple member access we simply record the name and descend into the expression on the left-hand-side.
-                        return GetInnermostReceiver(e.Expression);
-                    case ConditionalAccessExpressionSyntax e:
+                        return GetInnermostReceiver(memberAccess.Expression);
+
+                    case ConditionalAccessExpressionSyntax conditionalAccess:
                         // For a conditional access, first we need to verify the right-hand-side is convertible to a property pattern.
-                        var right = GetInnermostReceiver(e.WhenNotNull);
+                        var right = GetInnermostReceiver(conditionalAccess.WhenNotNull);
                         if (right is not null)
                         {
                             // If it has it's own receiver other than a member-binding expression, we return this node as the receiver.
                             // For instance, if we had `a?.M().b`, the name `b` is already captured, so we need to return `a?.M()` as the innermost receiver.
-                            return e.WithWhenNotNull(right);
+                            // If there was no name, this call returns itself, e.g. in `a?.M()` the receiver is the entire existing conditional access.
+                            return conditionalAccess.WithWhenNotNull(right);
                         }
-
                         // Otherwise, descend into the the expression on the left-hand-side.
-                        return GetInnermostReceiver(e.Expression);
+                        return GetInnermostReceiver(conditionalAccess.Expression);
+
                     default:
                         return node;
                 }
