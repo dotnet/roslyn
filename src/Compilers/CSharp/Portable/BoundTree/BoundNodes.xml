@@ -123,7 +123,7 @@
 
   <!--
   This node is used to represent an expression of a certain type, when attempting to bind its Index or Range pattern indexer
-  It does not survive past initial binding.
+  It does survive past initial binding but will be replaced with a synthesized argument in DAG lowering.
   -->
   <Node Name="BoundIndexOrRangeIndexerPatternValuePlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
