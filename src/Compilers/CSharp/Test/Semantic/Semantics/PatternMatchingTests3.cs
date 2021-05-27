@@ -1419,53 +1419,20 @@ public static class C {
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1} {R2}
+        Entering: {R1}
 .locals {R1}
 {
     CaptureIds: [0]
-    .locals {R2}
-    {
-        CaptureIds: [1]
-        Block[B1] - Block
-            Predecessors: [B0]
-            Statements (1)
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o')
-                  Value: 
-                    IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-                      Instance Receiver: 
-                        null
-            Jump if False (Regular) to Block[B3]
-                IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: '_ => default')
-                  Value: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o')
-                  Pattern: 
-                    IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
-                Leaving: {R2}
-            Next (Regular) Block[B2]
-        Block[B2] - Block
-            Predecessors: [B1]
-            Statements (1)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'default')
-                  Value: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'default')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (DefaultLiteral)
-                      Operand: 
-                        IDefaultValueOperation (OperationKind.DefaultValue, Type: C?, Constant: null, IsInvalid) (Syntax: 'default')
-            Next (Regular) Block[B4]
-                Leaving: {R2}
-    }
-    Block[B3] - Block
-        Predecessors: [B1]
-        Statements (0)
-        Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... > default }')
-              Arguments(0)
-              Initializer: 
-                null
-    Block[B4] - Block
-        Predecessors: [B2]
-        Statements (1)
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'default')
+              Value: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C?, Constant: null, IsInvalid, IsImplicit) (Syntax: 'default')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (DefaultLiteral)
+                  Operand: 
+                    IDefaultValueOperation (OperationKind.DefaultValue, Type: C?, Constant: null, IsInvalid) (Syntax: 'default')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... default });')
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ...  default })')
@@ -1477,65 +1444,32 @@ Block[B0] - Entry
                         (SwitchExpression)
                       Operand: 
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... > default }')
-        Next (Regular) Block[B5]
+        Next (Regular) Block[B2]
             Leaving: {R1}
-            Entering: {R3} {R4}
+            Entering: {R2}
 }
-.locals {R3}
+.locals {R2}
 {
-    CaptureIds: [2]
-    .locals {R4}
-    {
-        CaptureIds: [3]
-        Block[B5] - Block
-            Predecessors: [B4]
-            Statements (1)
-                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'o')
-                  Value: 
-                    IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-                      Instance Receiver: 
-                        null
-            Jump if False (Regular) to Block[B8]
-                IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: '_ => throw null!')
-                  Value: 
-                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'o')
-                  Pattern: 
-                    IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
-                Leaving: {R4}
-            Next (Regular) Block[B6]
-        Block[B6] - Block
-            Predecessors: [B5]
-            Statements (0)
-            Next (Throw) Block[null]
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                    (ImplicitReference)
-                  Operand: 
-                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-        Block[B7] - Block [UnReachable]
-            Predecessors (0)
-            Statements (1)
-                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null!')
-                  Value: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'throw null!')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (ImplicitThrow)
-                      Operand: 
-                        IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null!')
-            Next (Regular) Block[B9]
-                Leaving: {R4}
-    }
-    Block[B8] - Block
-        Predecessors: [B5]
+    CaptureIds: [1]
+    Block[B2] - Block
+        Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
-            IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... row null! }')
-              Arguments(0)
-              Initializer: 
-                null
-    Block[B9] - Block [UnReachable]
-        Predecessors: [B7]
-        Statements (1)
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Exception, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                (ImplicitReference)
+              Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+    Block[B3] - Block [UnReachable]
+        Predecessors (0)
+        Statements (2)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null!')
+              Value: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'throw null!')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitThrow)
+                  Operand: 
+                    IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null!')
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_= (C)(o sw ... w null! });')
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid) (Syntax: '_= (C)(o sw ... ow null! })')
@@ -1546,12 +1480,12 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (SwitchExpression)
                       Operand: 
-                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... row null! }')
-        Next (Regular) Block[B10]
-            Leaving: {R3}
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'o switch {  ... row null! }')
+        Next (Regular) Block[B4]
+            Leaving: {R2}
 }
-Block[B10] - Exit [UnReachable]
-    Predecessors: [B9]
+Block[B4] - Exit [UnReachable]
+    Predecessors: [B3]
     Statements (0)
 ";
             string expectedOperationTree = @"

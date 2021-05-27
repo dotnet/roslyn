@@ -864,6 +864,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                         continue;
                                     }
 
+                                    if (currentRegion.LastBlock == block &&
+                                        block.BranchValue is IFlowCaptureReferenceOperation { Id: var id } &&
+                                        currentRegion.HasCaptureIds &&
+                                        currentRegion.CaptureIds.Contains(id) &&
+                                        block.Ordinal != (predecessor.Ordinal + 1))
+                                    {
+                                        // Do not merge return when the return expression is the last block in the region and references
+                                        // a capture defined in the region, and the resulting block would not be the new last block of the region.
+                                        // This would shorten the lifetime of the flow capture (see SwitchExpression_JustDiscardWithGuard for
+                                        // an example that breaks without this).
+                                        // Technically, this could happen more deeply: the block's value could be a thing that uses the
+                                        // flow capture, and it might be legal to combine anyway if the block before this also references
+                                        // the flow capture. However, we don't currently know of any graphs that produce a shape like this.
+                                        // If that changes, then this check will need be more precise.
+                                        continue;
+                                    }
+
                                     Debug.Assert(predecessor.FallThrough.Destination == block);
                                 }
                             }
@@ -6973,7 +6990,20 @@ oneMoreTime:
             SpillEvalStack();
             RegionBuilder resultCaptureRegion = CurrentRegionRequired;
             int captureOutput = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
-            var capturedInput = VisitAndCapture(operation.Value);
+            IOperation? capturedInput;
+
+            // There is only one discard pattern operation. We evaluate the input always, but it won't
+            // be used in an arm pattern so we don't capture
+            if (operation.Arms.Length == 1 && operation.Arms[0].Pattern is IDiscardPatternOperation)
+            {
+                capturedInput = null;
+                Visit(operation.Value);
+            }
+            else
+            {
+                capturedInput = VisitAndCapture(operation.Value);
+            }
+
             var afterSwitch = new BasicBlockBuilder(BasicBlockKind.Block);
 
             foreach (var arm in operation.Arms)
@@ -6984,7 +7014,10 @@ oneMoreTime:
                 var afterArm = new BasicBlockBuilder(BasicBlockKind.Block);
 
                 // GotoIfFalse (captureInput is pat1) label;
+                // If the pattern is just a discard pattern (ie, _ => someValue) there's no evaluation or branch.
+                if (arm.Pattern is not IDiscardPatternOperation)
                 {
+                    Debug.Assert(capturedInput != null);
                     EvalStackFrame frame = PushStackFrame();
                     var visitedPattern = (IPatternOperation)VisitRequired(arm.Pattern);
                     var patternTest = new IsPatternOperation(
