@@ -1460,25 +1460,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we have  { X: ... }.  The type of ... is whatever the type of 'X' is in its
                 // parent type.  So look up the parent type first, then find the X member in it
                 // and use that type.
-                if (child == subpattern.Pattern)
-                {
-                    if (subpattern.NameColon != null)
-                    {
-                        return InferTypeInSubpatternCore(subpattern.NameColon.Name);
-                    }
-                    else if (subpattern.ExpressionColon is { Expression: MemberAccessExpressionSyntax memberAccess })
-                    {
-                        return InferTypeInSubpatternCore(memberAccess.Name);
-                    }
-                }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-
-                IEnumerable<TypeInferenceInfo> InferTypeInSubpatternCore(ExpressionSyntax expression)
+                if (child == subpattern.Pattern &&
+                    subpattern.ExpressionColon != null)
                 {
                     using var result = TemporaryArray<TypeInferenceInfo>.Empty;
 
-                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(expression).GetAllSymbols())
+                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpattern.ExpressionColon.Expression).GetAllSymbols())
                     {
                         switch (symbol)
                         {
@@ -1493,6 +1480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return result.ToImmutableAndClear();
                 }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeForSingleVariableDesignation(SingleVariableDesignationSyntax singleVariableDesignation)
