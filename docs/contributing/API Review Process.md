@@ -35,7 +35,7 @@ The rule of thumb is that we (**dotnet/roslyn**) review every public API that is
 * **Fast track**. If you need to bypass the backlog apply both `api-ready-for-review` and `blocking`. All blocking issues are looked at before we walk the backlog.
 * **Dedicated review**. If an issue you are the area owner for needs an hour or longer, send an email to roslynapiowners and we book dedicated time. We also book dedicated time for language feature APIs: any APIs added as part of a new language feature need to have a dedicated review session. Rule of thumb: if the API proposal has more than a dozen APIs, the APIs have complex policy, or the APIs are part of a feature branch, then you need 60 min or more. When in doubt, send mail to roslynapiowners.
 
-The API review board currently meets biweekly.
+The API review board currently meets every 2 weeks.
 
 ## Pull requests
 
