@@ -252,6 +252,11 @@
         <target state="translated">Alle Hinweise beim Drücken von ALT+F1 anzeigen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_inline_errors">
+        <source>Display inline errors (experimental)</source>
+        <target state="new">Display inline errors (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
         <target state="translated">Hinweise zu In_lineparameternamen anzeigen</target>

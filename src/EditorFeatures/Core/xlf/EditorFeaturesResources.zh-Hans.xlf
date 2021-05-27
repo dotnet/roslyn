@@ -142,9 +142,19 @@
         <target state="new">Indentation Size</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Errors">
-        <source>Inline Errors</source>
-        <target state="new">Inline Errors</target>
+      <trans-unit id="Inline_Errors_Error">
+        <source>Inline Errors - Error</source>
+        <target state="new">Inline Errors - Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Errors_Rude_Edit">
+        <source>Inline Errors - Rude Edit</source>
+        <target state="new">Inline Errors - Rude Edit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Errors_Warning">
+        <source>Inline Errors - Warning</source>
+        <target state="new">Inline Errors - Warning</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">

@@ -252,6 +252,11 @@
         <target state="translated">Alt+F1 tuşlarına basılırken tüm ipuçlarını görüntüle</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_inline_errors">
+        <source>Display inline errors (experimental)</source>
+        <target state="new">Display inline errors (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
         <target state="translated">Satır içi parametre adı ipuç_larını göster</target>

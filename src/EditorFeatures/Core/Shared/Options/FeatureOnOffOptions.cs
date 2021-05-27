@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new(nameof(FeatureOnOffOptions), nameof(RenameTrackingPreview), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.RenameTrackingPreview" : "TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview"));
 
+        public static readonly PerLanguageOption2<bool> InlineErrors = new PerLanguageOption2<bool>(nameof(FeatureOnOffOptions), nameof(InlineErrors), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineErrors"));
         /// <summary>
         /// This option is currently used by Roslyn, but we might want to implement it in the
         /// future. Keeping the option while it's unimplemented allows all upgrade paths to
@@ -123,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.UseEnhancedColors,
             FeatureOnOffOptions.AddImportsOnPaste,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
-            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
+            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon,
+            FeatureOnOffOptions.InlineErrors);
     }
 }

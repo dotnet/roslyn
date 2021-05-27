@@ -252,6 +252,11 @@
         <target state="translated">Exibir todas as dicas ao pressionar Alt+F1</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_inline_errors">
+        <source>Display inline errors (experimental)</source>
+        <target state="new">Display inline errors (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
         <target state="translated">Exi_bir as dicas embutidas de nome de parâmetro</target>

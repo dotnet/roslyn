@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             block.Arrange(new Rect(block.DesiredSize));
 
-            var color = _editorFormatMap.GetProperties(ErrorType)[EditorFormatDefinition.ForegroundBrushId];
+            //var color = _editorFormatMap.GetProperties(ErrorType)[EditorFormatDefinition.ForegroundBrushId];
             var border = new Border
             {
-                Background = (Brush)color,
+                Background = format.BackgroundBrush,
                 Child = block,
                 CornerRadius = new CornerRadius(2),
                 // Highlighting lines are 2px buffer.  So shift us up by one from the bottom so we feel centered between them.

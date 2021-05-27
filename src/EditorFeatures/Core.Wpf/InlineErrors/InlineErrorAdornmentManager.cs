@@ -162,7 +162,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                     if (geometry != null)
                     {
                         var tag = tagMappingSpanList[0].Tag;
-                        var graphicsResult = tag.GetGraphics(_textView, geometry, GetFormat(_classificationRegistryService.GetClassificationType(tag.ErrorType)));
+                        var classificationType = _classificationRegistryService.GetClassificationType("IE: " + tag.ErrorType);
+                        var graphicsResult = tag.GetGraphics(_textView, geometry, GetFormat(classificationType));
                         if (!_tagSpanToPointMap.TryGetValue(tagMappingSpanList[0], out var point))
                         {
                             continue;

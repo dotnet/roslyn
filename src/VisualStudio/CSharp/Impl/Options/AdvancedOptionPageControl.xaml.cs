@@ -94,6 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 // If so, default to that. Otherwise default to disabled
                 return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SourceGeneratorsEnableOpeningInWorkspace) ?? false;
             });
+            BindToOption(DisplayInlineErrors, FeatureOnOffOptions.InlineErrors, LanguageNames.CSharp);
 
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
 
