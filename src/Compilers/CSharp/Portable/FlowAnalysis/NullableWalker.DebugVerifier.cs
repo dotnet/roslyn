@@ -212,6 +212,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitListPattern(BoundListPattern node)
+            {
+                VisitList(node.Subpatterns);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
+            public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
+            {
+                this.Visit(node.Pattern);
+                // Ignore indexer access (just a node to hold onto some symbols)
+                return null;
+            }
+
             public override BoundNode? VisitSwitchExpressionArm(BoundSwitchExpressionArm node)
             {
                 this.Visit(node.Pattern);
