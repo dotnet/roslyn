@@ -6569,15 +6569,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal readonly GreenNode? attributeLists;
         internal readonly GreenNode? modifiers;
+        internal readonly TypeSyntax? returnType;
         internal readonly ParameterListSyntax parameterList;
         internal readonly SyntaxToken arrowToken;
         internal readonly BlockSyntax? block;
         internal readonly ExpressionSyntax? expressionBody;
 
-        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -6587,6 +6588,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
+            }
+            if (returnType != null)
+            {
+                this.AdjustFlagsAndWidth(returnType);
+                this.returnType = returnType;
             }
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
@@ -6604,11 +6610,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, SyntaxFactoryContext context)
+        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -6618,6 +6624,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
+            }
+            if (returnType != null)
+            {
+                this.AdjustFlagsAndWidth(returnType);
+                this.returnType = returnType;
             }
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
@@ -6635,10 +6646,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
           : base(kind)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -6648,6 +6659,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
+            }
+            if (returnType != null)
+            {
+                this.AdjustFlagsAndWidth(returnType);
+                this.returnType = returnType;
             }
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
@@ -6667,6 +6683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+        public TypeSyntax? ReturnType => this.returnType;
         /// <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
         public ParameterListSyntax ParameterList => this.parameterList;
         /// <summary>SyntaxToken representing equals greater than.</summary>
@@ -6687,10 +6704,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 0 => this.attributeLists,
                 1 => this.modifiers,
-                2 => this.parameterList,
-                3 => this.arrowToken,
-                4 => this.block,
-                5 => this.expressionBody,
+                2 => this.returnType,
+                3 => this.parameterList,
+                4 => this.arrowToken,
+                5 => this.block,
+                6 => this.expressionBody,
                 _ => null,
             };
 
@@ -6699,11 +6717,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedLambdaExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedLambdaExpression(this);
 
-        public ParenthesizedLambdaExpressionSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+        public ParenthesizedLambdaExpressionSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, parameterList, arrowToken, block, expressionBody);
+                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, returnType, parameterList, arrowToken, block, expressionBody);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -6717,15 +6735,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.attributeLists, this.modifiers, this.parameterList, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
+            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.parameterList, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.attributeLists, this.modifiers, this.parameterList, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
+            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.parameterList, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
 
         internal ParenthesizedLambdaExpressionSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             var attributeLists = (GreenNode?)reader.ReadValue();
             if (attributeLists != null)
             {
@@ -6737,6 +6755,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
+            }
+            var returnType = (TypeSyntax?)reader.ReadValue();
+            if (returnType != null)
+            {
+                AdjustFlagsAndWidth(returnType);
+                this.returnType = returnType;
             }
             var parameterList = (ParameterListSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(parameterList);
@@ -6763,6 +6787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             base.WriteTo(writer);
             writer.WriteValue(this.attributeLists);
             writer.WriteValue(this.modifiers);
+            writer.WriteValue(this.returnType);
             writer.WriteValue(this.parameterList);
             writer.WriteValue(this.arrowToken);
             writer.WriteValue(this.block);
@@ -33691,7 +33716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.RefKeyword), (ExpressionSyntax)Visit(node.Expression));
 
         public override CSharpSyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (ParameterListSyntax)Visit(node.ParameterList), (SyntaxToken)Visit(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType), (ParameterListSyntax)Visit(node.ParameterList), (SyntaxToken)Visit(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
 
         public override CSharpSyntaxNode VisitInitializerExpression(InitializerExpressionSyntax node)
             => node.Update((SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Expressions), (SyntaxToken)Visit(node.CloseBraceToken));
@@ -35499,7 +35524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
 #if DEBUG
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
@@ -35507,7 +35532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
 #endif
 
-            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, attributeLists.Node, modifiers.Node, parameterList, arrowToken, block, expressionBody, this.context);
+            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, attributeLists.Node, modifiers.Node, returnType, parameterList, arrowToken, block, expressionBody, this.context);
         }
 
         public InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
@@ -40393,7 +40418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
 #if DEBUG
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
@@ -40401,7 +40426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
 #endif
 
-            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, attributeLists.Node, modifiers.Node, parameterList, arrowToken, block, expressionBody);
+            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, attributeLists.Node, modifiers.Node, returnType, parameterList, arrowToken, block, expressionBody);
         }
 
         public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)

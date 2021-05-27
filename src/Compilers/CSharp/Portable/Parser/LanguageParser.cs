@@ -9726,6 +9726,7 @@ tryAgain:
             return IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true);
         }
 
+        // PROTOTYPE: Does this need to be updated to include lambdas with explicit return type?
         private bool IsPossibleExpression(bool allowBinaryExpressions, bool allowAssignmentExpressions)
         {
             SyntaxKind tk = this.CurrentToken.Kind;
@@ -9826,7 +9827,7 @@ tryAgain:
             }
         }
 
-        enum Precedence : uint
+        private enum Precedence : uint
         {
             Expression = 0, // Loosest possible precedence, used to accept all expressions
             Assignment = Expression,
@@ -10468,14 +10469,27 @@ tryAgain:
                 case SyntaxKind.StackAllocKeyword:
                     return this.ParseStackAllocExpression();
                 case SyntaxKind.DelegateKeyword:
+                    if (this.IsPossibleLambdaExpression(precedence))
+                    {
+                        return this.ParseLambdaExpression();
+                    }
                     return this.ParseAnonymousMethodExpression();
                 case SyntaxKind.RefKeyword:
+                    if (this.IsPossibleLambdaExpression(precedence))
+                    {
+                        return this.ParseLambdaExpression();
+                    }
                     // ref is not expected to appear in this position.
                     return this.AddError(ParsePossibleRefExpression(), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
                 default:
                     // check for intrinsic type followed by '.'
                     if (IsPredefinedType(tk))
                     {
+                        if (this.IsPossibleLambdaExpression(precedence))
+                        {
+                            return this.ParseLambdaExpression();
+                        }
+
                         var expr = _syntaxFactory.PredefinedType(this.EatToken());
 
                         if (this.CurrentToken.Kind != SyntaxKind.DotToken || tk == SyntaxKind.VoidKeyword)
@@ -11205,11 +11219,6 @@ tryAgain:
                             return foundParameterModifier;
 
                         case SyntaxKind.CommaToken:
-                            if (foundParameterModifier)
-                            {
-                                return true;
-                            }
-
                             continue;
 
                         case SyntaxKind.CloseParenToken:
@@ -11231,14 +11240,14 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenParenToken);
 
+            if (IsPossibleLambdaExpression(precedence))
+            {
+                return this.ParseLambdaExpression();
+            }
+
             var resetPoint = this.GetResetPoint();
             try
             {
-                if (ScanParenthesizedImplicitlyTypedLambda(precedence))
-                {
-                    return this.ParseLambdaExpression();
-                }
-
                 // We have a decision to make -- is this a cast, or is it a parenthesized
                 // expression?  Because look-ahead is cheap with our token stream, we check
                 // to see if this "looks like" a cast (without constructing any parse trees)
@@ -11440,160 +11449,126 @@ tryAgain:
             }
         }
 
+        /// <summary>
+        /// Tokens that match the following are considered a possible lambda expression:
+        /// <code>attribute-list* ('async' | 'static')* type? ('(' | identifier) ...</code>
+        /// For better error recovery 'static =>' is also considered a possible lambda expression.
+        /// </summary>
         private bool IsPossibleLambdaExpression(Precedence precedence)
         {
-            // Only call into this if after `static`, '[',  or after a legal identifier.
-            Debug.Assert(
-                this.CurrentToken.Kind is SyntaxKind.StaticKeyword or SyntaxKind.OpenBracketToken ||
-                this.IsTrueIdentifier(this.CurrentToken));
             if (precedence > Precedence.Lambda)
             {
                 return false;
             }
 
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+            var resetPoint = this.GetResetPoint();
+            try
             {
-                var resetPoint = this.GetResetPoint();
-                try
+                if (CurrentToken.Kind == SyntaxKind.OpenBracketToken)
                 {
                     _ = ParseAttributeDeclarations();
-                    return CurrentToken.Kind switch
+                }
+
+                bool seenStatic;
+                if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
+                {
+                    EatToken();
+                    seenStatic = true;
+                }
+                else if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
+                         this.PeekToken(1).Kind == SyntaxKind.StaticKeyword)
+                {
+                    EatToken();
+                    EatToken();
+                    seenStatic = true;
+                }
+                else
+                {
+                    seenStatic = false;
+                }
+
+                if (seenStatic)
+                {
+                    if (this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken)
                     {
-                        SyntaxKind.StaticKeyword or SyntaxKind.IdentifierToken => IsPossibleLambdaExpressionCore(precedence),
-                        SyntaxKind.OpenParenToken => ScanParenthesizedLambda(precedence),
-                        _ => false,
-                    };
+                        // 1. `static =>`
+                        // 2. `async static =>`
+
+                        // This is an error case, but we have enough code in front of us to be certain
+                        // the user was trying to write a static lambda.
+                        return true;
+                    }
+
+                    if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+                    {
+                        // 1. `static (...
+                        // 2. `async static (...
+                        return true;
+                    }
+                }
+
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
+                {
+                    // 1. `a => ...`
+                    // 1. `static a => ...`
+                    // 2. `async static a => ...`
+                    return true;
+                }
+
+                // Have checked all the static forms.  And have checked for the basic `a => a` form.  
+                // At this point we have must be on 'async' or an explicit return type for this to still be a lambda.
+                if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword)
+                {
+                    EatToken();
+                }
+
+                var nestedResetPoint = this.GetResetPoint();
+                try
+                {
+                    var st = ScanType(); // PROTOTYPE: Are default arguments to ScanType() correct?
+                    if (st == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+                    {
+                        this.Reset(ref nestedResetPoint);
+                    }
                 }
                 finally
                 {
-                    this.Reset(ref resetPoint);
-                    this.Release(ref resetPoint);
+                    this.Release(ref nestedResetPoint);
                 }
+
+                // However, just because we're on `async` doesn't mean we're a lambda.  We might have
+                // something lambda-like like:
+                //
+                //      async a => ...  // or
+                //      async (a) => ...
+                //
+                // Or we could have something that isn't a lambda like:
+                //
+                //      async ();
+
+                // 'async <identifier> => ...' looks like an async simple lambda
+                if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
+                    this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
+                {
+                    // async a => ...
+                    return true;
+                }
+
+                // Non-simple async lambda must be of the form 'async (...'
+                if (this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
+                {
+                    return false;
+                }
+
+                // Check whether looks like implicitly or explicitly typed lambda
+                return ScanParenthesizedLambda(precedence);
             }
-            else
+            finally
             {
-                return IsPossibleLambdaExpressionCore(precedence);
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
             }
-        }
-
-        private bool IsPossibleLambdaExpressionCore(Precedence precedence)
-        {
-            // Only call into this if after `static` or after a legal identifier.
-            Debug.Assert(
-                this.CurrentToken.Kind == SyntaxKind.StaticKeyword ||
-                this.IsTrueIdentifier(this.CurrentToken));
-            Debug.Assert(precedence <= Precedence.Lambda);
-
-            // If we start with `static` or `async static` then just jump past those and do the
-            // analysis after that point.  Note, we don't just blindly consume `async` in `static
-            // async` because that `async` may not be a modifier (it may just be an identifier) and
-            // we have to figure out what it is.
-
-            int peekIndex;
-            bool seenStatic;
-            if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
-            {
-                peekIndex = 1;
-                seenStatic = true;
-            }
-            else if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
-                     this.PeekToken(1).Kind == SyntaxKind.StaticKeyword)
-            {
-                peekIndex = 2;
-                seenStatic = true;
-            }
-            else
-            {
-                peekIndex = 0;
-                seenStatic = false;
-            }
-
-            if (this.PeekToken(peekIndex).Kind == SyntaxKind.EqualsGreaterThanToken)
-            {
-                // We only got into IsPossibleLambdaExpression if we saw 'static' or an identifier.
-                // So if we're now on => then we must have been on 'static' in order to have moved
-                // past those.
-                Contract.Requires(seenStatic);
-
-                // 1. `static =>`
-                // 2. `async static =>`
-
-                // This is an error case, but we have enough code in front of us to be certain
-                // the user was trying to write a static lambda.
-                return true;
-            }
-
-            if (this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(peekIndex + 1).Kind == SyntaxKind.EqualsGreaterThanToken)
-            {
-                // 1. `a => ...`
-                // 1. `static a => ...`
-                // 2. `async static a => ...`
-                return true;
-            }
-
-            if (this.PeekToken(peekIndex).Kind == SyntaxKind.OpenParenToken)
-            {
-                // We only got into IsPossibleLambdaExpression if we saw 'static' or an identifier.
-                // So if we're now on ( then we must have been on 'static' in order to have moved
-                // past those.
-                Contract.Requires(seenStatic);
-
-                // 1. `static (...
-                // 2. `async static (...
-                return true;
-            }
-
-            // Have checked all the static forms.  And have checked for the basic `a => a` form.  
-            // At this point we have must be on 'async' for this to still be a lambda.
-            if (this.PeekToken(peekIndex).ContextualKind != SyntaxKind.AsyncKeyword)
-            {
-                return false;
-            }
-
-            peekIndex++;
-            // However, just because we're on `async` doesn't mean we're a lambda.  We might have
-            // something lambda-like like:
-            //
-            //      async a => ...  // or
-            //      async (a) => ...
-            //
-            // Or we could have something that isn't a lambda like:
-            //
-            //      async ();
-
-            // 'async <identifier> => ...' looks like an async simple lambda
-            if (this.PeekToken(peekIndex).Kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(peekIndex + 1).Kind == SyntaxKind.EqualsGreaterThanToken)
-            {
-                // async a => ...
-                return true;
-            }
-
-            // Non-simple async lambda must be of the form 'async (...'
-            if (this.PeekToken(peekIndex).Kind != SyntaxKind.OpenParenToken)
-            {
-                return false;
-            }
-
-            // we have `async (`.  Could be a lambda, or could be an invocation of something called
-            // `async`.  Have to do a more costly speculative scan to find out.
-            var resetPoint = this.GetResetPoint();
-
-            // Skip all tokens until we go past 'async'
-            for (int i = 0; i < peekIndex; i++)
-            {
-                EatToken();
-            }
-
-            // Check whether looks like implicitly or explicitly typed lambda
-            bool isAsync = ScanParenthesizedLambda(precedence);
-
-            // Restore current token index
-            this.Reset(ref resetPoint);
-            this.Release(ref resetPoint);
-
-            return isAsync;
         }
 
         private static bool CanFollowCast(SyntaxKind kind)
@@ -12420,6 +12395,22 @@ tryAgain:
                     this.IsInAsync = true;
                 }
 
+                TypeSyntax returnType;
+                var resetPoint = this.GetResetPoint();
+                try
+                {
+                    returnType = ParseReturnType();
+                    if (CurrentToken.Kind != SyntaxKind.OpenParenToken)
+                    {
+                        this.Reset(ref resetPoint);
+                        returnType = null;
+                    }
+                }
+                finally
+                {
+                    this.Release(ref resetPoint);
+                }
+
                 if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
                 {
                     var paramList = this.ParseLambdaParameterList();
@@ -12428,7 +12419,7 @@ tryAgain:
                     var (block, expression) = ParseLambdaBody();
 
                     return _syntaxFactory.ParenthesizedLambdaExpression(
-                        attributes, modifiers, paramList, arrow, block, expression);
+                        attributes, modifiers, returnType, paramList, arrow, block, expression);
                 }
                 else
                 {
