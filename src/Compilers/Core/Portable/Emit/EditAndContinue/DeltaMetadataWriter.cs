@@ -1,4 +1,4 @@
-﻿f // Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _propertyMap = new EventOrPropertyMapIndex(this.TryGetExistingPropertyMapIndex, sizes[(int)TableIndex.PropertyMap]);
             _methodImpls = new MethodImplIndex(this, sizes[(int)TableIndex.MethodImpl]);
 
-            _customAttributeTargets = new List<EntityHandle>()
+            _customAttributeTargets = new List<EntityHandle>();
             _customAttributeRows = new List<int>();
             _customAttributesAdded = new Dictionary<int, EntityHandle>();
 
