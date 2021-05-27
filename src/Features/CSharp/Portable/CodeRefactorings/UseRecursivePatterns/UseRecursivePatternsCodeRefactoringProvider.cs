@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 return;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8)
+            if (((CSharpParseOptions)root.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp9)
                 return;
 
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -250,10 +249,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
         {
             return target switch
             {
-                // A type or pattern come from an `is` expression on either side of `&&`
+                // A pattern come from an `is` expression on either side of `&&`
                 PatternSyntax pattern => pattern,
-                NullableTypeSyntax type => TypePattern(type.ElementType),
-                TypeSyntax type => TypePattern(type),
                 // Otherwise, this is a constant. Depending on the original receiver, we create an appropriate pattern.
                 ExpressionSyntax constant => originalReceiver.Parent switch
                 {
@@ -338,8 +335,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                     => TryDetermineReceiver(inWhenClause ? expr.Left : expr.Right, model, inWhenClause),
 
                 // If we have an `is` operator, we'll try to combine the existing pattern/type with the other operand.
-                BinaryExpressionSyntax(IsExpression) expr
-                    => (expr.Left, expr.Right, false),
+                BinaryExpressionSyntax(IsExpression) { Right: NullableTypeSyntax type } expr
+                    => (expr.Left, TypePattern(type.ElementType), false),
+                BinaryExpressionSyntax(IsExpression) { Right: TypeSyntax type } expr
+                    => (expr.Left, TypePattern(type), false),
                 IsPatternExpressionSyntax expr
                     => (expr.Expression, expr.Pattern, false),
 

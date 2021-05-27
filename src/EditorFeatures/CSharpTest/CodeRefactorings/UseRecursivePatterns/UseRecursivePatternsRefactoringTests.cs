@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRecursivePatterns
@@ -23,12 +24,64 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
 
         private static Task VerifyMissingAsync(string initialMarkup)
         {
             return VerifyAsync(initialMarkup, initialMarkup);
+        }
+
+        [Theory]
+        [InlineData("a.b.c.d && a.b.c.a", "a.b.c is { d: n, a: n }")]
+        [InlineData("a?.b.c.d && a.b.c.a", "a?.b.c is { d: n, a: n }")]
+        [InlineData("a.b?.c.d && a.b.c.a", "a.b?.c is { d: n, a: n }")]
+        [InlineData("a.b.c?.d && a.b.c.a", "a.b.c is { d: n, a: n }")]
+        [InlineData("a.b?.c?.d && a.b.c.a", "a.b?.c is { d: n, a: n }")]
+        [InlineData("a?.b.c?.d && a.b.c.a", "a?.b.c is { d: n, a: n }")]
+        [InlineData("a?.b?.c.d && a.b.c.a", "a?.b?.c is { d: n, a: n }")]
+        [InlineData("a?.b?.c?.d && a.b.c.a", "a?.b?.c is { d: n, a: n }")]
+
+        [InlineData("a.b.c.d && a.b.a", "a.b is { c: { d: n }, a: n }")]
+        [InlineData("a?.b.c.d && a.b.a", "a?.b is { c: { d: n }, a: n }")]
+        [InlineData("a.b?.c.d && a.b.a", "a.b is { c: { d: n }, a: n }")]
+        [InlineData("a.b.c?.d && a.b.a", "a.b is { c: { d: n }, a: n }")]
+        [InlineData("a.b?.c?.d && a.b.a", "a.b is { c: { d: n }, a: n }")]
+        [InlineData("a?.b.c?.d && a.b.a", "a?.b is { c: { d: n }, a: n }")]
+        [InlineData("a?.b?.c.d && a.b.a", "a?.b is { c: { d: n }, a: n }")]
+        [InlineData("a?.b?.c?.d && a.b.a", "a?.b is { c: { d: n }, a: n }")]
+
+        [InlineData("a.b.c.d && a.a", "a is { b: { c: { d: n } }, a: n }")]
+        [InlineData("a?.b.c.d && a.a", "a is { b: { c: { d: n } }, a: n }")]
+        [InlineData("a.b?.c.d && a.a", "a is { b: { c: { d: n } }, a: n }")]
+        [InlineData("a.b.c?.d && a.a", "a is { b: { c: { d: n } }, a: n }")]
+        [InlineData("a.b?.c?.d && a.a", "a is { b: { c: { d: n } }, a: n }")]
+        [InlineData("a?.b.c?.d && a.a", "a is { b: { c: { d: n } }, a: n }")]
+        [InlineData("a?.b?.c.d && a.a", "a is { b: { c: { d: n } }, a: n }")]
+        [InlineData("a?.b?.c?.d && a.a", "a is { b: { c: { d: n } }, a: n }")]
+
+        [InlineData("a.b.c.d && b", "this is { a: { b: { c: { d: n } } }, b: n }")]
+        [InlineData("a?.b.c.d && b", "this is { a: { b: { c: { d: n } } }, b: n }")]
+        [InlineData("a.b?.c.d && b", "this is { a: { b: { c: { d: n } } }, b: n }")]
+        [InlineData("a.b.c?.d && b", "this is { a: { b: { c: { d: n } } }, b: n }")]
+        [InlineData("a.b?.c?.d && b", "this is { a: { b: { c: { d: n } } }, b: n }")]
+        [InlineData("a?.b.c?.d && b", "this is { a: { b: { c: { d: n } } }, b: n }")]
+        [InlineData("a?.b?.c.d && b", "this is { a: { b: { c: { d: n } } }, b: n }")]
+        [InlineData("a?.b?.c?.d && b", "this is { a: { b: { c: { d: n } } }, b: n }")]
+
+        [InlineData("a.b.m().d && a.b.m().a", "a.b.m() is { d: n, a: n }")]
+        [InlineData("a.m().c.d && a.m().a", "a.m() is { c: { d: n }, a: n }")]
+        [InlineData("a?.m().c.d && a?.m().a", "a?.m() is { c: { d: n }, a: n }")]
+        [InlineData("a.m()?.c.d && a.m().a", "a.m() is { c: { d: n }, a: n }")]
+        [InlineData("a.m().c?.d && a.m().a", "a.m() is { c: { d: n }, a: n }")]
+        [InlineData("a.m()?.c?.d && a.m().a", "a.m() is { c: { d: n }, a: n }")]
+        [InlineData("a?.m().c?.d && a?.m().a", "a?.m() is { c: { d: n }, a: n }")]
+        [InlineData("a?.m()?.c.d && a?.m().a", "a?.m() is { c: { d: n }, a: n }")]
+        [InlineData("a?.m()?.c?.d && a?.m().a", "a?.m() is { c: { d: n }, a: n }")]
+        public async Task TestLogicalAndExpression_Receiver(string actual, string expected)
+        {
+            await VerifyAsync(WrapInIfStatement("n == " + actual + " == n", "&&"), WrapInIfStatement(expected));
         }
 
         [Theory]
@@ -43,20 +96,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         [InlineData("this.CP1.P1 >= 1 && 2 < this.CP2?.P2", "this is { CP1: { P1: >= 1 }, CP2: { P2: > 2 } }")]
         public async Task TestLogicalAndExpression_Relational(string actual, string expected)
         {
-            await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
+            await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected));
         }
 
         [Theory]
-        [InlineData("this.CP1?.CP1?.CP1?.CP1.CP1.CP1?.CP1.CP1.CP1 == null && this.CP1?.CP1?.CP1?.CP1.CP1.CP1?.CP1.CP1.CP2 == null", "this.CP1?.CP1?.CP1?.CP1.CP1.CP1?.CP1.CP1 is { CP1: null, CP2: null }")]
-        public async Task TestLogicalAndExpression_Relational0(string actual, string expected)
-        {
-            await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
-        }
-
-        [Theory]
-        [InlineData("!this.B1 && this.P2 == 1", "this is { B1: false, P2: 1 }")]
-        [InlineData("!this.B1 && this.B2", "this is { B1: false, B2: true }")]
-        [InlineData("this.CP1.B1 && !this.CP2.B2", "this is { CP1: { B1: true }, CP2: { B2: false } }")]
+        [InlineData("!B1 && B2", "this is { B1: false, B2: true }")]
+        [InlineData("CP1.B1 && !CP2.B2", "this is { CP1: { B1: true }, CP2: { B2: false } }")]
         public async Task TestLogicalAndExpression_Boolean(string actual, string expected)
         {
             await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
@@ -65,7 +110,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         [Theory]
         [InlineData("this.P1 == 1 && 2 == this.P2", "this is { P1: 1, P2: 2 }")]
         [InlineData("this.P1 != 1 && 2 != this.P2", "this is { P1: not 1, P2: not 2 }")]
-        // Nested
         [InlineData("this.CP1.P1 == 1 && 2 == this.CP2.P2", "this is { CP1: { P1: 1 }, CP2: { P2: 2 } }")]
         [InlineData("this.CP1.P1 != 1 && 2 != this.CP2.P2", "this is { CP1: { P1: not 1 }, CP2: { P2: not 2 } }")]
         public async Task TestLogicalAndExpression_Equality(string actual, string expected)
@@ -75,7 +119,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
 
         [Theory]
         [InlineData("NS.C.SCP1.P1 == 1 && NS.C.SCP1.P2 == 2", "NS.C.SCP1 is { P1: 1, P2: 2 }")]
-        // Nested
         [InlineData("NS.C.SCP1.CP1.P1 == 1 && NS.C.SCP1.CP2.P2 == 2", "NS.C.SCP1 is { CP1: { P1: 1 }, CP2: { P2: 2 } }")]
         public async Task TestLogicalAndExpression_StaticMembers(string actual, string expected)
         {
@@ -83,19 +126,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         }
 
         [Theory]
-        [InlineData("this.CP1 is var c && c.P1 == 0", "this.CP1 is { P1: 0 } c")]
-        [InlineData("this.CP1 is C c && c.P1 == 0", "this.CP1 is C { P1: 0 } c")]
-        [InlineData("this.CP1 is C { P2: 2 } c && c.P1 == 0", "this.CP1 is C { P2: 2, P1: 0 } c")]
-        public async Task TestLogicalAndExpression_Pattern(string actual, string expected)
-        {
-            await VerifyAsync(WrapInIfStatement(actual, "&&"), WrapInIfStatement(expected, "&&"));
-        }
-
-        [Theory]
-        [InlineData("this.B1 && this.CP1 is var c [||]&& c.P1 == 0 && this.P2 == 2", "this.B1 && this.CP1 is { P1: 0 } c && this.P2 == 2")]
-        [InlineData("this.B1 && this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3", "this.B1 && this.CP1 is { P1: 1, CP2: { P3: 3 } }")]
-        [InlineData("this.B1 && this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3 && this.P2 == 2", "this.B1 && this.CP1 is { P1: 1, CP2: { P3: 3 } } && this.P2 == 2")]
-        public async Task TestLogicalAndExpression_Children(string actual, string expected)
+        [InlineData("this.B1 && this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3 && B2", "this.B1 && this.CP1 is { P1: 1, CP2: { P3: 3 } } && B2")]
+        [InlineData("this.B1 || this.CP1.P1 == 1 [||]&& this.CP1.CP2.P3 == 3 || B2", "this.B1 || this.CP1 is { P1: 1, CP2: { P3: 3 } } || B2")]
+        public async Task TestLogicalAndExpression_Chain(string actual, string expected)
         {
             await VerifyAsync(WrapInIfStatement(actual, entry: null), WrapInIfStatement(expected, entry: null));
         }
@@ -103,27 +136,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         [Theory]
         [InlineData("NS.C.SCP1 == null && NS.C.SCP2 == null")]
         [InlineData("NS.C.SCP1.P1 == 1 && NS.C.SCP2.P1 == 2")]
-        public async Task TestLogicalAndExpressionMissing(string actual)
+        [InlineData("base.P1 == 1 && base.P2 == 2")]
+        [InlineData("base.B1 && base.B2")]
+        public async Task TestLogicalAndExpression_Invalid(string actual)
         {
             await VerifyMissingAsync(WrapInIfStatement(actual, "&&"));
         }
 
         [Theory]
-        [InlineData("{ CP1: var c } when c.P1 is 1", "{ CP1: { P1: 1 } c }")]
-        [InlineData("{ CP1: var c } when c.P1 == 1", "{ CP1: { P1: 1 } c }")]
-        [InlineData("{ CP1: var c } when c.P1 == 1 && c.P2 == 2", "{ CP1: { P1: 1 } c } when c.P2 == 2")]
-        [InlineData("{ CP1: C c } when c.P1 == 1", "{ CP1: C { P1: 1 } c }")]
-        [InlineData("{ CP1: C { P2: 2 } c } when c.P1 == 1", "{ CP1: C { P2: 2, P1: 1 } c }")]
-        [InlineData("{ CP1: var c } when c is { P1: 1 }", "{ CP1: { P1: 1 } c }")]
-        public async Task TestWhenClause(string actual, string expected)
+        [InlineData("{ a: var x }", "x is { b: n }", "{ a: { b: n } x }")]
+        [InlineData("{ a: C x }", "x is { b: n }", "{ a: C { b: n } x }")]
+        [InlineData("{ a: { b: n } x }", "x is C", "{ a: C { b: n } x }")]
+        [InlineData("{ a: { b: n } x }", "x is { a: n }", "{ a: { b: n, a: n } x }")]
+        [InlineData("{ a: var x }", "x.c is { b: n }", "{ a: { c: { b: n } } x }")]
+        [InlineData("{ a: C x }", "x.c is { b: n }", "{ a: C { c: { b: n } } x }")]
+        [InlineData("{ a: { b: n } x }", "x.c is C", "{ a: { b: n, c: C } x }")]
+        [InlineData("{ a: { b: n } x }", "x.c is { a: n }", "{ a: { b: n, c: { a: n } } x }")]
+        [InlineData("{ a: var x }", "x == null", "{ a: var x and null }")]
+        public async Task TestVariableDesignation(string pattern, string expression, string expected)
         {
-            await VerifyAsync(WrapInSwitchArm(actual, "when"), WrapInSwitchArm(expected, "when"));
-            await VerifyAsync(WrapInSwitchArm(actual, "=>"), WrapInSwitchArm(expected, "=>"));
-            await VerifyAsync(WrapInSwitchLabel(actual, "when"), WrapInSwitchLabel(expected, "when"));
-            await VerifyAsync(WrapInSwitchLabel(actual, "case"), WrapInSwitchLabel(expected, "case"));
+            await VerifyAsync(WrapInSwitchArm($"{pattern} when {expression}", "when"), WrapInSwitchArm($"{expected}"));
+            await VerifyAsync(WrapInSwitchArm($"{pattern} when {expression}", "=>"), WrapInSwitchArm($"{expected}"));
+            await VerifyAsync(WrapInSwitchLabel($"{pattern} when {expression}", "when"), WrapInSwitchLabel($"{expected}"));
+            await VerifyAsync(WrapInSwitchLabel($"{pattern} when {expression}", "case"), WrapInSwitchLabel($"{expected}"));
+            await VerifyAsync(WrapInIfStatement($"this is {pattern} && {expression}", "&&"), WrapInIfStatement($"this is {expected}"));
+
+            await VerifyAsync(WrapInSwitchArm($"{pattern} when {expression} && B1 && B2", "when"), WrapInSwitchArm($"{expected} when B1 && B2"));
+            await VerifyAsync(WrapInSwitchArm($"{pattern} when {expression} && B1 && B2", "=>"), WrapInSwitchArm($"{expected} when B1 && B2"));
+            await VerifyAsync(WrapInSwitchLabel($"{pattern} when {expression} && B1 && B2", "when"), WrapInSwitchLabel($"{expected} when B1 && B2"));
+            await VerifyAsync(WrapInSwitchLabel($"{pattern} when {expression} && B1 && B2", "case"), WrapInSwitchLabel($"{expected} when B1 && B2"));
+            await VerifyAsync(WrapInIfStatement($"B1 && this is {pattern} [||]&& {expression} && B2"), WrapInIfStatement($"B1 && this is {expected} && B2"));
         }
 
-        private static string WrapInIfStatement(string actual, string? entry)
+        private static string WrapInIfStatement(string actual, string? entry = null)
         {
             var markup =
 @"
@@ -132,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
             return CreateMarkup(markup, entry);
         }
 
-        private static string WrapInSwitchArm(string actual, string? entry)
+        private static string WrapInSwitchArm(string actual, string? entry = null)
         {
             var markup =
 @"
@@ -144,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
             return CreateMarkup(markup, entry);
         }
 
-        private static string WrapInSwitchLabel(string actual, string? entry)
+        private static string WrapInSwitchLabel(string actual, string? entry = null)
         {
             var markup =
 @"
@@ -157,23 +202,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
             return CreateMarkup(markup, entry);
         }
 
-        private static string CreateMarkup(string actual, string? entry)
+        private static string CreateMarkup(string actual, string? entry = null)
         {
             var markup = @"
 namespace NS
 {
-    class C
+    class C : B
     {
+        void Test()
+        {
+            " + actual + @"
+        }
+    }
+    class B
+    {
+        public const C n = null;
+        public C a, b, c, d;
         public int P1, P2, P3;
         public bool B1, B2;
         public C CP1, CP2;
         public static C SCP1, SCP2;
         public static int SP1, SP2;
-
-        void M()
-        {
-            " + actual + @"
-        }
+        public C m() { return null; }
     }
 }";
             return entry is null ? markup : markup.Replace(entry, "[||]" + entry);
