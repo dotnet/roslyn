@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             // with no generators, there is no work to do
             if (_state.Generators.IsEmpty)
             {
-                return _state;
+                return _state.With(stateTable: DriverStateTable.Empty);
             }
 
             // run the actual generation
