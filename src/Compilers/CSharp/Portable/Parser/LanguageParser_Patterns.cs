@@ -315,8 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     designation0 == null &&
                     subPatterns.Count == 1 &&
                     subPatterns.SeparatorCount == 0 &&
-                    // PROTOTYPE(extended-property-patterns) ExpressionColon
-                    subPatterns[0].NameColon == null)
+                    subPatterns[0].ExpressionColon == null)
                 {
                     var subpattern = subPatterns[0].Pattern;
                     switch (subpattern)

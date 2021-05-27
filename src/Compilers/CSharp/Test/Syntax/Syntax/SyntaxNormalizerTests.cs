@@ -971,10 +971,9 @@ class Derived : Base
             TestNormalizeStatement(actual, expected);
         }
 
-        [Fact(Skip = "PROTOTYPE")]
+        [Fact]
         public void TestNormalizeExtendedPropertyPattern()
         {
-            // PROTOTYPE: we may need to flow https://github.com/dotnet/roslyn/pull/52680 into the feature branch first
             var text = "_ = this is{Property . Property :2};";
 
             var expected = @"_ = this is { Property.Property: 2 };";

@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -24,14 +25,14 @@ class C
     public C Prop1 { get; set; }
     public C Prop2 { get; set; }
     public C Prop3 { get; set; }
-    
+
     static bool Test1(C o) => o is { Prop1.Prop2.Prop3: null };
     static bool Test2(S o) => o is { Prop1.Prop2.Prop3: null };
     static bool Test3(S? o) => o is { Prop1.Prop2.Prop3: null };
     static bool Test4(S0 o) => o is { Prop1.Prop2.Prop3: 420 };
 
     public static void Main()
-    {        
+    {
         Console.WriteLine(Test1(new() { Prop1 = new() { Prop2 = new() { Prop3 = null }}}));
         Console.WriteLine(Test2(new() { Prop1 = new() { Prop2 = new() { Prop3 = null }}}));
         Console.WriteLine(Test3(new() { Prop1 = new() { Prop2 = new() { Prop3 = null }}}));
@@ -161,7 +162,7 @@ class C
     public C Prop2 { get; set; }
 
     public static void Main()
-    {        
+    {
         _ = new C() is { Prop1: null } and { Prop1.Prop2: null };
         _ = new C() is { Prop1: null, Prop1.Prop2: null };
     }
@@ -200,7 +201,7 @@ class C
     }
 
     public static void Main()
-    {  
+    {
         Test(null);
         Test(new());
         Test(new() { Prop1 = new() });
@@ -276,7 +277,7 @@ Prop2
 class C
 {
     public static void Main()
-    {        
+    {
         _ = new C() is { Prop1<int>.Prop2: {} };
         _ = new C() is { Prop1->Prop2: {} };
         _ = new C() is { Prop1!.Prop2: {} };
@@ -288,16 +289,16 @@ class C
 ";
             var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                    // (6,26): error CS9000: Identifier or a simple member access expected.
+                    // (6,26): error CS8918: Identifier or a simple member access expected.
                     //         _ = new C() is { Prop1<int>.Prop2: {} };
                     Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1<int>").WithLocation(6, 26),
-                    // (7,26): error CS9000: Identifier or a simple member access expected.
+                    // (7,26): error CS8918: Identifier or a simple member access expected.
                     //         _ = new C() is { Prop1->Prop2: {} };
                     Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1->Prop2").WithLocation(7, 26),
-                    // (8,26): error CS9000: Identifier or a simple member access expected.
+                    // (8,26): error CS8918: Identifier or a simple member access expected.
                     //         _ = new C() is { Prop1!.Prop2: {} };
                     Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1!").WithLocation(8, 26),
-                    // (9,26): error CS9000: Identifier or a simple member access expected.
+                    // (9,26): error CS8918: Identifier or a simple member access expected.
                     //         _ = new C() is { Prop1?.Prop2: {} };
                     Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1?.Prop2").WithLocation(9, 26),
                     // (10,26): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Prop1[0] }'
@@ -315,50 +316,671 @@ class C
                     // (10,36): error CS1003: Syntax error, ',' expected
                     //         _ = new C() is { Prop1[0]: {} };
                     Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(10, 36),
-                    // (11,26): error CS9000: Identifier or a simple member access expected.
+                    // (11,26): error CS8918: Identifier or a simple member access expected.
                     //         _ = new C() is { 1: {} };
                     Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "1").WithLocation(11, 26));
         }
 
-        [Fact]
+        [Fact, WorkItem(52956, "https://github.com/dotnet/roslyn/issues/52956")]
         public void ExtendedPropertyPatterns_05()
         {
             var program = @"
 class C
 {
-    C Prop1, Prop2;
-    public static void Main()
-    {        
-        _ = new C() is { Prop1.Prop2: {} };
-        _ = new C() is { Prop1?.Prop2: {} };
-        _ = new C() is { Missing: null, Prop1.Prop2: {} };
+    C Field1, Field2, Field3, Field4;
+    public void M()
+    {
+        _ = this is { Field1.Field2.Field3: {} };
+        _ = this is { Field4: {} };
     }
 }
 ";
-            var compilation = CreateCompilation(program, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
-            // PROTOTYPE(extended-property-patterns) False warning: https://github.com/dotnet/roslyn/issues/52956
-            compilation.VerifyDiagnostics(
-                    // (4,7): warning CS0169: The field 'C.Prop1' is never used
-                    //     C Prop1, Prop2;
-                    Diagnostic(ErrorCode.WRN_UnreferencedField, "Prop1").WithArguments("C.Prop1").WithLocation(4, 7),
-                    // (4,14): warning CS0169: The field 'C.Prop2' is never used
-                    //     C Prop1, Prop2;
-                    Diagnostic(ErrorCode.WRN_UnreferencedField, "Prop2").WithArguments("C.Prop2").WithLocation(4, 14),
-                    // (7,26): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = new C() is { Prop1.Prop2: {} };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop1.Prop2").WithArguments("extended property patterns").WithLocation(7, 26),
-                    // (8,26): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = new C() is { Prop1?.Prop2: {} };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop1?.Prop2").WithArguments("extended property patterns").WithLocation(8, 26),
-                    // (8,26): error CS9000: Identifier or a simple member access expected.
-                    //         _ = new C() is { Prop1?.Prop2: {} };
-                    Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1?.Prop2").WithLocation(8, 26),
-                    // (9,26): error CS0117: 'C' does not contain a definition for 'Missing'
-                    //         _ = new C() is { Missing: null, Prop1.Prop2: {} };
-                    Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("C", "Missing").WithLocation(9, 26),
-                    // (9,41): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         _ = new C() is { Missing: null, Prop1.Prop2: {} };
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop1.Prop2").WithArguments("extended property patterns").WithLocation(9, 41));
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (4,7): warning CS0649: Field 'C.Field1' is never assigned to, and will always have its default value null
+                //     C Field1, Field2, Field3, Field4;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field1").WithArguments("C.Field1", "null").WithLocation(4, 7),
+                // (4,15): warning CS0649: Field 'C.Field2' is never assigned to, and will always have its default value null
+                //     C Field1, Field2, Field3, Field4;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field2").WithArguments("C.Field2", "null").WithLocation(4, 15),
+                // (4,23): warning CS0649: Field 'C.Field3' is never assigned to, and will always have its default value null
+                //     C Field1, Field2, Field3, Field4;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field3").WithArguments("C.Field3", "null").WithLocation(4, 23),
+                // (4,31): warning CS0649: Field 'C.Field4' is never assigned to, and will always have its default value null
+                //     C Field1, Field2, Field3, Field4;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field4").WithArguments("C.Field4", "null").WithLocation(4, 31)
+                );
+        }
+
+        [Fact, WorkItem(52956, "https://github.com/dotnet/roslyn/issues/52956")]
+        public void ExtendedPropertyPatterns_05_NestedRecursivePattern()
+        {
+            var program = @"
+class C
+{
+    C Field1, Field2, Field3, Field4;
+    public void M()
+    {
+        _ = this is { Field1: { Field2.Field3.Field4: not null } };
+    }
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (4,7): warning CS0649: Field 'C.Field1' is never assigned to, and will always have its default value null
+                //     C Field1, Field2, Field3, Field4;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field1").WithArguments("C.Field1", "null").WithLocation(4, 7),
+                // (4,15): warning CS0649: Field 'C.Field2' is never assigned to, and will always have its default value null
+                //     C Field1, Field2, Field3, Field4;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field2").WithArguments("C.Field2", "null").WithLocation(4, 15),
+                // (4,23): warning CS0649: Field 'C.Field3' is never assigned to, and will always have its default value null
+                //     C Field1, Field2, Field3, Field4;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field3").WithArguments("C.Field3", "null").WithLocation(4, 23),
+                // (4,31): warning CS0649: Field 'C.Field4' is never assigned to, and will always have its default value null
+                //     C Field1, Field2, Field3, Field4;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field4").WithArguments("C.Field4", "null").WithLocation(4, 31)
+                );
+        }
+
+        [Fact, WorkItem(52956, "https://github.com/dotnet/roslyn/issues/52956")]
+        public void ExtendedPropertyPatterns_05_Properties()
+        {
+            var program = @"
+class C
+{
+    C Prop1 { get; set; }
+    C Prop2 { get; set; }
+    C Prop3 { get; set; }
+    C Prop4 { get; set; }
+    public void M()
+    {
+        _ = this is { Prop1.Prop2.Prop3: {} };
+        _ = this is { Prop4: {} };
+    }
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_IOperation_Properties()
+        {
+            var src = @"
+class Program
+{
+    static void M(A a)
+    /*<bind>*/{
+        _ = a is { Prop1.Prop2.Prop3: null };
+    }/*</bind>*/
+}
+class A { public B Prop1 => null; }
+class B { public C Prop2 => null; }
+class C { public object Prop3 => null; }
+";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(isPattern), @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a is { Prop ... op3: null }')
+  Value:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: A) (Syntax: 'a')
+  Pattern:
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ Prop1.Pro ... op3: null }') (InputType: A, NarrowedType: A, DeclaredSymbol: null, MatchedType: A, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1')
+            Member:
+              IPropertyReferenceOperation: B A.Prop1 { get; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Prop1')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Prop1')
+            Pattern:
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Prop1') (InputType: B, NarrowedType: B, DeclaredSymbol: null, MatchedType: B, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2')
+                      Member:
+                        IPropertyReferenceOperation: C B.Prop2 { get; } (OperationKind.PropertyReference, Type: C) (Syntax: 'Prop1.Prop2')
+                          Instance Receiver:
+                            IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: 'Prop1.Prop2')
+                      Pattern:
+                        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                          DeconstructionSubpatterns (0)
+                          PropertySubpatterns (1):
+                              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2.Prop3')
+                                Member:
+                                  IPropertyReferenceOperation: System.Object C.Prop3 { get; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'Prop1.Prop2.Prop3')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop1.Prop2.Prop3')
+                                Pattern:
+                                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
+                                    Value:
+                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                        Operand:
+                                          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+");
+
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = a is {  ... p3: null };')
+          Expression:
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: '_ = a is {  ... op3: null }')
+              Left:
+                IDiscardOperation (Symbol: System.Boolean _) (OperationKind.Discard, Type: System.Boolean) (Syntax: '_')
+              Right:
+                IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a is { Prop ... op3: null }')
+                  Value:
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: A) (Syntax: 'a')
+                  Pattern:
+                    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ Prop1.Pro ... op3: null }') (InputType: A, NarrowedType: A, DeclaredSymbol: null, MatchedType: A, DeconstructSymbol: null)
+                      DeconstructionSubpatterns (0)
+                      PropertySubpatterns (1):
+                          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1')
+                            Member:
+                              IPropertyReferenceOperation: B A.Prop1 { get; } (OperationKind.PropertyReference, Type: B) (Syntax: 'Prop1')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Prop1')
+                            Pattern:
+                              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Prop1') (InputType: B, NarrowedType: B, DeclaredSymbol: null, MatchedType: B, DeconstructSymbol: null)
+                                DeconstructionSubpatterns (0)
+                                PropertySubpatterns (1):
+                                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2')
+                                      Member:
+                                        IPropertyReferenceOperation: C B.Prop2 { get; } (OperationKind.PropertyReference, Type: C) (Syntax: 'Prop1.Prop2')
+                                          Instance Receiver:
+                                            IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: 'Prop1.Prop2')
+                                      Pattern:
+                                        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                                          DeconstructionSubpatterns (0)
+                                          PropertySubpatterns (1):
+                                              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Prop1.Prop2.Prop3')
+                                                Member:
+                                                  IPropertyReferenceOperation: System.Object C.Prop3 { get; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'Prop1.Prop2.Prop3')
+                                                    Instance Receiver:
+                                                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Prop1.Prop2.Prop3')
+                                                Pattern:
+                                                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
+                                                    Value:
+                                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                                          (ImplicitReference)
+                                                        Operand:
+                                                          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_IOperation_FieldsInStructs()
+        {
+            var src = @"
+class Program
+{
+    static void M(A a)
+    /*<bind>*/{
+        _ = a is { Field1.Field2.Field3: null, Field4: null };
+    }/*</bind>*/
+}
+struct A { public B? Field1; public B? Field4; }
+struct B { public C? Field2; }
+struct C { public object Field3; }
+";
+            var expectedDiagnostics = new[]
+            {
+                // (9,22): warning CS0649: Field 'A.Field1' is never assigned to, and will always have its default value
+                // struct A { public B? Field1; public B? Field4; }
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field1").WithArguments("A.Field1", "").WithLocation(9, 22),
+                // (9,40): warning CS0649: Field 'A.Field4' is never assigned to, and will always have its default value
+                // struct A { public B? Field1; public B? Field4; }
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field4").WithArguments("A.Field4", "").WithLocation(9, 40),
+                // (10,22): warning CS0649: Field 'B.Field2' is never assigned to, and will always have its default value
+                // struct B { public C? Field2; }
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field2").WithArguments("B.Field2", "").WithLocation(10, 22),
+                // (11,26): warning CS0649: Field 'C.Field3' is never assigned to, and will always have its default value null
+                // struct C { public object Field3; }
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field3").WithArguments("C.Field3", "null").WithLocation(11, 26)
+            };
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(isPattern), @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a is { Fiel ... ld4: null }')
+  Value:
+    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: A) (Syntax: 'a')
+  Pattern:
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ Field1.Fi ... ld4: null }') (InputType: A, NarrowedType: A, DeclaredSymbol: null, MatchedType: A, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (2):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1')
+            Member:
+              IFieldReferenceOperation: B? A.Field1 (OperationKind.FieldReference, Type: B?) (Syntax: 'Field1')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Field1')
+            Pattern:
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Field1') (InputType: B, NarrowedType: B, DeclaredSymbol: null, MatchedType: B, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2')
+                      Member:
+                        IFieldReferenceOperation: C? B.Field2 (OperationKind.FieldReference, Type: C?) (Syntax: 'Field1.Field2')
+                          Instance Receiver:
+                            IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: 'Field1.Field2')
+                      Pattern:
+                        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                          DeconstructionSubpatterns (0)
+                          PropertySubpatterns (1):
+                              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2.Field3')
+                                Member:
+                                  IFieldReferenceOperation: System.Object C.Field3 (OperationKind.FieldReference, Type: System.Object) (Syntax: 'Field1.Field2.Field3')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Field1.Field2.Field3')
+                                Pattern:
+                                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
+                                    Value:
+                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                        Operand:
+                                          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Field4: null')
+            Member:
+              IFieldReferenceOperation: B? A.Field4 (OperationKind.FieldReference, Type: B?) (Syntax: 'Field4')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Field4')
+            Pattern:
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: B?, NarrowedType: B?)
+                Value:
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: B?, Constant: null, IsImplicit) (Syntax: 'null')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand:
+                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+");
+
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = a is {  ... d4: null };')
+          Expression:
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: '_ = a is {  ... ld4: null }')
+              Left:
+                IDiscardOperation (Symbol: System.Boolean _) (OperationKind.Discard, Type: System.Boolean) (Syntax: '_')
+              Right:
+                IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'a is { Fiel ... ld4: null }')
+                  Value:
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: A) (Syntax: 'a')
+                  Pattern:
+                    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null) (Syntax: '{ Field1.Fi ... ld4: null }') (InputType: A, NarrowedType: A, DeclaredSymbol: null, MatchedType: A, DeconstructSymbol: null)
+                      DeconstructionSubpatterns (0)
+                      PropertySubpatterns (2):
+                          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1')
+                            Member:
+                              IFieldReferenceOperation: B? A.Field1 (OperationKind.FieldReference, Type: B?) (Syntax: 'Field1')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Field1')
+                            Pattern:
+                              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Field1') (InputType: B, NarrowedType: B, DeclaredSymbol: null, MatchedType: B, DeconstructSymbol: null)
+                                DeconstructionSubpatterns (0)
+                                PropertySubpatterns (1):
+                                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2')
+                                      Member:
+                                        IFieldReferenceOperation: C? B.Field2 (OperationKind.FieldReference, Type: C?) (Syntax: 'Field1.Field2')
+                                          Instance Receiver:
+                                            IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: B, IsImplicit) (Syntax: 'Field1.Field2')
+                                      Pattern:
+                                        IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+                                          DeconstructionSubpatterns (0)
+                                          PropertySubpatterns (1):
+                                              IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Field1.Field2.Field3')
+                                                Member:
+                                                  IFieldReferenceOperation: System.Object C.Field3 (OperationKind.FieldReference, Type: System.Object) (Syntax: 'Field1.Field2.Field3')
+                                                    Instance Receiver:
+                                                      IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Field1.Field2.Field3')
+                                                Pattern:
+                                                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: System.Object, NarrowedType: System.Object)
+                                                    Value:
+                                                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'null')
+                                                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                                          (ImplicitReference)
+                                                        Operand:
+                                                          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+                          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null) (Syntax: 'Field4: null')
+                            Member:
+                              IFieldReferenceOperation: B? A.Field4 (OperationKind.FieldReference, Type: B?) (Syntax: 'Field4')
+                                Instance Receiver:
+                                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'Field4')
+                            Pattern:
+                              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: B?, NarrowedType: B?)
+                                Value:
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: B?, Constant: null, IsImplicit) (Syntax: 'null')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                      (NullLiteral)
+                                    Operand:
+                                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_Explainer()
+        {
+            var src = @"
+class Program
+{
+    void M(A a)
+    {
+        _ = a switch // 1
+        {
+            { BProp.BoolProp: true } => 1
+        };
+
+        _ = a switch // 2
+        {
+            { BProp.IntProp: <= 0 } => 1
+        };
+     }
+}
+class A { public B BProp => null; }
+class B
+{
+    public bool BoolProp => true;
+    public int IntProp => 0;
+}
+";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            comp.VerifyDiagnostics(
+                // (6,15): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ BProp: { BoolProp: false } }' is not covered.
+                //         _ = a switch // 1
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ BProp: { BoolProp: false } }").WithLocation(6, 15),
+                // (11,15): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ BProp: { IntProp: 1 } }' is not covered.
+                //         _ = a switch // 2
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ BProp: { IntProp: 1 } }").WithLocation(11, 15)
+                );
+        }
+
+        [Fact, WorkItem(52956, "https://github.com/dotnet/roslyn/issues/52956")]
+        public void ExtendedPropertyPatterns_BadMemberAccess()
+        {
+            var program = @"
+class C
+{
+    C Field1, Field2, Field3;
+    public static void Main()
+    {
+        _ = new C() is { Field1?.Field2: {} }; // 1
+        _ = new C() is { Field1!.Field2: {} }; // 2
+        _ = new C() is { Missing: null }; // 3
+        _ = new C() is { Field3.Missing: {} }; // 4
+        _ = new C() is { Missing1.Missing2: {} }; // 5
+    }
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (4,7): warning CS0169: The field 'C.Field1' is never used
+                //     C Field1, Field2, Field3;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field1").WithArguments("C.Field1").WithLocation(4, 7),
+                // (4,15): warning CS0169: The field 'C.Field2' is never used
+                //     C Field1, Field2, Field3;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field2").WithArguments("C.Field2").WithLocation(4, 15),
+                // (4,23): warning CS0649: Field 'C.Field3' is never assigned to, and will always have its default value null
+                //     C Field1, Field2, Field3;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field3").WithArguments("C.Field3", "null").WithLocation(4, 23),
+                // (7,26): error CS8918: Identifier or a simple member access expected.
+                //         _ = new C() is { Field1?.Field2: {} }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Field1?.Field2").WithLocation(7, 26),
+                // (8,26): error CS8918: Identifier or a simple member access expected.
+                //         _ = new C() is { Field1!.Field2: {} }; // 2
+                Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Field1!").WithLocation(8, 26),
+                // (9,26): error CS0117: 'C' does not contain a definition for 'Missing'
+                //         _ = new C() is { Missing: null }; // 3
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("C", "Missing").WithLocation(9, 26),
+                // (10,33): error CS0117: 'C' does not contain a definition for 'Missing'
+                //         _ = new C() is { Field3.Missing: {} }; // 4
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("C", "Missing").WithLocation(10, 33),
+                // (11,26): error CS0117: 'C' does not contain a definition for 'Missing1'
+                //         _ = new C() is { Missing1.Missing2: {} }; // 5
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing1").WithArguments("C", "Missing1").WithLocation(11, 26)
+                );
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_IOperationOnMissing()
+        {
+            var program = @"
+class C
+{
+    public void M()
+    {
+        _ = this is { Missing: null };
+    }
+}
+";
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (6,23): error CS0117: 'C' does not contain a definition for 'Missing'
+                //         _ = this is { Missing: null };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("C", "Missing").WithLocation(6, 23)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(isPattern), @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is { M ... ing: null }')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+  Pattern:
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ Missing: null }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'Missing: null')
+            Member:
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Missing')
+                Children(0)
+            Pattern:
+              IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
+                Value:
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsImplicit) (Syntax: 'null')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    Operand:
+                      ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+");
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_IOperationOnNestedMissing()
+        {
+            var program = @"
+class C
+{
+    int Property { get; set; }
+    public void M()
+    {
+        _ = this is { Property.Missing: null };
+    }
+}
+";
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (7,32): error CS0117: 'int' does not contain a definition for 'Missing'
+                //         _ = this is { Property.Missing: null };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("int", "Missing").WithLocation(7, 32)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(isPattern), @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is { P ... ing: null }')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+  Pattern:
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ Property. ... ing: null }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsImplicit) (Syntax: 'Property')
+            Member:
+              IPropertyReferenceOperation: System.Int32 C.Property { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Property')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'Property')
+            Pattern:
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsImplicit) (Syntax: 'Property') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: null, MatchedType: System.Int32, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'Property.Missing')
+                      Member:
+                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Property.Missing')
+                          Children(0)
+                      Pattern:
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
+                          Value:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsImplicit) (Syntax: 'null')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+");
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_IOperationOnTwoMissing()
+        {
+            var program = @"
+class C
+{
+    public void M()
+    {
+        _ = this is { Missing1.Missing2: null };
+    }
+}
+";
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (6,23): error CS0117: 'C' does not contain a definition for 'Missing1'
+                //         _ = this is { Missing1.Missing2: null };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing1").WithArguments("C", "Missing1").WithLocation(6, 23)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(isPattern), @"
+IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'this is { M ... ng2: null }')
+  Value:
+    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+  Pattern:
+    IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: '{ Missing1. ... ng2: null }') (InputType: C, NarrowedType: C, DeclaredSymbol: null, MatchedType: C, DeconstructSymbol: null)
+      DeconstructionSubpatterns (0)
+      PropertySubpatterns (1):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'Missing1')
+            Member:
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Missing1')
+                Children(0)
+            Pattern:
+              IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'Missing1') (InputType: ?, NarrowedType: ?, DeclaredSymbol: null, MatchedType: ?, DeconstructSymbol: null)
+                DeconstructionSubpatterns (0)
+                PropertySubpatterns (1):
+                    IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'Missing1.Missing2')
+                      Member:
+                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Missing1.Missing2')
+                          Children(0)
+                      Pattern:
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: 'null') (InputType: ?, NarrowedType: ?)
+                          Value:
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, Constant: null, IsImplicit) (Syntax: 'null')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand:
+                                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+");
+        }
+
+        [Fact, WorkItem(53484, "https://github.com/dotnet/roslyn/issues/53484")]
+        public void ExtendedPropertyPatterns_SuppressionOnPattern()
+        {
+            var program = @"
+#nullable enable
+public class ContainerType
+{
+    public class Type
+    {
+        public void M()
+        {
+            const Type c = null!;
+            if (this is c!) {}
+            if (this is (c!)) {}
+            if (this is Type!) {} // 1
+            if (this is ContainerType!.Type) {} // 2
+            if (this is ContainerType.Type!) {} // 3
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (12,25): error CS8598: The suppression operator is not allowed in this context
+                //             if (this is Type!) {} // 1
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "Type!").WithLocation(12, 25),
+                // (13,25): error CS8598: The suppression operator is not allowed in this context
+                //             if (this is ContainerType!.Type) {} // 2
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType").WithLocation(13, 25),
+                // (14,25): error CS8598: The suppression operator is not allowed in this context
+                //             if (this is ContainerType.Type!) {} // 3
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType.Type!").WithLocation(14, 25)
+                );
+        }
+
+        [Fact, WorkItem(53484, "https://github.com/dotnet/roslyn/issues/53484")]
+        public void ExtendedPropertyPatterns_PointerAccessInPattern()
+        {
+            var program = @"
+public class Type
+{
+    public unsafe void M(S* s)
+    {
+        if (0 is s->X) {}
+    }
+}
+
+public struct S
+{
+    public int X;
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns, options: TestOptions.UnsafeDebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (6,18): error CS0150: A constant value is expected
+                //         if (0 is s->X) {}
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "s->X").WithLocation(6, 18)
+                );
         }
 
         [Fact]
@@ -382,7 +1004,7 @@ class P
 }
 ";
             var compilation = CreatePatternCompilation(source);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                     // (14,14): warning CS0649: Field 'P.Y' is never assigned to, and will always have its default value null
                     //     public P Y;
                     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Y").WithArguments("P.Y", "null").WithLocation(14, 14)
@@ -459,7 +1081,7 @@ interface P : I1, I2
 }
 ";
             var compilation = CreatePatternCompilation(source);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                     // (8,34): error CS0229: Ambiguity between 'I1.X' and 'I2.X'
                     //         Console.WriteLine(p is { X.Y: {}, Y.X: {}, });
                     Diagnostic(ErrorCode.ERR_AmbigMember, "X").WithArguments("I1.X", "I2.X").WithLocation(8, 34),
@@ -513,7 +1135,7 @@ class P
 }
 ";
             var compilation = CreatePatternCompilation(source);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                 // (8,34): error CS0117: 'P' does not contain a definition for 'X'
                 //         Console.WriteLine(p is { X: 3, Y: 4 });
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("P", "X").WithLocation(8, 34)
@@ -565,7 +1187,7 @@ struct S
 }
 ";
             var compilation = CreatePatternCompilation(source);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                     // (17,14): warning CS0649: Field 'S.Y' is never assigned to, and will always have its default value null
                     //     public C Y;
                     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Y").WithArguments("S.Y", "null").WithLocation(17, 14)
@@ -628,34 +1250,82 @@ struct S
             var xNameType = model.GetTypeInfo(xName);
             Assert.Equal("S?", xNameType.Type.ToTestDisplayString());
             Assert.Equal("S?", xNameType.ConvertedType.ToTestDisplayString());
+
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("Program.Main", @"
+{
+  // Code size       92 (0x5c)
+  .maxstack  2
+  .locals init (C V_0,
+                S? V_1,
+                S V_2)
+  IL_0000:  nop
+  IL_0001:  newobj     ""C..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_002b
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   ""S? C.X.get""
+  IL_0010:  stloc.1
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  call       ""bool S?.HasValue.get""
+  IL_0018:  brfalse.s  IL_002b
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  call       ""S S?.GetValueOrDefault()""
+  IL_0021:  ldfld      ""C S.Y""
+  IL_0026:  ldnull
+  IL_0027:  cgt.un
+  IL_0029:  br.s       IL_002c
+  IL_002b:  ldc.i4.0
+  IL_002c:  call       ""void System.Console.WriteLine(bool)""
+  IL_0031:  nop
+  IL_0032:  ldloca.s   V_2
+  IL_0034:  initobj    ""S""
+  IL_003a:  ldloc.2
+  IL_003b:  ldfld      ""C S.Y""
+  IL_0040:  stloc.0
+  IL_0041:  ldloc.0
+  IL_0042:  brfalse.s  IL_0054
+  IL_0044:  ldloc.0
+  IL_0045:  callvirt   ""S? C.X.get""
+  IL_004a:  stloc.1
+  IL_004b:  ldloca.s   V_1
+  IL_004d:  call       ""bool S?.HasValue.get""
+  IL_0052:  br.s       IL_0055
+  IL_0054:  ldc.i4.0
+  IL_0055:  call       ""void System.Console.WriteLine(bool)""
+  IL_005a:  nop
+  IL_005b:  ret
+}
+");
         }
 
         [Fact]
-        public void ExtendedPropertyPatterns_Nullability_01()
+        public void ExtendedPropertyPatterns_Nullability_Properties()
         {
             var program = @"
 #nullable enable
 class C {
     C? Prop { get; }
     public void M() {
-        if (this is { Prop.Prop: null }) 
+        if (this is { Prop.Prop: null })
         {
             this.Prop.ToString();
             this.Prop.Prop.ToString(); // 1
         }
-        if (this is { Prop.Prop: {} }) 
+        if (this is { Prop.Prop: {} })
         {
             this.Prop.ToString();
             this.Prop.Prop.ToString();
         }
-        if (this is { Prop: null } && 
-            this is { Prop.Prop: null }) 
+        if (this is { Prop: null } &&
+            this is { Prop.Prop: null })
         {
             this.Prop.ToString();
             this.Prop.Prop.ToString(); // 2
         }
-        if (this is { Prop: null } || 
-            this is { Prop.Prop: null }) 
+        if (this is { Prop: null } ||
+            this is { Prop.Prop: null })
         {
             this.Prop.ToString();      // 3
             this.Prop.Prop.ToString(); // 4
@@ -664,7 +1334,7 @@ class C {
 }
 ";
             var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
-            compilation.VerifyDiagnostics(
+            compilation.VerifyEmitDiagnostics(
                     // (9,13): warning CS8602: Dereference of a possibly null reference.
                     //             this.Prop.Prop.ToString(); // 1
                     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "this.Prop.Prop").WithLocation(9, 13),
@@ -680,59 +1350,401 @@ class C {
         }
 
         [Fact]
-        public void ExtendedPropertyPatterns_Nullability_02()
+        public void ExtendedPropertyPatterns_Nullability_AnnotatedFields()
         {
             var program = @"
 #nullable enable
 class C {
     public void M(C1 c1) {
-        if (c1 is { Prop.Prop: null }) 
+        if (c1 is { Prop1.Prop2: null })
         {
-            c1.Prop.ToString();
-            c1.Prop.Prop.ToString(); // 1
+            c1.Prop1.ToString();
+            c1.Prop1.Prop2.ToString(); // 1
         }
-        if (c1 is { Prop.Prop: {} }) 
+        if (c1 is { Prop1.Prop2: {} })
         {
-            c1.Prop.ToString();
-            c1.Prop.Prop.ToString();
+            c1.Prop1.ToString();
+            c1.Prop1.Prop2.ToString();
         }
-        if (c1 is { Prop: null } && 
-            c1 is { Prop.Prop: null }) 
+        if (c1 is { Prop1: null } &&
+            c1 is { Prop1.Prop2: null })
         {
-            c1.Prop.ToString();
-            c1.Prop.Prop.ToString(); // 2
+            c1.Prop1.ToString();
+            c1.Prop1.Prop2.ToString(); // 2
         }
-        if (c1 is { Prop: null } || 
-            c1 is { Prop.Prop: null }) 
+        if (c1 is { Prop1: null } ||
+            c1 is { Prop1.Prop2: null })
         {
-            c1.Prop.ToString();      // 3
-            c1.Prop.Prop.ToString(); // 4
+            c1.Prop1.ToString();      // 3
+            c1.Prop1.Prop2.ToString(); // 4
         }
     }
 }
-class C1 { public C2? Prop; }
-class C2 { public object? Prop; }
+class C1 { public C2? Prop1 = null; }
+class C2 { public object? Prop2 = null; }
 ";
             var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
-            compilation.VerifyDiagnostics(
-                    // (8,13): warning CS8602: Dereference of a possibly null reference.
-                    //             c1.Prop.Prop.ToString(); // 1
-                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop.Prop").WithLocation(8, 13),
-                    // (19,13): warning CS8602: Dereference of a possibly null reference.
-                    //             c1.Prop.Prop.ToString(); // 2
-                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop.Prop").WithLocation(19, 13),
-                    // (24,13): warning CS8602: Dereference of a possibly null reference.
-                    //             c1.Prop.ToString();      // 3
-                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop").WithLocation(24, 13),
-                    // (25,13): warning CS8602: Dereference of a possibly null reference.
-                    //             c1.Prop.Prop.ToString(); // 4
-                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop.Prop").WithLocation(25, 13),
-                    // (29,23): warning CS0649: Field 'C1.Prop' is never assigned to, and will always have its default value null
-                    // class C1 { public C2? Prop; }
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Prop").WithArguments("C1.Prop", "null").WithLocation(29, 23),
-                    // (30,27): warning CS0649: Field 'C2.Prop' is never assigned to, and will always have its default value null
-                    // class C2 { public object? Prop; }
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Prop").WithArguments("C2.Prop", "null").WithLocation(30, 27));
+            compilation.VerifyEmitDiagnostics(
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
+                //             c1.Prop1.Prop2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop1.Prop2").WithLocation(8, 13),
+                // (19,13): warning CS8602: Dereference of a possibly null reference.
+                //             c1.Prop1.Prop2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop1.Prop2").WithLocation(19, 13),
+                // (24,13): warning CS8602: Dereference of a possibly null reference.
+                //             c1.Prop1.ToString();      // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop1").WithLocation(24, 13),
+                // (25,13): warning CS8602: Dereference of a possibly null reference.
+                //             c1.Prop1.Prop2.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop1.Prop2").WithLocation(25, 13)
+                );
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_Nullability_UnannotatedFields()
+        {
+            var program = @"
+#nullable enable
+class C
+{
+    public void M1(C1 c1)
+    {
+        if (c1 is { Prop1.Prop2: null })
+        {
+            c1.Prop1.ToString();
+            c1.Prop1.Prop2.ToString(); // 1
+        }
+        else
+        {
+            c1.Prop1.ToString();
+            c1.Prop1.Prop2.ToString();
+        }
+    }
+
+    public void M2(C1 c1)
+    {
+        if (c1 is { Prop1.Prop2: {} })
+        {
+            c1.Prop1.ToString();
+            c1.Prop1.Prop2.ToString();
+        }
+    }
+
+    public void M3(C1 c1)
+    {
+        if (c1 is { Prop1: null } &&
+            c1 is { Prop1.Prop2: null })
+        {
+            c1.Prop1.ToString();
+            c1.Prop1.Prop2.ToString(); // 2
+        }
+        else
+        {
+            c1.Prop1.ToString(); // 3
+            c1.Prop1.Prop2.ToString();
+        }
+    }
+
+    public void M4(C1 c1)
+    {
+        if (c1 is { Prop1: null } ||
+            c1 is { Prop1.Prop2: null })
+        {
+            c1.Prop1.ToString();      // 4
+            c1.Prop1.Prop2.ToString(); // 5
+        }
+        else
+        {
+            c1.Prop1.ToString();
+            c1.Prop1.Prop2.ToString();
+        }
+    }
+}
+
+class C1 { public C2 Prop1 = null!; }
+class C2 { public object Prop2 = null!; }
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
+                //             c1.Prop1.Prop2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop1.Prop2").WithLocation(10, 13),
+                // (34,13): warning CS8602: Dereference of a possibly null reference.
+                //             c1.Prop1.Prop2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop1.Prop2").WithLocation(34, 13),
+                // (38,13): warning CS8602: Dereference of a possibly null reference.
+                //             c1.Prop1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop1").WithLocation(38, 13),
+                // (48,13): warning CS8602: Dereference of a possibly null reference.
+                //             c1.Prop1.ToString();      // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop1").WithLocation(48, 13),
+                // (49,13): warning CS8602: Dereference of a possibly null reference.
+                //             c1.Prop1.Prop2.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1.Prop1.Prop2").WithLocation(49, 13)
+                );
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_ExpressionColonInPositionalPattern()
+        {
+            var source = @"
+class C
+{
+    C Property { get; set; }
+
+    void M()
+    {
+        _ = this is (Property.Property: null, Property: null);
+    }
+
+    public void Deconstruct(out C c1, out C c2)
+        => throw null;
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            compilation.VerifyEmitDiagnostics(
+                // (8,22): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = this is (Property.Property: null, Property: null);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property.Property").WithArguments("extended property patterns").WithLocation(8, 22),
+                // (8,22): error CS1001: Identifier expected
+                //         _ = this is (Property.Property: null, Property: null);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "Property.Property").WithLocation(8, 22),
+                // (8,47): error CS8517: The name 'Property' does not match the corresponding 'Deconstruct' parameter 'c2'.
+                //         _ = this is (Property.Property: null, Property: null);
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "Property").WithArguments("Property", "c2").WithLocation(8, 47)
+                );
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_ExpressionColonInITuplePattern()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        System.Runtime.CompilerServices.ITuple t = null;
+        var r = t is (X.Y: 3, Y.Z: 4);
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public interface ITuple
+    {
+        int Length { get; }
+        object this[int index] { get; }
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (7,23): error CS1001: Identifier expected
+                //         var r = t is (X.Y: 3, Y.Z: 4);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "X.Y").WithLocation(7, 23),
+                // (7,31): error CS1001: Identifier expected
+                //         var r = t is (X.Y: 3, Y.Z: 4);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "Y.Z").WithLocation(7, 31)
+                );
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_ExpressionColonInValueTuplePattern()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        _ = (1, 2) is (X.Y: 3, Y.Z: 4);
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public interface ITuple
+    {
+        int Length { get; }
+        object this[int index] { get; }
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (6,24): error CS1001: Identifier expected
+                //         _ = (1, 2) is (X.Y: 3, Y.Z: 4);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "X.Y").WithLocation(6, 24),
+                // (6,32): error CS1001: Identifier expected
+                //         _ = (1, 2) is (X.Y: 3, Y.Z: 4);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "Y.Z").WithLocation(6, 32)
+                );
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_ObsoleteProperty()
+        {
+            var program = @"
+using System;
+class C
+{
+    public void M1(C1 c1)
+    {
+        _ = c1 is { Prop1.Prop2: null };
+    }
+}
+
+class C1
+{
+    [ObsoleteAttribute(""error Prop1"", true)]
+    public C2 Prop1 { get; set; }
+}
+class C2
+{
+    [ObsoleteAttribute(""error Prop2"", true)]
+    public object Prop2 { get; set; }
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (7,21): error CS0619: 'C1.Prop1' is obsolete: 'error Prop1'
+                //         _ = c1 is { Prop1.Prop2: null };
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop1").WithArguments("C1.Prop1", "error Prop1").WithLocation(7, 21),
+                // (7,27): error CS0619: 'C2.Prop2' is obsolete: 'error Prop2'
+                //         _ = c1 is { Prop1.Prop2: null };
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop2").WithArguments("C2.Prop2", "error Prop2").WithLocation(7, 27)
+                );
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_ObsoleteAccessor()
+        {
+            var program = @"
+using System;
+class C
+{
+    public void M1(C1 c1)
+    {
+        _ = c1 is { Prop1.Prop2: null };
+    }
+}
+
+class C1
+{
+    public C2 Prop1
+    {
+        [ObsoleteAttribute(""error Prop1"", true)]
+        get;
+        set;
+    }
+}
+class C2
+{
+    public object Prop2
+    {
+        get;
+        [ObsoleteAttribute(""error Prop2"", true)]
+        set;
+    }
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (7,21): error CS0619: 'C1.Prop1.get' is obsolete: 'error Prop1'
+                //         _ = c1 is { Prop1.Prop2: null };
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop1.Prop2").WithArguments("C1.Prop1.get", "error Prop1").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_InaccessibleProperty()
+        {
+            var program = @"
+using System;
+class C
+{
+    public void M1(C1 c1)
+    {
+        _ = c1 is { Prop1.Prop2: null };
+    }
+}
+
+class C1
+{
+    private C2 Prop1 { get; set; }
+}
+class C2
+{
+    private object Prop2 { get; set; }
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (7,21): error CS0122: 'C1.Prop1' is inaccessible due to its protection level
+                //         _ = c1 is { Prop1.Prop2: null };
+                Diagnostic(ErrorCode.ERR_BadAccess, "Prop1").WithArguments("C1.Prop1").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_ExpressionTree()
+        {
+            var program = @"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+class C
+{
+    public void M1(C1 c1)
+    {
+        Expression<Func<C1, bool>> f = (c1) => c1 is { Prop1.Prop2: null };
+    }
+}
+
+class C1
+{
+    public C2 Prop1 { get; set; }
+}
+class C2
+{
+    public object Prop2 { get; set; }
+}
+";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (9,48): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
+                //         Expression<Func<C1, bool>> f = (c1) => c1 is { Prop1.Prop2: null };
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIsMatch, "c1 is { Prop1.Prop2: null }").WithLocation(9, 48)
+                );
+        }
+
+        public class FlowAnalysisTests : FlowTestBase
+        {
+            [Fact]
+            public void RegionInIsPattern01()
+            {
+                var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    static void M(object o)
+    {
+        _ = o switch
+        {
+            string { Length: 0 } s => /*<bind>*/s.ToString()/*</bind>*/,
+            _ = throw null
+        };
+    }
+}");
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+                Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+                Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+                Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+                Assert.Equal("o, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
+            }
         }
     }
 }

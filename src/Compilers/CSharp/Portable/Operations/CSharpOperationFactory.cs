@@ -2286,48 +2286,81 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal IPropertySubpatternOperation CreatePropertySubpattern(BoundPropertySubpattern subpattern, ITypeSymbol matchedType)
         {
-            SyntaxNode syntax = subpattern.Syntax;
-            IOperation member = CreatePropertySubpatternMember(subpattern.Member, matchedType) ??
-                                OperationFactory.CreateInvalidOperation(_semanticModel, syntax, ImmutableArray<IOperation>.Empty, isImplicit: true);
+            // We treat `c is { ... .Prop: <pattern> }` as `c is { ...: { Prop: <pattern> } }`
+
+            SyntaxNode subpatternSyntax = subpattern.Syntax;
+            BoundPropertySubpatternMember? member = subpattern.Member;
             IPatternOperation pattern = (IPatternOperation)Create(subpattern.Pattern);
-            return new PropertySubpatternOperation(member, pattern, _semanticModel, syntax, isImplicit: false);
-        }
-
-        internal IOperation? CreatePropertySubpatternMember(BoundPropertySubpatternMember? member, ITypeSymbol matchedType)
-        {
             if (member is null)
-                return null;
-
-            switch (member.Symbol)
             {
-                case FieldSymbol field:
-                    {
-                        var constantValue = field.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
-                        return new FieldReferenceOperation(field.GetPublicSymbol(), isDeclaration: false,
-                            // PROTOTYPE(extended-property-patterns) We shouldn't use StrippedType here, maybe only if this is a nested member?
-                            createReceiver(), _semanticModel, member.Syntax, field.Type.StrippedType().GetPublicSymbol(), constantValue, isImplicit: false);
-                    }
-                case PropertySymbol property:
-                    {
-                        return new PropertyReferenceOperation(property.GetPublicSymbol(), ImmutableArray<IArgumentOperation>.Empty,
-                            // PROTOTYPE(extended-property-patterns) We shouldn't use StrippedType here, maybe only if this is a nested member?
-                            createReceiver(), _semanticModel, member.Syntax, property.Type.StrippedType().GetPublicSymbol(), isImplicit: false);
-                    }
-                default:
-                    {
-                        // We should expose the symbol in this case somehow:
-                        // https://github.com/dotnet/roslyn/issues/33175
-                        IOperation? receiver = CreatePropertySubpatternMember(member.Receiver, matchedType);
-                        var children = receiver is null ? ImmutableArray<IOperation>.Empty : ImmutableArray.Create(receiver);
-                        return OperationFactory.CreateInvalidOperation(_semanticModel, member.Syntax, children, isImplicit: false);
-                    }
+                var reference = OperationFactory.CreateInvalidOperation(_semanticModel, subpatternSyntax, ImmutableArray<IOperation>.Empty, isImplicit: true);
+                return new PropertySubpatternOperation(reference, pattern, _semanticModel, subpatternSyntax, isImplicit: false);
             }
 
-            IOperation? createReceiver()
-                => CreatePropertySubpatternMember(member.Receiver, matchedType) ??
-                   (member.Symbol.IsStatic == false
-                       ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, member.Syntax, matchedType, isImplicit: true)
-                       : null);
+            // Create an operation for last property access:
+            // `{ SingleProp: <pattern operation> }`
+            // or
+            // `.LastProp: <pattern operation>` portion (treated as `{ LastProp: <pattern operation> }`)
+            var nameSyntax = member.Syntax;
+            var inputType = getInputType(member, matchedType);
+            IPropertySubpatternOperation? result = createPropertySubpattern(member.Symbol, pattern, inputType, nameSyntax, isSingle: member.Receiver is null);
+
+            while (member.Receiver is not null)
+            {
+                member = member.Receiver;
+                nameSyntax = member.Syntax;
+                ITypeSymbol previousType = inputType;
+                inputType = getInputType(member, matchedType);
+
+                // Create an operation for a preceding property access:
+                // { PrecedingProp: <previous pattern operation> }
+                IPatternOperation nestedPattern = new RecursivePatternOperation(
+                    matchedType: previousType, deconstructSymbol: null, deconstructionSubpatterns: ImmutableArray<IPatternOperation>.Empty,
+                    propertySubpatterns: ImmutableArray.Create(result), declaredSymbol: null,
+                    previousType, narrowedType: previousType, semanticModel: _semanticModel, nameSyntax, isImplicit: true);
+
+                result = createPropertySubpattern(member.Symbol, nestedPattern, inputType, nameSyntax, isSingle: false);
+            }
+
+            return result;
+
+            IPropertySubpatternOperation createPropertySubpattern(Symbol? symbol, IPatternOperation pattern, ITypeSymbol receiverType, SyntaxNode nameSyntax, bool isSingle)
+            {
+                Debug.Assert(nameSyntax is not null);
+                IOperation reference;
+                switch (symbol)
+                {
+                    case FieldSymbol field:
+                        {
+                            var constantValue = field.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
+                            reference = new FieldReferenceOperation(field.GetPublicSymbol(), isDeclaration: false,
+                                createReceiver(), _semanticModel, nameSyntax, type: field.Type.GetPublicSymbol(), constantValue, isImplicit: false);
+                            break;
+                        }
+                    case PropertySymbol property:
+                        {
+                            reference = new PropertyReferenceOperation(property.GetPublicSymbol(), ImmutableArray<IArgumentOperation>.Empty,
+                                createReceiver(), _semanticModel, nameSyntax, type: property.Type.GetPublicSymbol(), isImplicit: false);
+                            break;
+                        }
+                    default:
+                        {
+                            // We should expose the symbol in this case somehow:
+                            // https://github.com/dotnet/roslyn/issues/33175
+                            reference = OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit: false);
+                            break;
+                        }
+                }
+
+                var syntaxForPropertySubpattern = isSingle ? subpatternSyntax : nameSyntax;
+                return new PropertySubpatternOperation(reference, pattern, _semanticModel, syntaxForPropertySubpattern, isImplicit: !isSingle);
+
+                IOperation? createReceiver()
+                    => symbol?.IsStatic == false ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax!, receiverType, isImplicit: true) : null;
+            }
+
+            static ITypeSymbol getInputType(BoundPropertySubpatternMember member, ITypeSymbol matchedType)
+                => member.Receiver?.Type.StrippedType().GetPublicSymbol() ?? matchedType;
         }
 
         private IInstanceReferenceOperation CreateCollectionValuePlaceholderOperation(BoundObjectOrCollectionValuePlaceholder placeholder)

@@ -218,9 +218,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors)
                     CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureTypePattern, diagnostics);
 
+                if (hasSuppression(expression))
+                {
+                    diagnostics.Add(ErrorCode.ERR_IllegalSuppression, expression.Location);
+                    hasErrors = true;
+                }
+
                 var boundType = (BoundTypeExpression)convertedExpression;
                 bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
                 return new BoundTypePattern(node, boundType, isExplicitNotNullTest, inputType, boundType.Type, hasErrors);
+            }
+
+            static bool hasSuppression(ExpressionSyntax e)
+            {
+                while (true)
+                {
+                    switch (e)
+                    {
+                        case ParenthesizedExpressionSyntax p:
+                            e = p.Expression;
+                            break;
+                        case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression }:
+                            return true;
+                        default:
+                            return false;
+                    }
+                }
             }
         }
 
@@ -780,20 +803,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isError = hasErrors || outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                 TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
                 ParameterSymbol? parameter = null;
-                // PROTOTYPE(extended-property-patterns) ExpressionColon
-                if (subPattern.NameColon != null && !isError)
+                if (!isError)
                 {
-                    // Check that the given name is the same as the corresponding parameter of the method.
-                    int parameterIndex = i + skippedExtensionParameters;
-                    if (parameterIndex < deconstructMethod!.ParameterCount)
+                    if (subPattern.NameColon != null)
                     {
-                        parameter = deconstructMethod.Parameters[parameterIndex];
-                        string name = subPattern.NameColon.Name.Identifier.ValueText;
-                        string parameterName = parameter.Name;
-                        if (name != parameterName)
+                        // Check that the given name is the same as the corresponding parameter of the method.
+                        int parameterIndex = i + skippedExtensionParameters;
+                        if (parameterIndex < deconstructMethod!.ParameterCount)
                         {
-                            diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
+                            parameter = deconstructMethod.Parameters[parameterIndex];
+                            string name = subPattern.NameColon.Name.Identifier.ValueText;
+                            string parameterName = parameter.Name;
+                            if (name != parameterName)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DeconstructParameterNameMismatch, subPattern.NameColon.Name.Location, name, parameterName);
+                            }
                         }
+                    }
+                    else if (subPattern.ExpressionColon != null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_IdentifierExpected, subPattern.ExpressionColon.Expression.Location);
                     }
                 }
 
@@ -819,11 +848,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
             foreach (var subpatternSyntax in node.Subpatterns)
             {
-                // PROTOTYPE(extended-property-patterns) ExpressionColon
                 if (subpatternSyntax.NameColon != null)
                 {
                     // error: name not permitted in ITuple deconstruction
                     diagnostics.Add(ErrorCode.ERR_ArgumentNameInITuplePattern, subpatternSyntax.NameColon.Location);
+                }
+                else if (subpatternSyntax.ExpressionColon != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_IdentifierExpected, subpatternSyntax.ExpressionColon.Expression.Location);
                 }
 
                 var boundSubpattern = new BoundPositionalSubpattern(
@@ -876,11 +908,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isError = i >= elementTypesWithAnnotations.Length;
                 TypeSymbol elementType = isError ? CreateErrorType() : elementTypesWithAnnotations[i].Type;
                 FieldSymbol? foundField = null;
-                // PROTOTYPE(extended-property-patterns) ExpressionColon
-                if (subpatternSyntax.NameColon != null && !isError)
+                if (!isError)
                 {
-                    string name = subpatternSyntax.NameColon.Name.Identifier.ValueText;
-                    foundField = CheckIsTupleElement(subpatternSyntax.NameColon.Name, (NamedTypeSymbol)declType, name, i, diagnostics);
+                    if (subpatternSyntax.NameColon != null)
+                    {
+                        string name = subpatternSyntax.NameColon.Name.Identifier.ValueText;
+                        foundField = CheckIsTupleElement(subpatternSyntax.NameColon.Name, (NamedTypeSymbol)declType, name, i, diagnostics);
+                    }
+                    else if (subpatternSyntax.ExpressionColon != null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_IdentifierExpected, subpatternSyntax.ExpressionColon.Expression.Location);
+                    }
                 }
 
                 BoundPositionalSubpattern boundSubpattern = new BoundPositionalSubpattern(
