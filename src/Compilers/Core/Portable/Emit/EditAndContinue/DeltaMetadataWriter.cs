@@ -36,7 +36,11 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly EventOrPropertyMapIndex _eventMap;
         private readonly EventOrPropertyMapIndex _propertyMap;
         private readonly MethodImplIndex _methodImpls;
+        // For the EncMap table we need to keep a list of exactly which rows in the CustomAttributes table are updated
+        // since we spread these out amongst existing rows, it's not just a contigious set
         private readonly List<int> _customAttributeRows;
+        // Keep track of which CustomAttributes rows are added in this and previous deltas, over what is in the
+        // original metadata
         private readonly Dictionary<int, EntityHandle> _customAttributesAdded;
 
         private readonly HeapOrReferenceIndex<AssemblyIdentity> _assemblyRefIndex;
@@ -789,6 +793,14 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        /// <summary>
+        /// CustomAttributes point to their target via the Parent column so we cannot simply output new rows
+        /// in the delta or we would end up with duplicates, but we also don't want to do complex logic to determine
+        /// which attributes have changes, we just emit them all.
+        /// This means our logic for emitting CustomAttributes is to update any existing rows, either from the original
+        /// compilation or subsequent deltas, and only add more if we need to. The EncLog table is the thing that tells
+        /// the runtime which row a CustomAttributes row is (ie, new or existing)
+        /// </summary>
         private void PopulateEncLogTableCustomAttributes()
         {
             var attributeMap = CreateExistingAttributeMap(_previousGeneration.MetadataReader, _previousGeneration.CustomAttributesAdded, out var lastRow);
@@ -822,10 +834,13 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        /// <summary>
+        /// For each custom attribute target, we need to keep a list of which row numbers are used in the CustomAttribute table
+        /// so that when we emit the new attributes we can overwrite them.
+        /// We also do this for attributes emitted in previous deltas, so the rows may not be a contiguous block
+        /// </summary>
         private static Dictionary<EntityHandle, Queue<int>> CreateExistingAttributeMap(MetadataReader metadataReader, IReadOnlyDictionary<int, EntityHandle> customAttributesAdded, out int lastRow)
         {
-            // For each custom attribute target, we need to keep a list of which row numbers are used in the CustomAttribute table
-            // so that when we emit the new attributes we can overwrite them.
             var result = new Dictionary<EntityHandle, Queue<int>>(HandleComparer.Default);
 
             int index = 1;
