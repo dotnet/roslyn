@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
-        private readonly IUIThreadOperationExecutor _waitIndicator;
+        private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly Workspace _workspace;
 
         public InheritanceMargin(
@@ -32,13 +32,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
-            IUIThreadOperationExecutor waitIndicator,
+            IUIThreadOperationExecutor operationExecutor,
             InheritanceMarginTag tag)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _workspace = tag.Workspace;
-            _waitIndicator = waitIndicator;
+            _operationExecutor = operationExecutor;
             InitializeComponent();
 
             var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag);
@@ -61,11 +61,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
             {
                 Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget, KeyValueLogMessage.Create(LogType.UserAction));
-                _waitIndicator.Execute(
-                    title: EditorFeaturesResources.Navigating,
-                    defaultDescription: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
-                    allowCancellation: true,
-                    showProgress: false,
+                _operationExecutor.Execute(
+                    new UIThreadOperationExecutionOptions(
+                        title: EditorFeaturesResources.Navigating,
+                        defaultDescription: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
+                        allowCancellation: true,
+                        showProgress: false),
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
                         _workspace,

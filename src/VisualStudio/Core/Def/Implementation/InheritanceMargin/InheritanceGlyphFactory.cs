@@ -19,20 +19,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IClassificationFormatMap _classificationFormatMap;
-        private readonly IUIThreadOperationExecutor _waitIndicator;
+        private readonly IUIThreadOperationExecutor _operationExecutor;
 
         public InheritanceGlyphFactory(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
-            IUIThreadOperationExecutor waitIndicator)
+            IUIThreadOperationExecutor operationExecutor)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _classificationTypeMap = classificationTypeMap;
             _classificationFormatMap = classificationFormatMap;
-            _waitIndicator = waitIndicator;
+            _operationExecutor = operationExecutor;
         }
 
         public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     _streamingFindUsagesPresenter,
                     _classificationTypeMap,
                     _classificationFormatMap,
-                    _waitIndicator,
+                    _operationExecutor,
                     inheritanceMarginTag);
             }
 
