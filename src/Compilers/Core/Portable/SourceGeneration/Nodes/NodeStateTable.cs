@@ -198,18 +198,6 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryUseCachedEntries(out ImmutableArray<T> usedEntries)
-            {
-                if (!TryUseCachedEntries())
-                {
-                    usedEntries = default;
-                    return false;
-                }
-
-                usedEntries = _states[_states.Count - 1].ToImmutableArray();
-                return true;
-            }
-
             public bool TryModifyEntry(T value, IEqualityComparer<T> comparer)
             {
                 if (_previous._states.Length <= _states.Count)
