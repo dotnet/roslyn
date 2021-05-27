@@ -1504,28 +1504,28 @@ class X
         }
 
         [Fact]
-        public void ListPattern_Symbols()
+        public void ListPattern_Symbols_01()
         {
             var source =
 @"class X
 {
-    public void Test1()
+    public void Test(string[] strings, int[] integers)
     {
-        _ = new string[0] is [var length1];
-        _ = new string[0] is {var element1};
-        _ = new string[0] is {..var slice1};
+        _ = strings is [var length1];
+        _ = strings is {var element1};
+        _ = strings is {..var slice1};
 
-        _ = new int[0] is [var length2];
-        _ = new int[0] is {var element2};
-        _ = new int[0] is {..var slice2};
+        _ = integers is [var length2];
+        _ = integers is {var element2};
+        _ = integers is {..var slice2};
 
-        _ = new string[0] is [int length3];
-        _ = new string[0] is {string element3};
-        _ = new string[0] is {..string[] slice3};
+        _ = strings is [int length3];
+        _ = strings is {string element3};
+        _ = strings is {..string[] slice3};
 
-        _ = new int[0] is [int length4];
-        _ = new int[0] is {int element4};
-        _ = new int[0] is {..int[] slice4};
+        _ = integers is [int length4];
+        _ = integers is {int element4};
+        _ = integers is {..int[] slice4};
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
@@ -1561,6 +1561,49 @@ class X
                 Assert.Null(typeInfo.Type);
                 Assert.Null(typeInfo.ConvertedType);
                 typeInfo = model.GetTypeInfo(designation.Parent);
+                Assert.Equal(type, typeInfo.Type.ToDisplayString());
+                Assert.Equal(type, typeInfo.ConvertedType.ToDisplayString());
+            }
+        }
+
+        [Fact]
+        public void ListPattern_Symbols_02()
+        {
+            var source =
+@"class X
+{
+    public void Test(string[] strings, int[] integers)
+    {
+        _ = strings is [{}];
+        _ = strings is {{}};
+        _ = strings is {..{}};
+
+        _ = integers is [{}];
+        _ = integers is {{}};
+        _ = integers is {..{}};
+    }
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var nodes = tree.GetRoot().DescendantNodes()
+                .OfType<PropertyPatternClauseSyntax>()
+                .Where(p => p.IsKind(SyntaxKind.PropertyPatternClause));
+            Assert.Collection(nodes,
+                d => verify(d, "[{}]", "int"),
+                d => verify(d, "{{}}", "string"),
+                d => verify(d, "..{}", "string[]"),
+
+                d => verify(d, "[{}]", "int"),
+                d => verify(d, "{{}}", "int"),
+                d => verify(d, "..{}", "int[]")
+            );
+
+            void verify(PropertyPatternClauseSyntax clause, string syntax, string type)
+            {
+                Assert.Equal(syntax, clause.Parent.Parent.Parent.ToString());
+                var model = compilation.GetSemanticModel(tree);
+                var typeInfo = model.GetTypeInfo(clause.Parent); // inner {} pattern
                 Assert.Equal(type, typeInfo.Type.ToDisplayString());
                 Assert.Equal(type, typeInfo.ConvertedType.ToDisplayString());
             }
