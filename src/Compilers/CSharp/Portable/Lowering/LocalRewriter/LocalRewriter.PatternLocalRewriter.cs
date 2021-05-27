@@ -245,34 +245,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, _factory.Call(input, e.Property.GetMethod, _factory.Literal(e.Index)));
                         }
 
-                    case BoundDagIndexerEvaluation { IndexerInfo: null } e:
+                    case BoundDagIndexerEvaluation { IndexerAccess: null, IndexerSymbol: null } e:
                         {
                             // array indexer access
 
                             Debug.Assert(input.Type?.IsSZArray() == true);
-
-                            BoundExpression indexerArg = makeImplicitIndexArgument(e.Index, e.LengthTemp);
-                            BoundExpression access = _factory.ArrayAccess(input, indexerArg);
-
+                            BoundExpression access = _factory.ArrayAccess(input, makeImplicitIndexArgument(e.Index, e.LengthTemp));
                             var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, access);
                         }
 
-                    case BoundDagIndexerEvaluation { IndexerInfo: { Symbol: PropertySymbol indexer } info } e:
+                    case BoundDagIndexerEvaluation { IndexerSymbol: PropertySymbol indexer } e:
                         {
-                            // implicit or explicit Index indexer access via applicable indexer member
+                            // implicit Index indexer access via applicable indexer member
 
-                            BoundExpression access = info.IsImplicit
-                                ? _factory.Indexer(input, indexer, makeImplicitIndexArgument(e.Index, e.LengthTemp))
-                                : makeIndexerCall(e.Syntax, info, indexer, makeExplicitIndexArgument(e.Index, e.Index < 0));
-
+                            BoundExpression access = _factory.Indexer(input, indexer, makeImplicitIndexArgument(e.Index, e.LengthTemp));
                             var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, access);
                         }
 
-                    case BoundDagSliceEvaluation { IndexerInfo: null } e:
+                    case BoundDagIndexerEvaluation { IndexerAccess: BoundIndexerAccess indexerAccess } e:
+                        {
+                            // explicit Index indexer access via applicable indexer member
+
+                            BoundExpression access = makeIndexerAccess(e.Syntax, indexerAccess, makeExplicitIndexArgument(e.Index, e.Index < 0));
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, access);
+                        }
+
+                    case BoundDagSliceEvaluation { IndexerAccess: null, SliceMethod: null } e:
                         {
                             // array slice
 
@@ -292,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, callExpr);
                         }
 
-                    case BoundDagSliceEvaluation { IndexerInfo: { Symbol: MethodSymbol sliceMethod } } e:
+                    case BoundDagSliceEvaluation { SliceMethod: MethodSymbol sliceMethod } e:
                         {
                             // implicit Range indexer access via Slice method
 
@@ -302,22 +306,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(sliceMethod.Parameters[1].Type.SpecialType == SpecialType.System_Int32);
                             Debug.Assert(e.StartIndex >= 0 && e.EndIndex <= 0);
 
-                            var lengthArg = _factory.IntSubtract(_tempAllocator.GetTemp(e.LengthTemp), _factory.Literal(e.StartIndex - e.EndIndex));
-                            var callExpr = _factory.Call(input, sliceMethod, _factory.Literal(e.StartIndex), lengthArg);
-
+                            BoundExpression lengthArg = _factory.IntSubtract(_tempAllocator.GetTemp(e.LengthTemp), _factory.Literal(e.StartIndex - e.EndIndex));
+                            BoundExpression callExpr = _factory.Call(input, sliceMethod, _factory.Literal(e.StartIndex), lengthArg);
                             var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, callExpr);
                         }
 
-                    case BoundDagSliceEvaluation { IndexerInfo: { Symbol: PropertySymbol indexer } info } e:
+                    case BoundDagSliceEvaluation { IndexerAccess: BoundIndexerAccess indexerAccess } e:
                         {
                             // explicit Range indexer access via applicable indexer member
 
-                            var callExpr = makeIndexerCall(e.Syntax, info, indexer, makeExplicitRangeArgument(e));
+                            BoundExpression access = makeIndexerAccess(e.Syntax, indexerAccess, makeExplicitRangeArgument(e));
                             var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            return _factory.AssignmentExpression(output, callExpr);
+                            return _factory.AssignmentExpression(output, access);
                         }
 
                     default:
@@ -349,26 +352,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                             makeExplicitIndexArgument(e.EndIndex, fromEnd: true)));
                 }
 
-                BoundExpression makeIndexerCall(SyntaxNode syntax, IndexerArgumentInfo info, PropertySymbol indexer, BoundExpression indexerArg)
+                BoundExpression makeIndexerAccess(SyntaxNode syntax, BoundIndexerAccess indexerAccess, BoundExpression indexerArg)
                 {
-                    Debug.Assert(!info.ArgumentsOpt.IsDefaultOrEmpty);
+                    ImmutableArray<BoundExpression> arguments = indexerAccess.Arguments;
+                    Debug.Assert(!arguments.IsDefaultOrEmpty);
 
-                    MethodSymbol getMethod = indexer.GetMethod;
-                    var firstArg = info.ArgumentsOpt[0];
-                    if (firstArg is BoundConversion conv)
+                    if (arguments[0] is BoundConversion conv)
                         indexerArg = conv.UpdateOperand(indexerArg);
 
-                    ImmutableArray<RefKind> argumentRefKindsOpt = default;
-                    ImmutableArray<BoundExpression> args = _localRewriter.MakeArguments(
-                        syntax: syntax,
-                        rewrittenArguments: info.ArgumentsOpt.SetItem(0, indexerArg),
-                        methodOrIndexer: getMethod,
-                        expanded: info.Expanded,
-                        argsToParamsOpt: default,
-                        argumentRefKindsOpt: ref argumentRefKindsOpt,
-                        temps: out _,
-                        invokedAsExtensionMethod: false);
-                    return _factory.Call(input, getMethod, args);
+                    return _localRewriter.MakeIndexerAccess(
+                        syntax,
+                        input,
+                        indexerAccess.Indexer,
+                        arguments.SetItem(0, indexerArg),
+                        indexerAccess.ArgumentNamesOpt,
+                        indexerAccess.ArgumentRefKindsOpt,
+                        indexerAccess.Expanded,
+                        indexerAccess.ArgsToParamsOpt,
+                        indexerAccess.DefaultArguments,
+                        indexerAccess.Type,
+                        oldNodeOpt: null,
+                        isLeftOfAssignment: false);
                 }
             }
 

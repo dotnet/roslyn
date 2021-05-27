@@ -1439,16 +1439,18 @@
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <!-- Negative Index values indicate positions after a slice pattern -->
     <Field Name="Index" Type="int"/>
-    <!-- This will be null if input type is an array -->
-    <Field Name="IndexerInfo" Type="IndexerArgumentInfo?" />
+    <!-- These will be null if input type is an array -->
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
+    <Field Name="IndexerSymbol" Type="PropertySymbol?"/>
   </Node>
   <Node Name="BoundDagSliceEvaluation" Base="BoundDagEvaluation">
     <Field Name="SliceType" Type="TypeSymbol"/>
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="StartIndex" Type="int"/>
     <Field Name="EndIndex" Type="int"/>
-    <!-- This will be null if input type is an array -->
-    <Field Name="IndexerInfo" Type="IndexerArgumentInfo?" />
+    <!-- These will be null if input type is an array -->
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
+    <Field Name="SliceMethod" Type="MethodSymbol?"/>
   </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
@@ -2113,14 +2115,16 @@
   <Node Name="BoundListPatternClause" Base="BoundNode">
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
-    <!-- This will be null if input type is an array -->
-    <Field Name="IndexerInfo" Type="IndexerArgumentInfo?" />
+    <!-- These will be null if input type is an array -->
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
+    <Field Name="IndexerSymbol" Type="PropertySymbol?"/>
   </Node>
 
   <Node Name="BoundSlicePattern" Base="BoundPattern">
     <Field Name="Pattern" Type="BoundPattern?"/>
-    <!-- This will be null if input type is an array -->
-    <Field Name="IndexerInfo" Type="IndexerArgumentInfo?" />
+    <!-- These will be null if input type is an array -->
+    <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
+    <Field Name="SliceMethod" Type="MethodSymbol?"/>
   </Node>
 
   <Node Name="BoundITuplePattern" Base="BoundPattern">
