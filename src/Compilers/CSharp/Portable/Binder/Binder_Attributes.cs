@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static int getCallerArgumentArgumentIndex(ParameterSymbol parameter, ImmutableArray<int> argumentsToParams)
             {
-                return argumentsToParams.IsDefault
+                return argumentsToParams.IsDefault || parameter.CallerArgumentExpressionParameterIndex == -1
                         ? parameter.CallerArgumentExpressionParameterIndex
                         : argumentsToParams.IndexOf(parameter.CallerArgumentExpressionParameterIndex);
             }
