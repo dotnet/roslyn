@@ -973,6 +973,7 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
 
+
         /// <summary>
         /// Returns a new IFunctionPointerTypeSymbol representing a function pointer type tied to types in this
         /// Compilation.
