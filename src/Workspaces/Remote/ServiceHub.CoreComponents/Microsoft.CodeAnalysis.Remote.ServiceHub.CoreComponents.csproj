@@ -4,6 +4,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <!-- The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.ServiceHub targeting .Net Core -->
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup>
@@ -20,6 +21,8 @@
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
       <_PublishedFiles Include="$(PublishDir)**\*.*" Exclude="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*"/>
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
+      <!-- we want to use Microsoft.Win32.Registry provided by runtime, not the netstandard2.0 version from the NuGet package -->
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Filename)%(Extension)' == 'Microsoft.Win32.Registry.dll'" />
 
       <!-- Set TargetPath -->
       <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
