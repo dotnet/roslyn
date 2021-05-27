@@ -679,42 +679,6 @@ class C { }
         }
 
         [Fact]
-        public void Cancellation_During_Initialization_Doesnt_Report_As_Generator_Error()
-        {
-            var source = @"
-class C 
-{
-}
-";
-            var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-
-            Assert.Single(compilation.SyntaxTrees);
-
-            CancellationTokenSource cts = new CancellationTokenSource();
-
-            var testGenerator = new CallbackGenerator(
-                onInit: (i) => { cts.Cancel(); },
-                onExecute: (e) => { }
-                );
-
-            // test generator cancels the token. Check that the call to this generator doesn't make it look like it errored.
-            var testGenerator2 = new CallbackGenerator2(
-                onInit: (i) => { i.CancellationToken.ThrowIfCancellationRequested(); },
-                onExecute: (e) => { throw ExceptionUtilities.Unreachable; });
-
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 }, parseOptions: parseOptions);
-            var oldDriver = driver;
-
-            Assert.Throws<OperationCanceledException>(() =>
-               driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics, cts.Token)
-               );
-            Assert.Same(oldDriver, driver);
-        }
-
-        [Fact]
         public void Cancellation_During_Execution_Doesnt_Report_As_Generator_Error()
         {
             var source = @"

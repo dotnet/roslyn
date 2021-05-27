@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
                 // initialize the generator if needed
                 if (!generatorState.Info.Initialized)
                 {
-                    var context = new IncrementalGeneratorInitializationContext(cancellationToken);
+                    var context = new IncrementalGeneratorInitializationContext(new GeneratorInfo.Builder());
                     Exception? ex = null;
                     try
                     {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis
                     if (generatorState.Info.PostInitCallback is object)
                     {
                         var sourcesCollection = this.CreateSourcesCollection();
-                        var postContext = new GeneratorPostInitializationContext(sourcesCollection, cancellationToken);
+                        var postContext = new IncrementalGeneratorPostInitializationContext(sourcesCollection);
                         try
                         {
                             generatorState.Info.PostInitCallback(postContext);

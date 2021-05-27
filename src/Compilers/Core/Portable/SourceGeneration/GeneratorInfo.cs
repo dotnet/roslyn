@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis
     {
         internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; }
 
-        internal Action<GeneratorPostInitializationContext>? PostInitCallback { get; }
+        internal Action<IncrementalGeneratorPostInitializationContext>? PostInitCallback { get; }
 
         internal Action<IncrementalGeneratorPipelineContext>? PipelineCallback { get; }
 
         internal bool Initialized { get; }
 
-        internal GeneratorInfo(SyntaxContextReceiverCreator? receiverCreator, Action<GeneratorPostInitializationContext>? postInitCallback, Action<IncrementalGeneratorPipelineContext>? pipelineCallback)
+        internal GeneratorInfo(SyntaxContextReceiverCreator? receiverCreator, Action<IncrementalGeneratorPostInitializationContext>? postInitCallback, Action<IncrementalGeneratorPipelineContext>? pipelineCallback)
         {
             SyntaxContextReceiverCreator = receiverCreator;
             PostInitCallback = postInitCallback;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         {
             internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; set; }
 
-            internal Action<GeneratorPostInitializationContext>? PostInitCallback { get; set; }
+            internal Action<IncrementalGeneratorPostInitializationContext>? PostInitCallback { get; set; }
 
             internal Action<IncrementalGeneratorPipelineContext>? PipelineCallback { get; set; }
 

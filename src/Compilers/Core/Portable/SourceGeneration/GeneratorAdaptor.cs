@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
 
         public void Initialize(IncrementalGeneratorInitializationContext initContext)
         {
-            GeneratorInitializationContext generatorInitContext = new GeneratorInitializationContext(initContext.CancellationToken);
+            GeneratorInitializationContext generatorInitContext = new GeneratorInitializationContext(CancellationToken.None);
             SourceGenerator.Initialize(generatorInitContext);
 
             initContext.InfoBuilder.PostInitCallback = generatorInitContext.InfoBuilder.PostInitCallback;
