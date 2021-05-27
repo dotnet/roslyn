@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                       Await workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(cursorDocument.Id, CancellationToken.None))
                     Assert.NotNull(startDocument)
 
-                    Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
+                    Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess)
                     Dim context = New TestContext()
                     Await findRefsService.FindReferencesAsync(startDocument, cursorPosition, context)
 

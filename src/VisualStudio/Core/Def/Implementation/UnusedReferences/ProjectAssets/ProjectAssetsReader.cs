@@ -40,6 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 return ImmutableArray<ReferenceInfo>.Empty;
             }
 
+            return ReadReferences(projectReferences, projectAssets);
+        }
+
+        internal static ImmutableArray<ReferenceInfo> ReadReferences(
+            ImmutableArray<ReferenceInfo> projectReferences,
+            ProjectAssetsFile projectAssets)
+        {
             if (projectAssets is null ||
                 projectAssets.Version != 3)
             {
@@ -97,6 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             var dependencyNames = new HashSet<string>();
             var compilationAssemblies = ImmutableArray.CreateBuilder<string>();
             var referenceType = ReferenceType.Unknown;
+            var itemSpecification = referenceName;
 
             var packagesPath = projectAssets.Project?.Restore?.PackagesPath ?? string.Empty;
 
@@ -121,6 +129,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                     _ => ReferenceType.Assembly
                 };
 
+                if (referenceType == ReferenceType.Project &&
+                    library.Path is not null)
+                {
+                    // Project references are keyed by their filename but the
+                    // item specification should be the path to the project file
+                    // with Windows-style directory separators.
+                    itemSpecification = library.Path.Replace('/', '\\');
+                }
+
                 if (targetLibrary.Dependencies != null)
                 {
                     dependencyNames.AddRange(targetLibrary.Dependencies.Keys);
@@ -144,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 .WhereNotNull()
                 .ToImmutableArray();
 
-            return new ReferenceInfo(referenceType, referenceName, treatAsUsed, compilationAssemblies.ToImmutable(), dependencies);
+            return new ReferenceInfo(referenceType, itemSpecification, treatAsUsed, compilationAssemblies.ToImmutable(), dependencies);
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -34,25 +32,6 @@ StackTrace:
                     Contract.Fail($@"Should have been disposed! Try running in Debug to get the allocation callstack");
 #endif
                 }
-            }
-
-            public event EventHandler Disposed = (s, e) => { };
-
-            private void Dispose()
-            {
-                if (_disposed)
-                {
-                    Debug.Fail("Tagger already disposed");
-                    return;
-                }
-
-                // Stop computing any initial tags if we've been asked for them.
-                _initialComputationCancellationTokenSource.Cancel();
-                _disposed = true;
-                this.Disposed(this, EventArgs.Empty);
-                GC.SuppressFinalize(this);
-
-                this.Disconnect();
             }
 
             internal void OnTaggerAdded(Tagger _)
@@ -87,8 +66,8 @@ StackTrace:
                 => Dispose();
 
 #if DEBUG
-            private Thread _thread;
-            private string _stackTrace;
+            private Thread? _thread;
+            private string? _stackTrace;
 
             private void DebugRecordInitialStackTrace()
                 => _stackTrace = new StackTrace().ToString();

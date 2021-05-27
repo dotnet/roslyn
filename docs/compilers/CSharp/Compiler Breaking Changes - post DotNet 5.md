@@ -48,3 +48,25 @@ record Derived(int I) // The positional member 'Base.I' found corresponding to t
 }
 ```
 
+4. In C# 10, method groups are implicitly convertible to `System.Delegate`, and lambda expressions are implicitly convertible to `System.Delegate` and `System.Linq.Expressions.Expression`.
+
+    This is a breaking change to overload resolution if there exists an overload with a `System.Delegate` or `System.Linq.Expressions.Expression` parameter that is applicable and the closest applicable overload with a strongly-typed delegate parameter is in an enclosing namespace.
+
+    ```C#
+    class C
+    {
+        static void Main()
+        {
+            var c = new C();
+            c.M(Main);      // C#9: E.M(), C#10: C.M()
+            c.M(() => { }); // C#9: E.M(), C#10: C.M()
+        }
+    
+        void M(System.Delegate d) { }
+    }
+
+    static class E
+    {
+        public static void M(this object x, System.Action y) { }
+    }
+    ```

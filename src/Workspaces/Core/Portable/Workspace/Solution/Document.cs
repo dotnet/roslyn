@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis
         ///
         /// Use this method to gain access to potentially incomplete semantics quickly.
         /// </summary>
-        internal Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+        internal virtual Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
         {
             var solution = this.Project.Solution;
             var workspace = solution.Workspace;

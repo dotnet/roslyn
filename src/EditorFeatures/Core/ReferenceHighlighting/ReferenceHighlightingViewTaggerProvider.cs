@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -49,20 +48,21 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public ReferenceHighlightingViewTaggerProvider(
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.ReferenceHighlighting))
         {
         }
+
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.Medium;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             // Note: we don't listen for OnTextChanged.  Text changes to this buffer will get
             // reported by OnSemanticChanged.
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnCaretPositionChanged(textView, textView.TextBuffer, TaggerDelay.Short),
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
+                TaggerEventSources.OnCaretPositionChanged(textView, textView.TextBuffer),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer));
         }
 
         protected override SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                         {
                             foreach (var documentHighlights in documentHighlightsList)
                             {
-                                await AddTagSpansAsync(context, documentHighlights).ConfigureAwait(false);
+                                AddTagSpans(context, documentHighlights);
                             }
                         }
                     }
@@ -166,15 +166,14 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
         }
 
-        private static async Task AddTagSpansAsync(
+        private static void AddTagSpans(
             TaggerContext<NavigableHighlightTag> context,
             DocumentHighlights documentHighlights)
         {
             var cancellationToken = context.CancellationToken;
             var document = documentHighlights.Document;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
+            var textSnapshot = context.SpansToTag.FirstOrDefault(s => s.Document == document).SnapshotSpan.Snapshot;
             if (textSnapshot == null)
             {
                 // There is no longer an editor snapshot for this document, so we can't care about the

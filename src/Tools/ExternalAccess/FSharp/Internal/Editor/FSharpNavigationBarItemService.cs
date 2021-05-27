@@ -22,8 +22,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
     [Shared]
-    [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.FSharp)]
-    internal class FSharpNavigationBarItemService : INavigationBarItemService2
+    [ExportLanguageService(typeof(INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.FSharp)]
+    internal class FSharpNavigationBarItemService : INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IFSharpNavigationBarItemService _service;
@@ -43,9 +43,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items?.Select(x => ConvertToNavigationBarItem(x)).ToList();
         }
-
-        public void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
-            => throw new NotSupportedException($"Caller should call {nameof(NavigateToItemAsync)} instead");
 
         public async Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
         {

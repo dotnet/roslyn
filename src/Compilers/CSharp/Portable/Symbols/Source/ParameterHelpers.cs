@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -54,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         isExtensionMethodThis: ordinal == 0 && thisKeyword.Kind() != SyntaxKind.None,
                         addRefReadOnlyModifier,
                         declarationDiagnostics);
-                }
-);
+                });
         }
 
         public static ImmutableArray<FunctionPointerParameterSymbol> MakeFunctionPointerParameters(

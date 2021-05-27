@@ -46,7 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         public CompileTimeSolutionProvider(Workspace workspace)
         {
             _workspace = workspace;
-            _enabled = workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RazorLspEditorFeatureFlag);
+            // TODO:
+            //_enabled = workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RazorLspEditorFeatureFlag);
+            _enabled = false;
 
             workspace.WorkspaceChanged += (s, e) =>
             {

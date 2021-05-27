@@ -10581,6 +10581,7 @@ class C
         {
             var source0 =
 @"
+#nullable enable
 namespace N
 {
     record R(int X)
@@ -10590,6 +10591,7 @@ namespace N
 ";
             var source1 =
 @"
+#nullable enable
 namespace N
 {
     record R(int X)

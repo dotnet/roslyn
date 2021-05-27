@@ -119,6 +119,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
         }
 
+        public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
+        {
+            SetOption(
+                optionName: LanguageServices.Implementation.SourceGeneratedFileManager.EnableOpeningInWorkspace.Name,
+                feature: LanguageServices.Implementation.SourceGeneratedFileManager.EnableOpeningInWorkspace.Feature,
+                value: value);
+        }
+
         public void SetFeatureOption(string feature, string optionName, string language, string valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 

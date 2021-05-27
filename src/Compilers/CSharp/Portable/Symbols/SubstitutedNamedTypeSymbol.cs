@@ -159,6 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal abstract override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes);
+
         public sealed override IEnumerable<string> MemberNames
         {
             get
@@ -399,6 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
         internal sealed override bool IsRecord => _underlyingType.IsRecord;
+        internal sealed override bool IsRecordStruct => _underlyingType.IsRecordStruct;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => _underlyingType.HasPossibleWellKnownCloneMethod();
     }
 }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
@@ -14,11 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             private readonly ITextView _textView;
 
-            public SelectionChangedEventSource(ITextView textView, TaggerDelay delay)
-                : base(delay)
-            {
-                _textView = textView;
-            }
+            public SelectionChangedEventSource(ITextView textView)
+                => _textView = textView;
 
             public override void Connect()
                 => _textView.Selection.SelectionChanged += OnSelectionChanged;
