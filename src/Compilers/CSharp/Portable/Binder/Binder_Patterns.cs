@@ -403,9 +403,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     indexerGroup.Add((PropertySymbol)symbol);
                 }
 
-                BoundExpression indexerArgumentExpr = new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, indexerArgumentType);
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                analyzedArguments.Arguments.Add(indexerArgumentExpr);
+                analyzedArguments.Arguments.Add(new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, indexerArgumentType));
                 BoundExpression receiver = new BoundImplicitReceiver(syntax, receiverType);
                 var bindingDiagnostics = BindingDiagnosticBag.Create(diagnostics);
                 var boundAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, indexerGroup, analyzedArguments, bindingDiagnostics);
