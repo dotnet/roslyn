@@ -464,6 +464,7 @@ public class MyAttribute : Attribute
     const string p = nameof(p);
     public MyAttribute(int p, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
     {
+        Console.WriteLine(arg);
     }
 }
 
