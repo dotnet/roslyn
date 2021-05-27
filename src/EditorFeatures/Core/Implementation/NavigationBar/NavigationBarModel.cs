@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// </summary>
         public VersionStamp SemanticVersionStamp { get; }
 
-        public INavigationBarItemService ItemService { get; }
+        public INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess ItemService { get; }
 
-        public NavigationBarModel(ImmutableArray<NavigationBarItem> types, VersionStamp semanticVersionStamp, INavigationBarItemService itemService)
+        public NavigationBarModel(ImmutableArray<NavigationBarItem> types, VersionStamp semanticVersionStamp, INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess itemService)
         {
             Contract.ThrowIfNull(types);
 

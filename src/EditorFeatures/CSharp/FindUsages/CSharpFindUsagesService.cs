@@ -5,12 +5,11 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.FindUsages
 {
-    [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.CSharp), Shared]
     internal class CSharpFindUsagesService : AbstractFindUsagesService
     {
         [ImportingConstructor]

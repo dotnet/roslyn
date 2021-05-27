@@ -7653,6 +7653,50 @@ record Person(string First, string Last);
                 SymbolDisplayPartKind.RecordClassName);
         }
 
+        [Fact]
+        public void RecordClassDeclaration()
+        {
+            var text = @"
+record class Person(string First, string Last);
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global => global.GetTypeMembers("Person").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+                "record Person",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.RecordClassName);
+        }
+
+        [Fact]
+        public void RecordStructDeclaration()
+        {
+            var text = @"
+record struct Person(string First, string Last);
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global => global.GetTypeMembers("Person").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview),
+                "record struct Person",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.RecordStructName);
+        }
+
         [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
         public void TestFunctionPointerWithoutIncludeTypesInParameterOptions()
         {

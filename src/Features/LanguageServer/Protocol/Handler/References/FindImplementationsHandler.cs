@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return locations.ToArrayAndFree();
             }
 
-            var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesService>();
+            var findUsagesService = document.Project.LanguageServices.GetRequiredService<IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var findUsagesContext = new SimpleFindUsagesContext(cancellationToken);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return locations.ToArrayAndFree();
         }
 
-        protected virtual Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context)
+        protected virtual Task FindImplementationsAsync(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess findUsagesService, Document document, int position, SimpleFindUsagesContext context)
             => findUsagesService.FindImplementationsAsync(document, position, context);
     }
 }

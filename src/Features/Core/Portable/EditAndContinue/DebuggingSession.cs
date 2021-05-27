@@ -97,13 +97,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
 
-        private readonly DebuggingSessionTelemetry _telemetry;
+        /// <summary>
+        /// Gets the capabilities of the runtime with respect to applying code changes.
+        /// </summary>
+        internal readonly EditAndContinueCapabilities Capabilities;
 
+        private readonly DebuggingSessionTelemetry _telemetry;
         internal EditSession EditSession;
 
         internal DebuggingSession(
             Solution solution,
             IManagedEditAndContinueDebuggerService debuggerService,
+            EditAndContinueCapabilities capabilities,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
             IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
             DebuggingSessionTelemetry debuggingSessionTelemetry,
@@ -112,6 +117,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _compilationOutputsProvider = compilationOutputsProvider;
             _telemetry = debuggingSessionTelemetry;
 
+            Capabilities = capabilities;
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
             NonRemappableRegions = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty;

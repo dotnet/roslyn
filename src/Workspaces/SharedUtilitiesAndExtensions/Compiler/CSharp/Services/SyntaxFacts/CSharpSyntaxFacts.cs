@@ -64,6 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool SupportsRecord(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
 
+        public bool SupportsRecordStruct(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion.IsCSharp10OrAbove();
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -1781,6 +1784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
@@ -1912,10 +1916,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                    return DeclarationKind.Class;
                 case SyntaxKind.RecordDeclaration:
-                    return DeclarationKind.RecordClass;
+                    return DeclarationKind.Class;
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return DeclarationKind.Struct;
                 case SyntaxKind.InterfaceDeclaration:
                     return DeclarationKind.Interface;
@@ -2047,6 +2051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.GetAccessorDeclaration:
                     return DeclarationKind.GetAccessor;
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     return DeclarationKind.SetAccessor;
                 case SyntaxKind.AddAccessorDeclaration:
                     return DeclarationKind.AddAccessor;

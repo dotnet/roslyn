@@ -50,6 +50,7 @@ Microsoft.CodeAnalysis.SourceProductionContext.ReportDiagnostic(Microsoft.CodeAn
 Microsoft.CodeAnalysis.SourceProductionContext.SourceProductionContext() -> void
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordClassName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CompilationEnd = "CompilationEnd" -> string!
+Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordStructName = 32 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 Microsoft.CodeAnalysis.SyntaxContextReceiverCreator
 Microsoft.CodeAnalysis.SyntaxNode.IsEquivalentTo(Microsoft.CodeAnalysis.SyntaxNode? other) -> bool
 Microsoft.CodeAnalysis.SyntaxNode.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNode? other) -> bool

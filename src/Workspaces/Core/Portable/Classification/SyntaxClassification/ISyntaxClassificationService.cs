@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Classification
             CancellationToken cancellationToken);
 
         /// <inheritdoc cref="IClassificationService.AddSyntacticClassificationsAsync"/>
-        void AddSyntacticClassifications(SyntaxTree syntaxTree,
+        void AddSyntacticClassifications(
+            SyntaxNode root,
             TextSpan textSpan,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken);
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Classification
         ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan);
 
         /// <inheritdoc cref="IClassificationService.ComputeSyntacticChangeRangeAsync"/>
-        ValueTask<TextChangeRange?> ComputeSyntacticChangeRangeAsync(
-            Document oldDocument, Document newDocument, TimeSpan timeout, CancellationToken cancellationToken);
+        TextChangeRange? ComputeSyntacticChangeRange(
+            SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

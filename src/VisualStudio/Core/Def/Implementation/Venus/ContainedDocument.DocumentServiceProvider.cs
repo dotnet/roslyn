@@ -168,8 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     // anything based on content is starting from 0
                     var startPositionOnContentSpan = GetNonWhitespaceStartPositionOnContent(contentSpanOnPrimarySnapshot);
 
-                    using var pooledObject = SharedPools.Default<List<ClassifiedSpan>>().GetPooledObject();
-                    var list = pooledObject.Object;
+                    using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var list);
 
                     foreach (var roslynSpan in primarySnapshot.MapToSourceSnapshots(contentSpanOnPrimarySnapshot.Span))
                     {
@@ -212,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     //
                     // the EditorClassifier call above fills all the gaps for the span it is called with, but we are combining
                     // multiple spans with html code, so we need to fill those gaps
-                    var builder = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                    using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var builder);
                     ClassifierHelper.FillInClassifiedSpanGaps(startPositionOnContentSpan, list, builder);
 
                     // add html after roslyn content if there is any
@@ -223,14 +222,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     }
                     else
                     {
-                        var lastSpan = builder[builder.Count - 1].TextSpan;
+                        var lastSpan = builder[^1].TextSpan;
                         if (lastSpan.End < contentSpan.Length)
                         {
                             builder.Add(new ClassifiedSpan(new TextSpan(lastSpan.End, contentSpan.Length - lastSpan.End), ClassificationTypeNames.Text));
                         }
                     }
 
-                    return builder.ToImmutableAndFree();
+                    return builder.ToImmutable();
                 }
 
                 private static int GetNonWhitespaceStartPositionOnContent(SnapshotSpan spanOnPrimarySnapshot)
