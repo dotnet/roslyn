@@ -809,27 +809,27 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var customAttributeTarget in _customAttributeTargets)
             {
-                int row;
+                int rowId;
                 if (attributeMap.TryGetValue(customAttributeTarget, out var queue) &&
                     queue.Count > 0)
                 {
                     // If there is already an attribute for this parent, then pull the next available row number
                     // off the queue and update it
-                    row = queue.Dequeue();
+                    rowId = queue.Dequeue();
                 }
                 else
                 {
                     // Otherwise, either this is a new parent that hasn't had an attribute before, or we've run
                     // out of existing rows to update. Either way, we want to add to the end of the table.
-                    row = nextCustomAttributeRow++;
+                    rowId = nextCustomAttributeRow++;
 
                     // Keep track of the addition for passing to the next generation
-                    _customAttributesAdded[row] = customAttributeTarget;
+                    _customAttributesAdded[rowId] = customAttributeTarget;
                 }
 
-                _customAttributeRows.Add(row);
+                _customAttributeRows.Add(rowId);
                 metadata.AddEncLogEntry(
-                    entity: MetadataTokens.CustomAttributeHandle(row),
+                    entity: MetadataTokens.CustomAttributeHandle(rowId),
                     code: EditAndContinueOperation.Default);
             }
         }
@@ -839,24 +839,24 @@ namespace Microsoft.CodeAnalysis.Emit
         /// so that when we emit the new attributes we can overwrite them.
         /// We also do this for attributes emitted in previous deltas, so the rows may not be a contiguous block
         /// </summary>
-        private static Dictionary<EntityHandle, Queue<int>> CreateExistingAttributeMap(MetadataReader metadataReader, IReadOnlyDictionary<int, EntityHandle> customAttributesAdded, out int lastRow)
+        private static Dictionary<EntityHandle, Queue<int>> CreateExistingAttributeMap(MetadataReader metadataReader, IReadOnlyDictionary<int, EntityHandle> customAttributesAdded, out int lastRowId)
         {
             var result = new Dictionary<EntityHandle, Queue<int>>(HandleComparer.Default);
 
-            int index = 1;
+            int rowId = 1;
             foreach (var customAttributeHandle in metadataReader.CustomAttributes)
             {
                 var parent = metadataReader.GetCustomAttribute(customAttributeHandle).Parent;
-                AddCustomAttribute(result, index, parent);
+                AddCustomAttribute(result, rowId, parent);
 
-                index++;
+                rowId++;
             }
 
-            lastRow = index - 1;
+            lastRowId = rowId - 1;
 
             foreach (var pair in customAttributesAdded)
             {
-                lastRow = pair.Key;
+                lastRowId = pair.Key;
                 AddCustomAttribute(result, pair.Key, pair.Value);
             }
 
