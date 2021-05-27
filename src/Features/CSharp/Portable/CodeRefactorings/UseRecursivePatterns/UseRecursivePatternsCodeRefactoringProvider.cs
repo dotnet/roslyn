@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
         private static readonly PatternSyntax s_trueConstantPattern = ConstantPattern(LiteralExpression(TrueLiteralExpression));
         private static readonly PatternSyntax s_falseConstantPattern = ConstantPattern(LiteralExpression(FalseLiteralExpression));
 
+        private static readonly Func<IdentifierNameSyntax, SemanticModel, bool> s_canConvertToSubpattern = CanConvertToSubpattern;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UseRecursivePatternsCodeRefactoringProvider()
@@ -407,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 // If there were some common names in the path, we rewrite the receiver to include those.
                 // For instance, in `a.b.c && a.b.d`, we have `b` as the last common name in the path,
                 // So we want `a.b` as the receiver so that we convert it to `a.b is { c: true, d: true }`.
-                commonReceiver = GetReceiver(lastName, originalReceiver: left);
+                commonReceiver = GetInnermostReceiver(left, lastName, static (identifierName, lastName) => identifierName != lastName);
             }
 
             return (commonReceiver, leftNames.ToImmutable(), rightNames.ToImmutable());
@@ -418,25 +420,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 return builder.Any();
             }
 
-            static ExpressionSyntax GetReceiver(ExpressionSyntax lastName, ExpressionSyntax originalReceiver)
+            static IdentifierNameSyntax? SkipCommonNames(ArrayBuilder<IdentifierNameSyntax> leftNames, ArrayBuilder<IdentifierNameSyntax> rightNames)
             {
-                return lastName.Parent switch
-                {
-                    // If the original receiver was not a conditional-access, we can just return the parent.
-                    ExpressionSyntax parent when !originalReceiver.IsKind(SyntaxKind.ConditionalAccessExpression) => parent,
-                    // Otherwise, we rewrite the original receiver with the expression on the left-hand-side of this name.
-                    // For instance, if we had `a?.b.c && a?.b.d` we rewrite it as `a?.b is { c: true, d: false }`
-                    MemberAccessExpressionSyntax memberAccess => originalReceiver.ReplaceNode(memberAccess, memberAccess.Expression),
-                    // Similarly, if we had `a?.b && a?.c` we rewrite it as `a is { b: true, c: true }`
-                    MemberBindingExpressionSyntax { Parent: ConditionalAccessExpressionSyntax parent } => parent.Expression,
-                    // There should be no other possibility as we have walked downwards already and verified each node in the path.
-                    var v => throw ExceptionUtilities.UnexpectedValue(v),
-                };
-            }
-
-            static ExpressionSyntax? SkipCommonNames(ArrayBuilder<IdentifierNameSyntax> leftNames, ArrayBuilder<IdentifierNameSyntax> rightNames)
-            {
-                ExpressionSyntax? lastName = null;
+                IdentifierNameSyntax? lastName = null;
                 int leftIndex, rightIndex;
                 // Note: we don't want to skip the first name to still be able to convert to a subpattern, hence checking `> 0` below.
                 for (leftIndex = leftNames.Count - 1, rightIndex = rightNames.Count - 1; leftIndex > 0 && rightIndex > 0; leftIndex--, rightIndex--)
@@ -454,7 +440,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             }
         }
 
+        private static bool CanConvertToSubpattern(IdentifierNameSyntax name, SemanticModel model)
+        {
+            return model.GetSymbolInfo(name).Symbol is
+            {
+                IsStatic: false,
+                Kind: SymbolKind.Property or SymbolKind.Field,
+                ContainingType: not { SpecialType: SpecialType.System_Nullable_T }
+            };
+        }
+
         private static ExpressionSyntax? GetInnermostReceiver(ExpressionSyntax node, ArrayBuilder<IdentifierNameSyntax> builder, SemanticModel model)
+        {
+            return GetInnermostReceiver(node, model, s_canConvertToSubpattern, builder);
+        }
+
+        private static ExpressionSyntax? GetInnermostReceiver<TArg>(
+            ExpressionSyntax node, TArg arg,
+            Func<IdentifierNameSyntax, TArg, bool> canConvertToSubpattern,
+            ArrayBuilder<IdentifierNameSyntax>? builder = null)
         {
             return GetInnermostReceiver(node);
 
@@ -464,27 +468,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 {
 
                     case IdentifierNameSyntax name
-                    when CanConvertToSubpattern(name):
-                        builder.Add(name);
+                    when canConvertToSubpattern(name, arg):
+                        builder?.Add(name);
                         // This is a member reference with an implicit `this` receiver.
-                        // We know this is true because we already checked CanConvertToSubpattern.
+                        // We know this is true because we already checked canConvertToSubpattern.
                         // Any other name outside the receiver position is captured in the cases below.
-                        Debug.Assert(model.GetOperation(name) is IMemberReferenceOperation
-                        {
-                            Instance: IInstanceReferenceOperation { IsImplicit: true, ReferenceKind: InstanceReferenceKind.ContainingTypeInstance }
-                        });
                         return null;
 
                     case MemberBindingExpressionSyntax { Name: IdentifierNameSyntax name }
-                    when CanConvertToSubpattern(name):
-                        builder.Add(name);
+                    when canConvertToSubpattern(name, arg):
+                        builder?.Add(name);
                         // We only reach here from a parent conditional-access.
                         // Returning null here means that all the names on the right were convertible to a property pattern.
                         return null;
 
                     case MemberAccessExpressionSyntax(SimpleMemberAccessExpression) { Name: IdentifierNameSyntax name } memberAccess
-                    when CanConvertToSubpattern(name) && !memberAccess.Expression.IsKind(SyntaxKind.BaseExpression):
-                        builder.Add(name);
+                    when canConvertToSubpattern(name, arg) && !memberAccess.Expression.IsKind(SyntaxKind.BaseExpression):
+                        builder?.Add(name);
                         // For a simple member access we simply record the name and descend into the expression on the left-hand-side.
                         return GetInnermostReceiver(memberAccess.Expression);
 
@@ -504,16 +504,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                     default:
                         return node;
                 }
-            }
-
-            bool CanConvertToSubpattern(IdentifierNameSyntax name)
-            {
-                return model.GetSymbolInfo(name).Symbol is
-                {
-                    IsStatic: false,
-                    Kind: SymbolKind.Property or SymbolKind.Field,
-                    ContainingType: not { SpecialType: SpecialType.System_Nullable_T }
-                };
             }
         }
 
