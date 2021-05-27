@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
                     var fixes = GetCodeFixesAsync(
                         state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                        addOperationScope, CodeActionProviderPriority.None, isBlocking: true, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+                        addOperationScope, CodeActionProviderPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
                     var refactorings = GetRefactoringsAsync(
                         state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
                         addOperationScope, CodeActionProviderPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     };
             }
 
-            private static ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync(
+            private static Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync(
                 ReferenceCountedDisposable<State> state,
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     !supportsFeatureService.SupportsCodeFixes(state.Target.SubjectBuffer) ||
                     !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
-                    return ValueTaskFactory.FromResult(ImmutableArray<UnifiedSuggestedActionSet>.Empty);
+                    return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
 
                 // Make sure we include the suppression fixes even when the light bulb is only asking for only code fixes.
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
-                    includeSuppressionFixes, priority, isBlocking, addOperationScope, cancellationToken);
+                    includeSuppressionFixes, priority, isBlocking, addOperationScope, cancellationToken).AsTask();
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
