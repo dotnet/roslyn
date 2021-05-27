@@ -739,6 +739,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
+
+                    if (_inExpressionLambda && node.Conversion.Method is MethodSymbol method && method.IsAbstract && method.IsStatic)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                    }
                     break;
             }
 

@@ -346,6 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors)
         {
             Debug.Assert(conversionGroup != null);
+            Debug.Assert(conversion.IsUserDefined);
 
             if (!conversion.IsValid)
             {
@@ -363,6 +364,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: destination,
                     hasErrors: true)
                 { WasCompilerGenerated = source.WasCompilerGenerated };
+            }
+
+            if (conversion.Method is MethodSymbol method && method.IsStatic && method.IsAbstract)
+            {
+                Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
+
+                if (Compilation.SourceModule != method.ContainingModule)
+                {
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
+
+                    if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
+                    }
+                }
             }
 
             // Due to an oddity in the way we create a non-lifted user-defined conversion from A to D? 
