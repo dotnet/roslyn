@@ -36,9 +36,15 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly EventOrPropertyMapIndex _eventMap;
         private readonly EventOrPropertyMapIndex _propertyMap;
         private readonly MethodImplIndex _methodImpls;
+
+        // For the EncLog table we need to know which things we're emitting custom attributes for so we can
+        // correctly map the attributes to row numbers of existing attributes for that target
+        private readonly List<EntityHandle> _customAttributeTargets = new List<EntityHandle>();
+
         // For the EncMap table we need to keep a list of exactly which rows in the CustomAttributes table are updated
         // since we spread these out amongst existing rows, it's not just a contigious set
         private readonly List<int> _customAttributeRows;
+
         // Keep track of which CustomAttributes rows are added in this and previous deltas, over what is in the
         // original metadata
         private readonly Dictionary<int, EntityHandle> _customAttributesAdded;
@@ -681,6 +687,15 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return new EncLocalInfo(localDef.SlotInfo, translatedType, localDef.Constraints, signature);
+        }
+
+        protected override void AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute, IMethodReference constructor)
+        {
+            // We need to keep track of all of the things attributes are associated with in order to populate the EncLog and Map tables
+            _customAttributeTargets.Add(parentHandle);
+
+            // The base class will write out the actual metadata for us
+            base.AddCustomAttributeToTable(parentHandle, customAttribute, constructor);
         }
 
         protected override void PopulateEncLogTableRows(ImmutableArray<int> rowCounts)
