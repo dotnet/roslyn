@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var stringType = semanticModel.Compilation.GetSpecialType(SpecialType.System_String);
             if (stringType == null)
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
         }
 
-        private async Task<(TInvocationExpressionSyntax, ISymbol)> TryFindInvocationAsync(
+        private async Task<(TInvocationExpressionSyntax?, ISymbol?)> TryFindInvocationAsync(
             TextSpan span,
             Document document,
             SemanticModel semanticModel,
@@ -133,14 +134,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         }
 
         private static bool IsArgumentListCorrect(
-            SeparatedSyntaxList<TArgumentSyntax>? nullableArguments,
+            SeparatedSyntaxList<TArgumentSyntax> arguments,
             ISymbol invocationSymbol,
             ImmutableArray<IMethodSymbol> formatMethods,
             SemanticModel semanticModel,
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
-            var arguments = nullableArguments.Value;
             if (arguments.Count >= 2 &&
                 syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) is TLiteralExpressionSyntax firstExpression &&
                 syntaxFactsService.IsStringLiteral(firstExpression.GetFirstToken()))
@@ -166,15 +166,16 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
-            var literalExpression = syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) as TLiteralExpressionSyntax;
+            var literalExpression = (TLiteralExpressionSyntax?)syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService));
+            Contract.ThrowIfNull(literalExpression);
             var text = literalExpression.GetFirstToken().ToString();
-            var syntaxGenerator = document.GetLanguageService<SyntaxGenerator>();
+            var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var expandedArguments = GetExpandedArguments(semanticModel, arguments, syntaxGenerator, syntaxFactsService);
             var interpolatedString = GetInterpolatedString(text);
             var newInterpolatedString = VisitArguments(expandedArguments, interpolatedString, syntaxFactsService);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(invocation, newInterpolatedString.WithTriviaFrom(invocation));
             return document.WithSyntaxRoot(newRoot);
         }
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             => syntaxFacts.GetNameForArgument(argument);
 
         private static SyntaxNode GetParamsArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
-        => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[1];
+            => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[1];
 
         private static TArgumentSyntax GetFormatArgument(SeparatedSyntaxList<TArgumentSyntax> arguments, ISyntaxFactsService syntaxFactsService)
             => arguments.FirstOrDefault(argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.FormatArgumentName, StringComparison.OrdinalIgnoreCase)) ?? arguments[0];
@@ -206,24 +207,23 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             SyntaxGenerator syntaxGenerator,
             ISyntaxFacts syntaxFacts)
         {
-            var builder = ArrayBuilder<TExpressionSyntax>.GetInstance();
+            using var _ = ArrayBuilder<TExpressionSyntax>.GetInstance(out var builder);
             for (var i = 1; i < arguments.Count; i++)
             {
                 var argumentExpression = syntaxFacts.GetExpressionOfArgument(GetArgument(arguments, i, syntaxFacts));
-                var convertedType = semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
+                var convertedType = argumentExpression == null ? null : semanticModel.GetTypeInfo(argumentExpression).ConvertedType;
                 if (convertedType == null)
                 {
-                    builder.Add(syntaxGenerator.AddParentheses(argumentExpression) as TExpressionSyntax);
+                    builder.Add((TExpressionSyntax)syntaxGenerator.AddParentheses(argumentExpression));
                 }
                 else
                 {
-                    var castExpression = syntaxGenerator.CastExpression(convertedType, syntaxGenerator.AddParentheses(argumentExpression)).WithAdditionalAnnotations(Simplifier.Annotation);
-                    builder.Add(castExpression as TExpressionSyntax);
+                    var castExpression = (TExpressionSyntax)syntaxGenerator.CastExpression(convertedType, syntaxGenerator.AddParentheses(argumentExpression)).WithAdditionalAnnotations(Simplifier.Annotation);
+                    builder.Add(castExpression);
                 }
             }
 
-            var expandedArguments = builder.ToImmutableAndFree();
-            return expandedArguments;
+            return builder.ToImmutable();
         }
 
         private static SyntaxNode VisitArguments(
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                             if (index >= 0 && index < expandedArguments.Length)
                             {
                                 return interpolationSyntaxNode.ReplaceNode(
-                                    syntaxFactsService.GetExpressionOfInterpolation(interpolationSyntaxNode),
+                                    literalExpression,
                                     syntaxFactsService.ConvertToSingleLine(expandedArguments[index], useElasticTrivia: true).WithAdditionalAnnotations(Formatter.Annotation));
                             }
                         }
@@ -276,17 +276,20 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         }
 
         private static bool IsArgumentListNotPassingArrayToParams(
-            SyntaxNode expression,
+            SyntaxNode? expression,
             ISymbol invocationSymbol,
             ImmutableArray<IMethodSymbol> formatMethods,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var formatMethodsAcceptingParamsArray = formatMethods
-                    .Where(x => x.Parameters.Length > 1 && x.Parameters[1].Type.Kind == SymbolKind.ArrayType);
-            if (formatMethodsAcceptingParamsArray.Contains(invocationSymbol))
+            if (expression != null)
             {
-                return semanticModel.GetTypeInfo(expression, cancellationToken).Type?.Kind != SymbolKind.ArrayType;
+                var formatMethodsAcceptingParamsArray = formatMethods
+                        .Where(x => x.Parameters.Length > 1 && x.Parameters[1].Type.Kind == SymbolKind.ArrayType);
+                if (formatMethodsAcceptingParamsArray.Contains(invocationSymbol))
+                {
+                    return semanticModel.GetTypeInfo(expression, cancellationToken).Type?.Kind != SymbolKind.ArrayType;
+                }
             }
 
             return true;

@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,6 +23,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -2413,12 +2417,12 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
                 OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             SynthesizedMetadataCompiler.ProcessSynthesizedMembers(libComp, module, default(CancellationToken));
 
-            var class1TypeDef = (Cci.ITypeDefinition)class1;
+            var class1TypeDef = (Cci.ITypeDefinition)class1.GetCciAdapter();
 
             var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None);
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var cciExplicit = class1TypeDef.GetExplicitImplementationOverrides(context);
-            var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m).MethodKind != MethodKind.Constructor);
+            var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m.GetInternalSymbol()).MethodKind != MethodKind.Constructor);
 
             context.Diagnostics.Verify();
             var symbolsSynthesizedCount = symbolSynthesized.Length;
@@ -3152,7 +3156,7 @@ class C
             var compilation = CSharpCompilation.Create(
                 "v2Fx.exe",
                 new[] { Parse(source) },
-                new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
+                new[] { Net20.mscorlib });
 
             //EDMAURER this is built with a 2.0 mscorlib. The runtimeMetadataVersion should be the same as the runtimeMetadataVersion stored in the assembly
             //that contains System.Object.
@@ -3210,7 +3214,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X86));
+                options: TestOptions.DebugDll.WithPlatform(Platform.X86));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -3244,7 +3248,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64));
+                options: TestOptions.DebugDll.WithPlatform(Platform.X64));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -3294,7 +3298,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm));
+                options: TestOptions.DebugDll.WithPlatform(Platform.Arm));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -3425,7 +3429,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilation(source, options: new CSharpCompilationOptions(OutputKind.WindowsRuntimeApplication));
+            var compilation = CreateCompilation(source, options: TestOptions.CreateTestOptions(OutputKind.WindowsRuntimeApplication, OptimizationLevel.Debug));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
             //interesting COFF bits
@@ -5243,7 +5247,7 @@ public class DerivingClass<T> : BaseClass<T>
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorDoesNotEmit_GeneralDiagnosticOption()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
             TestWarnAsErrorDoesNotEmitCore(options);
         }
 
@@ -5251,7 +5255,7 @@ public class DerivingClass<T> : BaseClass<T>
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorDoesNotEmit_SpecificDiagnosticOption()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0169", ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithSpecificDiagnosticOptions("CS0169", ReportDiagnostic.Error);
             TestWarnAsErrorDoesNotEmitCore(options);
         }
 
@@ -5288,7 +5292,7 @@ class X
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorWithMetadataOnlyImageDoesEmit_GeneralDiagnosticOption()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
             TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
         }
 
@@ -5296,7 +5300,7 @@ class X
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorWithMetadataOnlyImageDoesEmit_SpecificDiagnosticOptions()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0612", ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithSpecificDiagnosticOptions("CS0612", ReportDiagnostic.Error);
             TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
         }
 

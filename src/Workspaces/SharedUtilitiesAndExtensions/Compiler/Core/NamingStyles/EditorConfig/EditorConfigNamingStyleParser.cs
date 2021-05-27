@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         // TODO: revisit this cache. The assumption that the dictionary doesn't change in the exact instance is terribly fragile,
         // and with the new .editorconfig support won't hold as well as we'd like: a single tree will have a stable instance but
         // that won't necessarily be the same across files and projects.
-        private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, string?>, NamingStylePreferences> _cache = new ConditionalWeakTable<IReadOnlyDictionary<string, string?>, NamingStylePreferences>();
-        private static readonly object _cacheLock = new object();
+        private static readonly ConditionalWeakTable<IReadOnlyDictionary<string, string?>, NamingStylePreferences> _cache = new();
+        private static readonly object _cacheLock = new();
 
         public static NamingStylePreferences GetNamingStylesFromDictionary(IReadOnlyDictionary<string, string?> rawOptions)
         {
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private sealed class NamingRuleAccessibilityListComparer : NamingRuleSubsetComparer
         {
-            internal static readonly NamingRuleAccessibilityListComparer Instance = new NamingRuleAccessibilityListComparer();
+            internal static readonly NamingRuleAccessibilityListComparer Instance = new();
 
             private NamingRuleAccessibilityListComparer()
             {
@@ -211,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private sealed class NamingRuleModifierListComparer : NamingRuleSubsetComparer
         {
-            internal static readonly NamingRuleModifierListComparer Instance = new NamingRuleModifierListComparer();
+            internal static readonly NamingRuleModifierListComparer Instance = new();
 
             private NamingRuleModifierListComparer()
             {
@@ -244,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private sealed class NamingRuleSymbolListComparer : NamingRuleSubsetComparer
         {
-            internal static readonly NamingRuleSymbolListComparer Instance = new NamingRuleSymbolListComparer();
+            internal static readonly NamingRuleSymbolListComparer Instance = new();
 
             private NamingRuleSymbolListComparer()
             {

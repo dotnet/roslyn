@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             <Out> ByRef inferredTypeByAssumption As BitVector,
             <Out> ByRef typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken),
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-            ByRef diagnostic As DiagnosticBag,
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
+            ByRef diagnostic As BindingDiagnosticBag,
             Optional inferTheseTypeParameters As BitVector = Nothing
         ) As Boolean
             Debug.Assert(candidate Is candidate.ConstructedFrom)
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return InferenceGraph.Infer(candidate, arguments, parameterToArgumentMap, paramArrayItems, delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                         typeArguments, inferenceLevel, allFailedInferenceIsDueToObject, someInferenceFailed, inferenceErrorReasons,
                                         inferredTypeByAssumption, typeArgumentsLocation, asyncLambdaSubToFunctionMismatch,
-                                        useSiteDiagnostics, diagnostic, inferTheseTypeParameters)
+                                        useSiteInfo, diagnostic, inferTheseTypeParameters)
         End Function
 
         ' No-one should create instances of this class.
@@ -308,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim dominantTypeDataList = ArrayBuilder(Of DominantTypeDataTypeInference).GetInstance()
                     Dim errorReasons As InferenceErrorReasons = InferenceErrorReasons.Other
 
-                    InferenceTypeCollection.FindDominantType(dominantTypeDataList, errorReasons, Graph.UseSiteDiagnostics)
+                    InferenceTypeCollection.FindDominantType(dominantTypeDataList, errorReasons, Graph.UseSiteInfo)
 
                     If dominantTypeDataList.Count = 1 Then
                         ' //consider: scottwis
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim delegateType = DirectCast(ParameterType, NamedTypeSymbol)
                             Dim invokeMethod As MethodSymbol = delegateType.DelegateInvokeMethod
 
-                            If invokeMethod IsNot Nothing AndAlso invokeMethod.GetUseSiteErrorInfo() Is Nothing Then
+                            If invokeMethod IsNot Nothing AndAlso invokeMethod.GetUseSiteInfo().DiagnosticInfo Is Nothing Then
 
                                 Dim unboundLambda = DirectCast(Expression, UnboundLambda)
                                 Dim lambdaParameters As ImmutableArray(Of ParameterSymbol) = unboundLambda.Parameters
@@ -462,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        delegateParam.Type.Equals(currentTypedNode.DeclaredTypeParam) Then
 
                                         If Graph.Diagnostic Is Nothing Then
-                                            Graph.Diagnostic = New DiagnosticBag()
+                                            Graph.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Graph.UseSiteInfo.AccumulatesDependencies)
                                         End If
 
                                         ' If this was an argument to the unbound Lambda, infer Object.
@@ -611,7 +611,7 @@ HandleAsAGeneralExpression:
         Private Class InferenceGraph
             Inherits Graph(Of InferenceNode)
 
-            Public Diagnostic As DiagnosticBag
+            Public Diagnostic As BindingDiagnosticBag
             Public ObjectType As NamedTypeSymbol
             Public ReadOnly Candidate As MethodSymbol
             Public ReadOnly Arguments As ImmutableArray(Of BoundExpression)
@@ -619,7 +619,7 @@ HandleAsAGeneralExpression:
             Public ReadOnly ParamArrayItems As ArrayBuilder(Of Integer)
             Public ReadOnly DelegateReturnType As TypeSymbol
             Public ReadOnly DelegateReturnTypeReferenceBoundNode As BoundNode
-            Public UseSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            Public UseSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
 
             Private _someInferenceFailed As Boolean
             Private _inferenceErrorReasons As InferenceErrorReasons
@@ -628,10 +628,10 @@ HandleAsAGeneralExpression:
             Private _asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression)
 
             Private ReadOnly _typeParameterNodes As ImmutableArray(Of TypeParameterNode)
-            Private _verifyingAssertions As Boolean
+            Private ReadOnly _verifyingAssertions As Boolean
 
             Private Sub New(
-                diagnostic As DiagnosticBag,
+                diagnostic As BindingDiagnosticBag,
                 candidate As MethodSymbol,
                 arguments As ImmutableArray(Of BoundExpression),
                 parameterToArgumentMap As ArrayBuilder(Of Integer),
@@ -639,7 +639,7 @@ HandleAsAGeneralExpression:
                 delegateReturnType As TypeSymbol,
                 delegateReturnTypeReferenceBoundNode As BoundNode,
                 asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-                useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+                useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
             )
                 Debug.Assert(delegateReturnType Is Nothing OrElse delegateReturnTypeReferenceBoundNode IsNot Nothing)
 
@@ -651,7 +651,7 @@ HandleAsAGeneralExpression:
                 Me.DelegateReturnType = delegateReturnType
                 Me.DelegateReturnTypeReferenceBoundNode = delegateReturnTypeReferenceBoundNode
                 Me._asyncLambdaSubToFunctionMismatch = asyncLambdaSubToFunctionMismatch
-                Me.UseSiteDiagnostics = useSiteDiagnostics
+                Me.UseSiteInfo = useSiteInfo
 
                 ' Allocate the array of TypeParameter nodes.
                 Dim arity As Integer = candidate.Arity
@@ -719,13 +719,13 @@ HandleAsAGeneralExpression:
                 <Out> ByRef inferredTypeByAssumption As BitVector,
                 <Out> ByRef typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken),
                 <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-                <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-                ByRef diagnostic As DiagnosticBag,
+                <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
+                ByRef diagnostic As BindingDiagnosticBag,
                 inferTheseTypeParameters As BitVector
             ) As Boolean
                 Dim graph As New InferenceGraph(diagnostic, candidate, arguments, parameterToArgumentMap, paramArrayItems,
                                                 delegateReturnType, delegateReturnTypeReferenceBoundNode, asyncLambdaSubToFunctionMismatch,
-                                                useSiteDiagnostics)
+                                                useSiteInfo)
 
                 ' Build a graph describing the flow of type inference data.
                 ' This creates edges from "regular" arguments to type parameters and from type parameters to lambda arguments. 
@@ -916,7 +916,7 @@ HandleAsAGeneralExpression:
                 diagnostic = graph.Diagnostic
 
                 asyncLambdaSubToFunctionMismatch = graph._asyncLambdaSubToFunctionMismatch
-                useSiteDiagnostics = graph.UseSiteDiagnostics
+                useSiteInfo = graph.UseSiteInfo
 
                 Return succeeded
             End Function
@@ -1114,7 +1114,7 @@ HandleAsAGeneralExpression:
                         Else
 
                             Do
-                                For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
+                                For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteInfo)
                                     AddTypeToGraph(typeArgument, argNode, isOutgoingEdge, haveSeenTypeParameters)
                                 Next
 
@@ -1168,7 +1168,7 @@ HandleAsAGeneralExpression:
                     Dim delegateType As NamedTypeSymbol = DirectCast(parameterType, NamedTypeSymbol)
                     Dim invoke As MethodSymbol = delegateType.DelegateInvokeMethod
 
-                    If invoke IsNot Nothing AndAlso invoke.GetUseSiteErrorInfo() Is Nothing AndAlso delegateType.IsGenericType Then
+                    If invoke IsNot Nothing AndAlso invoke.GetUseSiteInfo().DiagnosticInfo Is Nothing AndAlso delegateType.IsGenericType Then
 
                         Dim haveSeenTypeParameters = BitVector.Create(_typeParameterNodes.Length)
                         AddTypeToGraph(invoke.ReturnType, argNode, isOutgoingEdge:=True, haveSeenTypeParameters:=haveSeenTypeParameters) ' outgoing (name->type) edge
@@ -1181,7 +1181,7 @@ HandleAsAGeneralExpression:
                     End If
                 ElseIf TypeSymbol.Equals(parameterType.OriginalDefinition, binder.Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T), TypeCompareKind.ConsiderEverything) Then
                     ' If we've got an Expression(Of T), skip through to T
-                    AddAddressOfToGraph(DirectCast(parameterType, NamedTypeSymbol).TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteDiagnostics), argNode, binder)
+                    AddAddressOfToGraph(DirectCast(parameterType, NamedTypeSymbol).TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteInfo), argNode, binder)
                 End If
             End Sub
 
@@ -1202,7 +1202,7 @@ HandleAsAGeneralExpression:
                     Dim delegateType As NamedTypeSymbol = DirectCast(parameterType, NamedTypeSymbol)
                     Dim invoke As MethodSymbol = delegateType.DelegateInvokeMethod
 
-                    If invoke IsNot Nothing AndAlso invoke.GetUseSiteErrorInfo() Is Nothing AndAlso delegateType.IsGenericType Then
+                    If invoke IsNot Nothing AndAlso invoke.GetUseSiteInfo().DiagnosticInfo Is Nothing AndAlso delegateType.IsGenericType Then
 
                         Dim delegateParameters As ImmutableArray(Of ParameterSymbol) = invoke.Parameters
                         Dim lambdaParameters As ImmutableArray(Of ParameterSymbol)
@@ -1245,7 +1245,7 @@ HandleAsAGeneralExpression:
 
                 ElseIf TypeSymbol.Equals(parameterType.OriginalDefinition, binder.Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T), TypeCompareKind.ConsiderEverything) Then
                     ' If we've got an Expression(Of T), skip through to T
-                    AddLambdaToGraph(DirectCast(parameterType, NamedTypeSymbol).TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteDiagnostics), argNode, binder)
+                    AddLambdaToGraph(DirectCast(parameterType, NamedTypeSymbol).TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteInfo), argNode, binder)
                 End If
             End Sub
 
@@ -1340,7 +1340,7 @@ HandleAsAGeneralExpression:
                             Next
                         Else
                             Do
-                                For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
+                                For Each typeArgument In possiblyGenericType.TypeArgumentsWithDefinitionUseSiteDiagnostics(Me.UseSiteInfo)
                                     If RefersToGenericParameterToInferArgumentFor(typeArgument) Then
                                         Return True
                                     End If
@@ -1527,9 +1527,9 @@ HandleAsAGeneralExpression:
 
                                         If Not InferTypeArgumentsFromArgument(
                                                                         argumentLocation,
-                                                                        argumentTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteDiagnostics),
+                                                                        argumentTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteInfo),
                                                                         argumentTypeByAssumption,
-                                                                        parameterTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteDiagnostics),
+                                                                        parameterTypeAsNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(typeArgumentIndex, Me.UseSiteInfo),
                                                                         param,
                                                                         _DigThroughToBasesAndImplements,
                                                                         paramInferenceRestrictions
@@ -1681,7 +1681,7 @@ HandleAsAGeneralExpression:
 
                     ' Note, null check for parameterInvokeDeclaration should also filter out MultiCastDelegate type.
                     If argumentDelegateType.IsAnonymousType AndAlso Not parameterDelegateType.IsAnonymousType AndAlso
-                       parameterInvokeProc IsNot Nothing AndAlso parameterInvokeProc.GetUseSiteErrorInfo() Is Nothing Then
+                       parameterInvokeProc IsNot Nothing AndAlso parameterInvokeProc.GetUseSiteInfo().DiagnosticInfo Is Nothing Then
                         ' Some trickery relating to the fact that anonymous delegates can be converted to any delegate type.
                         ' We are trying to match the anonymous delegate "BaseSearchType" onto the delegate "FixedType". e.g.
                         ' Dim f = function(i as integer) i   // ArgumentType = VB$AnonymousDelegate`2(Of Integer,Integer)
@@ -1858,7 +1858,7 @@ HandleAsAGeneralExpression:
 
                 Select Case derivedType.Kind
                     Case SymbolKind.TypeParameter
-                        For Each constraint In DirectCast(derivedType, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
+                        For Each constraint In DirectCast(derivedType, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(Me.UseSiteInfo)
                             If constraint.OriginalDefinition.IsSameTypeIgnoringAll(baseInterface.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual(constraint, match) Then
                                     Return False
@@ -1871,7 +1871,7 @@ HandleAsAGeneralExpression:
                         Next
 
                     Case Else
-                        For Each [interface] In derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
+                        For Each [interface] In derivedType.AllInterfacesWithDefinitionUseSiteDiagnostics(Me.UseSiteInfo)
                             If [interface].OriginalDefinition.IsSameTypeIgnoringAll(baseInterface.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual([interface], match) Then
                                     Return False
@@ -1890,7 +1890,7 @@ HandleAsAGeneralExpression:
             Private Function FindMatchingBaseClass(derivedType As TypeSymbol, baseClass As TypeSymbol, ByRef match As TypeSymbol) As Boolean
                 Select Case derivedType.Kind
                     Case SymbolKind.TypeParameter
-                        For Each constraint In DirectCast(derivedType, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
+                        For Each constraint In DirectCast(derivedType, TypeParameterSymbol).ConstraintTypesWithDefinitionUseSiteDiagnostics(Me.UseSiteInfo)
                             If constraint.OriginalDefinition.IsSameTypeIgnoringAll(baseClass.OriginalDefinition) Then
                                 If Not SetMatchIfNothingOrEqual(constraint, match) Then
                                     Return False
@@ -1906,7 +1906,7 @@ HandleAsAGeneralExpression:
 
                     Case Else
 
-                        Dim baseType As NamedTypeSymbol = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
+                        Dim baseType As NamedTypeSymbol = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(Me.UseSiteInfo)
 
                         While baseType IsNot Nothing
                             If baseType.OriginalDefinition.IsSameTypeIgnoringAll(baseClass.OriginalDefinition) Then
@@ -1916,7 +1916,7 @@ HandleAsAGeneralExpression:
                                 Exit While
                             End If
 
-                            baseType = baseType.BaseTypeWithDefinitionUseSiteDiagnostics(Me.UseSiteDiagnostics)
+                            baseType = baseType.BaseTypeWithDefinitionUseSiteDiagnostics(Me.UseSiteInfo)
                         End While
 
                 End Select
@@ -1936,7 +1936,7 @@ HandleAsAGeneralExpression:
                     ' Now find the invoke method of the delegate
                     Dim invokeMethod As MethodSymbol = delegateType.DelegateInvokeMethod
 
-                    If invokeMethod Is Nothing OrElse invokeMethod.GetUseSiteErrorInfo() IsNot Nothing Then
+                    If invokeMethod Is Nothing OrElse invokeMethod.GetUseSiteInfo().DiagnosticInfo IsNot Nothing Then
                         ' If we don't have an Invoke method, just bail.
                         Return False
                     End If
@@ -1951,15 +1951,12 @@ HandleAsAGeneralExpression:
                     Dim addrOf = DirectCast(argument, BoundAddressOfOperator)
                     Dim fromMethod As MethodSymbol = Nothing
                     Dim methodConversions As MethodConversionKind = MethodConversionKind.Identity
-                    Dim diagnostics = DiagnosticBag.GetInstance()
 
                     Dim matchingMethod As KeyValuePair(Of MethodSymbol, MethodConversionKind) = Binder.ResolveMethodForDelegateInvokeFullAndRelaxed(
                         addrOf,
                         invokeMethod,
                         ignoreMethodReturnType:=True,
-                        diagnostics:=diagnostics)
-
-                    diagnostics.Free()
+                        diagnostics:=BindingDiagnosticBag.Discarded)
 
                     fromMethod = matchingMethod.Key
                     methodConversions = matchingMethod.Value
@@ -2020,9 +2017,9 @@ HandleAsAGeneralExpression:
 
                         Case BoundKind.UnboundLambda
                             ' Infer Anonymous Delegate type from unbound lambda.
-                            Dim inferredAnonymousDelegate As KeyValuePair(Of NamedTypeSymbol, ImmutableArray(Of Diagnostic)) = DirectCast(argument, UnboundLambda).InferredAnonymousDelegate
+                            Dim inferredAnonymousDelegate As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = DirectCast(argument, UnboundLambda).InferredAnonymousDelegate
 
-                            If (inferredAnonymousDelegate.Value.IsDefault OrElse Not inferredAnonymousDelegate.Value.HasAnyErrors()) Then
+                            If (inferredAnonymousDelegate.Value.Diagnostics.IsDefault OrElse Not inferredAnonymousDelegate.Value.Diagnostics.HasAnyErrors()) Then
 
                                 Dim delegateInvokeMethod As MethodSymbol = Nothing
 
@@ -2068,7 +2065,7 @@ HandleAsAGeneralExpression:
 
                     Dim invokeMethod As MethodSymbol = delegateType.DelegateInvokeMethod
 
-                    If invokeMethod Is Nothing OrElse invokeMethod.GetUseSiteErrorInfo() IsNot Nothing Then
+                    If invokeMethod Is Nothing OrElse invokeMethod.GetUseSiteInfo().DiagnosticInfo IsNot Nothing Then
                         ' If we don't have an Invoke method, just bail.
                         Return True
                     End If
@@ -2143,7 +2140,7 @@ HandleAsAGeneralExpression:
 
                                 If lambdaReturnType Is Nothing Then
                                     If Me.Diagnostic Is Nothing Then
-                                        Me.Diagnostic = New DiagnosticBag()
+                                        Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
                                     End If
 
                                     Debug.Assert(Me.Diagnostic IsNot Nothing)
@@ -2159,14 +2156,14 @@ HandleAsAGeneralExpression:
 
                             If unboundLambda.IsFunctionLambda Then
                                 Dim inferenceSignature As New UnboundLambda.TargetSignature(delegateParams, unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void), returnsByRef:=False)
-                                Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic)) = unboundLambda.InferReturnType(inferenceSignature)
+                                Dim returnTypeInfo As KeyValuePair(Of TypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = unboundLambda.InferReturnType(inferenceSignature)
 
-                                If Not returnTypeInfo.Value.IsDefault AndAlso returnTypeInfo.Value.HasAnyErrors() Then
+                                If Not returnTypeInfo.Value.Diagnostics.IsDefault AndAlso returnTypeInfo.Value.Diagnostics.HasAnyErrors() Then
                                     lambdaReturnType = Nothing
 
                                     ' Let's keep return type inference errors
                                     If Me.Diagnostic Is Nothing Then
-                                        Me.Diagnostic = New DiagnosticBag()
+                                        Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
                                     End If
 
                                     Me.Diagnostic.AddRange(returnTypeInfo.Value)
@@ -2181,24 +2178,23 @@ HandleAsAGeneralExpression:
                                                                                                                           returnsByRef:=False))
 
                                     Debug.Assert(boundLambda.LambdaSymbol.ReturnType Is returnTypeInfo.Key)
-                                    If Not boundLambda.HasErrors AndAlso Not boundLambda.Diagnostics.HasAnyErrors Then
+                                    If Not boundLambda.HasErrors AndAlso Not boundLambda.Diagnostics.Diagnostics.HasAnyErrors Then
                                         lambdaReturnType = returnTypeInfo.Key
 
                                         ' Let's keep return type inference warnings, if any.
-                                        If Not returnTypeInfo.Value.IsDefaultOrEmpty Then
-                                            If Me.Diagnostic Is Nothing Then
-                                                Me.Diagnostic = New DiagnosticBag()
-                                            End If
-
-                                            Me.Diagnostic.AddRange(returnTypeInfo.Value)
+                                        If Me.Diagnostic Is Nothing Then
+                                            Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
                                         End If
+
+                                        Me.Diagnostic.AddRange(returnTypeInfo.Value)
+                                        Me.Diagnostic.AddDependencies(boundLambda.Diagnostics.Dependencies)
                                     Else
                                         lambdaReturnType = Nothing
 
                                         ' Let's preserve diagnostics that caused the failure
-                                        If Not boundLambda.Diagnostics.IsDefaultOrEmpty Then
+                                        If Not boundLambda.Diagnostics.Diagnostics.IsDefaultOrEmpty Then
                                             If Me.Diagnostic Is Nothing Then
-                                                Me.Diagnostic = New DiagnosticBag()
+                                                Me.Diagnostic = BindingDiagnosticBag.Create(withDiagnostics:=True, Me.UseSiteInfo.AccumulatesDependencies)
                                             End If
 
                                             Me.Diagnostic.AddRange(boundLambda.Diagnostics)
@@ -2230,8 +2226,8 @@ HandleAsAGeneralExpression:
                                                      TypeSymbol.Equals(lambdaReturnNamedType.OriginalDefinition, argument.GetBinderFromLambda().Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T), TypeCompareKind.ConsiderEverything) OrElse
                                                      TypeSymbol.Equals(lambdaReturnNamedType.OriginalDefinition, argument.GetBinderFromLambda().Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T), TypeCompareKind.ConsiderEverything))
 
-                                        lambdaReturnType = lambdaReturnNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteDiagnostics)
-                                        returnType = returnNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteDiagnostics)
+                                        lambdaReturnType = lambdaReturnNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteInfo)
+                                        returnType = returnNamedType.TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteInfo)
                                     End If
 
                                 End If
@@ -2244,7 +2240,7 @@ HandleAsAGeneralExpression:
                                                                             unboundLambda.Binder.Compilation.GetSpecialType(SpecialType.System_Void),
                                                                             returnsByRef:=False))
 
-                                    If Not boundLambda.HasErrors AndAlso Not boundLambda.Diagnostics.HasAnyErrors() Then
+                                    If Not boundLambda.HasErrors AndAlso Not boundLambda.Diagnostics.Diagnostics.HasAnyErrors() Then
                                         If _asyncLambdaSubToFunctionMismatch Is Nothing Then
                                             _asyncLambdaSubToFunctionMismatch = New HashSet(Of BoundExpression)(ReferenceEqualityComparer.Instance)
                                         End If
@@ -2278,7 +2274,7 @@ HandleAsAGeneralExpression:
 
                 ElseIf TypeSymbol.Equals(parameterType.OriginalDefinition, argument.GetBinderFromLambda().Compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T), TypeCompareKind.ConsiderEverything) Then
                     ' If we've got an Expression(Of T), skip through to T
-                    Return InferTypeArgumentsFromLambdaArgument(argument, DirectCast(parameterType, NamedTypeSymbol).TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteDiagnostics), param)
+                    Return InferTypeArgumentsFromLambdaArgument(argument, DirectCast(parameterType, NamedTypeSymbol).TypeArgumentWithDefinitionUseSiteDiagnostics(0, Me.UseSiteInfo), param)
                 End If
 
                 Return True

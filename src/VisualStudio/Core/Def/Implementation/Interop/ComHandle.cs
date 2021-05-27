@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -65,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         }
 
         /// <summary>
-        /// Return the IComWrapper object (as T) or the managed object (as T) if the managed object is not wrapped.
+        /// Return the IComWrapperFixed object (as T) or the managed object (as T) if the managed object is not wrapped.
         /// </summary>
         public THandle Handle
         {

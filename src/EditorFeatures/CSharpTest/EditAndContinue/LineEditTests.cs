@@ -2,14 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [UseExportProvider]
     public class LineEditTests : EditingTestBase
     {
         #region Methods
@@ -46,7 +51,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(4, 9), new LineChange(9, 4) },
+                new[] { new SourceLineUpdate(4, 9), new SourceLineUpdate(9, 4) },
                 Array.Empty<string>());
         }
 
@@ -93,7 +98,7 @@ class Program
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(4, 9), new LineChange(10, 4) },
+                new[] { new SourceLineUpdate(4, 9), new SourceLineUpdate(10, 4) },
                 Array.Empty<string>());
         }
 
@@ -121,7 +126,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 Array.Empty<string>());
         }
 
@@ -149,7 +154,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(4, 6) },
+                new[] { new SourceLineUpdate(4, 6) },
                 Array.Empty<string>());
         }
 
@@ -176,7 +181,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(4, 5) },
+                new[] { new SourceLineUpdate(4, 5) },
                 Array.Empty<string>());
         }
 
@@ -202,7 +207,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "static void Bar()" });
         }
 
@@ -229,7 +234,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "static void Bar()" });
         }
 
@@ -257,7 +262,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "static void Bar()" });
         }
 
@@ -287,7 +292,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "static void Bar()" });
 
             var active = GetActiveStatements(src1, src2);
@@ -309,7 +314,7 @@ class C { /*--*/static void Bar() { } }";
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "static void Bar() { }" });
         }
 
@@ -337,7 +342,7 @@ class C<T>
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "static void Bar()" },
                 Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        ", FeaturesResources.method));
         }
@@ -365,7 +370,7 @@ class C<T>
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "static void Bar()" },
                 Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        /*edit*/", FeaturesResources.method));
         }
@@ -393,7 +398,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "static void Bar<T>()" },
                 Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "\r\n        ", FeaturesResources.method));
         }
@@ -423,7 +428,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "static async Task<int> Bar()" });
         }
 
@@ -459,7 +464,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(4, 8), new LineChange(8, 4) },
+                new[] { new SourceLineUpdate(4, 8), new SourceLineUpdate(8, 4) },
                 Array.Empty<string>());
         }
 
@@ -486,7 +491,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(4, 5) },
+                new[] { new SourceLineUpdate(4, 5) },
                 Array.Empty<string>());
         }
 
@@ -511,7 +516,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(5, 6) },
+                new[] { new SourceLineUpdate(5, 6) },
                 Array.Empty<string>());
         }
 
@@ -536,7 +541,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(5, 6) },
+                new[] { new SourceLineUpdate(5, 6) },
                 Array.Empty<string>());
         }
 
@@ -561,7 +566,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(5, 6) },
+                new[] { new SourceLineUpdate(5, 6) },
                 Array.Empty<string>());
         }
 
@@ -589,7 +594,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(6, 8) },
+                new[] { new SourceLineUpdate(6, 8) },
                 Array.Empty<string>());
         }
 
@@ -614,7 +619,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(5, 6) },
+                new[] { new SourceLineUpdate(5, 6) },
                 Array.Empty<string>());
         }
 
@@ -640,7 +645,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "public C(int a)" });
         }
 
@@ -667,7 +672,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "public C(int a)" });
         }
 
@@ -693,7 +698,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "public C(int a)" });
         }
 
@@ -719,7 +724,7 @@ class C<T>
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "public C(int a)" },
                 Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "          ", FeaturesResources.constructor));
         }
@@ -749,7 +754,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(5, 4) },
+                new[] { new SourceLineUpdate(5, 4) },
                 Array.Empty<string>());
         }
 
@@ -770,7 +775,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4) },
+                new[] { new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -791,7 +796,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4) },
+                new[] { new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -816,7 +821,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 Array.Empty<string>());
         }
 
@@ -837,7 +842,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 Array.Empty<string>());
         }
 
@@ -859,7 +864,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4), new LineChange(4, 3) },
+                new[] { new SourceLineUpdate(3, 4), new SourceLineUpdate(4, 3) },
                 Array.Empty<string>());
         }
 
@@ -882,7 +887,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 6) },
+                new[] { new SourceLineUpdate(3, 6) },
                 Array.Empty<string>());
         }
 
@@ -903,7 +908,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { new LineChange(3, 4) },
+                new SourceLineUpdate[] { new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -924,7 +929,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { new LineChange(3, 4), new LineChange(3, 4) },
+                new SourceLineUpdate[] { new SourceLineUpdate(3, 4), new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -945,7 +950,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "Goo = " });
         }
 
@@ -966,7 +971,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "Goo " });
         }
 
@@ -987,7 +992,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "Goo = 1" });
         }
 
@@ -1008,7 +1013,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "Goo = 1" });
         }
 
@@ -1029,7 +1034,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "Goo = 1" });
         }
 
@@ -1049,7 +1054,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "Goo = 1 +  1" });
         }
 
@@ -1069,7 +1074,7 @@ class C<T>
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "Goo = 1 +  1" },
                 Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.field));
         }
@@ -1095,7 +1100,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "get { return " });
         }
 
@@ -1116,7 +1121,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4) },
+                new[] { new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -1137,7 +1142,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4), new LineChange(3, 4) },
+                new[] { new SourceLineUpdate(3, 4), new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -1158,7 +1163,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4) },
+                new[] { new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -1179,7 +1184,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4) },
+                new[] { new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -1200,7 +1205,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4) },
+                new[] { new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -1221,7 +1226,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4) },
+                new[] { new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -1242,7 +1247,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4) },
+                new[] { new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -1262,7 +1267,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "int P { get; } =  1;" });
         }
 
@@ -1287,7 +1292,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4), new LineChange(3, 4) },
+                new[] { new SourceLineUpdate(3, 4), new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -1308,7 +1313,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(4, 3) },
+                new[] { new SourceLineUpdate(4, 3) },
                 new string[] { "add { }" });
         }
 
@@ -1329,7 +1334,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                Array.Empty<LineChange>(),
+                Array.Empty<SourceLineUpdate>(),
                 new string[] { "remove { }" });
         }
 
@@ -1350,7 +1355,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(4, 3), new LineChange(4, 3) },
+                new[] { new SourceLineUpdate(4, 3), new SourceLineUpdate(4, 3) },
                 Array.Empty<string>());
         }
 
@@ -1371,7 +1376,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4) },
+                new[] { new SourceLineUpdate(3, 4) },
                 Array.Empty<string>());
         }
 
@@ -1393,7 +1398,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(3, 4), new LineChange(3, 5) },
+                new[] { new SourceLineUpdate(3, 4), new SourceLineUpdate(3, 5) },
                 Array.Empty<string>());
         }
 
@@ -1415,7 +1420,46 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new[] { new LineChange(4, 3), new LineChange(5, 3) },
+                new[] { new SourceLineUpdate(4, 3), new SourceLineUpdate(5, 3) },
+                Array.Empty<string>());
+        }
+
+        #endregion
+
+        #region Types
+
+        [Fact]
+        public void Type_Reorder1()
+        {
+            var src1 = @"
+class C
+{
+    static int F1() => 1;
+    static int F2() => 1;
+}
+
+class D
+{
+    static int G1() => 1;
+    static int G2() => 1;
+}
+";
+            var src2 = @"
+class D
+{
+    static int G1() => 1;
+    static int G2() => 1;
+}
+
+class C
+{
+    static int F1() => 1;
+    static int F2() => 1;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new SourceLineUpdate(3, 9), new SourceLineUpdate(4, 10), new SourceLineUpdate(9, 3), new SourceLineUpdate(10, 4) },
                 Array.Empty<string>());
         }
 

@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -12,7 +15,6 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -20,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public abstract class RecommenderTests : TestBase
     {
-        protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharp9);
+        protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
 
         protected string keywordText;
-        internal Func<int, CSharpSyntaxContext, Task<IEnumerable<RecommendedKeyword>>> RecommendKeywordsAsync;
+        internal Func<int, CSharpSyntaxContext, Task<ImmutableArray<RecommendedKeyword>>> RecommendKeywordsAsync;
 
         internal async Task VerifyWorkerAsync(string markup, bool absent, CSharpParseOptions options = null, int? matchPriority = null)
         {
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             var compilation = CSharpCompilation.Create(
                 "test",
                 syntaxTrees: new[] { tree },
-                references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                references: new[] { TestMetadata.Net451.mscorlib });
 
             if (tree.IsInNonUserCode(position, CancellationToken.None) && !absent)
             {
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 }
                 else
                 {
-                    var result = (await RecommendKeywordsAsync(position, context))?.SingleOrDefault();
+                    var result = (await RecommendKeywordsAsync(position, context)).SingleOrDefault();
                     Assert.True(result != null, "No recommended keywords");
                     Assert.Equal(keywordText, result.Keyword);
                     if (matchPriority != null)
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             }
         }
 
-        protected string AddInsideMethod(string text, bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
+        protected static string AddInsideMethod(string text, bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
         {
             if (topLevelStatement)
             {

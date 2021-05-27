@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -718,10 +721,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void DeclarationPattern_NullableArray()
         {
-            UsingStatement("switch (e) { case T[]? t: break; }",
-                // (1,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            UsingStatement("switch (e) { case T[]? t: break; }", options: TestOptions.Regular8,
+                // (1,19): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T[]").WithArguments("type pattern").WithLocation(1, 19),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "T[]").WithArguments("type pattern", "9.0").WithLocation(1, 19),
                 // (1,22): error CS1003: Syntax error, ':' expected
                 // switch (e) { case T[]? t: break; }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":", "?").WithLocation(1, 22),

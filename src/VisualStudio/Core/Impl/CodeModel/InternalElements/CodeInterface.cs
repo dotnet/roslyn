@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -86,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         public EnvDTE.CodeElements Parts
         {
-            get { return PartialTypeCollection.Create(State, FileCodeModel, this); }
+            get { return PartialTypeCollection.Create(State, this); }
         }
     }
 }

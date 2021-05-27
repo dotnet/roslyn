@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -24,7 +22,7 @@ namespace Roslyn.Utilities
         /// all builds
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull<T>([NotNull] T value) where T : class?
+        public static void ThrowIfNull<T>([NotNull] T value)
         {
             if (value is null)
             {
@@ -37,7 +35,7 @@ namespace Roslyn.Utilities
         /// all builds
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull<T>([NotNull] T value, string message) where T : class?
+        public static void ThrowIfNull<T>([NotNull] T value, string message)
         {
             if (value is null)
             {

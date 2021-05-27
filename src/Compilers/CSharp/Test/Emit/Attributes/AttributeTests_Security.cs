@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +36,7 @@ public struct EventDescriptor
             Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol module) =>
             {
                 var assembly = module.ContainingAssembly;
-                var type = (Cci.ITypeDefinition)module.GlobalNamespace.GetMember("EventDescriptor");
+                var type = (Cci.ITypeDefinition)module.GlobalNamespace.GetMember("EventDescriptor").GetCciAdapter();
 
                 if (isFromSource)
                 {
@@ -759,7 +761,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -767,6 +769,44 @@ namespace N
                     ActionFlags = DeclarativeSecurityAction.Demand,
                     ParentKind = SymbolKind.Method,
                     ParentNameOpt = @"<M>g__local1|0_0",
+                    PermissionSet =
+                        "." + // always start with a dot
+                        "\u0001" + // number of attributes (small enough to fit in 1 byte)
+                        "\u0080\u0085" + // length of UTF-8 string (0x80 indicates a 2-byte encoding)
+                        "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" + // attr type name
+                        "\u000e" + // number of bytes in the encoding of the named arguments
+                        "\u0001" + // number of named arguments
+                        "\u0054" + // property (vs field)
+                        "\u000e" + // type string
+                        "\u0004" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "Role" + // property name
+                        "\u0005" + // length of UTF-8 string (small enough to fit in 1 byte)
+                        "User1", // argument value (@"User1")
+                });
+            });
+        }
+
+        [Fact]
+        public void CheckSecurityAttributeOnLambda()
+        {
+            string source =
+@"using System;
+using System.Security.Permissions;
+class Program
+{
+    static void Main()
+    {
+        Action a = [PrincipalPermission(SecurityAction.Demand, Role=@""User1"")] () => { };
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, symbolValidator: module =>
+            {
+                ValidateDeclSecurity(module, new DeclSecurityEntry
+                {
+                    ActionFlags = DeclarativeSecurityAction.Demand,
+                    ParentKind = SymbolKind.Method,
+                    ParentNameOpt = @"<Main>b__0_0",
                     PermissionSet =
                         "." + // always start with a dot
                         "\u0001" + // number of attributes (small enough to fit in 1 byte)
@@ -1506,6 +1546,42 @@ public class MyClass
 {
 }";
             CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
+                // (4,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
+                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistentFile.xml")]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
+                // (5,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
+                // [PermissionSetAttribute(SecurityAction.Deny, File = null)]
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
+                // (4,46): error CS7056: Unable to resolve file path 'NonExistentFile.xml' specified for the named argument 'File' for PermissionSet attribute
+                // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistentFile.xml")]
+                Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, @"File = @""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File").WithLocation(4, 46),
+                // (5,46): error CS7056: Unable to resolve file path '<null>' specified for the named argument 'File' for PermissionSet attribute
+                // [PermissionSetAttribute(SecurityAction.Deny, File = null)]
+                Diagnostic(ErrorCode.ERR_PermissionSetAttributeInvalidFile, "File = null").WithArguments("<null>", "File").WithLocation(5, 46));
+        }
+
+        [Fact]
+        public void CS7056ERR_PermissionSetAttributeInvalidFile_WithXmlReferenceResolver()
+        {
+            var tempDir = Temp.CreateDirectory();
+            var tempFile = tempDir.CreateFile("pset.xml");
+
+            string text = @"
+<PermissionSet class=""System.Security.PermissionSet"" version=""1"">
+</PermissionSet>";
+
+            tempFile.WriteAllText(text);
+
+            string source = @"
+using System.Security.Permissions;
+
+[PermissionSetAttribute(SecurityAction.Deny, File = @""NonExistentFile.xml"")]
+[PermissionSetAttribute(SecurityAction.Deny, File = null)]
+public class MyClass
+{
+}";
+            var resolver = new XmlFileResolver(tempDir.Path);
+            CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll.WithXmlReferenceResolver(resolver)).VerifyDiagnostics(
                 // (4,25): warning CS0618: 'System.Security.Permissions.SecurityAction.Deny' is obsolete: 'Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
                 // [PermissionSetAttribute(SecurityAction.Deny, File = @"NonExistentFile.xml")]
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "SecurityAction.Deny").WithArguments("System.Security.Permissions.SecurityAction.Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),

@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -140,8 +139,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public ProjectId Id => _visualStudioProject.Id;
 
+        [Obsolete("To avoid contributing to the large object heap, use SetOptions(ImmutableArray<string>). This API will be removed in the future.")]
         public void SetOptions(string commandLineForOptions)
             => _visualStudioProjectOptionsProcessor?.SetCommandLine(commandLineForOptions);
+
+        public void SetOptions(ImmutableArray<string> arguments)
+            => _visualStudioProjectOptionsProcessor?.SetCommandLine(arguments);
 
         public string? DefaultNamespace
         {
@@ -166,13 +169,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             else if (name == AdditionalPropertyNames.RunAnalyzers)
             {
-                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
                 _visualStudioProject.RunAnalyzers = boolValue;
             }
             else if (name == AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis)
             {
-                bool? boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
+                var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
                 _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
+            }
+            else if (name == AdditionalPropertyNames.TemporaryDependencyNodeTargetIdentifier && !RoslynString.IsNullOrEmpty(value))
+            {
+                _visualStudioProject.DependencyNodeTargetIdentifier = value;
             }
         }
 

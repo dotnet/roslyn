@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 rightSpan: GetSpanForTagging(matchingDirective));
         }
 
-        private bool IsConditionalDirective(TDirectiveTriviaSyntax directive)
+        private static bool IsConditionalDirective(TDirectiveTriviaSyntax directive)
         {
             return directive is TIfDirectiveTriviaSyntax ||
                    directive is TElseIfDirectiveTriviaSyntax ||

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -36,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var result = new CodeGenerationConstructorSymbol(this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers, this.Parameters);
 
             CodeGenerationConstructorInfo.Attach(result,
+                CodeGenerationConstructorInfo.GetIsPrimaryConstructor(this),
+                CodeGenerationConstructorInfo.GetIsUnsafe(this),
                 CodeGenerationConstructorInfo.GetTypeName(this),
                 CodeGenerationConstructorInfo.GetStatements(this),
                 CodeGenerationConstructorInfo.GetBaseConstructorArgumentsOpt(this),

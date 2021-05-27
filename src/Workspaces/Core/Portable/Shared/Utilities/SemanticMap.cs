@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,10 +13,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     internal partial class SemanticMap
     {
         private readonly Dictionary<SyntaxNode, SymbolInfo> _expressionToInfoMap =
-            new Dictionary<SyntaxNode, SymbolInfo>();
+            new();
 
         private readonly Dictionary<SyntaxToken, SymbolInfo> _tokenToInfoMap =
-            new Dictionary<SyntaxToken, SymbolInfo>();
+            new();
 
         private SemanticMap()
         {

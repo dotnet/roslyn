@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -118,7 +121,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
+            var comp = CreateEmptyCompilation(source, new[] { Net40.mscorlib }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -514,7 +517,8 @@ namespace System
                 var symbol = comp.GetSpecialType(special);
                 Assert.NotNull(symbol);
 
-                if (special == SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
+                if (special == SpecialType.System_Runtime_CompilerServices_RuntimeFeature ||
+                    special == SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)
                 {
                     Assert.Equal(SymbolKind.ErrorType, symbol.Kind); // Not available
                 }
@@ -536,7 +540,10 @@ namespace System
                 if (special == SpecialMember.Count) continue; // Not a real value;
 
                 var symbol = comp.GetSpecialTypeMember(special);
-                if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces)
+                if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
+                    || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor)
                 {
                     Assert.Null(symbol); // Not available
                 }

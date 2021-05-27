@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -48,11 +50,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     return ImmutableArray<CodeAction>.Empty;
                 }
 
-                var actions = ArrayBuilder<CodeAction>.GetInstance();
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
 
                 var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken);
 
-                if (canGenerateMember)
+                if (canGenerateMember && state.CanGeneratePropertyOrField())
                 {
                     // prefer fields over properties (and vice versa) depending on the casing of the member.
                     // lowercase -> fields.  title case -> properties.
@@ -64,7 +66,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     }
                     else
                     {
-
                         AddFieldCodeActions(actions, semanticDocument, state);
                         AddPropertyCodeActions(actions, semanticDocument, state);
                     }
@@ -79,10 +80,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     // so as to not clutter the list.
                     return ImmutableArray.Create<CodeAction>(new MyCodeAction(
                         string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
-                        actions.ToImmutableAndFree()));
+                        actions.ToImmutable()));
                 }
 
-                return actions.ToImmutableAndFree();
+                return actions.ToImmutable();
             }
         }
 

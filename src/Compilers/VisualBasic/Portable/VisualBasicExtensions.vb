@@ -1381,7 +1381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function GetConversion(conversionExpression As IConversionOperation) As Conversion
             If conversionExpression.Language = LanguageNames.VisualBasic Then
-                Return DirectCast(DirectCast(conversionExpression, BaseConversionOperation).ConversionConvertible, Conversion)
+                Return DirectCast(DirectCast(conversionExpression, ConversionOperation).ConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
                                                           NameOf(IConversionOperation)),
@@ -1398,7 +1398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function GetInConversion(argument As IArgumentOperation) As Conversion
             If argument.Language = LanguageNames.VisualBasic Then
-                Dim inConversionConvertible As IConvertibleConversion = DirectCast(argument, BaseArgumentOperation).InConversionConvertibleOpt
+                Dim inConversionConvertible As IConvertibleConversion = DirectCast(argument, ArgumentOperation).InConversionConvertible
                 Return If(inConversionConvertible IsNot Nothing, DirectCast(inConversionConvertible, Conversion), New Conversion(Conversions.Identity))
             Else
                 Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
@@ -1416,7 +1416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function GetOutConversion(argument As IArgumentOperation) As Conversion
             If argument.Language = LanguageNames.VisualBasic Then
-                Dim outConversionConvertible As IConvertibleConversion = DirectCast(argument, BaseArgumentOperation).OutConversionConvertibleOpt
+                Dim outConversionConvertible As IConvertibleConversion = DirectCast(argument, ArgumentOperation).OutConversionConvertible
                 Return If(outConversionConvertible IsNot Nothing, DirectCast(outConversionConvertible, Conversion), New Conversion(Conversions.Identity))
             Else
                 Throw New ArgumentException(String.Format(VBResources.IArgumentIsNotVisualBasicArgument,
@@ -1439,7 +1439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If compoundAssignment.Language = LanguageNames.VisualBasic Then
-                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentOperation).InConversionConvertible, Conversion)
+                Return DirectCast(DirectCast(compoundAssignment, CompoundAssignmentOperation).InConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),
@@ -1461,7 +1461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If compoundAssignment.Language = LanguageNames.VisualBasic Then
-                Return DirectCast(DirectCast(compoundAssignment, BaseCompoundAssignmentOperation).OutConversionConvertible, Conversion)
+                Return DirectCast(DirectCast(compoundAssignment, CompoundAssignmentOperation).OutConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment,
                                                           NameOf(compoundAssignment)),

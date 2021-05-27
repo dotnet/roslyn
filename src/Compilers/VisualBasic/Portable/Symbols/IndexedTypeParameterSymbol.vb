@@ -95,9 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ' These object are unique (per index).
-        Public Overrides Function Equals(obj As Object) As Boolean
-            Return Me Is obj
+        ' These objects are unique (per index).
+        Public Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            Return Me Is other
         End Function
 
         Public Overrides Function GetHashCode() As Integer

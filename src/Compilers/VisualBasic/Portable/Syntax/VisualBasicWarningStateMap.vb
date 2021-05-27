@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Inherits AbstractWarningStateMap(Of ReportDiagnostic)
 
         Public Sub New(tree As SyntaxTree)
-            MyBase.New(tree, isGeneratedCode:=False)
+            MyBase.New(tree)
         End Sub
 
         Protected Overrides Function CreateWarningStateMapEntries(syntaxTree As SyntaxTree) As WarningStateMapEntry()
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End While
 
 #If DEBUG Then
-            ' Make sure the entries array is correctly sorted. 
+            ' Make sure the entries array is correctly sorted.
             For i As Integer = 0 To entries.Length - 2
                 Debug.Assert(entries(i).CompareTo(entries(i + 1)) < 0)
             Next

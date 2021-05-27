@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FileHeaders
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicFileHeaderCodeFixProvider))>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.FileHeader)>
     <[Shared]>
     Friend Class VisualBasicFileHeaderCodeFixProvider
         Inherits AbstractFileHeaderCodeFixProvider

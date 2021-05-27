@@ -83,18 +83,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public int CompareTo(MatchResult other, string filterText)
             => ComparerWithState.CompareTo(this, other, filterText, s_comparers);
 
-        private readonly static ImmutableArray<Func<MatchResult, string, IComparable>> s_comparers =
+        private static readonly ImmutableArray<Func<MatchResult, string, IComparable>> s_comparers =
             ImmutableArray.Create<Func<MatchResult, string, IComparable>>(
                 // Prefer the item that matches a longer prefix of the filter text.
                 (f, s) => f.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(s),
+                // If there are "Abc" vs "abc", we should prefer the case typed by user.
+                (f, s) => f.RoslynCompletionItem.FilterText.GetCaseSensitivePrefixLength(s),
                 // If the lengths are the same, prefer the one with the higher match priority.
                 // But only if it's an item that would have been hard selected.  We don't want
                 // to aggressively select an item that was only going to be softly offered.
                 (f, s) => f.RoslynCompletionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
                     ? f.RoslynCompletionItem.Rules.MatchPriority
                     : MatchPriority.Default,
-                // If there are "Abc" vs "abc", we should prefer the case typed by user.
-                (f, s) => f.RoslynCompletionItem.FilterText.GetCaseSensitivePrefixLength(s),
                 // Prefer Intellicode items.
                 (f, s) => f.RoslynCompletionItem.IsPreferredItem());
     }

@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -27,6 +30,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates;
+            private readonly INamedTypeSymbol _iCustomMarshaler;
 
             /// <summary>
             /// Map from unused parameters to a boolean value indicating if the parameter has a read reference or not.
@@ -39,7 +43,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer compilationAnalyzer,
                 INamedTypeSymbol eventArgsTypeOpt,
                 ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
-                DeserializationConstructorCheck deserializationConstructorCheck)
+                DeserializationConstructorCheck deserializationConstructorCheck,
+                INamedTypeSymbol iCustomMarshaler)
             {
                 _compilationAnalyzer = compilationAnalyzer;
 
@@ -48,6 +53,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 _deserializationConstructorCheck = deserializationConstructorCheck;
                 _unusedParameters = new ConcurrentDictionary<IParameterSymbol, bool>();
                 _methodsUsedAsDelegates = new ConcurrentDictionary<IMethodSymbol, bool>();
+                _iCustomMarshaler = iCustomMarshaler;
             }
 
             public static void CreateAndRegisterActions(
@@ -57,6 +63,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation).WhereNotNull());
                 var eventsArgType = context.Compilation.EventArgsType();
                 var deserializationConstructorCheck = new DeserializationConstructorCheck(context.Compilation);
+                var iCustomMarshaler = context.Compilation.GetTypeByMetadataName(typeof(ICustomMarshaler).FullName!);
+
                 context.RegisterSymbolStartAction(symbolStartContext =>
                 {
                     if (HasSyntaxErrors((INamedTypeSymbol)symbolStartContext.Symbol, symbolStartContext.CancellationToken))
@@ -69,7 +77,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // to ensure there is no shared state (such as identified unused parameters within the type),
                     // as that would lead to duplicate diagnostics being reported from symbol end action callbacks
                     // for unrelated named types.
-                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore, deserializationConstructorCheck);
+                    var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore, deserializationConstructorCheck, iCustomMarshaler);
                     symbolAnalyzer.OnSymbolStart(symbolStartContext);
                 }, SymbolKind.NamedType);
 
@@ -203,7 +211,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 if (parameter.IsImplicitlyDeclared ||
                     parameter.Name == DiscardVariableName ||
-                    !(parameter.ContainingSymbol is IMethodSymbol method) ||
+                    parameter.ContainingSymbol is not IMethodSymbol method ||
                     method.IsImplicitlyDeclared ||
                     method.IsExtern ||
                     method.IsAbstract ||
@@ -215,6 +223,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     method.IsAnonymousFunction() ||
                     _compilationAnalyzer.MethodHasHandlesClause(method) ||
                     _deserializationConstructorCheck.IsDeserializationConstructor(method))
+                {
+                    return false;
+                }
+
+                // Ignore parameters of record primary constructors since they map to public properties
+                // TODO: Remove this when implicit operations are synthesised: https://github.com/dotnet/roslyn/issues/47829 
+                if (method.IsConstructor() &&
+                    _compilationAnalyzer.IsRecordDeclaration(method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()))
                 {
                     return false;
                 }
@@ -249,7 +265,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // without disabling the diagnostic completely.
                 // We ignore parameter names that start with an underscore and are optionally followed by an integer,
                 // such as '_', '_1', '_2', etc.
-                if (IsSymbolWithSpecialDiscardName(parameter))
+                if (parameter.IsSymbolWithSpecialDiscardName())
+                {
+                    return false;
+                }
+
+                // Don't report on valid GetInstance method of ICustomMarshaler.
+                // See https://docs.microsoft.com/dotnet/api/system.runtime.interopservices.icustommarshaler#implementing-the-getinstance-method
+                if (method is { MetadataName: "GetInstance", IsStatic: true, Parameters: { Length: 1 }, ContainingType: { } containingType } methodSymbol &&
+                    methodSymbol.Parameters[0].Type.SpecialType == SpecialType.System_String &&
+                    containingType.AllInterfaces.Any((@interface, marshaler) => @interface.Equals(marshaler), _iCustomMarshaler))
                 {
                     return false;
                 }

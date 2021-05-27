@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
 {
     using static SyntaxFactory;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.DisambiguateSameVariable), Shared]
     internal class CSharpDisambiguateSameVariableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private const string CS1717 = nameof(CS1717); // Assignment made to same variable; did you mean to assign something else?
@@ -161,7 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
 
                 var newNameNode = matchingMember.Name.ToIdentifierName();
                 var newExpr = (ExpressionSyntax)newNameNode;
-                if (!syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
+                if (!syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) &&
+                    !syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
                 {
                     newExpr = MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), newNameNode).WithAdditionalAnnotations(Simplifier.Annotation);

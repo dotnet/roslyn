@@ -15,11 +15,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
     <[UseExportProvider]>
     Public Class NameResolverTests
 
-        Private Function TestAsync(text As String, searchText As String, ParamArray expectedNames() As String) As Tasks.Task
+        Private Shared Function TestAsync(text As String, searchText As String, ParamArray expectedNames() As String) As Tasks.Task
             Return TestWithRootNamespaceAsync(Nothing, text, searchText, expectedNames)
         End Function
 
-        Private Async Function TestWithRootNamespaceAsync(rootNamespace As String, text As String, searchText As String, ParamArray expectedNames() As String) As Tasks.Task
+        Private Shared Async Function TestWithRootNamespaceAsync(rootNamespace As String, text As String, searchText As String, ParamArray expectedNames() As String) As Tasks.Task
             Dim compilationOptions = If(rootNamespace Is Nothing, Nothing, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:=rootNamespace))
 
             Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, compilationOptions, Nothing, text)

@@ -37,7 +37,7 @@
         "type": "shell",
         "args": [
           "msbuild",
-          "-p:UseRoslynAnalyzers=false",
+          "-p:RunAnalyzersDuringBuild=false",
           "-p:GenerateFullPaths=true",
           "src/Compilers/CSharp/csc/csc.csproj"
         ],

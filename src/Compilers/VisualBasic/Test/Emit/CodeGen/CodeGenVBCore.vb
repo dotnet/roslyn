@@ -6,7 +6,6 @@ Imports System.IO
 Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
@@ -2211,7 +2210,8 @@ symbolValidator:=Sub([module])
                  End Sub)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40683: The test hook is blocked by this issue.
+        <WorkItem(40683, "https://github.com/dotnet/roslyn/issues/40683")>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo()
             Dim other As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="HasIVTToCompilationVbCore">

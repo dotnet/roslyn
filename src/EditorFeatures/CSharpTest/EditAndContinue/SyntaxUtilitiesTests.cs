@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue
 {
     public class SyntaxUtilitiesTests
     {
-        private void VerifySyntaxMap(string oldSource, string newSource)
+        private static void VerifySyntaxMap(string oldSource, string newSource)
         {
             var oldRoot = SyntaxFactory.ParseSyntaxTree(oldSource).GetRoot();
             var newRoot = SyntaxFactory.ParseSyntaxTree(newSource).GetRoot();

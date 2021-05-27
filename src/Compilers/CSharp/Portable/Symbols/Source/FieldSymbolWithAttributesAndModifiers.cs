@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -157,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -175,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.IsStatic || this.IsConst)
                 {
                     // CS0637: The FieldOffset attribute is not allowed on static or const fields
-                    arguments.Diagnostics.Add(ErrorCode.ERR_StructOffsetOnBadField, arguments.AttributeSyntaxOpt.Name.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                    diagnostics.Add(ErrorCode.ERR_StructOffsetOnBadField, arguments.AttributeSyntaxOpt.Name.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
                 else
                 {
@@ -184,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // Dev10 reports CS0647: "Error emitting attribute ..."
                         CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
-                        arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                        diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                         offset = 0;
                     }
 
@@ -254,6 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = arguments.GetOrCreateData<FieldWellKnownAttributeData>();
                 ConstantValue constValue;
+                var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
                 if (this.IsConst)
                 {
@@ -263,12 +267,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if ((object)constValue != null && !constValue.IsBad && constValue != attrValue)
                         {
-                            arguments.Diagnostics.Add(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.Location);
+                            diagnostics.Add(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.Location);
                         }
                     }
                     else
                     {
-                        arguments.Diagnostics.Add(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.Location);
+                        diagnostics.Add(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.Location);
                     }
 
                     if (data.ConstValue == CodeAnalysis.ConstantValue.Unset)
@@ -284,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (constValue != attrValue)
                         {
-                            arguments.Diagnostics.Add(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.Location);
+                            diagnostics.Add(ErrorCode.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.Location);
                         }
                     }
                     else
@@ -295,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Runtime;
@@ -34,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private const long MemoryThreshold = 200 * 1024 * 1024;
 
         // low vm more info page link
-        private const string LowVMMoreInfoLink = "https://docs.microsoft.com/visualstudio/code-quality/automatic-feature-suspension";
+        private const string LowVMMoreInfoLink = "https://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
 
         private readonly VisualStudioWorkspace _workspace;
         private readonly WorkspaceCacheService _workspaceCacheService;
@@ -151,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 .ShowGlobalErrorInfo(ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
                     new InfoBarUI(ServicesVSResources.Re_enable, InfoBarUI.UIKind.Button, RenableBackgroundAnalysis),
                     new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink,
-                        () => BrowserHelper.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));
+                        () => VisualStudioNavigateToLinkService.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));
 
             // Update info bar shown state.
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options

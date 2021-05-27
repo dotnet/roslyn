@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -50,6 +52,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInEmptyStatement()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -76,6 +85,14 @@ $$");
         {
             await VerifyKeywordAsync(
 @"using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing()
+        {
+            await VerifyKeywordAsync(
+@"global using Goo;
 $$");
         }
 
@@ -147,6 +164,22 @@ using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"$$
+global using Goo;");
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing_Interactive()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"$$
+global using Goo;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute()
         {
             await VerifyKeywordAsync(
@@ -199,20 +232,6 @@ $$");
         {
             await VerifyKeywordAsync(
 @"partial $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterData()
-        {
-            await VerifyKeywordAsync(
-@"data $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterPublicData()
-        {
-            await VerifyKeywordAsync(
-@"public data $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -290,16 +309,47 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterStaticInGlobalUsingDirective()
+        {
+            await VerifyAbsenceAsync(
+@"global using static $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterClass()
             => await VerifyAbsenceAsync(@"class $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
         public async Task TestNotBetweenUsings()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"using Goo;
 $$
-using Bar;"));
+using Bar;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        public async Task TestNotBetweenGlobalUsings_01()
+        {
+            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"global using Goo;
+$$
+using Bar;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        public async Task TestNotBetweenGlobalUsings_02()
+        {
+            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"global using Goo;
+$$
+global using Bar;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -343,6 +393,13 @@ using Bar;"));
             await VerifyKeywordAsync(
 @"class C {
     new $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRecord()
+        {
+            await VerifyKeywordAsync(
+@"record $$");
         }
     }
 }

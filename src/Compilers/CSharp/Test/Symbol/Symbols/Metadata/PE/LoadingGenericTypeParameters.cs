@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(TestMetadata.Net40.mscorlib);
             var module0 = assembly.Modules[0];
 
             var objectType = module0.GlobalNamespace.GetMembers("System").

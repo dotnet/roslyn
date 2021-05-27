@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string CommonReferencesWinRTAttributeName = "CommonReferencesWinRT";
         private const string CommonReferencesNet45AttributeName = "CommonReferencesNet45";
         private const string CommonReferencesPortableAttributeName = "CommonReferencesPortable";
-        private const string CommonReferencesNetCoreApp30Name = "CommonReferencesNetCoreApp30";
+        private const string CommonReferencesNetCoreAppName = "CommonReferencesNetCoreApp";
         private const string CommonReferencesNetStandard20Name = "CommonReferencesNetStandard20";
         private const string FilePathAttributeName = "FilePath";
         private const string FoldersAttributeName = "Folders";
@@ -71,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string AllowUnsafeAttributeName = "AllowUnsafe";
         private const string OutputKindName = "OutputKind";
         private const string NullableAttributeName = "Nullable";
+        private const string DocumentFromSourceGeneratorElementName = "DocumentFromSourceGenerator";
 
         /// <summary>
         /// Creates a single buffer in a workspace.
@@ -97,21 +96,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string content)
         {
             return Create(workspaceKind, language, compilationOptions, parseOptions, new[] { content });
-        }
-
-        /// <summary>
-        /// Creates a single buffer in a workspace.
-        /// </summary>
-        /// <param name="content">Lines of text, the buffer contents</param>
-        internal static TestWorkspace Create(
-            string workspaceKind,
-            string language,
-            CompilationOptions compilationOptions,
-            ParseOptions parseOptions,
-            string content,
-            ExportProvider exportProvider)
-        {
-            return Create(language, compilationOptions, parseOptions, new[] { content }, exportProvider: exportProvider, workspaceKind: workspaceKind);
         }
 
         /// <param name="files">Can pass in multiple file contents: files will be named test1.cs, test2.cs, etc.</param>
@@ -143,38 +127,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions,
             ParseOptions parseOptions,
             string[] files,
-            ExportProvider exportProvider,
+            ExportProvider exportProvider = null,
+            TestComposition composition = null,
             string[] metadataReferences = null,
             string workspaceKind = null,
             string extension = null,
             bool commonReferences = true,
-            bool openDocuments = false)
+            bool openDocuments = false,
+            IDocumentServiceProvider documentServiceProvider = null)
         {
-            var documentElements = new List<XElement>();
-            var index = 0;
-
-            if (extension == null)
-            {
-                extension = language == LanguageNames.CSharp
-                ? CSharpExtension
-                : VisualBasicExtension;
-            }
-
-            foreach (var file in files)
-            {
-                documentElements.Add(CreateDocumentElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
-            }
-
-            metadataReferences = metadataReferences ?? Array.Empty<string>();
-            foreach (var reference in metadataReferences)
-            {
-                documentElements.Add(CreateMetadataReference(reference));
-            }
-
-            var workspaceElement = CreateWorkspaceElement(
-                CreateProjectElement(compilationOptions?.ModuleName ?? "Test", language, commonReferences, parseOptions, compilationOptions, documentElements));
-
-            return Create(workspaceElement, openDocuments: openDocuments, exportProvider: exportProvider, workspaceKind: workspaceKind);
+            var workspaceElement = CreateWorkspaceElement(language, compilationOptions, parseOptions, files, metadataReferences, extension, commonReferences);
+            return Create(workspaceElement, openDocuments, exportProvider, composition, workspaceKind, documentServiceProvider);
         }
 
         internal static TestWorkspace Create(
@@ -188,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var documentElements = new List<XElement>();
             var index = 0;
-            var extension = "";
+            string extension;
 
             for (var i = 0; i < files.Length; i++)
             {
@@ -225,10 +188,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
+            TestComposition composition = null,
             string[] metadataReferences = null,
             bool openDocuments = false)
         {
-            return CreateCSharp(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences, openDocuments);
+            return CreateCSharp(new[] { file }, parseOptions, compilationOptions, exportProvider, composition, metadataReferences, openDocuments);
         }
 
         public static TestWorkspace CreateCSharp(
@@ -236,10 +200,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
+            TestComposition composition = null,
             string[] metadataReferences = null,
             bool openDocuments = false)
         {
-            return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences, openDocuments: openDocuments);
+            return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, composition, metadataReferences, openDocuments: openDocuments);
         }
 
         public static TestWorkspace CreateCSharp2(
@@ -260,10 +225,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
+            TestComposition composition = null,
             string[] metadataReferences = null,
             bool openDocuments = false)
         {
-            return CreateVisualBasic(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences, openDocuments);
+            return CreateVisualBasic(new[] { file }, parseOptions, compilationOptions, exportProvider, composition, metadataReferences, openDocuments);
         }
 
         public static TestWorkspace CreateVisualBasic(
@@ -271,10 +237,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
+            TestComposition composition = null,
             string[] metadataReferences = null,
             bool openDocuments = false)
         {
-            return Create(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider, metadataReferences, openDocuments: openDocuments);
+            return Create(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider, composition, metadataReferences, openDocuments: openDocuments);
         }
 
         /// <param name="files">Can pass in multiple file contents with individual source kind: files will be named test1.vb, test2.vbx, etc.</param>

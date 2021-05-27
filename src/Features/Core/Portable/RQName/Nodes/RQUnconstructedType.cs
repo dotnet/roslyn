@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQUnconstructedType : RQTypeOrNamespace<ITypeSymbol>
+    internal class RQUnconstructedType : RQTypeOrNamespace
     {
         public readonly ReadOnlyCollection<RQUnconstructedTypeInfo> TypeInfos;
 

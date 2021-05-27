@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             State state,
             CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
             var generateNewTypeInDialog = false;
             if (state.NamespaceToGenerateInOpt != null)
@@ -127,16 +129,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
             }
 
             if (state.TypeToGenerateInOpt != null)
-            {
                 result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: false, inNewFile: false));
-            }
 
             if (generateNewTypeInDialog)
-            {
                 result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state));
-            }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private static bool CanGenerateIntoContainingNamespace(SemanticDocument semanticDocument, SyntaxNode node, CancellationToken cancellationToken)
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         {
             var arguments = typeArguments.ToList();
             var arity = arguments.Count;
-            var typeParameters = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
+            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var typeParameters);
 
             // For anything that was a type parameter, just use the name (if we haven't already
             // used it).  Otherwise, synthesize new names for the parameters.
@@ -227,12 +225,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
             for (var i = 0; i < names.Count; i++)
             {
                 if (typeParameters[i] == null || typeParameters[i].Name != names[i])
-                {
                     typeParameters[i] = CodeGenerationSymbolFactory.CreateTypeParameterSymbol(names[i]);
-                }
             }
 
-            return typeParameters.ToImmutableAndFree();
+            return typeParameters.ToImmutable();
         }
 
         protected static Accessibility DetermineDefaultAccessibility(

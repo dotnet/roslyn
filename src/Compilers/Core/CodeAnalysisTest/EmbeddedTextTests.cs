@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -58,8 +60,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<IOException>(() => EmbeddedText.FromStream("path", new HugeStream()));
             Assert.Throws<EndOfStreamException>(() => EmbeddedText.FromStream("path", new TruncatingStream(10)));
             Assert.Throws<EndOfStreamException>(() => EmbeddedText.FromStream("path", new TruncatingStream(1000)));
-
-            // Should be Assert.Throws<IOException>, but impeded by https://github.com/dotnet/roslyn/issues/12926
             Assert.Throws<IOException>(() => EmbeddedText.FromStream("path", new ReadFailsStream()));
         }
 

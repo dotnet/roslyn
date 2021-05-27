@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
@@ -15,8 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
     {
         protected readonly string FieldName;
 
-        public AbstractSnippetFunctionClassName(AbstractSnippetExpansionClient snippetExpansionClient, ITextView textView, ITextBuffer subjectBuffer, string fieldName)
-            : base(snippetExpansionClient, textView, subjectBuffer)
+        public AbstractSnippetFunctionClassName(AbstractSnippetExpansionClient snippetExpansionClient, ITextBuffer subjectBuffer, string fieldName)
+            : base(snippetExpansionClient, subjectBuffer)
         {
             this.FieldName = fieldName;
         }

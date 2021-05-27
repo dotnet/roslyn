@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class ThrowStatementSyntax
     {
         public ThrowStatementSyntax Update(SyntaxToken throwKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
-            => Update(attributeLists: default, throwKeyword, expression, semicolonToken);
+            => Update(AttributeLists, throwKeyword, expression, semicolonToken);
     }
 }
 

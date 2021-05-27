@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         private IndentBlockOperation CloneAndAdjustFormattingOperation(IndentBlockOperation operation)
         {
-            switch (operation.Option)
+            switch (operation.Option & IndentBlockOption.PositionMask)
             {
                 case IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine:
                     return FormattingOperations.CreateRelativeIndentBlockOperation(operation.BaseToken, operation.StartToken, operation.EndToken, AdjustTextSpan(operation.TextSpan), operation.IndentationDeltaOrPosition, operation.Option);

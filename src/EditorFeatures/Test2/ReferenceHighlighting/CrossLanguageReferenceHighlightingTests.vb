@@ -2,12 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Remote.Testing
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
+    <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
     Public Class CrossLanguageReferenceHighlightingTests
         Inherits AbstractReferenceHighlightingTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        Public Async Function VerifyHighlightsWithNonCompilationProject() As System.Threading.Tasks.Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function VerifyHighlightsWithNonCompilationProject(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -28,11 +32,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                             }
                         </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>, testHost)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        Public Async Function VerifyHighlightsWithNonCompilationProject_P2P() As System.Threading.Tasks.Task
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function VerifyHighlightsWithNonCompilationProject_P2P(testHost As TestHost) As Task
             Await VerifyHighlightsAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" Name="CSharpProject">
@@ -54,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                             }
                         </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>, testHost)
         End Function
     End Class
 End Namespace

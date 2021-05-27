@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -80,7 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // a namespace can't come before usings/externs
             // a child namespace can't come before usings/externs
-            if (leftToken.GetNextToken(includeSkipped: true).IsUsingOrExternKeyword())
+            var nextToken = leftToken.GetNextToken(includeSkipped: true);
+            if (nextToken.IsUsingOrExternKeyword() ||
+                (nextToken.Kind() == SyntaxKind.GlobalKeyword && nextToken.GetAncestor<UsingDirectiveSyntax>()?.GlobalKeyword == nextToken))
             {
                 return false;
             }

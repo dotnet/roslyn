@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -15,6 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static readonly FloatingValueSetFactory<TFloating, TFloatingTC> Instance = new FloatingValueSetFactory<TFloating, TFloatingTC>();
 
             private FloatingValueSetFactory() { }
+
+            IValueSet IValueSetFactory.AllValues => FloatingValueSet<TFloating, TFloatingTC>.AllValues;
+
+            IValueSet IValueSetFactory.NoValues => FloatingValueSet<TFloating, TFloatingTC>.NoValues;
 
             public IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value) =>
                 FloatingValueSet<TFloating, TFloatingTC>.Related(relation, value);

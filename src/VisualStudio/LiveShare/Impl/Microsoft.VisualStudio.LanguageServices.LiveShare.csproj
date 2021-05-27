@@ -11,15 +11,7 @@
       A private package for the liveshare team to grant access to LSP implementations.
     </PackageDescription>
     <CreateVsixContainer>false</CreateVsixContainer>
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
   </PropertyGroup>
-  <ItemGroup Label="PkgDef">
-    <PkgDefPackageRegistration Include="{bb7e83f4-eaf6-456c-b140-f8c027a7ed8a}"
-                               Name="CSharpLspPackage"
-                               Class="Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging.CSharpLspPackage"
-                               AllowsBackgroundLoad="true"/>
-    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />

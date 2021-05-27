@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -118,10 +117,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return true;
         }
 
-        public static async Task<bool> IsBeforeFirstTokenAsync(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        public static bool IsBeforeFirstToken(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = syntaxTree.GetRoot(cancellationToken);
             var firstToken = root.GetFirstToken(includeZeroWidth: true, includeSkipped: true);
 
             return position <= firstToken.SpanStart;
@@ -224,6 +222,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
                 position, includeSkipped, includeDirectives, includeDocumentationComments);
+        }
+
+        public static bool IsGeneratedCode(this SyntaxTree syntaxTree, AnalyzerOptions? analyzerOptions, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+        {
+            // First check if user has configured "generated_code = true | false" in .editorconfig
+            if (analyzerOptions != null)
+            {
+                var analyzerConfigOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+                var isUserConfiguredGeneratedCode = GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(analyzerConfigOptions);
+                if (isUserConfiguredGeneratedCode.HasValue)
+                {
+                    return isUserConfiguredGeneratedCode.Value;
+                }
+            }
+
+            // Otherwise, fallback to generated code heuristic.
+            return GeneratedCodeUtilities.IsGeneratedCode(
+                syntaxTree, t => syntaxFacts.IsRegularComment(t) || syntaxFacts.IsDocumentationComment(t), cancellationToken);
         }
     }
 }

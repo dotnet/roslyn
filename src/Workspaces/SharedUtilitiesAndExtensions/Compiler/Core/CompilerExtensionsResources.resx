@@ -147,6 +147,9 @@
   <data name="Parameter_preferences" xml:space="preserve">
     <value>Parameter preferences</value>
   </data>
+  <data name="Suppression_preferences" xml:space="preserve">
+    <value>Suppression preferences</value>
+  </data>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>
@@ -269,5 +272,11 @@
   </data>
   <data name="Specified_sequence_has_duplicate_items" xml:space="preserve">
     <value>Specified sequence has duplicate items</value>
+  </data>
+  <data name="Segment_size_must_be_power_of_2_greater_than_1" xml:space="preserve">
+    <value>Segment size must be power of 2 greater than 1</value>
+  </data>
+  <data name="New_line_preferences" xml:space="preserve">
+    <value>New line preferences</value>
   </data>
 </root>

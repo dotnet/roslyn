@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = CreateTestWorkspace(markup, languageName, EditorServicesUtil.ExportProvider);
+            var workspace = CreateTestWorkspace(markup, languageName);
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
@@ -69,10 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             bool onBeforeGlobalSymbolRenamedReturnValue = true,
             bool onAfterGlobalSymbolRenamedReturnValue = true)
         {
-            var workspace = TestWorkspace.Create(
-                workspaceXml,
-                exportProvider: EditorServicesUtil.ExportProvider);
-
+            var workspace = CreateTestWorkspace(workspaceXml);
             return new RenameTrackingTestState(workspace, languageName, onBeforeGlobalSymbolRenamedReturnValue, onAfterGlobalSymbolRenamedReturnValue);
         }
 
@@ -96,17 +95,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             };
 
             // Mock the action taken by the workspace INotificationService
-            var notificationService = Workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
+            var notificationService = (INotificationServiceCallback)Workspace.Services.GetRequiredService<INotificationService>();
             var callback = new Action<string, string, NotificationSeverity>((message, title, severity) => _notificationMessage = message);
             notificationService.NotificationCallback = callback;
 
             var tracker = new RenameTrackingTaggerProvider(
                 Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                _historyRegistry,
-                Workspace.ExportProvider.GetExport<Host.IWaitIndicator>().Value,
                 Workspace.ExportProvider.GetExport<IInlineRenameService>().Value,
                 Workspace.ExportProvider.GetExport<IDiagnosticAnalyzerService>().Value,
-                SpecializedCollections.SingletonEnumerable(_mockRefactorNotifyService),
                 Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());
@@ -124,16 +120,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             }
         }
 
-        private static TestWorkspace CreateTestWorkspace(string code, string languageName, ExportProvider exportProvider = null)
+        private static TestWorkspace CreateTestWorkspace(string code, string languageName)
         {
-            var xml = string.Format(@"
+            return CreateTestWorkspace(string.Format(@"
 <Workspace>
     <Project Language=""{0}"" CommonReferences=""true"">
         <Document>{1}</Document>
     </Project>
-</Workspace>", languageName, code);
+</Workspace>", languageName, code));
+        }
 
-            return TestWorkspace.Create(xml, exportProvider: exportProvider);
+        private static TestWorkspace CreateTestWorkspace(string xml)
+        {
+            return TestWorkspace.Create(xml, composition: EditorTestCompositions.EditorFeaturesWpf);
         }
 
         public void SendEscape()
@@ -215,6 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
             var provider = Workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             await provider.WaitAllDispatcherOperationAndTasksAsync(
+                Workspace,
                 FeatureAttribute.RenameTracking,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.Workspace,

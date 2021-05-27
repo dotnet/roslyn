@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _valueMap = new Dictionary<TKey, TValue>(analysisValueProvider.KeyComparer);
         }
 
-        internal bool TryGetValue(TKey key, [MaybeNull][NotNullWhen(true)] out TValue value)
+        internal bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
             // First try to get the cached value for this compilation.
             lock (_valueMap)

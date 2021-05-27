@@ -3,8 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -24,9 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         End Function
 
         Protected Overrides Sub CollectBlockSpans(regionDirective As RegionDirectiveTriviaSyntax,
-                                                  spans As ArrayBuilder(Of BlockSpan),
-                                                  isMetadataAsSource As Boolean,
-                                                  options As OptionSet,
+                                                  ByRef spans As TemporaryArray(Of BlockSpan),
+                                                  optionProvider As BlockStructureOptionProvider,
                                                   CancellationToken As CancellationToken)
             Dim matchingDirective = regionDirective.GetMatchingStartOrEndDirective(CancellationToken)
             If matchingDirective IsNot Nothing Then
@@ -38,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 '   #End Region
                 '
                 ' For other files, auto-collapse regions based on the user option.
-                Dim autoCollapse = isMetadataAsSource OrElse options.GetOption(
+                Dim autoCollapse = optionProvider.IsMetadataAsSource OrElse optionProvider.GetOption(
                     BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic)
 
                 Dim span = TextSpan.FromBounds(regionDirective.SpanStart, matchingDirective.Span.End)
@@ -46,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                     span, span,
                     GetBannerText(regionDirective),
                     autoCollapse:=autoCollapse,
-                    isDefaultCollapsed:=Not isMetadataAsSource,
+                    isDefaultCollapsed:=Not optionProvider.IsMetadataAsSource,
                     type:=BlockTypes.PreprocessorRegion,
                     isCollapsible:=True))
             End If

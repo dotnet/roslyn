@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -526,6 +527,33 @@ class Definition:Program
             int {|Definition:$$i|};
         }
         </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestField_UsedInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        public partial class C
+        {
+            public static int {|Definition:$$i|};
+
+        }
+        </Document>
+        <DocumentFromSourceGenerator>
+        public partial class C
+        {
+            void Goo()
+            {
+                Console.WriteLine([|i|]);
+                Console.WriteLine(new C().[|i|]);
+            }
+        }
+        </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)

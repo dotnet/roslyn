@@ -24,7 +24,7 @@ namespace RunTests
             {
                 s_hasErrors = true;
                 s_lines.Add($"Error {ex.Message}: {line}");
-                s_lines.Add(ex.StackTrace);
+                s_lines.Add(ex.StackTrace ?? "");
             }
         }
 
@@ -34,7 +34,7 @@ namespace RunTests
             {
                 s_lines.Add(message);
                 s_lines.Add(ex.Message);
-                s_lines.Add(ex.StackTrace);
+                s_lines.Add(ex.StackTrace ?? "");
             }
         }
 
@@ -43,7 +43,7 @@ namespace RunTests
             lock (s_lines)
             {
                 s_lines.Add(ex.Message);
-                s_lines.Add(ex.StackTrace);
+                s_lines.Add(ex.StackTrace ?? "");
             }
         }
 

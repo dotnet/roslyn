@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class SymbolKeyResolutionExtensions
     {
-        internal static ISymbol GetAnySymbol(this SymbolKeyResolution resolution)
+        internal static ISymbol? GetAnySymbol(this SymbolKeyResolution resolution)
         {
             if (resolution.Symbol != null)
             {

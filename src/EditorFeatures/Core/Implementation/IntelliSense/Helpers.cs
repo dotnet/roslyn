@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 
@@ -33,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             ImmutableArray<TaggedText> taggedTexts,
             ref int index,
             Document document,
-            IThreadingContext threadingContext,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+            IThreadingContext? threadingContext,
+            Lazy<IStreamingFindUsagesPresenter>? streamingPresenter)
         {
             // This method produces a sequence of zero or more paragraphs
             var paragraphs = new List<object>();
@@ -48,6 +49,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             while (index < taggedTexts.Length)
             {
                 var part = taggedTexts[index];
+
+                // These tags can be ignored - they are for markdown formatting only.
+                if (part.Tag is TextTags.CodeBlockStart or TextTags.CodeBlockEnd)
+                {
+                    index++;
+                    continue;
+                }
+
                 if (part.Tag == TextTags.ContainerStart)
                 {
                     if (currentRuns.Count > 0)
@@ -127,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 {
                     // This is tagged text getting added to the current line we are building.
                     var style = GetClassifiedTextRunStyle(part.Style);
-                    if (part.NavigationTarget is object)
+                    if (part.NavigationTarget is object && streamingPresenter != null && threadingContext != null)
                     {
                         if (Uri.TryCreate(part.NavigationTarget, UriKind.Absolute, out var absoluteUri))
                         {
@@ -137,11 +146,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                         }
                         else
                         {
+                            // ⚠ PERF: avoid capturing Solution (including indirectly through Project or Document
+                            // instances) as part of the navigationAction delegate.
                             var target = part.NavigationTarget;
                             var tooltip = part.NavigationHint;
+                            var documentId = document.Id;
+                            var workspace = document.Project.Solution.Workspace;
                             currentRuns.Add(new ClassifiedTextRun(
                                 part.Tag.ToClassificationTypeName(), part.Text,
-                                () => NavigateToQuickInfoTarget(target, document, threadingContext, streamingPresenter.Value), tooltip, style));
+                                () => NavigateToQuickInfoTarget(target, workspace, documentId, threadingContext, streamingPresenter.Value), tooltip, style));
                         }
                     }
                     else
@@ -170,14 +183,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         private static void NavigateToQuickInfoTarget(
             string navigationTarget,
-            Document document,
+            Workspace workspace,
+            DocumentId documentId,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter)
         {
+            var solution = workspace.CurrentSolution;
             SymbolKeyResolution resolvedSymbolKey;
             try
             {
-                resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, document.Project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
+                var project = solution.GetRequiredProject(documentId.ProjectId);
+                resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, project.GetRequiredCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
             }
             catch
             {
@@ -187,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
             if (resolvedSymbolKey.GetAnySymbol() is { } symbol)
             {
-                GoToDefinitionHelpers.TryGoToDefinition(symbol, document.Project.Solution, threadingContext, streamingPresenter, CancellationToken.None);
+                GoToDefinitionHelpers.TryGoToDefinition(symbol, solution, threadingContext, streamingPresenter, CancellationToken.None);
                 return;
             }
         }

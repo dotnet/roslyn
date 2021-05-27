@@ -6,33 +6,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
     Public Class StaticKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StaticInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "Static")
-        End Function
+        Public Sub StaticInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Static")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StaticInLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub StaticInLambdaTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
 |
         End Sub</MethodBody>, "Static")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StaticAfterStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub StaticAfterStatementTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x
 |</MethodBody>, "Static")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function StaticNotInsideSingleLineLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub StaticNotInsideSingleLineLambdaTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub() |
 </MethodBody>, "Static")
-        End Function
+        End Sub
     End Class
 End Namespace

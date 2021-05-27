@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Classification;
 
@@ -27,6 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         [DebuggerStepThrough]
         public static FormattedClassification Class(string text)
             => New(text, ClassificationTypeNames.ClassName);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification Record(string text)
+            => New(text, ClassificationTypeNames.RecordClassName);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification RecordStruct(string text)
+            => New(text, ClassificationTypeNames.RecordStructName);
 
         [DebuggerStepThrough]
         public static FormattedClassification Delegate(string text)

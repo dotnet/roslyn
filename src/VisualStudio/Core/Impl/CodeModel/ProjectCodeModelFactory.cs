@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,21 +9,21 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using EnvDTE80;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     [Export(typeof(IProjectCodeModelFactory))]
     [Export(typeof(ProjectCodeModelFactory))]
-    internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory, IDisposable
+    internal sealed class ProjectCodeModelFactory : ForegroundThreadAffinitizedObject, IProjectCodeModelFactory
     {
         private readonly ConcurrentDictionary<ProjectId, ProjectCodeModel> _projectCodeModels = new ConcurrentDictionary<ProjectId, ProjectCodeModel>();
 
@@ -34,21 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly IThreadingContext _threadingContext;
 
-        /// <summary>
-        /// A collection of cleanup tasks that were deferred to the UI thread. In some cases, we have to clean up
-        /// certain things on the UI thread but it's not critical when those are cleared up. This just exists so we can
-        /// wait on them to be shut down before we shut down VS entirely.
-        /// </summary>
-        private readonly JoinableTaskCollection _deferredCleanupTasks;
-
-        /// <summary>
-        /// Cancellation token that controls existing async work that we have kicked off.  Canceled when we're finally
-        /// disposed.
-        /// </summary>
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-
-        private readonly IForegroundNotificationService _notificationService;
-        private readonly IAsynchronousOperationListener _listener;
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
 
         [ImportingConstructor]
@@ -57,17 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             VisualStudioWorkspace visualStudioWorkspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IThreadingContext threadingContext,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
+            : base(threadingContext, assertIsForeground: false)
         {
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
-            _deferredCleanupTasks = new JoinableTaskCollection(threadingContext.JoinableTaskContext);
-            _deferredCleanupTasks.DisplayName = nameof(ProjectCodeModelFactory) + "." + nameof(_deferredCleanupTasks);
 
-            _notificationService = notificationService;
-            _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
+            Listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
 
             // Queue up notifications we hear about docs changing.  that way we don't have to fire events multiple times
             // for the same documents.  Once enough time has passed, take the documents that were changed and run
@@ -78,47 +58,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 // We only care about unique doc-ids, so pass in this comparer to collapse streams of changes for a
                 // single document down to one notification.
                 EqualityComparer<DocumentId>.Default,
-                _listener,
-                _cancellationTokenSource.Token);
+                Listener,
+                threadingContext.DisposalToken);
 
             _visualStudioWorkspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
-        private System.Threading.Tasks.Task ProcessNextDocumentBatchAsync(
+        internal IAsynchronousOperationListener Listener { get; }
+
+        private async Task ProcessNextDocumentBatchAsync(
             ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
+            // This logic preserves the previous behavior we had with IForegroundNotificationService.
+            // Specifically, we don't run on the UI thread for more than 15ms at a time.  And once we 
+            // have, we wait 50ms before continuing.  These constants are just what we defined from
+            // legacy, and otherwise have no special meaning.
+            const int MaxTimeSlice = 15;
+            var delayBetweenProcessing = TimeSpan.FromMilliseconds(50);
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var stopwatch = SharedStopwatch.StartNew();
             foreach (var documentId in documentIds)
             {
-                // Now, enqueue foreground work to actually process these documents in a serialized and incremental
-                // fashion.  FireEventsForDocument will actually limit how much time it spends firing events so that it
-                // doesn't saturate  the UI thread.
-                _notificationService.RegisterNotification(
-                    () => FireEventsForDocument(documentId),
-                    _listener.BeginAsyncOperation("CodeModelEvent"),
-                    cancellationToken);
+                FireEventsForDocument(documentId);
+
+                // Keep firing events for this doc, as long as we haven't exceeded the max amount
+                // of waiting time, and there's no user input that should take precedence.
+                if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IsInputPending())
+                {
+                    await this.Listener.Delay(delayBetweenProcessing, cancellationToken).ConfigureAwait(true);
+                    stopwatch = SharedStopwatch.StartNew();
+                }
             }
 
-            return System.Threading.Tasks.Task.CompletedTask;
+            return;
 
-            bool FireEventsForDocument(DocumentId documentId)
+            void FireEventsForDocument(DocumentId documentId)
             {
                 // If we've been asked to shutdown, don't bother reporting any more events.
-                if (_cancellationTokenSource.IsCancellationRequested)
-                    return false;
+                if (_threadingContext.DisposalToken.IsCancellationRequested)
+                    return;
 
                 var projectCodeModel = this.TryGetProjectCodeModel(documentId.ProjectId);
                 if (projectCodeModel == null)
-                    return false;
+                    return;
 
                 var filename = _visualStudioWorkspace.GetFilePath(documentId);
                 if (filename == null)
-                    return false;
+                    return;
 
                 if (!projectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
-                    return false;
+                    return;
 
                 var codeModel = fileCodeModelHandle.Object;
-                return codeModel.FireEvents();
+                codeModel.FireEvents();
+                return;
             }
         }
 
@@ -198,16 +193,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public EnvDTE.FileCodeModel GetOrCreateFileCodeModel(ProjectId id, string filePath)
             => GetProjectCodeModel(id).GetOrCreateFileCodeModel(filePath).Handle;
 
-        public void ScheduleDeferredCleanupTask(Action a)
-            => _deferredCleanupTasks.Add(_threadingContext.JoinableTaskFactory.StartOnIdle(a, VsTaskRunContext.UIThreadNormalPriority));
-
-        void IDisposable.Dispose()
+        public void ScheduleDeferredCleanupTask(Action<CancellationToken> a)
         {
-            // Stop any outstanding BG work we've queued up.
-            _cancellationTokenSource.Cancel();
-
-            // Now wait for all our cleanup tasks to finish before we return.
-            _deferredCleanupTasks.Join();
+            _ = _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
+            {
+                await _threadingContext.JoinableTaskFactory.StartOnIdle(
+                    () => a(cancellationToken),
+                    VsTaskRunContext.UIThreadNormalPriority);
+            });
         }
     }
 }

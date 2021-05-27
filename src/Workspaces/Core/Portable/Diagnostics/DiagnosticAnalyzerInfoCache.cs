@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <see cref="DiagnosticAnalyzer"/> instance, <see cref="DiagnosticDescriptor"/>s.
     /// Thread-safe.
     /// </summary>
-    internal sealed class DiagnosticAnalyzerInfoCache
+    internal sealed partial class DiagnosticAnalyzerInfoCache
     {
         /// <summary>
         /// Supported descriptors of each <see cref="DiagnosticAnalyzer"/>. 
@@ -35,11 +36,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             public readonly ImmutableArray<DiagnosticDescriptor> SupportedDescriptors;
             public readonly bool TelemetryAllowed;
+            public readonly bool HasCompilationEndDescriptor;
 
             public DiagnosticDescriptorsInfo(ImmutableArray<DiagnosticDescriptor> supportedDescriptors, bool telemetryAllowed)
             {
                 SupportedDescriptors = supportedDescriptors;
                 TelemetryAllowed = telemetryAllowed;
+                HasCompilationEndDescriptor = supportedDescriptors.Any(DiagnosticDescriptorExtensions.IsCompilationEnd);
             }
         }
 
@@ -53,6 +56,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
             => GetOrCreateDescriptorsInfo(analyzer).SupportedDescriptors;
+
+        /// <summary>
+        /// Returns <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>
+        /// that are not compilation end descriptors.
+        /// </summary>
+        public ImmutableArray<DiagnosticDescriptor> GetNonCompilationEndDiagnosticDescriptors(DiagnosticAnalyzer analyzer)
+        {
+            var descriptorInfo = GetOrCreateDescriptorsInfo(analyzer);
+            return !descriptorInfo.HasCompilationEndDescriptor
+                ? descriptorInfo.SupportedDescriptors
+                : descriptorInfo.SupportedDescriptors.WhereAsArray(d => !d.IsCompilationEnd());
+        }
+
+        /// <summary>
+        /// Returns true if given <paramref name="analyzer"/> has a compilation end descriptor
+        /// that is reported in the Compilation end action.
+        /// </summary>
+        public bool IsCompilationEndAnalyzer(DiagnosticAnalyzer analyzer)
+            => GetOrCreateDescriptorsInfo(analyzer).HasCompilationEndDescriptor;
 
         /// <summary>
         /// Determine whether collection of telemetry is allowed for given <paramref name="analyzer"/>.

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
     Friend Class BuiltInTypesKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             Dim targetToken = context.TargetToken
 
             ' Are we right after an As in an Enum declaration?
@@ -26,39 +27,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
 
                 Dim keywordList = GetIntrinsicTypeKeywords(context)
 
-                Return keywordList.Where(Function(k) k.Keyword.EndsWith("Byte", StringComparison.Ordinal) OrElse
-                                                     k.Keyword.EndsWith("Short", StringComparison.Ordinal) OrElse
-                                                     k.Keyword.EndsWith("Integer", StringComparison.Ordinal) OrElse
-                                                     k.Keyword.EndsWith("Long", StringComparison.Ordinal))
+                Return keywordList.WhereAsArray(
+                    Function(k) k.Keyword.EndsWith("Byte", StringComparison.Ordinal) OrElse
+                                k.Keyword.EndsWith("Short", StringComparison.Ordinal) OrElse
+                                k.Keyword.EndsWith("Integer", StringComparison.Ordinal) OrElse
+                                k.Keyword.EndsWith("Long", StringComparison.Ordinal))
             End If
 
             ' Are we inside a type constraint? Because these are never allowed there
             If targetToken.GetAncestor(Of TypeParameterSingleConstraintClauseSyntax)() IsNot Nothing OrElse
                targetToken.GetAncestor(Of TypeParameterMultipleConstraintClauseSyntax)() IsNot Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             ' Are we inside an attribute block? They're at least not allowed as the attribute itself
             If targetToken.Parent.IsKind(SyntaxKind.AttributeList) Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             ' Are we in an Imports statement? Type keywords aren't allowed there, just fully qualified type names
             If targetToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             ' Are we after Inherits or Implements? Type keywords aren't allowed here.
             If targetToken.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) OrElse
                targetToken.IsChildToken(Of ImplementsStatementSyntax)(Function(n) n.ImplementsKeyword) Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             If context.IsTypeContext Then
                 Return GetIntrinsicTypeKeywords(context)
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
 
         Private Shared ReadOnly s_intrinsicKeywordNames As String() = {
@@ -97,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
             SpecialType.System_UInt64,
             SpecialType.System_UInt16}
 
-        Private Shared Function GetIntrinsicTypeKeywords(context As VisualBasicSyntaxContext) As IEnumerable(Of RecommendedKeyword)
+        Private Shared Function GetIntrinsicTypeKeywords(context As VisualBasicSyntaxContext) As ImmutableArray(Of RecommendedKeyword)
             Debug.Assert(s_intrinsicKeywordNames.Length = s_intrinsicSpecialTypes.Length)
 
             Dim inferredSpecialTypes = context.InferredTypes.Select(Function(t) t.SpecialType).ToSet()
@@ -116,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
                                                                 End Function, isIntrinsic:=True, matchPriority:=priority)
             Next
 
-            Return recommendedKeywords
+            Return recommendedKeywords.ToImmutableArray()
         End Function
 
         Private Shared Function GetDocumentationCommentText(context As VisualBasicSyntaxContext, type As SpecialType, cancellationToken As CancellationToken) As String

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -20,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class AsyncExceptionHandlerRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         private readonly SyntheticBoundNodeFactory _F;
-        private readonly DiagnosticBag _diagnostics;
         private readonly AwaitInFinallyAnalysis _analysis;
 
         private AwaitCatchFrame _currentAwaitCatchFrame;
@@ -30,13 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol containingMethod,
             NamedTypeSymbol containingType,
             SyntheticBoundNodeFactory factory,
-            DiagnosticBag diagnostics,
             AwaitInFinallyAnalysis analysis)
         {
             _F = factory;
             _F.CurrentFunction = containingMethod;
             Debug.Assert(TypeSymbol.Equals(factory.CurrentType, (containingType ?? containingMethod.ContainingType), TypeCompareKind.ConsiderEverything2));
-            _diagnostics = diagnostics;
             _analysis = analysis;
         }
 
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol containingType,
             BoundStatement statement,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(containingSymbol != null);
             Debug.Assert((object)containingType != null);
@@ -125,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, diagnostics, analysis);
+            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, analysis);
             var loweredStatement = (BoundStatement)rewriter.Visit(statement);
 
             return loweredStatement;
@@ -141,7 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tryStatementSyntax.IsKind(SyntaxKind.UsingStatement) ||
                 tryStatementSyntax.IsKind(SyntaxKind.ForEachStatement) ||
                 tryStatementSyntax.IsKind(SyntaxKind.ForEachVariableStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement));
+                tryStatementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) ||
+                tryStatementSyntax.IsKind(SyntaxKind.LockStatement));
 
             BoundStatement finalizedRegion;
             BoundBlock rewrittenFinally;
@@ -548,15 +548,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundCatchBlock catchAndPend;
             ImmutableArray<LocalSymbol> handlerLocals;
 
+            var filterPrologueOpt = node.ExceptionFilterPrologueOpt;
             var filterOpt = node.ExceptionFilterOpt;
             if (filterOpt == null)
             {
+                Debug.Assert(filterPrologueOpt is null);
                 // store pending exception 
                 // as the first statement in a catch
                 catchAndPend = node.Update(
                     ImmutableArray.Create(catchTemp),
                     _F.Local(catchTemp),
                     catchType,
+                    exceptionFilterPrologueOpt: filterPrologueOpt,
                     exceptionFilterOpt: null,
                     body: _F.Block(
                         _F.HiddenSequencePoint(),
@@ -581,6 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // store pending exception 
                 // as the first expression in a filter
                 var sourceOpt = node.ExceptionSourceOpt;
+                var rewrittenPrologue = (BoundStatementList)this.Visit(filterPrologueOpt);
                 var rewrittenFilter = (BoundExpression)this.Visit(filterOpt);
                 var newFilter = sourceOpt == null ?
                                 _F.MakeSequence(
@@ -595,6 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray.Create(catchTemp),
                     _F.Local(catchTemp),
                     catchType,
+                    exceptionFilterPrologueOpt: rewrittenPrologue,
                     exceptionFilterOpt: newFilter,
                     body: _F.Block(
                         _F.HiddenSequencePoint(),

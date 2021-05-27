@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return Name.ErrorDisplayName();
         }
 
-        internal AttributeArgumentSyntax GetNamedArgumentSyntax(string namedArgName)
+        internal AttributeArgumentSyntax? GetNamedArgumentSyntax(string namedArgName)
         {
             Debug.Assert(!String.IsNullOrEmpty(namedArgName));
 

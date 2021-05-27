@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
 {
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
             var mergedSolution = updatedSolution.WithMergedLinkedFileChangesAsync(startingSolution).Result;
             for (var i = 0; i < updatedTexts.Count; i++)
             {
-                Assert.Equal(expectedMergedText, mergedSolution.GetDocument(documentIds[i]).GetTextAsync().Result.ToString());
+                AssertEx.EqualOrDiff(expectedMergedText, mergedSolution.GetDocument(documentIds[i]).GetTextAsync().Result.ToString());
             }
         }
     }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,26 +21,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SimpleProgramNamedTypeSymbol : SourceMemberContainerTypeSymbol
     {
-        internal const string UnspeakableName = "$Program";
-
-        internal SimpleProgramNamedTypeSymbol(NamespaceSymbol globalNamespace, MergedTypeDeclaration declaration, DiagnosticBag diagnostics)
+        internal SimpleProgramNamedTypeSymbol(NamespaceSymbol globalNamespace, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
             : base(globalNamespace, declaration, diagnostics)
         {
             Debug.Assert(globalNamespace.IsGlobalNamespace);
             Debug.Assert(declaration.Kind == DeclarationKind.SimpleProgram);
-            Debug.Assert(declaration.Name == UnspeakableName);
+            Debug.Assert(declaration.Name == WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
 
             state.NotePartComplete(CompletionPart.EnumUnderlyingType); // No work to do for this.
         }
 
         internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation)
         {
-            return (SynthesizedSimpleProgramEntryPointSymbol?)GetSimpleProgramNamedTypeSymbol(compilation)?.GetMembersAndInitializers().NonTypeNonIndexerMembers[0];
+            return (SynthesizedSimpleProgramEntryPointSymbol?)GetSimpleProgramNamedTypeSymbol(compilation)?.GetMembersAndInitializers().NonTypeMembers[0];
         }
 
         private static SimpleProgramNamedTypeSymbol? GetSimpleProgramNamedTypeSymbol(CSharpCompilation compilation)
         {
-            return compilation.SourceModule.GlobalNamespace.GetTypeMembers(UnspeakableName).OfType<SimpleProgramNamedTypeSymbol>().SingleOrDefault();
+            return compilation.SourceModule.GlobalNamespace.GetTypeMembers(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName).OfType<SimpleProgramNamedTypeSymbol>().SingleOrDefault();
         }
 
         internal static SynthesizedSimpleProgramEntryPointSymbol? GetSimpleProgramEntryPoint(CSharpCompilation compilation, CompilationUnitSyntax compilationUnit, bool fallbackToMainEntryPoint)
@@ -54,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            ImmutableArray<Symbol> entryPoints = type.GetMembersAndInitializers().NonTypeNonIndexerMembers;
+            ImmutableArray<Symbol> entryPoints = type.GetMembersAndInitializers().NonTypeMembers;
 
             foreach (SynthesizedSimpleProgramEntryPointSymbol entryPoint in entryPoints)
             {
@@ -89,14 +85,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
             => this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
 
-        protected override void CheckBase(DiagnosticBag diagnostics)
+        protected override void CheckBase(BindingDiagnosticBag diagnostics)
         {
             // check that System.Object is available. 
-            var info = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object).GetUseSiteDiagnostic();
-            if (info != null)
-            {
-                Symbol.ReportUseSiteDiagnostic(info, diagnostics, NoLocation.Singleton);
-            }
+            Binder.GetSpecialType(this.DeclaringCompilation, SpecialType.System_Object, NoLocation.Singleton, diagnostics);
         }
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
@@ -114,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        protected override void CheckInterfaces(DiagnosticBag diagnostics)
+        protected override void CheckInterfaces(BindingDiagnosticBag diagnostics)
         {
             // nop
         }
@@ -201,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-        protected override MembersAndInitializers BuildMembersAndInitializers(DiagnosticBag diagnostics)
+        protected override MembersAndInitializers BuildMembersAndInitializers(BindingDiagnosticBag diagnostics)
         {
             bool reportAnError = false;
             foreach (var singleDecl in declaration.Declarations)
@@ -216,19 +208,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return new MembersAndInitializers(nonTypeNonIndexerMembers: declaration.Declarations.SelectAsArray<SingleTypeDeclaration, Symbol>(singleDeclaration => new SynthesizedSimpleProgramEntryPointSymbol(this, singleDeclaration, diagnostics)),
+            return new MembersAndInitializers(nonTypeMembers: declaration.Declarations.SelectAsArray<SingleTypeDeclaration, Symbol>(singleDeclaration => new SynthesizedSimpleProgramEntryPointSymbol(this, singleDeclaration, diagnostics)),
                                               staticInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
                                               instanceInitializers: ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>>.Empty,
-                                              indexerDeclarations: ImmutableArray<SyntaxReference>.Empty,
-                                              staticInitializersSyntaxLength: 0,
-                                              instanceInitializersSyntaxLength: 0);
+                                              haveIndexers: false,
+                                              isNullableEnabledForInstanceConstructorsAndFields: false,
+                                              isNullableEnabledForStaticConstructorsAndFields: false);
         }
 
         public override bool IsImplicitlyDeclared => false;
 
         internal override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken)
         {
-            foreach (var member in GetMembersAndInitializers().NonTypeNonIndexerMembers)
+            foreach (var member in GetMembersAndInitializers().NonTypeMembers)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

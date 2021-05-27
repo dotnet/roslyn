@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken = default)
         {
+            if (symbol is null)
+                throw new System.ArgumentNullException(nameof(symbol));
+            if (solution is null)
+                throw new System.ArgumentNullException(nameof(solution));
+
             return FindReferencesAsync(symbol, solution, FindReferencesSearchOptions.Default, cancellationToken);
         }
 
@@ -53,9 +58,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             CancellationToken cancellationToken = default)
         {
+            if (symbol is null)
+                throw new System.ArgumentNullException(nameof(symbol));
+            if (solution is null)
+                throw new System.ArgumentNullException(nameof(solution));
             return FindReferencesAsync(symbol, solution, progress: null, documents: documents, cancellationToken: cancellationToken);
         }
 
@@ -68,23 +77,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// information as the search is undertaken.</param>
         /// <param name="documents">An optional set of documents to be searched. If documents is null, then that means "all documents".</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
-        public static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        public static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
-            IFindReferencesProgress progress,
-            IImmutableSet<Document> documents,
+            IFindReferencesProgress? progress,
+            IImmutableSet<Document>? documents,
             CancellationToken cancellationToken = default)
         {
-            return FindReferencesAsync(
+            if (symbol is null)
+                throw new System.ArgumentNullException(nameof(symbol));
+            if (solution is null)
+                throw new System.ArgumentNullException(nameof(solution));
+            return await FindReferencesAsync(
                 symbol, solution, progress, documents,
-                FindReferencesSearchOptions.Default, cancellationToken);
+                FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+        internal static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
-            IFindReferencesProgress progress,
-            IImmutableSet<Document> documents,
+            IFindReferencesProgress? progress,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -99,7 +112,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static class TestAccessor
         {
-            internal static Task<IEnumerable<ReferencedSymbol>> FindReferencesAsync(
+            internal static Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
                 ISymbol symbol,
                 Solution solution,
                 IFindReferencesProgress progress,

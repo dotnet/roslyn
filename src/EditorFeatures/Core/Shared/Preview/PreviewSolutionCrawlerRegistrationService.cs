@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -28,13 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
             // this service is directly tied to DiagnosticAnalyzerService and
             // depends on its implementation.
-            _analyzerService = analyzerService as DiagnosticAnalyzerService;
-            Contract.ThrowIfNull(_analyzerService);
+            _analyzerService = (DiagnosticAnalyzerService)analyzerService;
 
             _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
         {
             // to make life time management easier, just create new service per new workspace
             return new Service(this, workspaceServices.Workspace);
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
             // since we now have one service for each one specific instance of workspace,
             // we can have states for this specific workspace.
-            private Task _analyzeTask;
+            private Task? _analyzeTask;
 
             public Service(PreviewSolutionCrawlerRegistrationServiceFactory owner, Workspace workspace)
             {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             private async Task AnalyzeAsync()
             {
                 var workerBackOffTimeSpanInMS = _workspace.Options.GetOption(InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS);
-                var diagnosticAnalyzer = _owner._analyzerService.CreateIncrementalAnalyzer(_workspace);
+                var incrementalAnalyzer = _owner._analyzerService.CreateIncrementalAnalyzer(_workspace);
 
                 var solution = _workspace.CurrentSolution;
                 var documentIds = _workspace.GetOpenDocumentIds().ToImmutableArray();
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 {
                     foreach (var documentId in documentIds)
                     {
-                        var document = solution.GetDocument(documentId);
-                        if (document == null)
+                        var textDocument = solution.GetTextDocument(documentId);
+                        if (textDocument == null)
                         {
                             continue;
                         }
@@ -92,8 +92,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                         await Task.Delay(workerBackOffTimeSpanInMS, _source.Token).ConfigureAwait(false);
 
                         // do actual analysis
-                        await diagnosticAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, _source.Token).ConfigureAwait(false);
-                        await diagnosticAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: _source.Token).ConfigureAwait(false);
+                        if (textDocument is Document document)
+                        {
+                            await incrementalAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, _source.Token).ConfigureAwait(false);
+                            await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: _source.Token).ConfigureAwait(false);
+                        }
+                        else if (incrementalAnalyzer is IIncrementalAnalyzer2 incrementalAnalyzer2)
+                        {
+                            await incrementalAnalyzer2.AnalyzeNonSourceDocumentAsync(textDocument, InvocationReasons.Empty, _source.Token).ConfigureAwait(false);
+                        }
 
                         // don't call project one.
                     }
@@ -105,11 +112,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             }
 
             public void Unregister(Workspace workspace, bool blockingShutdown = false)
-                => _ = UnregisterAsync(workspace, blockingShutdown);
+                => _ = UnregisterAsync(workspace);
 
-            private async Task UnregisterAsync(Workspace workspace, bool blockingShutdown)
+            private async Task UnregisterAsync(Workspace workspace)
             {
                 Contract.ThrowIfFalse(workspace == _workspace);
+                Contract.ThrowIfNull(_analyzeTask);
+
                 _source.Cancel();
 
                 // wait for analyzer work to be finished

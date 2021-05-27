@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,25 +19,42 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class Extensions
     {
-        public static Uri GetURI(this Document document)
+        public static Uri GetURI(this TextDocument document)
         {
             return ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
-        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri uri, string? clientName = null)
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
+        {
+            return GetDocuments(solution, documentUri, clientName: null);
+        }
+
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName)
+        {
+            var documentIds = GetDocumentIds(solution, documentUri);
+
+            var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
+
+            return FilterDocumentsByClientName(documents, clientName);
+        }
+
+        public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
             //       separator
-            var documentIds = solution.GetDocumentIdsWithFilePath(uri.AbsolutePath);
+            var documentIds = solution.GetDocumentIdsWithFilePath(documentUri.AbsolutePath);
 
             if (!documentIds.Any())
             {
-                documentIds = solution.GetDocumentIdsWithFilePath(uri.LocalPath);
+                documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
             }
 
-            var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
+            return documentIds;
+        }
 
+        private static ImmutableArray<Document> FilterDocumentsByClientName(ImmutableArray<Document> documents, string? clientName)
+        {
             // If we don't have a client name, then we're done filtering
             if (clientName == null)
             {
@@ -58,15 +74,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             });
         }
 
-        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier, string? clientName = null)
+        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
+            => solution.GetDocument(documentIdentifier, clientName: null);
+
+        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier, string? clientName)
         {
             var documents = solution.GetDocuments(documentIdentifier.Uri, clientName);
-
             if (documents.Length == 0)
             {
                 return null;
             }
 
+            return documents.FindDocumentInProjectContext(documentIdentifier);
+        }
+
+        public static T FindDocumentInProjectContext<T>(this ImmutableArray<T> documents, TextDocumentIdentifier documentIdentifier) where T : TextDocument
+        {
             if (documents.Length > 1)
             {
                 // We have more than one document; try to find the one that matches the right context
@@ -91,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documents[0];
         }
 
-        public static async Task<int> GetPositionFromLinePositionAsync(this Document document, LinePosition linePosition, CancellationToken cancellationToken)
+        public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return text.Lines.GetPosition(linePosition);
@@ -105,6 +128,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             return false;
+        }
+
+        public static bool HasCompletionListDataCapability(this ClientCapabilities clientCapabilities)
+        {
+            if (!TryGetVSCompletionListSetting(clientCapabilities, out var completionListSetting))
+            {
+                return false;
+            }
+
+            return completionListSetting.Data;
+        }
+
+        public static bool HasCompletionListCommitCharactersCapability(this ClientCapabilities clientCapabilities)
+        {
+            if (!TryGetVSCompletionListSetting(clientCapabilities, out var completionListSetting))
+            {
+                return false;
+            }
+
+            return completionListSetting.CommitCharacters;
         }
 
         public static string GetMarkdownLanguageName(this Document document)
@@ -126,5 +169,43 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
             => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
+
+        public static bool IsRazorDocument(this Document document)
+        {
+            // Only razor docs have an ISpanMappingService, so we can use the presence of that to determine if this doc
+            // belongs to them.
+            var spanMapper = document.Services.GetService<ISpanMappingService>();
+            return spanMapper != null;
+        }
+
+        private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSCompletionListSetting? completionListSetting)
+        {
+            if (clientCapabilities is not VSClientCapabilities vsClientCapabilities)
+            {
+                completionListSetting = null;
+                return false;
+            }
+
+            var textDocumentCapability = vsClientCapabilities.TextDocument;
+            if (textDocumentCapability == null)
+            {
+                completionListSetting = null;
+                return false;
+            }
+
+            if (textDocumentCapability.Completion is not VSCompletionSetting vsCompletionSetting)
+            {
+                completionListSetting = null;
+                return false;
+            }
+
+            completionListSetting = vsCompletionSetting.CompletionList;
+            if (completionListSetting == null)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

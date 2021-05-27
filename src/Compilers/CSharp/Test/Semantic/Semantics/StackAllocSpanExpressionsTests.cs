@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -466,7 +468,7 @@ unsafe public class Test
     }
 }
 ";
-            CreateCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'int*' cannot be declared const
                 //         const int* p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15));

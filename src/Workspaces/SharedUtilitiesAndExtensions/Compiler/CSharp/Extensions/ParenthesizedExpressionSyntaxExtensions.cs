@@ -2,22 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-#if !CODE_STYLE
-using System.Diagnostics;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class ParenthesizedExpressionSyntaxExtensions
     {
-        public static bool CanRemoveParentheses(this ParenthesizedExpressionSyntax node, SemanticModel semanticModel)
+        public static bool CanRemoveParentheses(
+            this ParenthesizedExpressionSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (node.OpenParenToken.IsMissing || node.CloseParenToken.IsMissing)
             {
@@ -137,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Handle expression-level ambiguities
             if (RemovalMayIntroduceCastAmbiguity(node) ||
                 RemovalMayIntroduceCommaListAmbiguity(node) ||
-                RemovalMayIntroduceInterpolationAmbiguity(node))
+                RemovalMayIntroduceInterpolationAmbiguity(node) ||
+                RemovalWouldChangeConstantReferenceToTypeReference(node, expression, semanticModel, cancellationToken))
             {
                 return false;
             }
@@ -305,6 +307,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
             return parentExpression != null && !RemovalChangesAssociation(node, parentExpression, semanticModel);
+        }
+
+        private static bool RemovalWouldChangeConstantReferenceToTypeReference(
+            ParenthesizedExpressionSyntax node, ExpressionSyntax expression,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            // With cases like: `if (x is (Y))` then we cannot remove the parens if it would make Y now bind to a type
+            // instead of a constant.
+            if (node.Parent is not ConstantPatternSyntax { Parent: IsPatternExpressionSyntax })
+                return false;
+
+            var exprSymbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
+            if (exprSymbol is not IFieldSymbol { IsConst: true } field)
+                return false;
+
+            // See if interpreting the same expression as a type in this location binds.
+            var potentialType = semanticModel.GetSpeculativeTypeInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+            return potentialType is not (null or IErrorTypeSymbol);
         }
 
         private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = SharedPools.Default<Stack<SyntaxNode>>();
@@ -669,14 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool IsSimpleOrDottedName(ExpressionSyntax expression)
-        {
-            return expression.IsKind(
-                SyntaxKind.IdentifierName,
-                SyntaxKind.QualifiedName,
-                SyntaxKind.SimpleMemberAccessExpression);
-        }
-
-#if !CODE_STYLE
+            => expression.Kind() is SyntaxKind.IdentifierName or SyntaxKind.QualifiedName or SyntaxKind.SimpleMemberAccessExpression;
 
         public static bool CanRemoveParentheses(this ParenthesizedPatternSyntax node)
         {
@@ -691,6 +704,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // We wrap a parenthesized pattern and we're parenthesized.  We can remove our parens.
             if (pattern is ParenthesizedPatternSyntax)
                 return true;
+
+            // We're parenthesized discard pattern. We cannot remove parens.
+            // x is (_)
+            if (pattern is DiscardPatternSyntax && node.Parent is IsPatternExpressionSyntax)
+                return false;
 
             // (not ...) -> not ...
             //
@@ -746,14 +764,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return precedence < parentPrecedence;
         }
 
-#endif
-
         public static OperatorPrecedence GetOperatorPrecedence(this PatternSyntax pattern)
         {
-#if CODE_STYLE
-            return OperatorPrecedence.None;
-#else
-
             switch (pattern)
             {
                 case ConstantPatternSyntax _:
@@ -780,8 +792,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             Debug.Fail("Unhandled pattern type");
             return OperatorPrecedence.None;
-
-#endif
         }
     }
 }

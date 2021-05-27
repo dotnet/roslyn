@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,6 +51,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             var nodesToRemove = sections.Skip(1).Select(s => s.SyntaxToRemove).Where(s => s.Parent == ifStatement.Parent);
             root = root.RemoveNodes(nodesToRemove, SyntaxRemoveOptions.KeepNoTrivia);
+            Debug.Assert(root is object); // we didn't remove the root
             root = root.ReplaceNode(root.FindNode(ifSpan, getInnermostNodeForTie: true), @switch);
             return document.WithSyntaxRoot(root);
         }

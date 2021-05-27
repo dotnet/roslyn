@@ -1,0 +1,58 @@
+# Test on Windows Desktop using Helix
+parameters:
+- name: testRunName
+  type: string
+  default: ''
+- name: jobName
+  type: string
+  default: ''
+- name: buildJobName
+  type: string
+  default: ''
+- name: testArtifactName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+- name: testArguments
+  type: string
+  default: ''
+
+jobs:
+- job: ${{ parameters.jobName }}
+  dependsOn: ${{ parameters.buildJobName }}
+  pool:
+    # Note that when helix is enabled, the agent running this job is essentially
+    # a thin client that kicks off a helix job and waits for it to complete.
+    # Thus we don't use a helix queue to run the job here, and instead use the plentiful AzDO vmImages.
+    vmImage: windows-2019
+  timeoutInMinutes: 120
+  steps:
+    - checkout: none
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download Test Payload
+      inputs:
+        artifact: ${{ parameters.testArtifactName }}
+        path: '$(Build.SourcesDirectory)'
+
+    - task: BatchScript@1
+      displayName: Rehydrate RunTests
+      inputs:
+        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/netcoreapp3.1/rehydrate.cmd
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+    - task: PowerShell@2
+      displayName: Run Unit Tests
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -helix -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+    - template: publish-logs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+        jobName: ${{ parameters.jobName }}

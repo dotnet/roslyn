@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
@@ -20,11 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var trivia = root.FindTrivia(position, findInsideTrivia: true);
 
             var outliner = CreateProvider();
-            var actualRegions = ArrayBuilder<BlockSpan>.GetInstance();
-            outliner.CollectBlockSpans(document, trivia, actualRegions, CancellationToken.None);
+            using var actualRegions = TemporaryArray<BlockSpan>.Empty;
+            var optionProvider = new BlockStructureOptionProvider(
+                document.Project.Solution.Options,
+                isMetadataAsSource: document.Project.Solution.Workspace.Kind == CodeAnalysis.WorkspaceKind.MetadataAsSource);
+            outliner.CollectBlockSpans(trivia, ref actualRegions.AsRef(), optionProvider, CancellationToken.None);
 
             // TODO: Determine why we get null outlining spans.
-            return actualRegions.ToImmutableAndFree();
+            return actualRegions.ToImmutableAndClear();
         }
     }
 }

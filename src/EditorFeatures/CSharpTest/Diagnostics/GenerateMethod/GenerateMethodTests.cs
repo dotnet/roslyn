@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,11 +15,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMethod
 {
     public class GenerateMethodTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public GenerateMethodTests(ITestOutputHelper logger)
+             : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateMethodCodeFixProvider());
 
@@ -2511,6 +2519,150 @@ class C8A
         throw new NotImplementedException();
     }
 }");
+        }
+
+        [WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInvocationWithinSynchronousForEach()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(ISomeInterface _someInterface)
+    {
+         foreach (var item in _someInterface.[|GetItems|]())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    void M(ISomeInterface _someInterface)
+    {
+         foreach (var item in _someInterface.GetItems())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+    IEnumerable<object> GetItems();
+}");
+        }
+
+        [WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInvocationWithinAsynchronousForEach_IAsyncEnumerableDoesNotExist_FallbackToIEnumerable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (var item in _someInterface.[|GetItems|]())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (var item in _someInterface.GetItems())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+    IEnumerable<object> GetItems();
+}");
+        }
+
+        [WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInvocationWithinAsynchronousForEach_IAsyncEnumerableExists_UseIAsyncEnumerable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (var item in _someInterface.[|GetItems|]())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+}
+" + IAsyncEnumerable,
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (var item in _someInterface.GetItems())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+    System.Collections.Generic.IAsyncEnumerable<object> GetItems();
+}
+" + IAsyncEnumerable);
+        }
+
+        [WorkItem(48064, "https://github.com/dotnet/roslyn/issues/48064")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInvocationWithinAsynchronousForEach_IAsyncEnumerableExists_UseIAsyncEnumerableOfString()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (string item in _someInterface.[|GetItems|]())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+}
+" + IAsyncEnumerable,
+@"class C
+{
+    async void M(ISomeInterface _someInterface)
+    {
+         await foreach (string item in _someInterface.GetItems())
+         {
+         }
+    }
+}
+
+interface ISomeInterface
+{
+    System.Collections.Generic.IAsyncEnumerable<string> GetItems();
+}
+" + IAsyncEnumerable);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -8806,6 +8958,177 @@ class Class
         throw new NotImplementedException();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [InlineData("Cdecl")]
+        [InlineData("Fastcall")]
+        [InlineData("Thiscall")]
+        [InlineData("Stdcall")]
+        [InlineData("Thiscall, Stdcall")]
+        [InlineData("Bad")] // Bad conventions should still be generatable
+        public async Task TestWithFunctionPointerUnmanagedSpecificConvention(string convention)
+        {
+            await TestInRegularAndScriptAsync(
+$@"
+using System;
+
+class Class
+{{
+    unsafe void M()
+    {{
+        delegate* unmanaged[{convention}]<int, float> y;
+        [|M2(y)|];
+    }}
+}}",
+$@"
+using System;
+
+class Class
+{{
+    unsafe void M()
+    {{
+        delegate* unmanaged[{convention}]<int, float> y;
+        [|M2(y)|];
+    }}
+
+    private unsafe void M2(delegate* unmanaged[{convention}]<int, float> y)
+    {{
+        throw new NotImplementedException();
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestWithFunctionPointerUnmanagedMissingConvention()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[]<int, float> y;
+        [|M2(y)|];
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    unsafe void M()
+    {
+        delegate* unmanaged[]<int, float> y;
+        [|M2(y)|];
+    }
+
+    private unsafe void M2(delegate* unmanaged<int, float> y)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestNegativeIfGeneratingInDocumentFromSourceGenerator()
+        {
+            await TestMissingAsync(
+@" <Workspace>
+                    <Project Language=""C#"" AssemblyName=""ClassLibrary1"" CommonReferences=""true"">
+                        <Document>
+public class C
+{
+    public void M()
+    {
+        GeneratedClass.Me$$thod();
+    }
+}
+                        </Document>
+                        <DocumentFromSourceGenerator>
+public class GeneratedClass
+{
+}
+                        </DocumentFromSourceGenerator>
+                    </Project>
+                </Workspace>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestIfGeneratingInPartialClassWithFileFromSourceGenerator()
+        {
+            await TestInRegularAndScriptAsync(
+@" <Workspace>
+                    <Project Language=""C#"" AssemblyName=""ClassLibrary1"" CommonReferences=""true"">
+                        <Document>
+public class C
+{
+    public void M()
+    {
+        ClassWithGeneratedPartial.Me$$thod();
+    }
+}
+                        </Document>
+                        <Document>
+// regular file
+public partial class ClassWithGeneratedPartial
+{
+}
+                        </Document>
+                        <DocumentFromSourceGenerator>
+// generated file
+public partial class ClassWithGeneratedPartial
+{
+}
+                        </DocumentFromSourceGenerator>
+                    </Project>
+                </Workspace>", @"
+// regular file
+using System;
+
+public partial class ClassWithGeneratedPartial
+{
+    internal static void Method()
+    {
+        throw new NotImplementedException();
+    }
+}
+                        ");
         }
     }
 }

@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "OverrideKind tests"
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_None()
             Dim code =
 <Code>
@@ -31,7 +31,7 @@ End Class
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Abstract()
             Dim code =
 <Code>
@@ -44,7 +44,7 @@ End Class
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Virtual()
             Dim code =
 <Code>
@@ -62,7 +62,7 @@ End Class
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Override()
             Dim code =
 <Code>
@@ -86,7 +86,7 @@ End Class
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestOverrideKind_Sealed()
             Dim code =
 <Code>
@@ -114,7 +114,7 @@ End Class
 #Region "Parameter name tests"
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestParameterName()
             Dim code =
 <Code>
@@ -138,7 +138,7 @@ End Class
 #Region "ReadWrite tests"
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestReadWrite_GetSet()
             Dim code =
 <Code>
@@ -156,7 +156,7 @@ End Class
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestReadWrite_Get()
             Dim code =
 <Code>
@@ -172,7 +172,7 @@ End Class
         End Sub
 
         <WorkItem(9646, "https://github.com/dotnet/roslyn/issues/9646")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestReadWrite_Set()
             Dim code =
 <Code>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -121,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 foreach (var projectInfo in projectInfos)
                 {
                     var projectName = projectInfo.Name;
-                    if (!_loadedProjects.TryGetValue(projectName, out ProjectId projectId))
+                    if (!_loadedProjects.TryGetValue(projectName, out var projectId))
                     {
                         projectId = projectInfo.Id;
 
@@ -136,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     }
                     else
                     {
-                        if (_loadedProjectInfo.TryGetValue(projectName, out ProjectInfo projInfo))
+                        if (_loadedProjectInfo.TryGetValue(projectName, out var projInfo))
                         {
                             _remoteLanguageServiceWorkspace.OnProjectReloaded(projectInfo);
                         }

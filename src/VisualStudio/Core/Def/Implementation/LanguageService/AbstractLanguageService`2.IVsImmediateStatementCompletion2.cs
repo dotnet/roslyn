@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService> : IVsImmediateStatementCompletion2
     {
         protected Dictionary<IVsTextView, DebuggerIntelliSenseFilter> filters =
-            new Dictionary<IVsTextView, DebuggerIntelliSenseFilter>();
+            new();
 
         int IVsImmediateStatementCompletion2.EnableStatementCompletion(int enable, int startIndex, int endIndex, IVsTextView textView)
         {
@@ -93,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 if (!contextBuffer.ContentType.IsOfType(this.ContentTypeName))
                 {
-                    FatalError.ReportWithoutCrash(
+                    FatalError.ReportAndCatch(
                         new ArgumentException($"Expected content type {this.ContentTypeName} " +
                         $"but got buffer of content type {contextBuffer.ContentType}"));
 

@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IMethodSymbol method,
             int position,
             SemanticModel semanticModel,
-            IList<SymbolDisplayPart> descriptionParts)
+            IList<SymbolDisplayPart>? descriptionParts)
         {
-            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+            var anonymousTypeDisplayService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
             return CreateItemImpl(
                 method, semanticModel, position,

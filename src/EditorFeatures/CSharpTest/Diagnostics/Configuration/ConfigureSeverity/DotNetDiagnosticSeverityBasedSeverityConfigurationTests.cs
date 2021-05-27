@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -38,9 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                     SyntaxKind.ClassDeclaration);
             }
         }
-
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;
 
@@ -192,6 +191,40 @@ dotnet_diagnostic.XYZ1111.severity = none
         </Document>
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
 dotnet_diagnostic.XYZ1111.severity = none
+
+# XYZ0001: Title
+dotnet_diagnostic.XYZ0001.severity = none
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
+            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [WorkItem(45446, "https://github.com/dotnet/roslyn/issues/45446")]
+            public async Task ConfigureEditorconfig_MissingRule_None()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+[|class Program1 { }|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
+dotnet_diagnostic.severity = none
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+[|class Program1 { }|]
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.{vb,cs}]
+dotnet_diagnostic.severity = none
 
 # XYZ0001: Title
 dotnet_diagnostic.XYZ0001.severity = none

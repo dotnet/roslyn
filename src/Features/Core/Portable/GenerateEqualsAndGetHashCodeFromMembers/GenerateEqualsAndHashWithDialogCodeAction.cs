@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -51,6 +49,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 _generateGetHashCode = generateGetHashCode;
             }
 
+            public override string EquivalenceKey => Title;
+
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IPickMembersService>();
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     _generateOperatorsOptionValue = generateOperatorsOption.Value;
                 }
 
-                var implementIEquatable = (implementIEqutableOption?.Value).GetValueOrDefault();
-                var generatorOperators = (generateOperatorsOption?.Value).GetValueOrDefault();
+                var implementIEquatable = (implementIEqutableOption?.Value ?? false);
+                var generatorOperators = (generateOperatorsOption?.Value ?? false);
 
                 var action = new GenerateEqualsAndGetHashCodeAction(
                     _document, _typeDeclaration, _containingType, result.Members,

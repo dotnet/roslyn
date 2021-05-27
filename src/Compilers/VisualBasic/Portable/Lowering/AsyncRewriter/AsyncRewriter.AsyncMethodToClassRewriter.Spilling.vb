@@ -315,8 +315,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return fieldAccess
                         End If
 
-                        ' An assignment target is only evaluated on write, so don't evaluate it's side effects, but do evaluate side effects of the reciever expression
-                        ' Evaluating a field of a struct has no side effects, so only evaluate side effects of the reciever expression
+                        ' An assignment target is only evaluated on write, so don't evaluate it's side effects, but do evaluate side effects of the receiver expression
+                        ' Evaluating a field of a struct has no side effects, so only evaluate side effects of the receiver expression
                         Dim evaluateSideEffectsHere = evaluateSideEffects And Not isAssignmentTarget And fieldAccess.FieldSymbol.ContainingType.IsReferenceType
 
                         Dim newReceiver As BoundExpression = SpillValue(fieldAccess.ReceiverOpt,
@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          fieldAccess.FieldSymbol,
                                                          fieldAccess.IsLValue,
                                                          fieldAccess.SuppressVirtualCalls,
-                                                         fieldAccess.ConstantsInProgressOpt,
+                                                         constantsInProgressOpt:=Nothing,
                                                          fieldAccess.Type)
 
                         If evaluateSideEffectsHere Then

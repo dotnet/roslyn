@@ -2,15 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
@@ -28,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     ///
     /// <para>It is assumed that if the type follows this shape that it is well behaved and that this
     /// transformation will preserve semantics.  If this assumption is not good in practice, we
-    /// could always limit the feature to only work on a whitelist of known safe types.</para>
+    /// could always limit the feature to only work on an allow list of known safe types.</para>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
@@ -40,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         public CSharpUseRangeOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseRangeOperatorDiagnosticId,
+                   EnforceOnBuildValues.UseRangeOperator,
                    CSharpCodeStyleOptions.PreferRangeOperator,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_range_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -77,7 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             {
                 return;
             }
-
             context.ReportDiagnostic(CreateDiagnostic(resultOpt.Value));
         }
 
@@ -111,13 +115,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 }
             }
 
-            // look for `s.Slice(e1, end - e2)`
-            if (invocation.Instance is null ||
-                invocation.Arguments.Length != 2)
+            // look for `s.Slice(e1, end - e2)` or `s.Slice(e1)`
+            if (invocation.Instance is null)
             {
                 return null;
             }
 
+            return invocation.Arguments.Length switch
+            {
+                1 => AnalyzeOneArgumentInvocation(invocation, infoCache, invocationSyntax, option),
+                2 => AnalyzeTwoArgumentInvocation(invocation, infoCache, invocationSyntax, option),
+                _ => null,
+            };
+        }
+
+        private static Result? AnalyzeOneArgumentInvocation(
+            IInvocationOperation invocation,
+            InfoCache infoCache,
+            InvocationExpressionSyntax invocationSyntax,
+            CodeStyleOption2<bool> option)
+        {
+            var targetMethod = invocation.TargetMethod;
+
+            // We are dealing with a call like `.Substring(expr)`.
+            // Ensure that there is an overload with signature like `Substring(int start, int length)`
+            // and there is a suitable indexer to replace this with `[expr..]`.
+            if (!infoCache.TryGetMemberInfoOneArgument(targetMethod, out var memberInfo))
+            {
+                return null;
+            }
+
+            var startOperation = invocation.Arguments[0].Value;
+            return new Result(
+                ResultKind.Computed,
+                option,
+                invocation,
+                invocationSyntax,
+                targetMethod,
+                memberInfo,
+                op1: startOperation,
+                op2: null); // The range will run to the end.
+        }
+
+        private static Result? AnalyzeTwoArgumentInvocation(
+            IInvocationOperation invocation,
+            InfoCache infoCache,
+            InvocationExpressionSyntax invocationSyntax,
+            CodeStyleOption2<bool> option)
+        {
             // See if the call is to something slice-like.
             var targetMethod = invocation.TargetMethod;
 
@@ -126,6 +171,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // indexer or overload
             if (!IsSubtraction(invocation.Arguments[1].Value, out var subtraction) ||
                 !infoCache.TryGetMemberInfo(targetMethod, out var memberInfo))
+            {
+                return null;
+            }
+
+            var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
+            // Need to make sure that if the target method is being written to, that the indexer returns a ref, is a read/write property,
+            // or the syntax allows for the slice method to be run
+            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() && indexer != null && IsWriteableIndexer(invocation, indexer))
             {
                 return null;
             }
@@ -183,5 +236,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         private static bool IsConstantInt32(IOperation operation)
             => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
+
+        private static bool IsWriteableIndexer(IInvocationOperation invocation, IPropertySymbol indexer)
+        {
+            var refReturnMismatch = indexer.ReturnsByRef != invocation.TargetMethod.ReturnsByRef;
+            var indexerIsReadWrite = indexer.IsWriteableFieldOrProperty();
+            return refReturnMismatch && !indexerIsReadWrite;
+        }
     }
 }

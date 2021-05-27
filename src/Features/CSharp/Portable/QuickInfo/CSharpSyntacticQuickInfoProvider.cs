@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,10 +25,17 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         {
         }
 
-        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
-            Document document,
-            SyntaxToken token,
-            CancellationToken cancellationToken)
+        protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
+            QuickInfoContext context,
+            SyntaxToken token)
+            => Task.FromResult(BuildQuickInfo(token));
+
+        protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
+            CommonQuickInfoContext context,
+            SyntaxToken token)
+            => Task.FromResult(BuildQuickInfo(token));
+
+        private static QuickInfoItem? BuildQuickInfo(SyntaxToken token)
         {
             if (token.Kind() != SyntaxKind.CloseBraceToken)
             {
@@ -71,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             // encode document spans that correspond to the text to show
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var spans = ImmutableArray.Create(TextSpan.FromBounds(spanStart, spanEnd));
             return QuickInfoItem.Create(token.Span, relatedSpans: spans);
         }

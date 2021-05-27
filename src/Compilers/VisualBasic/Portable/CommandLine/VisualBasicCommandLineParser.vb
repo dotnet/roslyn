@@ -161,6 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim touchedFilesPath As String = Nothing
             Dim features = New List(Of String)()
             Dim reportAnalyzer As Boolean = False
+            Dim skipAnalyzers As Boolean = False
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
             Dim instrumentationKinds As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
@@ -1105,6 +1106,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             reportAnalyzer = True
                             Continue For
 
+                        Case "skipanalyzers", "skipanalyzers+"
+                            If value IsNot Nothing Then
+                                Exit Select
+                            End If
+
+                            skipAnalyzers = True
+                            Continue For
+
+                        Case "skipanalyzers-"
+                            If value IsNot Nothing Then
+                                Exit Select
+                            End If
+
+                            skipAnalyzers = False
+                            Continue For
+
                         Case "nostdlib"
                             If value IsNot Nothing Then
                                 Exit Select
@@ -1423,6 +1440,8 @@ lVbRuntimePlus:
             ' If the script is passed without the `\i` option simply execute the script (`vbi script.vbx`).
             interactiveMode = interactiveMode Or (IsScriptCommandLineParser AndAlso sourceFiles.Count = 0)
 
+            pathMap = SortPathMap(pathMap)
+
             Return New VisualBasicCommandLineArguments With
             {
                 .IsScriptRunner = IsScriptCommandLineParser,
@@ -1468,6 +1487,7 @@ lVbRuntimePlus:
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
                 .ReportAnalyzer = reportAnalyzer,
+                .SkipAnalyzers = skipAnalyzers,
                 .EmbeddedFiles = embeddedFiles.AsImmutable()
             }
         End Function

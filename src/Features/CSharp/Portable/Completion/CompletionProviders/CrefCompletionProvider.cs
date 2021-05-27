@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal sealed class CrefCompletionProvider : AbstractCrefCompletionProvider
     {
         public static readonly SymbolDisplayFormat QualifiedCrefFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -38,8 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
         public static readonly SymbolDisplayFormat CrefFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // that uses the intrinsic type keyword and an item that uses the
         // name of the special type 
         public static readonly SymbolDisplayFormat CrefFormatForSpecialTypes =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -69,10 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -101,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 context.AddItems(items);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // nop
             }
@@ -128,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return (default, null, ImmutableArray<ISymbol>.Empty);
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(
                 parentNode, cancellationToken).ConfigureAwait(false);
 
             var symbols = GetSymbols(token, semanticModel, cancellationToken)
@@ -430,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

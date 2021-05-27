@@ -1865,7 +1865,7 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value)
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.NotEqual(span.Start, 0)
@@ -1914,7 +1914,7 @@ End Namespace
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value)
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C", StringComparison.Ordinal) + 4)
@@ -1949,7 +1949,7 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value)
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""goo"")", StringComparison.Ordinal))
@@ -2404,7 +2404,7 @@ End Module
 </Code>
 
             Dim parameters As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters)
+            Using workspace = CreateWorkspaceFromOptions(source.ToString(), parameters)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
@@ -2420,7 +2420,7 @@ End Module
 </Code>
 
             Dim parameters2 As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters2)
+            Using workspace = CreateWorkspaceFromOptions(source.ToString(), parameters2)
                 workspace.ApplyOptions(PreferIntrinsicPredefinedTypeEverywhere())
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters2)).Where(Function(d) d.Id = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,10 +23,10 @@ namespace Microsoft.CodeAnalysis.Host
     {
         internal const int ImplicitCacheSize = 3;
 
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         private readonly Workspace _workspace;
-        private readonly Dictionary<ProjectId, Cache> _activeCaches = new Dictionary<ProjectId, Cache>();
+        private readonly Dictionary<ProjectId, Cache> _activeCaches = new();
 
         private readonly SimpleMRUCache? _implicitCache;
         private readonly ImplicitCacheMonitor? _implicitCacheMonitor;
@@ -162,8 +160,8 @@ namespace Microsoft.CodeAnalysis.Host
             internal int Count;
             private readonly ProjectCacheService _cacheService;
             private readonly ProjectId _key;
-            private ConditionalWeakTable<object, object?>? _cache = new ConditionalWeakTable<object, object?>();
-            private readonly List<WeakReference<ICachedObjectOwner>> _ownerObjects = new List<WeakReference<ICachedObjectOwner>>();
+            private ConditionalWeakTable<object, object?>? _cache = new();
+            private readonly List<WeakReference<ICachedObjectOwner>> _ownerObjects = new();
 
             public Cache(ProjectCacheService cacheService, ProjectId key)
             {

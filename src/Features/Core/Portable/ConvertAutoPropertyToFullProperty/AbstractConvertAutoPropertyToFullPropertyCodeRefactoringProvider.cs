@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var property = await GetPropertyAsync(context).ConfigureAwait(false);
             if (property == null)
@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!(semanticModel.GetDeclaredSymbol(property) is IPropertySymbol propertySymbol))
+            if (semanticModel.GetDeclaredSymbol(property) is not IPropertySymbol propertySymbol)
             {
                 return;
             }
@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             return field != null;
         }
 
-        private static async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
+        private static async Task<SyntaxNode?> GetPropertyAsync(CodeRefactoringContext context)
         {
             var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
-            if (!(containingProperty?.Parent is TTypeDeclarationNode))
+            if (containingProperty?.Parent is not TTypeDeclarationNode)
             {
                 return null;
             }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -25,17 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsAnyExpressionContext)
-            {
-                return true;
-            }
-
             if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
             {
                 return false;
             }
 
             return InMemberDeclarationContext(position, context, cancellationToken)
+                || context.SyntaxTree.IsLambdaDeclarationContext(position, otherModifier: SyntaxKind.StaticKeyword, cancellationToken)
                 || context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);
         }
 

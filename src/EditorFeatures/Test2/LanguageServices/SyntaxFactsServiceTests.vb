@@ -202,7 +202,7 @@ $$End Class
             Await VerifyGetMemberBodySpanForSpeculativeBindingAsync(definition)
         End Function
 
-        Private Async Function VerifyGetMemberBodySpanForSpeculativeBindingAsync(workspaceDefinition As XElement) As Tasks.Task
+        Private Shared Async Function VerifyGetMemberBodySpanForSpeculativeBindingAsync(workspaceDefinition As XElement) As Tasks.Task
             Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Dim cursorDocument = workspace.DocumentWithCursor
                 Dim cursorPosition = cursorDocument.CursorPosition.Value

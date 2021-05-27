@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
@@ -44,10 +46,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         internal static Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata> GetDynamicFileInfoProvider()
         {
-            var catalog = ExportProviderCache.CreateTypeCatalog(new Type[] { typeof(TestDynamicFileInfoProviderThatProducesNoFiles) });
-            var factory = ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
-
-            return factory.CreateExportProvider().GetExport<IDynamicFileInfoProvider, FileExtensionsMetadata>();
+            var composition = TestComposition.Empty.AddParts(typeof(TestDynamicFileInfoProviderThatProducesNoFiles));
+            return composition.ExportProviderFactory.CreateExportProvider().GetExport<IDynamicFileInfoProvider, FileExtensionsMetadata>();
         }
     }
 }

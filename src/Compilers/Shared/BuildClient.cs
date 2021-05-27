@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -49,16 +51,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private readonly RequestLanguage _language;
         private readonly CompileFunc _compileFunc;
+        private readonly ICompilerServerLogger _logger;
         private readonly CreateServerFunc _createServerFunc;
         private readonly int? _timeoutOverride;
 
         /// <summary>
         /// When set it overrides all timeout values in milliseconds when communicating with the server.
         /// </summary>
-        internal BuildClient(RequestLanguage language, CompileFunc compileFunc, CreateServerFunc createServerFunc = null, int? timeoutOverride = null)
+        internal BuildClient(RequestLanguage language, CompileFunc compileFunc, ICompilerServerLogger logger, CreateServerFunc createServerFunc = null, int? timeoutOverride = null)
         {
             _language = language;
             _compileFunc = compileFunc;
+            _logger = logger;
             _createServerFunc = createServerFunc ?? BuildServerConnection.TryCreateServerCore;
             _timeoutOverride = timeoutOverride;
         }
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 : RuntimeEnvironment.GetRuntimeDirectory();
         }
 
-        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc)
+        internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc, ICompilerServerLogger logger, Guid? requestId = null)
         {
             var sdkDir = GetSystemSdkDirectory();
             if (RuntimeHostInfo.IsCoreClrRuntime)
@@ -83,13 +87,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             }
 
-            var client = new BuildClient(language, compileFunc);
+            var client = new BuildClient(language, compileFunc, logger);
             var clientDir = AppContext.BaseDirectory;
             var workingDir = Directory.GetCurrentDirectory();
             var tempDir = BuildServerConnection.GetTempPath(workingDir);
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
             var originalArguments = GetCommandLineArgs(arguments);
-            return client.RunCompilation(originalArguments, buildPaths).ExitCode;
+            return client.RunCompilation(originalArguments, buildPaths, requestId: requestId).ExitCode;
         }
 
 
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// to the console. If the compiler server fails, run the fallback
         /// compiler.
         /// </summary>
-        internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null, string pipeName = null)
+        internal RunCompilationResult RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null, string pipeName = null, Guid? requestId = null)
         {
             textWriter = textWriter ?? Console.Out;
 
@@ -128,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 pipeName = pipeName ?? GetPipeName(buildPaths);
                 var libDirectory = Environment.GetEnvironmentVariable("LIB");
-                var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, pipeName, keepAliveOpt);
+                var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, pipeName, keepAliveOpt, requestId);
                 if (serverResult.HasValue)
                 {
                     Debug.Assert(serverResult.Value.RanOnServer);
@@ -205,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Runs the provided compilation on the server.  If the compilation cannot be completed on the server then null
         /// will be returned.
         /// </summary>
-        private RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string sessionName, string keepAlive)
+        private RunCompilationResult? RunServerCompilation(TextWriter textWriter, List<string> arguments, BuildPaths buildPaths, string libDirectory, string pipeName, string keepAlive, Guid? requestId)
         {
             BuildResponse buildResponse;
 
@@ -216,13 +220,25 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             try
             {
-                var buildResponseTask = RunServerCompilationAsync(
+                var alt = new BuildPathsAlt(
+                    buildPaths.ClientDirectory,
+                    buildPaths.WorkingDirectory,
+                    buildPaths.SdkDirectory,
+                    buildPaths.TempDirectory);
+
+                var buildResponseTask = BuildServerConnection.RunServerCompilationCoreAsync(
+                    requestId ?? Guid.NewGuid(),
+                    _language,
                     arguments,
-                    buildPaths,
-                    sessionName,
+                    alt,
+                    pipeName,
                     keepAlive,
                     libDirectory,
+                    _timeoutOverride,
+                    _createServerFunc,
+                    _logger,
                     CancellationToken.None);
+
                 buildResponse = buildResponseTask.Result;
 
                 Debug.Assert(buildResponse != null);
@@ -262,46 +278,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        private Task<BuildResponse> RunServerCompilationAsync(
-            List<string> arguments,
-            BuildPaths buildPaths,
-            string sessionKey,
-            string keepAlive,
-            string libDirectory,
-            CancellationToken cancellationToken)
-        {
-            return RunServerCompilationCoreAsync(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, _timeoutOverride, _createServerFunc, cancellationToken);
-        }
-
-        private static Task<BuildResponse> RunServerCompilationCoreAsync(
-            RequestLanguage language,
-            List<string> arguments,
-            BuildPaths buildPaths,
-            string pipeName,
-            string keepAlive,
-            string libEnvVariable,
-            int? timeoutOverride,
-            CreateServerFunc createServerFunc,
-            CancellationToken cancellationToken)
-        {
-            var alt = new BuildPathsAlt(
-                buildPaths.ClientDirectory,
-                buildPaths.WorkingDirectory,
-                buildPaths.SdkDirectory,
-                buildPaths.TempDirectory);
-
-            return BuildServerConnection.RunServerCompilationCoreAsync(
-                language,
-                arguments,
-                alt,
-                pipeName,
-                keepAlive,
-                libEnvVariable,
-                timeoutOverride,
-                createServerFunc,
-                cancellationToken);
-        }
-
         /// <summary>
         /// Given the full path to the directory containing the compiler exes,
         /// retrieves the name of the pipe for client/server communication on
@@ -309,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         private static string GetPipeName(BuildPaths buildPaths)
         {
-            return BuildServerConnection.GetPipeNameForPathOpt(buildPaths.ClientDirectory);
+            return BuildServerConnection.GetPipeNameForPath(buildPaths.ClientDirectory);
         }
 
         private static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)

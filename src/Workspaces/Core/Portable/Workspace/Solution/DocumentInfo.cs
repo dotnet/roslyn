@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -90,23 +88,8 @@ namespace Microsoft.CodeAnalysis
                 loader,
                 filePath,
                 isGenerated,
+                designTimeOnly: false,
                 documentServiceProvider: null);
-        }
-
-        // TODO: https://github.com/dotnet/roslyn/issues/35079
-        // Used by Razor: https://github.com/dotnet/aspnetcore-tooling/blob/master/src/Razor/src/Microsoft.VisualStudio.Editor.Razor/DefaultVisualStudioMacDocumentInfoFactory.cs#L38
-        [Obsolete("This is a compatibility shim for Razor; please do not use it.")]
-        internal static DocumentInfo Create(
-            DocumentId id,
-            string name,
-            IEnumerable<string>? folders,
-            SourceCodeKind sourceCodeKind,
-            TextLoader? loader,
-            string? filePath,
-            bool isGenerated,
-            IDocumentServiceProvider? documentServiceProvider)
-        {
-            return new DocumentInfo(new DocumentAttributes(id, name, folders.ToBoxedImmutableArray(), sourceCodeKind, filePath, isGenerated), loader, documentServiceProvider);
         }
 
         internal static DocumentInfo Create(
@@ -117,9 +100,10 @@ namespace Microsoft.CodeAnalysis
             TextLoader? loader,
             string? filePath,
             bool isGenerated,
+            bool designTimeOnly,
             IDocumentServiceProvider? documentServiceProvider)
         {
-            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated), loader, documentServiceProvider);
+            return new DocumentInfo(new DocumentAttributes(id, name, folders, sourceCodeKind, filePath, isGenerated, designTimeOnly: designTimeOnly), loader, documentServiceProvider);
         }
 
         private DocumentInfo With(
@@ -200,13 +184,20 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public bool IsGenerated { get; }
 
+            /// <summary>
+            /// True if the source code contained in the document is only used in design-time (e.g. for completion),
+            /// but is not passed to the compiler when the containing project is built, e.g. a Razor view
+            /// </summary>
+            public bool DesignTimeOnly { get; }
+
             public DocumentAttributes(
                 DocumentId id,
                 string name,
                 IReadOnlyList<string> folders,
                 SourceCodeKind sourceCodeKind,
                 string? filePath,
-                bool isGenerated)
+                bool isGenerated,
+                bool designTimeOnly)
             {
                 Id = id;
                 Name = name;
@@ -214,6 +205,7 @@ namespace Microsoft.CodeAnalysis
                 SourceCodeKind = sourceCodeKind;
                 FilePath = filePath;
                 IsGenerated = isGenerated;
+                DesignTimeOnly = designTimeOnly;
             }
 
             public DocumentAttributes With(
@@ -222,7 +214,8 @@ namespace Microsoft.CodeAnalysis
                 IReadOnlyList<string>? folders = null,
                 Optional<SourceCodeKind> sourceCodeKind = default,
                 Optional<string?> filePath = default,
-                Optional<bool> isGenerated = default)
+                Optional<bool> isGenerated = default,
+                Optional<bool> designTimeOnly = default)
             {
                 var newId = id ?? Id;
                 var newName = name ?? Name;
@@ -230,18 +223,20 @@ namespace Microsoft.CodeAnalysis
                 var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : SourceCodeKind;
                 var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
                 var newIsGenerated = isGenerated.HasValue ? isGenerated.Value : IsGenerated;
+                var newDesignTimeOnly = designTimeOnly.HasValue ? designTimeOnly.Value : DesignTimeOnly;
 
                 if (newId == Id &&
                     newName == Name &&
                     newFolders.SequenceEqual(Folders) &&
                     newSourceCodeKind == SourceCodeKind &&
                     newFilePath == FilePath &&
-                    newIsGenerated == IsGenerated)
+                    newIsGenerated == IsGenerated &&
+                    newDesignTimeOnly == DesignTimeOnly)
                 {
                     return this;
                 }
 
-                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated);
+                return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated, newDesignTimeOnly);
             }
 
             bool IObjectWritable.ShouldReuseInSerialization => true;
@@ -255,6 +250,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteInt32((int)SourceCodeKind);
                 writer.WriteString(FilePath);
                 writer.WriteBoolean(IsGenerated);
+                writer.WriteBoolean(DesignTimeOnly);
             }
 
             public static DocumentAttributes ReadFrom(ObjectReader reader)
@@ -266,8 +262,9 @@ namespace Microsoft.CodeAnalysis
                 var sourceCodeKind = reader.ReadInt32();
                 var filePath = reader.ReadString();
                 var isGenerated = reader.ReadBoolean();
+                var designTimeOnly = reader.ReadBoolean();
 
-                return new DocumentAttributes(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
+                return new DocumentAttributes(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated, designTimeOnly);
             }
 
             Checksum IChecksummedObject.Checksum

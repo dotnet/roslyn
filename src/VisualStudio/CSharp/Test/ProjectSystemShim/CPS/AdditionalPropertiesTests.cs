@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
@@ -20,10 +23,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     {
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void SetProperty_RootNamespace_CPS()
+        public async Task SetProperty_RootNamespace_CPS()
         {
             using (var environment = new TestEnvironment())
-            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
+            using (var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
             {
                 Assert.Null(DefaultNamespaceOfSingleProject(environment));
 
@@ -40,16 +43,17 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [InlineData(LanguageVersion.CSharp7_3)]
         [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
         [InlineData(LanguageVersion.Latest)]
         [InlineData(LanguageVersion.LatestMajor)]
         [InlineData(LanguageVersion.Preview)]
         [InlineData(null)]
-        public void SetProperty_MaxSupportedLangVersion_CPS(LanguageVersion? maxSupportedLangVersion)
+        public async Task SetProperty_MaxSupportedLangVersion_CPS(LanguageVersion? maxSupportedLangVersion)
         {
             const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
             using (var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService)))
-            using (var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
+            using (var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
             {
                 var project = environment.Workspace.CurrentSolution.Projects.Single();
                 var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
@@ -73,12 +77,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfFact]
-        public void SetProperty_MaxSupportedLangVersion_CPS_NotSet()
+        public async Task SetProperty_MaxSupportedLangVersion_CPS_NotSet()
         {
             const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
             using (var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService)))
-            using (var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
+            using (var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
             {
                 var project = environment.Workspace.CurrentSolution.Projects.Single();
                 var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
@@ -116,16 +120,16 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [InlineData("FALSE", "", false)]
         // Invalid values ignored
         [InlineData("Invalid", "INVALID", true)]
-        public void SetProperty_RunAnalyzersAndRunAnalyzersDuringLiveAnalysis(string runAnalyzers, string runAnalyzersDuringLiveAnalysis, bool expectedRunAnalyzers)
+        public async Task SetProperty_RunAnalyzersAndRunAnalyzersDuringLiveAnalysis(string runAnalyzers, string runAnalyzersDuringLiveAnalysis, bool expectedRunAnalyzers)
         {
-            TestCPSProject();
+            await TestCPSProject();
             TestLegacyProject();
             return;
 
-            void TestCPSProject()
+            async Task TestCPSProject()
             {
                 using var environment = new TestEnvironment();
-                using var cpsProject = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
+                using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
 
                 cpsProject.SetProperty(AdditionalPropertyNames.RunAnalyzers, runAnalyzers);
                 cpsProject.SetProperty(AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis, runAnalyzersDuringLiveAnalysis);

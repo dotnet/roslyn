@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -324,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.FunctionPointerLoad:
-                    EmitLoadFunction((BoundFunctionPointerLoad)expression);
+                    EmitLoadFunction((BoundFunctionPointerLoad)expression, used);
                     break;
 
                 default:
@@ -986,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementLoad(Emit.PEModuleBuilder.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type), arrayAccess.Expression.Syntax, _diagnostics);
+                _builder.EmitArrayElementLoad(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type), arrayAccess.Expression.Syntax, _diagnostics);
             }
 
             EmitPopIfUnused(used);
@@ -1597,7 +1599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             MethodSymbol actualMethodTargetedByTheCall = method;
             if (method.IsOverride && callKind != CallKind.Call)
             {
-                actualMethodTargetedByTheCall = method.GetConstructedLeastOverriddenMethod(_method.ContainingType);
+                actualMethodTargetedByTheCall = method.GetConstructedLeastOverriddenMethod(_method.ContainingType, requireSameReturnType: true);
             }
 
             if (callKind == CallKind.ConstrainedCallVirt && actualMethodTargetedByTheCall.ContainingType.IsValueType)
@@ -1864,7 +1866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayCreation(Emit.PEModuleBuilder.Translate(arrayType), expression.Syntax, _diagnostics);
+                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax, _diagnostics);
             }
 
             if (expression.InitializerOpt != null)
@@ -2673,7 +2675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementStore(Emit.PEModuleBuilder.Translate(arrayType), syntaxNode, _diagnostics);
+                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode, _diagnostics);
             }
         }
 
@@ -3466,11 +3468,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitLoadFunction(BoundFunctionPointerLoad load)
+        private void EmitLoadFunction(BoundFunctionPointerLoad load, bool used)
         {
             Debug.Assert(load.Type is { TypeKind: TypeKind.FunctionPointer });
-            _builder.EmitOpCode(ILOpCode.Ldftn);
-            EmitSymbolToken(load.TargetMethod, load.Syntax, optArgList: null);
+
+            if (used)
+            {
+                _builder.EmitOpCode(ILOpCode.Ldftn);
+                EmitSymbolToken(load.TargetMethod, load.Syntax, optArgList: null);
+            }
         }
     }
 }

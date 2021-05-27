@@ -32,10 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
 
-        Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
-            Return SyntaxFactory.EndOfLine(text)
-        End Function
-
         Friend Overrides Function Whitespace(text As String) As SyntaxTrivia
             Return SyntaxFactory.Whitespace(text)
         End Function
@@ -294,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function MemberAccessExpressionWorker(expression As SyntaxNode, simpleName As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.SimpleMemberAccessExpression(
-                ParenthesizeLeft(expression),
+                If(expression IsNot Nothing, ParenthesizeLeft(expression), Nothing),
                 SyntaxFactory.Token(SyntaxKind.DotToken),
                 DirectCast(simpleName, SimpleNameSyntax))
         End Function
@@ -1445,12 +1441,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional modifiers As DeclarationModifiers = Nothing,
             Optional members As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
+            Return EnumDeclaration(name, Nothing, accessibility, modifiers, members)
+        End Function
+
+        Friend Overrides Function EnumDeclaration(name As String,
+                                                  underlyingType As SyntaxNode,
+                                                  Optional accessibility As Accessibility = Accessibility.NotApplicable,
+                                                  Optional modifiers As DeclarationModifiers = Nothing,
+                                                  Optional members As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+
+            Dim underlyingTypeClause = If(underlyingType Is Nothing, Nothing, SyntaxFactory.SimpleAsClause(DirectCast(underlyingType, TypeSyntax)))
+
             Return SyntaxFactory.EnumBlock(
                 enumStatement:=SyntaxFactory.EnumStatement(
                     attributeLists:=Nothing,
                     modifiers:=GetModifierList(accessibility, modifiers And GetAllowedModifiers(SyntaxKind.EnumStatement), DeclarationKind.Enum),
                     identifier:=name.ToIdentifierToken(),
-                    underlyingType:=Nothing),
+                    underlyingType:=underlyingTypeClause),
                     members:=AsEnumMembers(members))
         End Function
 
@@ -1470,10 +1477,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function AsEnumMember(node As SyntaxNode) As StatementSyntax
-            Dim id = TryCast(node, IdentifierNameSyntax)
-            If id IsNot Nothing Then
-                Return DirectCast(EnumMember(id.Identifier.ValueText), EnumMemberDeclarationSyntax)
-            End If
+            Select Case node.Kind
+                Case SyntaxKind.IdentifierName
+                    Dim id = DirectCast(node, IdentifierNameSyntax)
+                    Return DirectCast(EnumMember(id.Identifier.ValueText), EnumMemberDeclarationSyntax)
+                Case SyntaxKind.FieldDeclaration
+                    Dim fd = DirectCast(node, FieldDeclarationSyntax)
+                    If fd.Declarators.Count = 1 Then
+                        Dim vd = fd.Declarators(0)
+                        If vd.Initializer IsNot Nothing AndAlso vd.Names.Count = 1 Then
+                            Return DirectCast(EnumMember(vd.Names(0).Identifier.ValueText, vd.Initializer.Value), EnumMemberDeclarationSyntax)
+                        End If
+                    End If
+            End Select
 
             Return TryCast(node, EnumMemberDeclarationSyntax)
         End Function
@@ -3061,7 +3077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Shared Function GetAccessorList(declaration As SyntaxNode) As SyntaxList(Of AccessorBlockSyntax)
+        Friend Shared Function GetAccessorList(declaration As SyntaxNode) As SyntaxList(Of AccessorBlockSyntax)
             Select Case declaration.Kind
                 Case SyntaxKind.PropertyBlock
                     Return DirectCast(declaration, PropertyBlockSyntax).Accessors
@@ -3713,46 +3729,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides Function RemoveCommentLines(syntaxList As SyntaxTriviaList) As SyntaxTriviaList
             Return syntaxList.Where(Function(s) Not IsRegularOrDocComment(s)).ToSyntaxTriviaList()
         End Function
-#End Region
-
-#Region "Patterns"
-
-        Friend Overrides Function SupportsPatterns(options As ParseOptions) As Boolean
-            Return False
-        End Function
-
-        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, isToken As SyntaxToken, pattern As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function ConstantPattern(expression As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function DeclarationPattern(type As INamedTypeSymbol, name As String) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function AndPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function NotPattern(pattern As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function OrPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function ParenthesizedPattern(pattern As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Friend Overrides Function TypePattern(type As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
 #End Region
 
     End Class

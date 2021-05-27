@@ -9,12 +9,17 @@
       </trans-unit>
       <trans-unit id="Copying_selection_to_Interactive_Window">
         <source>Copying selection to Interactive Window.</source>
-        <target state="translated">将所选内容复制到交互式窗口。</target>
+        <target state="translated">将所选内容复制到交互窗口。</target>
         <note />
       </trans-unit>
       <trans-unit id="Executing_selection_in_Interactive_Window">
         <source>Executing selection in Interactive Window.</source>
-        <target state="translated">在交互式窗口中执行所选内容。</target>
+        <target state="translated">在交互窗口中执行所选内容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interactive_host_process_platform">
+        <source>Interactive host process platform</source>
+        <target state="translated">交互式主机进程平台</target>
         <note />
       </trans-unit>
       <trans-unit id="Print_a_list_of_referenced_assemblies">

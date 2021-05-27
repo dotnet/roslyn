@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -20,6 +18,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
     {
         protected AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(LocalizableString title)
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
+                   EnforceOnBuildValues.UseIsNullCheck,
                    CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
                    title,
                    new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -50,6 +49,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             });
 
         protected abstract bool IsLanguageVersionSupported(ParseOptions options);
+        protected abstract bool IsUnconstrainedGenericSupported(ParseOptions options);
         protected abstract ISyntaxFacts GetSyntaxFacts();
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, IMethodSymbol referenceEqualsMethod)
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             var genericParameterSymbol = GetGenericParameterSymbol(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken);
             if (genericParameterSymbol != null)
             {
-                if (genericParameterSymbol.HasValueTypeConstraint)
+                if (genericParameterSymbol.IsValueType)
                 {
                     // 'is null' would generate error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
                     // '== null' would generate error CS0019: Operator '==' cannot be applied to operands of type 'T' and '<null>'
@@ -122,11 +122,13 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                     return;
                 }
 
-                if (!genericParameterSymbol.HasReferenceTypeConstraint)
+                // HasReferenceTypeConstraint returns false for base type constraint.
+                // IsReferenceType returns true.
+
+                if (!genericParameterSymbol.IsReferenceType && !IsUnconstrainedGenericSupported(syntaxTree.Options))
                 {
                     // Needs special casing for C# as long as
-                    // https://github.com/dotnet/csharplang/issues/1284
-                    // is not implemented.
+                    // 'is null' over unconstrained generic is implemented in C# 8.
                     properties = properties.Add(UseIsNullConstants.UnconstrainedGeneric, "");
                 }
             }

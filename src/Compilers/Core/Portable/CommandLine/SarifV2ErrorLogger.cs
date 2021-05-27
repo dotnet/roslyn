@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override string PrimaryLocationPropertyName => "physicalLocation";
 
-        public override void LogDiagnostic(Diagnostic diagnostic)
+        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
         {
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
@@ -69,6 +68,12 @@ namespace Microsoft.CodeAnalysis
                 _writer.WriteArrayStart("suppressions");
                 _writer.WriteObjectStart(); // suppression
                 _writer.Write("kind", "inSource");
+                string? justification = suppressionInfo?.Attribute?.DecodeNamedArgument<string>("Justification", SpecialType.System_String);
+                if (justification != null)
+                {
+                    _writer.Write("justification", justification);
+                }
+
                 _writer.WriteObjectEnd(); // suppression
                 _writer.WriteArrayEnd();
             }

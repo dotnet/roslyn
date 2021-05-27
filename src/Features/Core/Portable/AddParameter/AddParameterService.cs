@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         {
         }
 
-        public static AddParameterService Instance = new AddParameterService();
+        public static AddParameterService Instance = new();
 
         public bool HasCascadingDeclarations(IMethodSymbol method)
         {
@@ -90,13 +91,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
             // Indexing Locations[0] is valid because IMethodSymbols have one location at most
             // and IsFromSource() tests if there is at least one location.
             var locationsByDocument = locationsInSource.ToLookup(declarationLocation
-                => solution.GetDocument(declarationLocation.Locations[0].SourceTree));
+                => solution.GetRequiredDocument(declarationLocation.Locations[0].SourceTree!));
 
             foreach (var documentLookup in locationsByDocument)
             {
                 var document = documentLookup.Key;
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var editor = new SyntaxEditor(syntaxRoot, solution.Workspace);
                 var generator = editor.Generator;
                 foreach (var methodDeclaration in documentLookup)
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                             ConflictAnnotation.Create(FeaturesResources.Related_method_signatures_found_in_metadata_will_not_be_updated));
                     }
 
-                    if (method.MethodKind == MethodKind.ReducedExtension)
+                    if (method.MethodKind == MethodKind.ReducedExtension && insertionIndex < existingParameters.Count)
                     {
                         insertionIndex++;
                     }
@@ -268,11 +269,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
         }
 
-        private static List<SyntaxTrivia> GetDesiredLeadingIndentation(
+        private static ImmutableArray<SyntaxTrivia> GetDesiredLeadingIndentation(
             SyntaxGenerator generator, ISyntaxFactsService syntaxFacts,
             SyntaxNode node, bool includeLeadingNewLine)
         {
-            var triviaList = new List<SyntaxTrivia>();
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var triviaList);
             if (includeLeadingNewLine)
             {
                 triviaList.Add(generator.ElasticCarriageReturnLineFeed);
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 triviaList.Add(lastWhitespace);
             }
 
-            return triviaList;
+            return triviaList.ToImmutable();
         }
 
         private static bool ShouldPlaceParametersOnNewLine(

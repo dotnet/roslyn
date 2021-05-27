@@ -15,6 +15,7 @@
     <!-- Setting this to the same as CreateVsixContainer ensures that the VS SDK doesn't try to look for a source.extension.vsixmanifest
          when we don't have one. -->
     <CopyVsixManifestToOutput>$(CreateVsixContainer)</CopyVsixManifestToOutput>
+    <SetupProductArch>Neutral</SetupProductArch>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
@@ -121,10 +122,6 @@
                              or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.11.0'">
         <EmbedInteropTypes>false</EmbedInteropTypes>
       </ReferencePath>
-
-      <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.StaticReviews.Embeddable'">
-        <EmbedInteropTypes>true</EmbedInteropTypes>
-      </ReferencePath>      
     </ItemGroup>
   </Target>
 

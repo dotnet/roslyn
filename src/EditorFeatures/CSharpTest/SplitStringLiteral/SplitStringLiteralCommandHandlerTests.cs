@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// this known test infrastructure issure. This bug does not represent a product
         /// failure.
         /// </summary>
-        private void TestWorker(
+        private static void TestWorker(
             string inputMarkup,
             string expectedOutputMarkup,
             Action callback,
@@ -64,9 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             view.SetMultiSelection(snapshotSpans);
 
             var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
-            var commandHandler = new SplitStringLiteralCommandHandler(
-                undoHistoryRegistry,
-                workspace.GetService<IEditorOperationsFactoryService>());
+            var commandHandler = workspace.ExportProvider.GetCommandHandler<SplitStringLiteralCommandHandler>(nameof(SplitStringLiteralCommandHandler));
 
             if (!commandHandler.ExecuteCommand(new ReturnKeyCommandArgs(view, view.TextBuffer), TestCommandExecutionContext.Create()))
             {
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
         /// this known test infrastructure issure. This bug does not represent a product
         /// failure.
         /// </summary>
-        private void TestHandled(
+        private static void TestHandled(
             string inputMarkup, string expectedOutputMarkup,
             bool verifyUndo = true, IndentStyle indentStyle = IndentStyle.Smart,
             bool useTabs = false)
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 verifyUndo, indentStyle, useTabs);
         }
 
-        private void TestNotHandled(string inputMarkup)
+        private static void TestNotHandled(string inputMarkup)
         {
             var notHandled = false;
             TestWorker(

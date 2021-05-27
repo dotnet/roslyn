@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Reflection;
 
 #if DEBUG || BOOTSTRAP
@@ -72,14 +70,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            // The number chosen is arbitrary here.  The goal of this check is to catch cases where a coding error has 
-            // broken our ability to use the compiler server in the bootstrap phase.
+            // This represents the maximum number of failed build attempts on the server before we will declare
+            // that the overall build itself failed. 
             //
-            // It's possible on completely correct code for the server connection to fail.  There could be simply 
-            // named pipe errors, CPU load causing timeouts, etc ...  Hence flagging a single failure would produce
-            // a lot of false positives.  The current value was chosen as a reasonable number for warranting an 
-            // investigation.
-            const int maxRejectCount = 5;
+            // The goal is to keep this at zero. The errors here are a mix of repository construction errors (having
+            // incompatible NuGet analyzers) and product errors (having flaky behavior in the server). Any time this
+            // number goes above zero it means we are dropping connections during developer inner loop builds and 
+            // hence measurably slowing down our productivity.
+            //
+            // When we find issues in the server or our infra we can temporarily raise this number while it is
+            // being worked out but should file a bug to track getting this to zero.
+            const int maxRejectCount = 0;
             var rejectCount = 0;
             foreach (var tuple in s_failedQueue.ToList())
             {

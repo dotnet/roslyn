@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return previousToken.Span.End;
         }
 
-        private static SyntaxNode GetParentThatContainsGivenSpan(SyntaxNode node, int position, bool forward)
+        private static SyntaxNode? GetParentThatContainsGivenSpan(SyntaxNode? node, int position, bool forward)
         {
             while (node != null)
             {

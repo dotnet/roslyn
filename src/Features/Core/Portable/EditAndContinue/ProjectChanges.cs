@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// All line changes made in changed documents.
         /// </summary>
-        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<LineChange> Changes)> LineChanges;
+        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<SourceLineUpdate> Changes)> LineChanges;
 
         /// <summary>
         /// All symbols added in changed documents.
@@ -33,13 +34,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public ProjectChanges(
             ImmutableArray<SemanticEdit> semanticEdits,
-            ImmutableArray<(DocumentId, ImmutableArray<LineChange>)> lineChanges,
+            ImmutableArray<(DocumentId, ImmutableArray<SourceLineUpdate>)> lineChanges,
             ImmutableHashSet<ISymbol> addedSymbols,
             ImmutableArray<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)> newActiveStatements)
         {
             Debug.Assert(!semanticEdits.IsDefault);
             Debug.Assert(!lineChanges.IsDefault);
-            Debug.Assert(addedSymbols != null);
             Debug.Assert(!newActiveStatements.IsDefault);
 
             SemanticEdits = semanticEdits;

@@ -5,6 +5,8 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicStructuredTriviaFormatEngine
@@ -29,6 +31,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             MyBase.New(TreeData.Create(trivia, initialColumn),
                        options, formattingRules, token1, token2)
         End Sub
+
+        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
+            Get
+                Return VisualBasicSyntaxFacts.Instance
+            End Get
+        End Property
 
         Protected Overrides Function CreateTriviaFactory() As AbstractTriviaDataFactory
             Return New TriviaDataFactory(Me.TreeData, Me.Options)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -14,9 +12,9 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentTypeDefinitionName)]
-    internal class GoToTypeDefinitionHandler : GoToDefinitionHandlerBase, IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentTypeDefinitionName)]
+    internal class GoToTypeDefinitionHandler : AbstractGoToDefinitionHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -24,10 +22,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<LSP.Location[]> HandleRequestAsync(Solution solution, LSP.TextDocumentPositionParams request,
-            LSP.ClientCapabilities clientCapabilities, string? clientName, CancellationToken cancellationToken)
-        {
-            return await GetDefinitionAsync(solution, request, typeOnly: true, clientName, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
+        public override string Method => LSP.Methods.TextDocumentTypeDefinitionName;
+
+        public override Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+            => GetDefinitionAsync(request, typeOnly: true, context, cancellationToken);
     }
 }

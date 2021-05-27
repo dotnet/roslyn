@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Remote.Testing
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     <[UseExportProvider]>
     Public Class InterfaceTests
@@ -13,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
 
         <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameExplicitlyImplementedInterfaceMemberFromDefinition(host As TestHost)
+        Public Sub RenameExplicitlyImplementedInterfaceMemberFromDefinition(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -36,7 +38,7 @@ class C : I
 
         <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameExplicitlyImplementedInterfaceMemberFromImplementation(host As TestHost)
+        Public Sub RenameExplicitlyImplementedInterfaceMemberFromImplementation(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -59,7 +61,7 @@ class C : I
 
         <WorkItem(546205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546205")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace(host As TestHost)
+        Public Sub RenameExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -84,7 +86,7 @@ class C : N.I
         End Sub
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInterfaceForExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace(host As TestHost)
+        Public Sub RenameInterfaceForExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">

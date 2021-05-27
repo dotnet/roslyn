@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.RuntimeMembers;
@@ -12,7 +10,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class SpecialMembers
     {
-        private readonly static ImmutableArray<MemberDescriptor> s_descriptors;
+        private static readonly ImmutableArray<MemberDescriptor> s_descriptors;
 
         static SpecialMembers()
         {
@@ -1009,6 +1007,25 @@ namespace Microsoft.CodeAnalysis
                 (byte)SpecialType.System_Runtime_CompilerServices_RuntimeFeature,                                           // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
+
+                // System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
+                (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
+                (byte)SpecialType.System_Runtime_CompilerServices_RuntimeFeature,                                           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
+
+                // System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
+                (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
+                (byte)SpecialType.System_Runtime_CompilerServices_RuntimeFeature,                                           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
+
+                // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute,                           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
             };
 
             string[] allNames = new string[(int)SpecialMember.Count]
@@ -1134,6 +1151,9 @@ namespace Microsoft.CodeAnalysis
                 "op_Implicit",                              // System_Nullable_T__op_Implicit_FromT
                 "op_Explicit",                              // System_Nullable_T__op_Explicit_ToT
                 "DefaultImplementationsOfInterfaces",       // System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
+                "UnmanagedSignatureCallingConvention",      // System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
+                "CovariantReturnsOfClasses",                // System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
+                ".ctor",                                    // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

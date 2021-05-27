@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.IOperation)]
     public class OperationAnalyzerTests : CompilingTestBase
     {
-        private readonly static CSharpParseOptions patternParseOptions = TestOptions.Regular;
+        private static readonly CSharpParseOptions patternParseOptions = TestOptions.Regular;
 
         [Fact]
         public void EmptyArrayCSharp()
@@ -1825,7 +1827,6 @@ struct S
                 Diagnostic("Literal", "1").WithArguments("1").WithLocation(13, 17),
                 Diagnostic("Literal", @"""hello""").WithArguments(@"""hello""").WithLocation(14, 22),
                 Diagnostic("Literal", "null").WithArguments("null").WithLocation(15, 20),
-                Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9),
                 Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9),
                 Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9));
         }

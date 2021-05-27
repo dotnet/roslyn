@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static CSharpCompilation CreateCSharpCompilation(string sourceText)
         {
             var syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceText);
-            return CSharpCompilation.Create("goo.exe").AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib).AddSyntaxTrees(syntaxTree);
+            return CSharpCompilation.Create("goo.exe").AddReferences(TestMetadata.Net451.mscorlib).AddSyntaxTrees(syntaxTree);
         }
 
         private static void CheckDeclarationId(string expectedId, INamespaceOrTypeSymbol symbol, Compilation compilation)

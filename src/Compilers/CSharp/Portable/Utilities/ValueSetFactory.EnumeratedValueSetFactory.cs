@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -19,7 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class EnumeratedValueSetFactory<T, TTC> : IValueSetFactory<T> where TTC : struct, IEquatableValueTC<T> where T : notnull
         {
-            public static EnumeratedValueSetFactory<T, TTC> Instance = new EnumeratedValueSetFactory<T, TTC>();
+            public static readonly EnumeratedValueSetFactory<T, TTC> Instance = new EnumeratedValueSetFactory<T, TTC>();
+
+            IValueSet IValueSetFactory.AllValues => EnumeratedValueSet<T, TTC>.AllValues;
+
+            IValueSet IValueSetFactory.NoValues => EnumeratedValueSet<T, TTC>.NoValues;
 
             private EnumeratedValueSetFactory() { }
 
@@ -44,11 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return tc.FromConstantValue(left).Equals(tc.FromConstantValue(right));
             }
 
-            IValueSet IValueSetFactory.Random(int expectedSize, Random random)
+            public IValueSet Random(int expectedSize, Random random)
             {
                 TTC tc = default;
                 T[] values = tc.RandomValues(expectedSize, random, expectedSize * 2);
-                IValueSet<T> result = EnumeratedValueSet<T, TTC>.AllValues.Complement();
+                IValueSet<T> result = EnumeratedValueSet<T, TTC>.NoValues;
                 Debug.Assert(result.IsEmpty);
                 foreach (T value in values)
                     result = result.Union(Related(Equal, value));

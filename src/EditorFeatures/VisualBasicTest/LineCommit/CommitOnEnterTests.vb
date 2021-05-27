@@ -369,7 +369,7 @@ End Module
             AssertCommitsStatement(test, expectCommit:=False)
         End Sub
 
-        Private Sub AssertCommitsStatement(test As XElement, expectCommit As Boolean, Optional usedSemantics As Boolean = True)
+        Private Shared Sub AssertCommitsStatement(test As XElement, expectCommit As Boolean, Optional usedSemantics As Boolean = True)
             Using testData = CommitTestData.Create(test)
                 Dim lineNumber = testData.View.Caret.Position.BufferPosition.GetContainingLine().LineNumber
                 testData.CommandHandler.ExecuteCommand(New ReturnKeyCommandArgs(testData.View, testData.Buffer), Sub() testData.EditorOperations.InsertNewLine(), TestCommandExecutionContext.Create())

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    internal class RQMemberParameterIndex : RQNode<IParameterSymbol>
+    internal class RQMemberParameterIndex : RQNode
     {
         public readonly RQMember ContainingMember;
         public readonly int ParameterIndex;

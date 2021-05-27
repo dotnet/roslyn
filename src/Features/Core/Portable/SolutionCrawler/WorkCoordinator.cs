@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal sealed partial class WorkCoordinator
         {
             private readonly Registration _registration;
             private readonly object _gate;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly LogAggregator _logAggregator;
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
-            private readonly IDocumentTrackingService? _documentTrackingService;
+            private readonly IDocumentTrackingService _documentTrackingService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource;
             private readonly CancellationToken _shutdownToken;
@@ -37,8 +35,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             // points to processor task
             private readonly IncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
             private readonly SemanticChangeProcessor _semanticChangeProcessor;
-
-            private Document? _lastActiveDocument;
 
             public WorkCoordinator(
                  IAsynchronousOperationListener listener,
@@ -53,7 +49,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _listener = listener;
                 _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
-                _documentTrackingService = _registration.Workspace.Services.GetService<IDocumentTrackingService>();
+                _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
                 // event and worker queues
                 _shutdownNotificationSource = new CancellationTokenSource();
@@ -87,11 +83,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _optionService.OptionChanged += OnOptionChanged;
 
                 // subscribe to active document changed event for active file background analysis scope.
-                if (_documentTrackingService != null)
-                {
-                    _lastActiveDocument = _documentTrackingService.GetActiveDocument(_registration.Workspace.CurrentSolution);
-                    _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
-                }
+                _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
             }
 
             public int CorrelationId => _registration.CorrelationId;
@@ -102,18 +94,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer, highPriorityForActiveFile);
 
                 // and ask to re-analyze whole solution for the given analyzer
-                var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
+                var scope = new ReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
                 Reanalyze(analyzer, scope);
             }
 
             public void Shutdown(bool blockingShutdown)
             {
                 _optionService.OptionChanged -= OnOptionChanged;
-
-                if (_documentTrackingService != null)
-                {
-                    _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
-                }
+                _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
 
                 // detach from the workspace
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
@@ -134,7 +122,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _documentAndProjectWorkerProcessor.AsyncProcessorTask,
                         _semanticChangeProcessor.AsyncProcessorTask);
 
-                    shutdownTask.Wait(TimeSpan.FromSeconds(5));
+                    try
+                    {
+                        shutdownTask.Wait(TimeSpan.FromSeconds(5));
+                    }
+                    catch (AggregateException ex)
+                    {
+                        ex.Handle(e => e is OperationCanceledException);
+                    }
 
                     if (!shutdownTask.IsCompleted)
                     {
@@ -191,7 +186,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         if (forceAnalyze || analyzer.NeedsReanalysisOnOptionChanged(sender, e))
                         {
-                            var scope = new ReanalyzeScope(_registration.CurrentSolution.Id);
+                            var scope = new ReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
                             Reanalyze(analyzer, scope);
                         }
                     }
@@ -207,42 +202,25 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // log big reanalysis request from things like fix all, suppress all or option changes
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
-                    var solution = _registration.CurrentSolution;
+                    var solution = _registration.GetSolutionToAnalyze();
                     SolutionCrawlerLogger.LogReanalyze(
                         CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution), highPriority);
                 }
             }
 
-            private void OnActiveDocumentChanged(object? sender, DocumentId activeDocumentId)
+            private void OnActiveDocumentChanged(object? sender, DocumentId? activeDocumentId)
             {
-                var solution = _registration.Workspace.CurrentSolution;
+                var solution = _registration.GetSolutionToAnalyze();
+                if (solution.GetProject(activeDocumentId?.ProjectId) is not { } activeProject)
+                    return;
 
-                // Check if we are only performing backgroung analysis for active file.
-                if (activeDocumentId != null)
+                RoslynDebug.AssertNotNull(activeDocumentId);
+                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeProject);
+                if (analysisScope == BackgroundAnalysisScope.ActiveFile)
                 {
-                    // Change to active document needs to trigger following events in active file analysis scope:
-                    //  1. Request analysis for newly active file, similar to a newly opened file.
-                    //  2. Clear analysis data for prior active file, similar to a closed file.
-                    // Note that if 'activeDocumentId' is null, i.e. user navigated to a non-source file,
-                    // we are treating it as a no-op here.
-                    // As soon as user switches to a source document, we will perform the appropriate analysis callbacks
-                    // on the next active document changed event.
-                    var activeDocument = solution.GetDocument(activeDocumentId);
-                    if (activeDocument != null &&
-                        SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeDocument.Project) == BackgroundAnalysisScope.ActiveFile)
-                    {
-                        lock (_gate)
-                        {
-                            if (_lastActiveDocument != null)
-                            {
-                                EnqueueEvent(_lastActiveDocument.Project.Solution, _lastActiveDocument.Id, InvocationReasons.DocumentClosed, "OnDocumentClosed");
-                            }
-
-                            _lastActiveDocument = activeDocument;
-                        }
-
-                        EnqueueEvent(activeDocument.Project.Solution, activeDocument.Id, InvocationReasons.DocumentOpened, "OnDocumentOpened");
-                    }
+                    // When the active document changes and we are only analyzing the active file, trigger a document
+                    // changed event to reanalyze the newly-active file.
+                    EnqueueEvent(solution, activeDocumentId, InvocationReasons.DocumentChanged, nameof(OnActiveDocumentChanged));
                 }
             }
 
@@ -267,7 +245,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     ae = ae.Flatten();
 
                     // If we had a mix of exceptions, don't eat it
-                    if (ae.InnerExceptions.Any(e => !(e is OperationCanceledException)) ||
+                    if (ae.InnerExceptions.Any(e => e is not OperationCanceledException) ||
                         ae.InnerExceptions.Cast<OperationCanceledException>().Any(NotOurShutdownToken))
                     {
                         // We had a cancellation with a different token, so don't eat it
@@ -504,7 +482,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)
             {
-                var solution = _registration.CurrentSolution;
+                var solution = _registration.GetSolutionToAnalyze();
                 var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
 
                 foreach (var document in scope.GetDocuments(solution))
@@ -591,7 +569,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
                     !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
                     !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
-                    !oldProject.CompilationOutputFilePaths.Equals(newProject.CompilationOutputFilePaths) ||
+                    !oldProject.CompilationOutputInfo.Equals(newProject.CompilationOutputInfo) ||
                     oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
@@ -662,27 +640,42 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 await EnqueueWorkItemAsync(oldProject.GetRequiredDocument(documentId), newProject.GetRequiredDocument(documentId)).ConfigureAwait(continueOnCapturedContext: false);
             }
 
-            internal void WaitUntilCompletion_ForTestingPurposesOnly(ImmutableArray<IIncrementalAnalyzer> workers)
+            internal TestAccessor GetTestAccessor()
             {
-                var solution = _registration.CurrentSolution;
-                var list = new List<WorkItem>();
-
-                foreach (var project in solution.Projects)
-                {
-                    foreach (var document in project.Documents)
-                    {
-                        list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
-                    }
-                }
-
-                _documentAndProjectWorkerProcessor.WaitUntilCompletion_ForTestingPurposesOnly(workers, list);
+                return new TestAccessor(this);
             }
 
-            internal void WaitUntilCompletion_ForTestingPurposesOnly()
-                => _documentAndProjectWorkerProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
+            internal readonly struct TestAccessor
+            {
+                private readonly WorkCoordinator _workCoordinator;
+
+                internal TestAccessor(WorkCoordinator workCoordinator)
+                {
+                    _workCoordinator = workCoordinator;
+                }
+
+                internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> workers)
+                {
+                    var solution = _workCoordinator._registration.GetSolutionToAnalyze();
+                    var list = new List<WorkItem>();
+
+                    foreach (var project in solution.Projects)
+                    {
+                        foreach (var document in project.Documents)
+                        {
+                            list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
+                        }
+                    }
+
+                    _workCoordinator._documentAndProjectWorkerProcessor.GetTestAccessor().WaitUntilCompletion(workers, list);
+                }
+
+                internal void WaitUntilCompletion()
+                    => _workCoordinator._documentAndProjectWorkerProcessor.GetTestAccessor().WaitUntilCompletion();
+            }
         }
 
-        private readonly struct ReanalyzeScope
+        internal readonly struct ReanalyzeScope
         {
             private readonly SolutionId? _solutionId;
             private readonly ISet<object>? _projectOrDocumentIds;
@@ -742,6 +735,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 pool.Object.Add(project.Language);
                             }
+
                             break;
                         case DocumentId documentId:
                             var document = solution.GetDocument(documentId);
@@ -749,6 +743,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 pool.Object.Add(document.Project.Language);
                             }
+
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
@@ -770,7 +765,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     foreach (var projectState in solution.State.ProjectStates)
                     {
-                        count += projectState.Value.DocumentIds.Count;
+                        count += projectState.Value.DocumentStates.Count;
                     }
 
                     return count;
@@ -788,6 +783,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 count += project.DocumentIds.Count;
                             }
+
                             break;
                         case DocumentId documentId:
                             count++;
@@ -833,6 +829,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                         yield return document;
                                     }
                                 }
+
                                 break;
                             }
                         case DocumentId documentId:
@@ -842,6 +839,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 {
                                     yield return document;
                                 }
+
                                 break;
                             }
                     }

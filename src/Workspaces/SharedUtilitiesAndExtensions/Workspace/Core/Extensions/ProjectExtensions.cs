@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -30,14 +28,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static HostLanguageServices GetExtendedLanguageServices(this Project project)
             => project.Solution.Workspace.Services.GetExtendedLanguageServices(project.Language);
 #pragma warning restore RS0030 // Do not used banned APIs
-
-        public static async Task<VersionStamp> GetVersionAsync(this Project project, CancellationToken cancellationToken)
-        {
-            var version = project.Version;
-            var latestVersion = await project.GetLatestDocumentVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            return version.GetNewerVersion(latestVersion);
-        }
 
         public static string? TryGetAnalyzerConfigPathForProjectConfiguration(this Project project)
             => TryGetAnalyzerConfigPathForProjectOrDiagnosticConfiguration(project, diagnostic: null);

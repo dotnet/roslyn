@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -1295,7 +1297,7 @@ End Class
         [Fact]
         public void AssemblyComparer1()
         {
-            var references = new[] { TestReferences.NetFx.v4_0_30319.mscorlib };
+            var references = new[] { TestMetadata.Net451.mscorlib };
 
             var source = "public class T {}";
             var sourceV1 = "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")] public class T {}";
@@ -1395,8 +1397,8 @@ End Class
                 r2 = MetadataReference.CreateFromImage(bytes);
             }
 
-            var c1 = (Compilation)CS.CSharpCompilation.Create("comp1", Array.Empty<SyntaxTree>(), new[] { TestReferences.NetFx.v4_0_30319.mscorlib, r1 });
-            var c2 = (Compilation)CS.CSharpCompilation.Create("comp2", Array.Empty<SyntaxTree>(), new[] { TestReferences.NetFx.v4_0_30319.mscorlib, r2 });
+            var c1 = (Compilation)CS.CSharpCompilation.Create("comp1", Array.Empty<SyntaxTree>(), new[] { TestMetadata.Net451.mscorlib, r1 });
+            var c2 = (Compilation)CS.CSharpCompilation.Create("comp2", Array.Empty<SyntaxTree>(), new[] { TestMetadata.Net451.mscorlib, r2 });
             var type1 = (ITypeSymbol)c1.GlobalNamespace.GetMembers("C").Single();
             var type2 = (ITypeSymbol)c2.GlobalNamespace.GetMembers("C").Single();
 
@@ -1426,7 +1428,7 @@ End Class
             Assert.True(identityComparer.Equals(f1[3], f2[3]));
         }
 
-        private void TestReducedExtension<TInvocation>(Compilation comp1, Compilation comp2, string typeName, string methodName)
+        private static void TestReducedExtension<TInvocation>(Compilation comp1, Compilation comp2, string typeName, string methodName)
             where TInvocation : SyntaxNode
         {
             var method1 = GetInvokedSymbol<TInvocation>(comp1, typeName, methodName);
@@ -1446,7 +1448,7 @@ End Class
             Assert.True(SymbolEquivalenceComparer.Instance.Equals(cfmethod1, cfmethod2));
         }
 
-        private IMethodSymbol GetInvokedSymbol<TInvocation>(Compilation compilation, string typeName, string methodName)
+        private static IMethodSymbol GetInvokedSymbol<TInvocation>(Compilation compilation, string typeName, string methodName)
             where TInvocation : SyntaxNode
         {
             var type1 = compilation.GlobalNamespace.GetTypeMembers(typeName).Single();

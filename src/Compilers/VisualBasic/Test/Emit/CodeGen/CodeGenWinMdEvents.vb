@@ -455,7 +455,7 @@ End Class
         ''' I'm assuming this is why the final dev11 impl uses GetOrCreateEventRegistrationTokenTable.
         ''' </remarks>
         <WorkItem(1003209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003209")>
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:=ConditionalSkipReason.WinRTNeedsWindowsDesktop)>
         Public Sub FieldLikeEventSerialization()
 
             Dim source1 =
@@ -535,7 +535,7 @@ End Namespace
             Dim comp1 = CreateEmptyCompilationWithReferences(source1, WinRtRefs, options:=TestOptions.ReleaseWinMD)
             comp1.VerifyDiagnostics()
 
-            Dim serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization
+            Dim serializationRef = TestMetadata.Net451.SystemRuntimeSerialization
             Dim comp2 = CreateEmptyCompilationWithReferences(source2, WinRtRefs.Concat({New VisualBasicCompilationReference(comp1), serializationRef, MsvbRef, SystemXmlRef}), options:=TestOptions.ReleaseExe)
             CompileAndVerify(comp2, expectedOutput:=<![CDATA[
 A

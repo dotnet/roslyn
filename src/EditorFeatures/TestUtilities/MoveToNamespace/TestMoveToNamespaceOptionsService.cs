@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         {
         }
 
-        public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(string defaultNamespace, ImmutableArray<string> availableNamespaces, ISyntaxFactsService syntaxFactsService)
+        public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(string defaultNamespace, ImmutableArray<string> availableNamespaces, ISyntaxFacts syntaxFactsService)
             => OptionsResult;
 
         internal void SetOptions(MoveToNamespaceOptionsResult moveToNamespaceOptions)

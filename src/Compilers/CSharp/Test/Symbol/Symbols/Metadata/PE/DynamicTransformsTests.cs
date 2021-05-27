@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             _assembly = MetadataTestHelpers.GetSymbolsForReferences(
                 TestReferences.SymbolsTests.Metadata.DynamicAttributeLib,
-                TestReferences.NetFx.v4_0_30319.mscorlib)[0];
+                TestMetadata.Net451.mscorlib)[0];
 
             _base0Class = _assembly.Modules[0].GlobalNamespace.GetMember<NamedTypeSymbol>("Base0");
             _base1Class = _assembly.Modules[0].GlobalNamespace.GetMember<NamedTypeSymbol>("Base1");

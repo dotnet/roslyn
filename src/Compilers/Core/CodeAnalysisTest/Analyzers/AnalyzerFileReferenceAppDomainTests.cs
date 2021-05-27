@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 #if NET472 // AppDomains
 
 using System;
@@ -91,12 +89,13 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    TestReferences.NetStandard20.NetStandard,
-                    TestReferences.NetStandard20.SystemRuntimeRef,
+                    TestMetadata.NetStandard20.mscorlib,
+                    TestMetadata.NetStandard20.netstandard,
+                    TestMetadata.NetStandard20.SystemRuntime,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },
-                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel));
 
             var analyzerFile = dir.CreateFile("MyAnalyzer.dll").WriteAllBytes(analyzerCompilation.EmitToArray());
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     // to reduce number of unnecessary heap allocations, most of them just return null.
     internal sealed class DefaultOperationProvider : AbstractFormattingRule
     {
-        public static readonly DefaultOperationProvider Instance = new DefaultOperationProvider();
+        public static readonly DefaultOperationProvider Instance = new();
 
         private DefaultOperationProvider()
         {

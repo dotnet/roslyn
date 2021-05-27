@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -29,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             decimal INumericTC<decimal>.MinValue => decimal.MinValue;
 
             decimal INumericTC<decimal>.MaxValue => decimal.MaxValue;
+
+            decimal INumericTC<decimal>.Zero => 0M;
 
             public decimal FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? 0m : constantValue.DecimalValue;
 

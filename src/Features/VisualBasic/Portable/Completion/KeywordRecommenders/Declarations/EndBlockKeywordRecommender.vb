@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -14,9 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class EndBlockKeywordRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsPreProcessorDirectiveContext Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim targetToken = context.TargetToken
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
                 Dim keywordList = keywords.ToList()
                 EnsureAllIfAny(keywordList, "Function", "Sub")
-                Return keywordList.Select(Function(k) New RecommendedKeyword(k, GetToolTipForKeyword(k)))
+                Return keywordList.SelectAsArray(Function(k) New RecommendedKeyword(k, GetToolTipForKeyword(k)))
 
             ElseIf context.FollowsEndOfStatement Then
                 ' If you're in a case like this
@@ -54,12 +55,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
                 If node IsNot Nothing Then
                     ' We don't have "End", so recommend everything with the End keyword
-                    Return GetUnclosedBlockKeywords(node).Select(Function(k) New RecommendedKeyword("End " & SyntaxFacts.GetText(k),
-                                                                                                    GetToolTipForKeyword(SyntaxFacts.GetText(k))))
+                    Return GetUnclosedBlockKeywords(node).SelectAsArray(
+                        Function(k) New RecommendedKeyword("End " & SyntaxFacts.GetText(k), GetToolTipForKeyword(SyntaxFacts.GetText(k))))
                 End If
             End If
 
-            Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            Return ImmutableArray(Of RecommendedKeyword).Empty
         End Function
 
         Private Shared Function GetToolTipForKeyword(keyword As String) As String

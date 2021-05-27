@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,6 +19,12 @@ namespace Microsoft.CodeAnalysis
             : base(messageProvider, errorCode, arguments)
         {
             Data = data;
+        }
+
+        private CustomObsoleteDiagnosticInfo(CustomObsoleteDiagnosticInfo baseInfo, DiagnosticSeverity effectiveSeverity)
+            : base(baseInfo, effectiveSeverity)
+        {
+            Data = baseInfo.Data;
         }
 
         public override string MessageIdentifier
@@ -48,6 +52,11 @@ namespace Microsoft.CodeAnalysis
 
                 return _descriptor;
             }
+        }
+
+        internal override DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        {
+            return new CustomObsoleteDiagnosticInfo(this, severity);
         }
 
         private DiagnosticDescriptor CreateDescriptor()

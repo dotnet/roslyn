@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Xunit;
 
@@ -28,8 +30,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _instance.Editor.Activate();
             _instance.Editor.SelectTextInCurrentDocument(text);
-            int lineNumber = _instance.Editor.GetLine();
-            int columnIndex = _instance.Editor.GetColumn();
+            var lineNumber = _instance.Editor.GetLine();
+            var columnIndex = _instance.Editor.GetColumn();
 
             SetBreakPoint(fileName, lineNumber, columnIndex + charsOffset);
         }

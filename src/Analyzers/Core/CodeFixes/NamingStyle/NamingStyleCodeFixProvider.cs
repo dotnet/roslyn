@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 #if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
                 return SpecializedCollections.SingletonEnumerable(codeAction);
 #else
-                var factory = _startingSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+                var factory = _startingSolution.Workspace.Services.GetRequiredService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
                 return new CodeActionOperation[]
                 {
                     codeAction,

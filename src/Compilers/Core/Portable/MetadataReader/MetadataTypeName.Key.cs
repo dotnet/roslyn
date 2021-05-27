@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis
             private readonly byte _useCLSCompliantNameArityEncoding; // Using byte instead of bool for denser packing and smaller structure size
             private readonly short _forcedArity;
 
-            internal Key(MetadataTypeName mdTypeName)
+            internal Key(in MetadataTypeName mdTypeName)
             {
                 if (mdTypeName.IsNull)
                 {
@@ -113,9 +115,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public Key ToKey()
+        public readonly Key ToKey()
         {
-            return new Key(this);
+            return new Key(in this);
         }
     }
 }

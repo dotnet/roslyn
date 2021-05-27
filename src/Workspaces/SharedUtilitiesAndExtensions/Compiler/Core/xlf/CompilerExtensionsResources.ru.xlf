@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../CompilerExtensionsResources.resx">
     <body>
@@ -97,6 +97,11 @@
         <target state="translated">Стили именования</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Предпочтения для новых строк</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_Field_Members">
         <source>Non-Field Members</source>
         <target state="translated">Не являющиеся полем члены</target>
@@ -157,6 +162,11 @@
         <target state="translated">Открытое или защищенное поле</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
       </trans-unit>
+      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
+        <source>Segment size must be power of 2 greater than 1</source>
+        <target state="translated">Размер сегмента должен представлять степень числа 2, превышающую 1</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">
         <source>Specified sequence has duplicate items</source>
         <target state="translated">Указанная последовательность содержит повторяющиеся элементы.</target>
@@ -176,6 +186,11 @@
         <source>Struct</source>
         <target state="new">Struct</target>
         <note>{locked} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Suppression_preferences">
+        <source>Suppression preferences</source>
+        <target state="translated">Параметры подавления</target>
+        <note />
       </trans-unit>
       <trans-unit id="Symbol_specifications">
         <source>Symbol specifications</source>

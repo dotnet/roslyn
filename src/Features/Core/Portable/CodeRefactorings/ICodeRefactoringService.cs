@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -16,10 +14,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     {
         Task<bool> HasRefactoringsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
-        Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
-
-        Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(Document document, TextSpan textSpan, bool isBlocking, CancellationToken cancellationToken);
-
         Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(Document document, TextSpan textSpan, bool isBlocking, Func<string, IDisposable?> addOperationScope, CancellationToken cancellationToken);
+    }
+
+    internal static class ICodeRefactoringServiceExtensions
+    {
+        public static Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(this ICodeRefactoringService service, Document document, TextSpan state, CancellationToken cancellationToken)
+            => service.GetRefactoringsAsync(document, state, isBlocking: false, cancellationToken);
+
+        public static Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(this ICodeRefactoringService service, Document document, TextSpan state, bool isBlocking, CancellationToken cancellationToken)
+            => service.GetRefactoringsAsync(document, state, isBlocking, addOperationScope: _ => null, cancellationToken);
     }
 }

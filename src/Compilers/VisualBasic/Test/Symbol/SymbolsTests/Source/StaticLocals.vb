@@ -583,7 +583,7 @@ End Class
 
             Dim compilation = CreateEmptyCompilationWithReferences(
                 compilationDef,
-                {MsvbRef, TestReferences.NetFx.v2_0_50727.mscorlib},
+                {MsvbRef, TestMetadata.Net20.mscorlib},
                 TestOptions.DebugExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             Dim verifier = CompileAndVerify(compilation)

@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,6 +34,40 @@ class C
 class C
 {
 }";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Record()
+        {
+            var code =
+@"//$$
+record R;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record R;";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_RecordWithPositionalParameters()
+        {
+            var code =
+@"//$$
+record R(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record R(string S, int I);";
 
             VerifyTypingCharacter(code, expected);
         }
@@ -1466,6 +1501,36 @@ class C
             VerifyInsertCommentCommand(code, expected);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_Record()
+        {
+            var code = "record R$$;";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+record R;";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void Command_RecordWithPositionalParameters()
+        {
+            var code = "record R$$(string S, int I);";
+
+            var expected =
+@"/// <summary>
+/// $$
+/// </summary>
+/// <param name=""S""></param>
+/// <param name=""I""></param>
+record R(string S, int I);";
+
+            VerifyInsertCommentCommand(code, expected);
+        }
+
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class_AutoGenerateXmlDocCommentsOff()
@@ -1991,12 +2056,9 @@ class C { }";
             get { return '/'; }
         }
 
-        internal override ICommandHandler CreateCommandHandler(
-            IWaitIndicator waitIndicator,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+        internal override ICommandHandler CreateCommandHandler(TestWorkspace workspace)
         {
-            return new DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService);
+            return workspace.ExportProvider.GetCommandHandler<DocumentationCommentCommandHandler>(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.CSharpContentType);
         }
 
         protected override TestWorkspace CreateTestWorkspace(string code)

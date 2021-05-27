@@ -88,7 +88,7 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((p), Global.Program)), (CStr((""))))
     End Sub
 End Class
 
@@ -182,7 +182,7 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)))), Global.Program)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CStr((""))))), Global.Program)), (CStr((""))))
     End Sub
 End Class
 
@@ -229,7 +229,7 @@ Imports System.Runtime.CompilerServices
 Public Class Program
     Public Sub Main(args As String())
         Dim p As Program = Nothing
-        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CType((""), System.String)), (CType((""), System.String)), (CType((""), System.String)))), Global.Program)), (CType((""), System.String)), (CType((""), System.String)), (CType((""), System.String)))
+        Dim ss = Global.ProgramExtensions.goo((CType((Global.ProgramExtensions.goo((CType((p), Global.Program)), (CStr((""))), (CStr((""))), (CStr((""))))), Global.Program)), (CStr((""))), (CStr((""))), (CStr((""))))
     End Sub
 End Class
 

@@ -6,65 +6,65 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
     Public Class FinallyKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FinallyNotInMethodBodyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Finally")
-        End Function
+        Public Sub FinallyNotInMethodBodyTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Finally")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FinallyInTryBlockTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub FinallyInTryBlockTest()
+            VerifyRecommendationsContain(<MethodBody>
 Try
 |
 End Try</MethodBody>, "Finally")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FinallyInCatchBlockTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub FinallyInCatchBlockTest()
+            VerifyRecommendationsContain(<MethodBody>
 Try
 Catch ex As Exception
 |
 End Try</MethodBody>, "Finally")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FinallyNotBeforeCatchBlockTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub FinallyNotBeforeCatchBlockTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Try
 |
 Catch ex As Exception
 End Try</MethodBody>, "Finally")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FinallyNotInFinallyBlockTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub FinallyNotInFinallyBlockTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Try
 Finally
 |
 End Try</MethodBody>, "Finally")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FinallyInTryNestedInCatch1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub FinallyInTryNestedInCatch1Test()
+            VerifyRecommendationsContain(<MethodBody>
         Try
         Catch
             Try ' Type an 'E' on the next line
             |
                 Throw
             End Try</MethodBody>, "Finally")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function FinallyInTryNestedInCatch2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub FinallyInTryNestedInCatch2Test()
+            VerifyRecommendationsContain(<MethodBody>
         Try
         Catch
             Try ' Type an 'E' on the next line
@@ -72,6 +72,6 @@ End Try</MethodBody>, "Finally")
             |
                 Throw
             End Try</MethodBody>, "Finally")
-        End Function
+        End Sub
     End Class
 End Namespace

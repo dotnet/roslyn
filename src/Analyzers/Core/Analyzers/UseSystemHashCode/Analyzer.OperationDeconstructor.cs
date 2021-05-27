@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                             //      (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
                             //
                             // recurse on the value we're calling GetHashCode on.
+                            RoslynDebug.Assert(invocation.Instance is not null);
                             return TryAddHashedSymbol(invocation.Instance, seenHash: true);
                         }
 
@@ -108,6 +109,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                             if (binary.OperatorKind == BinaryOperatorKind.Equals)
                             {
                                 // (StringProperty == null ? 0 : StringProperty.GetHashCode())
+                                RoslynDebug.Assert(conditional.WhenFalse is not null);
                                 return TryAddHashedSymbol(conditional.WhenFalse, seenHash: true);
                             }
                             else if (binary.OperatorKind == BinaryOperatorKind.NotEquals)

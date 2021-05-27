@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Xunit;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -131,23 +133,23 @@ class Program
 }
 ";
 
-            ParseAndValidate(text, TestOptions.RegularPreview,
+            ParseAndValidate(text, TestOptions.Regular9,
                 // (9,27): error CS1003: Syntax error, '(' expected
                 //     ref readonly int Field;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(", ";").WithLocation(9, 27),
                 // (9,27): error CS1026: ) expected
                 //     ref readonly int Field;
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(9, 27),
-                // (11,41): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
+                // (11,41): error CS1519: Invalid token 'operator' in class, record, struct, or interface member declaration
                 //     public static ref readonly Program  operator  +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(11, 41),
-                // (11,41): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
+                // (11,41): error CS1519: Invalid token 'operator' in class, record, struct, or interface member declaration
                 //     public static ref readonly Program  operator  +(Program x, Program y)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(11, 41),
                 // (12,5): error CS1519: Invalid token '{' ref readonly class, struct, or interface member declaration
                 //     {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(12, 5),
-                // (12,5): error CS1519: Invalid token '{' in class, struct, or interface member declaration
+                // (12,5): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //     {
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(12, 5),
                 // (17,5): error CS8803: Top-level statements must precede namespace and type declarations.
@@ -436,16 +438,16 @@ public class Test
 {
     public static ref readonly bool operator!(Test obj) => throw null;
 }").GetParseDiagnostics().Verify(
-                // (4,37): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
+                // (4,37): error CS1519: Invalid token 'operator' in class, record, struct, or interface member declaration
                 //     public static ref readonly bool operator!(Test obj) => throw null;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(4, 37),
-                // (4,37): error CS1519: Invalid token 'operator' in class, struct, or interface member declaration
+                // (4,37): error CS1519: Invalid token 'operator' in class, record, struct, or interface member declaration
                 //     public static ref readonly bool operator!(Test obj) => throw null;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "operator").WithArguments("operator").WithLocation(4, 37),
                 // (4,55): error CS8124: Tuple must contain at least two elements.
                 //     public static ref readonly bool operator!(Test obj) => throw null;
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 55),
-                // (4,57): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+                // (4,57): error CS1519: Invalid token '=>' in class, record, struct, or interface member declaration
                 //     public static ref readonly bool operator!(Test obj) => throw null;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(4, 57));
         }
@@ -458,7 +460,7 @@ class Test
 {
     in int M() => throw null;
 }").VerifyDiagnostics(
-                // (4,5): error CS1519: Invalid token 'in' in class, struct, or interface member declaration
+                // (4,5): error CS1519: Invalid token 'in' in class, record, struct, or interface member declaration
                 //     in int M() => throw null;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "in").WithArguments("in").WithLocation(4, 5));
         }
@@ -500,11 +502,8 @@ class Test
             UsingStatement("new ref[];",
                 // (1,8): error CS1031: Type expected
                 // new ref[];
-                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(1, 8),
-                // (1,10): error CS1526: A new expression requires an argument list or (), [], or {} after type
-                // new ref[];
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(1, 10)
-                );
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(1, 8));
+
             N(SyntaxKind.ExpressionStatement);
             {
                 N(SyntaxKind.ObjectCreationExpression);

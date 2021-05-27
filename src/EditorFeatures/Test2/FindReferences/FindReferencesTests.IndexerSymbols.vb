@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -287,6 +288,33 @@ Class C
 End Class
 ]]>
         </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_IndexerInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public int {|Definition:$$this|}[int y] { get { } }
+}
+        </Document>
+        <DocumentFromSourceGenerator>
+
+class D
+{
+    void Goo()
+    {
+        var q = new C();
+        var b = q[||][4];
+    }
+}
+        </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)

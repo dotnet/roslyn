@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
@@ -25,13 +28,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private void InlineAllDelegateAnonymousTypes()
             {
 restart:
-                foreach (var kvp in _groupMap)
+                foreach (var (group, parts) in _groupMap)
                 {
-                    var parts = kvp.Value;
                     var updatedParts = _anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parts, _semanticModel, _position);
                     if (parts != updatedParts)
                     {
-                        _groupMap[kvp.Key] = updatedParts;
+                        _groupMap[group] = updatedParts;
                         goto restart;
                     }
                 }
@@ -54,13 +56,12 @@ restart:
                         info.AnonymousTypesParts);
 
 restart:
-                    foreach (var kvp in _groupMap)
+                    foreach (var (group, parts) in _groupMap)
                     {
-                        var parts = _groupMap[kvp.Key];
                         var updatedParts = info.ReplaceAnonymousTypes(parts);
                         if (parts != updatedParts)
                         {
-                            _groupMap[kvp.Key] = updatedParts;
+                            _groupMap[group] = updatedParts;
                             goto restart;
                         }
                     }

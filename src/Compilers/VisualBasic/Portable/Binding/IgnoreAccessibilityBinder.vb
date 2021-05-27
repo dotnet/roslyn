@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ContainingBinder.BinderSpecificLookupOptions(options) Or LookupOptions.IgnoreAccessibility
         End Function
 
-        Public Overrides Function CheckAccessibility(sym As Symbol, <[In]> <Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo), Optional accessThroughType As TypeSymbol = Nothing, Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
+        Public Overrides Function CheckAccessibility(sym As Symbol, <[In]> <Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol), Optional accessThroughType As TypeSymbol = Nothing, Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
             Return AccessCheckResult.Accessible
         End Function
     End Class

@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool Any(BinaryOperatorKind relation, ConstantValue value);
 
         /// <summary>
-        /// Test if all of the value in the set satisfy the given relation with the given value. Note that the empty set trivially satisifies this.
+        /// Test if all of the value in the set satisfy the given relation with the given value. Note that the empty set trivially satisfies this.
         /// Because of that all four combinations of results from <see cref="Any(BinaryOperatorKind, ConstantValue)"/> and <see cref="All(BinaryOperatorKind, ConstantValue)"/>
         /// are possible: both true when the set is nonempty and all values satisfy the relation; both false when the set is nonempty and none of
         /// the values satisfy the relation; all but not any when the set is empty; any but not all when the set is nonempty and some values satisfy
@@ -51,6 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Does this value set contain no values?
         /// </summary>
         bool IsEmpty { get; }
+
+        /// <summary>
+        /// Produce a sample value contained in the set. Throws <see cref="ArgumentException"/> if the set is empty. If the set
+        /// contains values but we cannot produce a particular value (e.g. for the set `nint > int.MaxValue`), returns null.
+        /// </summary>
+        ConstantValue? Sample { get; }
     }
 
     /// <summary>
@@ -79,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool Any(BinaryOperatorKind relation, T value);
 
         /// <summary>
-        /// Test if all of the value in the set satisfy the given relation with the given value. Note that the empty set trivially satisifies this.
+        /// Test if all of the value in the set satisfy the given relation with the given value. Note that the empty set trivially satisfies this.
         /// Because of that all four combinations of results from <see cref="Any(BinaryOperatorKind, T)"/> and <see cref="All(BinaryOperatorKind, T)"/>
         /// are possible: both true when the set is nonempty and all values satisfy the relation; both false when the set is nonempty and none of
         /// the values satisfy the relation; all but not any when the set is empty; any but not all when the set is nonempty and some values satisfy

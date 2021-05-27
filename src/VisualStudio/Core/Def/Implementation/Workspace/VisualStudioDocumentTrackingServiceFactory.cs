@@ -35,11 +35,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _workspace = workspace;
             }
 
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private int _subscriptions = 0;
-            private event EventHandler<DocumentId> _activeDocumentChangedEventHandler;
+            private EventHandler<DocumentId?>? _activeDocumentChangedEventHandler;
 
-            public event EventHandler<DocumentId> ActiveDocumentChanged
+            public bool SupportsDocumentTracking => true;
+
+            public event EventHandler<DocumentId?> ActiveDocumentChanged
             {
                 add
                 {
@@ -72,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            private void ActiveDocumentTracker_DocumentsChanged(object sender, EventArgs e)
+            private void ActiveDocumentTracker_DocumentsChanged(object? sender, EventArgs e)
                 => _activeDocumentChangedEventHandler?.Invoke(this, TryGetActiveDocument());
 
             public event EventHandler<EventArgs> NonRoslynBufferTextChanged
@@ -88,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            public DocumentId TryGetActiveDocument()
+            public DocumentId? TryGetActiveDocument()
                 => _activeDocumentTracker.TryGetActiveDocument(_workspace);
 
             public ImmutableArray<DocumentId> GetVisibleDocuments()

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -13,8 +15,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpSquigglesDesktop : CSharpSquigglesCommon
     {
-        public CSharpSquigglesDesktop(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.ClassLibrary)
+        public CSharpSquigglesDesktop(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 

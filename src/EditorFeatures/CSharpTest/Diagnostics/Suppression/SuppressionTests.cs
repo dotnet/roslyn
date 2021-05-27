@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
@@ -34,9 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         protected override ParseOptions GetScriptOptions() => Options.Script;
 
         protected internal override string GetLanguage() => LanguageNames.CSharp;
-
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
 
         #region "Pragma disable tests"
 
@@ -257,13 +255,13 @@ class Class
                     var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
                     workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
-                    var diagnosticService = new TestDiagnosticAnalyzerService();
+                    Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.ExportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>());
+                    var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
                     var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
                     var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
                     var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
                         new CodeChangeProviderMetadata("SuppressionProvider", languages: new[] { LanguageNames.CSharp }));
                     var fixService = new CodeFixService(
-                        workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                         diagnosticService,
                         SpecializedCollections.EmptyEnumerable<Lazy<IErrorLoggerService>>(),
                         SpecializedCollections.EmptyEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>(),
@@ -275,13 +273,12 @@ class Class
                     var allFixes = (await fixService.GetFixesAsync(document, span, includeConfigurationFixes: true, cancellationToken: CancellationToken.None))
                         .SelectMany(fixCollection => fixCollection.Fixes);
 
-                    var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
+                    var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219").ToArray();
 
-                    // Ensure that both the fixes have identical equivalence key, and hence get de-duplicated in LB menu.
-                    Assert.Equal(2, cs0219Fixes.Count());
-                    var cs0219EquivalenceKey = cs0219Fixes.First().Action.EquivalenceKey;
+                    // Ensure that there are no duplicate suppression fixes.
+                    Assert.Equal(1, cs0219Fixes.Length);
+                    var cs0219EquivalenceKey = cs0219Fixes[0].Action.EquivalenceKey;
                     Assert.NotNull(cs0219EquivalenceKey);
-                    Assert.Equal(cs0219EquivalenceKey, cs0219Fixes.Last().Action.EquivalenceKey);
 
                     // Ensure that there *is* a fix for the other warning and that it has a *different*
                     // equivalence key so that it *doesn't* get de-duplicated

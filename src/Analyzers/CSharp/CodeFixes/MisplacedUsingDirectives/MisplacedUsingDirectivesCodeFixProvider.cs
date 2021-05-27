@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -84,6 +86,26 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
                     new MoveMisplacedUsingsCodeAction(token => GetTransformedDocumentAsync(document, compilationUnit, placement, token)),
                     diagnostic);
             }
+        }
+
+        internal static async Task<Document> TransformDocumentIfRequiredAsync(Document document, CancellationToken cancellationToken)
+        {
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
+
+#if CODE_STYLE
+            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(syntaxRoot.SyntaxTree, cancellationToken);
+#else
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+#endif
+
+            var (placement, preferPreservation) = DeterminePlacement(compilationUnit, options);
+            if (preferPreservation)
+            {
+                return document;
+            }
+
+            return await GetTransformedDocumentAsync(document, compilationUnit, placement, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Document> GetTransformedDocumentAsync(

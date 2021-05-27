@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
         Private Class Visitor
             Inherits VisualBasicSyntaxVisitor
 
-            Public result As String = Nothing
+            Public result As String
             Private ReadOnly _span As TextSpan
             Private ReadOnly _semanticModel As SemanticModel
             Private ReadOnly _service As VisualBasicHelpContextService
@@ -30,11 +30,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                 Me._cancellationToken = cancellationToken
             End Sub
 
-            Private Function Keyword(text As String) As String
+            Private Shared Function Keyword(text As String) As String
                 Return "vb." + text
             End Function
 
-            Private Function Keyword(kind As SyntaxKind) As String
+            Private Shared Function Keyword(kind As SyntaxKind) As String
                 Return Keyword(kind.GetText())
             End Function
 
@@ -245,11 +245,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitFieldDeclaration(node As FieldDeclarationSyntax)
-                Dim modifier = node.Modifiers.FirstOrDefault(Function(m) m.Span.IntersectsWith(_span))
-
-                If modifier <> Nothing Then
-                    result = Keyword(modifier.Text)
-                End If
+                SelectModifier(node.Modifiers)
             End Sub
 
             Public Overrides Sub VisitForEachStatement(node As ForEachStatementSyntax)
@@ -765,15 +761,48 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Private Function SelectModifier(list As SyntaxTokenList) As Boolean
-                Dim modifier = list.FirstOrDefault(Function(t) t.Span.IntersectsWith(_span))
-                If modifier <> Nothing Then
-                    result = Keyword(modifier.Text)
+                For i As Integer = 0 To list.Count - 1
+                    Dim modifier = list(i)
+                    If modifier.Span.IntersectsWith(_span) Then
+
+                        If SelectCombinationModifier(modifier, list) Then
+                            Return True
+                        End If
+
+                        ' Not a combination token, just normal keyword help
+                        result = Keyword(modifier.Text)
+                        Return True
+                    End If
+                Next
+
+                Return False
+            End Function
+
+            Private Function SelectCombinationModifier(token As SyntaxToken, list As SyntaxTokenList) As Boolean
+                If SelectCombinationModifier(token, list, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, HelpKeywords.PrivateProtected) Then
+                    Return True
+                End If
+
+                If SelectCombinationModifier(token, list, SyntaxKind.ProtectedKeyword, SyntaxKind.FriendKeyword, HelpKeywords.ProtectedFriend) Then
                     Return True
                 End If
 
                 Return False
             End Function
 
+            Private Function SelectCombinationModifier(token As SyntaxToken, list As SyntaxTokenList, kind1 As SyntaxKind, kind2 As SyntaxKind, helpKeyword As String) As Boolean
+                If token.IsKind(kind1) AndAlso list.Any(Function(t) t.IsKind(kind2)) Then
+                    result = helpKeyword
+                    Return True
+                End If
+
+                If token.IsKind(kind2) AndAlso list.Any(Function(t) t.IsKind(kind1)) Then
+                    result = helpKeyword
+                    Return True
+                End If
+
+                Return False
+            End Function
             Public Overrides Sub VisitVariableDeclarator(node As VariableDeclaratorSyntax)
                 Dim bestName = node.Names.FirstOrDefault(Function(n) n.Span.IntersectsWith(_span))
                 If bestName Is Nothing Then

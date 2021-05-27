@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -10,12 +12,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    [Shared]
     [Export(typeof(TestExperimentationService))]
-    [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), PartNotDiscoverable]
+    [ExportWorkspaceService(typeof(IExperimentationService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal sealed class TestExperimentationService : IExperimentationService
     {
-        private Dictionary<string, bool> _experimentsOptionValues = new Dictionary<string, bool>();
+        private readonly Dictionary<string, bool> _experimentsOptionValues = new Dictionary<string, bool>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

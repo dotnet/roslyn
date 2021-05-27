@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             private static readonly SyntaxTrivia s_oneWhitespaceSeparator = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
 
             private static readonly SymbolDisplayFormat s_typeNameFormatWithGenerics =
-                new SymbolDisplayFormat(
+                new(
                     globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                     memberOptions:
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             private SpeculationAnalyzer GetSpeculationAnalyzer(ExpressionSyntax expression, ExpressionSyntax newExpression)
-                => new SpeculationAnalyzer(expression, newExpression, _semanticModel, _cancellationToken);
+                => new(expression, newExpression, _semanticModel, _cancellationToken);
 
             private bool TryCastTo(ITypeSymbol targetType, ExpressionSyntax expression, ExpressionSyntax newExpression, out ExpressionSyntax newExpressionWithCast)
             {
@@ -1067,7 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // Bail out on extension method invocations in conditional access expression.
                 // Note that this is a temporary workaround for https://github.com/dotnet/roslyn/issues/2593.
                 // Issue https://github.com/dotnet/roslyn/issues/3260 tracks fixing this workaround.
-                if (originalMemberAccess.GetParentConditionalAccessExpression() == null)
+                if (originalMemberAccess.GetRootConditionalAccessExpression() == null)
                 {
                     var speculationPosition = originalNode.SpanStart;
                     var expression = RewriteExtensionMethodInvocation(speculationPosition, rewrittenNode, thisExpression, reducedExtensionMethod);

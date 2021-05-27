@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
@@ -46,20 +49,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
         [Fact]
         public void PresentCorLib()
         {
-            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestReferences.NetCoreApp30.SystemRuntimeRef });
+            var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[] { TestMetadata.NetCoreApp.SystemRuntime });
 
             MetadataOrSourceAssemblySymbol msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
+
+            var knownMissingTypes = new HashSet<int>()
+            {
+            };
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)
             {
                 var t = msCorLibRef.GetSpecialType((SpecialType)i);
                 Assert.Equal((SpecialType)i, t.SpecialType);
                 Assert.Same(msCorLibRef, t.ContainingAssembly);
+                if (knownMissingTypes.Contains(i))
+                {
+                    // not present on dotnet core 3.1
+                    Assert.Equal(TypeKind.Error, t.TypeKind);
+                }
+                else
+                {
+                    Assert.NotEqual(TypeKind.Error, t.TypeKind);
+                }
             }
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestResources.NetFX.netcoreapp30.System_Runtime.AsImmutableOrNull()) });
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] { MetadataReference.CreateFromImage(TestMetadata.ResourcesNetCoreApp.SystemRuntime.AsImmutableOrNull()) });
 
             msCorLibRef = (MetadataOrSourceAssemblySymbol)assemblies[0];
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
@@ -91,8 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
                 }
             }
 
-            Assert.Equal(count, (int)SpecialType.Count);
-            Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes);
+            Assert.Equal(count + knownMissingTypes.Count, (int)SpecialType.Count);
+            Assert.Equal(knownMissingTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes);
         }
 
         [Fact]

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -225,7 +223,7 @@ namespace Microsoft.CodeAnalysis
         public object? Value { get; }
         public string Text { get; }
         public IEnumerable<TreeDumperNode> Children { get; }
-        public TreeDumperNode this[string child]
+        public TreeDumperNode? this[string child]
         {
             get
             {

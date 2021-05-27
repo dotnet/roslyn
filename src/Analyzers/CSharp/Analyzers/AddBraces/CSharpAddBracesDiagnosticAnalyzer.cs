@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -20,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
     {
         public CSharpAddBracesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddBracesDiagnosticId,
+                   EnforceOnBuildValues.AddBraces,
                    CSharpCodeStyleOptions.PreferBraces,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Add_braces), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

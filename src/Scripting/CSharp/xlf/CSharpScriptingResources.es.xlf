@@ -36,7 +36,7 @@ Options:
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
-        <target state="needs-review-translation">Uso: csi [option] ... [script-file.csx] [script-argument] ...
+        <target state="translated">Uso: csi [option] ... [script-file.csx] [script-argument] ...
 
 Ejecuta el archivo script-file.csx si se especifica. Si no, inicia un REPL (bucle de lectura, evaluación e impresión) interactivo.
 
@@ -44,13 +44,20 @@ Opciones:
   /help                          Mostrar este mensaje de uso (forma alternativa: /?)
   /version                       Mostrar la versión y salir
   /i                             Colocar en REPL después de ejecutar el script especificado.
-  /r:&lt;archivo&gt;                      Hacer referencia a los metadatos del archivo de ensamblado especificado (forma alternativa: /reference)
-  /r:&lt;lista de archivos&gt;                 Hacer referencia a los metadatos de los archivos de ensamblado especificados (forma alternativa: /reference)
-  /lib:&lt;lista rutas acceso&gt;               Lista de directorios en los que se pueden buscar las bibliotecas especificadas por la directiva #r. 
+  /r:&lt;file&gt;                      Hacer referencia a los metadatos del archivo de ensamblado especificado (forma alternativa: /reference)
+  /r:&lt;file list&gt;                 Hacer referencia a los metadatos de los archivos de ensamblado especificados (forma alternativa: /reference)
+  /lib:&lt;path list&gt;               Lista de directorios en los que se pueden buscar las bibliotecas especificadas por la directiva #r. 
                                  (formas alternativas: /libPath /libPaths)
-  /u:&lt;espacio de nombres&gt;                 Definir espacio de nombres global mediante (formas alternativas: /using, /usings, /import, /imports)
-  @&lt;archivo&gt;                        Leer archivo de respuesta para ver más opciones
-  --                             Indica que los argumentos restantes no deben tratarse como opciones.
+  /u:&lt;namespace&gt;                 Definir espacio de nombres global mediante (formas alternativas: /using, /usings, /import, /imports)
+  /langversion:?                 Mostrar los valores permitidos para la versión de idioma y salir
+  /langversion:&lt;string&gt;          Especificar la versión de idioma, como
+                                 "latest" (versión más reciente, incluidas las versiones mínimas),
+                                 "default" (igual que "latest"),
+                                 "latestmajor" (versión más reciente, excluídas las versiones menores),
+                                 "preview" (versión más reciente, incluidas las características en versión preliminar no admitidas),
+                                 o versiones específicas como "6" o "7.1"
+  @&lt;file&gt;                        Lea el archivo de respuesta para ver más opciones
+  --                             Indica que el resto de argumentos no se deben tratar como opciones.
 </target>
         <note />
       </trans-unit>

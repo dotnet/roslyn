@@ -21,7 +21,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AddExp
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
-        Public Async Function TestPredefinedAssignment() As Task
+        Public Async Function TestPredefinedAssignmentCBool() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = 0
+        Dim b As Boolean = [|i|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = 0
+        Dim b As Boolean = CBool(i)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCByte() As Task
             Await TestInRegularAndScriptAsync(
 "Option Strict On
 Module M1
@@ -37,6 +56,272 @@ Module M1
         Dim b As Byte = 1
         Dim c As Byte = 2
         b = CByte(b & c)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCChar() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim s As String = 0.ToString()
+        Dim ch As Char = [|s|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim s As String = 0.ToString()
+        Dim ch As Char = CChar(s)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCDate() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim s As String = #2006-06-13#.ToString()
+        Dim dt As Date = [|s|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim s As String = #2006-06-13#.ToString()
+        Dim dt As Date = CDate(s)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCDbl() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim s As String = 1.0R.ToString()
+        Dim db As Double = [|s|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim s As String = 1.0R.ToString()
+        Dim db As Double = CDbl(s)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCDec() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim db As Double = 1.0R
+        Dim dc As Decimal = [|db|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim db As Double = 1.0R
+        Dim dc As Decimal = CDec(db)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCInt() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim db As Double = 1.0R
+        Dim i As Integer = [|db|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim db As Double = 1.0R
+        Dim i As Integer = CInt(db)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCLng() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim db As Double = 1.0R
+        Dim lg As Long = [|db|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim db As Double = 1.0R
+        Dim lg As Long = CLng(db)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCSByte() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim dc As Decimal = -14.02D
+        Dim sb As SByte = [|dc|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim dc As Decimal = -14.02D
+        Dim sb As SByte = CSByte(dc)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCShort() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = 2
+        Dim sh As Short = [|i|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = 2
+        Dim sh As Short = CShort(i)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCSng() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim db As Double = 1.0R
+        Dim sn As Single = [|db|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim db As Double = 1.0R
+        Dim sn As Single = CSng(db)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCStr() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = 1
+        Dim s As String = [|i|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = 1
+        Dim s As String = CStr(i)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentObjectToStringCStr() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim o As Object = 1.ToString()
+        Dim s As String = [|o|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim o As Object = 1.ToString()
+        Dim s As String = CStr(o)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCUInt() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = -1
+        Dim ui As UInteger = [|i|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = -1
+        Dim ui As UInteger = CUInt(i)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCULng() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim l As Long = -1
+        Dim ul As ULong =[|l|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim l As Long = -1
+        Dim ul As ULong = CULng(l)
+    End Sub
+End Module")
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)>
+        Public Async Function TestPredefinedAssignmentCUShort() As Task
+            Await TestInRegularAndScriptAsync(
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = -2
+        Dim us As UShort = [|i|]
+    End Sub
+End Module",
+"Option Strict On
+Module M1
+    Sub Main()
+        Dim i As Integer = -2
+        Dim us As UShort = CUShort(i)
     End Sub
 End Module")
         End Function
@@ -2930,17 +3215,17 @@ Class Program
 
     Private Sub M()
         Dim b As Base = New Base()
-        Foo(s:="""", i:=1, d:=CType(b, {0}))
+        Foo(s:="""", i:=1, d:={0})
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "String"), index:=0,
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "CStr(b)"), index:=0,
                 title:=String.Format(FeaturesResources.Convert_type_to_0, "String"))
 
-            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived"), index:=1,
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "CType(b, Derived)"), index:=1,
                 title:=String.Format(FeaturesResources.Convert_type_to_0, "Derived"))
 
-            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "Derived2"), index:=2,
+            Await TestInRegularAndScriptAsync(initialMarkup, String.Format(expect_format, "CType(b, Derived2)"), index:=2,
                 title:=String.Format(FeaturesResources.Convert_type_to_0, "Derived2"))
         End Function
 

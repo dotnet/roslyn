@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -84,6 +82,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? HideModuleNameAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.HideModuleNameAttribute");
+
+        public static INamedTypeSymbol? ThreadStaticAttributeType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName!);
 
         public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);

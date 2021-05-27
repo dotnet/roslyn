@@ -244,7 +244,7 @@ End Module</Code>
         ''' Then asserts that the formatting on that span results in text that we'd expect.
         ''' </summary>
         ''' <remarks>The rule has to be set up for each set of spans, currently we test just one</remarks>
-        Private Async Function AssertFormatWithBaseIndentAfterReplacingLfToCrLfAsync(content As String,
+        Private Shared Async Function AssertFormatWithBaseIndentAfterReplacingLfToCrLfAsync(content As String,
                                                                      expected As String,
                                                                      baseIndentation As Integer) As Threading.Tasks.Task
 

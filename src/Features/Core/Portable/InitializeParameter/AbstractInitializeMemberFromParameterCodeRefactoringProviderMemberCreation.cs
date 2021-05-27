@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
             ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan, CancellationToken cancellationToken)
         {
-            return Task.FromResult(ImmutableArray<CodeAction>.Empty);
+            return SpecializedTasks.EmptyImmutableArray<CodeAction>();
         }
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -266,7 +264,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
                     var accessibilityLevel = Accessibility.Private;
-                    if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
+                    if (requireAccessibilityModifiers.Value is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault)
                     {
                         var defaultAccessibility = DetermineDefaultFieldAccessibility(parameter.ContainingType);
                         if (defaultAccessibility == Accessibility.Private)
@@ -316,7 +314,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                     var uniqueName = GenerateUniqueName(parameter, parameterNameParts, rule);
 
                     var accessibilityLevel = Accessibility.Public;
-                    if (requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.Never || requireAccessibilityModifiers.Value == AccessibilityModifiersRequired.OmitIfDefault)
+                    if (requireAccessibilityModifiers.Value is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault)
                     {
                         var defaultAccessibility = DetermineDefaultPropertyAccessibility();
                         if (defaultAccessibility == Accessibility.Public)
@@ -388,7 +386,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 IBlockOperation? currentBlockStatementOpt = null;
                 if (blockStatementOpt != null)
                 {
-                    currentBlockStatementOpt = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatementOpt.Syntax), cancellationToken);
+                    currentBlockStatementOpt = (IBlockOperation?)currentSemanticModel.GetOperation(currentRoot.GetCurrentNode(blockStatementOpt.Syntax)!, cancellationToken);
                     if (currentBlockStatementOpt == null)
                         continue;
                 }
@@ -420,9 +418,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, workspace);
             var generator = editor.Generator;
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             if (fieldOrProperty.ContainingType == null)
             {
@@ -448,13 +447,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             return CodeGenerator.AddPropertyDeclaration(
                                 currentTypeDecl, property, workspace,
-                                GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, cancellationToken));
+                                GetAddOptions<IPropertySymbol>(parameter, blockStatementOpt, typeDeclaration, options, cancellationToken));
                         }
                         else if (fieldOrProperty is IFieldSymbol field)
                         {
                             return CodeGenerator.AddFieldDeclaration(
                                 currentTypeDecl, field, workspace,
-                                GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, cancellationToken));
+                                GetAddOptions<IFieldSymbol>(parameter, blockStatementOpt, typeDeclaration, options, cancellationToken));
                         }
                         else
                         {
@@ -482,9 +481,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
 
-        private static CodeGenerationOptions? GetAddOptions<TSymbol>(
+        private static CodeGenerationOptions GetAddOptions<TSymbol>(
             IParameterSymbol parameter, IBlockOperation? blockStatementOpt,
-            SyntaxNode typeDeclaration, CancellationToken cancellationToken)
+            SyntaxNode typeDeclaration, OptionSet options, CancellationToken cancellationToken)
             where TSymbol : ISymbol
         {
             foreach (var (sibling, before) in GetSiblingParameters(parameter))
@@ -502,19 +501,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         {
                             // Found an existing field/property that corresponds to a preceding parameter.
                             // Place ourselves directly after it.
-                            return new CodeGenerationOptions(afterThisLocation: symbolSyntax.GetLocation());
+                            return new CodeGenerationOptions(afterThisLocation: symbolSyntax.GetLocation(), options: options);
                         }
                         else
                         {
                             // Found an existing field/property that corresponds to a following parameter.
                             // Place ourselves directly before it.
-                            return new CodeGenerationOptions(beforeThisLocation: symbolSyntax.GetLocation());
+                            return new CodeGenerationOptions(beforeThisLocation: symbolSyntax.GetLocation(), options: options);
                         }
                     }
                 }
             }
 
-            return null;
+            return new CodeGenerationOptions(options: options);
         }
 
         private static ImmutableArray<(IParameterSymbol parameter, bool before)> GetSiblingParameters(IParameterSymbol parameter)

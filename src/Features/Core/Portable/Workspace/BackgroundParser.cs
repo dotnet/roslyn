@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly TaskQueue _taskQueue;
         private readonly IDocumentTrackingService _documentTrackingService;
 
-        private readonly ReaderWriterLockSlim _stateLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private readonly ReaderWriterLockSlim _stateLock = new(LockRecursionPolicy.NoRecursion);
 
-        private readonly object _parseGate = new object();
+        private readonly object _parseGate = new();
         private ImmutableDictionary<DocumentId, CancellationTokenSource> _workMap = ImmutableDictionary.Create<DocumentId, CancellationTokenSource>();
 
         public bool IsStarted { get; private set; }
@@ -40,13 +42,17 @@ namespace Microsoft.CodeAnalysis.Host
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
             _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
-            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+            _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             workspace.DocumentOpened += OnDocumentOpened;
             workspace.DocumentClosed += OnDocumentClosed;
         }
+
+        private void OnActiveDocumentChanged(object sender, DocumentId activeDocumentId)
+            => Parse(_workspace.CurrentSolution.GetDocument(activeDocumentId));
 
         private void OnDocumentOpened(object sender, DocumentEventArgs args)
             => Parse(args.Document);
@@ -162,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Host
                     CancelParse(document.Id);
 
                     if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile &&
-                        _documentTrackingService?.TryGetActiveDocument() != document.Id)
+                        _documentTrackingService.TryGetActiveDocument() != document.Id)
                     {
                         // Avoid performing any background parsing for non-active files
                         // if the user has explicitly set the background analysis scope

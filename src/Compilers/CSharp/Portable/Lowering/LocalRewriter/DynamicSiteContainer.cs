@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Diagnostics;
@@ -37,6 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
+
+        internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
 
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
         {

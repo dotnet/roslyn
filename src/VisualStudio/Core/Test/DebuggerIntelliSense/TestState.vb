@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
     Friend Class TestState
         Inherits IntelliSense.TestState
 
-        Private _context As AbstractDebuggerIntelliSenseContext
+        Private ReadOnly _context As AbstractDebuggerIntelliSenseContext
         Private Shared ReadOnly s_roles As ImmutableArray(Of String) = ImmutableArray.Create(PredefinedTextViewRoles.Editable, "DEBUGVIEW", PredefinedTextViewRoles.Interactive)
 
         Private Sub New(workspaceElement As XElement,

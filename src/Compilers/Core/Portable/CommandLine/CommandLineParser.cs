@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         private readonly CommonMessageProvider _messageProvider;
         internal readonly bool IsScriptCommandLineParser;
         private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
-        internal const string ErrorLogOptionFormat = "<file>[,version={1|1.0|1.0.0|2|2.1|2.1.0}]";
+        internal const string ErrorLogOptionFormat = "<file>[,version={1|1.0|2|2.1}]";
 
         internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptCommandLineParser)
         {
@@ -350,12 +348,8 @@ namespace Microsoft.CodeAnalysis
             out string? outputFileName,
             out string? outputDirectory)
         {
-            outputFileName = null;
-            outputDirectory = null;
-            string? invalidPath = null;
-
             string unquoted = RemoveQuotesAndSlashes(value);
-            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
+            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out string? invalidPath);
             if (outputFileName == null ||
                 !MetadataHelpers.IsValidAssemblyOrModuleName(outputFileName))
             {
@@ -370,13 +364,10 @@ namespace Microsoft.CodeAnalysis
             IList<Diagnostic> errors,
             string? baseDirectory)
         {
-            string? outputFileName = null;
-            string? outputDirectory = null;
             string? pdbPath = null;
-            string? invalidPath = null;
 
             string unquoted = RemoveQuotesAndSlashes(value);
-            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
+            ParseAndNormalizeFile(unquoted, baseDirectory, out string? outputFileName, out string? outputDirectory, out string? invalidPath);
             if (outputFileName == null ||
                 PathUtilities.ChangeExtension(outputFileName, extension: null).Length == 0)
             {
@@ -398,12 +389,9 @@ namespace Microsoft.CodeAnalysis
             string? baseDirectory,
             bool generateDiagnostic = true)
         {
-            string? outputFileName = null;
-            string? outputDirectory = null;
             string? genericPath = null;
-            string? invalidPath = null;
 
-            ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
+            ParseAndNormalizeFile(unquoted, baseDirectory, out string? outputFileName, out string? outputDirectory, out string? invalidPath);
             if (string.IsNullOrWhiteSpace(outputFileName))
             {
                 if (generateDiagnostic)
@@ -559,9 +547,7 @@ namespace Microsoft.CodeAnalysis
             var newArgs = new List<string>();
             foreach (var arg in args)
             {
-                bool hasValue;
-                string? value;
-                if (isClientArgsOption(arg, "keepalive", out hasValue, out value))
+                if (isClientArgsOption(arg, "keepalive", out bool hasValue, out string? value))
                 {
                     if (string.IsNullOrEmpty(value))
                     {
@@ -569,8 +555,7 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                    int intValue;
-                    if (int.TryParse(value, out intValue))
+                    if (int.TryParse(value, out int intValue))
                     {
                         if (intValue < -1)
                         {
@@ -618,7 +603,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            bool isClientArgsOption(string arg, string optionName, out bool hasValue, out string? optionValue)
+            static bool isClientArgsOption(string arg, string optionName, out bool hasValue, out string? optionValue)
             {
                 hasValue = false;
                 optionValue = null;
@@ -660,13 +645,11 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-                using (TextReader reader = CreateTextFileReader(fullPath))
+                using TextReader reader = CreateTextFileReader(fullPath);
+                string? str;
+                while ((str = reader.ReadLine()) != null)
                 {
-                    string? str;
-                    while ((str = reader.ReadLine()) != null)
-                    {
-                        lines.Add(str);
-                    }
+                    lines.Add(str);
                 }
             }
             catch (Exception)
@@ -1000,9 +983,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static Encoding? TryParseEncodingName(string arg)
         {
-            long codepage;
             if (!string.IsNullOrWhiteSpace(arg)
-                && long.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out codepage)
+                && long.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out long codepage)
                 && (codepage > 0))
             {
                 try
@@ -1213,5 +1195,13 @@ namespace Microsoft.CodeAnalysis
             CompilerOptionParseUtilities.ParseFeatures(builder, features);
             return builder.ToImmutable();
         }
+
+        /// <summary>
+        /// Sort so that more specific keys precede less specific.
+        /// When mapping a path we find the first key in the array that is a prefix of the path.
+        /// If multiple keys are prefixes of the path we want to use the longest (more specific) one for the mapping.
+        /// </summary>
+        internal static ImmutableArray<KeyValuePair<string, string>> SortPathMap(ImmutableArray<KeyValuePair<string, string>> pathMap)
+            => pathMap.Sort((x, y) => -x.Key.Length.CompareTo(y.Key.Length));
     }
 }

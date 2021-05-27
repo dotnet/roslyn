@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.SymbolDisplay;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case CodeAnalysis.NullableAnnotation.NotAnnotated:
                     if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier) &&
                         !type.IsValueType &&
-                        (type as Symbols.PublicModel.TypeSymbol)?.UnderlyingTypeSymbol.IsTypeParameterDisallowingAnnotation() != true)
+                        (type as Symbols.PublicModel.TypeSymbol)?.UnderlyingTypeSymbol.IsTypeParameterDisallowingAnnotationInCSharp8() != true)
                     {
                         return true;
                     }
@@ -525,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 VisitFieldType(element);
-                if (!element.IsImplicitlyDeclared)
+                if (element.IsExplicitlyNamedTupleElement)
                 {
                     AddSpace();
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name));
@@ -562,6 +563,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (symbol.TypeKind)
             {
+                case TypeKind.Class when symbol.IsRecord:
+                    return SymbolDisplayPartKind.RecordClassName;
+                case TypeKind.Struct when symbol.IsRecord:
+                    return SymbolDisplayPartKind.RecordStructName;
                 case TypeKind.Submission:
                 case TypeKind.Module:
                 case TypeKind.Class:
@@ -658,6 +663,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (symbol.TypeKind)
                     {
+                        case TypeKind.Class when symbol.IsRecord:
+                            AddKeyword(SyntaxKind.RecordKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Struct when symbol.IsRecord:
+                            // In case ref record structs are allowed in future, call AddKeyword(SyntaxKind.RefKeyword) and remove assertion.
+                            Debug.Assert(!symbol.IsRefLikeType);
+
+                            if (symbol.IsReadOnly)
+                            {
+                                AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                                AddSpace();
+                            }
+
+                            AddKeyword(SyntaxKind.RecordKeyword);
+                            AddSpace();
+                            AddKeyword(SyntaxKind.StructKeyword);
+                            AddSpace();
+                            break;
+
                         case TypeKind.Module:
                         case TypeKind.Class:
                             AddKeyword(SyntaxKind.ClassKeyword);

@@ -6,20 +6,28 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class TelemetryExtensions
     {
         public static Guid GetTelemetryId(this Type type, short scope = 0)
-            => new Guid(type.GetTelemetryPrefix(), scope, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-
-        public static int GetTelemetryPrefix(this Type type)
         {
             type = GetTypeForTelemetry(type);
+            Contract.ThrowIfNull(type.FullName);
 
             // AssemblyQualifiedName will change across version numbers, FullName won't
-            return type.FullName.GetHashCode();
+
+            // Use a stable hashing algorithm (FNV) that doesn't depend on platform
+            // or .NET implementation.
+            var suffix = Roslyn.Utilities.Hash.GetFNVHashCode(type.FullName);
+
+            // Suffix is the remaining 8 bytes, and the hash code only makes up 4. Pad
+            // the remainder with an empty byte array
+            var suffixBytes = BitConverter.GetBytes(suffix).Concat(new byte[4]).ToArray();
+
+            return new Guid(0, scope, 0, suffixBytes);
         }
 
         public static Type GetTypeForTelemetry(this Type type)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -66,7 +68,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // identified after a short timeout, none is returned. This only impacts the ability of the test to restore
             // focus to a previous window, which is fine.
 
-            var foregroundWindow = IntPtr.Zero;
+            IntPtr foregroundWindow;
             var stopwatch = Stopwatch.StartNew();
 
             do
@@ -334,7 +336,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static void AppendPrintableChar(char ch, StringBuilder builder)
         {
-            string text = GetPrintableCharText(ch);
+            var text = GetPrintableCharText(ch);
 
             if (text != null)
             {
@@ -414,8 +416,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             do
             {
                 monikers[0] = null;
-
-                var hresult = enumMoniker.Next(1, monikers, out var monikersFetched);
+                var hresult = enumMoniker.Next(1, monikers, out _);
 
                 if (hresult == VSConstants.S_FALSE)
                 {

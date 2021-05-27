@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServices;
 
@@ -11,11 +12,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos => _declarationInfo.DeclaredSymbolInfos;
 
-        public ImmutableDictionary<string, ImmutableArray<int>> SimpleExtensionMethodInfo
-            => _extensionMethodInfo.SimpleExtensionMethodInfo;
-
-        public ImmutableArray<int> ComplexExtensionMethodInfo
-            => _extensionMethodInfo.ComplexExtensionMethodInfo;
+        public ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap
+            => _extensionMethodInfo.ReceiverTypeNameToExtensionMethodMap;
 
         public bool ContainsExtensionMethod => _extensionMethodInfo.ContainsExtensionMethod;
 
@@ -41,5 +39,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
         public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
         public bool ContainsGlobalAttributes => _contextInfo.ContainsGlobalAttributes;
+        public bool ContainsConversion => _contextInfo.ContainsConversion;
+
+        /// <summary>
+        /// Same as <see cref="DeclaredSymbolInfos"/>, just stored as a set for easy containment checks.
+        /// </summary>
+        public HashSet<DeclaredSymbolInfo> DeclaredSymbolInfoSet => _declaredSymbolInfoSet.Value;
     }
 }

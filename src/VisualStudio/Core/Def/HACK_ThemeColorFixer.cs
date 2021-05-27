@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
@@ -96,6 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.Punctuation, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.ClassName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.RecordClassName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.StructName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.InterfaceName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.DelegateName, sourceFormatMap, targetFormatMap);

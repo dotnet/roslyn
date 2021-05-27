@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
@@ -38,6 +35,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+                   EnforceOnBuildValues.UseCollectionInitializer,
                    CodeStyleOptions2.PreferCollectionInitializer,
                    new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -145,20 +143,20 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 if (syntaxFacts.IsInvocationExpression(expression))
                 {
                     var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(expression);
-                    var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
-                        match.SpanStart, arguments[0].SpanStart));
+                    var additionalUnnecessaryLocations = ImmutableArray.Create(
+                        syntaxTree.GetLocation(TextSpan.FromBounds(match.SpanStart, arguments[0].SpanStart)),
+                        syntaxTree.GetLocation(TextSpan.FromBounds(arguments.Last().FullSpan.End, match.Span.End)));
 
-                    RoslynDebug.AssertNotNull(UnnecessaryWithSuggestionDescriptor);
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        UnnecessaryWithSuggestionDescriptor, location1, additionalLocations: locations));
+                    // Report the diagnostic at the first unnecessary location. This is the location where the code fix
+                    // will be offered.
+                    var location1 = additionalUnnecessaryLocations[0];
 
-                    RoslynDebug.AssertNotNull(UnnecessaryWithoutSuggestionDescriptor);
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        UnnecessaryWithoutSuggestionDescriptor,
-                        Location.Create(syntaxTree, TextSpan.FromBounds(
-                            arguments.Last().FullSpan.End,
-                            match.Span.End)),
-                        additionalLocations: locations));
+                    context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                        Descriptor,
+                        location1,
+                        ReportDiagnostic.Default,
+                        additionalLocations: locations,
+                        additionalUnnecessaryLocations: additionalUnnecessaryLocations));
                 }
             }
         }

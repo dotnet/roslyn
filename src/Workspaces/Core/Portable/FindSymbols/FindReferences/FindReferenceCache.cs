@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,8 +22,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     // TODO : this can be all moved down to compiler side.
     internal static class FindReferenceCache
     {
-        private static readonly ReaderWriterLockSlim s_gate = new ReaderWriterLockSlim();
-        private static readonly Dictionary<SemanticModel, Entry> s_cache = new Dictionary<SemanticModel, Entry>();
+        private static readonly ReaderWriterLockSlim s_gate = new();
+        private static readonly Dictionary<SemanticModel, Entry> s_cache = new();
 
         public static SymbolInfo GetSymbolInfo(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return model.GetSymbolInfo(node, cancellationToken);
             }
 
-            return nodeCache.GetOrAdd(node, n => model.GetSymbolInfo(n, cancellationToken));
+            return nodeCache.GetOrAdd(node, static (n, arg) => arg.model.GetSymbolInfo(n, arg.cancellationToken), (model, cancellationToken));
         }
 
         public static IAliasSymbol GetAliasInfo(
@@ -82,25 +85,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     syntaxFacts, root, sourceText, key, cancellationToken));
         }
 
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", AllowCaptures = false)]
         private static ImmutableArray<SyntaxToken> GetIdentifierOrGlobalNamespaceTokensWithText(
             ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText sourceText,
             string text, CancellationToken cancellationToken)
         {
-            // identifier is not escaped
             if (sourceText != null)
             {
-                return GetTokensFromText(syntaxFacts, root, sourceText, text, IsCandidate, cancellationToken);
+                // identifier is not escaped
+                Func<SyntaxToken, ISyntaxFactsService, string, bool> isCandidate = static (t, syntaxFacts, text) => IsCandidate(t, syntaxFacts, text);
+                return GetTokensFromText(syntaxFacts, root, sourceText, text, isCandidate, cancellationToken);
+            }
+            else
+            {
+                // identifier is escaped
+                using var _ = PooledDelegates.GetPooledFunction<SyntaxToken, (ISyntaxFactsService syntaxFacts, string text), bool>(
+                    static (t, arg) => IsCandidate(t, arg.syntaxFacts, arg.text),
+                    (syntaxFacts, text),
+                    out var isCandidate);
+
+                return root.DescendantTokens(descendIntoTrivia: true).Where(isCandidate).ToImmutableArray();
             }
 
-            // identifier is escaped
-            return root.DescendantTokens(descendIntoTrivia: true).Where(IsCandidate).ToImmutableArray();
-
-            bool IsCandidate(SyntaxToken t)
+            static bool IsCandidate(SyntaxToken t, ISyntaxFactsService syntaxFacts, string text)
                 => syntaxFacts.IsGlobalNamespaceKeyword(t) || (syntaxFacts.IsIdentifier(t) && syntaxFacts.TextMatch(t.ValueText, text));
         }
 
         private static ImmutableArray<SyntaxToken> GetTokensFromText(
-            ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText content, string text, Func<SyntaxToken, bool> candidate, CancellationToken cancellationToken)
+            ISyntaxFactsService syntaxFacts, SyntaxNode root, SourceText content, string text, Func<SyntaxToken, ISyntaxFactsService, string, bool> candidate, CancellationToken cancellationToken)
         {
             if (text.Length == 0)
             {
@@ -118,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 var token = root.FindToken(index, findInsideTrivia: true);
                 var span = token.Span;
-                if (!token.IsMissing && span.Start == index && span.Length == text.Length && candidate(token))
+                if (!token.IsMissing && span.Start == index && span.Length == text.Length && candidate(token, syntaxFacts, text))
                 {
                     result.Add(token);
                 }
@@ -235,8 +247,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ImmutableHashSet<string> AliasNameSet;
             public List<SyntaxToken> ConstructorInitializerCache;
 
-            public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache = new ConcurrentDictionary<string, ImmutableArray<SyntaxToken>>();
-            public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new ConcurrentDictionary<SyntaxNode, SymbolInfo>();
+            public readonly ConcurrentDictionary<string, ImmutableArray<SyntaxToken>> IdentifierCache = new();
+            public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new();
         }
     }
 }

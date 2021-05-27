@@ -113,10 +113,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
                 Return Nothing
             End If
 
-            Return Await GenerateCodeAction(document, semanticModel, delegateSymbol, actualEventName, targetType, cancellationToken).ConfigureAwait(False)
+            Return Await GenerateCodeActionAsync(document, semanticModel, delegateSymbol, actualEventName, targetType, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Shared Async Function GenerateCodeAction(document As Document, semanticModel As SemanticModel, delegateSymbol As IMethodSymbol, actualEventName As String, targetType As INamedTypeSymbol, cancellationToken As CancellationToken) As Task(Of CodeAction)
+        Private Shared Async Function GenerateCodeActionAsync(document As Document, semanticModel As SemanticModel, delegateSymbol As IMethodSymbol, actualEventName As String, targetType As INamedTypeSymbol, cancellationToken As CancellationToken) As Task(Of CodeAction)
             Dim codeGenService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ICodeGenerationService)
             Dim syntaxFactService = document.Project.Solution.Workspace.Services.GetLanguageServices(targetType.Language).GetService(Of ISyntaxFactsService)
 
@@ -245,13 +245,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             ' Does this name already bind?
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-            Dim nameToGenerate = semanticModel.GetSymbolInfo(node).Symbol
+            Dim nameToGenerate = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol
 
             If nameToGenerate IsNot Nothing Then
                 Return Nothing
             End If
 
-            Dim targetType = TryCast(Await SymbolFinder.FindSourceDefinitionAsync(semanticModel.GetSymbolInfo(node.Left).Symbol, document.Project.Solution, cancellationToken).ConfigureAwait(False), INamedTypeSymbol)
+            Dim targetType = TryCast(Await SymbolFinder.FindSourceDefinitionAsync(semanticModel.GetSymbolInfo(node.Left, cancellationToken).Symbol, document.Project.Solution, cancellationToken).ConfigureAwait(False), INamedTypeSymbol)
             If targetType Is Nothing OrElse (targetType.TypeKind <> TypeKind.Interface AndAlso targetType.TypeKind <> TypeKind.Class) Then
                 Return Nothing
             End If
@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             ' Our target type may be from a CSharp file, in which case we should resolve it to our VB compilation.
             Dim originalTargetType = targetType
-            targetType = DirectCast(targetType.GetSymbolKey().Resolve(semanticModel.Compilation).Symbol, INamedTypeSymbol)
+            targetType = DirectCast(targetType.GetSymbolKey(cancellationToken).Resolve(semanticModel.Compilation, cancellationToken:=cancellationToken).Symbol, INamedTypeSymbol)
 
             If targetType Is Nothing Then
                 Return Nothing

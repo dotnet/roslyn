@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static partial class DirectiveSyntaxExtensions
     {
         private static readonly ConditionalWeakTable<SyntaxNode, DirectiveInfo> s_rootToDirectiveInfo =
-            new ConditionalWeakTable<SyntaxNode, DirectiveInfo>();
+            new();
 
         private static SyntaxNode GetAbsoluteRoot(this SyntaxNode node)
         {

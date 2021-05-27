@@ -27,11 +27,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
-        Public Async Function ParamsObjectArray() As Task
+        Public Async Function ObjectArray() As Task
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format(""This {0} {1} {[||]2} works"", New Object  { ""test"", ""test2"", ""test3"" })
+        string.Format(""This {0} {1} {[||]2} works"", New Object() { ""test"", ""test2"", ""test3"" })
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(42764, "https://github.com/dotnet/roslyn/issues/42764")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function LiteralArray() As Task
+            Await TestDiagnosticMissingAsync("
+Class C
+     Sub Main 
+        string.Format(""This {0[||]} {1} {2} {3} works"", { ""test"", ""test2"", ""test3"", ""test4"" })
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function StringArray() As Task
+            Await TestDiagnosticMissingAsync("
+Class C
+     Sub Main 
+        Dim strings() = {""test"", ""test2""}
+        String.Format(""This {0} {[||]1} works"", strings)
     End Sub
 End Class")
         End Function
@@ -68,7 +90,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -82,7 +104,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -98,7 +120,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -122,7 +144,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -303,7 +325,7 @@ End Class"
                 Await TestDiagnosticInfoAsync(source,
                     options,
                     diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                    diagnosticSeverity:=DiagnosticSeverity.Warning,
+                    diagnosticSeverity:=DiagnosticSeverity.Info,
                     diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
             End If
         End Function

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,25 +32,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var result = ArrayBuilder<CodeAction>.GetInstance();
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
                 if (textSpan.IsEmpty)
                 {
                     var state = State.Generate((TService)this, semanticDocument, textSpan, cancellationToken);
                     if (state != null)
                     {
                         foreach (var constructor in state.UnimplementedConstructors)
-                        {
                             result.Add(new GenerateDefaultConstructorCodeAction(document, state, constructor));
-                        }
 
                         if (state.UnimplementedConstructors.Length > 1)
-                        {
                             result.Add(new CodeActionAll(document, state, state.UnimplementedConstructors));
-                        }
                     }
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
         }
     }

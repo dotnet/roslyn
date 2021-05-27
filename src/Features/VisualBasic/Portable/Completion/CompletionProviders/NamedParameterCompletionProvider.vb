@@ -28,11 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
             Try
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     End If
                 End If
 
-                Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(argumentList, cancellationToken).ConfigureAwait(False)
                 Dim parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken)
                 If parameterLists Is Nothing Then
                     Return
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         contextPosition:=position,
                         rules:=s_itemRules))
                 Next
-            Catch e As Exception When FatalError.ReportWithoutCrashUnlessCanceled(e)
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e)
                 ' nop
             End Try
         End Function

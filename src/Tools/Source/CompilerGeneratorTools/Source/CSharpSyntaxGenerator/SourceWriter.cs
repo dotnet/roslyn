@@ -2,26 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 
 namespace CSharpSyntaxGenerator
 {
     internal class SourceWriter : AbstractFileWriter
     {
-        private SourceWriter(TextWriter writer, Tree tree)
-            : base(writer, tree)
+        private SourceWriter(TextWriter writer, Tree tree, CancellationToken cancellationToken = default)
+            : base(writer, tree, cancellationToken)
         {
         }
 
-        public static void WriteMain(TextWriter writer, Tree tree) => new SourceWriter(writer, tree).WriteMain();
+        public static void WriteMain(TextWriter writer, Tree tree, CancellationToken cancellationToken = default) => new SourceWriter(writer, tree, cancellationToken).WriteMain();
 
-        public static void WriteInternal(TextWriter writer, Tree tree) => new SourceWriter(writer, tree).WriteInternal();
+        public static void WriteInternal(TextWriter writer, Tree tree, CancellationToken cancellationToken = default) => new SourceWriter(writer, tree, cancellationToken).WriteInternal();
 
-        public static void WriteSyntax(TextWriter writer, Tree tree) => new SourceWriter(writer, tree).WriteSyntax();
+        public static void WriteSyntax(TextWriter writer, Tree tree, CancellationToken cancellationToken = default) => new SourceWriter(writer, tree, cancellationToken).WriteSyntax();
 
         private void WriteFileHeader()
         {
@@ -67,8 +70,8 @@ namespace CSharpSyntaxGenerator
             WriteFileHeader();
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp");
             OpenBlock();
-            WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             WriteLine("using System.Diagnostics.CodeAnalysis;");
+            WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();
             this.WriteRedRewriter();
             this.WriteRedFactories();
@@ -639,7 +642,7 @@ namespace CSharpSyntaxGenerator
             }
 
             // validate parameters
-            WriteLine("#if DEBUG");
+            WriteLineWithoutIndent("#if DEBUG");
             foreach (var field in nodeFields)
             {
                 var pname = CamelCase(field.Name);
@@ -687,7 +690,7 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            WriteLine("#endif");
+            WriteLineWithoutIndent("#endif");
 
             if (nd.Name != "SkippedTokensTriviaSyntax" &&
                 nd.Name != "DocumentationCommentTriviaSyntax" &&
@@ -912,6 +915,17 @@ namespace CSharpSyntaxGenerator
             else if (node is Node)
             {
                 var nd = (Node)node;
+                WriteComment($"<remarks>");
+                WriteComment($"<para>This node is associated with the following syntax kinds:</para>");
+                WriteComment($"<list type=\"bullet\">");
+
+                foreach (var kind in nd.Kinds)
+                {
+                    WriteComment($"<item><description><see cref=\"SyntaxKind.{kind.Name}\"/></description></item>");
+                }
+
+                WriteComment($"</list>");
+                WriteComment($"</remarks>");
                 WriteLine($"public sealed partial class {node.Name} : {node.Base}");
                 OpenBlock();
 
@@ -1140,9 +1154,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedAcceptMethod(Node node, bool genericResult)
         {
             string genericArgs = genericResult ? "<TResult>" : "";
-            if (genericResult)
-                WriteLine("[return: MaybeNull]");
-            WriteLine($"public override {(genericResult ? "TResult" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor) => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
+            WriteLine($"public override {(genericResult ? "TResult?" : "void")} Accept{genericArgs}(CSharpSyntaxVisitor{genericArgs} visitor){(genericResult ? " where TResult : default" : "")} => visitor.Visit{StripPost(node.Name, "Syntax")}(this);");
         }
 
         private void WriteRedVisitors()
@@ -1166,9 +1178,7 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 nWritten++;
                 WriteComment($"<summary>Called when the visitor visits a {node.Name} node.</summary>");
-                if (genericResult)
-                    WriteLine("[return: MaybeNull]");
-                WriteLine($"public virtual {(genericResult ? "TResult" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
+                WriteLine($"public virtual {(genericResult ? "TResult?" : "void")} Visit{StripPost(node.Name, "Syntax")}({node.Name} node) => this.DefaultVisit(node);");
             }
             CloseBlock();
         }
@@ -1545,9 +1555,10 @@ namespace CSharpSyntaxGenerator
 
                 if (field.Type == "SyntaxToken")
                 {
-                    if (field.Kinds != null && field.Kinds.Count > 0)
+                    var fieldKinds = GetKindsOfFieldOrNearestParent(nd, field);
+                    if (fieldKinds != null && fieldKinds.Count > 0)
                     {
-                        var kinds = field.Kinds.ToList();
+                        var kinds = fieldKinds.ToList();
                         if (IsOptional(field))
                         {
                             kinds.Add(new Kind { Name = "None" });
@@ -1787,7 +1798,7 @@ namespace CSharpSyntaxGenerator
 
             if (hasOptional && hasAttributeOrModifiersList)
             {
-                WriteLine("#pragma warning disable RS0027");
+                WriteLineWithoutIndent("#pragma warning disable RS0027");
             }
 
             WriteComment($"<summary>Creates a new {nd.Name} instance.</summary>");
@@ -1846,7 +1857,7 @@ namespace CSharpSyntaxGenerator
 
             if (hasOptional && hasAttributeOrModifiersList)
             {
-                WriteLine("#pragma warning restore RS0027");
+                WriteLineWithoutIndent("#pragma warning restore RS0027");
             }
         }
 
