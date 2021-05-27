@@ -803,7 +803,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private void PopulateEncLogTableCustomAttributes()
         {
-            var attributeMap = CreateExistingAttributeMap(_previousGeneration.MetadataReader, _previousGeneration.CustomAttributesAdded, out var lastRow);
+            var attributeMap = CreateExistingAttributeMap(_previousGeneration.OriginalMetadata.MetadataReader, _previousGeneration.CustomAttributesAdded, out var lastRow);
 
             var nextCustomAttributeRow = lastRow + 1;
 
