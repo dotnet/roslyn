@@ -173,10 +173,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
                     var fixes = GetCodeFixesAsync(
                         state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                        addOperationScope, CodeActionProviderPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
+                        addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
                     var refactorings = GetRefactoringsAsync(
                         state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
-                        addOperationScope, CodeActionProviderPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
+                        addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
 
                     return ConvertToSuggestedActionSets(state, selection, fixes, refactorings);
                 }
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Document document,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
-                CodeActionProviderPriority priority,
+                CodeActionRequestPriority priority,
                 bool isBlocking,
                 CancellationToken cancellationToken)
             {
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Document document,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
-                CodeActionProviderPriority priority,
+                CodeActionRequestPriority priority,
                 bool isBlocking,
                 CancellationToken cancellationToken)
             {

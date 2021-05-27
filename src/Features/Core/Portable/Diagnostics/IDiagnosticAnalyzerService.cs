@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
         /// If diagnosticIdOpt is not null, it gets diagnostics only for this given diagnosticIdOpt value
         /// </summary>
-        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, CodeActionProviderPriority priority = CodeActionProviderPriority.None, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
+        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, CodeActionRequestPriority priority = CodeActionRequestPriority.None, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
     }
 
     internal static class IDiagnosticAnalyzerServiceExtensions
     {
         public static Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(this IDiagnosticAnalyzerService service, Document document, TextSpan range, string? diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default)
-            => service.GetDiagnosticsForSpanAsync(document, range, diagnosticIdOpt, includeSuppressedDiagnostics, CodeActionProviderPriority.None, addOperationScope, cancellationToken);
+            => service.GetDiagnosticsForSpanAsync(document, range, diagnosticIdOpt, includeSuppressedDiagnostics, CodeActionRequestPriority.None, addOperationScope, cancellationToken);
     }
 }

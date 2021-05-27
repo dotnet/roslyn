@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
-    internal enum CodeActionProviderPriority
+    internal enum CodeActionRequestPriority
     {
         /// <summary>
         /// No priority specified, all refactoring, code fixes, and analyzers should be run.  This is equivalent

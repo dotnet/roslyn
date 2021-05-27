@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // Compute and return the high pri set of fixes and refactorings first so the user
                     // can act on them immediately without waiting on the regular set.
                     var highPriSet = GetCodeFixesAndRefactoringsAsync(
-                        state, requestedActionCategories, document, range, _ => null, CodeActionProviderPriority.High, cancellationToken);
+                        state, requestedActionCategories, document, range, _ => null, CodeActionRequestPriority.High, cancellationToken);
                     await foreach (var set in highPriSet)
                         yield return set;
 
                     var lowPriSet = GetCodeFixesAndRefactoringsAsync(
-                        state, requestedActionCategories, document, range, _ => null, CodeActionProviderPriority.Normal, cancellationToken);
+                        state, requestedActionCategories, document, range, _ => null, CodeActionRequestPriority.Normal, cancellationToken);
                     await foreach (var set in lowPriSet)
                         yield return set;
                 }
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Document document,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
-                CodeActionProviderPriority priority,
+                CodeActionRequestPriority priority,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 var workspace = document.Project.Solution.Workspace;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
                     addOperationScope, priority, isBlocking: false, cancellationToken);
 
-                if (priority == CodeActionProviderPriority.High)
+                if (priority == CodeActionRequestPriority.High)
                 {
                     // in a high pri scenario, return data as soon as possible so that the user can interact with them.
                     // this is especially important for state-machine oriented refactorings (like rename) where the user

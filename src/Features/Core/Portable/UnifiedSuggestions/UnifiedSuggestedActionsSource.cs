@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             Document document,
             TextSpan selection,
             bool includeSuppressionFixes,
-            CodeActionProviderPriority priority,
+            CodeActionRequestPriority priority,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeRefactoringService codeRefactoringService,
             Document document,
             TextSpan selection,
-            CodeActionProviderPriority priority,
+            CodeActionRequestPriority priority,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             bool filterOutsideSelection,

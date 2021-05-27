@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
             Document document, TextSpan range, ArrayBuilder<DiagnosticData> result, string? diagnosticId,
-            bool includeSuppressedDiagnostics, CodeActionProviderPriority priority, bool blockForData,
+            bool includeSuppressedDiagnostics, CodeActionRequestPriority priority, bool blockForData,
             Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             TextSpan range,
             string? diagnosticId,
             bool includeSuppressedDiagnostics,
-            CodeActionProviderPriority priority,
+            CodeActionRequestPriority priority,
             bool blockForData,
             Func<string, IDisposable?>? addOperationScope,
             CancellationToken cancellationToken)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly TextSpan _range;
             private readonly bool _blockForData;
             private readonly bool _includeSuppressedDiagnostics;
-            private readonly CodeActionProviderPriority _priority;
+            private readonly CodeActionRequestPriority _priority;
             private readonly string? _diagnosticId;
             private readonly Func<string, IDisposable?>? _addOperationScope;
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  bool blockForData,
                  Func<string, IDisposable?>? addOperationScope,
                  bool includeSuppressedDiagnostics,
-                 CodeActionProviderPriority priority,
+                 CodeActionRequestPriority priority,
                  string? diagnosticId,
                  CancellationToken cancellationToken)
             {
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool blockForData,
                 Func<string, IDisposable?>? addOperationScope,
                 bool includeSuppressedDiagnostics,
-                CodeActionProviderPriority priority)
+                CodeActionRequestPriority priority)
             {
                 _owner = owner;
                 _compilationWithAnalyzers = compilationWithAnalyzers;
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private bool MatchesPriority(DiagnosticAnalyzer analyzer)
             {
                 // If caller isn't asking for prioritized result, then run all analyzers.
-                if (_priority == CodeActionProviderPriority.None)
+                if (_priority == CodeActionRequestPriority.None)
                     return true;
 
                 // Otherwise, check our special internal flag to tell.
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // add-using fixer is high pri, and it works off of compiler diagnostics.  So we always have
                 // to run that one up front.
                 var analyzerIsHighPri = analyzer.IsCompilerAnalyzer() || analyzer is IBuiltInAnalyzer { IsHighPriority: true };
-                var highPriority = _priority == CodeActionProviderPriority.High;
+                var highPriority = _priority == CodeActionRequestPriority.High;
                 return analyzerIsHighPri == highPriority;
             }
 

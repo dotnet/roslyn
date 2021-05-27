@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             TextSpan range,
             bool includeConfigurationFixes,
-            CodeActionProviderPriority priority,
+            CodeActionRequestPriority priority,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
-            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, CodeActionProviderPriority.None, isBlocking: false, result, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
+            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, CodeActionRequestPriority.None, isBlocking: false, result, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextSpan span,
             IEnumerable<DiagnosticData> diagnostics,
             bool fixAllForInSpan,
-            CodeActionProviderPriority priority,
+            CodeActionRequestPriority priority,
             bool isBlocking,
             ArrayBuilder<CodeFixCollection> result,
             Func<string, IDisposable?> addOperationScope,
@@ -399,9 +399,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (priority != CodeActionProviderPriority.None)
+                    if (priority != CodeActionRequestPriority.None)
                     {
-                        var highPriority = priority == CodeActionProviderPriority.High;
+                        var highPriority = priority == CodeActionRequestPriority.High;
                         if (highPriority != fixer.IsHighPriority)
                             continue;
                     }
