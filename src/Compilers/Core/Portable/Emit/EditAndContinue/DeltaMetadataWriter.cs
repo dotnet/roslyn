@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var pair in customAttributesAdded)
             {
-                lastRowId = pair.Key;
+                lastRowId = Math.Max(lastRowId, pair.Key);
                 AddCustomAttribute(result, pair.Key, pair.Value);
             }
 
