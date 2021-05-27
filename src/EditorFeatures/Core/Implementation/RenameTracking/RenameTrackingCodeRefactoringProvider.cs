@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.VisualStudio.Text.Operations;
 
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         /// change the name of something and pop up the lightbulb without having to wait for the rest to
         /// compute.
         /// </summary>
-        internal override bool IsHighPriority => true;
+        private protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
     }
 }

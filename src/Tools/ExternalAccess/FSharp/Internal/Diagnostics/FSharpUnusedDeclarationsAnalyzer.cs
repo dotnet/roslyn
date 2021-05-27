@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
 
-        public bool IsHighPriority => false;
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
         public override int Priority => 80; // Default = 50
 

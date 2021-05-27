@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CodeActions;
+
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #else
@@ -34,9 +36,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         bool OpenFileOnly(OptionSet options);
 
         /// <summary>
-        /// If this is a high-priority analyzer that should run and display results in a client
-        /// prior to running the non-high-priority analyzer.
+        /// What priority this provider should run at.  This value is not allowed to be <see cref="CodeActionRequestPriority.None"/>.
         /// </summary>
-        bool IsHighPriority { get; }
+        CodeActionRequestPriority RequestPriority { get; }
     }
 }

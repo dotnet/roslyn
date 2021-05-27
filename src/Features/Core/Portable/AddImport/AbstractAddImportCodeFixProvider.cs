@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -36,7 +37,8 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// 'smart tag' feature in VS prior to us even having 'light bulbs'.  We want them to be computed
         /// first, ahead of everything else, and the main results should show up at the top of the list.
         /// </summary>
-        internal override bool IsHighPriority => true;
+        private protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
 
         public sealed override FixAllProvider GetFixAllProvider()
         {

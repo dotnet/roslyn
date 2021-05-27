@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
@@ -1226,7 +1227,7 @@ class A
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
                 => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
-            public bool IsHighPriority => false;
+            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
             public bool OpenFileOnly(CodeAnalysis.Options.OptionSet options)
                 => true;

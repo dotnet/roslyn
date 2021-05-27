@@ -399,12 +399,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (priority != CodeActionRequestPriority.None)
-                    {
-                        var highPriority = priority == CodeActionRequestPriority.High;
-                        if (highPriority != fixer.IsHighPriority)
-                            continue;
-                    }
+                    if (priority != CodeActionRequestPriority.None && priority != fixer.RequestPriority)
+                        continue;
 
                     await AppendFixesOrConfigurationsAsync(
                         document, span, diagnostics, fixAllForInSpan, result, fixer,

@@ -120,12 +120,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                 foreach (var provider in GetProviders(document))
                 {
-                    if (priority != CodeActionRequestPriority.None)
-                    {
-                        var highPriority = priority == CodeActionRequestPriority.High;
-                        if (highPriority != provider.IsHighPriority)
-                            continue;
-                    }
+                    if (priority != CodeActionRequestPriority.None && priority != provider.RequestPriority)
+                        continue;
 
                     tasks.Add(Task.Run(() =>
                         {

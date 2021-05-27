@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -18,9 +20,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public abstract Task ComputeRefactoringsAsync(CodeRefactoringContext context);
 
         /// <summary>
-        /// If this is a high-priority refactoring that should run and display results in a client
-        /// prior to running the non-high-priority refactorings.
+        /// What priority this provider should run at.
         /// </summary>
-        internal virtual bool IsHighPriority => false;
+        internal CodeActionRequestPriority RequestPriority
+        {
+            get
+            {
+                var priority = ComputeRequestPriority();
+                Contract.ThrowIfFalse(priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.High);
+                return priority;
+            }
+        }
+
+        private protected virtual CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.Normal;
     }
 }

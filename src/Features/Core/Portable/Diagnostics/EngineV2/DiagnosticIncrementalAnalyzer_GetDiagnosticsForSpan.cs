@@ -249,9 +249,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // be high pri fixers that operate entirely off of compiler diagnostics.  For example, the 
                 // add-using fixer is high pri, and it works off of compiler diagnostics.  So we always have
                 // to run that one up front.
-                var analyzerIsHighPri = analyzer.IsCompilerAnalyzer() || analyzer is IBuiltInAnalyzer { IsHighPriority: true };
-                var highPriority = _priority == CodeActionRequestPriority.High;
-                return analyzerIsHighPri == highPriority;
+                var analyzerPriority =
+                    analyzer.IsCompilerAnalyzer() ? CodeActionRequestPriority.High :
+                    analyzer is IBuiltInAnalyzer { RequestPriority: var rp } ? rp : CodeActionRequestPriority.Normal;
+                return _priority == analyzerPriority;
             }
 
             private bool ShouldInclude(DiagnosticData diagnostic)

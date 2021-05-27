@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -36,9 +38,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => null;
 
         /// <summary>
-        /// If this is a high-priority code fix provider that should run and display results in a client
-        /// prior to running the non-high-priority code fix providers.
+        /// What priority this provider should run at.
         /// </summary>
-        internal virtual bool IsHighPriority => false;
+        internal CodeActionRequestPriority RequestPriority
+        {
+            get
+            {
+                var priority = ComputeRequestPriority();
+                Contract.ThrowIfFalse(priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.High);
+                return priority;
+            }
+        }
+
+        private protected virtual CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.Normal;
     }
 }

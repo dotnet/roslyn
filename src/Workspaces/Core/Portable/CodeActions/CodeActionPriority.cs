@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     /// <remarks>
     /// If <see cref="CodeActionPriority.High"/> is used, the feature that specifies that value should 
-    /// implement and return true for <see cref="IBuiltInAnalyzer.IsHighPriority"/>,
-    /// <see cref="T:Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.IsHighPriority"/> and
-    /// <see cref="T:Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.IsHighPriority"/>. This
+    /// implement and return <see cref="CodeActionRequestPriority.High"/> for <see cref="IBuiltInAnalyzer.RequestPriority"/>,
+    /// <see cref="T:Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.RequestPriority"/> and
+    /// <see cref="T:Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.RequestPriority"/>. This
     /// will ensure that the analysis engine runs the providers that will produce those actions first,
     /// thus allowing those actions to be computed and displayed prior to running all other providers.
     /// </remarks>
