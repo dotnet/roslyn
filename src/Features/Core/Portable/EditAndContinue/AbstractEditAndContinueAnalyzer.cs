@@ -2893,7 +2893,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private void AnalyzeCustomAttributes(ISymbol? oldSymbol, ISymbol newSymbol, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, ArrayBuilder<SemanticEditInfo>? semanticEdits, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
         {
             var needsEdit = false;
-            var attributesHaveChanged = false;
 
             if (newSymbol is IMethodSymbol newMethod)
             {
@@ -2902,14 +2901,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return;
                 }
 
-                ReportAttributeRudeEdits(oldMethod.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), newMethod, capabilities, diagnostics, out attributesHaveChanged);
-                needsEdit |= attributesHaveChanged;
+                needsEdit |= HasCustomAttributeChanges(oldMethod.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), newMethod, capabilities, diagnostics);
 
                 // For properties, we only get called for the get methods, but we want to check the property itself for attribute changes
                 if (newMethod.AssociatedSymbol is not null)
                 {
-                    ReportAttributeRudeEdits(oldMethod.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), newMethod.AssociatedSymbol, capabilities, diagnostics, out var propertyAttributesChanged);
-                    if (propertyAttributesChanged && semanticEdits is not null)
+                    if (HasCustomAttributeChanges(oldMethod.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), newMethod.AssociatedSymbol, capabilities, diagnostics) &&
+                        semanticEdits is not null)
                     {
                         var symbolKey = SymbolKey.Create(newMethod.AssociatedSymbol, cancellationToken);
                         semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
@@ -2926,21 +2924,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             foreach (var parameter in newSymbol.GetParameters())
             {
                 var oldParameter = oldSymbol?.GetParameters().SingleOrDefault(p => p.Name.Equals(parameter.Name));
-                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), parameter.GetAttributes(), parameter, capabilities, diagnostics, out attributesHaveChanged);
-                needsEdit |= attributesHaveChanged;
+                needsEdit |= HasCustomAttributeChanges(oldParameter?.GetAttributes(), parameter.GetAttributes(), parameter, capabilities, diagnostics);
             }
 
             foreach (var typeParam in newSymbol.GetTypeParameters())
             {
                 var oldParameter = oldSymbol?.GetTypeParameters().SingleOrDefault(p => p.Name.Equals(typeParam.Name));
-                ReportAttributeRudeEdits(oldParameter?.GetAttributes(), typeParam.GetAttributes(), typeParam, capabilities, diagnostics, out attributesHaveChanged);
-                needsEdit |= attributesHaveChanged;
+                needsEdit |= HasCustomAttributeChanges(oldParameter?.GetAttributes(), typeParam.GetAttributes(), typeParam, capabilities, diagnostics);
             }
 
             // This is the only case we care about whether to issue an edit or not, because this is the only case where types have their attributes checked
             // and types are the only things that would otherwise not have edits reported.
-            ReportAttributeRudeEdits(oldSymbol?.GetAttributes(), newSymbol.GetAttributes(), newSymbol, capabilities, diagnostics, out attributesHaveChanged);
-            needsEdit |= attributesHaveChanged;
+            needsEdit |= HasCustomAttributeChanges(oldSymbol?.GetAttributes(), newSymbol.GetAttributes(), newSymbol, capabilities, diagnostics);
 
             // If we don't need to add an edit, then we're done
             if (!needsEdit || semanticEdits is null)
@@ -2961,7 +2956,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void ReportAttributeRudeEdits(ImmutableArray<AttributeData>? oldAttributes, ImmutableArray<AttributeData> newAttributes, ISymbol newSymbol, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, out bool needsEdit)
+        private bool HasCustomAttributeChanges(ImmutableArray<AttributeData>? oldAttributes, ImmutableArray<AttributeData> newAttributes, ISymbol newSymbol, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics)
         {
             using var _ = ArrayBuilder<AttributeData>.GetInstance(out var changedAttributes);
 
@@ -2971,10 +2966,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 FindChangedAttributes(newAttributes, oldAttributes.Value, changedAttributes);
             }
 
-            needsEdit = false;
             if (changedAttributes.Count == 0)
             {
-                return;
+                return false;
             }
 
             // We need diagnostics reported if the runtime doesn't support changing attributes,
@@ -2984,13 +2978,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var newNode = FindSyntaxNode(newSymbol);
                 diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, GetDiagnosticSpan(newNode, EditKind.Update), newNode, new[] { GetDisplayName(newNode, EditKind.Update) }));
-            }
-            else
-            {
-                needsEdit = true;
+
+                // If the runtime doesn't support edits then pretend there weren't changes, so no edits are produced
+                return false;
             }
 
-            return;
+            return true;
 
             static void FindChangedAttributes(ImmutableArray<AttributeData>? oldAttributes, ImmutableArray<AttributeData> newAttributes, ArrayBuilder<AttributeData> changedAttributes)
             {
