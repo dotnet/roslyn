@@ -28,16 +28,9 @@ Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(string! hintName, Microsoft.CodeAnalysis.Text.SourceText! sourceText) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(string! hintName, string! source) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.IncrementalGeneratorPostInitializationContext() -> void
-Microsoft.CodeAnalysis.IncrementalValueSource<T>
-Microsoft.CodeAnalysis.IncrementalValueSource<T>.IncrementalValueSource() -> void
-Microsoft.CodeAnalysis.IncrementalValueSources
-Microsoft.CodeAnalysis.IncrementalValueSources.AdditionalTexts.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.AdditionalText!>
-Microsoft.CodeAnalysis.IncrementalValueSources.AnalyzerConfigOptions.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!>
-Microsoft.CodeAnalysis.IncrementalValueSources.Compilation.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.Compilation!>
-Microsoft.CodeAnalysis.IncrementalValueSources.IncrementalValueSources() -> void
-Microsoft.CodeAnalysis.IncrementalValueSources.ParseOptions.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.ParseOptions!>
+Microsoft.CodeAnalysis.IncrementalValueProvider<T>
+Microsoft.CodeAnalysis.IncrementalValueProvider<T>.IncrementalValueProvider() -> void
 Microsoft.CodeAnalysis.IncrementalValueSourceExtensions
-Microsoft.CodeAnalysis.IncrementalValueSources.Syntax.get -> Microsoft.CodeAnalysis.SyntaxValueSources
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
 Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void
 Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void
@@ -66,7 +59,7 @@ Microsoft.CodeAnalysis.SyntaxNodeOrToken.IsIncrementallyIdenticalTo(Microsoft.Co
 Microsoft.CodeAnalysis.SyntaxToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxToken token) -> bool
 Microsoft.CodeAnalysis.SyntaxValueSources
 Microsoft.CodeAnalysis.SyntaxValueSources.SyntaxValueSources() -> void
-Microsoft.CodeAnalysis.SyntaxValueSources.Transform<T>(System.Func<Microsoft.CodeAnalysis.SyntaxNode!, bool>! filterFunc, System.Func<Microsoft.CodeAnalysis.GeneratorSyntaxContext, T>! transformFunc) -> Microsoft.CodeAnalysis.IncrementalValueSource<T>
+Microsoft.CodeAnalysis.SyntaxValueSources.Transform<T>(System.Func<Microsoft.CodeAnalysis.SyntaxNode!, bool>! filterFunc, System.Func<Microsoft.CodeAnalysis.GeneratorSyntaxContext, T>! transformFunc) -> Microsoft.CodeAnalysis.IncrementalValueProvider<T>
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool

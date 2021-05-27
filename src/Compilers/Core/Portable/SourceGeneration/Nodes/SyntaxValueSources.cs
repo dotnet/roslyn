@@ -23,26 +23,26 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates an <see cref="IncrementalValueSource{T}"/> that can provide a transform over <see cref="SyntaxNode"/>s
+        /// Creates an <see cref="IncrementalValueProvider{T}"/> that can provide a transform over <see cref="SyntaxNode"/>s
         /// </summary>
         /// <typeparam name="T">The type of the value the syntax node is transformed into</typeparam>
         /// <param name="filterFunc">A function that determines if the given <see cref="SyntaxNode"/> should be transformed</param>
         /// <param name="transformFunc">A function that performs the transform, when <paramref name="filterFunc"/>returns <c>true</c> for a given node</param>
-        /// <returns>An <see cref="IncrementalValueSource{T}"/> that provides the results of the transformation</returns>
-        public IncrementalValueSource<T> Transform<T>(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
+        /// <returns>An <see cref="IncrementalValueProvider{T}"/> that provides the results of the transformation</returns>
+        public IncrementalValueProvider<T> Transform<T>(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
         {
             // registration of the input is deferred until we know the node is used
-            return new IncrementalValueSource<T>(new SyntaxInputNode<T>(filterFunc.WrapUserFunction(), transformFunc.WrapUserFunction(), RegisterOutputAndDeferredInput));
+            return new IncrementalValueProvider<T>(new SyntaxInputNode<T>(filterFunc.WrapUserFunction(), transformFunc.WrapUserFunction(), RegisterOutputAndDeferredInput));
         }
 
         /// <summary>
         /// Creates a syntax receiver input node. Only used for back compat in <see cref="SourceGeneratorAdaptor"/>
         /// </summary>
-        internal IncrementalValueSource<ISyntaxContextReceiver> CreateSyntaxReceiverInput(SyntaxContextReceiverCreator creator)
+        internal IncrementalValueProvider<ISyntaxContextReceiver> CreateSyntaxReceiverInput(SyntaxContextReceiverCreator creator)
         {
             var node = new SyntaxReceiverInputNode(creator, _registerOutput);
             _inputNodes.Add(node);
-            return new IncrementalValueSource<ISyntaxContextReceiver>(node);
+            return new IncrementalValueProvider<ISyntaxContextReceiver>(node);
         }
 
         private void RegisterOutputAndDeferredInput(ISyntaxInputNode node, IIncrementalGeneratorOutputNode output)

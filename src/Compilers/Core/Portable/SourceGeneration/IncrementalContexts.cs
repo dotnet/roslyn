@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis
 
         public SyntaxValueSources SyntaxProvider => new SyntaxValueSources(_syntaxInputBuilder, RegisterOutput);
 
-        public IncrementalValueSource<Compilation> CompilationProvider => new IncrementalValueSource<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
+        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
 
-        public IncrementalValueSource<ParseOptions> ParseOptionsProvider => new IncrementalValueSource<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput));
+        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput));
 
-        public IncrementalValueSource<AdditionalText> AdditionalTextsProvider => new IncrementalValueSource<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput));
+        public IncrementalValueProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValueProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput));
 
-        public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput));
+        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput));
 
         private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
         {
