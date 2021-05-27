@@ -111,7 +111,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
                 else
                 {
-                    await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
                     var fixes = await fixesTask.ConfigureAwait(false);
                     var refactorings = await refactoringsTask.ConfigureAwait(false);
                     foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes, refactorings))
