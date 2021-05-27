@@ -1511,7 +1511,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.Sources.Compilation.GenerateSource((spc, c) =>
+                ctx.CompilationProvider.GenerateSource((spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
                 });
@@ -1549,12 +1549,12 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.Sources.Compilation.GenerateSource((spc, c) =>
+                ctx.CompilationProvider.GenerateSource((spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
                 });
 
-                ctx.Sources.AdditionalTexts.GenerateSource((spc, c) =>
+                ctx.AdditionalTextsProvider.GenerateSource((spc, c) =>
                 {
                     textsCalledFor.Add(c);
                 });
@@ -1611,7 +1611,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var compilationSource = ctx.Sources.Compilation.WithComparer(new LambdaComparer<Compilation>((c1, c2) => true, 0));
+                var compilationSource = ctx.CompilationProvider.WithComparer(new LambdaComparer<Compilation>((c1, c2) => true, 0));
                 compilationSource.GenerateSource((spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
@@ -1696,11 +1696,11 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var source = ctx.Sources.Compilation;
-                var source2 = ctx.Sources.Compilation.Join(source);
-                var source3 = ctx.Sources.Compilation.Join(source2);
-                var source4 = ctx.Sources.Compilation.Join(source3);
-                var source5 = ctx.Sources.Compilation.Join(source4);
+                var source = ctx.CompilationProvider;
+                var source2 = ctx.CompilationProvider.Join(source);
+                var source3 = ctx.CompilationProvider.Join(source2);
+                var source4 = ctx.CompilationProvider.Join(source3);
+                var source5 = ctx.CompilationProvider.Join(source4);
 
                 source5.GenerateSource((spc, c) =>
                 {
@@ -1734,7 +1734,7 @@ class C { }
                 ic.RegisterForPostInitialization(c => c.AddSource("a", "class D {}"));
                 ic.RegisterExecutionPipeline(pc =>
                 {
-                    pc.Sources.Syntax.Transform(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node).GenerateSource((spc, node) => classes.Add(node));
+                    pc.SyntaxProvider.Transform(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node).GenerateSource((spc, node) => classes.Add(node));
                 });
             }));
 

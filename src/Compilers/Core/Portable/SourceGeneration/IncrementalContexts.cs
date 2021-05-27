@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -78,11 +79,31 @@ namespace Microsoft.CodeAnalysis
 
     public readonly struct IncrementalGeneratorPipelineContext
     {
-        public IncrementalValueSources Sources { get; }
+        private readonly ArrayBuilder<ISyntaxInputNode> _syntaxInputBuilder;
+        private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
 
-        internal IncrementalGeneratorPipelineContext(IncrementalValueSources valueSources)
+        internal IncrementalGeneratorPipelineContext(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes)
         {
-            Sources = valueSources;
+            _syntaxInputBuilder = syntaxInputBuilder;
+            _outputNodes = outputNodes;
+        }
+
+        public SyntaxValueSources SyntaxProvider => new SyntaxValueSources(_syntaxInputBuilder, RegisterOutput);
+
+        public IncrementalValueSource<Compilation> CompilationProvider => new IncrementalValueSource<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
+
+        public IncrementalValueSource<ParseOptions> ParseOptionsProvider => new IncrementalValueSource<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput));
+
+        public IncrementalValueSource<AdditionalText> AdditionalTextsProvider => new IncrementalValueSource<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput));
+
+        public IncrementalValueSource<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueSource<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput));
+
+        private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
+        {
+            if (!_outputNodes.Contains(outputNode))
+            {
+                _outputNodes.Add(outputNode);
+            }
         }
     }
 

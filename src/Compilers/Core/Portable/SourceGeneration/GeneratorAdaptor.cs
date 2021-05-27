@@ -32,16 +32,16 @@ namespace Microsoft.CodeAnalysis
 
             initContext.RegisterExecutionPipeline((executionContext) =>
             {
-                var contextBuilderSource = executionContext.Sources.Compilation
+                var contextBuilderSource = executionContext.CompilationProvider
                                             .Transform(c => new GeneratorContextBuilder(c))
-                                            .Join(executionContext.Sources.ParseOptions).Transform(p => p.Item1 with { ParseOptions = p.Item2.FirstOrDefault() })
-                                            .Join(executionContext.Sources.AnalyzerConfigOptions).Transform(p => p.Item1 with { ConfigOptions = p.Item2.FirstOrDefault() })
-                                            .Join(executionContext.Sources.AdditionalTexts).Transform(p => p.Item1 with { AdditionalTexts = p.Item2 });
+                                            .Join(executionContext.ParseOptionsProvider).Transform(p => p.Item1 with { ParseOptions = p.Item2.FirstOrDefault() })
+                                            .Join(executionContext.AnalyzerConfigOptionsProvider).Transform(p => p.Item1 with { ConfigOptions = p.Item2.FirstOrDefault() })
+                                            .Join(executionContext.AdditionalTextsProvider).Transform(p => p.Item1 with { AdditionalTexts = p.Item2 });
 
                 if (syntaxContextReceiverCreator is object)
                 {
                     contextBuilderSource = contextBuilderSource
-                                           .Join(executionContext.Sources.Syntax.CreateSyntaxReceiverInput(syntaxContextReceiverCreator))
+                                           .Join(executionContext.SyntaxProvider.CreateSyntaxReceiverInput(syntaxContextReceiverCreator))
                                            .Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() });
                 }
 

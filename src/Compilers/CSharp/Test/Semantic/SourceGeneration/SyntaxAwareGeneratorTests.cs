@@ -860,7 +860,7 @@ class C
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                 source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
@@ -901,13 +901,13 @@ class classD
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                 source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
                 });
 
-                var source2 = context.Sources.Syntax.Transform(c => c is ClassDeclarationSyntax fds, c => ((ClassDeclarationSyntax)c.Node).Identifier.ValueText);
+                var source2 = context.SyntaxProvider.Transform(c => c is ClassDeclarationSyntax fds, c => ((ClassDeclarationSyntax)c.Node).Identifier.ValueText);
                 source2.GenerateSource((spc, className) =>
                 {
                     spc.AddSource(className, "");
@@ -944,7 +944,7 @@ class C
             List<string> fieldsCalledFor = new List<string>();
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                 source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
@@ -1017,7 +1017,7 @@ class D
             List<string> fieldsCalledFor = new List<string>();
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                 source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
@@ -1085,7 +1085,7 @@ class D
             List<string> fieldsCalledFor = new List<string>();
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                 source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
@@ -1153,7 +1153,7 @@ class E
             List<string> fieldsCalledFor = new List<string>();
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                 source.GenerateSource((spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
@@ -1217,7 +1217,7 @@ class C
             List<string> calledFor = new List<string>();
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                 source = source.WithComparer(new LambdaComparer<string>((a, b) => false));
                 source.GenerateSource((spc, fieldName) =>
                 {
@@ -1256,7 +1256,7 @@ class C
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c =>
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c =>
                 {
                     syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
@@ -1298,7 +1298,7 @@ class C
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c =>
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c =>
                 {
                     syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
@@ -1357,7 +1357,7 @@ class C
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c =>
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c =>
                 {
                     syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
@@ -1404,15 +1404,15 @@ class C
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c =>
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c =>
                 {
                     syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
                 });
 
-                var source2 = source.Join(context.Sources.AdditionalTexts)
-                                    .Join(context.Sources.AnalyzerConfigOptions)
-                                    .Join(context.Sources.ParseOptions);
+                var source2 = source.Join(context.AdditionalTextsProvider)
+                                    .Join(context.AnalyzerConfigOptionsProvider)
+                                    .Join(context.ParseOptionsProvider);
 
                 source2.GenerateSource((spc, output) =>
                 {
@@ -1449,7 +1449,7 @@ class C
 
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
-                var source = context.Sources.Syntax.Transform(c => c is FieldDeclarationSyntax fds, c =>
+                var source = context.SyntaxProvider.Transform(c => c is FieldDeclarationSyntax fds, c =>
                 {
                     syntaxCalledFor.Add(((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
