@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             _outputNodes = outputNodes;
         }
 
-        public SyntaxValueSources SyntaxProvider => new SyntaxValueSources(_syntaxInputBuilder, RegisterOutput);
+        public SyntaxValueProvider SyntaxProvider => new SyntaxValueProvider(_syntaxInputBuilder, RegisterOutput);
 
         public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
 

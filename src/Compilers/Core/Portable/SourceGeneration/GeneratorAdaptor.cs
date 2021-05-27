@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                 if (syntaxContextReceiverCreator is object)
                 {
                     contextBuilderSource = contextBuilderSource
-                                           .Join(executionContext.SyntaxProvider.CreateSyntaxReceiverInput(syntaxContextReceiverCreator))
+                                           .Join(executionContext.SyntaxProvider.CreateSyntaxReceiverProvider(syntaxContextReceiverCreator))
                                            .Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() });
                 }
 

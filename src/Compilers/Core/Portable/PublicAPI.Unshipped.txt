@@ -17,13 +17,12 @@ Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.IncrementalGene
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterExecutionPipeline(System.Action<Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext>! callback) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext>! callback) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.AdditionalTextsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.AdditionalText!>
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!>
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.CompilationProvider.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.Compilation!>
+Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.AdditionalTextsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.AdditionalText!>
+Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!>
+Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.CompilationProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.Compilation!>
 Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.IncrementalGeneratorPipelineContext() -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.ParseOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueSource<Microsoft.CodeAnalysis.ParseOptions!>
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.Sources.get -> Microsoft.CodeAnalysis.IncrementalValueSources
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.SyntaxProvider.get -> Microsoft.CodeAnalysis.SyntaxValueSources
+Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.ParseOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.ParseOptions!>
+Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.SyntaxProvider.get -> Microsoft.CodeAnalysis.SyntaxValueProvider
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(string! hintName, Microsoft.CodeAnalysis.Text.SourceText! sourceText) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(string! hintName, string! source) -> void
@@ -58,8 +57,8 @@ Microsoft.CodeAnalysis.SyntaxNode.IsIncrementallyIdenticalTo(Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.SyntaxNodeOrToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxNodeOrToken other) -> bool
 Microsoft.CodeAnalysis.SyntaxToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxToken token) -> bool
 Microsoft.CodeAnalysis.SyntaxValueSources
+Microsoft.CodeAnalysis.SyntaxValueSources.CreateSyntaxProvider<T>(System.Func<Microsoft.CodeAnalysis.SyntaxNode!, bool>! predicate, System.Func<Microsoft.CodeAnalysis.GeneratorSyntaxContext, T>! transform) -> Microsoft.CodeAnalysis.IncrementalValueProvider<T>
 Microsoft.CodeAnalysis.SyntaxValueSources.SyntaxValueSources() -> void
-Microsoft.CodeAnalysis.SyntaxValueSources.Transform<T>(System.Func<Microsoft.CodeAnalysis.SyntaxNode!, bool>! filterFunc, System.Func<Microsoft.CodeAnalysis.GeneratorSyntaxContext, T>! transformFunc) -> Microsoft.CodeAnalysis.IncrementalValueProvider<T>
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool
