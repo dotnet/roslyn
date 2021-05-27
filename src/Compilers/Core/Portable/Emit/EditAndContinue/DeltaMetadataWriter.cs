@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿f // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
         // For the EncLog table we need to know which things we're emitting custom attributes for so we can
         // correctly map the attributes to row numbers of existing attributes for that target
-        private readonly List<EntityHandle> _customAttributeTargets = new List<EntityHandle>();
+        private readonly List<EntityHandle> _customAttributeTargets;
 
         // For the EncMap table we need to keep a list of exactly which rows in the CustomAttributes table are updated
-        // since we spread these out amongst existing rows, it's not just a contigious set
+        // since we spread these out amongst existing rows, it's not just a contiguous set
         private readonly List<int> _customAttributeRows;
 
         // Keep track of which CustomAttributes rows are added in this and previous deltas, over what is in the
@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.Emit
             _eventMap = new EventOrPropertyMapIndex(this.TryGetExistingEventMapIndex, sizes[(int)TableIndex.EventMap]);
             _propertyMap = new EventOrPropertyMapIndex(this.TryGetExistingPropertyMapIndex, sizes[(int)TableIndex.PropertyMap]);
             _methodImpls = new MethodImplIndex(this, sizes[(int)TableIndex.MethodImpl]);
+
+            _customAttributeTargets = new List<EntityHandle>()
             _customAttributeRows = new List<int>();
             _customAttributesAdded = new Dictionary<int, EntityHandle>();
 
