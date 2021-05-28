@@ -118,7 +118,7 @@ public static class FromFirstAssembly
     }
 }
 ";
-            var comp1 = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            var comp1 = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular9);
             comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
 
@@ -209,7 +209,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (12,22): warning CS8918: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
                 //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
@@ -239,7 +239,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (12,29): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the MemberNameAttribute.
                 //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
@@ -382,7 +382,7 @@ public static class C
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"<Main>$
 <default-arg-expression>");
@@ -585,7 +585,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (12,22): warning CS8918: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
                 //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
@@ -621,7 +621,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             // PROTOTYPE(caller-expr): This is inconsistent with the behavior of invocations, which doesn't show a lang version error.
             // The error shouldn't be there since caller member names wins over caller argument expression.
             compilation.VerifyDiagnostics(
@@ -798,7 +798,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"<default-caller-name>
 <default-arg-expression>");
@@ -834,7 +834,7 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value");
