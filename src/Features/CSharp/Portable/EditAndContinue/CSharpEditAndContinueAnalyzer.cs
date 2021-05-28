@@ -1236,7 +1236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode node,
             EditKind editKind,
             SemanticModel model,
-            IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
             CancellationToken cancellationToken)
         {
             if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter, SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
@@ -1244,13 +1243,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return null;
             }
 
-            if (editKind == EditKind.Update)
+            // Enum declaration update that removes/adds a trailing comma.
+            if (editKind == EditKind.Update && node.IsKind(SyntaxKind.EnumDeclaration))
             {
-                if (node.IsKind(SyntaxKind.EnumDeclaration))
-                {
-                    // Enum declaration update that removes/adds a trailing comma.
-                    return null;
-                }
+                return null;
             }
 
             var symbol = model.GetDeclaredSymbol(node, cancellationToken);
