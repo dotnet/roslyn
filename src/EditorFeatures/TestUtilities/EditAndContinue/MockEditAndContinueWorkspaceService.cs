@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<Solution, SolutionActiveStatementSpanProvider, string?, bool>? HasChangesImpl;
         public Func<Solution, SolutionActiveStatementSpanProvider, EmitSolutionUpdateResults>? EmitSolutionUpdateImpl;
         public Func<Solution, ManagedInstructionId, bool?>? IsActiveStatementInExceptionRegionImpl;
-        public Func<Document, CancellationToken, ValueTask>? OnSourceFileUpdatedAsyncImpl;
+        public Action<Document>? OnSourceFileUpdatedImpl;
         public ActionOut<ImmutableArray<DocumentId>>? CommitSolutionUpdateImpl;
         public ActionOut<ImmutableArray<DocumentId>>? BreakStateEnteredImpl;
         public Action? DiscardSolutionUpdateImpl;
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
             => new((IsActiveStatementInExceptionRegionImpl ?? throw new NotImplementedException()).Invoke(solution, instructionId));
 
-        public ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
-            => OnSourceFileUpdatedAsyncImpl?.Invoke(document, cancellationToken) ?? throw new NotImplementedException();
+        public void OnSourceFileUpdated(Document document)
+            => OnSourceFileUpdatedImpl?.Invoke(document);
 
         public ValueTask StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
