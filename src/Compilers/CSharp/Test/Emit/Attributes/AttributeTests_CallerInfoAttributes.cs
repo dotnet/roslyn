@@ -622,8 +622,6 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            // PROTOTYPE(caller-expr): This is inconsistent with the behavior of invocations, which doesn't show a lang version error.
-            // The error shouldn't be there since caller member names wins over caller argument expression.
             compilation.VerifyDiagnostics(
                 // (9,32): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the CallerMemberNameAttribute.
                 //     public MyAttribute(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
@@ -1173,6 +1171,60 @@ class Program
                 //     public MyAttribute(int a = 1, [CallerArgumentExpression("a")] int expr_a = 0)
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(8, 36)
             );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpression_ImplicitConversionFromStringDoesNotExists_Metadata()
+        {
+            string il = @"
+.class public auto ansi beforefieldinit MyAttribute
+    extends [mscorlib]System.Attribute
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor (
+            [opt] int32 a,
+            [opt] int32 expr_a
+        ) cil managed
+    {
+        .param [1] = int32(1)
+        .param [2] = int32(0)
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+                01 00 01 61 00 00
+            )
+        // Method begins at RVA 0x2050
+        // Code size 37 (0x25)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ldstr ""'{0}', '{1}'""
+        IL_000d: ldarg.1
+        IL_000e: box [mscorlib]System.Int32
+        IL_0013: ldarg.2
+        IL_0014: box [mscorlib]System.Int32
+        IL_0019: call string [mscorlib]System.String::Format(string, object, object)
+        IL_001e: call void [mscorlib]System.Console::WriteLine(string)
+        IL_0023: nop
+        IL_0024: ret
+    } // end of method MyAttribute::.ctor
+
+} // end of class MyAttribute
+";
+
+            string source = @"
+[My(1+2)]
+class Program
+{
+}";
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            var arguments = compilation.GetTypeByMetadataName("Program").GetAttributes().Single().CommonConstructorArguments;
+            Assert.Equal(2, arguments.Length);
+            Assert.Equal(3, arguments[0].Value);
+            Assert.Equal(0, arguments[1].Value);
         }
         #endregion
 
