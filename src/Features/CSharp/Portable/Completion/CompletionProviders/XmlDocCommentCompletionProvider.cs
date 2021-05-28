@@ -371,9 +371,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var declaredParameters = declarationSymbol.GetParameters();
             if (declarationSymbol is INamedTypeSymbol { IsRecord: true } recordSymbol)
             {
-            var declaredParameters = declarationSymbol.GetParameters();
-            if (declarationSymbol is INamedTypeSymbol { IsRecord: true } recordSymbol)
-            {
                 Debug.Assert(declaredParameters.IsDefaultOrEmpty, "If GetParameters extension handles record, we can remove the handling here.");
                 // A bit hacky to determine the parameters of primary constructor associated with a given record.
                 // Simplifying is tracked by: https://github.com/dotnet/roslyn/issues/53092.
