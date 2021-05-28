@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public static readonly Comparer<ActiveStatement> Comparer =
             Comparer<ActiveStatement>.Create((x, y) => x.FileSpan.Start.CompareTo(y.FileSpan.Start));
 
-        public static readonly Comparer<(ManagedActiveStatementDebugInfo, SourceFileSpan, int)> s_infoSpanComparer =
+        private static readonly Comparer<(ManagedActiveStatementDebugInfo, SourceFileSpan, int)> s_infoSpanComparer =
             Comparer<(ManagedActiveStatementDebugInfo, SourceFileSpan span, int)>.Create((x, y) => x.span.Start.CompareTo(y.span.Start));
 
         /// <summary>

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             Assert.Equal(1, OneOrMany.Create(ImmutableArray.Create(1)).FirstOrDefault(i => i < 2));
             Assert.Equal(0, OneOrMany.Create(ImmutableArray.Create(1)).FirstOrDefault(i => i > 2));
             Assert.Equal(1, OneOrMany.Create(ImmutableArray.Create(1, 3)).FirstOrDefault(i => i < 2));
-            Assert.Equal(2, OneOrMany.Create(ImmutableArray.Create(1, 3)).FirstOrDefault(i => i > 2));
+            Assert.Equal(3, OneOrMany.Create(ImmutableArray.Create(1, 3)).FirstOrDefault(i => i > 2));
         }
 
         [Fact]

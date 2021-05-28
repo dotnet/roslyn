@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
 
         /// <summary>
-        /// Finds a member declaration node(s) containing given <paramref name="node"/>.
+        /// Finds member declaration node(s) containing given <paramref name="node"/>.
         /// Specified <paramref name="node"/> may be either a node of the declaration body or an active node that belongs to the declaration.
         /// </summary>
         /// <remarks>
@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         DocumentAnalysisResults.Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
                     }
 
-                    // we were not able to determine the active statement location (PDB dtamight be invalid)
+                    // we were not able to determine the active statement location (PDB data might be invalid)
                     if (newActiveStatements[i] == null)
                     {
                         newActiveStatements[i] = oldActiveStatements[i].Statement.WithSpan(default);
@@ -2137,7 +2137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     lastOldFilePath = oldMappedSpan.Path;
                 }
 
-                // All tokens of a member body has been processed now.
+                // All tokens of a member body have been processed now.
                 if (requiresUpdate)
                 {
                     triviaEdits.Add((oldNode, newNode));

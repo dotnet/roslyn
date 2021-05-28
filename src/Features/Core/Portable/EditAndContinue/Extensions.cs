@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             throw ExceptionUtilities.UnexpectedValue(ordinal);
         }
 
-
         public static UnmappedActiveStatement GetStatement(this ImmutableArray<UnmappedActiveStatement> statements, int ordinal)
         {
             foreach (var item in statements)
