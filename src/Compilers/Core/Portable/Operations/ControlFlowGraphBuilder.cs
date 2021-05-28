@@ -864,20 +864,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                         continue;
                                     }
 
-                                    if (currentRegion.LastBlock == block &&
-                                        block.BranchValue is IFlowCaptureReferenceOperation { Id: var id } &&
-                                        currentRegion.HasCaptureIds &&
-                                        currentRegion.CaptureIds.Contains(id) &&
-                                        block.Ordinal != (predecessor.Ordinal + 1))
+                                    if (block.BranchValue != null &&
+                                        block.Ordinal != (predecessor.Ordinal + 1) &&
+                                        FlowCaptureReferenceSearcher.ContainsReferenceToCapturesEndingWithBlock(currentRegion, block))
                                     {
-                                        // Do not merge return when the return expression is the last block in the region and references
+                                        // Do not merge return when the expression is the last block in the region and references
                                         // a capture defined in the region, and the resulting block would not be the new last block of the region.
                                         // This would shorten the lifetime of the flow capture (see SwitchExpression_JustDiscardWithGuard for
                                         // an example that breaks without this).
-                                        // Technically, this could happen more deeply: the block's value could be a thing that uses the
-                                        // flow capture, and it might be legal to combine anyway if the block before this also references
-                                        // the flow capture. However, we don't currently know of any graphs that produce a shape like this.
-                                        // If that changes, then this check will need be more precise.
+                                        // This might over-optimize in some cases and remove branches that could be merged if the previous BranchValue
+                                        // does indeed reference the capture, but it's a complex check to make this determination because we have to
+                                        // determine that every capture from every region ending with the current block actually is referenced
+                                        // in the previous block. If we ever run into a case that would benefit from this, we can look at it then.
                                         continue;
                                     }
 
@@ -6997,7 +6995,12 @@ oneMoreTime:
             if (operation.Arms.Length == 1 && operation.Arms[0].Pattern is IDiscardPatternOperation)
             {
                 capturedInput = null;
-                Visit(operation.Value);
+                var saveCurrentStatement = _currentStatement;
+                _currentStatement = operation.Value;
+                var result = VisitRequired(operation.Value);
+                var expressionStatement = new ExpressionStatementOperation(result, semanticModel: null, operation.Value.Syntax, isImplicit: true);
+                AddStatement(expressionStatement);
+                _currentStatement = saveCurrentStatement;
             }
             else
             {
