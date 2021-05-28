@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var lookupResult = LookupResult.GetInstance();
-            if (PerformPatternIndexerLookup(syntax, receiverType, lookupResult, out indexerAccess, argType, diagnostics, ref useSiteInfo))
+            if (TryPerformPatternIndexerLookup(syntax, receiverType, lookupResult, argType, out indexerAccess, diagnostics, ref useSiteInfo))
             {
                 _ = GetWellKnownTypeMember(argIsIndex ? WellKnownMember.System_Index__ctor : WellKnownMember.System_Range__ctor, diagnostics, syntax: syntax);
                 diagnostics.Add(syntax, useSiteInfo);
@@ -375,9 +375,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool PerformPatternIndexerLookup(
-            SyntaxNode syntax, TypeSymbol receiverType, LookupResult lookupResult,
-            [NotNullWhen(true)] out BoundIndexerAccess? result, TypeSymbol indexerArgumentType, BindingDiagnosticBag diagnostics, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool TryPerformPatternIndexerLookup(
+            SyntaxNode syntax,
+            TypeSymbol receiverType,
+            LookupResult lookupResult,
+            TypeSymbol indexerArgumentType,
+            [NotNullWhen(true)] out BoundIndexerAccess? result,
+            BindingDiagnosticBag diagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             result = null;
 
