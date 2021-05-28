@@ -458,7 +458,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionHelper = CompletionHelper.GetHelper(document);
             foreach (var item in completionList.Items)
             {
-
                 if (CompletionHelper.TryCreateMatchResult<CompletionItem?>(
                     completionHelper,
                     item,
@@ -484,7 +483,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .Where(match => count-- > 0 || match.RoslynCompletionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection)
                 .Select(match => match.RoslynCompletionItem)
                 .ToImmutableArray();
-
             var newCompletionList = completionList.WithItems(filteredList);
 
             // Per the LSP spec, the completion list should be marked with isIncomplete = false when further insertions will
