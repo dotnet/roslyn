@@ -364,7 +364,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo))
+            if (TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo) &&
+                patternSymbol is not MethodSymbol { ReturnsVoid: true }) // This is not part of the Range indexer pattern spec but we're going to use the return value here.
             {
                 diagnostics.Add(syntax, useSiteInfo);
                 lookupResult.Free();
@@ -399,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (lookupResult.IsMultiViable)
             {
-                var indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance();
+                var indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance(lookupResult.Symbols.Count);
                 foreach (Symbol symbol in lookupResult.Symbols)
                 {
                     Debug.Assert(symbol.IsIndexer());
@@ -408,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 analyzedArguments.Arguments.Add(new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, indexerArgumentType));
-                BoundExpression receiver = new BoundImplicitReceiver(syntax, receiverType);
+                var receiver = new BoundImplicitReceiver(syntax, receiverType);
                 var bindingDiagnostics = BindingDiagnosticBag.Create(diagnostics);
                 var boundAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, indexerGroup, analyzedArguments, bindingDiagnostics);
                 if (boundAccess is BoundIndexerAccess { ResultKind: LookupResultKind.Viable } indexerAccess &&

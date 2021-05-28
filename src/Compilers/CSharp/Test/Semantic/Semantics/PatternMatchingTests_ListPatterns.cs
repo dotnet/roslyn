@@ -1225,6 +1225,7 @@ class X
         [InlineData("public int Slice(long i, long j) => 0;")]
         [InlineData("public int Slice(params int[] i) => 0;")]
         [InlineData("private int Slice(int i, int j) => 0;")]
+        [InlineData("public void Slice(int i, int j) {}")]
         [InlineData("public int this[Range i] => 0;", true)]
         [InlineData("public int Slice(int i, int j) => 0;", true)]
         public void ListPattern_MemberLookup_Range_ErrorCases(string member, bool valid = false)
@@ -1242,6 +1243,7 @@ class X
 {
     public static void Main()
     {
+        _ = new Test1() is {..var p};
         _ = new Test1() is {..};
     } 
 }
@@ -1254,8 +1256,11 @@ class X
             }
             compilation.VerifyEmitDiagnostics(
                 // (14,29): error CS9201: Slice patterns may not be used for a value of type 'Test1'.
+                //         _ = new Test1() is {..var p};
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var p").WithArguments("Test1").WithLocation(14, 29),
+                // (15,29): error CS9201: Slice patterns may not be used for a value of type 'Test1'.
                 //         _ = new Test1() is {..};
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..").WithArguments("Test1").WithLocation(14, 29));
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..").WithArguments("Test1").WithLocation(15, 29));
         }
 
         [Fact]
