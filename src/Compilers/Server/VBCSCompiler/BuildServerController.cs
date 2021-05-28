@@ -140,20 +140,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // exit immediately with a non-zero exit code
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
             bool createdNew;
-            using (var serverMutex = BuildServerConnection.OpenOrCreateMutex(name: mutexName,
-                                                                             createdNew: out createdNew))
+            var serverMutex = BuildServerConnection.OpenOrCreateMutex(name: mutexName,
+                                                                             createdNew: out createdNew);
+            if (!createdNew)
             {
-                if (!createdNew)
-                {
-                    return CommonCompiler.Failed;
-                }
-
+                return CommonCompiler.Failed;
+            }
+            try
+            {
                 compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive?.TotalMilliseconds ?? 0);
                 FatalError.Handler = FailFast.OnFatalException;
 
                 var dispatcher = new ServerDispatcher(compilerServerHost, clientConnectionHost, listener);
                 dispatcher.ListenAndDispatchConnections(keepAlive, cancellationToken);
                 return CommonCompiler.Succeeded;
+            }
+            finally
+            {
+                serverMutex.Dispose();
             }
         }
 
