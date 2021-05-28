@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
@@ -45,18 +47,26 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
-            block.Inlines.Add(_diagnostic.Id + ": " + _diagnostic.Message);
+            var id = new Run(_diagnostic.Id);
+            var link = new Hyperlink(id)
+            {
+                NavigateUri = new Uri(_diagnostic.HelpLink)
+            };
+
+            link.RequestNavigate += HandleRequestNavigate;
+            block.Inlines.Add(link);
+            block.Inlines.Add(": " + _diagnostic.Message);
             block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             block.Arrange(new Rect(block.DesiredSize));
 
-            //var color = _editorFormatMap.GetProperties(ErrorType)[EditorFormatDefinition.ForegroundBrushId];
             var border = new Border
             {
                 Background = format.BackgroundBrush,
                 Child = block,
                 CornerRadius = new CornerRadius(2),
                 // Highlighting lines are 2px buffer.  So shift us up by one from the bottom so we feel centered between them.
-                Margin = new Thickness(0, top: 0, 0, bottom: 5),
+                Margin = new Thickness(0, top: 0, 0, bottom: 2),
+                Padding = new Thickness(2)
             };
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
@@ -78,6 +88,22 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             {
                 Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
             }
+        }
+
+        private void HandleRequestNavigate(object sender, RoutedEventArgs e)
+        {
+            var link = (Hyperlink)sender;
+            var uri = link.NavigateUri.ToString();
+            Process.Start(uri);
+            e.Handled = true;
+        }
+
+        public void UpdateColor(TextFormattingRunProperties format, UIElement adornment)
+        {
+            var border = (Border)adornment;
+            border.Background = format.BackgroundBrush;
+            var block = (TextBlock)border.Child;
+            block.Foreground = format.ForegroundBrush;
         }
 
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)

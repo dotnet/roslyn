@@ -4,8 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -40,7 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
         {
             if (_format != null)
             {
-                _format = null;
+                var elements = _adornmentLayer.Elements;
+                foreach (var element in elements)
+                {
+                    var tag = (InlineErrorTag)element.Tag;
+                    var classificationType = _classificationRegistryService.GetClassificationType("IE: " + tag.ErrorType);
+                    var format = GetFormat(classificationType);
+                    tag.UpdateColor(format, element.Adornment);
+                }
             }
         }
 
@@ -62,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
         private TextFormattingRunProperties GetFormat(IClassificationType classificationType)
         {
-            _format ??= _formatMap.GetTextProperties(classificationType);
+            _format = _formatMap.GetTextProperties(classificationType);
             return _format;
         }
 
