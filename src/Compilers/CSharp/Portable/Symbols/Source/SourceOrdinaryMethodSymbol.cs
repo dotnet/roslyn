@@ -720,11 +720,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((!hasTypeDifferences && !MemberSignatureComparer.PartialMethodsStrictComparer.Equals(definition, implementation)) ||
-                !definition.Parameters.SequenceEqual(implementation.Parameters, (a, b) => a.Name == b.Name))
+                hasDifferencesInParameterOrTypeParameterName(definition, implementation))
             {
                 diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.Locations[0],
                     new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
                     new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
+            }
+
+            static bool hasDifferencesInParameterOrTypeParameterName(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation)
+            {
+                return !definition.Parameters.SequenceEqual(implementation.Parameters, (a, b) => a.Name == b.Name) ||
+                    !definition.TypeParameters.SequenceEqual(implementation.TypeParameters, (a, b) => a.Name == b.Name);
             }
         }
 
@@ -751,17 +757,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeParameter1 = typeParameters1[i];
                 var typeParameter2 = typeParameters2[i];
-
-                // TODO: Should report on type parameter name differences?
-                /*
-                if (typeParameter1.Name != typeParameter2.Name)
-                {
-                    diagnostics.Add(ErrorCode.WRN_PartialMethodTypeDifference, implementation.Locations[0],
-                        new FormattedSymbol(definition, SymbolDisplayFormat.MinimallyQualifiedFormat),
-                        new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
-                }
-                */
-
                 if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation, typeParameter2.Name);
