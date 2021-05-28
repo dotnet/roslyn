@@ -1215,12 +1215,19 @@ class Program
 ";
 
             string source = @"
+using System.Reflection;
+
 [My(1+2)]
 class Program
 {
+    static void Main()
+    {
+        typeof(Program).GetCustomAttribute(typeof(MyAttribute));
+    }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "'3', '0'");
             var arguments = compilation.GetTypeByMetadataName("Program").GetAttributes().Single().CommonConstructorArguments;
             Assert.Equal(2, arguments.Length);
             Assert.Equal(3, arguments[0].Value);
