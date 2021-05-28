@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (boundAccess is BoundIndexerAccess { ResultKind: LookupResultKind.Viable } indexerAccess &&
                     indexerAccess.Indexer.GetMethod is { } getMethod && IsAccessible(getMethod, ref useSiteInfo))
                 {
-                    // PTOTOTYPE(list-patterns) Can this be ever true? If so, move to if above
+                    // PROTOTYPE(list-patterns) Can this be ever true? If so, move to if above
                     Debug.Assert(!indexerAccess.Indexer.IsStatic);
                     result = BindIndexerDefaultArguments(indexerAccess, BindValueKind.RValue, bindingDiagnostics);
                     diagnostics.AddRange(bindingDiagnostics);
