@@ -251,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
             {
                 // A pattern come from an `is` expression on either side of `&&`
                 PatternSyntax pattern => pattern,
+                TypeSyntax type when originalReceiver.IsParentKind(IsExpression) => TypePattern(type),
                 // Otherwise, this is a constant. Depending on the original receiver, we create an appropriate pattern.
                 ExpressionSyntax constant => originalReceiver.Parent switch
                 {
@@ -336,9 +337,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
 
                 // If we have an `is` operator, we'll try to combine the existing pattern/type with the other operand.
                 BinaryExpressionSyntax(IsExpression) { Right: NullableTypeSyntax type } expr
-                    => (expr.Left, TypePattern(type.ElementType), false),
+                    => (expr.Left, type.ElementType, false),
                 BinaryExpressionSyntax(IsExpression) { Right: TypeSyntax type } expr
-                    => (expr.Left, TypePattern(type), false),
+                    => (expr.Left, type, false),
                 IsPatternExpressionSyntax expr
                     => (expr.Expression, expr.Pattern, false),
 

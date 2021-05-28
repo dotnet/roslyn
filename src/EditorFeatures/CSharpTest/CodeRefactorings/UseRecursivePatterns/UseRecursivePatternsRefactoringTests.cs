@@ -17,14 +17,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseRecursivePatterns)]
     public class UseRecursivePatternsRefactoringTests
     {
-        private static Task VerifyAsync(string initialMarkup, string expectedMarkup)
+        private static Task VerifyAsync(string initialMarkup, string expectedMarkup, bool skipCodeActionValidation = false)
         {
             return new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
-                CodeActionValidationMode = CodeActionValidationMode.None,
+                CodeActionValidationMode = skipCodeActionValidation
+                    ? CodeActionValidationMode.None
+                    : CodeActionValidationMode.SemanticStructure,
             }.RunAsync();
         }
 
@@ -150,22 +152,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
         [InlineData("{ a: { b: n } x }", "x is { a: n }", "{ a: { b: n, a: n } x }")]
         [InlineData("{ a: var x }", "x.c is { b: n }", "{ a: { c: { b: n } } x }")]
         [InlineData("{ a: C x }", "x.c is { b: n }", "{ a: C { c: { b: n } } x }")]
-        [InlineData("{ a: { b: n } x }", "x.c is C", "{ a: { b: n, c: C } x }")]
+        [InlineData("{ a: { b: n } x }", "x.c is C", "{ a: { b: n, c: C } x }", true)]
         [InlineData("{ a: { b: n } x }", "x.c is { a: n }", "{ a: { b: n, c: { a: n } } x }")]
         [InlineData("{ a: var x }", "x == null", "{ a: var x and null }")]
-        public async Task TestVariableDesignation(string pattern, string expression, string expected)
+        public async Task TestVariableDesignation(string pattern, string expression, string expected, bool skipCodeActionValidation = false)
         {
-            await VerifyAsync(WrapInSwitchArm($"{pattern} when {expression}", "when"), WrapInSwitchArm($"{expected}"));
-            await VerifyAsync(WrapInSwitchArm($"{pattern} when {expression}", "=>"), WrapInSwitchArm($"{expected}"));
-            await VerifyAsync(WrapInSwitchLabel($"{pattern} when {expression}", "when"), WrapInSwitchLabel($"{expected}"));
-            await VerifyAsync(WrapInSwitchLabel($"{pattern} when {expression}", "case"), WrapInSwitchLabel($"{expected}"));
-            await VerifyAsync(WrapInIfStatement($"this is {pattern} && {expression}", "&&"), WrapInIfStatement($"this is {expected}"));
+            await ValidateAsync(WrapInSwitchArm($"{pattern} when {expression}", "when"), WrapInSwitchArm($"{expected}"));
+            await ValidateAsync(WrapInSwitchArm($"{pattern} when {expression}", "=>"), WrapInSwitchArm($"{expected}"));
+            await ValidateAsync(WrapInSwitchLabel($"{pattern} when {expression}", "when"), WrapInSwitchLabel($"{expected}"));
+            await ValidateAsync(WrapInSwitchLabel($"{pattern} when {expression}", "case"), WrapInSwitchLabel($"{expected}"));
+            await ValidateAsync(WrapInIfStatement($"this is {pattern} && {expression}", "&&"), WrapInIfStatement($"this is {expected}"));
 
-            await VerifyAsync(WrapInSwitchArm($"{pattern} when {expression} && B1 && B2", "when"), WrapInSwitchArm($"{expected} when B1 && B2"));
-            await VerifyAsync(WrapInSwitchArm($"{pattern} when {expression} && B1 && B2", "=>"), WrapInSwitchArm($"{expected} when B1 && B2"));
-            await VerifyAsync(WrapInSwitchLabel($"{pattern} when {expression} && B1 && B2", "when"), WrapInSwitchLabel($"{expected} when B1 && B2"));
-            await VerifyAsync(WrapInSwitchLabel($"{pattern} when {expression} && B1 && B2", "case"), WrapInSwitchLabel($"{expected} when B1 && B2"));
-            await VerifyAsync(WrapInIfStatement($"B1 && this is {pattern} [||]&& {expression} && B2"), WrapInIfStatement($"B1 && this is {expected} && B2"));
+            await ValidateAsync(WrapInSwitchArm($"{pattern} when {expression} && B1 && B2", "when"), WrapInSwitchArm($"{expected} when B1 && B2"));
+            await ValidateAsync(WrapInSwitchArm($"{pattern} when {expression} && B1 && B2", "=>"), WrapInSwitchArm($"{expected} when B1 && B2"));
+            await ValidateAsync(WrapInSwitchLabel($"{pattern} when {expression} && B1 && B2", "when"), WrapInSwitchLabel($"{expected} when B1 && B2"));
+            await ValidateAsync(WrapInSwitchLabel($"{pattern} when {expression} && B1 && B2", "case"), WrapInSwitchLabel($"{expected} when B1 && B2"));
+            await ValidateAsync(WrapInIfStatement($"B1 && this is {pattern} [||]&& {expression} && B2"), WrapInIfStatement($"B1 && this is {expected} && B2"));
+
+            Task ValidateAsync(string initialMarkup, string expectedMarkup)
+                => VerifyAsync(initialMarkup, expectedMarkup, skipCodeActionValidation);
         }
 
         private static string WrapInIfStatement(string actual, string? entry = null)
