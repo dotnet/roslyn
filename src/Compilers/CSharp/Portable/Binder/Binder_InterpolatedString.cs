@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundInterpolatedString BindUnconvertedInterpolatedStringToHandlerType(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, NamedTypeSymbol interpolatedStringHandlerType, BindingDiagnosticBag diagnostics, bool isHandlerConversion)
         {
-            diagnostics.Add(interpolatedStringHandlerType.GetUseSiteInfo(), unconvertedInterpolatedString.Syntax.Location);
+            ReportUseSite(interpolatedStringHandlerType, diagnostics, unconvertedInterpolatedString.Syntax);
 
             // We satisfy the conditions for using an interpolated string builder. Bind all the builder calls unconditionally, so that if
             // there are errors we get better diagnostics than "could not convert to object."
@@ -211,15 +211,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // interpolation into an actual string.
             TypeSymbol? objectType = null;
             BindingDiagnosticBag? conversionDiagnostics = null;
-            var needToCheckConversionToObject = !isHandlerConversion && !Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) && diagnostics.AccumulatesDiagnostics;
-            if (needToCheckConversionToObject)
-            {
-                objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
-                conversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
-            }
-            else if (isHandlerConversion)
+            bool needToCheckConversionToObject = false;
+            if (isHandlerConversion)
             {
                 CheckFeatureAvailability(unconvertedInterpolatedString.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
+            }
+            else if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) && diagnostics.AccumulatesDiagnostics)
+            {
+                needToCheckConversionToObject = true;
+                objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
+                conversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
             }
 
             Debug.Assert(appendCalls.Length == unconvertedInterpolatedString.Parts.Length);

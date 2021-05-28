@@ -3276,6 +3276,8 @@ public " + type + " " + name + @"
             Assert.True(semanticInfo.ImplicitConversion.IsValid);
             Assert.True(semanticInfo.ImplicitConversion.IsInterpolatedStringHandler);
             Assert.Null(semanticInfo.ImplicitConversion.Method);
+
+            // PROTOTYPE(interp-string): Assert IConversionOperation.IsImplicit when IOperation is implemented for interpolated strings.
         }
 
         private CompilationVerifier CompileAndVerifyOnCorrectPlatforms(CSharpCompilation compilation, string expectedOutput)
@@ -3462,6 +3464,57 @@ literal:Literal");
   IL_002b:  ldloc.0
   IL_002c:  call       ""void <Program>$.<<Main>$>g__M|0_0(CustomHandler)""
   IL_0031:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void ExplicitHandlerCast_InCode()
+        {
+            var code = @"System.Console.WriteLine((CustomHandler)$""{1,2:f}Literal"");";
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            SyntaxNode syntax = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Single();
+            var semanticInfo = model.GetSemanticInfoSummary(syntax);
+            Assert.Equal("CustomHandler", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(SpecialType.System_Object, semanticInfo.ConvertedType.SpecialType);
+            Assert.Equal(ConversionKind.ImplicitReference, semanticInfo.ImplicitConversion.Kind);
+
+            syntax = ((CastExpressionSyntax)syntax).Expression;
+            Assert.IsType<InterpolatedStringExpressionSyntax>(syntax);
+            semanticInfo = model.GetSemanticInfoSummary(syntax);
+            Assert.Equal(SpecialType.System_String, semanticInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, semanticInfo.ConvertedType.SpecialType);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            // PROTOTYPE(interp-string): Assert cast is explicit after IOperation is implemented
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  5
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.1
+  IL_0009:  box        ""int""
+  IL_000e:  ldc.i4.2
+  IL_000f:  ldstr      ""f""
+  IL_0014:  callvirt   ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0019:  dup
+  IL_001a:  ldstr      ""Literal""
+  IL_001f:  callvirt   ""void CustomHandler.AppendLiteral(string)""
+  IL_0024:  call       ""void System.Console.WriteLine(object)""
+  IL_0029:  ret
 }
 ");
         }
@@ -4079,6 +4132,9 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
+                // (3,11): error CS8652: The feature 'interpolated string handlers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // C.M(() => $"{new S { Field = "Field" }}");
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{new S { Field = ""Field"" }}""").WithArguments("interpolated string handlers").WithLocation(3, 11),
                 // (3,14): error CS8652: The feature 'interpolated string handlers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // C.M(() => $"{new S { Field = "Field" }}");
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"new S { Field = ""Field"" }").WithArguments("interpolated string handlers").WithLocation(3, 14)
@@ -4308,6 +4364,38 @@ public partial struct CustomHandler
                 // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Func<bool, string>)' and 'C.M(Func<bool, CustomHandler>)'
                 // C.M(b => 
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Func<bool, string>)", "C.M(System.Func<bool, CustomHandler>)").WithLocation(3, 3)
+            );
+        }
+
+        [Fact]
+        public void LambdaInference_AmbiguousInOlderLangVersions()
+        {
+            var code = @"
+using System;
+C.M(param => 
+    {
+        param = $""{1}"";
+    });
+
+static class C
+{
+    public static void M(Action<string> f) => throw null;
+    public static void M(Action<CustomHandler> f) => throw null;
+}
+";
+
+            var source = new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+
+            // This successful emit is being caused by https://github.com/dotnet/roslyn/issues/53761, along with the duplicate diagnostics in LambdaReturnInference_04
+            // We should not be changing binding behavior based on LangVersion.
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Action<string>)' and 'C.M(Action<CustomHandler>)'
+                // C.M(param => 
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Action<string>)", "C.M(System.Action<CustomHandler>)").WithLocation(3, 3)
             );
         }
 

@@ -854,7 +854,7 @@ next:;
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonTypeEarlyWellKnownAttributeData? GetEarlyDecodedWellKnownAttributeData()
+        internal TypeEarlyWellKnownAttributeData? GetEarlyDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
@@ -862,7 +862,7 @@ next:;
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (CommonTypeEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
+            return (TypeEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
         internal override CSharpAttributeData? EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
@@ -875,7 +875,7 @@ next:;
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
                 if (!boundAttribute.HasErrors)
                 {
-                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasComImportAttribute = true;
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().HasComImportAttribute = true;
                     if (!hasAnyDiagnostics)
                     {
                         return boundAttribute;
@@ -890,7 +890,7 @@ next:;
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
                 if (!boundAttribute.HasErrors)
                 {
-                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasCodeAnalysisEmbeddedAttribute = true;
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().HasCodeAnalysisEmbeddedAttribute = true;
                     if (!hasAnyDiagnostics)
                     {
                         return boundAttribute;
@@ -906,7 +906,7 @@ next:;
                 if (!boundAttribute.HasErrors)
                 {
                     string? name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
-                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
                     if (!hasAnyDiagnostics)
                     {
                         return boundAttribute;
@@ -921,7 +921,7 @@ next:;
             {
                 if (obsoleteData != null)
                 {
-                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                 }
 
                 return boundAttribute;
@@ -935,7 +935,7 @@ next:;
                     AttributeUsageInfo info = this.DecodeAttributeUsageAttribute(boundAttribute, arguments.AttributeSyntax, diagnose: false);
                     if (!info.IsNull)
                     {
-                        var typeData = arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>();
+                        var typeData = arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>();
                         if (typeData.AttributeUsageInfo.IsNull)
                         {
                             typeData.AttributeUsageInfo = info;
@@ -964,7 +964,7 @@ next:;
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
                 if (!boundAttribute.HasErrors)
                 {
-                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasInterpolatedStringHandlerAttribute = true;
+                    arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().HasInterpolatedStringHandlerAttribute = true;
                     if (!hasAnyDiagnostics)
                     {
                         return boundAttribute;
@@ -982,7 +982,7 @@ next:;
         {
             Debug.Assert(this.SpecialType == SpecialType.System_Object || this.DeclaringCompilation.IsAttributeType(this));
 
-            CommonTypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
+            TypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
             if (data != null && !data.AttributeUsageInfo.IsNull)
             {
                 return data.AttributeUsageInfo;
@@ -1002,7 +1002,7 @@ next:;
                 var lazyCustomAttributesBag = _lazyCustomAttributesBag;
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
-                    var data = (CommonTypeEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
+                    var data = (TypeEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
                     return data != null ? data.ObsoleteAttributeData : null;
                 }
 
@@ -1227,7 +1227,7 @@ next:;
         {
             get
             {
-                CommonTypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
+                TypeEarlyWellKnownAttributeData data = this.GetEarlyDecodedWellKnownAttributeData();
                 return data != null && data.HasComImportAttribute;
             }
         }

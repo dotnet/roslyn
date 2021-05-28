@@ -156,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     BindUnconvertedInterpolatedStringToHandlerType(unconvertedSource, (NamedTypeSymbol)destination, diagnostics, isHandlerConversion: true),
                     conversion,
-                    @checked: false,
-                    explicitCastInCode: false,
+                    @checked: CheckOverflowAtRuntime,
+                    explicitCastInCode: isCast && !wasCompilerGenerated,
                     conversionGroupOpt,
                     constantValueOpt: null,
                     destination);

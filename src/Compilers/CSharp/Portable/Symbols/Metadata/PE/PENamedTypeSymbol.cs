@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
-            internal ThreeState lazyHasInterpolatedStringBuilderAttribute = ThreeState.Unknown;
+            internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
 
 #if DEBUG
             internal bool IsDefaultValue()
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyDefaultMemberName == null &&
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
                     !lazyHasEmbeddedAttribute.HasValue() &&
-                    !lazyHasInterpolatedStringBuilderAttribute.HasValue();
+                    !lazyHasInterpolatedStringHandlerAttribute.HasValue();
             }
 #endif
         }
@@ -396,12 +396,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
                 }
 
-                if (!uncommon.lazyHasInterpolatedStringBuilderAttribute.HasValue())
+                if (!uncommon.lazyHasInterpolatedStringHandlerAttribute.HasValue())
                 {
-                    uncommon.lazyHasInterpolatedStringBuilderAttribute = ContainingPEModule.Module.HasInterpolatedStringBuilderAttribute(_handle).ToThreeState();
+                    uncommon.lazyHasInterpolatedStringHandlerAttribute = ContainingPEModule.Module.HasInterpolatedStringHandlerAttribute(_handle).ToThreeState();
                 }
 
-                return uncommon.lazyHasInterpolatedStringBuilderAttribute.Value();
+                return uncommon.lazyHasInterpolatedStringHandlerAttribute.Value();
             }
         }
 

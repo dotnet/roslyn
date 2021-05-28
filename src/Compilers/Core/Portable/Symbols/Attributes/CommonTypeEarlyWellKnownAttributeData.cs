@@ -4,19 +4,15 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Information decoded from early well-known custom attributes applied on a type.
     /// </summary>
-    internal class CommonTypeEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
+    internal abstract class CommonTypeEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
     {
         #region AttributeUsageAttribute
         private AttributeUsageInfo _attributeUsageInfo = AttributeUsageInfo.Null;
@@ -109,24 +105,6 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(expected: false);
                 _hasCodeAnalysisEmbeddedAttribute = value;
-                SetDataStored();
-            }
-        }
-        #endregion
-
-        #region InterpolatedStringHandlerAttribute
-        private bool _hasInterpolatedStringHandlerAttribute;
-        public bool HasInterpolatedStringHandlerAttribute
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasInterpolatedStringHandlerAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasInterpolatedStringHandlerAttribute = value;
                 SetDataStored();
             }
         }

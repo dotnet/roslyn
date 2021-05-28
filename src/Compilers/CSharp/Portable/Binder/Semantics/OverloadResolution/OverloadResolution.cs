@@ -2106,6 +2106,7 @@ outerDefault:
             }
 
             // Otherwise, prefer methods with 'val' parameters over 'in' parameters and over 'ref' parameters when the argument is an interpolated string handler.
+            // PROTOTYPE(interp-string): Document in the spec
             return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
         }
 
