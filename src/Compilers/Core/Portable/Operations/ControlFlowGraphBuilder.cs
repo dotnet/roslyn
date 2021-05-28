@@ -864,21 +864,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                         continue;
                                     }
 
-                                    if (block.BranchValue != null &&
-                                        block.Ordinal != (predecessor.Ordinal + 1) &&
-                                        FlowCaptureReferenceSearcher.ContainsReferenceToCapturesEndingWithBlock(currentRegion, block))
-                                    {
-                                        // Do not merge return when the expression is the last block in the region and references
-                                        // a capture defined in the region, and the resulting block would not be the new last block of the region.
-                                        // This would shorten the lifetime of the flow capture (see SwitchExpression_JustDiscardWithGuard for
-                                        // an example that breaks without this).
-                                        // This might over-optimize in some cases and remove branches that could be merged if the previous BranchValue
-                                        // does indeed reference the capture, but it's a complex check to make this determination because we have to
-                                        // determine that every capture from every region ending with the current block actually is referenced
-                                        // in the previous block. If we ever run into a case that would benefit from this, we can look at it then.
-                                        continue;
-                                    }
-
                                     Debug.Assert(predecessor.FallThrough.Destination == block);
                                 }
                             }
@@ -6988,25 +6973,7 @@ oneMoreTime:
             SpillEvalStack();
             RegionBuilder resultCaptureRegion = CurrentRegionRequired;
             int captureOutput = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
-            IOperation? capturedInput;
-
-            // There is only one discard pattern operation. We evaluate the input always, but it won't
-            // be used in an arm pattern so we don't capture
-            if (operation.Arms.Length == 1 && operation.Arms[0].Pattern is IDiscardPatternOperation)
-            {
-                capturedInput = null;
-                var saveCurrentStatement = _currentStatement;
-                _currentStatement = operation.Value;
-                var result = VisitRequired(operation.Value);
-                var expressionStatement = new ExpressionStatementOperation(result, semanticModel: null, operation.Value.Syntax, isImplicit: true);
-                AddStatement(expressionStatement);
-                _currentStatement = saveCurrentStatement;
-            }
-            else
-            {
-                capturedInput = VisitAndCapture(operation.Value);
-            }
-
+            var capturedInput = VisitAndCapture(operation.Value);
             var afterSwitch = new BasicBlockBuilder(BasicBlockKind.Block);
 
             foreach (var arm in operation.Arms)
@@ -7017,10 +6984,7 @@ oneMoreTime:
                 var afterArm = new BasicBlockBuilder(BasicBlockKind.Block);
 
                 // GotoIfFalse (captureInput is pat1) label;
-                // If the pattern is just a discard pattern (ie, _ => someValue) there's no evaluation or branch.
-                if (arm.Pattern is not IDiscardPatternOperation)
                 {
-                    Debug.Assert(capturedInput != null);
                     EvalStackFrame frame = PushStackFrame();
                     var visitedPattern = (IPatternOperation)VisitRequired(arm.Pattern);
                     var patternTest = new IsPatternOperation(
@@ -7055,31 +7019,20 @@ oneMoreTime:
 
             LeaveRegionsUpTo(resultCaptureRegion);
 
-            bool linkToPreviousAfterSwitch;
-            if (!operation.IsExhaustive)
-            {
-                // throw new SwitchExpressionException
-                var matchFailureCtor =
-                    (IMethodSymbol?)(_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor) ??
-                                    _compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_InvalidOperationException__ctor))?.GetISymbol();
-                var makeException = (matchFailureCtor is null)
-                    ? MakeInvalidOperation(operation.Syntax, type: _compilation.GetSpecialType(SpecialType.System_Object), ImmutableArray<IOperation>.Empty)
-                    : new ObjectCreationOperation(
-                        matchFailureCtor, initializer: null, ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, operation.Syntax,
-                        type: matchFailureCtor.ContainingType, constantValue: null, isImplicit: true);
-                LinkThrowStatement(makeException);
-
-                linkToPreviousAfterSwitch = false;
-            }
-            else
-            {
-                linkToPreviousAfterSwitch = true;
-            }
-
+            // throw new SwitchExpressionException
+            var matchFailureCtor =
+                (IMethodSymbol?)(_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor) ??
+                                _compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_InvalidOperationException__ctor))?.GetISymbol();
+            var makeException = (matchFailureCtor is null)
+                ? MakeInvalidOperation(operation.Syntax, type: _compilation.GetSpecialType(SpecialType.System_Object), ImmutableArray<IOperation>.Empty)
+                : new ObjectCreationOperation(
+                    matchFailureCtor, initializer: null, ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, operation.Syntax,
+                    type: matchFailureCtor.ContainingType, constantValue: null, isImplicit: true);
+            LinkThrowStatement(makeException);
             _currentBasicBlock = null;
 
             // afterSwitch:
-            AppendNewBlock(afterSwitch, linkToPrevious: linkToPreviousAfterSwitch);
+            AppendNewBlock(afterSwitch, linkToPrevious: false);
 
             // result = captureOutput
             return GetCaptureReference(captureOutput, operation);

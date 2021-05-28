@@ -7846,7 +7846,7 @@ Block[B0] - Entry
                         IParameterReferenceOperation: msg (OperationKind.ParameterReference, Type: System.String) (Syntax: 'msg')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        Next (Regular) Block[B11]
+        Next (Regular) Block[B13]
             Leaving: {R2} {R1}
 }
 .catch {R3} (System.Exception)
@@ -7895,7 +7895,7 @@ Block[B0] - Entry
                         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'true')
                           Value: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-                    Next (Regular) Block[B8]
+                    Next (Regular) Block[B10]
                         Leaving: {R6}
                 Block[B5] - Block
                     Predecessors: [B3]
@@ -7917,36 +7917,55 @@ Block[B0] - Entry
                         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'true')
                           Value: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-                    Next (Regular) Block[B8]
+                    Next (Regular) Block[B10]
                         Leaving: {R6}
                 Block[B7] - Block
                     Predecessors: [B5]
+                    Statements (0)
+                    Jump if False (Regular) to Block[B9]
+                        IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: '_ => false')
+                          Value: 
+                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'e.Message')
+                          Pattern: 
+                            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.String, NarrowedType: System.String)
+                        Leaving: {R6}
+                    Next (Regular) Block[B8]
+                Block[B8] - Block
+                    Predecessors: [B7]
                     Statements (1)
                         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'false')
                           Value: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
-                    Next (Regular) Block[B8]
+                    Next (Regular) Block[B10]
                         Leaving: {R6}
             }
-            Block[B8] - Block
-                Predecessors: [B4] [B6] [B7]
+            Block[B9] - Block
+                Predecessors: [B7]
                 Statements (0)
-                Jump if True (Regular) to Block[B10]
+                Next (Throw) Block[null]
+                    IObjectCreationOperation (Constructor: System.InvalidOperationException..ctor()) (OperationKind.ObjectCreation, Type: System.InvalidOperationException, IsImplicit) (Syntax: 'e.Message s ... }')
+                      Arguments(0)
+                      Initializer: 
+                        null
+            Block[B10] - Block
+                Predecessors: [B4] [B6] [B8]
+                Statements (0)
+                Jump if True (Regular) to Block[B12]
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'e.Message s ... }')
                     Leaving: {R5} {R4}
                     Entering: {R7}
-                Next (Regular) Block[B9]
+                Next (Regular) Block[B11]
                     Leaving: {R5}
         }
-        Block[B9] - Block
-            Predecessors: [B8]
+        Block[B11] - Block
+            Predecessors: [B10]
             Statements (0)
             Next (StructuredExceptionHandling) Block[null]
     }
     .handler {R7}
     {
-        Block[B10] - Block
-            Predecessors: [B8]
+        Block[B12] - Block
+            Predecessors: [B10]
             Statements (0)
             Next (Throw) Block[null]
                 IObjectCreationOperation (Constructor: System.Exception..ctor(System.String message)) (OperationKind.ObjectCreation, Type: System.Exception) (Syntax: 'new Exception(e.Message)')
@@ -7961,7 +7980,7 @@ Block[B0] - Entry
                     null
     }
 }
-Block[B11] - Exit
+Block[B13] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
