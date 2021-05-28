@@ -147,15 +147,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public void BreakStateEntered(out ImmutableArray<DocumentId> documentsToReanalyze)
             => RestartEditSession(inBreakState: true, out documentsToReanalyze);
 
-        internal static bool SupportsEditAndContinue(Project project)
-            => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
-
-        // Note: source generated files have relative paths: https://github.com/dotnet/roslyn/issues/51998
-        internal static bool SupportsEditAndContinue(TextDocumentState documentState)
-            => !documentState.Attributes.DesignTimeOnly &&
-               documentState is not DocumentState or DocumentState { SupportsSyntaxTree: true } &&
-               (PathUtilities.IsAbsolute(documentState.FilePath) || documentState is SourceGeneratedDocumentState);
-
         public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             try
@@ -168,13 +159,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 // Not a C# or VB project.
                 var project = document.Project;
-                if (!SupportsEditAndContinue(project))
+                if (!project.SupportsEditAndContinue())
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
                 // Document does not compile to the assembly (e.g. cshtml files, .g.cs files generated for completion only)
-                if (!SupportsEditAndContinue(document.DocumentState))
+                if (!document.DocumentState.SupportsEditAndContinue())
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -434,7 +425,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return ImmutableArray<ActiveStatementSpan>.Empty;
             }
 
-            if (!SupportsEditAndContinue(mappedDocument.State))
+            if (!mappedDocument.State.SupportsEditAndContinue())
             {
                 return ImmutableArray<ActiveStatementSpan>.Empty;
             }

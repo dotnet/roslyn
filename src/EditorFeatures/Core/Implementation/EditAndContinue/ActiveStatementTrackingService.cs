@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 try
                 {
-                    if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(designTimeDocument.DocumentState))
+                    if (!designTimeDocument.DocumentState.SupportsEditAndContinue())
                     {
                         return;
                     }

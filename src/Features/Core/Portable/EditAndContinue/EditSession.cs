@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             changedOrAddedDocuments.Clear();
 
-            if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(newProject))
+            if (!newProject.SupportsEditAndContinue())
             {
                 return;
             }
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var oldProject = oldSolution.GetRequiredProject(newProject.Id);
 
-            if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(newProject) || oldProject.State == newProject.State)
+            if (!newProject.SupportsEditAndContinue() || oldProject.State == newProject.State)
             {
                 yield break;
             }
