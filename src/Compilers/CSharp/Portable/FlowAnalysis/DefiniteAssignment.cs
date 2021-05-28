@@ -1607,7 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var pat = (BoundSlicePattern)pattern;
                         if (pat.Pattern != null)
                         {
-                            AssignPatternVariables(pat.Pattern);
+                            AssignPatternVariables(pat.Pattern, definitely);
                         }
                         break;
                     }

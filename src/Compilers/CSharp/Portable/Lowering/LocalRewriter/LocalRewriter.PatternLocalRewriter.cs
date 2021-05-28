@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundDagIndexerEvaluation { IndexerSymbol: PropertySymbol indexer } e:
                         {
-                            // implicit Index indexer access via applicable indexer member
+                            // implicit Index indexer access via this[int]
 
                             BoundExpression access = _factory.Indexer(input, indexer, makeImplicitIndexArgument(e.Index, e.LengthTemp));
                             var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
@@ -300,7 +300,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // implicit Range indexer access via Slice method
 
-                            Debug.Assert(sliceMethod.ContainingSymbol.Equals(input.Type));
                             Debug.Assert(sliceMethod.ParameterCount == 2);
                             Debug.Assert(sliceMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
                             Debug.Assert(sliceMethod.Parameters[1].Type.SpecialType == SpecialType.System_Int32);

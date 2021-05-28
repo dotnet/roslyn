@@ -216,7 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // PROTOTYPE(list-patterns) Cover any other type that we intend to cover, multi-dimensional arrays?
                 if (!inputType.IsErrorType())
                     diagnostics.Add(ErrorCode.ERR_UnsupportedTypeForSlicePattern, node.Location, inputType.ToDisplayString());
                 hasErrors = true;
@@ -331,7 +330,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // PROTOTYPE(list-patterns) Cover any other type that we intend to cover, multi-dimensional arrays?
                 if (!hasErrors && !inputType.IsErrorType())
                     Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
                 hasErrors = true;

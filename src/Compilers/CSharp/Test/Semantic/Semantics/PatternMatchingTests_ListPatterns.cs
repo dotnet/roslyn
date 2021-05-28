@@ -1503,6 +1503,160 @@ class X
                 );
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void ListPattern_Interface()
+        {
+            var source = @"
+D.M(new C());
+
+interface I
+{
+    int Length => 1;
+    int this[int i] => 42;
+    string Slice(int i, int j) => ""slice"";
+}
+class C : I
+{
+}
+class D
+{
+    public static void M<T>(T t) where T : I
+    {
+        if (t is not [var length] { var item, ..var rest }) return;
+        System.Console.WriteLine(length);
+        System.Console.WriteLine(item);
+        System.Console.WriteLine(rest);
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
+                targetFramework: TargetFramework.NetCoreApp,
+                parseOptions: TestOptions.RegularWithListPatterns);
+            Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            comp.VerifyEmitDiagnostics();
+            string expectedOutput = @"
+1
+42
+slice
+";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void ListPattern_Negated_01()
+        {
+            var source = @"
+class X
+{
+    public void Test1(int[] a)
+    {
+        switch (a)
+        {
+            case not [{} x] { {} y, .. {} z }: _ = (x, y, z); break;
+            case [not {} x] { not {} y, .. not {} z }: _ = (x, y, z); break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (8,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //             case not [{} x] { {} y, .. {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(8, 26),
+                // (8,34): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //             case not [{} x] { {} y, .. {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y").WithLocation(8, 34),
+                // (8,43): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //             case not [{} x] { {} y, .. {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(8, 43),
+                // (8,53): error CS0165: Use of unassigned local variable 'x'
+                //             case not [{} x] { {} y, .. {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(8, 53),
+                // (8,56): error CS0165: Use of unassigned local variable 'y'
+                //             case not [{} x] { {} y, .. {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(8, 56),
+                // (8,59): error CS0165: Use of unassigned local variable 'z'
+                //             case not [{} x] { {} y, .. {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(8, 59),
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [not {} x] { not {} y, .. not {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[not {} x] { not {} y, .. not {} z }").WithLocation(9, 18),
+                // (9,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //             case [not {} x] { not {} y, .. not {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(9, 26),
+                // (9,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //             case [not {} x] { not {} y, .. not {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y").WithLocation(9, 38),
+                // (9,51): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //             case [not {} x] { not {} y, .. not {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(9, 51),
+                // (9,61): error CS0165: Use of unassigned local variable 'x'
+                //             case [not {} x] { not {} y, .. not {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(9, 61),
+                // (9,64): error CS0165: Use of unassigned local variable 'y'
+                //             case [not {} x] { not {} y, .. not {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(9, 64),
+                // (9,67): error CS0165: Use of unassigned local variable 'z'
+                //             case [not {} x] { not {} y, .. not {} z }: _ = (x, y, z); break;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(9, 67));
+        }
+
+        [Fact]
+        public void ListPattern_Negated_02()
+        {
+            var source = @"
+class X
+{
+    public void Test1(int[] a)
+    {
+        if (a is not [{} x] { {} y, .. {} z })
+             _ = (x, y, z); // 1
+        else 
+             _ = (x, y, z);
+    }
+    public void Test2(int[] a)
+    {
+        if (a is [not {} x] { not {} y, .. not {} z })
+             _ = (x, y, z);
+        else 
+             _ = (x, y, z); // 2
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (7,19): error CS0165: Use of unassigned local variable 'x'
+                //              _ = (x, y, z); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(7, 19),
+                // (7,22): error CS0165: Use of unassigned local variable 'y'
+                //              _ = (x, y, z); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(7, 22),
+                // (7,25): error CS0165: Use of unassigned local variable 'z'
+                //              _ = (x, y, z); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(7, 25),
+                // (13,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         if (a is [not {} x] { not {} y, .. not {} z })
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [not {} x] { not {} y, .. not {} z }").WithArguments("int[]").WithLocation(13, 13),
+                // (13,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (a is [not {} x] { not {} y, .. not {} z })
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(13, 26),
+                // (13,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (a is [not {} x] { not {} y, .. not {} z })
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y").WithLocation(13, 38),
+                // (13,51): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (a is [not {} x] { not {} y, .. not {} z })
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(13, 51),
+                // (16,19): error CS0165: Use of unassigned local variable 'x'
+                //              _ = (x, y, z); // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(16, 19),
+                // (16,22): error CS0165: Use of unassigned local variable 'y'
+                //              _ = (x, y, z); // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(16, 22),
+                // (16,25): error CS0165: Use of unassigned local variable 'z'
+                //              _ = (x, y, z); // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(16, 25));
+        }
+
         [Fact]
         public void ListPattern_Symbols_01()
         {
