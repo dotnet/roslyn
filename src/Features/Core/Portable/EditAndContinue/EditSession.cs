@@ -50,12 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = new();
         private readonly object _documentsWithReportedDiagnosticsGuard = new();
 
-        private PendingSolutionUpdate? _pendingUpdate;
-
-        internal EditSession(
-            DebuggingSession debuggingSession,
-            EditSessionTelemetry telemetry,
-            bool inBreakState)
+        internal EditSession(DebuggingSession debuggingSession, EditSessionTelemetry telemetry, bool inBreakState)
         {
             DebuggingSession = debuggingSession;
             Telemetry = telemetry;
@@ -968,38 +963,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     r.Method,
                     -r.Region.LineDelta,
                     r.Region.Span.AddLineDelta(r.Region.LineDelta).Span.ToSourceSpan()));
-        }
-
-        internal void StorePendingUpdate(Solution solution, SolutionUpdate update)
-        {
-            var previousPendingUpdate = Interlocked.Exchange(ref _pendingUpdate, new PendingSolutionUpdate(
-                solution,
-                update.EmitBaselines,
-                update.ModuleUpdates.Updates,
-                update.NonRemappableRegions));
-
-            // commit/discard was not called:
-            Contract.ThrowIfFalse(previousPendingUpdate == null);
-        }
-
-        internal PendingSolutionUpdate RetrievePendingUpdate()
-        {
-            var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
-            Contract.ThrowIfNull(pendingUpdate);
-            return pendingUpdate;
-        }
-
-        internal TestAccessor GetTestAccessor()
-            => new(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly EditSession _instance;
-
-            internal TestAccessor(EditSession instance)
-                => _instance = instance;
-
-            public PendingSolutionUpdate? GetPendingSolutionUpdate() => _instance._pendingUpdate;
         }
     }
 }

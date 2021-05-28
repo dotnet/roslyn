@@ -14,8 +14,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
@@ -106,6 +108,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly DebuggingSessionTelemetry _telemetry;
         internal EditSession EditSession;
 
+        private PendingSolutionUpdate? _pendingUpdate;
+
         internal DebuggingSession(
             Solution solution,
             IManagedEditAndContinueDebuggerService debuggerService,
@@ -137,6 +141,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             _cancellationSource.Dispose();
+        }
+
+        internal void StorePendingUpdate(Solution solution, SolutionUpdate update)
+        {
+            var previousPendingUpdate = Interlocked.Exchange(ref _pendingUpdate, new PendingSolutionUpdate(
+                solution,
+                update.EmitBaselines,
+                update.ModuleUpdates.Updates,
+                update.NonRemappableRegions));
+
+            // commit/discard was not called:
+            Contract.ThrowIfFalse(previousPendingUpdate == null);
+        }
+
+        internal PendingSolutionUpdate RetrievePendingUpdate()
+        {
+            var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
+            Contract.ThrowIfNull(pendingUpdate);
+            return pendingUpdate;
         }
 
         private void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
@@ -391,6 +414,74 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return builder.ToImmutable();
         }
 
+        public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Not a C# or VB project.
+                var project = document.Project;
+                if (!project.SupportsEditAndContinue())
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                // Document does not compile to the assembly (e.g. cshtml files, .g.cs files generated for completion only)
+                if (!document.DocumentState.SupportsEditAndContinue())
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                // Do not analyze documents (and report diagnostics) of projects that have not been built.
+                // Allow user to make any changes in these documents, they won't be applied within the current debugging session.
+                // Do not report the file read error - it might be an intermittent issue. The error will be reported when the
+                // change is attempted to be applied.
+                var (mvid, _) = await GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
+                if (mvid == Guid.Empty)
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                var (oldDocument, oldDocumentState) = await LastCommittedSolution.GetDocumentAndStateAsync(document.Id, document, cancellationToken).ConfigureAwait(false);
+                if (oldDocumentState is CommittedSolution.DocumentState.OutOfSync or
+                    CommittedSolution.DocumentState.Indeterminate or
+                    CommittedSolution.DocumentState.DesignTimeOnly)
+                {
+                    // Do not report diagnostics for existing out-of-sync documents or design-time-only documents.
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                var analysis = await EditSession.Analyses.GetDocumentAnalysisAsync(LastCommittedSolution, oldDocument, document, activeStatementSpanProvider, Capabilities, cancellationToken).ConfigureAwait(false);
+                if (analysis.HasChanges)
+                {
+                    // Once we detected a change in a document let the debugger know that the corresponding loaded module
+                    // is about to be updated, so that it can start initializing it for EnC update, reducing the amount of time applying
+                    // the change blocks the UI when the user "continues".
+                    if (AddModulePreparedForUpdate(mvid))
+                    {
+                        // fire and forget:
+                        _ = Task.Run(() => DebuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
+                    }
+                }
+
+                if (analysis.RudeEditErrors.IsEmpty)
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
+                EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors);
+
+                // track the document, so that we can refresh or clean diagnostics at the end of edit session:
+                EditSession.TrackDocumentWithReportedDiagnostics(document.Id);
+
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+        }
+
         internal TestAccessor GetTestAccessor()
             => new(this);
 
@@ -422,6 +513,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public ImmutableArray<IDisposable> GetBaselineModuleReaders()
                 => _instance.GetBaselineModuleReaders();
+
+            public PendingSolutionUpdate? GetPendingSolutionUpdate()
+                => _instance._pendingUpdate;
         }
     }
 }

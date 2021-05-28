@@ -1534,7 +1534,7 @@ class C { int Y => 2; }
             await StartDebuggingSessionAsync(service, solution);
 
             EnterBreakState(service);
-            var editSession = service.GetTestAccessor().GetEditSession();
+            var debuggingSession = service.GetTestAccessor().GetDebuggingSession();
 
             // change the source (valid edit but passing no encoding to emulate emit error):
             var document1 = solution.Projects.Single().Documents.Single();
@@ -1554,13 +1554,13 @@ class C { int Y => 2; }
             Assert.Empty(updates.Updates);
 
             // no pending update:
-            Assert.Null(editSession.GetTestAccessor().GetPendingSolutionUpdate());
+            Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
             Assert.Throws<InvalidOperationException>(() => service.CommitSolutionUpdate(out var _));
             Assert.Throws<InvalidOperationException>(() => service.DiscardSolutionUpdate());
 
             // no change in non-remappable regions since we didn't have any active statements:
-            Assert.Empty(editSession.DebuggingSession.NonRemappableRegions);
+            Assert.Empty(debuggingSession.NonRemappableRegions);
 
             // solution update status after discarding an update (still has update ready):
             Assert.True(await service.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
@@ -1912,7 +1912,7 @@ class C { int Y => 2; }
             }
 
             // the update should be stored on the service:
-            var pendingUpdate = editSession.GetTestAccessor().GetPendingSolutionUpdate();
+            var pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
             var (baselineProjectId, newBaseline) = pendingUpdate.EmitBaselines.Single();
             AssertEx.Equal(updates.Updates, pendingUpdate.Deltas);
             Assert.Equal(document2.Project.Id, baselineProjectId);
@@ -1928,7 +1928,7 @@ class C { int Y => 2; }
                 // all update providers either provided updates or had no change to apply:
                 CommitSolutionUpdate(service);
 
-                Assert.Null(editSession.GetTestAccessor().GetPendingSolutionUpdate());
+                Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
                 // no change in non-remappable regions since we didn't have any active statements:
                 Assert.Empty(editSession.DebuggingSession.NonRemappableRegions);
@@ -1950,7 +1950,7 @@ class C { int Y => 2; }
                 // another update provider blocked the update:
                 service.DiscardSolutionUpdate();
 
-                Assert.Null(editSession.GetTestAccessor().GetPendingSolutionUpdate());
+                Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
                 // solution update status after committing an update:
                 var discardedUpdateSolutionStatus = await service.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None);
@@ -2050,7 +2050,7 @@ class C { int Y => 2; }
             Assert.Empty(delta.SequencePoints);
 
             // the update should be stored on the service:
-            var pendingUpdate = editSession.GetTestAccessor().GetPendingSolutionUpdate();
+            var pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
             var (baselineProjectId, newBaseline) = pendingUpdate.EmitBaselines.Single();
 
             var readers = debuggingSession.GetTestAccessor().GetBaselineModuleReaders();
@@ -2064,7 +2064,7 @@ class C { int Y => 2; }
             if (commitUpdate)
             {
                 CommitSolutionUpdate(service);
-                Assert.Null(editSession.GetTestAccessor().GetPendingSolutionUpdate());
+                Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
                 // no change in non-remappable regions since we didn't have any active statements:
                 Assert.Empty(editSession.DebuggingSession.NonRemappableRegions);
@@ -2093,7 +2093,7 @@ class C { int Y => 2; }
             else
             {
                 service.DiscardSolutionUpdate();
-                Assert.Null(editSession.GetTestAccessor().GetPendingSolutionUpdate());
+                Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
             }
 
             ExitBreakState();
@@ -2583,7 +2583,7 @@ class C { int Y => 1; }
             Assert.Equal(2, updates.Updates.Length);
 
             // the update should be stored on the service:
-            var pendingUpdate = editSession.GetTestAccessor().GetPendingSolutionUpdate();
+            var pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
             var (_, newBaselineA1) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectA.Id);
             var (_, newBaselineB1) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectB.Id);
 
@@ -2598,7 +2598,7 @@ class C { int Y => 1; }
             Assert.Equal(moduleIdB, newBaselineB1.OriginalMetadata.GetModuleVersionId());
 
             CommitSolutionUpdate(service);
-            Assert.Null(editSession.GetTestAccessor().GetPendingSolutionUpdate());
+            Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
             // no change in non-remappable regions since we didn't have any active statements:
             Assert.Empty(debuggingSession.NonRemappableRegions);
@@ -2633,7 +2633,7 @@ class C { int Y => 1; }
             Assert.Equal(2, updates.Updates.Length);
 
             // the update should be stored on the service:
-            pendingUpdate = editSession.GetTestAccessor().GetPendingSolutionUpdate();
+            pendingUpdate = debuggingSession.GetTestAccessor().GetPendingSolutionUpdate();
             var (_, newBaselineA2) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectA.Id);
             var (_, newBaselineB2) = pendingUpdate.EmitBaselines.Single(b => b.ProjectId == projectB.Id);
 
@@ -2649,7 +2649,7 @@ class C { int Y => 1; }
             AssertEx.Equal(readers, baselineReaders);
 
             CommitSolutionUpdate(service);
-            Assert.Null(editSession.GetTestAccessor().GetPendingSolutionUpdate());
+            Assert.Null(debuggingSession.GetTestAccessor().GetPendingSolutionUpdate());
 
             // no change in non-remappable regions since we didn't have any active statements:
             Assert.Empty(debuggingSession.NonRemappableRegions);

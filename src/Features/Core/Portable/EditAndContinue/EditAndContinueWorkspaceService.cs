@@ -147,79 +147,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public void BreakStateEntered(out ImmutableArray<DocumentId> documentsToReanalyze)
             => RestartEditSession(inBreakState: true, out documentsToReanalyze);
 
-        public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
-            try
+            var debuggingSession = _debuggingSession;
+            if (debuggingSession == null)
             {
-                var debuggingSession = _debuggingSession;
-                if (debuggingSession == null)
-                {
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
-                // Not a C# or VB project.
-                var project = document.Project;
-                if (!project.SupportsEditAndContinue())
-                {
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
-                // Document does not compile to the assembly (e.g. cshtml files, .g.cs files generated for completion only)
-                if (!document.DocumentState.SupportsEditAndContinue())
-                {
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
-                // Do not analyze documents (and report diagnostics) of projects that have not been built.
-                // Allow user to make any changes in these documents, they won't be applied within the current debugging session.
-                // Do not report the file read error - it might be an intermittent issue. The error will be reported when the
-                // change is attempted to be applied.
-                var (mvid, _) = await debuggingSession.GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
-                if (mvid == Guid.Empty)
-                {
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
-                var (oldDocument, oldDocumentState) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, document, cancellationToken).ConfigureAwait(false);
-                if (oldDocumentState is CommittedSolution.DocumentState.OutOfSync or
-                    CommittedSolution.DocumentState.Indeterminate or
-                    CommittedSolution.DocumentState.DesignTimeOnly)
-                {
-                    // Do not report diagnostics for existing out-of-sync documents or design-time-only documents.
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
-                var editSession = debuggingSession.EditSession;
-                var analysis = await editSession.Analyses.GetDocumentAnalysisAsync(debuggingSession.LastCommittedSolution, oldDocument, document, activeStatementSpanProvider, debuggingSession.Capabilities, cancellationToken).ConfigureAwait(false);
-                if (analysis.HasChanges)
-                {
-                    // Once we detected a change in a document let the debugger know that the corresponding loaded module
-                    // is about to be updated, so that it can start initializing it for EnC update, reducing the amount of time applying
-                    // the change blocks the UI when the user "continues".
-                    if (debuggingSession.AddModulePreparedForUpdate(mvid))
-                    {
-                        // fire and forget:
-                        _ = Task.Run(() => debuggingSession.DebuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
-                    }
-                }
-
-                if (analysis.RudeEditErrors.IsEmpty)
-                {
-                    return ImmutableArray<Diagnostic>.Empty;
-                }
-
-                editSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors);
-
-                // track the document, so that we can refresh or clean diagnostics at the end of edit session:
-                editSession.TrackDocumentWithReportedDiagnostics(document.Id);
-
-                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
+                return ValueTaskFactory.FromResult(ImmutableArray<Diagnostic>.Empty);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return ImmutableArray<Diagnostic>.Empty;
-            }
+
+            return debuggingSession.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken);
         }
 
         /// <summary>
@@ -263,7 +199,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var solutionUpdate = await debuggingSession.EditSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
             if (solutionUpdate.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
-                debuggingSession.EditSession.StorePendingUpdate(solution, solutionUpdate);
+                debuggingSession.StorePendingUpdate(solution, solutionUpdate);
             }
 
             // Note that we may return empty deltas if all updates have been deferred.
@@ -276,7 +212,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession);
 
-            var pendingUpdate = debuggingSession.EditSession.RetrievePendingUpdate();
+            var pendingUpdate = debuggingSession.RetrievePendingUpdate();
             debuggingSession.CommitSolutionUpdate(pendingUpdate);
 
             // restart edit session with no active statements (switching to run mode):
@@ -288,7 +224,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession);
 
-            _ = debuggingSession.EditSession.RetrievePendingUpdate();
+            _ = debuggingSession.RetrievePendingUpdate();
         }
 
         public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
