@@ -782,7 +782,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 kind = TypedConstantKind.Primitive;
                 defaultValue = ((ContextualAttributeBinder)this).AttributedMember.GetMemberCallerName();
             }
-            else if (!IsEarlyAttributeBinder && syntax.ArgumentList is not null &&
+            // We check IsCallerMemberName here since the above if can be reached with AttributedMember == null, in which case,
+            // We shouldn't be checking CallerArgumentExpression
+            else if (!IsEarlyAttributeBinder && syntax.ArgumentList is not null && !parameter.IsCallerMemberName &&
                 getCallerArgumentArgumentIndex(parameter, argumentsToParams) is int argumentIndex && argumentIndex > -1 && argumentIndex < argumentsCount)
             {
                 Debug.Assert(argumentsCount <= syntax.ArgumentList.Arguments.Count);

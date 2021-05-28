@@ -627,12 +627,9 @@ public class Program
             compilation.VerifyDiagnostics(
                 // (9,32): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the CallerMemberNameAttribute.
                 //     public MyAttribute(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(9, 32),
-                // (15,4): error CS8652: The feature 'caller argument expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // [My(default(int))]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(default(int))").WithArguments("caller argument expression").WithLocation(15, 4)
+                Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(9, 32)
                 );
-            // CompileAndVerify(compilation, expectedOutput: "Main"); PROTOTYPE(caller-expr): Uncomment after fixing the above stated issue.
+            CompileAndVerify(compilation, expectedOutput: "<default>");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
