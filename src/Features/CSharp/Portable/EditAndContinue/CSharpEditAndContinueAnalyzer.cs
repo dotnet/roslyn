@@ -1170,8 +1170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
             CancellationToken cancellationToken)
         {
-            var oldSymbol = (oldNode != null) ? GetSymbolForEdit(oldNode, editKind, oldModel!, editMap, cancellationToken) : null;
-            var newSymbol = (newNode != null) ? GetSymbolForEdit(newNode, editKind, newModel, editMap, cancellationToken) : null;
+            var oldSymbol = (oldNode != null) ? GetSymbolForEdit(oldNode, editKind, oldModel!, cancellationToken) : null;
+            var newSymbol = (newNode != null) ? GetSymbolForEdit(newNode, editKind, newModel, cancellationToken) : null;
 
             switch (editKind)
             {
