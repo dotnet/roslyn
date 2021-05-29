@@ -6,3 +6,8 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1-bionic
 #RUN echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | tee /etc/apt/sources.list.d/mono-official-stable.list
 #RUN apt-get update
 #RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mono-devel
+
+# Clear the NUGET_XMLDOC_MODE env var so xml api doc files get unpacked, allowing a rich experience in Intellisense.
+# See https://github.com/dotnet/dotnet-docker/issues/2790 for a discussion on this, where the prioritized use case
+# was *not* devcontainers, sadly.
+ENV NUGET_XMLDOC_MODE=
