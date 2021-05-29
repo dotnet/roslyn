@@ -44,12 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             _lazyConnection?.Dispose();
         }
 
-        private async Task StartProjectTelemetryWorkerAsync(CancellationToken cancellationToken)
+        private async Task StartProjectTelemetryWorkerAsync(RemoteHostClient client, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-                return;
-
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
             _lazyConnection = client.CreateConnection<IRemoteProjectTelemetryService>(callbackTarget: this);

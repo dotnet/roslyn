@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 cancellationToken).ConfigureAwait(false);
 
             // Now that telemetry is initialized, we can start the project telemetry collection.
-            await StartProjectTelemetryWorkerAsync(cancellationToken).ConfigureAwait(false);
+            await StartProjectTelemetryWorkerAsync(client, cancellationToken).ConfigureAwait(false);
         }
     }
 }
