@@ -2,7 +2,7 @@
 ## Prerequisites
 * [Visual Studio 2015](https://www.visualstudio.com/downloads)
 * [.NET Compiler Platform SDK](https://aka.ms/roslynsdktemplates)
-* [Getting Started VB Syntax Analysis](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-VB-Syntax-Analysis.md)
+* [Getting Started VB Syntax Analysis](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Getting-Started-VB-Syntax-Analysis.md)
 
 ## Introduction
 Today, the Visual Basic and C# compilers are black boxes - text goes in and bytes come out - with no transparency into the intermediate phases of the compilation pipeline. With the **.NET Compiler Platform** (formerly known as "Roslyn"), tools and developers can leverage the exact same data structures and algorithms the compiler uses to analyze and understand code with confidence that that information is accurate and complete.

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -35,9 +33,6 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.FileHeaderMismatch);
-
-        public override FixAllProvider GetFixAllProvider()
-            => new FixAll(this);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -71,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!document.Project.AnalyzerOptions.TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, tree, out string fileHeaderTemplate)
+            if (!document.Project.AnalyzerOptions.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out var fileHeaderTemplate)
                 || string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 // This exception would show up as a gold bar, but as indicated we do not believe this is reachable.
@@ -237,24 +232,13 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             }
         }
 
-        private class FixAll : DocumentBasedFixAllProvider
-        {
-            private readonly AbstractFileHeaderCodeFixProvider _codeFixProvider;
-
-            public FixAll(AbstractFileHeaderCodeFixProvider codeFixProvider)
-                => _codeFixProvider = codeFixProvider;
-
-            protected override string CodeActionTitle => CodeFixesResources.Add_file_header;
-
-            protected override Task<SyntaxNode?> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+        public override FixAllProvider GetFixAllProvider()
+            => FixAllProvider.Create(async (context, document, diagnostics) =>
             {
                 if (diagnostics.IsEmpty)
-                {
-                    return SpecializedTasks.Null<SyntaxNode>();
-                }
+                    return null;
 
-                return _codeFixProvider.GetTransformedSyntaxRootAsync(document, fixAllContext.CancellationToken).AsNullable();
-            }
-        }
+                return await this.GetTransformedDocumentAsync(document, context.CancellationToken).ConfigureAwait(false);
+            });
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -346,6 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return true;
 
                 default:
@@ -1121,7 +1120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OrKeyword:
                 case SyntaxKind.AndKeyword:
                 case SyntaxKind.NotKeyword:
-                case SyntaxKind.DataKeyword:
                 case SyntaxKind.WithKeyword:
                 case SyntaxKind.InitKeyword:
                 case SyntaxKind.RecordKeyword:
@@ -1236,8 +1234,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.OrKeyword;
                 case "not":
                     return SyntaxKind.NotKeyword;
-                case "data":
-                    return SyntaxKind.DataKeyword;
                 case "with":
                     return SyntaxKind.WithKeyword;
                 case "init":
@@ -1673,8 +1669,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "or";
                 case SyntaxKind.NotKeyword:
                     return "not";
-                case SyntaxKind.DataKeyword:
-                    return "data";
                 case SyntaxKind.WithKeyword:
                     return "with";
                 case SyntaxKind.InitKeyword:

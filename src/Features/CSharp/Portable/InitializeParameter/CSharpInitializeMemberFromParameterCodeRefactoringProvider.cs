@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -12,7 +14,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpInitializeMemberFromParameterCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InitializeMemberFromParameter), Shared]
     [ExtensionOrder(Before = nameof(CSharpAddParameterCheckCodeRefactoringProvider))]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.Wrapping)]
     internal class CSharpInitializeMemberFromParameterCodeRefactoringProvider :

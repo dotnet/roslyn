@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -3812,6 +3814,20 @@ $$    using ([|var vv = goo()|])
   int Goo
   {
     [|s$$et;|]
+  }
+}");
+        }
+
+        [Fact]
+        [WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
+        public void OnPropertyAccessor5()
+        {
+            TestSpan(
+@"class C
+{
+  int Goo
+  {
+    [|in$$it;|]
   }
 }");
         }

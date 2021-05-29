@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBInvocations_InvocationWithoutMe()
             Dim definition =
 <Workspace>
@@ -48,7 +48,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBInvocations_InvocationWithMe()
             Dim definition =
 <Workspace>
@@ -88,7 +88,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBInvocations_WithArrayInitializer1()
             Dim definition =
 <Workspace>
@@ -163,7 +163,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBInvocations_InvokeOnCast()
             Dim definition =
 <Workspace>
@@ -233,7 +233,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBInvocations_InvokeFixInCast()
             Dim definition =
 <Workspace>
@@ -288,7 +288,7 @@ End Class
         End Sub
 
         <WorkItem(870422, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/870422")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub TestVBAssignments_MethodCallWithoutTypeQualification()
             Dim definition =
 <Workspace>

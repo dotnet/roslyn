@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -37,18 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         Async = 1 << 20,
         Ref = 1 << 21, // used only for structs
 
-        Data = 1 << 22,
-
         All = (1 << 23) - 1, // all modifiers
         Unset = 1 << 23, // used when a modifiers value hasn't yet been computed
 
         AccessibilityMask = PrivateProtected | Private | Protected | Internal | ProtectedInternal | Public,
-    }
-
-    internal static class DeclarationModifierExtensions
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasFlag(this DeclarationModifiers modifiers, DeclarationModifiers flag)
-            => (modifiers & flag) != 0;
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// Workspace created by the remote host that mirrors the corresponding client workspace.
     /// </summary>
-    internal sealed class RemoteWorkspace : Workspace
+    internal sealed partial class RemoteWorkspace : Workspace
     {
         private readonly ISolutionCrawlerRegistrationService? _registrationService;
 
@@ -73,10 +71,10 @@ namespace Microsoft.CodeAnalysis.Remote
             _registrationService?.Unregister(this);
         }
 
-        public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
+        public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, SolutionAssetCache assetCache, IAssetSource assetSource)
         {
             var serializerService = Services.GetRequiredService<ISerializerService>();
-            return new AssetProvider(solutionInfo.ScopeId, assetStorage, serializerService);
+            return new AssetProvider(solutionInfo.ScopeId, assetCache, assetSource, serializerService);
         }
 
         public async Task UpdatePrimaryBranchSolutionAsync(AssetProvider assetProvider, Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken)
@@ -165,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
                 return workspace.CurrentSolution;
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -190,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<Solution> GetSolutionAsync(
+        public async ValueTask<Solution> GetSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             bool fromPrimaryBranch,

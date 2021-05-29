@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -18,11 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public SuggestionModeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture)
-            : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(CSharpSuggestionModeCompletionProvider);
 
@@ -766,6 +761,20 @@ class C {
             await VerifyNotBuilderAsync(markup);
         }
 
+        [WorkItem(47662, "https://github.com/dotnet/roslyn/issues/47662")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task LambdaExpressionInImplicitObjectCreation()
+        {
+            var markup = @"
+using System;
+class C {
+    C(Action<int> a) {
+        C c = new($$
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
         [WorkItem(15443, "https://github.com/dotnet/roslyn/issues/15443")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotBuilderWhenDelegateInferredRightOfDotInInvocation()
@@ -1335,6 +1344,82 @@ class C
             await VerifyNotBuilderAsync(markup);
         }
 
+        [WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FirstArgumentOfInvocation_NoParameter(bool hasTypedChar)
+        {
+            var markup = $@"
+using System;
+interface Foo
+{{
+    bool Bar() => true;
+}}
+class P
+{{
+    void M(Foo f)
+    {{
+        f.Bar({(hasTypedChar ? "s" : "")}$$
+    }}
+}}";
+            await VerifyNotBuilderAsync(markup);
+        }
+
+        [WorkItem(46927, "https://github.com/dotnet/roslyn/issues/46927")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task FirstArgumentOfInvocation_PossibleLambdaExpression(bool isLambda, bool hasTypedChar)
+        {
+            var overload = isLambda
+                ? "bool Bar(Func<int, bool> predicate) => true;"
+                : "bool Bar(int x) => true;";
+
+            var markup = $@"
+using System;
+interface Foo
+{{
+    bool Bar() => true;
+    {overload}
+}}
+class P
+{{
+    void M(Foo f)
+    {{
+        f.Bar({(hasTypedChar ? "s" : "")}$$
+    }}
+}}";
+            if (isLambda)
+            {
+                await VerifyBuilderAsync(markup);
+            }
+            else
+            {
+                await VerifyNotBuilderAsync(markup);
+            }
+        }
+
+        [InlineData("params string[] x")]
+        [InlineData("string x = null, string y = null")]
+        [InlineData("string x = null, string y = null, params string[] z")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(49656, "https://github.com/dotnet/roslyn/issues/49656")]
+        public async Task FirstArgumentOfInvocation_WithOverloadAcceptEmptyArgumentList(string overloadParameterList)
+        {
+            var markup = $@"
+using System;
+interface Foo
+{{
+    bool Bar({overloadParameterList}) => true;
+    bool Bar(Func<int, bool> predicate) => true;
+}}
+class P
+{{
+    void M(Foo f)
+    {{
+        f.Bar($$)
+    }}
+}}";
+            await VerifyBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
             => await VerifyWorkerAsync(markup, isBuilder: false);
 
@@ -1345,8 +1430,7 @@ class C
         {
             MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-            using var workspaceFixture = new CSharpTestWorkspaceFixture();
-            try
+            using (var workspaceFixture = new CSharpTestWorkspaceFixture())
             {
                 workspaceFixture.GetWorkspace(ExportProvider);
                 var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
@@ -1357,10 +1441,6 @@ class C
                     var document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate: false);
                     await CheckResultsAsync(document2, position, isBuilder);
                 }
-            }
-            finally
-            {
-                workspaceFixture.DisposeAfterTest();
             }
         }
 

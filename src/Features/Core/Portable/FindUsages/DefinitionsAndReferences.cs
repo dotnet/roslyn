@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     internal readonly struct DefinitionsAndReferences
     {
         public static readonly DefinitionsAndReferences Empty =
-            new DefinitionsAndReferences(ImmutableArray<DefinitionItem>.Empty, ImmutableArray<SourceReferenceItem>.Empty);
+            new(ImmutableArray<DefinitionItem>.Empty, ImmutableArray<SourceReferenceItem>.Empty);
 
         /// <summary>
         /// All the definitions to show.  Note: not all definitions may have references.

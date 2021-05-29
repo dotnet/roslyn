@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -126,6 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             else
             {
                 AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, options, Accessibility.Private);
+            }
+
+            if (CodeGenerationConstructorInfo.GetIsUnsafe(constructor))
+            {
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
             }
 
             return tokens.ToSyntaxTokenListAndFree();

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -22,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
     {
         public CSharpUsePatternCombinatorsDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UsePatternCombinatorsDiagnosticId,
+                EnforceOnBuildValues.UsePatternCombinators,
                 CSharpCodeStyleOptions.PreferPatternMatching,
                 LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

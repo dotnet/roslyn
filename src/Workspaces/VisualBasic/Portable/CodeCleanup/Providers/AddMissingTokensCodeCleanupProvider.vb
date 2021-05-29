@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Private Class AddMissingTokensRewriter
             Inherits AbstractTokensCodeCleanupProvider.Rewriter
 
-            Private ReadOnly _model As SemanticModel = Nothing
+            Private ReadOnly _model As SemanticModel
 
             Private Sub New(semanticModel As SemanticModel, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 Dim symbols = Me._model.GetSymbolInfo(expression, _cancellationToken).GetAllSymbols()
                 Return symbols.Any() AndAlso symbols.All(
-                    Function(s) (TryCast(s, IMethodSymbol)?.MethodKind).GetValueOrDefault() = MethodKind.Ordinary)
+                    Function(s) If(TryCast(s, IMethodSymbol)?.MethodKind = MethodKind.Ordinary, False))
             End Function
 
             Private Function IsDelegateType(expression As ExpressionSyntax) As Boolean

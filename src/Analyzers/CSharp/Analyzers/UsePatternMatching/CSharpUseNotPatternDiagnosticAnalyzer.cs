@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -29,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     {
         public CSharpUseNotPatternDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseNotPatternDiagnosticId,
+                   EnforceOnBuildValues.UseNotPattern,
                    CSharpCodeStyleOptions.PreferNotPattern,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
@@ -41,9 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-#if !CODE_STYLE // CODE_STYLE layer doesn't currently support generating 'not patterns'.  Do not bother analyzing.
             context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.LogicalNotExpression);
-#endif
         }
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
@@ -66,15 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // Look for the form: !(x is Y y)
             if (!(node is PrefixUnaryExpressionSyntax
-            {
-                Operand: ParenthesizedExpressionSyntax
                 {
-                    Expression: IsPatternExpressionSyntax
+                    Operand: ParenthesizedExpressionSyntax
                     {
-                        Pattern: DeclarationPatternSyntax,
-                    } isPattern,
-                },
-            } notExpression))
+                        Expression: IsPatternExpressionSyntax
+                        {
+                            Pattern: DeclarationPatternSyntax,
+                        } isPattern,
+                    },
+                } notExpression))
             {
                 return;
             }

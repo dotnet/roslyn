@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationMethodInfo
     {
         private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationMethodInfo> s_methodToInfoMap =
-            new ConditionalWeakTable<IMethodSymbol, CodeGenerationMethodInfo>();
+            new();
 
         private readonly bool _isNew;
         private readonly bool _isUnsafe;

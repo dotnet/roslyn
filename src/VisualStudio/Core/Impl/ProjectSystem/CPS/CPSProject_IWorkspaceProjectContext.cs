@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -63,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.HasAllInformation = value;
         }
 
-        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid, string binOutputPath)
+        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid, string? binOutputPath)
         {
             _visualStudioProject = visualStudioProject;
             _visualStudioWorkspace = visualStudioWorkspace;
@@ -178,6 +176,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
                 _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
+            }
+            else if (name == AdditionalPropertyNames.TemporaryDependencyNodeTargetIdentifier && !RoslynString.IsNullOrEmpty(value))
+            {
+                _visualStudioProject.DependencyNodeTargetIdentifier = value;
             }
         }
 

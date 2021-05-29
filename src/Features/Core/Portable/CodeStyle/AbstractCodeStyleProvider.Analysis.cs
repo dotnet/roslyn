@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -26,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             private DiagnosticAnalyzer(TCodeStyleProvider codeStyleProvider, bool isUnnecessary, bool configurable)
                 : base(codeStyleProvider._descriptorId,
+                       codeStyleProvider._enforceOnBuild,
                        codeStyleProvider._option,
                        codeStyleProvider._language,
                        codeStyleProvider._title,

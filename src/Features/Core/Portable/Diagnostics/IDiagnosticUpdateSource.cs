@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -24,13 +25,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         event EventHandler DiagnosticsCleared;
 
         /// <summary>
-        /// Return true if the source supports GetDiagnostics API otherwise, return false so that the engine can cache data from DiagnosticsUpdated in memory
+        /// Return <see langword="true"/> if the source supports <see cref="GetDiagnosticsAsync"/> API otherwise, return
+        /// <see langword="false"/> so that the engine can cache data from <see cref="DiagnosticsUpdated"/> in memory.
         /// </summary>
         bool SupportGetDiagnostics { get; }
 
         /// <summary>
-        /// Get diagnostics stored in the source
+        /// Get diagnostics stored in the source.
         /// </summary>
-        ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken);
     }
 }

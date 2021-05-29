@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -2914,6 +2916,7 @@ public class C
                     case SpecialType.System_Void:
                     case SpecialType.System_Runtime_CompilerServices_IsVolatile: // static
                     case SpecialType.System_Runtime_CompilerServices_RuntimeFeature: // static and not available
+                    case SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute: // not available
                         continue;
                 }
 

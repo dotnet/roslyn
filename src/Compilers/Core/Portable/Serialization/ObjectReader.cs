@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,6 +11,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
@@ -106,6 +109,42 @@ namespace Roslyn.Utilities
             return new ObjectReader(stream, leaveOpen, cancellationToken);
         }
 
+        /// <summary>
+        /// Creates an <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
+        /// Unlike <see cref="TryGetReader(Stream, bool, CancellationToken)"/>, it requires the version
+        /// of the data in the stream to exactly match the current format version.
+        /// Should only be used to read data written by the same version of Roslyn.
+        /// </summary>
+        public static ObjectReader GetReader(
+            Stream stream,
+            bool leaveOpen,
+            CancellationToken cancellationToken)
+        {
+            var b = stream.ReadByte();
+            if (b == -1)
+            {
+                throw new EndOfStreamException();
+            }
+
+            if (b != VersionByte1)
+            {
+                throw ExceptionUtilities.UnexpectedValue(b);
+            }
+
+            b = stream.ReadByte();
+            if (b == -1)
+            {
+                throw new EndOfStreamException();
+            }
+
+            if (b != VersionByte2)
+            {
+                throw ExceptionUtilities.UnexpectedValue(b);
+            }
+
+            return new ObjectReader(stream, leaveOpen, cancellationToken);
+        }
+
         public void Dispose()
         {
             _objectReferenceMap.Dispose();
@@ -148,13 +187,11 @@ namespace Roslyn.Utilities
             object value;
             if (_recursionDepth % ObjectWriter.MaxRecursionDepth == 0)
             {
+                _cancellationToken.ThrowIfCancellationRequested();
+
                 // If we're recursing too deep, move the work to another thread to do so we
                 // don't blow the stack.
-                var task = Task.Factory.StartNew(
-                    () => ReadValueWorker(),
-                    _cancellationToken,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Default);
+                var task = SerializationThreadPool.RunOnBackgroundThreadAsync(() => ReadValueWorker());
 
                 // We must not proceed until the additional task completes. After returning from a read, the underlying
                 // stream providing access to raw memory will be closed; if this occurs before the separate thread
@@ -274,16 +311,16 @@ namespace Roslyn.Utilities
         private struct ReaderReferenceMap<T> : IDisposable
             where T : class
         {
-            private readonly List<T> _values;
+            private readonly SegmentedList<T> _values;
 
-            private static readonly ObjectPool<List<T>> s_objectListPool
-                = new ObjectPool<List<T>>(() => new List<T>(20));
+            private static readonly ObjectPool<SegmentedList<T>> s_objectListPool
+                = new(() => new SegmentedList<T>(20));
 
-            private ReaderReferenceMap(List<T> values)
+            private ReaderReferenceMap(SegmentedList<T> values)
                 => _values = values;
 
             public static ReaderReferenceMap<T> Create()
-                => new ReaderReferenceMap<T>(s_objectListPool.Allocate());
+                => new(s_objectListPool.Allocate());
 
             public void Dispose()
             {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
@@ -55,13 +57,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static SyntaxNode GetDefaultEqualityComparer(
             this SyntaxGenerator factory,
+            SyntaxGeneratorInternal generatorInternal,
             Compilation compilation,
             ITypeSymbol type)
         {
             var equalityComparerType = compilation.EqualityComparerOfTType();
             var typeExpression = equalityComparerType == null
                 ? factory.GenericName(nameof(EqualityComparer<int>), type)
-                : factory.TypeExpression(equalityComparerType.Construct(type));
+                : generatorInternal.Type(equalityComparerType.Construct(type), typeContext: false);
 
             return factory.MemberAccessExpression(typeExpression, factory.IdentifierName(DefaultName));
         }

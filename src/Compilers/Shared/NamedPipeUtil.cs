@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.IO;
 using System.IO.Pipes;
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis
         /// Mono supports CurrentUserOnly even though it's not exposed on the reference assemblies for net472. This 
         /// must be used because ACL security does not work.
         /// </summary>
-        private static PipeOptions CurrentUserOption = PlatformInformation.IsRunningOnMono
+        private static readonly PipeOptions CurrentUserOption = PlatformInformation.IsRunningOnMono
             ? (PipeOptions)s_currentUserOnlyValue
             : PipeOptions.None;
 
@@ -168,7 +166,7 @@ namespace Microsoft.CodeAnalysis
 
 #elif NETCOREAPP
 
-        private static PipeOptions CurrentUserOption = PipeOptions.CurrentUserOnly;
+        private const PipeOptions CurrentUserOption = PipeOptions.CurrentUserOnly;
 
         // Validation is handled by CurrentUserOnly
         internal static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream) => true;

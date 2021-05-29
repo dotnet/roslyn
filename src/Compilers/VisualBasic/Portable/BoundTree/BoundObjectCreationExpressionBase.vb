@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundObjectCreationExpressionBase
+    Partial Friend Class BoundObjectCreationExpressionBase
 
 #If DEBUG Then
         Private Sub Validate()

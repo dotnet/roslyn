@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -13,13 +14,11 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -34,12 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-            return GetSemanticClassificationsAsync(document, span);
+            return await GetSemanticClassificationsAsync(document, span);
         }
 
         [Theory]
@@ -193,6 +192,24 @@ class C
 }",
                 testHost,
                 Class("dynamic"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task DynamicAsRecordName(TestHost testHost)
+        {
+            await TestAsync(
+@"record dynamic
+{
+}
+
+class C
+{
+    dynamic d;
+}",
+                testHost,
+                Record("dynamic"));
         }
 
         [Theory]
@@ -1511,8 +1528,8 @@ class C
                 testHost,
                 ParseOptions(Options.Regular),
                 Class("C"),
-                Static("M"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Theory]
@@ -1811,8 +1828,8 @@ namespace MyNameSpace
                 Namespace("MyNameSpace"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
-                Static("method"),
                 Method("method"),
+                Static("method"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
                 Event("myEvent"),
@@ -1822,12 +1839,12 @@ namespace MyNameSpace
                 Struct("MyStruct"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
-                Static("MyProp"),
                 Property("MyProp"),
+                Static("MyProp"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
-                Static("myField"),
                 Field("myField"),
+                Static("myField"),
                 Namespace("rabbit"),
                 Class("MyClass2"),
                 Delegate("MyDelegate"),
@@ -2593,7 +2610,6 @@ struct Type<T>
 
             var provider = new SemanticClassificationViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                 workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
                 listenerProvider);
 
@@ -2606,35 +2622,6 @@ struct Type<T>
 
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
             await waiter.ExpeditedWaitAsync();
-        }
-
-        [WpfFact]
-        public async Task TestGetTagsOnBufferTagger()
-        {
-            // don't crash
-            using var workspace = TestWorkspace.CreateCSharp("class C { C c; }");
-            var document = workspace.Documents.First();
-
-            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-
-            var provider = new SemanticClassificationBufferTaggerProvider(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
-                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
-                listenerProvider);
-
-            var tagger = provider.CreateTagger<IClassificationTag>(document.GetTextBuffer());
-            using var disposable = (IDisposable)tagger;
-            var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-            await waiter.ExpeditedWaitAsync();
-
-            var tags = tagger.GetTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection());
-            var allTags = tagger.GetAllTags(document.GetTextBuffer().CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
-
-            Assert.Empty(tags);
-            Assert.NotEmpty(allTags);
-
-            Assert.Equal(1, allTags.Count());
         }
 
         [Theory]
@@ -3429,6 +3416,30 @@ Regex.OtherEscape("0020"),
 Regex.Grouping(")"));
         }
 
+        [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
+        [CombinatorialData]
+        public async Task TestRegexWithSpecialCSharpCharLiterals(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    // the double-quote inside the string should not affect this being classified as a regex.
+    private Regex myRegex = new Regex(@""^ """" $"";
+}",
+testHost,
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Class("Regex"),
+Class("Regex"),
+Regex.Anchor("^"),
+Regex.Text(@" """" "),
+Regex.Anchor("$"));
+        }
+
         [Theory]
         [CombinatorialData]
         public async Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective(TestHost testHost)
@@ -4030,8 +4041,8 @@ class X
 }",
             testHost,
             Keyword("var"),
-            Static("Parse"),
-            Method("Parse"));
+            Method("Parse"),
+            Static("Parse"));
         }
 
         [Theory]
@@ -4063,8 +4074,8 @@ class X
 }",
             testHost,
             Keyword("_"),
-            Static("Parse"),
-            Method("Parse"));
+            Method("Parse"),
+            Static("Parse"));
         }
 
         [Theory]
@@ -4367,6 +4378,66 @@ class X
             Keyword("nameof"),
             Static("Method"),
             Method("Method"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task BasicRecordClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record R
+{
+    R r;
+
+    R() { }
+}",
+                testHost,
+                Record("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46985, "https://github.com/dotnet/roslyn/issues/46985")]
+        public async Task ParameterizedRecordClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record R(int X, int Y);
+
+class C
+{
+    R r;
+}",
+                testHost,
+                Record("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicRecordClassClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record class R
+{
+    R r;
+
+    R() { }
+}",
+                testHost,
+                Record("R"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task BasicRecordStructClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"record struct R
+{
+    R property { get; set; }
+}",
+                testHost,
+                RecordStruct("R"));
         }
     }
 }

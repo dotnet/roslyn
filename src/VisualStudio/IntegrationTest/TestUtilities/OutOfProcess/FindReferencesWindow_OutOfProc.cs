@@ -38,5 +38,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             return _inProc.GetContents(windowCaption);
         }
+
+        public void NavigateTo(string windowCaption, Reference reference, bool isPreview)
+        {
+            _inProc.NavigateTo(windowCaption, reference, isPreview);
+        }
     }
 }

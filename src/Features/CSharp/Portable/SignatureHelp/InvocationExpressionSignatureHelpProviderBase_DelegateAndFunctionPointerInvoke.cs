@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProviderBase
     {
-        private static IList<SignatureHelpItem> GetDelegateInvokeItems(
+        private static IList<SignatureHelpItem>? GetDelegateInvokeItems(
             InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, IAnonymousTypeDisplayService anonymousTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, out int? selectedItem, CancellationToken cancellationToken)
         {

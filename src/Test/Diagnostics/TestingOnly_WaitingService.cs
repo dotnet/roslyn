@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -56,9 +57,9 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             GC.KeepAlive(featureWaiter);
         }
 
-        public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
+        public void WaitForAllAsyncOperations(Workspace? workspace, TimeSpan timeout, params string[] featureNames)
         {
-            var task = _provider.WaitAllAsync(featureNames, timeout: timeout);
+            var task = _provider.WaitAllAsync(workspace, featureNames, timeout: timeout);
 
             if (timeout == TimeSpan.FromMilliseconds(-1))
             {

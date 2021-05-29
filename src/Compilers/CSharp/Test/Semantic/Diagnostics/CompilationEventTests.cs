@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 Console.WriteLine(e);
             }
-            if (unexpected || expected.Count != 0)
+            if (unexpected || expected.Count != 0 || expectedEvents.Length != actual.Count)
             {
                 bool first = true;
                 Console.WriteLine("ACTUAL EVENTS:");
@@ -94,6 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .WithEventQueue(q)
                 .VerifyDiagnostics()  // force diagnostics twice
                 .VerifyDiagnostics();
+            VerifyEvents(q);
+        }
+
+        private static void VerifyEvents(AsyncQueue<CompilationEvent> q)
+        {
             VerifyEvents(q,
                 "CompilationStartedEvent",
                 "SymbolDeclaredCompilationEvent(P int C<T1>.P @ : (5,4)-(5,40))",
@@ -109,6 +116,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "CompilationUnitCompletedEvent()",
                 "CompilationCompletedEvent"
                 );
+        }
+
+        [Fact]
+        public void TestQueuedSymbolsAndGetUsedAssemblyReferences()
+        {
+            var source =
+@"namespace N
+{
+  partial class C<T1>
+  {
+    partial void M(int x1);
+    internal int P { get; private set; }
+    int F = 12;
+    void N<T2>(int y = 12) { F = F + 1; }
+  }
+  partial class C<T1>
+  {
+    partial void M(int x2) {}
+  }
+}";
+            var q = new AsyncQueue<CompilationEvent>();
+            var comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.GetUsedAssemblyReferences();
+            VerifyEvents(q);
+
+            q = new AsyncQueue<CompilationEvent>();
+            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.VerifyDiagnostics();
+            comp.GetUsedAssemblyReferences();
+            VerifyEvents(q);
+
+            q = new AsyncQueue<CompilationEvent>();
+            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.GetUsedAssemblyReferences();
+            comp.VerifyDiagnostics();
+            VerifyEvents(q);
+
+            q = new AsyncQueue<CompilationEvent>();
+            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp.GetUsedAssemblyReferences();
+            comp.GetUsedAssemblyReferences();
+            VerifyEvents(q);
         }
     }
 }

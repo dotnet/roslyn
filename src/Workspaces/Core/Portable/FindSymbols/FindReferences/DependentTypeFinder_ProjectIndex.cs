@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,17 +16,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private class ProjectIndex
         {
             private static readonly ConditionalWeakTable<Project, AsyncLazy<ProjectIndex>> s_projectToIndex =
-                new ConditionalWeakTable<Project, AsyncLazy<ProjectIndex>>();
+                new();
 
-            public readonly MultiDictionary<Document, DeclaredSymbolInfo> ClassesThatMayDeriveFromSystemObject;
+            public readonly MultiDictionary<Document, DeclaredSymbolInfo> ClassesAndRecordsThatMayDeriveFromSystemObject;
             public readonly MultiDictionary<Document, DeclaredSymbolInfo> ValueTypes;
             public readonly MultiDictionary<Document, DeclaredSymbolInfo> Enums;
             public readonly MultiDictionary<Document, DeclaredSymbolInfo> Delegates;
             public readonly MultiDictionary<string, (Document, DeclaredSymbolInfo)> NamedTypes;
 
-            public ProjectIndex(MultiDictionary<Document, DeclaredSymbolInfo> classesThatMayDeriveFromSystemObject, MultiDictionary<Document, DeclaredSymbolInfo> valueTypes, MultiDictionary<Document, DeclaredSymbolInfo> enums, MultiDictionary<Document, DeclaredSymbolInfo> delegates, MultiDictionary<string, (Document, DeclaredSymbolInfo)> namedTypes)
+            public ProjectIndex(MultiDictionary<Document, DeclaredSymbolInfo> classesAndRecordsThatMayDeriveFromSystemObject, MultiDictionary<Document, DeclaredSymbolInfo> valueTypes, MultiDictionary<Document, DeclaredSymbolInfo> enums, MultiDictionary<Document, DeclaredSymbolInfo> delegates, MultiDictionary<string, (Document, DeclaredSymbolInfo)> namedTypes)
             {
-                ClassesThatMayDeriveFromSystemObject = classesThatMayDeriveFromSystemObject;
+                ClassesAndRecordsThatMayDeriveFromSystemObject = classesAndRecordsThatMayDeriveFromSystemObject;
                 ValueTypes = valueTypes;
                 Enums = enums;
                 Delegates = delegates;
@@ -60,18 +58,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var document in project.Documents)
                 {
-                    var syntaxTreeIndex = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+                    var syntaxTreeIndex = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
                     foreach (var info in syntaxTreeIndex.DeclaredSymbolInfos)
                     {
                         switch (info.Kind)
                         {
                             case DeclaredSymbolInfoKind.Class:
+                            case DeclaredSymbolInfoKind.Record:
                                 classesThatMayDeriveFromSystemObject.Add(document, info);
                                 break;
                             case DeclaredSymbolInfoKind.Enum:
                                 enums.Add(document, info);
                                 break;
                             case DeclaredSymbolInfoKind.Struct:
+                            case DeclaredSymbolInfoKind.RecordStruct:
                                 valueTypes.Add(document, info);
                                 break;
                             case DeclaredSymbolInfoKind.Delegate:

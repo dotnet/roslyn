@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var state = await ItemGetter.CreateAsync(this, context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
             var items = await state.GetItemsAsync().ConfigureAwait(false);
 
-            if (items?.Any() == true)
+            if (!items.IsDefaultOrEmpty)
             {
                 context.IsExclusive = true;
                 context.AddItems(items);

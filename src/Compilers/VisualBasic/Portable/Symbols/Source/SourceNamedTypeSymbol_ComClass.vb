@@ -12,7 +12,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Partial Class SourceNamedTypeSymbol
+    Partial Friend Class SourceNamedTypeSymbol
 
         ''' <summary>
         ''' Encapsulates ComClass specific data and analysis.
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return
                 End If
 
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 Dim interfaces As ImmutableArray(Of NamedTypeSymbol) = ImmutableArray(Of NamedTypeSymbol).Empty
                 Dim interfaceMembers = ArrayBuilder(Of KeyValuePair(Of Symbol, Integer)).GetInstance()
                 Dim eventMembers = ArrayBuilder(Of KeyValuePair(Of EventSymbol, Integer)).GetInstance()
@@ -210,26 +210,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If ClassId IsNot Nothing OrElse
                    (InterfaceId IsNot Nothing AndAlso interfaces.Length > 0) OrElse
                    (EventId IsNot Nothing AndAlso interfaces.Length > 1) Then
-                    Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_GuidAttribute__ctor,
+                    Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_GuidAttribute__ctor,
                                                                      comClass.DeclaringCompilation,
                                                                      comClass.Locations(0),
                                                                      diagnostics)
                 End If
 
                 ' Should be able to emit ClassInterfaceAttribute.
-                Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ClassInterfaceAttribute__ctorClassInterfaceType,
+                Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ClassInterfaceAttribute__ctorClassInterfaceType,
                                                                  comClass.DeclaringCompilation,
                                                                  comClass.Locations(0),
                                                                  diagnostics)
 
                 ' Should be able to emit ComSourceInterfacesAttribute and InterfaceTypeAttribute if there is an event interface.
                 If interfaces.Length > 1 Then
-                    Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ComSourceInterfacesAttribute__ctorString,
+                    Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ComSourceInterfacesAttribute__ctorString,
                                                                      comClass.DeclaringCompilation,
                                                                      comClass.Locations(0),
                                                                      diagnostics)
 
-                    Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorInt16,
+                    Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorInt16,
                                                                      comClass.DeclaringCompilation,
                                                                      comClass.Locations(0),
                                                                      diagnostics)
@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' Should be able to emit ComVisibleAttribute on interfaces.
                 If interfaces.Length > 0 Then
-                    Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ComVisibleAttribute__ctor,
+                    Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ComVisibleAttribute__ctor,
                                                                      comClass.DeclaringCompilation,
                                                                      comClass.Locations(0),
                                                                      diagnostics)
@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If synthesizeDispIds Then
                     ' Should be able to emit DispIdAttribute on members.
-                    Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DispIdAttribute__ctor,
+                    Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DispIdAttribute__ctor,
                                                                      comClass.DeclaringCompilation,
                                                                      comClass.Locations(0),
                                                                      diagnostics)
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If haveDefaultProperty Then
                     ' Should be able to emit DefaultMemberAttribute.
-                    Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
+                    Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
                                                                      comClass.DeclaringCompilation,
                                                                      comClass.Locations(0),
                                                                      diagnostics)
@@ -280,12 +280,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 interfaceMembers.Free()
                 eventMembers.Free()
-                comClass.ContainingSourceModule.AtomicStoreArrayAndDiagnostics(_syntheticInterfaces, interfaces, diagnostics, CompilationStage.Declare)
+                comClass.ContainingSourceModule.AtomicStoreArrayAndDiagnostics(_syntheticInterfaces, interfaces, diagnostics)
 
                 diagnostics.Free()
             End Sub
 
-            Private Shared Function ValidateComClassGuid(comClass As SourceNamedTypeSymbol, id As String, diagnostics As DiagnosticBag, <Out> Optional ByRef guidVal As Guid = Nothing) As Boolean
+            Private Shared Function ValidateComClassGuid(comClass As SourceNamedTypeSymbol, id As String, diagnostics As BindingDiagnosticBag, <Out> Optional ByRef guidVal As Guid = Nothing) As Boolean
                 If id IsNot Nothing Then
                     If Not Guid.TryParseExact(id, "D", guidVal) Then '32 digits separated by hyphens: 00000000-0000-0000-0000-000000000000 
                         Binder.ReportDiagnostic(diagnostics, comClass.Locations(0), ERRID.ERR_BadAttributeUuid2, AttributeDescription.VisualBasicComClassAttribute.Name, id)
@@ -325,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
 
-            Private Sub CheckForNameCollisions(comClass As SourceNamedTypeSymbol, diagnostics As DiagnosticBag)
+            Private Sub CheckForNameCollisions(comClass As SourceNamedTypeSymbol, diagnostics As BindingDiagnosticBag)
                 For i As Integer = 0 To 1
                     Dim interfaceName As String = If(i = 0, "_", "__") & comClass.Name
 
@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 interfaceMembers As ArrayBuilder(Of KeyValuePair(Of Symbol, Integer)),
                 eventMembers As ArrayBuilder(Of KeyValuePair(Of EventSymbol, Integer)),
                 <Out> ByRef haveDefaultProperty As Boolean,
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             )
                 haveDefaultProperty = False
 
@@ -476,7 +476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ''' Returns user defined DispId for a member or ReservedDispId.None if none specified.
             ''' Also reports errors for reserved DispIds.
             ''' </summary>
-            Private Shared Function GetUserSpecifiedDispId(target As Symbol, diagnostics As DiagnosticBag) As Integer
+            Private Shared Function GetUserSpecifiedDispId(target As Symbol, diagnostics As BindingDiagnosticBag) As Integer
                 ' So far this information is used only by ComClass feature, therefore, I do not believe
                 ' it is worth to intercept this attribute in DecodeWellKnownAttribute and cache the fact of attribute's
                 ' presence and its value. If we start caching that information, implementation of this function 
@@ -511,7 +511,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ReservedDispId.None
             End Function
 
-            Private Class SynthesizedComInterface
+            Private NotInheritable Class SynthesizedComInterface
                 Inherits NamedTypeSymbol
 
                 Private ReadOnly _comClass As SourceNamedTypeSymbol
@@ -520,6 +520,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Private ReadOnly _defaultMemberName As String
 
                 Public Sub New(comClass As SourceNamedTypeSymbol, interfaceMembers As ArrayBuilder(Of KeyValuePair(Of Symbol, Integer)))
+                    Debug.Assert(Not comClass.IsGenericType)
                     _comClass = comClass
                     _isEventInterface = False
 
@@ -638,6 +639,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     _members = members.ToImmutableAndFree()
                 End Sub
 
+                Public Overrides Function GetHashCode() As Integer
+                    Return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Me)
+                End Function
+
+                Public Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+                    Return Me Is other
+                End Function
+
                 Private Shared Function GetNextAvailableDispId(
                     usedDispIds As HashSet(Of Integer),
                     <[In], Out> ByRef nextDispId As Integer
@@ -752,7 +761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
+                Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
                     Get
                         Return Nothing
                     End Get
@@ -868,19 +877,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+                Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
                     Return Nothing
                 End Function
 
-                Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+                Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
                     Return ImmutableArray(Of NamedTypeSymbol).Empty
                 End Function
 
-                Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+                Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
                     Return Nothing
                 End Function
 
-                Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+                Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
                     Return ImmutableArray(Of NamedTypeSymbol).Empty
                 End Function
 
@@ -938,17 +947,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Public NotOverridable Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
+                Public Overrides Function GetTypeArgumentCustomModifiers(ordinal As Integer) As ImmutableArray(Of CustomModifier)
                     Return GetEmptyTypeArgumentCustomModifiers(ordinal)
                 End Function
 
-                Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
+                Friend Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
                     Get
                         Return False
                     End Get
                 End Property
 
-                Public Overrides ReadOnly Property TypeKind As TYPEKIND
+                Public Overrides ReadOnly Property TypeKind As TypeKind
                     Get
                         Return TypeKind.Interface
                     End Get
@@ -976,7 +985,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ImmutableArray(Of VisualBasicAttributeData).Empty
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     Dim compilation As VisualBasicCompilation = _comClass.DeclaringCompilation
@@ -1017,7 +1026,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Nothing
                 End Function
 
-                Friend NotOverridable Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
+                Friend Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
                     Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
                 End Function
             End Class
@@ -1181,6 +1190,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Property
 
                 Public Overrides ReadOnly Property IsIterator As Boolean
+                    Get
+                        Return False
+                    End Get
+                End Property
+
+                Public NotOverridable Overrides ReadOnly Property IsInitOnly As Boolean
                     Get
                         Return False
                     End Get
@@ -1867,7 +1882,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim interfaces As ImmutableArray(Of NamedTypeSymbol) = _comClassData.GetSynthesizedInterfaces()
 
-            Return If(interfaces.IsEmpty, Nothing, interfaces.AsEnumerable())
+            If interfaces.IsEmpty Then
+                Return Nothing
+            End If
+
+#If DEBUG Then
+            Return interfaces.Select(Function(i) i.GetCciAdapter())
+#Else
+            return interfaces.AsEnumerable()
+#End If
         End Function
 
         Friend Overrides Function GetSynthesizedImplements() As IEnumerable(Of NamedTypeSymbol)

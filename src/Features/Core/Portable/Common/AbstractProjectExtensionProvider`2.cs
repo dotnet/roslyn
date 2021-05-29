@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // otherwise, see whether we can pick it up from reference itself
-            if (!(_reference is AnalyzerFileReference analyzerFileReference))
+            if (_reference is not AnalyzerFileReference analyzerFileReference)
             {
                 return ImmutableArray<TExtension>.Empty;
             }

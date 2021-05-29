@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services
         public bool IsExperimentEnabled(string experimentName)
         {
             // may return null in tests
-            var assetSource = AssetStorage.Default.TryGetAssetSource();
+            var assetSource = RemoteWorkspaceManager.Default.TryGetAssetSource();
             return assetSource?.IsExperimentEnabledAsync(experimentName, CancellationToken.None).Result ?? false;
         }
     }

@@ -21,8 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' holds diagnostics related to source code in this particular source file, for 
         ' each stage.
         Private ReadOnly _diagnosticBagDeclare As New DiagnosticBag()
-        Private ReadOnly _diagnosticBagCompile As New DiagnosticBag()
-        Private ReadOnly _diagnosticBagEmit As New DiagnosticBag()
 
         ' Lazily filled in.
         Private _lazyBoundInformation As BoundFileInformation
@@ -90,28 +88,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ' Get the declaration errors.
-        Public ReadOnly Property DeclarationErrors As DiagnosticBag
+        Public ReadOnly Property DeclarationDiagnostics As DiagnosticBag
             Get
                 Return _diagnosticBagDeclare
             End Get
         End Property
-
-        ' Add a diagnostic to this source file.
-        Public Sub AddDiagnostic(d As Diagnostic, stage As CompilationStage)
-            Select Case stage
-                Case CompilationStage.Declare
-                    _diagnosticBagDeclare.Add(d)
-
-                Case CompilationStage.Compile
-                    _diagnosticBagCompile.Add(d)
-
-                Case CompilationStage.Emit
-                    _diagnosticBagEmit.Add(d)
-
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(stage)
-            End Select
-        End Sub
 
         ' Get a quick attribute checker that can be used for quick attributes checks, initialized with project-level
         ' aliases.
@@ -159,9 +140,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function GetBoundInformation(cancellationToken As CancellationToken) As BoundFileInformation
             If _lazyBoundInformation Is Nothing Then
-                Dim diagBag As New DiagnosticBag()
-                Dim lazyBoundInformation = BindFileInformation(diagBag, cancellationToken)
-                _sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyBoundInformation, lazyBoundInformation, diagBag, CompilationStage.Declare)
+                Dim diagBag As New BindingDiagnosticBag(New DiagnosticBag())
+                Dim lazyBoundInformation = BindFileInformation(diagBag.DiagnosticBag, cancellationToken)
+                _sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyBoundInformation, lazyBoundInformation, diagBag)
             End If
 
             Return _lazyBoundInformation
@@ -170,14 +151,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub EnsureImportsValidated()
             If _importsValidated = 0 Then
                 Dim boundFileInformation = BoundInformation
-                Dim diagBag As New DiagnosticBag()
-                ValidateImports(boundFileInformation.MemberImports, boundFileInformation.MemberImportsSyntax, boundFileInformation.AliasImportsOpt, diagBag)
-                _sourceModule.AtomicStoreIntegerAndDiagnostics(_importsValidated, 1, 0, diagBag, CompilationStage.Declare)
+                Dim diagBag As New BindingDiagnosticBag()
+                ValidateImports(_sourceModule.DeclaringCompilation, boundFileInformation.MemberImports, boundFileInformation.MemberImportsSyntax, boundFileInformation.AliasImportsOpt, diagBag)
+                _sourceModule.AtomicStoreIntegerAndDiagnostics(_importsValidated, 1, 0, diagBag)
             End If
             Debug.Assert(_importsValidated = 1)
         End Sub
 
         Private Function BindFileInformation(diagBag As DiagnosticBag, cancellationToken As CancellationToken, Optional filterSpan As TextSpan? = Nothing) As BoundFileInformation
+
             ' The binder must be set up to only bind things in the global namespace, in order to bind imports 
             ' correctly. Note that a different binder would be needed for binding the file-level attributes.
             Dim binder = BinderBuilder.CreateBinderForSourceFileImports(_sourceModule, _syntaxTree)
@@ -313,15 +295,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _membersSyntaxBuilder = membersSyntaxBuilder
             End Sub
 
-            Public Overrides Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer)
-                Dim pair = New NamespaceOrTypeAndImportsClausePosition(member, importsClausePosition)
+            Public Overrides Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
+                Dim pair = New NamespaceOrTypeAndImportsClausePosition(member, importsClausePosition, dependencies.ToImmutableArray())
                 Members.Add(member)
                 _membersBuilder.Add(pair)
                 _membersSyntaxBuilder.Add(syntaxRef)
             End Sub
 
-            Public Overrides Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer)
-                Aliases.Add(name, New AliasAndImportsClausePosition([alias], importsClausePosition))
+            Public Overrides Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
+                Aliases.Add(name, New AliasAndImportsClausePosition([alias], importsClausePosition, dependencies.ToImmutableArray()))
             End Sub
         End Class
 
@@ -330,28 +312,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' after the import statements have been added to the SourceFile.
         ''' Specifically, constraints are checked for generic type references.
         ''' </summary>
-        Private Shared Sub ValidateImports(memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
+        Private Shared Sub ValidateImports(compilation As VisualBasicCompilation,
+                                           memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
                                            memberImportsSyntax As ImmutableArray(Of SyntaxReference),
                                            aliasImportsOpt As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition),
-                                           diagnostics As DiagnosticBag)
+                                           diagnostics As BindingDiagnosticBag)
             ' TODO: Dev10 reports error on specific type parts rather than the import
             ' (reporting error on Object rather than C in C = A(Of Object) for instance).
+            Dim clauseDiagnostics = BindingDiagnosticBag.GetInstance()
 
             For i = 0 To memberImports.Length - 1
-                Dim type = TryCast(memberImports(i).NamespaceOrType, TypeSymbol)
-                If type IsNot Nothing Then
-                    Dim location = memberImportsSyntax(i).GetLocation()
-                    type.CheckAllConstraints(location, diagnostics)
-                End If
+                ValidateImportsClause(compilation, clauseDiagnostics, memberImports(i).NamespaceOrType,
+                                      memberImports(i).Dependencies, memberImportsSyntax(i).GetLocation(),
+                                      memberImports(i).ImportsClausePosition, diagnostics)
             Next
 
             If aliasImportsOpt IsNot Nothing Then
                 For Each aliasImport In aliasImportsOpt.Values
-                    Dim type = TryCast(aliasImport.Alias.Target, TypeSymbol)
-                    If type IsNot Nothing Then
-                        type.CheckAllConstraints(aliasImport.Alias.Locations(0), diagnostics)
-                    End If
+                    ValidateImportsClause(compilation, clauseDiagnostics, aliasImport.Alias.Target,
+                                          aliasImport.Dependencies, aliasImport.Alias.Locations(0),
+                                          aliasImport.ImportsClausePosition, diagnostics)
                 Next
+            End If
+
+            clauseDiagnostics.Free()
+        End Sub
+
+        Private Shared Sub ValidateImportsClause(
+            compilation As VisualBasicCompilation,
+            clauseDiagnostics As BindingDiagnosticBag,
+            namespaceOrType As NamespaceOrTypeSymbol,
+            dependencies As ImmutableArray(Of AssemblySymbol),
+            location As Location,
+            importsClausePosition As Integer,
+            diagnostics As BindingDiagnosticBag
+        )
+            Dim type = TryCast(namespaceOrType, TypeSymbol)
+            If type IsNot Nothing Then
+                clauseDiagnostics.Clear()
+                type.CheckAllConstraints(location, clauseDiagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, compilation.Assembly))
+                diagnostics.AddRange(clauseDiagnostics.DiagnosticBag)
+
+                If VisualBasicCompilation.ReportUnusedImportsInTree(location.PossiblyEmbeddedOrMySourceTree) Then
+                    If clauseDiagnostics.DependenciesBag.Count <> 0 Then
+                        If Not dependencies.IsEmpty Then
+                            clauseDiagnostics.AddDependencies(dependencies)
+                        End If
+
+                        dependencies = clauseDiagnostics.DependenciesBag.ToImmutableArray()
+                    End If
+
+                    compilation.RecordImportsClauseDependencies(location.PossiblyEmbeddedOrMySourceTree, importsClausePosition, dependencies)
+                Else
+                    diagnostics.AddDependencies(dependencies)
+                    diagnostics.AddDependencies(clauseDiagnostics.DependenciesBag)
+                End If
+            Else
+                Debug.Assert(dependencies.IsEmpty)
+                If Not VisualBasicCompilation.ReportUnusedImportsInTree(location.PossiblyEmbeddedOrMySourceTree) Then
+                    diagnostics.AddAssembliesUsedByNamespaceReference(DirectCast(namespaceOrType, NamespaceSymbol))
+                End If
             End If
         End Sub
 
@@ -434,7 +454,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Get all declaration errors in the given filterSpan.
         ''' </summary>
         Friend Function GetDeclarationErrorsInSpan(filterSpan As TextSpan, cancellationToken As CancellationToken) As IEnumerable(Of Diagnostic)
-            Dim diagBag As DiagnosticBag = DiagnosticBag.GetInstance()
+            Dim diagBag = DiagnosticBag.GetInstance()
             BindFileInformation(diagBag, cancellationToken, filterSpan)
             Return diagBag.ToReadOnlyAndFree()
         End Function

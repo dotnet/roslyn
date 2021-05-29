@@ -12,13 +12,13 @@ This document is restricted to the following assumptions:
 3. Any storage capacity used for PDBs and source should not impact this feature, such as compression algorithm.
 4. Only Portable PDB files will be included for this spec. This feature can be expanded past these once it is implemented and proven needed elsewhere.
 
-This document will provide the expanded specification to the Portable PDB format. Any additions to that format will be ported to expand documentation provided in [dotnet-runtime](https://github.com/dotnet/runtime/blob/master/docs/design/specs/PortablePdb-Metadata.md).
+This document will provide the expanded specification to the Portable PDB format. Any additions to that format will be ported to expand documentation provided in [dotnet-runtime](https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md).
 
 ## PDB Format Additions
 
 #### Compilation Metadata References custom debug information
 
-Symbol server uses a [key](https://github.com/dotnet/symstore/blob/master/docs/specs/SSQP_Key_Conventions.md#pe-timestamp-filesize) computed from the COFF header in the PE image:
+Symbol server uses a [key](https://github.com/dotnet/symstore/blob/main/docs/specs/SSQP_Key_Conventions.md#pe-timestamp-filesize) computed from the COFF header in the PE image:
 
 Timestamp: 4 byte integer
 Size of image: 4 byte integer
@@ -167,7 +167,6 @@ Example:
 * resource
     - Will be represented in metadata reference embedded in pdb
 * subsystemversion
-* target
 * win32icon
 * win32manifest
 * win32res
@@ -217,7 +216,6 @@ Example:
 * resource
     - Will be represented in metadata reference embedded in pdb
 * subsystemversion
-* target
 * win32icon
 * win32manifest
 * win32resource
@@ -257,24 +255,32 @@ Example:
 * verbose
 * warnaserror
 
+#### Shared Options for CSharp and Visual Basic
+
+| PDB Key                | Format                                  | Default   | Description  |
+| ---------------------- | --------------------------------------- | --------- | ------------ |
+| language               | `CSharp\|Visual Basic`                   | required  | Language name. |
+| compiler-version       | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | Full version with SHA |
+| runtime-version        | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | [runtime version](#runtime-version) |
+| source-file-count      | int32                                   | required    | Count of files in the document table that are source files |
+| optimization           | `(debug\|debug-plus\|release\|release-debug-plus)` | `'debug'` | [optimization](#optimization) |
+| portability-policy     | `(0\|1\|2\|3)`                          | `0`       | [portability policy](#portability-policy) |
+| default-encoding       | string                                  | none      | [file encoding](#file-encoding) |
+| fallback-encoding      | string                                  | none      | [file encoding](#file-encoding) |
+| output-kind            | string                                  | require   | The value passed to `/target` |
+| platform               | string                                  | require   | The value passed to `/platform` |
+
 #### Options For CSharp
 
 See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/listed-alphabetically) documentation
 
 | PDB Key                | Format                                  | Default   | Description  |
 | ---------------------- | --------------------------------------- | --------- | ------------ |
-| language               | `CSharp`                                | required  | Language name. |
 | language-version       | `[0-9]+(\.[0-9]+)?`                     | required  | [langversion](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/langversion-compiler-option) |
-| compiler-version       | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | Full version with SHA |
-| runtime-version        | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | [runtime version](#runtime-version) |
-| optimization           | `(debug|debug-plus|release)`            | `debug`   | [optimization](#optimization) |
-| portability-policy     | `(0|1|2|3)`                             | `0`       | [portability policy](#portability-policy) |
-| default-encoding       | string                                  | none      | [file encoding](#file-encoding) |
-| fallback-encoding      | string                                  | none      | [file encoding](#file-encoding) |
 | define                 | `,`-separated identifier list           | empty     | [define](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/define-compiler-option) |
-| checked                | `(True|False)`                          | `False`   | [checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/checked-compiler-option) |
-| nullable               | `(Disable|Warnings|Annotations|Enable)` | `Disable` | [nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) |
-| unsafe                 | `(True|False)`                          | `False`   | [unsafe](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/unsafe-compiler-option) |
+| checked                | `(True\|False)`                         | `False`   | [checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/checked-compiler-option) |
+| nullable               | `(Disable\|Warnings\|Annotations\|Enable)` | `Disable` | [nullable](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) |
+| unsafe                 | `(True\|False)`                         | `False`   | [unsafe](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/unsafe-compiler-option) |
 
 #### Options For Visual Basic
 
@@ -282,14 +288,16 @@ See [compiler options](https://docs.microsoft.com/en-us/dotnet/visual-basic/refe
 
 | PDB Key                | Format                                     | Default  | Description |
 | ---------------------- | ------------------------------------------ | -------- | ----------- |
-| language               | `Visual Basic`                             | required | Language name. |
 | language-version       | `[0-9]+(\.[0-9]+)?`                        | required | [langversion](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/langversion) |
-| compiler-version       | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | Full version with SHA |
-| runtime-version        | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | [runtime version](#runtime-version) |
-| optimization           | `(debug|debug-plus|release)`               | `debug`  | [optimization](#optimization) |
 | define                 | `,`-separated list of name `=` value pairs | empty    | [define](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/define) |
-| strict                 | `(Off|Custom|On)`                          | `Off`    | [optionstrict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
-| checked                | `(True|False)`                             | `False`  | Opposite of [removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks) |
+| checked                | `(True\|False)`                            | `False`  | Opposite of [removeintchecks](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/removeintchecks) |
+| option-strict          | `(Off\|Custom\|On)`                        | required | [option strict](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionstrict) |
+| option-infer           | `(True\|False)`                            | required | [option infer](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optioninfer) |
+| option-compare-text    | `(True\|False)`                            | required | [option compare](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optioncompare) |
+| option-explicit        | `(True\|False)`                            | required | [option explicit](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/optionexplicit) |
+| embed-runtime          | `(True\|False)`                            | required | Whether or not the VB runtime was embedded into the PE |
+| global-namespaces      | `,` -separated identifier list             | empty    | [imports](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/imports)
+| root-namespace         | string                                     | empty    | [root namespace](https://docs.microsoft.com/en-us/dotnet/visual-basic/reference/command-line-compiler/rootnamespace)
 
 #### Portability Policy
 

@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypeWithAnnotations fieldType;
 
                 if ((object)field != null &&
-                    TypeSymbol.Equals((fieldType = field.TypeWithAnnotations).Type, type, TypeCompareKind.ConsiderEverything2) &&
+                    TypeSymbol.Equals((fieldType = field.TypeWithAnnotations).Type, type, TypeCompareKind.CLRSignatureCompareOptions) &&
                     CustomModifiersMatch(fieldType.CustomModifiers, customModifiers))
                 {
                     // Behavior in the face of multiple matching signatures is
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
             var substituted = candidateParam.TypeWithAnnotations.SubstituteType(candidateMethodTypeMap);
-            if (!TypeSymbol.Equals(substituted.Type, targetParam.Type, TypeCompareKind.ConsiderEverything2))
+            if (!TypeSymbol.Equals(substituted.Type, targetParam.Type, TypeCompareKind.CLRSignatureCompareOptions))
             {
                 return false;
             }
@@ -285,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // CONSIDER: Do we want to add special handling for error types?  Right now, we expect they'll just fail to match.
             var substituted = candidateMethodType.SubstituteType(candidateMethodTypeMap);
-            if (!TypeSymbol.Equals(substituted.Type, targetReturnType, TypeCompareKind.ConsiderEverything2))
+            if (!TypeSymbol.Equals(substituted.Type, targetReturnType, TypeCompareKind.CLRSignatureCompareOptions))
             {
                 return false;
             }

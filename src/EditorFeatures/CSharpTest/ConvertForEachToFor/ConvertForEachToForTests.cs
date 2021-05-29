@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -1950,6 +1952,41 @@ class Test
 }
 ";
             await TestMissingAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [WorkItem(48950, "https://github.com/dotnet/roslyn/issues/48950")]
+        public async Task NullableReferenceVar()
+        {
+            var text = @"
+#nullable enable
+class Test
+{
+    void Method()
+    {
+        foreach [||] (var s in new string[10])
+        {
+            Console.WriteLine(s);
+        }
+    }
+}
+";
+            var expected = @"
+#nullable enable
+class Test
+{
+    void Method()
+    {
+        var {|Rename:array|} = new string[10];
+        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        {
+            var s = array[i];
+            Console.WriteLine(s);
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
         }
     }
 }

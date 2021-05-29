@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 }", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/46821"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task FixAllInDocument1_CSharp9()
         {
             await TestInRegularAndScriptAsync(

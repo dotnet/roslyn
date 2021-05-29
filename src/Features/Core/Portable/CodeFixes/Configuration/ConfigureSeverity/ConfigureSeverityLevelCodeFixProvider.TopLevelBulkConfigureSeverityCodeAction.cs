@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
             {
                 // Ensure that 'Category' based bulk configuration actions are shown above
                 // the 'All analyzer diagnostics' bulk configuration actions.
-                AdditionalPriority = category != null ? CodeActionPriority.Low : CodeActionPriority.None;
+                AdditionalPriority = category != null ? CodeActionPriority.Low : CodeActionPriority.Lowest;
             }
 
             internal override CodeActionPriority AdditionalPriority { get; }

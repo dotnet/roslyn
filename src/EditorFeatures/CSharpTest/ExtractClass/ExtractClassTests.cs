@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Roslyn.Test.Utilities;
@@ -20,18 +24,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
     {
         private Task TestAsync(
             string input,
-            string expected,
+            string expected = null,
             IEnumerable<(string name, bool makeAbstract)> dialogSelection = null,
             bool sameFile = false,
             bool isClassDeclarationSelection = false,
             TestParameters testParameters = default)
         {
             var service = new TestExtractClassOptionsService(dialogSelection, sameFile, isClassDeclarationSelection);
+            var parametersWithOptionsService = testParameters.WithFixProviderData(service);
+
+            if (expected is null)
+            {
+                return TestMissingAsync(input, parametersWithOptionsService);
+            }
 
             return TestInRegularAndScript1Async(
                 input,
                 expected,
-                parameters: testParameters.WithFixProviderData(service));
+                parameters: parametersWithOptionsService);
         }
 
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -94,7 +104,29 @@ class Test : ErrorBase
     </Project>
 </Workspace>";
 
-            await TestMissingAsync(input);
+            await TestAsync(input);
+        }
+
+        [Fact]
+        public async Task TestMiscellaneousFiles()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">
+class Test
+{
+    int [||]Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            TestParameters parameters = default;
+            await TestAsync(input, testParameters: parameters.WithWorkspaceKind(WorkspaceKind.MiscellaneousFiles));
         }
 
         [Fact]

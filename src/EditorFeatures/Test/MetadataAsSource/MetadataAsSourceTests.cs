@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -1389,7 +1391,7 @@ public class [|C|]
     public C();
 
     public void M(CancellationToken cancellationToken = default);
-}}", languageVersion: "CSharp7_1");
+}}", languageVersion: "7.1");
         }
 
         [WorkItem(446567, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=446567")]
@@ -1483,7 +1485,7 @@ public class [|TestType|]<T> where T : unmanaged
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp7_3",
+                languageVersion: "7.3",
                 sourceWithSymbolReference: sourceWithSymbolReference);
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -1523,7 +1525,7 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp7_3",
+                languageVersion: "7.3",
                 sourceWithSymbolReference: sourceWithSymbolReference);
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -1552,7 +1554,7 @@ public delegate void [|D|]<T>() where T : unmanaged;";
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp7_3",
+                languageVersion: "7.3",
                 sourceWithSymbolReference: sourceWithSymbolReference);
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2267,9 +2269,9 @@ public class [|TestType|]<T> where T : notnull
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2309,9 +2311,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2340,9 +2342,9 @@ public delegate void [|D|]<T>() where T : notnull;";
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2398,9 +2400,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2453,9 +2455,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2516,9 +2518,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2566,9 +2568,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2617,9 +2619,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2665,9 +2667,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2713,9 +2715,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2759,9 +2761,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2805,9 +2807,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2851,9 +2853,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2895,9 +2897,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -2959,9 +2961,9 @@ namespace N
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -3033,9 +3035,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
@@ -3077,9 +3079,9 @@ public class TestType
                 LanguageNames.CSharp,
                 SpecializedCollections.SingletonEnumerable(metadata),
                 includeXmlDocComments: false,
-                languageVersion: "CSharp8",
+                languageVersion: "8",
                 sourceWithSymbolReference: sourceWithSymbolReference,
-                metadataLanguageVersion: "CSharp8");
+                metadataLanguageVersion: "8");
 
             var navigationSymbol = await context.GetNavigationSymbolAsync();
             var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);

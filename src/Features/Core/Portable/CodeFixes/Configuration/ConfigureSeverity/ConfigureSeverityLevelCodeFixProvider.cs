@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -20,8 +18,8 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 {
-    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.Suppression)]
+    [ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExtensionOrder(After = PredefinedConfigurationFixProviderNames.Suppression)]
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<(string name, string value)> s_editorConfigSeverityStrings =

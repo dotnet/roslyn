@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -121,9 +123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                 {
                                     // The user is left shifting ones, stick with that pattern
                                     var shiftValue = IntegerUtilities.LogBase2(value);
+
+                                    // Re-use the numericLiteral text so type suffixes match too
                                     return SyntaxFactory.BinaryExpression(
                                         SyntaxKind.LeftShiftExpression,
-                                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal("1", 1)),
+                                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(numericLiteral.Token.Text, 1)),
                                         SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(shiftValue.ToString(), shiftValue)));
                                 }
                             }

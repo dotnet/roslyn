@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 var factory = _document.GetLanguageService<SyntaxGenerator>();
 
-                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxTree = semanticModel.SyntaxTree;
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var preferThrowExpression = _service.PrefersThrowExpression(options);
@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     parameterToNewMemberMap: null,
                     addNullChecks: _addNullChecks,
                     preferThrowExpression: preferThrowExpression,
-                    generateProperties: false);
+                    generateProperties: false,
+                    _state.IsContainedInUnsafeType);
 
                 // If the user has selected a set of members (i.e. TextSpan is not empty), then we will
                 // choose the right location (i.e. null) to insert the constructor.  However, if they're 

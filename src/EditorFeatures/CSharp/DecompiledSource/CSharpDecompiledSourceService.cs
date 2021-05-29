@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                     var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
                     GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                 }
             }

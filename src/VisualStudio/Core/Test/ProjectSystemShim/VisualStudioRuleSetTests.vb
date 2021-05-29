@@ -5,6 +5,7 @@
 Imports System.IO
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -48,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Dim fileChangeService = New MockVsFileChangeEx
                 Dim fileChangeWatcher = New FileChangeWatcher(Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
-                Dim ruleSetManager = New VisualStudioRuleSetManager(fileChangeWatcher, workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)(), AsynchronousOperationListenerProvider.NullListener)
+                Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using visualStudioRuleSet = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
                     ' Signing up for file change notifications is lazy, so read the rule set to force it.
@@ -92,7 +93,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Using workspace = New TestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
                 Dim fileChangeWatcher = New FileChangeWatcher(Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
-                Dim ruleSetManager = New VisualStudioRuleSetManager(fileChangeWatcher, workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)(), AsynchronousOperationListenerProvider.NullListener)
+                Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using visualStudioRuleSet = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
                     ' Signing up for file change notifications is lazy, so read the rule set to force it.
@@ -140,7 +141,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim listener = listenerProvider.GetListener("test")
 
-                Dim ruleSetManager = New VisualStudioRuleSetManager(fileChangeWatcher, workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)(), listener)
+                Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, listener)
                 Using ruleSet1 = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
                     Dim handlerCalled As Boolean = False
                     AddHandler ruleSet1.Target.Value.UpdatedOnDisk, Sub() handlerCalled = True
@@ -181,7 +182,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
                 Dim listener = listenerProvider.GetListener("test")
 
-                Dim ruleSetManager = New VisualStudioRuleSetManager(fileChangeWatcher, workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)(), listener)
+                Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, listener)
                 Using ruleSet1 = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
                     ' Signing up for file change notifications is lazy, so read the rule set to force it.
@@ -226,7 +227,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Using workspace = New TestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
                 Dim fileChangeWatcher = New FileChangeWatcher(Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
-                Dim ruleSetManager = New VisualStudioRuleSetManager(fileChangeWatcher, workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)(), AsynchronousOperationListenerProvider.NullListener)
+                Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using ruleSet1 = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
                     ' Signing up for file change notifications is lazy, so read the rule set to force it.
@@ -264,7 +265,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Using workspace = New TestWorkspace()
                 Dim fileChangeService = New MockVsFileChangeEx
                 Dim fileChangeWatcher = New FileChangeWatcher(Task.FromResult(Of IVsAsyncFileChangeEx)(fileChangeService))
-                Dim ruleSetManager = New VisualStudioRuleSetManager(fileChangeWatcher, workspace.ExportProvider.GetExportedValue(Of IForegroundNotificationService)(), AsynchronousOperationListenerProvider.NullListener)
+                Dim ruleSetManager = New VisualStudioRuleSetManager(workspace.ExportProvider.GetExportedValue(Of IThreadingContext), fileChangeWatcher, AsynchronousOperationListenerProvider.NullListener)
                 Using ruleSet = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
                     Dim generalDiagnosticOption = ruleSet.Target.Value.GetGeneralDiagnosticOption()

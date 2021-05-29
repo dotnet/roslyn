@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 // #define LOG
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -38,30 +37,33 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
         private static readonly LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(FeaturesResources.Simplify_Names), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
+        private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = new(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                                                                     s_localizableTitleSimplifyNames,
                                                                     s_localizableMessage,
                                                                     DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
+                                                                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.SimplifyNamesDiagnosticId),
+                                                                    customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.SimplifyNames.ToCustomTag()).ToArray());
 
         private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(FeaturesResources.Simplify_Member_Access), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
+        private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = new(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
                                                                     s_localizableTitleSimplifyMemberAccess,
                                                                     s_localizableMessage,
                                                                     DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
+                                                                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId),
+                                                                    customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.SimplifyMemberAccess.ToCustomTag()).ToArray());
 
-        private static readonly DiagnosticDescriptor s_descriptorPreferBuiltinOrFrameworkType = new DiagnosticDescriptor(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
+        private static readonly DiagnosticDescriptor s_descriptorPreferBuiltinOrFrameworkType = new(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
             s_localizableTitleSimplifyNames,
             s_localizableMessage,
             DiagnosticCategory.Style,
             DiagnosticSeverity.Hidden,
             isEnabledByDefault: true,
-            customTags: DiagnosticCustomTags.Unnecessary);
+            helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId),
+            customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.PreferBuiltInOrFrameworkType.ToCustomTag()).ToArray());
 
         internal abstract bool IsCandidate(SyntaxNode node);
         internal abstract bool CanSimplifyTypeNameExpression(
@@ -230,7 +232,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             /// </list>
             /// </summary>
             private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)> _codeBlockIntervals
-                = new ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)>();
+                = new();
 
             public AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> analyzer)
                 => _analyzer = analyzer;

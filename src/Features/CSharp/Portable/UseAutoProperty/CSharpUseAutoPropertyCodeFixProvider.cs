@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -17,7 +19,7 @@ using Microsoft.CodeAnalysis.UseAutoProperty;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseAutoPropertyCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseAutoProperty), Shared]
     internal class CSharpUseAutoPropertyCodeFixProvider
         : AbstractUseAutoPropertyCodeFixProvider<TypeDeclarationSyntax, PropertyDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
     {
@@ -61,7 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                     accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
                 }
 
-                updatedProperty = updatedProperty.AddAccessorListAccessors(accessor);
+                var modifiers = SyntaxFactory.TokenList(
+                    updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword)));
+
+                updatedProperty = updatedProperty.WithModifiers(modifiers)
+                                                 .AddAccessorListAccessors(accessor);
             }
 
             var fieldInitializer = await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(false);

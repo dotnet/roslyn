@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,6 +72,10 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             lock (_globalNotificationsGate)
             {
+                // Pass TaskContinuationOptions.OnlyOnRanToCompletion to avoid delivering further notifications once the task gets canceled or fails.
+                // The cancellation happens only when VS is shutting down. The task might fail if communication with OOP fails. 
+                // Once that happens there is not point in sending more notifications to the remote service.
+
                 _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
                     SendStartNotificationAsync, _cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
             }
@@ -94,12 +96,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return previousTask.Result;
             }
 
-            await client.RunRemoteAsync(
-                WellKnownServiceHubService.CodeAnalysis,
-                nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStarted),
-                solution: null,
-                Array.Empty<object>(),
-                callbackTarget: null,
+            _ = await client.TryInvokeAsync<IRemoteGlobalNotificationDeliveryService>(
+                (service, cancellationToken) => service.OnGlobalOperationStartedAsync(cancellationToken),
                 _cancellationToken).ConfigureAwait(false);
 
             return GlobalNotificationState.Started;
@@ -109,6 +107,10 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             lock (_globalNotificationsGate)
             {
+                // Pass TaskContinuationOptions.OnlyOnRanToCompletion to avoid delivering further notifications once the task gets canceled or fails.
+                // The cancellation happens only when VS is shutting down. The task might fail if communication with OOP fails. 
+                // Once that happens there is not point in sending more notifications to the remote service.
+
                 _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
                     previous => SendStoppedNotificationAsync(previous, e), _cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
             }
@@ -129,12 +131,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return previousTask.Result;
             }
 
-            await client.RunRemoteAsync(
-                WellKnownServiceHubService.CodeAnalysis,
-                nameof(IRemoteGlobalNotificationDeliveryService.OnGlobalOperationStopped),
-                solution: null,
-                new object[] { e.Operations, e.Cancelled },
-                callbackTarget: null,
+            _ = await client.TryInvokeAsync<IRemoteGlobalNotificationDeliveryService>(
+                (service, cancellationToken) => service.OnGlobalOperationStoppedAsync(e.Operations, cancellationToken),
                 _cancellationToken).ConfigureAwait(false);
 
             // Mark that we're stopped now.

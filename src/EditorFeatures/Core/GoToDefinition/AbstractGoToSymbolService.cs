@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Threading;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var document = context.Document;
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
-            var service = document.GetLanguageService<IGoToDefinitionSymbolService>();
+            var service = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
 
             // [includeType: false]
             // Enable Ctrl+Click on tokens with aliased, referenced or declared symbol.
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var solution = document.Project.Solution;
             var definitions = GoToDefinitionHelpers.GetDefinitions(symbol, solution, thirdPartyNavigationAllowed: true, cancellationToken)
-                .WhereAsArray(d => d.CanNavigateTo(solution.Workspace));
+                .WhereAsArray(d => d.CanNavigateTo(solution.Workspace, cancellationToken));
 
             await TaskScheduler.Default;
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,18 +22,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedRecordToString : SynthesizedRecordObjectMethod
     {
         private readonly MethodSymbol _printMethod;
-        public SynthesizedRecordToString(SourceMemberContainerTypeSymbol containingType, MethodSymbol printMethod, int memberOffset, DiagnosticBag diagnostics)
+        public SynthesizedRecordToString(SourceMemberContainerTypeSymbol containingType, MethodSymbol printMethod, int memberOffset, BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.ObjectToString, memberOffset, diagnostics)
         {
             Debug.Assert(printMethod is object);
             _printMethod = printMethod;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected override SpecialMember OverriddenSpecialMember => SpecialMember.System_Object__ToString;
+
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
-            return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_String, location, diagnostics)),
+            var annotation = ContainingType.IsRecordStruct ? NullableAnnotation.Oblivious : NullableAnnotation.NotAnnotated;
+            return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_String, location, diagnostics), annotation),
                     Parameters: ImmutableArray<ParameterSymbol>.Empty,
                     IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 0;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, this.SyntaxNode, compilationState, diagnostics);
 
@@ -65,11 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // builder.Append(" { ");
                 block.Add(makeAppendString(F, builderLocal, " { "));
 
-                // this.print(builder);
-                block.Add(F.ExpressionStatement(F.Call(F.This(), _printMethod, builderLocal)));
+                // if (this.PrintMembers(builder)) builder.Append(" ");
+                block.Add(F.If(F.Call(F.This(), _printMethod, builderLocal), makeAppendString(F, builderLocal, " ")));
 
-                // builder.Append(" } ");
-                block.Add(makeAppendString(F, builderLocal, " } "));
+                // builder.Append("}");
+                block.Add(makeAppendString(F, builderLocal, "}"));
 
                 // return builder.ToString();
                 block.Add(F.Return(F.Call(builderLocal, F.SpecialMethod(SpecialMember.System_Object__ToString))));

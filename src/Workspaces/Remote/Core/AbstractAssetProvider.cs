@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -98,10 +100,11 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var documentSnapshot = await GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
             var documentInfo = await GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
+            var serializableSourceText = await GetAssetAsync<SerializableSourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
 
             var textLoader = TextLoader.From(
                 TextAndVersion.Create(
-                    await GetAssetAsync<SourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false),
+                    await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false),
                     VersionStamp.Create(),
                     documentInfo.FilePath));
 
@@ -113,7 +116,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 documentInfo.SourceCodeKind,
                 textLoader,
                 documentInfo.FilePath,
-                documentInfo.IsGenerated);
+                documentInfo.IsGenerated,
+                documentInfo.DesignTimeOnly,
+                documentServiceProvider: null);
         }
 
         private async Task<IEnumerable<DocumentInfo>> CreateDocumentInfosAsync(ChecksumCollection documentChecksums, CancellationToken cancellationToken)

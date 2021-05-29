@@ -16,7 +16,8 @@
     <!-- .NETCoreApp == 5.0 -->
     <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '5.0' AND
                                          '$(_MaxSupportedLangVersion)' == ''">9.0</_MaxSupportedLangVersion>
-    
+
+    <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
     <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
   </PropertyGroup>
 
@@ -95,6 +96,7 @@
          ErrorReport="$(ErrorReport)"
          Features="$(Features)"
          FileAlignment="$(FileAlignment)"
+         GeneratedFilesOutputPath="$(CompilerGeneratedFilesOutputPath)"
          GenerateFullPaths="$(GenerateFullPaths)"
          HighEntropyVA="$(HighEntropyVA)"
          Instrument="$(Instrument)"

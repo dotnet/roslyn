@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 return;
             }
 
-            var service = document.GetLanguageService<IGenerateDefaultConstructorsService>();
+            var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
             var actions = await service.GenerateDefaultConstructorsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }

@@ -438,7 +438,7 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(13042, "https://github.com/dotnet/roslyn/issues/13042")>
         Public Async Function TestTuples() As Task
 
@@ -475,7 +475,7 @@ End Namespace")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
         Public Async Function TestTupleDeclarationWithNames() As Task
 
@@ -507,7 +507,7 @@ End Namespace")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
         Public Async Function TestTupleDeclarationWithSomeNames() As Task
 
@@ -539,7 +539,7 @@ End Namespace")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")>
         Public Async Function TestTupleWith1Arity() As Task
 
@@ -573,7 +573,7 @@ End Structure")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         Public Async Function TestTupleWithInferredNames() As Task
             Await TestAsync(
 "Class Program
@@ -605,7 +605,7 @@ End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBa
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         Public Async Function TestTupleWithInferredNames_WithVB15() As Task
             Await TestAsync(
 "Class Program
@@ -833,6 +833,260 @@ End Class",
         Await Task.Delay(duration).ConfigureAwait(True)
     End Function
 End Class")
+        End Function
+
+        <Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")>
+        Public Async Function TestConditionalAccess1() As Task
+            Await TestInRegularAndScript1Async("
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = b?.[|ToString|]()
+    end sub
+end class", "
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = {|Rename:GetX|}(b)
+    end sub
+
+    Private Shared Function GetX(b As List(Of Integer)) As String
+        Return b?.ToString()
+    End Function
+end class")
+        End Function
+
+        <Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")>
+        Public Async Function TestConditionalAccess2() As Task
+            Await TestInRegularAndScript1Async("
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = b?.[|ToString|]().Length
+    end sub
+end class", "
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = {|Rename:GetX|}(b)
+    end sub
+
+    Private Shared Function GetX(b As List(Of Integer)) As Integer?
+        Return b?.ToString().Length
+    End Function
+end class")
+        End Function
+
+        <Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")>
+        Public Async Function TestConditionalAccess3() As Task
+            Await TestInRegularAndScript1Async("
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = b?.Count.[|ToString|]()
+    end sub
+end class", "
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = {|Rename:GetX|}(b)
+    end sub
+
+    Private Shared Function GetX(b As List(Of Integer)) As String
+        Return b?.Count.ToString()
+    End Function
+end class")
+        End Function
+
+        <Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")>
+        Public Async Function TestConditionalAccess4() As Task
+            Await TestInRegularAndScript1Async("
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = b?.[|Count|].ToString()
+    end sub
+end class", "
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = {|Rename:GetX|}(b)
+    end sub
+
+    Private Shared Function GetX(b As List(Of Integer)) As String
+        Return b?.Count.ToString()
+    End Function
+end class")
+        End Function
+
+        <Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")>
+        Public Async Function TestConditionalAccess5() As Task
+            Await TestInRegularAndScript1Async("
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = b?.[|ToString|]()?.ToString()
+    end sub
+end class", "
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = {|Rename:GetX|}(b)
+    end sub
+
+    Private Shared Function GetX(b As List(Of Integer)) As String
+        Return b?.ToString()?.ToString()
+    End Function
+end class")
+        End Function
+
+        <Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")>
+        Public Async Function TestConditionalAccess6() As Task
+            Await TestInRegularAndScript1Async("
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = b?.ToString()?.[|ToString|]()
+    end sub
+end class", "
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = {|Rename:GetX|}(b)
+    end sub
+
+    Private Shared Function GetX(b As List(Of Integer)) As String
+        Return b?.ToString()?.ToString()
+    End Function
+end class")
+        End Function
+
+        <Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")>
+        Public Async Function TestConditionalAccess7() As Task
+            Await TestInRegularAndScript1Async("
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = b?[|(0)|]
+    end sub
+end class", "
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new List(of integer)
+        dim x = {|Rename:GetX|}(b)
+    end sub
+
+    Private Shared Function GetX(b As List(Of Integer)) As Integer?
+        Return b?(0)
+    End Function
+end class")
+        End Function
+
+        <Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")>
+        Public Async Function TestConditionalAccess8() As Task
+            Await TestInRegularAndScript1Async("
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new Dictionary(of string, integer)
+        dim x = b?![|a|]
+    end sub
+end class", "
+imports System
+imports System.Collections.Generic
+class C
+    sub Test()
+        dim b as new Dictionary(of string, integer)
+        dim x = {|Rename:GetX|}(b)
+    end sub
+
+    Private Shared Function GetX(b As Dictionary(Of String, Integer)) As Integer?
+        Return b?!a
+    End Function
+end class")
+        End Function
+
+        <Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")>
+        Public Async Function TestConditionalAccess9() As Task
+            Await TestInRegularAndScript1Async("
+imports System
+imports System.Collections.Generic
+imports System.Xml.Linq
+class C
+    sub Test()
+        dim b as XElement = nothing
+        dim x = b?.[|<e>|]
+    end sub
+end class", "
+imports System
+imports System.Collections.Generic
+imports System.Xml.Linq
+class C
+    sub Test()
+        dim b as XElement = nothing
+        dim x = {|Rename:GetX|}(b)
+    end sub
+
+    Private Shared Function GetX(b As XElement) As IEnumerable(Of XElement)
+        Return b?.<e>
+    End Function
+end class")
+        End Function
+
+        <Fact, WorkItem(41895, "https://github.com/dotnet/roslyn/issues/41895")>
+        Public Async Function TestConditionalAccess10() As Task
+            Await TestInRegularAndScript1Async("
+imports System
+imports System.Collections.Generic
+imports System.Xml.Linq
+class C
+    sub Test()
+        dim b as XElement = nothing
+        dim x = b?.[|@e|]
+    end sub
+end class", "
+imports System
+imports System.Collections.Generic
+imports System.Xml.Linq
+class C
+    sub Test()
+        dim b as XElement = nothing
+        dim x = {|Rename:GetX|}(b)
+    end sub
+
+    Private Shared Function GetX(b As XElement) As String
+        Return b?.@e
+    End Function
+end class")
         End Function
     End Class
 End Namespace

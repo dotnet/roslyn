@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return true;
         }
 
-        internal static bool OriginalSymbolsMatch(
+        internal static async Task<bool> OriginalSymbolsMatchAsync(
             Solution solution,
             ISymbol searchSymbol,
             ISymbol? symbolToMatch,
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (searchSymbol == null || symbolToMatch == null)
                 return false;
 
-            if (OriginalSymbolsMatchCore(solution, searchSymbol, symbolToMatch, cancellationToken))
+            if (await OriginalSymbolsMatchCoreAsync(solution, searchSymbol, symbolToMatch, cancellationToken).ConfigureAwait(false))
                 return true;
 
             if (searchSymbol.Kind == SymbolKind.Namespace && symbolToMatch.Kind == SymbolKind.Namespace)
@@ -55,8 +54,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var namespace2Count = namespace2.ConstituentNamespaces.Length;
                 if (namespace1Count != namespace2Count)
                 {
-                    if ((namespace1Count > 1 && namespace1.ConstituentNamespaces.Any(n => NamespaceSymbolsMatch(solution, n, namespace2, cancellationToken))) ||
-                        (namespace2Count > 1 && namespace2.ConstituentNamespaces.Any(n2 => NamespaceSymbolsMatch(solution, namespace1, n2, cancellationToken))))
+                    if ((namespace1Count > 1 && await namespace1.ConstituentNamespaces.AnyAsync(static (n, arg) => NamespaceSymbolsMatchAsync(arg.solution, n, arg.namespace2, arg.cancellationToken), (solution, namespace2, cancellationToken)).ConfigureAwait(false)) ||
+                        (namespace2Count > 1 && await namespace2.ConstituentNamespaces.AnyAsync(static (n2, arg) => NamespaceSymbolsMatchAsync(arg.solution, arg.namespace1, n2, arg.cancellationToken), (solution, namespace1, cancellationToken)).ConfigureAwait(false)))
                     {
                         return true;
                     }
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static bool OriginalSymbolsMatchCore(
+        private static async Task<bool> OriginalSymbolsMatchCoreAsync(
             Solution solution,
             ISymbol searchSymbol,
             ISymbol symbolToMatch,
@@ -112,26 +111,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (equivalentTypesWithDifferingAssemblies.Count > 0)
             {
                 // Step 3a) Ensure that all pairs of named types in equivalentTypesWithDifferingAssemblies are indeed equivalent types.
-                return VerifyForwardedTypes(solution, equivalentTypesWithDifferingAssemblies, cancellationToken);
+                return await VerifyForwardedTypesAsync(solution, equivalentTypesWithDifferingAssemblies, cancellationToken).ConfigureAwait(false);
             }
 
             // 3b) If no such named type pairs were encountered, symbols ARE equivalent.
             return true;
         }
 
-        private static bool NamespaceSymbolsMatch(
+        private static Task<bool> NamespaceSymbolsMatchAsync(
             Solution solution,
             INamespaceSymbol namespace1,
             INamespaceSymbol namespace2,
             CancellationToken cancellationToken)
         {
-            return OriginalSymbolsMatch(solution, namespace1, namespace2, cancellationToken);
+            return OriginalSymbolsMatchAsync(solution, namespace1, namespace2, cancellationToken);
         }
 
         /// <summary>
         /// Verifies that all pairs of named types in equivalentTypesWithDifferingAssemblies are equivalent forwarded types.
         /// </summary>
-        private static bool VerifyForwardedTypes(
+        private static async Task<bool> VerifyForwardedTypesAsync(
             Solution solution,
             Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies,
             CancellationToken cancellationToken)
@@ -154,8 +153,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Check if type1 was forwarded to type2 in type2's compilation, or if type2 was forwarded to type1 in
                 // type1's compilation.  We check both direction as this API is called from higher level comparison APIs
                 // that are unordered.
-                if (!VerifyForwardedType(solution, candidate: type1, forwardedTo: type2, compilationSet, cancellationToken) &&
-                    !VerifyForwardedType(solution, candidate: type2, forwardedTo: type1, compilationSet, cancellationToken))
+                if (!await VerifyForwardedTypeAsync(solution, candidate: type1, forwardedTo: type2, compilationSet, cancellationToken).ConfigureAwait(false) &&
+                    !await VerifyForwardedTypeAsync(solution, candidate: type2, forwardedTo: type1, compilationSet, cancellationToken).ConfigureAwait(false))
                 {
                     return false;
                 }
@@ -168,7 +167,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Returns <see langword="true"/> if <paramref name="candidate"/> was forwarded to <paramref name="forwardedTo"/> in
         /// <paramref name="forwardedTo"/>'s <see cref="Compilation"/>.
         /// </summary>
-        private static bool VerifyForwardedType(
+        private static async Task<bool> VerifyForwardedTypeAsync(
             Solution solution,
             INamedTypeSymbol candidate,
             INamedTypeSymbol forwardedTo,
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (forwardedToOriginatingProject == null)
                 return false;
 
-            var forwardedToCompilation = forwardedToOriginatingProject.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            var forwardedToCompilation = await forwardedToOriginatingProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             if (forwardedToCompilation == null)
                 return false;
 

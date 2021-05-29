@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             public Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
             {
-                if (!(document.Project.Solution.Workspace is MetadataAsSourceWorkspace workspace))
+                if (document.Project.Solution.Workspace is not MetadataAsSourceWorkspace workspace)
                 {
                     throw new ArgumentException(FeaturesResources.Document_must_be_contained_in_the_workspace_that_created_this_service, nameof(document));
                 }

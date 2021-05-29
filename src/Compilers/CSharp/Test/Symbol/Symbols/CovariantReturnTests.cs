@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         private static readonly MetadataReference CorelibraryWithCovariantReturnSupport2;
         private static readonly MetadataReference CorelibraryWithoutCovariantReturnSupport1;
         private static readonly MetadataReference CorelibraryWithoutCovariantReturnSupport2;
+        private static readonly MetadataReference CorelibraryWithCovariantReturnSupportButWithoutPreserveBaseOverridesAttribute;
 
         static CovariantReturnTests()
         {
@@ -201,6 +204,16 @@ namespace System.Runtime.CompilerServices
     public sealed class PreserveBaseOverridesAttribute : Attribute { }
 }
 ";
+            const string corlibWithCovariantSupportButWithoutPreserveBaseOverridesAttribute = corLibraryCore + @"
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeFeature
+    {
+        public const string CovariantReturnsOfClasses = nameof(CovariantReturnsOfClasses);
+        public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+    }
+}
+";
             CorelibraryWithoutCovariantReturnSupport1 = CreateEmptyCompilation(new string[] {
                 corlibWithoutCovariantSupport,
                 @"[assembly: System.Reflection.AssemblyVersion(""4.1.0.0"")]"
@@ -217,6 +230,10 @@ namespace System.Runtime.CompilerServices
                 corlibWithCovariantSupport,
                 @"[assembly: System.Reflection.AssemblyVersion(""5.1.0.0"")]"
             }, assemblyName: "mscorlib").EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v5.1"));
+            CorelibraryWithCovariantReturnSupportButWithoutPreserveBaseOverridesAttribute = CreateEmptyCompilation(new string[] {
+                corlibWithCovariantSupportButWithoutPreserveBaseOverridesAttribute,
+                @"[assembly: System.Reflection.AssemblyVersion(""4.9.0.0"")]"
+            }, assemblyName: "mscorlib").EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v4.9"));
         }
 
         private static void VerifyOverride(
@@ -253,7 +270,7 @@ namespace System.Runtime.CompilerServices
                     Assert.Equal(requiresMethodimpl, method.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
                     Assert.Equal(requiresMethodimpl, method.RequiresExplicitOverride(out _));
                     if (method.OriginalDefinition is PEMethodSymbol originalMethod &&
-                        comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor) is MethodSymbol attrConstructor)
+                        comp.GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor) is MethodSymbol attrConstructor)
                     {
                         Assert.Equal(requiresMethodimpl, originalMethod.HasAttribute(attrConstructor));
                     }
@@ -293,7 +310,7 @@ namespace System.Runtime.CompilerServices
                         Assert.Equal(requiresMethodimpl, getMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges: true));
                         Assert.Equal(requiresMethodimpl, getMethod.RequiresExplicitOverride(out _)); // implies the presence of a methodimpl
                         if (getMethod.OriginalDefinition is PEMethodSymbol originalMethod &&
-                            comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor) is MethodSymbol attrConstructor)
+                            comp.GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor) is MethodSymbol attrConstructor)
                         {
                             Assert.Equal(requiresMethodimpl, originalMethod.HasAttribute(attrConstructor));
                         }
@@ -325,8 +342,8 @@ namespace System.Runtime.CompilerServices
 
             bool hasReturnConversion(TypeSymbol fromType, TypeSymbol toType)
             {
-                HashSet<DiagnosticInfo> ignoredUseSiteDiagnostics = null;
-                return comp.Conversions.HasIdentityOrImplicitReferenceConversion(fromType, toType, ref ignoredUseSiteDiagnostics);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return comp.Conversions.HasIdentityOrImplicitReferenceConversion(fromType, toType, ref discardedUseSiteInfo);
             }
         }
 
@@ -504,6 +521,31 @@ namespace System.Runtime.CompilerServices
             var retargetingAssembly = (AssemblySymbol)result.GetAssemblyOrModuleSymbol(compAsMetadata);
             Assert.True(retargetingAssembly is RetargetingAssemblySymbol);
             return result;
+        }
+
+        [Fact]
+        public void RequirePreserveBaseOverridesAttribute()
+        {
+            var source = @"
+public class Base
+{
+    public virtual object M() => null;
+}
+public class Derived : Base
+{
+    public override string M() => null;
+}
+";
+            CreateCompilation(
+                source,
+                parseOptions: TestOptions.WithCovariantReturns,
+                references: new[] { CorelibraryWithCovariantReturnSupportButWithoutPreserveBaseOverridesAttribute },
+                targetFramework: TargetFramework.Empty)
+                .VerifyDiagnostics(
+                    // (8,28): error CS8830: 'Derived.M()': Target runtime doesn't support covariant return types in overrides. Return type must be 'object' to match overridden member 'Base.M()'
+                    //     public override string M() => null;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses, "M").WithArguments("Derived.M()", "Base.M()", "object").WithLocation(8, 28)
+                );
         }
 
         [Fact]

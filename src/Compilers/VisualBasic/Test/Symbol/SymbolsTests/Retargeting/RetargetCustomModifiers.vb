@@ -7,7 +7,6 @@ Imports System.[Text]
 Imports System.Collections.Generic
 Imports System.Linq
 Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -122,7 +121,7 @@ End Class"
             Assert.Equal(SpecialType.System_Int32, volatileFld.[Type].SpecialType)
             Assert.Equal("volatileFld", volatileFld.Name)
             Assert.Same(volatileFld, volatileFld.OriginalDefinition)
-            Assert.Null(volatileFld.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty))
+            Assert.Null(volatileFld.GetConstantValue(ConstantFieldsInProgress.Empty))
             Assert.Null(volatileFld.ConstantValue)
             Assert.Null(volatileFld.AssociatedSymbol)
             Assert.Same(c1AsmRef, volatileFld.ContainingAssembly)

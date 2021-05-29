@@ -2,17 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using SymbolExtensions = Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions;
+using SymbolExtensions = Microsoft.CodeAnalysis.Test.Utilities.SymbolExtensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

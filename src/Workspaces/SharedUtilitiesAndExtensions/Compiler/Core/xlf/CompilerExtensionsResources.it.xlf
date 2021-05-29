@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../CompilerExtensionsResources.resx">
     <body>
@@ -15,11 +15,6 @@
       <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
         <source>An element with the same key but a different value already exists.</source>
         <target state="translated">Esiste già un elemento con la stessa chiave ma valore diverso.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ArgumentException_OtherNotArrayOfCorrectLength">
-        <source>Object is not a array with the same number of elements as the array to compare it to.</source>
-        <target state="translated">L'oggetto non è una matrice con lo stesso numero di elementi della matrice a cui confrontarlo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Begins_with_I">
@@ -102,15 +97,15 @@
         <target state="translated">Stili di denominazione</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Preferenze per nuova riga</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_Field_Members">
         <source>Non-Field Members</source>
         <target state="translated">Membri non di campo</target>
         <note>{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="NotSupported_FixedSizeCollection">
-        <source>Collection was of a fixed size.</source>
-        <target state="translated">La raccolta è a dimensione fissa.</target>
-        <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
@@ -194,7 +189,7 @@
       </trans-unit>
       <trans-unit id="Suppression_preferences">
         <source>Suppression preferences</source>
-        <target state="new">Suppression preferences</target>
+        <target state="translated">Preferenze per eliminazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_specifications">

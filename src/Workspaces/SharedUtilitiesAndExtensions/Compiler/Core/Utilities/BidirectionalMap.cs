@@ -5,11 +5,14 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Roslyn.Utilities
 {
     internal class BidirectionalMap<TKey, TValue> : IBidirectionalMap<TKey, TValue>
+        where TKey : notnull
+        where TValue : notnull
     {
         public static readonly IBidirectionalMap<TKey, TValue> Empty =
             new BidirectionalMap<TKey, TValue>(ImmutableDictionary.Create<TKey, TValue>(), ImmutableDictionary.Create<TValue, TKey>());
@@ -29,10 +32,10 @@ namespace Roslyn.Utilities
             _backwardMap = backwardMap;
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+        public bool TryGetValue(TKey key, [NotNullWhen(true)] out TValue? value)
             => _forwardMap.TryGetValue(key, out value);
 
-        public bool TryGetKey(TValue value, out TKey key)
+        public bool TryGetKey(TValue value, [NotNullWhen(true)] out TKey? key)
             => _backwardMap.TryGetValue(value, out key);
 
         public bool ContainsKey(TKey key)
@@ -93,7 +96,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        public TValue GetValueOrDefault(TKey key)
+        public TValue? GetValueOrDefault(TKey key)
         {
             if (TryGetValue(key, out var result))
             {
@@ -103,7 +106,7 @@ namespace Roslyn.Utilities
             return default;
         }
 
-        public TKey GetKeyOrDefault(TValue value)
+        public TKey? GetKeyOrDefault(TValue value)
         {
             if (TryGetKey(value, out var result))
             {

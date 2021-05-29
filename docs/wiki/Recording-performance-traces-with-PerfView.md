@@ -1,6 +1,6 @@
 This document describes practices for gathering performance traces for scenarios not covered by the user-friendly Report a Problem tool.
 
-:bulb: This page is for advanced usage scenarios. For almost all users, the best way to report performance problems is following the instructions on [Reporting Visual Studio crashes and performance issues](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Reporting-Visual-Studio-crashes-and-performance-issues.md).
+:bulb: This page is for advanced usage scenarios. For almost all users, the best way to report performance problems is following the instructions on [Reporting Visual Studio crashes and performance issues](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Reporting-Visual-Studio-crashes-and-performance-issues.md).
 
 # Audience
 

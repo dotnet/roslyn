@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.Text;
-
+using Microsoft.VisualStudio.Utilities;
 using IVsLanguageBlock = Microsoft.VisualStudio.TextManager.Interop.IVsLanguageBlock;
 using IVsTextLines = Microsoft.VisualStudio.TextManager.Interop.IVsTextLines;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
@@ -39,14 +40,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             (string description, TextSpan span)? foundBlock = null;
 
-            var waitIndicator = this.Package.ComponentModel.GetService<IWaitIndicator>();
-            waitIndicator.Wait(
+            var uiThreadOperationExecutor = this.Package.ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 ServicesVSResources.Current_block,
                 ServicesVSResources.Determining_current_block,
-                allowCancel: true,
+                allowCancellation: true,
+                showProgress: false,
                 action: context =>
                 {
-                    foundBlock = VsLanguageBlock.GetCurrentBlock(snapshot, position.Value, context.CancellationToken);
+                    foundBlock = VsLanguageBlock.GetCurrentBlock(snapshot, position.Value, context.UserCancellationToken);
                 });
 
             pfBlockAvailable = foundBlock != null ? 1 : 0;

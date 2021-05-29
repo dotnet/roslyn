@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -26,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioProjectTelemetryService
-        : ForegroundThreadAffinitizedObject, IProjectTelemetryListener, IEventListener<object>
+        : ForegroundThreadAffinitizedObject, IProjectTelemetryListener, IEventListener<object>, IDisposable
     {
         private const string EventPrefix = "VS/Compilers/Compilation/";
         private const string PropertyPrefix = "VS.Compilers.Compilation.Inputs.";
@@ -49,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// Our connection to the remote OOP server. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
-        private RemoteServiceConnection? _connection;
+        private RemoteServiceConnection<IRemoteProjectTelemetryService>? _lazyConnection;
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
@@ -70,6 +68,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
                 threadingContext.DisposalToken);
         }
 
+        public void Dispose()
+        {
+            _lazyConnection?.Dispose();
+        }
+
         void IEventListener<object>.StartListening(Workspace workspace, object _)
         {
             if (workspace is VisualStudioWorkspace)
@@ -88,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             {
                 // Cancellation is normal (during VS closing).  Just ignore.
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
                 // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
                 // a BG service we don't want impacting the user experience.
@@ -105,15 +108,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
-            _connection = await client.CreateConnectionAsync(
-                WellKnownServiceHubService.RemoteProjectTelemetryService,
-                callbackTarget: this, cancellationToken).ConfigureAwait(false);
+            _lazyConnection = client.CreateConnection<IRemoteProjectTelemetryService>(callbackTarget: this);
 
             // Now kick off scanning in the OOP process.
-            await _connection.RunRemoteAsync(
-                nameof(IRemoteProjectTelemetryService.ComputeProjectTelemetryAsync),
-                solution: null,
-                arguments: Array.Empty<object>(),
+            // If the call fails an error has already been reported and there is nothing more to do.
+            _ = await _lazyConnection.TryInvokeAsync(
+                (service, callbackId, cancellationToken) => service.ComputeProjectTelemetryAsync(callbackId, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -184,11 +184,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public Task ReportProjectTelemetryDataAsync(ProjectTelemetryData info, CancellationToken cancellationToken)
+        public ValueTask ReportProjectTelemetryDataAsync(ProjectTelemetryData info, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(info);
-            return Task.CompletedTask;
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }

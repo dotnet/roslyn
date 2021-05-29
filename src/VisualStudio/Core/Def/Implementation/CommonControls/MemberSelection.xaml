@@ -5,12 +5,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.CustomControls"
-             xmlns:utilities="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
+             xmlns:utilities="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities" xmlns:commoncontrols="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <Thickness x:Key="SelectDependantsAndSelectPublicButtonPadding">2, 4, 4, 2</Thickness>
+        <Thickness x:Key="ButtonControlsPadding">2, 4, 4, 2</Thickness>
         <utilities:BooleanReverseConverter x:Key="BooleanReverseConverter"/>
     </UserControl.Resources>
     <Grid>
@@ -56,18 +55,25 @@
                 </Style>
             </DataGrid.RowStyle>
             <DataGrid.Columns>
+                <DataGridTemplateColumn Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox
+                                    AutomationProperties.Name="{Binding SymbolAutomationText}"
+                                    AutomationProperties.AutomationId="{Binding SymbolName}"
+                                    IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
+                                    Width="Auto"
+                                    IsEnabled="{Binding IsCheckable, UpdateSourceTrigger=PropertyChanged}"
+                                    Focusable="True"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    ToolTipService.IsEnabled="{Binding IsCheckable, Converter={StaticResource BooleanReverseConverter}, UpdateSourceTrigger=PropertyChanged}"
+                                    ToolTipService.ToolTip="{Binding HelpText}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Width="*">
                     <DataGridTemplateColumn.Header>
-                        <local:SelectAllCheckBox
-                                AutomationProperties.Name="{Binding SelectAllCheckBoxAutomationText}"
-                                Margin="0, 0, 4, 0"
-                                Checked="SelectAllCheckBox_Checked"
-                                Unchecked="SelectAllCheckBox_Unchecked"
-                                Focusable="True"
-                                Content="{Binding ElementName=MemberSelectionControl, Path=MembersHeader}"
-                                DataContext="{Binding RelativeSource={RelativeSource AncestorType=DataGrid}, Path=DataContext}"
-                                IsThreeState="{Binding ThreeStateEnable, UpdateSourceTrigger=PropertyChanged}"
-                                IsChecked="{Binding SelectAllCheckBoxState, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="{Binding ElementName=MemberSelectionControl, Path=MembersHeader}"/>
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -77,18 +83,6 @@
                                 MinWidth="186"
                                 Width="Auto"
                                 Margin="5, 2, 0, 2">
-                                <CheckBox
-                                    AutomationProperties.Name="{Binding SymbolAutomationText}"
-                                    AutomationProperties.AutomationId="{Binding SymbolName}"
-                                    IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
-                                    Checked="MemberSelectionCheckBox_Checked"
-                                    Unchecked="MemberSelectionCheckBox_Unchecked"
-                                    Width="Auto"
-                                    IsEnabled="{Binding IsCheckable, UpdateSourceTrigger=PropertyChanged}"
-                                    Focusable="True"
-                                    ToolTipService.ShowOnDisabled="True"
-                                    ToolTipService.IsEnabled="{Binding IsCheckable, Converter={StaticResource BooleanReverseConverter}, UpdateSourceTrigger=PropertyChanged}"
-                                    ToolTipService.ToolTip="{Binding HelpText}"/>
                                 <Image 
                                     x:Name="GlyphOfMember"
                                     Margin="8, 0, 5, 0"
@@ -133,9 +127,27 @@
                 Margin="0, 4, 0, 0"
                 Width="Auto">
             <Button
+                x:Name="SelectAllButton"
+                x:Uid="SelectAllButton"
+                Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
+                Content="{Binding ElementName=MemberSelectionControl, Path=SelectAll}"
+                Click="SelectAllButton_Click"
+                Margin="2, 2, 2, 7"
+                Width="Auto"
+                Height="Auto" />
+            <Button
+                x:Name="DeselectAllButton"
+                x:Uid="DeselectAllButton"
+                Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
+                Content="{Binding ElementName=MemberSelectionControl, Path=DeselectAll}"
+                Click="DeselectAllButton_Click"
+                Margin="2, 2, 2, 7"
+                Width="Auto"
+                Height="Auto" />
+            <Button
                 x:Name="SelecDependentsButton"
                 x:Uid="SelecDependentsButton"
-                Padding="{StaticResource ResourceKey=SelectDependantsAndSelectPublicButtonPadding}"
+                Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
                 Content="{Binding ElementName=MemberSelectionControl, Path=SelectDependents}"
                 Click="SelectDependentsButton_Click"
                 Margin="2, 2, 2, 7"
@@ -147,7 +159,7 @@
                 Content="{Binding ElementName=MemberSelectionControl, Path=SelectPublic}"
                 Margin="2, 0, 2, 0"
                 Click="SelectPublic_Click"
-                Padding="{StaticResource ResourceKey=SelectDependantsAndSelectPublicButtonPadding}"
+                Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
                 Width="Auto"
                 Height="Auto"/>
         </StackPanel>

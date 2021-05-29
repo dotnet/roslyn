@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' SPEC:    it is a security custom attribute and requires special treatment.
 
             If _lazyIsSecurityAttribute = ThreeState.Unknown Then
-                _lazyIsSecurityAttribute = Me.AttributeClass.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAttribute, comp, useSiteDiagnostics:=Nothing).ToThreeState()
+                _lazyIsSecurityAttribute = Me.AttributeClass.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAttribute, comp, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded).ToThreeState()
             End If
 
             Return _lazyIsSecurityAttribute.Value
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Sub DecodeSecurityAttribute(Of T As {WellKnownAttributeData, ISecurityAttributeTarget, New})(targetSymbol As Symbol, compilation As VisualBasicCompilation, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             Dim hasErrors As Boolean = False
-            Dim action As DeclarativeSecurityAction = Me.DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, arguments.Diagnostics)
+            Dim action As DeclarativeSecurityAction = Me.DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, hasErrors, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
             If Not hasErrors Then
                 Dim data As T = arguments.GetOrCreateData(Of T)()
                 Dim securityData As SecurityWellKnownAttributeData = data.GetOrCreateData()
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             compilation As VisualBasicCompilation,
             nodeOpt As AttributeSyntax,
             ByRef hasErrors As Boolean,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As DeclarativeSecurityAction
             Debug.Assert(Not hasErrors)
             Debug.Assert(Me.IsSecurityAttribute(compilation))
@@ -235,12 +235,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 Dim firstArg As TypedConstant = Me.CommonConstructorArguments.FirstOrDefault()
                 Dim firstArgType = DirectCast(firstArg.TypeInternal, TypeSymbol)
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                If firstArgType IsNot Nothing AndAlso firstArgType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAction, compilation, useSiteDiagnostics) Then
+                Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, compilation.Assembly)
+                If firstArgType IsNot Nothing AndAlso firstArgType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAction, compilation, useSiteInfo) Then
                     Return ValidateSecurityAction(firstArg, targetSymbol, nodeOpt, diagnostics, hasErrors)
                 End If
 
-                diagnostics.Add(If(nodeOpt IsNot Nothing, nodeOpt.Name.GetLocation, NoLocation.Singleton), useSiteDiagnostics)
+                diagnostics.Add(If(nodeOpt IsNot Nothing, nodeOpt.Name.GetLocation, NoLocation.Singleton), useSiteInfo)
             End If
 
             ' BC31205: First argument to a security attribute must be a valid SecurityAction
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             typedValue As TypedConstant,
             targetSymbol As Symbol,
             nodeOpt As AttributeSyntax,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <Out> ByRef hasErrors As Boolean
         ) As DeclarativeSecurityAction
             Debug.Assert(targetSymbol.Kind = SymbolKind.Assembly OrElse targetSymbol.Kind = SymbolKind.NamedType OrElse targetSymbol.Kind = SymbolKind.Method)
@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim argSyntaxLocation As Location = If(arguments.AttributeSyntaxOpt IsNot Nothing,
                                                                arguments.AttributeSyntaxOpt.ArgumentList.Arguments(1).GetLocation(),
                                                                NoLocation.Singleton)
-                        arguments.Diagnostics.Add(ERRID.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, If(fileName, "<empty>"), filePropName)
+                        DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, If(fileName, "<empty>"), filePropName)
 
                     ElseIf (Not PermissionSetAttributeTypeHasRequiredProperty(attrType, hexPropName)) Then
 
@@ -415,7 +415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Sub DecodeClassInterfaceAttribute(nodeOpt As AttributeSyntax, diagnostics As DiagnosticBag)
+        Friend Sub DecodeClassInterfaceAttribute(nodeOpt As AttributeSyntax, diagnostics As BindingDiagnosticBag)
             Debug.Assert(Not Me.HasErrors)
 
             Dim ctorArgument As TypedConstant = Me.CommonConstructorArguments(0)
@@ -433,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Sub
 
-        Friend Sub DecodeInterfaceTypeAttribute(node As AttributeSyntax, diagnostics As DiagnosticBag)
+        Friend Sub DecodeInterfaceTypeAttribute(node As AttributeSyntax, diagnostics As BindingDiagnosticBag)
             Dim discarded As ComInterfaceType = Nothing
             If Not DecodeInterfaceTypeAttribute(discarded) Then
                 diagnostics.Add(ERRID.ERR_BadAttribute1, node.ArgumentList.Arguments(0).GetLocation(), Me.AttributeClass)
@@ -469,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                       CType(ctorArgument.DecodeValue(Of Short)(SpecialType.System_Int16), Cci.TypeLibTypeFlags))
         End Function
 
-        Friend Sub DecodeGuidAttribute(nodeOpt As AttributeSyntax, diagnostics As DiagnosticBag)
+        Friend Sub DecodeGuidAttribute(nodeOpt As AttributeSyntax, diagnostics As BindingDiagnosticBag)
             Debug.Assert(Not Me.HasErrors)
 
             Dim guidString As String = Me.GetConstructorArgument(Of String)(0, SpecialType.System_String)

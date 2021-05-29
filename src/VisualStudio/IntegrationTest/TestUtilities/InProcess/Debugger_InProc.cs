@@ -5,7 +5,6 @@
 using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using EnvDTE;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {

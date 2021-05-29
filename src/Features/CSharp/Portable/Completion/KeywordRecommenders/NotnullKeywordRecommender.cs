@@ -2,25 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class NotNullKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
     {
-        public Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.SyntaxTree.IsTypeParameterConstraintContext(position, context.LeftToken))
-            {
-                return Task.FromResult(SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("notnull")));
-            }
-
-            return Task.FromResult<IEnumerable<RecommendedKeyword>>(null);
+            return context.SyntaxTree.IsTypeParameterConstraintContext(position, context.LeftToken)
+                ? ImmutableArray.Create(new RecommendedKeyword("notnull"))
+                : ImmutableArray<RecommendedKeyword>.Empty;
         }
     }
 }

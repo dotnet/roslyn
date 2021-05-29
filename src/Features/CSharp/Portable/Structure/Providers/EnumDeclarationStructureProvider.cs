@@ -4,8 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -14,12 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             EnumDeclarationSyntax enumDeclaration,
-            ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, spans, isMetadataAsSource);
+            CSharpStructureHelpers.CollectCommentBlockSpans(enumDeclaration, ref spans, optionProvider);
 
             if (!enumDeclaration.OpenBraceToken.IsMissing &&
                 !enumDeclaration.CloseBraceToken.IsMissing)
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 // Check IsNode to compress blank lines after this node if it is the last child of the parent.
                 //
                 // Whitespace between type declarations is collapsed in Metadata as Source.
-                var compressEmptyLines = isMetadataAsSource
+                var compressEmptyLines = optionProvider.IsMetadataAsSource
                     && (!nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax);
 
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (!enumDeclaration.CloseBraceToken.IsMissing)
             {
                 var leadingTrivia = enumDeclaration.CloseBraceToken.LeadingTrivia;
-                CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, ref spans);
             }
         }
     }

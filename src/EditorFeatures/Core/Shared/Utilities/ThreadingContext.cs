@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     [Shared]
     internal sealed class ThreadingContext : IThreadingContext, IDisposable
     {
-        private readonly CancellationTokenSource _disposalTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _disposalTokenSource = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public void Dispose()
         {
-            // https://github.com/Microsoft/vs-threading/blob/master/doc/cookbook_vs.md#how-to-write-a-fire-and-forget-method-responsibly
+            // https://github.com/Microsoft/vs-threading/blob/main/doc/cookbook_vs.md#how-to-write-a-fire-and-forget-method-responsibly
             _disposalTokenSource.Cancel();
 
             try

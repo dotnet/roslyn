@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 // The strings returned from reflection do not have reference-identity
                 // with the string constants used by the compiler. Fortunately, a call
                 // to string.Intern fixes them.
-                var value = string.Intern((string)field.GetValue(null));
+                var rawValue = (string?)field.GetValue(null);
+                Contract.ThrowIfNull(rawValue);
+                var value = string.Intern(rawValue);
                 _identityMap.Add(value, registryService.GetClassificationType(value));
             }
         }
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             var type = GetClassificationTypeWorker(name);
             if (type == null)
             {
-                FatalError.ReportWithoutCrash(new Exception($"classification type doesn't exist for {name}"));
+                FatalError.ReportAndCatch(new Exception($"classification type doesn't exist for {name}"));
             }
 
             return type ?? GetClassificationTypeWorker(ClassificationTypeNames.Text);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1950,10 +1952,10 @@ partial void Goo(){};
 partial enum en {};
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum en {};
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
-                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or 'void'
+                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum en {};
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "en").WithLocation(2, 14));
         }

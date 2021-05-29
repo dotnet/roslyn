@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
                 Dim mockServiceProvider = New MockServiceProvider(mockComponentModel)
                 Dim libraryManager = CreateLibraryManager(mockServiceProvider, mockComponentModel, vsWorkspace)
 
-                result = New TestState(workspace, libraryManager)
+                result = New TestState(workspace, vsWorkspace, libraryManager)
             Finally
                 If result Is Nothing Then
                     workspace.Dispose()

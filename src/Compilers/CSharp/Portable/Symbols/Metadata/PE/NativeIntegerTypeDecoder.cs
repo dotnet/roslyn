@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 type;
         }
 
-        private static TypeSymbol TransformType(TypeSymbol type, ImmutableArray<bool> transformFlags)
+        internal static TypeSymbol TransformType(TypeSymbol type, ImmutableArray<bool> transformFlags)
         {
             var decoder = new NativeIntegerTypeDecoder(transformFlags);
             try
@@ -104,7 +102,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             throw new UnsupportedSignatureContent();
                         }
-                        return _transformFlags[_index++] ? type.AsNativeInteger() : type;
+                        return (_transformFlags[_index++], type.IsNativeIntegerType) switch
+                        {
+                            (false, true) => type.NativeIntegerUnderlyingType,
+                            (true, false) => type.AsNativeInteger(),
+                            _ => type,
+                        };
                 }
             }
 

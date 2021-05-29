@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 
@@ -21,14 +22,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             if (element != null)
             {
-                var tcs = new TaskCompletionSource<object>();
+                var tcs = new TaskCompletionSource<VoidResult>();
 
                 Helper.Automation.AddAutomationEventHandler(
                     UIA_EventIds.UIA_Invoke_InvokedEventId,
                     element,
                     TreeScope.TreeScope_Element,
                     cacheRequest: null,
-                    new AutomationEventHandler((src, e) => tcs.SetResult(null)));
+                    new AutomationEventHandler((src, e) => tcs.SetResult(default)));
 
                 element.Invoke();
                 await tcs.Task;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public static async Task<IUIAutomationElement> FindAutomationElementAsync(string elementName, bool recursive = false)
         {
-            IUIAutomationElement element = null;
+            IUIAutomationElement? element = null;
             var scope = recursive ? TreeScope.TreeScope_Descendants : TreeScope.TreeScope_Children;
             var condition = Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.NameProperty.Id, elementName);
 
@@ -53,6 +54,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 () => (element = Helper.Automation.GetRootElement().FindFirst(scope, condition)) != null, expectedResult: true
             ).ConfigureAwait(false);
 
+            Contract.ThrowIfNull(element);
             return element;
         }
 

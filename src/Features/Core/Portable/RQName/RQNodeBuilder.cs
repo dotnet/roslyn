@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -31,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             };
 
         private static RQNamespace BuildNamespace(INamespaceSymbol @namespace)
-            => new RQNamespace(RQNodeBuilder.GetNameParts(@namespace));
+            => new(RQNodeBuilder.GetNameParts(@namespace));
 
         private static IList<string> GetNameParts(INamespaceSymbol @namespace)
         {
@@ -199,12 +197,12 @@ namespace Microsoft.CodeAnalysis.Features.RQName
 
         private static RQMethod? BuildMethod(IMethodSymbol symbol)
         {
-            if (symbol.MethodKind == MethodKind.UserDefinedOperator ||
-                symbol.MethodKind == MethodKind.BuiltinOperator ||
-                symbol.MethodKind == MethodKind.EventAdd ||
-                symbol.MethodKind == MethodKind.EventRemove ||
-                symbol.MethodKind == MethodKind.PropertySet ||
-                symbol.MethodKind == MethodKind.PropertyGet)
+            if (symbol.MethodKind is MethodKind.UserDefinedOperator or
+                MethodKind.BuiltinOperator or
+                MethodKind.EventAdd or
+                MethodKind.EventRemove or
+                MethodKind.PropertySet or
+                MethodKind.PropertyGet)
             {
                 return null;
             }

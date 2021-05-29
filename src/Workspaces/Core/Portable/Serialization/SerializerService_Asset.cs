@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -21,34 +19,37 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal partial class SerializerService
     {
-        public void SerializeSourceText(ITemporaryStorageWithName? storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            writer.WriteInt32((int)text.ChecksumAlgorithm);
-            writer.WriteEncoding(text.Encoding);
-
-            // TODO: refactor this part in its own abstraction (Bits) that has multiple sub types
-            //       rather than using enums
-            if (storage != null && storage.Name != null)
+            if (text.Storage is not null)
             {
-                writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
-                writer.WriteString(storage.Name);
-                writer.WriteInt64(storage.Offset);
-                writer.WriteInt64(storage.Size);
-                return;
-            }
+                context.AddResource(text.Storage);
 
-            writer.WriteInt32((int)SerializationKinds.Bits);
-            text.WriteTo(writer, cancellationToken);
+                writer.WriteInt32((int)text.Storage.ChecksumAlgorithm);
+                writer.WriteEncoding(text.Storage.Encoding);
+
+                writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
+                writer.WriteString(text.Storage.Name);
+                writer.WriteInt64(text.Storage.Offset);
+                writer.WriteInt64(text.Storage.Size);
+            }
+            else
+            {
+                RoslynDebug.AssertNotNull(text.Text);
+
+                writer.WriteInt32((int)text.Text.ChecksumAlgorithm);
+                writer.WriteEncoding(text.Text.Encoding);
+                writer.WriteInt32((int)SerializationKinds.Bits);
+                text.Text.WriteTo(writer, cancellationToken);
+            }
         }
 
-        private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
+        private SerializableSourceText DeserializeSerializableSourceText(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // REVIEW: why IDE services doesnt care about checksumAlgorithm?
-            _ = (SourceHashAlgorithm)reader.ReadInt32();
+            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
             var encoding = (Encoding)reader.ReadValue();
 
             var kind = (SerializationKinds)reader.ReadInt32();
@@ -60,13 +61,25 @@ namespace Microsoft.CodeAnalysis.Serialization
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, encoding, cancellationToken);
-
-                return storage.ReadText(cancellationToken);
+                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding, cancellationToken);
+                if (storage is ITemporaryTextStorageWithName storageWithName)
+                {
+                    return new SerializableSourceText(storageWithName);
+                }
+                else
+                {
+                    return new SerializableSourceText(storage.ReadText(cancellationToken));
+                }
             }
 
             Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
-            return SourceTextExtensions.ReadFrom(_textService, reader, encoding, cancellationToken);
+            return new SerializableSourceText(SourceTextExtensions.ReadFrom(_textService, reader, encoding, cancellationToken));
+        }
+
+        private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
+        {
+            var serializableSourceText = DeserializeSerializableSourceText(reader, cancellationToken);
+            return serializableSourceText.Text ?? serializableSourceText.Storage!.ReadText(cancellationToken);
         }
 
         public void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)
@@ -92,17 +105,15 @@ namespace Microsoft.CodeAnalysis.Serialization
             return service.ReadCompilationOptionsFrom(reader, cancellationToken);
         }
 
-        public void SerializeParseOptions(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeParseOptions(ParseOptions options, ObjectWriter writer)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var language = options.Language;
 
             // TODO: once compiler team adds ability to serialize parse options to ObjectWriter directly, we won't need this.
             writer.WriteString(language);
 
             var service = GetOptionsSerializationService(language);
-            service.WriteTo(options, writer, cancellationToken);
+            service.WriteTo(options, writer);
         }
 
         private ParseOptions DeserializeParseOptions(ObjectReader reader, CancellationToken cancellationToken)
@@ -135,10 +146,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);
         }
 
-        public void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            WriteTo(reference, writer, cancellationToken);
+            WriteMetadataReferenceTo(reference, writer, context, cancellationToken);
         }
 
         private MetadataReference DeserializeMetadataReference(ObjectReader reader, CancellationToken cancellationToken)
@@ -150,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            WriteTo(reference, writer, cancellationToken);
+            WriteAnalyzerReferenceTo(reference, writer, cancellationToken);
         }
 
         private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader, CancellationToken cancellationToken)

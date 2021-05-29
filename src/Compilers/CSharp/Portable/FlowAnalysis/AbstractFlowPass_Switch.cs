@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             // dispatch to the switch sections
-            var (initialState, afterSwitchState) = VisitSwitchStatementDispatch(node);
+            var afterSwitchState = VisitSwitchStatementDispatch(node);
 
             // visit switch sections
             var switchSections = node.SwitchSections;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected virtual (TLocalState initialState, TLocalState afterSwitchState) VisitSwitchStatementDispatch(BoundSwitchStatement node)
+        protected virtual TLocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
             // visit switch header
             VisitRvalue(node.Expression);
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Join(ref afterSwitchState, ref initialState);
             }
 
-            return (initialState, afterSwitchState);
+            return afterSwitchState;
         }
 
         /// <summary>

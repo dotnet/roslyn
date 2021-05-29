@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -2014,11 +2016,13 @@ public partial class C
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 MethodDebugInformation (index: 0x31, size: 20): 
-==================================================
-1: nil
-2: nil
-3: nil
-4:
+================================================
+   IL   
+================================================
+1: nil  
+2: nil  
+3: nil  
+4:      
 {
   Kickoff Method: 0x06000001 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)

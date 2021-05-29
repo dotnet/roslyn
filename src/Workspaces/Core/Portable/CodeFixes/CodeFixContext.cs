@@ -123,15 +123,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
         }
 
-        internal CodeFixContext(
-            Project project,
-            ImmutableArray<Diagnostic> diagnostics,
-            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-            CancellationToken cancellationToken)
-            : this(document: null, project: project, span: default, diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, isBlocking: false, cancellationToken: cancellationToken)
-        {
-        }
-
         private CodeFixContext(
             Document document,
             Project project,

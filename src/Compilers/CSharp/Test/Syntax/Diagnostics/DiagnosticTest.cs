@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -255,6 +257,12 @@ class X
                         case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                         case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue:
+                        case ErrorCode.WRN_RecordNamedDisallowed:
+                        case ErrorCode.WRN_ParameterNotNullIfNotNull:
+                        case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                        case ErrorCode.WRN_UnreadRecordParameter:
+                        case ErrorCode.WRN_DoNotCompareFunctionPointers:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -264,6 +272,7 @@ class X
                             break;
                         case ErrorCode.WRN_PdbLocalNameTooLong:
                         case ErrorCode.WRN_UnreferencedLocalFunction:
+                        case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                             Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_ConvertingNullableToNonNullable:
@@ -327,6 +336,7 @@ class X
                         case ErrorCode.WRN_ParameterDisallowsNull:
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                         case ErrorCode.WRN_IsPatternAlways:
+                        case ErrorCode.WRN_AnalyzerReferencesFramework:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -343,6 +353,9 @@ class X
                         case ErrorCode.WRN_UseDefViolationThis:
                         case ErrorCode.WRN_UseDefViolationOut:
                         case ErrorCode.WRN_UseDefViolation:
+                        case ErrorCode.WRN_SyncAndAsyncEntryPoints:
+                        case ErrorCode.WRN_ParameterIsStaticClass:
+                        case ErrorCode.WRN_ReturnTypeIsStaticClass:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 5 and C# 9.
                             Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
                             break;
@@ -398,6 +411,14 @@ class X
                     ErrorCode.WRN_UseDefViolationThis,
                     ErrorCode.WRN_UseDefViolationOut,
                     ErrorCode.WRN_UseDefViolation,
+                    ErrorCode.WRN_SyncAndAsyncEntryPoints,
+                    ErrorCode.WRN_ParameterIsStaticClass,
+                    ErrorCode.WRN_ReturnTypeIsStaticClass,
+                    ErrorCode.WRN_RecordNamedDisallowed,
+                    ErrorCode.WRN_RecordEqualsWithoutGetHashCode,
+                    ErrorCode.WRN_AnalyzerReferencesFramework,
+                    ErrorCode.WRN_UnreadRecordParameter,
+                    ErrorCode.WRN_DoNotCompareFunctionPointers,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
@@ -2270,6 +2291,7 @@ class Program
         }
 
         [WorkItem(543705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543705")]
+        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
         [Fact]
         public void GetDiagnosticsCalledTwice()
         {

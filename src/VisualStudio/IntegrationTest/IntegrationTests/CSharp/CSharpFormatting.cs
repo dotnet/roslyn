@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -247,8 +249,7 @@ class Program
 }");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18065"),
-         Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ShiftEnterWithIntelliSenseAndBraceMatching()
         {
             SetUpEditor(@"

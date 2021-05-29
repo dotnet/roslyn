@@ -11,41 +11,36 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// <summary>
     /// Utility class that can be used to track the progress of an operation in a threadsafe manner.
     /// </summary>
-    internal class StreamingProgressTracker : IStreamingProgressTracker
+    internal sealed class StreamingProgressTracker : IStreamingProgressTracker
     {
         private int _completedItems;
         private int _totalItems;
 
-        private readonly Func<int, int, Task> _updateActionOpt;
+        private readonly Func<int, int, CancellationToken, ValueTask>? _updateAction;
 
-        public StreamingProgressTracker()
-            : this(null)
-        {
-        }
+        public StreamingProgressTracker(Func<int, int, CancellationToken, ValueTask>? updateAction = null)
+            => _updateAction = updateAction;
 
-        public StreamingProgressTracker(Func<int, int, Task> updateActionOpt)
-            => _updateActionOpt = updateActionOpt;
-
-        public Task AddItemsAsync(int count)
+        public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
         {
             Interlocked.Add(ref _totalItems, count);
-            return UpdateAsync();
+            return UpdateAsync(cancellationToken);
         }
 
-        public Task ItemCompletedAsync()
+        public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref _completedItems);
-            return UpdateAsync();
+            return UpdateAsync(cancellationToken);
         }
 
-        private Task UpdateAsync()
+        private ValueTask UpdateAsync(CancellationToken cancellationToken)
         {
-            if (_updateActionOpt == null)
+            if (_updateAction == null)
             {
-                return Task.CompletedTask;
+                return default;
             }
 
-            return _updateActionOpt(_completedItems, _totalItems);
+            return _updateAction(_completedItems, _totalItems, cancellationToken);
         }
     }
 }

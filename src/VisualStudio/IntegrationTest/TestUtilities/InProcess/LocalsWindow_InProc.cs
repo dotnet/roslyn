@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             var expressions = dte.Debugger.CurrentStackFrame.Locals;
-            EnvDTE.Expression entry = null;
+            EnvDTE.Expression? entry = null;
 
             var i = 0;
             while (i < entryNames.Length && TryGetEntryInternal(entryNames[i], expressions, out entry))

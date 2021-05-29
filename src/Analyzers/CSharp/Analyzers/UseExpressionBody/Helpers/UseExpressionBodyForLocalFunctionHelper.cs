@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -13,10 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForLocalFunctionHelper :
         UseExpressionBodyHelper<LocalFunctionStatementSyntax>
     {
-        public static readonly UseExpressionBodyForLocalFunctionHelper Instance = new UseExpressionBodyForLocalFunctionHelper();
+        public static readonly UseExpressionBodyForLocalFunctionHelper Instance = new();
 
         private UseExpressionBodyForLocalFunctionHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForLocalFunctionsDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForLocalFunctions,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_local_functions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_local_functions), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions,

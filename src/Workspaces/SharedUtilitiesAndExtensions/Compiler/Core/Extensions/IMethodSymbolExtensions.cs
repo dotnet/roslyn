@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -48,61 +46,40 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static PredefinedOperator GetPredefinedOperator(this IMethodSymbol symbol)
-        {
-            switch (symbol.Name)
+            => symbol.Name switch
             {
-                case "op_Addition":
-                case "op_UnaryPlus":
-                    return PredefinedOperator.Addition;
-                case "op_BitwiseAnd":
-                    return PredefinedOperator.BitwiseAnd;
-                case "op_BitwiseOr":
-                    return PredefinedOperator.BitwiseOr;
-                case "op_Concatenate":
-                    return PredefinedOperator.Concatenate;
-                case "op_Decrement":
-                    return PredefinedOperator.Decrement;
-                case "op_Division":
-                    return PredefinedOperator.Division;
-                case "op_Equality":
-                    return PredefinedOperator.Equality;
-                case "op_ExclusiveOr":
-                    return PredefinedOperator.ExclusiveOr;
-                case "op_Exponent":
-                    return PredefinedOperator.Exponent;
-                case "op_GreaterThan":
-                    return PredefinedOperator.GreaterThan;
-                case "op_GreaterThanOrEqual":
-                    return PredefinedOperator.GreaterThanOrEqual;
-                case "op_Increment":
-                    return PredefinedOperator.Increment;
-                case "op_Inequality":
-                    return PredefinedOperator.Inequality;
-                case "op_IntegerDivision":
-                    return PredefinedOperator.IntegerDivision;
-                case "op_LeftShift":
-                    return PredefinedOperator.LeftShift;
-                case "op_LessThan":
-                    return PredefinedOperator.LessThan;
-                case "op_LessThanOrEqual":
-                    return PredefinedOperator.LessThanOrEqual;
-                case "op_Like":
-                    return PredefinedOperator.Like;
-                case "op_LogicalNot":
-                case "op_OnesComplement":
-                    return PredefinedOperator.Complement;
-                case "op_Modulus":
-                    return PredefinedOperator.Modulus;
-                case "op_Multiply":
-                    return PredefinedOperator.Multiplication;
-                case "op_RightShift":
-                    return PredefinedOperator.RightShift;
-                case "op_Subtraction":
-                case "op_UnaryNegation":
-                    return PredefinedOperator.Subtraction;
-                default:
-                    return PredefinedOperator.None;
-            }
-        }
+                "op_Addition" or "op_UnaryPlus" => PredefinedOperator.Addition,
+                "op_BitwiseAnd" => PredefinedOperator.BitwiseAnd,
+                "op_BitwiseOr" => PredefinedOperator.BitwiseOr,
+                "op_Concatenate" => PredefinedOperator.Concatenate,
+                "op_Decrement" => PredefinedOperator.Decrement,
+                "op_Division" => PredefinedOperator.Division,
+                "op_Equality" => PredefinedOperator.Equality,
+                "op_ExclusiveOr" => PredefinedOperator.ExclusiveOr,
+                "op_Exponent" => PredefinedOperator.Exponent,
+                "op_GreaterThan" => PredefinedOperator.GreaterThan,
+                "op_GreaterThanOrEqual" => PredefinedOperator.GreaterThanOrEqual,
+                "op_Increment" => PredefinedOperator.Increment,
+                "op_Inequality" => PredefinedOperator.Inequality,
+                "op_IntegerDivision" => PredefinedOperator.IntegerDivision,
+                "op_LeftShift" => PredefinedOperator.LeftShift,
+                "op_LessThan" => PredefinedOperator.LessThan,
+                "op_LessThanOrEqual" => PredefinedOperator.LessThanOrEqual,
+                "op_Like" => PredefinedOperator.Like,
+                "op_LogicalNot" or "op_OnesComplement" => PredefinedOperator.Complement,
+                "op_Modulus" => PredefinedOperator.Modulus,
+                "op_Multiply" => PredefinedOperator.Multiplication,
+                "op_RightShift" => PredefinedOperator.RightShift,
+                "op_Subtraction" or "op_UnaryNegation" => PredefinedOperator.Subtraction,
+                _ => PredefinedOperator.None,
+            };
+
+        public static bool IsEntryPoint(this IMethodSymbol methodSymbol, INamedTypeSymbol? taskType, INamedTypeSymbol? genericTaskType)
+            => methodSymbol.Name is WellKnownMemberNames.EntryPointMethodName or WellKnownMemberNames.TopLevelStatementsEntryPointMethodName &&
+               methodSymbol.IsStatic &&
+               (methodSymbol.ReturnsVoid ||
+                methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
+                methodSymbol.ReturnType.OriginalDefinition.Equals(taskType) ||
+                methodSymbol.ReturnType.OriginalDefinition.Equals(genericTaskType));
     }
 }

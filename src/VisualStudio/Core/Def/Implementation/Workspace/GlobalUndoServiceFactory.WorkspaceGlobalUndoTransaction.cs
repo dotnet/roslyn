@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -125,7 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-#pragma warning disable CA1821 // Remove empty Finalizers
 #if DEBUG
             ~WorkspaceUndoTransaction()
             {
@@ -133,7 +134,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 Debug.Assert(!_transactionAlive);
             }
 #endif
-#pragma warning restore CA1821 // Remove empty Finalizers
         }
     }
 }

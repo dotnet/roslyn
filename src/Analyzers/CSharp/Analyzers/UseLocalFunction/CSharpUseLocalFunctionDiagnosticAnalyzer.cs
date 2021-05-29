@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     {
         public CSharpUseLocalFunctionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseLocalFunctionDiagnosticId,
+                   EnforceOnBuildValues.UseLocalFunction,
                    CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
@@ -226,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     if (identifierName.Identifier.ValueText == local.Name &&
                         local.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol()))
                     {
-                        if (identifierName.IsWrittenTo())
+                        if (identifierName.IsWrittenTo(semanticModel, cancellationToken))
                         {
                             // Can't change this to a local function if it is assigned to.
                             return false;

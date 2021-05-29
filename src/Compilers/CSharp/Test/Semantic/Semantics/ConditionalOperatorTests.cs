@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1498,6 +1495,25 @@ Test
             compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: "---");
+        }
+
+        [Fact, WorkItem(1198816, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1198816/")]
+        public void DefiniteAssignment_UnconvertedConditionalOperator()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        _ = new(bad) ? null : new object();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0103: The name 'bad' does not exist in the current context
+                //         _ = new(bad) ? null : new object();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "bad").WithArguments("bad").WithLocation(5, 17)
+            );
         }
     }
 }

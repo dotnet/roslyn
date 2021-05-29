@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -7140,6 +7141,39 @@ class A
         }
 
         [Fact]
+        public void AnalysisOfMixedDeconstruction()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class A
+{
+    bool M()
+    {
+        int x = 0;
+        string y;
+        /*<bind>*/
+        (x, (y, var z)) = (x, ("""", true))
+        /*</bind>*/
+        return z;
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("x, y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("this, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry));
+            Assert.Equal("this, x, y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x, y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
         public void AnalysisOfPropertyGetter_Inside_ReferenceType()
         {
             var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
@@ -7647,6 +7681,798 @@ class Program
 
             Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("px", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
+        #endregion
+
+        #region "Used Local Functions"
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        void Local() { }
+        /*</bind>*/
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Null(GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions2()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Local();
+        /*</bind>*/
+        void Local() { }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions3()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Local();
+        /*</bind>*/
+        void Local() { }
+        void Unused(){ }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions4()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Local();
+        /*</bind>*/
+        void Local()
+        {
+            Second();
+        }
+
+        void Second() { }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Second", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions5()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Local();
+        /*</bind>*/
+        void Local()
+        {
+            void Sub() { }
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions6()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Local();
+        /*</bind>*/
+        void Local()
+        {
+            Sub();
+            void Sub() { }
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions7()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Local();
+        /*</bind>*/
+        void Local()
+        {
+            Second();
+        }
+
+        void Second()
+        {
+            Sub();
+            void Sub() { }
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Second, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions8()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        System.Action a = new System.Action(Local);
+        /*</bind>*/
+
+        void Local()
+        {
+            Second();
+        }
+
+        void Second()
+        {
+            Sub();
+            void Sub() { }
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Second, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions9()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Local();
+        /*</bind>*/
+        static void Local()
+        {
+            Sub();
+            void Sub() { }
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions10()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Local();
+        /*</bind>*/
+        void Local()
+        {
+            Sub();
+            static void Sub() { }
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions11()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Local();
+        /*</bind>*/
+        static void Local()
+        {
+            Sub();
+            static void Sub() { }
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions12()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Action a = () => Local();
+        /*<bind>*/
+        a();
+        /*</bind>*/
+        void Local() { }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Equal("a", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions13()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Action a = () => Local();
+        /*</bind>*/
+        a();
+        void Local() { }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions14()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Action a = () => Local();
+        /*<bind>*/
+        a();
+        /*</bind>*/
+        void Local()
+        {
+            Sub();
+            void Sub();
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Equal("a", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions15()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Action a = () => Local();
+        /*</bind>*/
+        a();
+        void Local()
+        {
+            Sub();
+            void Sub();
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions16()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Action a = () => Local();
+        /*<bind>*/
+        a();
+        /*</bind>*/
+        static void Local() { }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Equal("a", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions17()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Action a = () => Local();
+        /*</bind>*/
+        a();
+        static void Local() { }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions18()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Action a = () => Local();
+        /*<bind>*/
+        a();
+        /*</bind>*/
+        static void Local()
+        {
+            Sub();
+            static void Sub();
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Equal("a", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions19()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Action a = () => Local();
+        /*</bind>*/
+        a();
+        static void Local()
+        {
+            Sub();
+            static void Sub();
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions20()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Action a = Local;
+        /*</bind>*/
+        void Local() { }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions21()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Action a = Local;
+        /*</bind>*/
+        void Local()
+        {
+            Sub();
+            void Sub();
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions22()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Action a = Local;
+        /*</bind>*/
+        static void Local() { }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local", GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void RegionAnalysisUsedLocalFunctions23()
+        {
+            var results = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        /*<bind>*/
+        Action a = Local;
+        /*</bind>*/
+        static void Local()
+        {
+            Sub();
+            static void Sub();
+        }
+    }
+}");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("a", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(results.ReadInside));
+            Assert.Equal("a", GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Equal("Local, Sub", GetSymbolNamesJoined(results.UsedLocalFunctions));
         }
 
         #endregion

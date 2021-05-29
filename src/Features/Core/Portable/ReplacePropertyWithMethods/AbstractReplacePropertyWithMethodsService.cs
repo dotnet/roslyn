@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -115,7 +113,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
                 _expression = _identifierName;
                 _cref = _service.TryGetCrefSyntax(_identifierName);
-                if (_syntaxFacts.IsNameOfMemberAccessExpression(_expression))
+                if (_syntaxFacts.IsNameOfSimpleMemberAccessExpression(_expression) ||
+                    _syntaxFacts.IsNameOfMemberBindingExpression(_expression))
                 {
                     _expression = (TExpressionSyntax)_expression.Parent!;
                 }
@@ -149,7 +148,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private static readonly GetWriteValue getWriteValueForLeftSideOfAssignment =
                 (replacer, parent) =>
                 {
-                    return (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent);
+                    return (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent)!;
                 };
 
             private static readonly GetWriteValue getWriteValueForIncrementOrDecrement =

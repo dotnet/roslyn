@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class CompletionHelper
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
-             new Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher>();
+             new();
 
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
         private readonly bool _isCaseSensitive;
 
         public CompletionHelper(bool isCaseSensitive)
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Returns true if the completion item matches the pattern so far.  Returns 'true'
-        /// iff the completion item matches and should be included in the filtered completion
+        /// if and only if the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
         public bool MatchesPattern(string text, string pattern, CultureInfo culture)
@@ -64,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (lastDotIndex >= 0)
             {
                 var afterDotPosition = lastDotIndex + 1;
-                var textAfterLastDot = completionItemText.Substring(afterDotPosition);
+                var textAfterLastDot = completionItemText[afterDotPosition..];
 
                 var match = GetMatchWorker(textAfterLastDot, pattern, culture, includeMatchSpans);
                 if (match != null)
@@ -252,10 +250,18 @@ namespace Microsoft.CodeAnalysis.Completion
                 return diff;
             }
 
-            var preselectionDiff = ComparePreselection(item1, item2);
-            if (preselectionDiff != 0)
+            // If two items match in case-insensitive manner, and we are in a case-insensitive language,
+            // then the preselected one is considered better, otherwise we will prefer the one matches
+            // case-sensitively. This is to make sure common items in VB like `True` and `False` are prioritized
+            // for selection when user types `t` and `f`.
+            // More details can be found in comments of https://github.com/dotnet/roslyn/issues/4892
+            if (!_isCaseSensitive)
             {
-                return preselectionDiff;
+                var preselectionDiff = ComparePreselection(item1, item2);
+                if (preselectionDiff != 0)
+                {
+                    return preselectionDiff;
+                }
             }
 
             // At this point we have two items which we're matching in a rather similar fashion.

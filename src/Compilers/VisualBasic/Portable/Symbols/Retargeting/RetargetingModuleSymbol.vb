@@ -227,6 +227,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         End Sub
 
+        Friend Function RetargetingDefinitions(from As AssemblySymbol, <Out> ByRef [to] As AssemblySymbol) As Boolean
+            Dim destination As DestinationData = Nothing
+
+            If Not _retargetingAssemblyMap.TryGetValue(from, destination) Then
+                [to] = Nothing
+                Return False
+            End If
+
+            [to] = destination.To
+            Return True
+        End Function
+
         Friend Overrides ReadOnly Property TypeNames As ICollection(Of String)
             Get
                 Return _underlyingModule.TypeNames

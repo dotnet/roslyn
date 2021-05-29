@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -16,11 +18,17 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 {
     public partial class ImplementAbstractClassTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public ImplementAbstractClassTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpImplementAbstractClassCodeFixProvider());
 
@@ -1902,6 +1910,135 @@ record B(int i) : A
         throw new System.NotImplementedException();
     }
 }", parseOptions: TestOptions.RegularPreview);
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D|] : B<int>
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D : B<int>
+{
+    public override int M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable2()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D<T>|] : B<T> where T : struct
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D<T> : B<T> where T : struct
+{
+    public override T M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable_Tuple()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D<T>|] : B<(T, T)>
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D<T> : B<(T, T)>
+{
+    public override (T, T) M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [InlineData("", "T")]
+        [InlineData(" where T : class", "T")]
+        [InlineData("", "T?")]
+        [InlineData(" where T : class", "T?")]
+        [InlineData(" where T : struct", "T?")]
+        public async Task TestUnconstrainedGenericNullable_NoRegression(string constraint, string passToBase)
+        {
+            await TestAllOptionsOffAsync(
+$@"#nullable enable
+
+abstract class B<T>
+{{
+    public abstract T? M();
+}}
+
+class [|D<T>|] : B<{passToBase}>{constraint}
+{{
+}}",
+$@"#nullable enable
+
+abstract class B<T>
+{{
+    public abstract T? M();
+}}
+
+class D<T> : B<{passToBase}>{constraint}
+{{
+    public override T? M()
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
         }
     }
 }

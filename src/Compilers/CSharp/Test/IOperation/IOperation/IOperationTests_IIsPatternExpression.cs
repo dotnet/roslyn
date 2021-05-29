@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1357,9 +1359,9 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             Member: 
               IFieldReferenceOperation: System.Int32 D.X (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: D, Constant: 3, IsInvalid, IsImplicit) (Syntax: 'X')
+                  null
             Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: True)
 ";
 
             VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
@@ -1402,9 +1404,9 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             Member: 
               IFieldReferenceOperation: System.Int32 D.X (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: D, IsInvalid, IsImplicit) (Syntax: 'X')
+                  null
             Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: True)
 ";
 
             VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
@@ -1447,9 +1449,9 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             Member: 
               IPropertyReferenceOperation: System.Int32 D.X { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'X')
                 Instance Receiver: 
-                  IInstanceReferenceOperation (ReferenceKind: PatternInput) (OperationKind.InstanceReference, Type: D, IsInvalid, IsImplicit) (Syntax: 'X')
+                  null
             Pattern: 
-              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var x') (InputType: System.Int32, NarrowedType: System.Int32, DeclaredSymbol: System.Int32 x, MatchesNull: True)
 ";
 
             VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);

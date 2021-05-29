@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
     {
         internal const string TagId = "MarkerFormatDefinition/HighlightedReference";
 
-        public static readonly ReferenceHighlightTag Instance = new ReferenceHighlightTag();
+        public static readonly ReferenceHighlightTag Instance = new();
 
         private ReferenceHighlightTag()
             : base(TagId)

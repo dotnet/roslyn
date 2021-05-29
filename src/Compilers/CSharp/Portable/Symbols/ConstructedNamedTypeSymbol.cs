@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,6 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
+        internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
+            => OriginalDefinition.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes);
+
         internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get { return GetTypeParametersAsTypeArguments(); }
@@ -35,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this; }
         }
 
-        public override sealed bool AreLocalsZeroed
+        public sealed override bool AreLocalsZeroed
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
@@ -125,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public override sealed bool AreLocalsZeroed
+        public sealed override bool AreLocalsZeroed
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

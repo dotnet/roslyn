@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,7 +11,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |  r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -67,7 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // p = DoesNotReturn. 1 bit.
             // q = DoesNotReturnPopulated. 1 bit.
             // r = MemberNotNullPopulated. 1 bit.
-            // 9 bits remain for future purposes.
+            // s = IsInitOnlyBit. 1 bit.
+            // t = IsInitOnlyPopulatedBit. 1 bit.
+            // u = IsUnmanagedCallersOnlyAttributePopulated. 1 bit.
+            // 6 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
             private const int MethodKindMask = 0x1F;
@@ -92,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsMemberNotNullPopulatedBit = 0x1 << 23;
             private const int IsInitOnlyBit = 0x1 << 24;
             private const int IsInitOnlyPopulatedBit = 0x1 << 25;
+            private const int IsUnmanagedCallersOnlyAttributePopulatedBit = 0x1 << 26;
 
             private int _bits;
 
@@ -127,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsMemberNotNullPopulated => (_bits & IsMemberNotNullPopulatedBit) != 0;
             public bool IsInitOnly => (_bits & IsInitOnlyBit) != 0;
             public bool IsInitOnlyPopulated => (_bits & IsInitOnlyPopulatedBit) != 0;
+            public bool IsUnmanagedCallersOnlyAttributePopulated => (_bits & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -228,6 +234,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
+
+            public void SetIsUnmanagedCallersOnlyAttributePopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, IsUnmanagedCallersOnlyAttributePopulatedBit);
+            }
         }
 
         /// <summary>
@@ -241,7 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
             public ImmutableArray<string> _lazyConditionalAttributeSymbols;
             public ObsoleteAttributeData _lazyObsoleteAttributeData;
-            public DiagnosticInfo _lazyUseSiteDiagnostic;
+            public UnmanagedCallersOnlyAttributeData _lazyUnmanagedCallersOnlyAttributeData;
+            public CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo;
             public ImmutableArray<string> _lazyNotNullMembers;
             public ImmutableArray<string> _lazyNotNullMembersWhenTrue;
             public ImmutableArray<string> _lazyNotNullMembersWhenFalse;
@@ -254,6 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (!_packedFlags.IsObsoleteAttributePopulated)
             {
                 retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+            }
+
+            if (!_packedFlags.IsUnmanagedCallersOnlyAttributePopulated)
+            {
+                retVal._lazyUnmanagedCallersOnlyAttributeData = UnmanagedCallersOnlyAttributeData.Uninitialized;
             }
 
             //
@@ -353,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _name = string.Empty;
                 }
 
-                InitializeUseSiteDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+                InitializeUseSiteDiagnostic(new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
             }
 
             Debug.Assert((uint)localflags <= ushort.MaxValue);
@@ -804,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (makeBad || isBadParameter)
             {
-                InitializeUseSiteDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+                InitializeUseSiteDiagnostic(new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
             }
 
             var signature = new SignatureData(signatureHeader, @params, returnParam);
@@ -820,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var typeParams = EnsureTypeParametersAreLoaded(ref diagnosticInfo);
                 if (diagnosticInfo != null)
                 {
-                    InitializeUseSiteDiagnostic(diagnosticInfo);
+                    InitializeUseSiteDiagnostic(new UseSiteInfo<AssemblySymbol>(diagnosticInfo));
                 }
 
                 return typeParams;
@@ -1176,9 +1193,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
-            // Disabling optimization to work around a JIT bug in .NET 5.
-            // See https://github.com/dotnet/roslyn/issues/46575
-            [MethodImpl(MethodImplOptions.NoOptimization)]
             get
             {
                 var explicitInterfaceImplementations = _lazyExplicitMethodImplementations;
@@ -1311,34 +1325,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref AccessUncommonFields()._lazyDocComment);
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (!_packedFlags.IsUseSiteDiagnosticPopulated)
             {
-                DiagnosticInfo result = null;
+                UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                EnsureTypeParametersAreLoaded(ref result);
-                return InitializeUseSiteDiagnostic(result);
+
+                var diagnosticInfo = result.DiagnosticInfo;
+                EnsureTypeParametersAreLoaded(ref diagnosticInfo);
+                if (diagnosticInfo == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)
+                {
+                    Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
+                    Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
+                    if (CheckAndReportValidUnmanagedCallersOnlyTarget(location: null, diagnostics: null))
+                    {
+                        diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                    }
+                }
+
+                return InitializeUseSiteDiagnostic(result.AdjustDiagnosticInfo(diagnosticInfo));
             }
 
-            return _uncommonFields?._lazyUseSiteDiagnostic;
+            return GetCachedUseSiteInfo();
         }
 
-        private DiagnosticInfo InitializeUseSiteDiagnostic(DiagnosticInfo diagnostic)
+        private UseSiteInfo<AssemblySymbol> GetCachedUseSiteInfo()
+        {
+            return (_uncommonFields?._lazyCachedUseSiteInfo ?? default).ToUseSiteInfo(PrimaryDependency);
+        }
+
+        private UseSiteInfo<AssemblySymbol> InitializeUseSiteDiagnostic(UseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (_packedFlags.IsUseSiteDiagnosticPopulated)
             {
-                return _uncommonFields?._lazyUseSiteDiagnostic;
+                return GetCachedUseSiteInfo();
             }
 
-            if (diagnostic != null)
+            if (useSiteInfo.DiagnosticInfo is object || !useSiteInfo.SecondaryDependencies.IsNullOrEmpty())
             {
-                Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
-                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic);
+                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, useSiteInfo);
             }
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated();
-            return diagnostic;
+            return useSiteInfo;
         }
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -1406,6 +1436,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+#nullable enable
+        internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
+        {
+            if (!_packedFlags.IsUnmanagedCallersOnlyAttributePopulated)
+            {
+                var containingModule = (PEModuleSymbol)ContainingModule;
+                var unmanagedCallersOnlyData = containingModule.Module.TryGetUnmanagedCallersOnlyAttribute(_handle, new MetadataDecoder(containingModule),
+                    static (name, value, isField) => MethodSymbol.TryDecodeUnmanagedCallersOnlyCallConvsField(name, value, isField, location: null, diagnostics: null));
+
+                Debug.Assert(!ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                             && !ReferenceEquals(unmanagedCallersOnlyData, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
+
+                var result = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUnmanagedCallersOnlyAttributeData,
+                                                              unmanagedCallersOnlyData,
+                                                              UnmanagedCallersOnlyAttributeData.Uninitialized);
+
+                _packedFlags.SetIsUnmanagedCallersOnlyAttributePopulated();
+                return result;
+            }
+
+            return _uncommonFields?._lazyUnmanagedCallersOnlyAttributeData;
+        }
+#nullable disable
+
         internal override bool GenerateDebugInfo => false;
 
         internal override OverriddenOrHiddenMembersResult OverriddenOrHiddenMembers
@@ -1458,5 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         // Internal for unit test
         internal bool TestIsExtensionBitTrue => _packedFlags.IsExtensionMethod;
+
+        internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
     }
 }

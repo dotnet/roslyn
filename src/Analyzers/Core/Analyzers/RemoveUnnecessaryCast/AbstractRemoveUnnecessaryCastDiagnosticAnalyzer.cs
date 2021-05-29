@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -21,6 +19,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
     {
         protected AbstractRemoveUnnecessaryCastDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
+                   EnforceOnBuildValues.RemoveUnnecessaryCast,
                    option: null,
                    new LocalizableResourceString(nameof(AnalyzersResources.Remove_Unnecessary_Cast), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(CompilerExtensionsResources.Cast_is_redundant), CompilerExtensionsResources.ResourceManager, typeof(CompilerExtensionsResources)),

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
@@ -11,91 +13,20 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
     public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public AddUsingTestsWithAddImportDiagnosticProvider(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new CSharpAddImportCodeFixProvider());
-
-        [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-        [Fact]
-        public async Task TestIncompleteLambda1()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System.Linq;
-
-class C
-{
-    C()
-    {
-        """".Select(() => {
-        new [|Byte|]",
-@"using System;
-using System.Linq;
-
-class C
-{
-    C()
-    {
-        """".Select(() => {
-        new Byte");
-        }
-
-        [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-        [Fact]
-        public async Task TestIncompleteLambda2()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System.Linq;
-
-class C
-{
-    C()
-    {
-        """".Select(() => {
-            new [|Byte|]() }",
-@"using System;
-using System.Linq;
-
-class C
-{
-    C()
-    {
-        """".Select(() => {
-            new Byte() }");
-        }
-
-        [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
-        [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
-        [Fact]
-        public async Task TestIncompleteSimpleLambdaExpression()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System.Linq;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        args[0].Any(x => [|IBindCtx|]
-        string a;
-    }
-}",
-@"using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        args[0].Any(x => IBindCtx
-        string a;
-    }
-}");
-        }
 
         [WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")]
         [Fact]

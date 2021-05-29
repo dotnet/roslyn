@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -57,7 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                var shell = (IVsShell7)await _serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+                var shell = (IVsShell7?)await _serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+                Assumes.Present(shell);
                 await shell.LoadPackageAsync(typeof(RoslynPackage).GUID);
 
                 if (ErrorHandler.Succeeded(((IVsShell)shell).IsPackageLoaded(typeof(RoslynPackage).GUID, out var package)))

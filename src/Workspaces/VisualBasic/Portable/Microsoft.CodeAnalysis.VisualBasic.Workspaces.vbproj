@@ -38,8 +38,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
   </ItemGroup>
   <ItemGroup>

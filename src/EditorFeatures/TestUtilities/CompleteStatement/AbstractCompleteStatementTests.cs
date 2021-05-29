@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -50,16 +52,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
         /// </summary>
         protected void VerifyTypingSemicolon(string initialMarkup, string expectedMarkup)
         {
-            Verify(initialMarkup, expectedMarkup,
-                execute: (view, workspace) =>
-                {
-                    var commandHandler = GetCommandHandler(workspace);
+            Verify(initialMarkup, expectedMarkup, ExecuteTest);
+        }
 
-                    var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, semicolon);
-                    var nextHandler = CreateInsertTextHandler(view, semicolon.ToString());
+        protected void ExecuteTest(IWpfTextView view, TestWorkspace workspace)
+        {
+            var commandHandler = GetCommandHandler(workspace);
 
-                    commandHandler.ExecuteCommand(commandArgs, nextHandler, TestCommandExecutionContext.Create());
-                });
+            var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, semicolon);
+            var nextHandler = CreateInsertTextHandler(view, semicolon.ToString());
+
+            commandHandler.ExecuteCommand(commandArgs, nextHandler, TestCommandExecutionContext.Create());
         }
 
         private static Action CreateInsertTextHandler(ITextView textView, string text)
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
             };
         }
 
-        private void Verify(string initialMarkup, string expectedMarkup,
+        protected void Verify(string initialMarkup, string expectedMarkup,
             Action<IWpfTextView, TestWorkspace> execute,
             Action<TestWorkspace> setOptionsOpt = null)
         {

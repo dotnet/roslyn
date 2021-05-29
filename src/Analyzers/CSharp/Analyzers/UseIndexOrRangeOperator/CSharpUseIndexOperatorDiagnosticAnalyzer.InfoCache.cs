@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// <c>MyType</c> as well as the optional <c>MyType.Get(System.Index)</c> member if it exists.
             /// </summary>
             private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo =
-                new ConcurrentDictionary<IMethodSymbol, MemberInfo>();
+                new();
 
             public InfoCache(Compilation compilation)
                 => IndexType = compilation.GetBestTypeByMetadataName("System.Index");
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     // type itself has a System.Index-based indexer, or because the language just
                     // allows types to implicitly seem like they support this through:
                     //
-                    // https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#implicit-index-support
+                    // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#implicit-index-support
                     return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
                 }
                 else

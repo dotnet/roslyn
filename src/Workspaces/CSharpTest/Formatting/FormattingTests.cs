@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -3457,6 +3460,22 @@ static void Main(string[] args)
     }
 }
 ");
+        }
+
+        [WorkItem(50723, "https://github.com/dotnet/roslyn/issues/50723")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task TuplePointer()
+        {
+            var properlyFormattedCode = @"public unsafe static class Program
+{
+    public static void Main(string[] args)
+    {
+        int* intPointer = null;
+        (int, int)* intIntPointer = null;
+    }
+}
+";
+            await AssertFormatAsync(properlyFormattedCode, properlyFormattedCode);
         }
 
         [WorkItem(537886, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537886")]
@@ -9564,6 +9583,82 @@ class C
 }".Replace("&nbsp;", "\u00A0"));
         }
 
+        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentationForMultilineWith()
+        {
+            var code = @"record C(int X)
+{
+    C M()
+    {
+        return this with
+{
+X = 1
+};
+    }
+}";
+            var expectedCode = @"record C(int X)
+{
+    C M()
+    {
+        return this with
+        {
+            X = 1
+        };
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentationForMultilineWith_ArrowBody()
+        {
+            var code = @"record C(int X)
+{
+    C M()
+        => this with
+{
+X = 1
+};
+}";
+            var expectedCode = @"record C(int X)
+{
+    C M()
+        => this with
+        {
+            X = 1
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(47438, "https://github.com/dotnet/roslyn/issues/47438")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentationForMultilineWith_ArrowBody_WithTrailingComma()
+        {
+            var code = @"record C(int X)
+{
+    C M()
+        => this with
+{
+X = 1,
+};
+}";
+            var expectedCode = @"record C(int X)
+{
+    C M()
+        => this with
+        {
+            X = 1,
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
         [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingAfterAttribute()
@@ -9602,6 +9697,281 @@ class C
 }";
 
             await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(47442, "https://github.com/dotnet/roslyn/issues/47442")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentImplicitObjectCreationInitializer()
+        {
+            var code = @"
+class C
+{
+    public string Name { get; set; }
+    public static C Create1(string name)
+        => new C()
+    {
+        Name = name
+    };
+    public static C Create2(string name)
+        => new()
+    {
+        Name = name
+    };
+}";
+            var expectedCode = @"
+class C
+{
+    public string Name { get; set; }
+    public static C Create1(string name)
+        => new C()
+        {
+            Name = name
+        };
+    public static C Create2(string name)
+        => new()
+        {
+            Name = name
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
+        public async Task NewLinesForBraces_SwitchExpression_Default()
+        {
+            await AssertFormatAsync(
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch
+        {
+            _ => null
+        };
+    }
+}",
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch {
+            _ => null
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(36913, "https://github.com/dotnet/roslyn/issues/36913")]
+        public async Task NewLinesForBraces_SwitchExpression_NonDefault()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+            };
+            await AssertFormatAsync(
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch {
+            _ => null
+        };
+    }
+}",
+                @"
+class A
+{
+    void br()
+    {
+        var msg = 1 switch
+        {
+            _ => null
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
+        public async Task NewLinesForBraces_RecordWithInitializer_Default()
+        {
+            await AssertFormatAsync(
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with
+        {
+            X = 0
+        };
+    }
+}",
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with {
+            X = 0
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(49725, "https://github.com/dotnet/roslyn/discussions/49725")]
+        public async Task NewLinesForBraces_RecordWithInitializer_NonDefault()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+            };
+            await AssertFormatAsync(
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with {
+            X = 0
+        };
+    }
+}",
+                @"
+record R(int X);
+class C
+{
+    void Goo(R r)
+    {
+        var r2 = r with
+        {
+            X = 0
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_Default()
+        {
+            await AssertFormatAsync(
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is
+        {
+            Name: ""foo"",
+        };
+    }
+}",
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is {
+            Name: ""foo"",
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_NonDefault()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, false },
+            };
+            await AssertFormatAsync(
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is {
+            Name: ""foo"",
+        };
+    }
+}",
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is
+        {
+            Name: ""foo"",
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_SingleLine(bool option)
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLinesForBracesInObjectCollectionArrayInitializers, option },
+            };
+            var code = @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a is { Name: ""foo"" };
+    }
+}";
+            await AssertFormatAsync(code, code, changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task RecordClass()
+        {
+            await AssertFormatAsync(
+                @"
+record class R(int X);
+",
+                @"
+record  class  R(int X);
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task RecordStruct()
+        {
+            await AssertFormatAsync(
+                @"
+record struct R(int X);
+",
+                @"
+record  struct  R(int X);
+");
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -19,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForNullable), Shared]
     internal class UseCoalesceExpressionForNullableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]

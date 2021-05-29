@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -15,7 +13,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         where TSwitchSyntax : SyntaxNode
     {
         protected AbstractPopulateSwitchStatementDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.PopulateSwitchStatementDiagnosticId)
+            : base(IDEDiagnosticIds.PopulateSwitchStatementDiagnosticId,
+                   EnforceOnBuildValues.PopulateSwitchStatement)
         {
         }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -27,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt: default(ImmutableArray<RefKind>),
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 constantValueOpt: null,
                 initializerExpressionOpt: null,
-                binderOpt: null,
                 type: node.Type);
         }
     }

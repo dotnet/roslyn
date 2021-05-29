@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -956,7 +958,7 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (11,48): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
+                // (11,48): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //     public static async Task<int> M1(Span<int> arg)
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "arg").WithArguments("System.Span<int>").WithLocation(11, 48)
             );
@@ -988,7 +990,7 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
+                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         Span<int> local = default(Span<int>);
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
             );
@@ -996,7 +998,7 @@ public class Program
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
+                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         Span<int> local = default(Span<int>);
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
             );

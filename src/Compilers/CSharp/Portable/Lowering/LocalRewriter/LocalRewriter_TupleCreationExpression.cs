@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 MethodSymbol smallestConstructor = smallestCtor.AsMember(smallestType);
-                BoundObjectCreationExpression currentCreation = new BoundObjectCreationExpression(syntax, smallestConstructor, null, smallestCtorArguments);
+                BoundObjectCreationExpression currentCreation = new BoundObjectCreationExpression(syntax, smallestConstructor, smallestCtorArguments);
 
                 if (underlyingTupleTypeChain.Count > 0)
                 {
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                       .Add(currentCreation);
 
                         MethodSymbol constructor = tuple8Ctor.AsMember(underlyingTupleTypeChain.Pop());
-                        currentCreation = new BoundObjectCreationExpression(syntax, constructor, null, ctorArguments);
+                        currentCreation = new BoundObjectCreationExpression(syntax, constructor, ctorArguments);
                     }
                     while (underlyingTupleTypeChain.Count > 0);
                 }
@@ -101,9 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     currentCreation.ArgumentRefKindsOpt,
                     currentCreation.Expanded,
                     currentCreation.ArgsToParamsOpt,
+                    currentCreation.DefaultArguments,
                     currentCreation.ConstantValue,
                     currentCreation.InitializerExpressionOpt,
-                    currentCreation.BinderOpt,
                     type);
 
                 return currentCreation;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -61,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var projectId = ProjectId.CreateNewId("project");
             var arguments = new DiagnosticArguments(
-                isHighPriority: true,
                 reportSuppressedDiagnostics: true,
                 logPerformanceInfo: true,
                 getTelemetryInfo: true,
@@ -73,8 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             VerifyJsonSerialization(arguments, (x, y) =>
             {
-                if (x.IsHighPriority == y.IsHighPriority &&
-                    x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
+                if (x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
                     x.LogPerformanceInfo == y.LogPerformanceInfo &&
                     x.GetTelemetryInfo == y.GetTelemetryInfo &&
                     x.DocumentId == y.DocumentId &&

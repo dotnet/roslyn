@@ -131,12 +131,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousTypeTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousTypeKey(type)
-                    Dim value = New AnonymousTypeValue(name, index, type)
+                    Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
                     result.Add(key, value)
                 ElseIf GeneratedNames.TryParseAnonymousTypeTemplateName(GeneratedNames.AnonymousDelegateTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousDelegateKey(type)
-                    Dim value = New AnonymousTypeValue(name, index, type)
+                    Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
                     result.Add(key, value)
                 End If
             Next
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim embeddedTypesManager = Me.EmbeddedTypesManagerOpt
             If embeddedTypesManager IsNot Nothing Then
                 For Each embeddedType In embeddedTypesManager.EmbeddedTypesMap.Keys
-                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_EncNoPIAReference, embeddedType), Location.None)
+                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_EncNoPIAReference, embeddedType.AdaptedNamedTypeSymbol), Location.None)
                 Next
             End If
         End Sub

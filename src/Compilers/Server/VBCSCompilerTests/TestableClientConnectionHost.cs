@@ -9,15 +9,13 @@ using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     internal sealed class TestableClientConnectionHost : IClientConnectionHost
     {
         private readonly object _guard = new object();
         private TaskCompletionSource<IClientConnection>? _finalTaskCompletionSource;
-        private Queue<Func<Task<IClientConnection>>> _waitingTasks = new Queue<Func<Task<IClientConnection>>>();
+        private readonly Queue<Func<Task<IClientConnection>>> _waitingTasks = new Queue<Func<Task<IClientConnection>>>();
 
         public bool IsListening { get; set; }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -1484,6 +1486,60 @@ namespace PushUpTest
     public partial class TestClass
     {
         partial void BarBar()
+        {}
+    }
+
+    partial interface IInterface
+    {
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullExtendedPartialMethodUpToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    partial interface IInterface
+    {
+    }
+
+    public partial class TestClass : IInterface
+    {
+        public partial void Bar[||]Bar()
+    }
+
+    public partial class TestClass
+    {
+        public partial void BarBar()
+        {}
+    }
+
+    partial interface IInterface
+    {
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    partial interface IInterface
+    {
+        void BarBar();
+    }
+
+    public partial class TestClass : IInterface
+    {
+        public partial void BarBar()
+    }
+
+    public partial class TestClass
+    {
+        public partial void BarBar()
         {}
     }
 

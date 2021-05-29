@@ -43,4 +43,5 @@
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\Analyzers\Analyzers.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
 </Project>

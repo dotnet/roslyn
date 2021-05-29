@@ -103,6 +103,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         public static void ThrowIfUnExpectedItemFound<TCollection>(IEnumerable<TCollection> actual, IEnumerable<TCollection> unexpected)
+            where TCollection : notnull
         {
             var shouldThrow = false;
             var sb = new StringBuilder();
@@ -125,7 +126,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public static void CompareAsSequenceAndThrowIfNotEqual<TListItem>(IEnumerable<TListItem> expectedList,
             IEnumerable<TListItem> actualList,
-            IEqualityComparer<TListItem> comparer = null)
+            IEqualityComparer<TListItem>? comparer = null)
             where TListItem : IEquatable<TListItem>
         {
             if (!expectedList.SequenceEqual(actualList, comparer))
@@ -135,6 +136,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         private static string BuildString<TElement>(IEnumerable<TElement> list)
+            where TElement : notnull
             => string.Join(Environment.NewLine, list.Select(item => item.ToString()).ToArray());
     }
 }

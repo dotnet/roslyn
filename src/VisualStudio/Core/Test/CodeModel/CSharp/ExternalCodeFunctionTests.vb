@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "FullName tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestFullName1()
             Dim code =
 <Code>
@@ -31,7 +31,7 @@ class C
 
 #Region "Name tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestName1()
             Dim code =
 <Code>
