@@ -7948,7 +7948,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool argIsIndex,
             [NotNullWhen(true)] out Symbol? patternSymbol,
             BindingDiagnosticBag diagnostics,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            bool forPattern = false)
         {
             if (argIsIndex)
             {
@@ -8021,6 +8022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             IsAccessible(candidate, ref useSiteInfo) &&
                             candidate is MethodSymbol method &&
                             method.OriginalDefinition is var original &&
+                            !original.ReturnsVoid &&
                             original.ParameterCount == 2 &&
                             original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None } &&
                             original.Parameters[1] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
@@ -8041,6 +8043,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void checkWellKnown(WellKnownMember member)
             {
+                // For list or slice patterns, there's no index or range expression in the source so we won't report missing members here.
+                if (forPattern)
+                    return;
                 // Check required well-known member. They may not be needed
                 // during lowering, but it's simpler to always require them to prevent
                 // the user from getting surprising errors when optimizations fail

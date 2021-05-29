@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -806,38 +807,39 @@ True
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact]
-        public void ListPattern_UnsupportedTypes()
+        [Theory]
+        [CombinatorialData]
+        public void ListPattern_UnsupportedTypes(bool hasLengthPattern, [CombinatorialRange(0, 4)] int hasListPattern)
         {
+            var lengthPattern = hasLengthPattern ? "[0]" : null;
+            var listPattern = hasListPattern switch
+            {
+                0 => null,
+                1 => "{0}",
+                2 => "{..}",
+                3 => "{.._}",
+                _ => throw new("unreachable")
+            };
             var source = @"
 class X
 {
-    public static void Main()
+    void M(object o)
     {
-        _ = 0 is {0};
-        _ = 0 is [0];
-        _ = 0 is [0]{0};
-        _ = 0 is {..0};
-    } 
+        _ = o is object " + lengthPattern + listPattern + @";
+    }
 }
 ";
-            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-            compilation.VerifyEmitDiagnostics(
-                // (6,18): error CS9200: List patterns may not be used for a value of type 'int'.
-                //         _ = 0 is {0};
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{0}").WithArguments("int").WithLocation(6, 18),
-                // (7,18): error CS9202: Length patterns may not be used for a value of type 'int'.
-                //         _ = 0 is [0];
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForLengthPattern, "[0]").WithArguments("int").WithLocation(7, 18),
-                // (8,18): error CS9202: Length patterns may not be used for a value of type 'int'.
-                //         _ = 0 is [0]{0};
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForLengthPattern, "[0]").WithArguments("int").WithLocation(8, 18),
-                // (9,18): error CS9200: List patterns may not be used for a value of type 'int'.
-                //         _ = 0 is {..0};
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{..0}").WithArguments("int").WithLocation(9, 18),
-                // (9,19): error CS9201: Slice patterns may not be used for a value of type 'int'.
-                //         _ = 0 is {..0};
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..0").WithArguments("int").WithLocation(9, 19));
+            var expectedDiagnostics = new[]
+            {
+                // error CS9202: Length patterns may not be used for a value of type 'object'.
+                hasLengthPattern ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForLengthPattern, lengthPattern).WithArguments("object") : null,
+                // error CS9200: List patterns may not be used for a value of type 'object'.
+                hasListPattern > 0 ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, listPattern).WithArguments("object") : null,
+                // error CS9201: Slice patterns may not be used for a value of type 'object'.
+                hasListPattern == 3 ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".._").WithArguments("object") : null
+            };
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyEmitDiagnostics(expectedDiagnostics.WhereNotNull().ToArray());
         }
 
         [Fact]
@@ -1000,44 +1002,24 @@ class X
 
     public static void Main()
     {{
-        _ = new X() is {{ .. 1 }};
+        _ = new X() is [_] {{ .._ }};
     }}
 }}
 ";
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
-            switch (isIndexable, isSliceable, isCountable)
+            var expectedDiagnostics = new[]
             {
-                case (true, true, true):
-                    compilation.VerifyEmitDiagnostics();
-                    return;
-                case (true, false, true):
-                    compilation.VerifyEmitDiagnostics(
-                        // (13,26): error CS9201: Slice patterns may not be used for a value of type 'X'.
-                        //         _ = new X() is { .. 1 };
-                        Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".. 1").WithArguments("X").WithLocation(13, 26));
-                    return;
-                case (false, true, true):
-                case (false, true, false):
-                case (true, true, false):
-                    compilation.VerifyEmitDiagnostics(
-                        // (13,24): error CS9200: List patterns may not be used for a value of type 'X'.
-                        //         _ = new X() is { .. 1 };
-                        Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{ .. 1 }").WithArguments("X").WithLocation(13, 24));
-                    return;
-                case (true, false, false):
-                case (false, false, true):
-                case (false, false, false):
-                    compilation.VerifyEmitDiagnostics(
-                        // (13,24): error CS9200: List patterns may not be used for a value of type 'X'.
-                        //         _ = new X() is { .. 1 };
-                        Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{ .. 1 }").WithArguments("X").WithLocation(13, 24),
-                        // (13,26): error CS9201: Slice patterns may not be used for a value of type 'X'.
-                        //         _ = new X() is { .. 1 };
-                        Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".. 1").WithArguments("X").WithLocation(13, 26));
-                    return;
-                default:
-                    throw new("unreachable");
-            }
+                // (13,24): error CS9202: Length patterns may not be used for a value of type 'X'.
+                //         _ = new X() is [_] { .._ };
+                !isCountable ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForLengthPattern, "[_]").WithArguments("X").WithLocation(13, 24) : null,
+                // (13,28): error CS9200: List patterns may not be used for a value of type 'X'.
+                //         _ = new X() is [_] { .._ };
+                !isIndexable || !isCountable ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{ .._ }").WithArguments("X").WithLocation(13, 28) : null,
+                // (13,30): error CS9201: Slice patterns may not be used for a value of type 'X'.
+                //         _ = new X() is [_] { .._ };
+                !isSliceable ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".._").WithArguments("X").WithLocation(13, 30) : null
+            };
+            compilation.VerifyEmitDiagnostics(expectedDiagnostics.WhereNotNull().ToArray());
         }
 
         [Fact]
@@ -1124,18 +1106,12 @@ class X
                 // (8,20): error CS9203: Slice patterns may only be used once and directly inside a list pattern.
                 //         _ = a is {(..)};
                 Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(8, 20),
-                // (8,20): error CS9201: Slice patterns may not be used for a value of type 'int'.
-                //         _ = a is {(..)};
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..").WithArguments("int").WithLocation(8, 20),
                 // (9,18): error CS9203: Slice patterns may only be used once and directly inside a list pattern.
                 //         _ = a is ..;
                 Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(9, 18),
                 // (10,19): error CS9203: Slice patterns may only be used once and directly inside a list pattern.
                 //         _ = a is [..];
                 Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(10, 19),
-                // (10,19): error CS9201: Slice patterns may not be used for a value of type 'int'.
-                //         _ = a is [..];
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..").WithArguments("int").WithLocation(10, 19),
                 // (11,24): error CS9203: Slice patterns may only be used once and directly inside a list pattern.
                 //         _ = a switch { .. => 0, _ => 0 };
                 Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, "..").WithLocation(11, 24),
@@ -1257,10 +1233,7 @@ class X
             compilation.VerifyEmitDiagnostics(
                 // (14,29): error CS9201: Slice patterns may not be used for a value of type 'Test1'.
                 //         _ = new Test1() is {..var p};
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var p").WithArguments("Test1").WithLocation(14, 29),
-                // (15,29): error CS9201: Slice patterns may not be used for a value of type 'Test1'.
-                //         _ = new Test1() is {..};
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..").WithArguments("Test1").WithLocation(15, 29));
+                Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, "..var p").WithArguments("Test1").WithLocation(14, 29));
         }
 
         [Fact]
@@ -1306,6 +1279,58 @@ True";
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
+        [Fact]
+        public void ListPattern_MemberLookup_Fallback_InaccessibleIndexer()
+        {
+            var source = @"
+using System;
+class Test1
+{
+    private int this[Index i] => throw new();
+    private int this[Range i] => throw new();
+    private int Length => throw new();
+    public int this[int i] => 1;
+    public int Slice(int i, int j) => 2;
+    public int Count => 1;
+}
+class X
+{
+    public static void Main()
+    {
+        Console.WriteLine(new Test1() is {1, ..2});
+    } 
+}
+";
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            compilation.VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True");
+        }
+
+        [Fact]
+        public void ListPattern_MemberLookup_Fallback_MissingIndexOrRange()
+        {
+            var source = @"
+using System;
+class Test1
+{
+    public int this[int i] => 1;
+    public int Slice(int i, int j) => 2;
+    public int Count => 1;
+}
+class X
+{
+    public static void Main()
+    {
+        Console.WriteLine(new Test1() is {1, ..2});
+    } 
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            Assert.Null(compilation.GetTypeByMetadataName("System.Index"));
+            Assert.Null(compilation.GetTypeByMetadataName("System.Range"));
+            compilation.VerifyEmitDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True");
+        }
 
         [Fact]
         public void ListPattern_RefReturns()
@@ -1399,6 +1424,81 @@ class X
 2, 3
 1, 2, 3, 4";
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void SlicePattern_Subpattern()
+        {
+            var source = @"
+using System;
+class C
+{
+    private int length;
+    public C(int length) => this.length = length;
+    public int this[int i] => 1;
+    public int Slice(int i, int j) => throw new();
+    public int Length { get { Console.WriteLine(nameof(Length)); return length; } }
+}
+class X
+{
+    public static bool Test1(C c) => c is {..};
+    public static bool Test2(C c) => c is {.._};
+    public static void Main()
+    {
+        Console.WriteLine(Test1(null));
+        Console.WriteLine(Test2(null));
+        Console.WriteLine(Test1(new(-1)));
+        Console.WriteLine(Test1(new(0)));
+        Console.WriteLine(Test1(new(1)));
+        Console.WriteLine(Test2(new(-1)));
+        Console.WriteLine(Test2(new(0)));
+        Console.WriteLine(Test2(new(1)));
+    } 
+}
+";
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            compilation.VerifyEmitDiagnostics();
+            string expectedOutput = @"
+False
+False
+True
+True
+True
+Length
+False
+Length
+True
+Length
+True
+";
+            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            AssertEx.Multiple(
+                () => verifier.VerifyIL("X.Test1", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  cgt.un
+  IL_0004:  ret
+}"),
+                () => verifier.VerifyIL("X.Test2", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0010
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""int C.Length.get""
+  IL_0009:  ldc.i4.0
+  IL_000a:  clt
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
+  IL_0010:  ldc.i4.0
+  IL_0011:  ret
+}")
+            );
         }
 
         [Fact]
@@ -1508,7 +1608,7 @@ class X
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void ListPattern_Interface()
         {
             var source = @"
@@ -1516,12 +1616,15 @@ D.M(new C());
 
 interface I
 {
-    int Length => 1;
-    int this[int i] => 42;
-    string Slice(int i, int j) => ""slice"";
+    int Length { get; }
+    int this[int i] { get; }
+    string Slice(int i, int j);
 }
 class C : I
 {
+    public int Length => 1;
+    public int this[int i] => 42;
+    public string Slice(int i, int j) => ""slice"";
 }
 class D
 {
@@ -1534,17 +1637,14 @@ class D
     }
 }
 ";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
-                targetFramework: TargetFramework.NetCoreApp,
-                parseOptions: TestOptions.RegularWithListPatterns);
-            Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            comp.VerifyEmitDiagnostics();
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyEmitDiagnostics();
             string expectedOutput = @"
 1
 42
 slice
 ";
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
