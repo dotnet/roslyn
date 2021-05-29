@@ -30,6 +30,7 @@ indent_size = 2
 # JSON files
 [*.json]
 indent_size = 2
+indent_style = space
 
 # Dotnet code style settings:
 [*.{cs,vb}]

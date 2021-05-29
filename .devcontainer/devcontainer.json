@@ -14,6 +14,7 @@
     "davidanson.vscode-markdownlint",
     "dotjoshjohnson.xml",
     "ms-vscode-remote.remote-containers",
-    "ms-azuretools.vscode-docker"
+    "ms-azuretools.vscode-docker",
+    "ms-vscode.powershell"
   ]
 }
