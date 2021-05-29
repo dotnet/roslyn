@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -21,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         protected abstract ILogger CreateLogger(TelemetrySession telemetrySession);
 
-        public void InitializeTelemetrySession(TelemetrySession telemetrySession)
+        public Task InitializeTelemetrySessionAsync(TelemetrySession telemetrySession, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(CurrentSession is null);
 
@@ -30,11 +32,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
             CurrentSession = telemetrySession;
 
-            TelemetrySessionInitialized();
+            return TelemetrySessionInitializedAsync(cancellationToken);
         }
 
-        protected virtual void TelemetrySessionInitialized()
+        protected virtual Task TelemetrySessionInitializedAsync(CancellationToken cancellationToken)
         {
+            return Task.CompletedTask;
         }
 
         public bool HasActiveSession

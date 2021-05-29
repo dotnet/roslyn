@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API. Initializes ServiceHub process global state.
         /// </summary>
-        public void InitializeTelemetrySession(int hostProcessId, string serializedSession, CancellationToken cancellationToken)
+        public Task InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, CancellationToken cancellationToken)
         {
-            RunService(() =>
+            return RunServiceAsync(async () =>
             {
                 var services = GetWorkspace().Services;
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var telemetrySession = new TelemetrySession(serializedSession);
                 telemetrySession.Start();
 
-                telemetryService.InitializeTelemetrySession(telemetrySession);
+                await telemetryService.InitializeTelemetrySessionAsync(telemetrySession, cancellationToken).ConfigureAwait(false);
                 telemetryService.RegisterUnexpectedExceptionLogger(Logger);
 
                 // log telemetry that service hub started

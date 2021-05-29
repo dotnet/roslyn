@@ -33,7 +33,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
@@ -121,16 +120,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             _workspace = _componentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();
-
-            // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
-            // the background thread then we will experience hangs like we see in this bug:
-            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
-            // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
-            var telemetryService = (VisualStudioWorkspaceTelemetryService)_workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
-            telemetryService.InitializeTelemetrySession(TelemetryService.DefaultSession);
-
-            Logger.Log(FunctionId.Run_Environment,
-                KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
 
             InitializeColors();
 

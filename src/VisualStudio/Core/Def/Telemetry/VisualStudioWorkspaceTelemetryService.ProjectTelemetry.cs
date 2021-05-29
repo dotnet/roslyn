@@ -4,27 +4,19 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.Internal.VisualStudio.Shell;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetry
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
-    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class VisualStudioProjectTelemetryService
-        : ForegroundThreadAffinitizedObject, IProjectTelemetryListener, IEventListener<object>, IDisposable
+    internal partial class VisualStudioWorkspaceTelemetryService : IProjectTelemetryListener, IDisposable
     {
         private const string EventPrefix = "VS/Compilers/Compilation/";
         private const string PropertyPrefix = "VS.Compilers.Compilation.Inputs.";
@@ -41,67 +33,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         private const string TelemetryDocumentsCountName = PropertyPrefix + "Documents.Count";
         private const string TelemetryAdditionalDocumentsCountName = PropertyPrefix + "AdditionalDocuments.Count";
 
-        private readonly VisualStudioWorkspaceImpl _workspace;
-
         /// <summary>
         /// Our connection to the remote OOP server. Created on demand when we startup and then
         /// kept around for the lifetime of this service.
         /// </summary>
         private RemoteServiceConnection<IRemoteProjectTelemetryService>? _lazyConnection;
 
-        /// <summary>
-        /// Queue where we enqueue the information we get from OOP to process in batch in the future.
-        /// </summary>
-        private readonly AsyncBatchingWorkQueue<ProjectTelemetryData>? _workQueue;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioProjectTelemetryService(
-            VisualStudioWorkspaceImpl workspace,
-            IThreadingContext threadingContext) : base(threadingContext)
-        {
-            _workspace = workspace;
-
-            _workQueue = new AsyncBatchingWorkQueue<ProjectTelemetryData>(
-                TimeSpan.FromSeconds(1),
-                NotifyTelemetryServiceAsync,
-                threadingContext.DisposalToken);
-        }
-
         public void Dispose()
         {
             _lazyConnection?.Dispose();
         }
 
-        void IEventListener<object>.StartListening(Workspace workspace, object _)
+        private async Task StartProjectTelemetryWorkerAsync(CancellationToken cancellationToken)
         {
-            if (workspace is VisualStudioWorkspace)
-                _ = StartAsync();
-        }
-
-        private async Task StartAsync()
-        {
-            // Have to catch all exceptions coming through here as this is called from a
-            // fire-and-forget method and we want to make sure nothing leaks out.
-            try
-            {
-                await StartWorkerAsync().ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                // Cancellation is normal (during VS closing).  Just ignore.
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
-                // a BG service we don't want impacting the user experience.
-            }
-        }
-
-        private async Task StartWorkerAsync()
-        {
-            var cancellationToken = ThreadingContext.DisposalToken;
-
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
                 return;
@@ -186,7 +130,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
         /// </summary>
         public ValueTask ReportProjectTelemetryDataAsync(ProjectTelemetryData info, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_workQueue);
             _workQueue.AddWork(info);
             return ValueTaskFactory.CompletedTask;
         }
