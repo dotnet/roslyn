@@ -2864,7 +2864,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     if (oldBody != null)
                                     {
                                         var newBody = TryGetDeclarationBody(newDeclaration);
-                                        
+
                                         AnalyzeChangedMemberBody(
                                             oldDeclaration,
                                             newDeclaration,
@@ -3150,7 +3150,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }));
         }
 
-#region Type Layout Update Validation 
+        #region Type Layout Update Validation 
 
         internal void ReportTypeLayoutUpdateRudeEdits(
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
@@ -3255,7 +3255,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return false;
         }
 
-#endregion
+        #endregion
 
         private Func<SyntaxNode, SyntaxNode?> CreateSyntaxMapForEquivalentNodes(SyntaxNode oldDeclaration, SyntaxNode newDeclaration)
         {
@@ -3300,7 +3300,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             };
         }
 
-#region Constructors and Initializers
+        #region Constructors and Initializers
 
         /// <summary>
         /// Called when a body of a constructor or an initializer of a member is updated or inserted.
@@ -3591,9 +3591,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-#endregion
+        #endregion
 
-#region Lambdas and Closures
+        #region Lambdas and Closures
 
         private void ReportLambdaAndClosureRudeEdits(
             SemanticModel oldModel,
@@ -4385,9 +4385,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return reverseMap.TryGetValue(newScopeOpt, out var mappedScope) && mappedScope == oldScopeOpt;
         }
 
-#endregion
+        #endregion
 
-#region State Machines
+        #region State Machines
 
         private void ReportStateMachineRudeEdits(
             Compilation oldCompilation,
@@ -4426,11 +4426,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-#endregion
+        #endregion
 
-#endregion
+        #endregion
 
-#region Helpers 
+        #region Helpers 
 
         private static SyntaxNode? TryGetNode(SyntaxNode root, int position)
             => root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
@@ -4456,9 +4456,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-#endregion
+        #endregion
 
-#region Testing
+        #region Testing
 
         internal TestAccessor GetTestAccessor()
             => new(this);
@@ -4505,6 +4505,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-#endregion
+        #endregion
     }
 }
