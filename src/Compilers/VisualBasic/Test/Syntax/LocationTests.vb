@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestLineMapping()
-            Dim sampleProgram As String =
+            Dim sampleProgram =
 "Imports System
 Class X
 #ExternalSource(""banana.vb"", 20)
@@ -142,11 +142,11 @@ End Class
 
         <Fact>
         Public Sub TestLineMapping_Invalid_MissingStartDirective1()
-            Dim sampleProgram As String =
+            Dim sampleProgram =
 "Class X
 #End ExternalSource
 End Class
-"
+".NormalizeLineEndings()
             Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
 
             AssertMappedSpanEqual(tree, "Class X", "c:\goo.vb", 0, 0, 0, 7, hasMappedPath:=False)
@@ -161,7 +161,7 @@ End Class
 
         <Fact>
         Public Sub TestLineMapping_Invalid_MissingStartDirective3()
-            Dim sampleProgram As String =
+            Dim sampleProgram =
 "Class X
 #End ExternalSource
 Class Y
@@ -170,7 +170,7 @@ Class Z
 End Class
 End Class
 End Class
-"
+".NormalizeLineEndings()
             Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
 
             AssertMappedSpanEqual(tree, "Class X", "c:\goo.vb", 0, 0, 0, 7, hasMappedPath:=False)
@@ -187,11 +187,11 @@ End Class
 
         <Fact>
         Public Sub TestLineMapping_Invalid_MissingEndDirective1()
-            Dim sampleProgram As String =
+            Dim sampleProgram =
 "Class X
 #ExternalSource(""a.vb"", 20)
 End Class
-"
+".NormalizeLineEndings()
             Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
 
             AssertMappedSpanEqual(tree, "Class X", "c:\goo.vb", 0, 0, 0, 7, hasMappedPath:=False)
@@ -206,7 +206,7 @@ End Class
 
         <Fact>
         Public Sub TestLineMapping_Invalid_MissingEndDirective2()
-            Dim sampleProgram As String =
+            Dim sampleProgram =
 "Class X
 #ExternalSource(""a.vb"", 20)
 Class Y
@@ -215,7 +215,7 @@ End Class
 Class Z
 End Class
 End Class
-"
+".NormalizeLineEndings()
             Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
 
             AssertMappedSpanEqual(tree, "Class X", "c:\goo.vb", 0, 0, 0, 7, hasMappedPath:=False)
@@ -232,7 +232,7 @@ End Class
 
         <Fact>
         Public Sub TestLineMapping_Invalid_MissingEndDirective_LastLine()
-            Dim sampleProgram As String = "#End ExternalSource"
+            Dim sampleProgram = "#End ExternalSource"
             Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
 
             Assert.Empty(InspectLineMapping(tree))
@@ -240,13 +240,13 @@ End Class
 
         <Fact>
         Public Sub TestLineMappingNoDirectives()
-            Dim sampleProgram As String =
+            Dim sampleProgram =
 "Imports System
 Class X
 public x as integer
 public y as integer
 End Class
-"
+".NormalizeLineEndings()
             Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram, path:="c:\goo.vb")
 
             AssertMappedSpanEqual(tree, "ports Sy", "c:\goo.vb", 0, 2, 0, 10, hasMappedPath:=False)
@@ -258,10 +258,10 @@ End Class
 
         <Fact>
         Public Sub TestLineMapping_NoSyntaxTreePath()
-            Dim sampleProgram As String = "
+            Dim sampleProgram = "
 Class X
 End Class
-"
+".NormalizeLineEndings()
             AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path:=""), "Class X", "", 1, 0, 1, 7, hasMappedPath:=False)
             AssertMappedSpanEqual(SyntaxFactory.ParseSyntaxTree(sampleProgram, path:="    "), "Class X", "    ", 1, 0, 1, 7, hasMappedPath:=False)
         End Sub
@@ -269,8 +269,8 @@ End Class
 
         <Fact()>
         Public Sub TestEqualSourceLocations()
-            Dim sampleProgram As String = <text> class
-end class </text>.Value
+            Dim sampleProgram = "class
+end class".NormalizeLineEndings()
             Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram)
             Dim tree2 = VisualBasicSyntaxTree.ParseText(sampleProgram)
             Dim loc1 As SourceLocation = New SourceLocation(tree, New TextSpan(3, 4))
@@ -285,13 +285,13 @@ end class </text>.Value
 
         <Fact(), WorkItem(537926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537926"), WorkItem(545223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545223")>
         Public Sub TestSourceLocationToString()
-            Dim sampleProgram As String = <text>Imports System
+            Dim sampleProgram = "Imports System
 Class Test
-#ExternalSource("d:\banana.vb", 20)
+#ExternalSource(""d:\banana.vb"", 20)
     public x As integer
 #End ExternalSource
     public y As String
-End Class</text>.Value
+End Class".NormalizeLineEndings()
 
             Dim tree = VisualBasicSyntaxTree.ParseText(sampleProgram)
             Dim span1 As New TextSpan(sampleProgram.IndexOf("x As", StringComparison.Ordinal), 1)
