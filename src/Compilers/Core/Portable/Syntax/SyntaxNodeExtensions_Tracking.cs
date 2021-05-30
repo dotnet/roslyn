@@ -52,10 +52,9 @@ namespace Microsoft.CodeAnalysis
 
             return root.ReplaceNodes(nodes, (n, r) =>
             {
-                SyntaxAnnotation? id;
                 while (true)
                 {
-                    id = GetId(n);
+                    var id = GetId(n);
                     if (id != null)
                     {
                         if (!n.HasAnnotation(id))
