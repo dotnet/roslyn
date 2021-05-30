@@ -50,7 +50,23 @@ namespace Microsoft.CodeAnalysis
                 s_nodeToIdMap.GetValue(node, n => new SyntaxAnnotation(IdAnnotationKind));
             }
 
-            return root.ReplaceNodes(nodes, (n, r) => n.HasAnnotation(GetId(n)!) ? r : r.WithAdditionalAnnotations(GetId(n)!));
+            return root.ReplaceNodes(nodes, (n, r) =>
+            {
+                SyntaxAnnotation? id;
+                while (true)
+                {
+                    id = GetId(n);
+                    if (id != null)
+                    {
+                        if (!n.HasAnnotation(id))
+                        {
+                            r = r.WithAdditionalAnnotations(id);
+                        }
+                        break;
+                    }
+                }
+                return r;
+            });
         }
 
         /// <summary>
