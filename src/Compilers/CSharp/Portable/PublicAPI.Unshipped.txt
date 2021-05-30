@@ -51,3 +51,4 @@ Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.Update(Microsoft.CodeA
 Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.WithGlobalKeyword(Microsoft.CodeAnalysis.SyntaxToken globalKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitExpressionColon(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionColonSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitExpressionColon(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionColonSyntax node) -> TResult
+*REMOVED*Microsoft.CodeAnalysis.CSharp.SyntaxKind.DataKeyword = 8441 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

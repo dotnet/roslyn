@@ -23,6 +23,7 @@ Microsoft.CodeAnalysis.GeneratorPostInitializationContext.CancellationToken.get 
 Microsoft.CodeAnalysis.GeneratorPostInitializationContext.GeneratorPostInitializationContext() -> void
 Microsoft.CodeAnalysis.IMethodSymbol.MethodImplementationFlags.get -> System.Reflection.MethodImplAttributes
 Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
+Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation.IsExhaustive.get -> bool
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.OperationWalker() -> void
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordClassName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
