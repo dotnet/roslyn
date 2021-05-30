@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections.Internal;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Roslyn.Utilities;
 
@@ -548,6 +549,77 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(statements.All(s => s.Parent != this && s.Parent!.Kind is OperationKind.Block or OperationKind.SwitchCase));
             Operations = statements;
             Locals = ImmutableArray<ILocalSymbol>.Empty;
+        }
+    }
+
+    internal sealed partial class UsingDeclarationOperation
+    {
+        public ImmutableArray<IArgumentOperation> DisposeMethodArguments => DisposeInfo.DisposeMethod != null ?
+            DisposeInfo.DisposeArguments : ImmutableArray<IArgumentOperation>.Empty;
+
+        public IMethodSymbol DisposeMethod
+        {
+            get
+            {
+                if (DisposeInfo.DisposeMethod is { } disposeMethod)
+                {
+                    return disposeMethod;
+                }
+
+                //how can we get the common symbols without a semantic model?
+                if (((IOperation)this).SemanticModel is { Compilation: { } compilation })
+                {
+                    if (IsAsynchronous)
+                    {
+                        var m = compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)!;
+                        return (IMethodSymbol)m.GetISymbol();
+                    }
+                    else
+                    {
+                        var m = compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)!;
+                        return (IMethodSymbol)m.GetISymbol();
+                    }
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(null);
+                }
+            }
+        }
+    }
+
+    internal sealed partial class UsingOperation
+    {
+        public ImmutableArray<IArgumentOperation> DisposeMethodArguments => DisposeInfo.DisposeMethod != null ?
+            DisposeInfo.DisposeArguments : ImmutableArray<IArgumentOperation>.Empty;
+
+        public IMethodSymbol DisposeMethod
+        {
+            get
+            {
+                if (DisposeInfo.DisposeMethod is { } disposeMethod)
+                {
+                    return disposeMethod;
+                }
+
+                if (((IOperation)this).SemanticModel is { Compilation: { } compilation })
+                {
+                    if (IsAsynchronous)
+                    {
+                        var m = compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)!;
+                        return (IMethodSymbol)m.GetISymbol();
+                    }
+                    else
+                    {
+                        var m = compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)!;
+                        return (IMethodSymbol)m.GetISymbol();
+                    }
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(null);
+                }
+            }
         }
     }
 }
