@@ -64,7 +64,7 @@ stages:
         - DotNetFramework
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: NetCoreInternal-Pool
-        queue: BuildPool.Windows.10.Amd64.VS2019.Pre
+        queue: BuildPool.Server.Amd64.VS2017
 
     steps:
     # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
@@ -211,7 +211,7 @@ stages:
         ARTIFACTSERVICES_DROP_PAT: $(_DevDivDropAccessToken)
       inputs:
         dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
-        buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
+        buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
         sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
         toLowerCase: false
         usePat: false
