@@ -485,20 +485,6 @@
         </summary>
       </Comments>
     </Property>
-    <Property Name="DisposeMethod" Type="IMethodSymbol" SkipGeneration="true">
-        <Comments>
-            <summary>
-                Invoked method for disposing.
-            </summary>
-        </Comments>
-    </Property>
-    <Property Name="DisposeMethodArguments" Type="ImmutableArray&lt;IArgumentOperation&gt;" SkipGeneration="true">
-        <Comments>
-            <summary>
-                Arguments of the dispose invocation.
-            </summary>
-        </Comments>
-    </Property>
     <Property Name="DisposeInfo" Type="DisposeOperationInfo" Internal="true">
       <Comments>
         <summary>Information about the method that will be invoked to dispose the <see cref="Resources" /> when pattern based disposal is used.</summary>
@@ -2957,20 +2943,6 @@
       <Comments>
         <summary>True if this is an asynchronous using declaration.</summary>
       </Comments>
-    </Property>
-    <Property Name="DisposeMethod" Type="IMethodSymbol" SkipGeneration="true">
-        <Comments>
-            <summary>
-                Invoked method for disposing.
-            </summary>
-        </Comments>
-    </Property>
-    <Property Name="DisposeMethodArguments" Type="ImmutableArray&lt;IArgumentOperation&gt;" SkipGeneration="true">
-        <Comments>
-            <summary>
-                Arguments of the dispose invocation.
-            </summary>
-        </Comments>
     </Property>
     <Property Name="DisposeInfo" Type="DisposeOperationInfo" Internal="true">
       <Comments>

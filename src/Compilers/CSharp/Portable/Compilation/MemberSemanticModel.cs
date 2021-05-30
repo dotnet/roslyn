@@ -927,35 +927,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default(ForEachStatementInfo);
             }
 
-            var foreachInfo = _operationFactory.Value.GetForEachLoopOperatorInfo(boundForEach);
+            ForEachEnumeratorInfo enumeratorInfoOpt = boundForEach.EnumeratorInfoOpt;
 
-            IMethodSymbol disposeMethod = null;
-            if (foreachInfo.NeedsDispose)
+            Debug.Assert(enumeratorInfoOpt != null || boundForEach.HasAnyErrors);
+
+            if (enumeratorInfoOpt == null)
             {
-                if (foreachInfo.PatternDisposeMethod is { } method)
+                return default(ForEachStatementInfo);
+            }
+
+            // Even though we usually pretend to be using System.Collection.IEnumerable
+            // for arrays, that doesn't make sense for pointer arrays since object
+            // (the type of System.Collections.IEnumerator.Current) isn't convertible
+            // to pointer types.
+            if (enumeratorInfoOpt.ElementType.IsPointerType())
+            {
+                Debug.Assert(!enumeratorInfoOpt.CurrentConversion.IsValid);
+                return default(ForEachStatementInfo);
+            }
+
+            // NOTE: we're going to list GetEnumerator, etc for array and string
+            // collections, even though we know that's not how the implementation
+            // actually enumerates them.
+            MethodSymbol disposeMethod = null;
+            if (enumeratorInfoOpt.NeedsDisposal)
+            {
+                if (enumeratorInfoOpt.PatternDisposeInfo is { Method: var method })
                 {
                     disposeMethod = method;
                 }
                 else
                 {
-                    disposeMethod = (foreachInfo.IsAsynchronous
+                    disposeMethod = enumeratorInfoOpt.IsAsync
                     ? (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)
-                    : (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)).GetPublicSymbol();
+                    : (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
                 }
             }
 
             return new ForEachStatementInfo(
-                foreachInfo.IsAsynchronous,
-                foreachInfo.GetEnumeratorMethod,
-                foreachInfo.GetEnumeratorArguments,
-                foreachInfo.MoveNextMethod,
-                foreachInfo.MoveNextArguments,
-                foreachInfo.CurrentProperty,
-                disposeMethod,
-                foreachInfo.DisposeArguments,
-                foreachInfo.ElementType,
+                enumeratorInfoOpt.IsAsync,
+                enumeratorInfoOpt.GetEnumeratorInfo.Method.GetPublicSymbol(),
+                enumeratorInfoOpt.MoveNextInfo.Method.GetPublicSymbol(),
+                currentProperty: ((PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol).GetPublicSymbol(),
+                disposeMethod.GetPublicSymbol(),
+                enumeratorInfoOpt.ElementType.GetPublicSymbol(),
                 boundForEach.ElementConversion,
-                boundForEach.EnumeratorInfoOpt.CurrentConversion);
+                enumeratorInfoOpt.CurrentConversion);
         }
 
         public override DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node)

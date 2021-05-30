@@ -494,14 +494,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Always false for VB.
         /// </summary>
         bool IsAsynchronous { get; }
-        /// <summary>
-        /// Invoked method for disposing.
-        /// </summary>
-        IMethodSymbol DisposeMethod { get; }
-        /// <summary>
-        /// Arguments of the dispose invocation.
-        /// </summary>
-        ImmutableArray<IArgumentOperation> DisposeMethodArguments { get; }
     }
     /// <summary>
     /// Represents an operation that drops the resulting value and the type of the underlying wrapped <see cref="Operation" />.
@@ -3197,14 +3189,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// True if this is an asynchronous using declaration.
         /// </summary>
         bool IsAsynchronous { get; }
-        /// <summary>
-        /// Invoked method for disposing.
-        /// </summary>
-        IMethodSymbol DisposeMethod { get; }
-        /// <summary>
-        /// Arguments of the dispose invocation.
-        /// </summary>
-        ImmutableArray<IArgumentOperation> DisposeMethodArguments { get; }
     }
     /// <summary>
     /// Represents a negated pattern.
