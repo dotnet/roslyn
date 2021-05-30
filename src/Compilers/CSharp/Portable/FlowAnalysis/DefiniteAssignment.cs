@@ -1580,87 +1580,98 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitPattern(pattern);
             var whenFail = StateWhenFalse;
             SetState(StateWhenTrue);
-            AssignPatternVariables(pattern);
+            assignPatternVariablesAndMarkReadFields(pattern);
             SetConditionalState(this.State, whenFail);
-        }
 
-        /// <summary>
-        /// Find the pattern variables of the pattern, and make them definitely assigned if <paramref name="definitely"/>.
-        /// That would be false under "not" and "or" patterns.
-        /// </summary>
-        private void AssignPatternVariables(BoundPattern pattern, bool definitely = true)
-        {
-            switch (pattern.Kind)
+            // Find the pattern variables of the pattern, and make them definitely assigned if <paramref name="definitely"/>.
+            // That would be false under "not" and "or" patterns.
+            void assignPatternVariablesAndMarkReadFields(BoundPattern pattern, bool definitely = true)
             {
-                case BoundKind.DeclarationPattern:
-                    {
-                        var pat = (BoundDeclarationPattern)pattern;
-                        if (definitely)
-                            Assign(pat, value: null, isRef: false, read: false);
-                        break;
-                    }
-                case BoundKind.DiscardPattern:
-                    break;
-                case BoundKind.ConstantPattern:
-                    {
-                        var pat = (BoundConstantPattern)pattern;
-                        this.VisitRvalue(pat.Value);
-                        break;
-                    }
-                case BoundKind.RecursivePattern:
-                    {
-                        var pat = (BoundRecursivePattern)pattern;
-                        if (!pat.Deconstruction.IsDefaultOrEmpty)
+                switch (pattern.Kind)
+                {
+                    case BoundKind.DeclarationPattern:
                         {
-                            foreach (var subpat in pat.Deconstruction)
+                            var pat = (BoundDeclarationPattern)pattern;
+                            if (definitely)
+                                Assign(pat, value: null, isRef: false, read: false);
+                            break;
+                        }
+                    case BoundKind.DiscardPattern:
+                        break;
+                    case BoundKind.ConstantPattern:
+                        {
+                            var pat = (BoundConstantPattern)pattern;
+                            this.VisitRvalue(pat.Value);
+                            break;
+                        }
+                    case BoundKind.RecursivePattern:
+                        {
+                            var pat = (BoundRecursivePattern)pattern;
+                            if (!pat.Deconstruction.IsDefaultOrEmpty)
                             {
-                                AssignPatternVariables(subpat.Pattern, definitely);
+                                foreach (var subpat in pat.Deconstruction)
+                                {
+                                    assignPatternVariablesAndMarkReadFields(subpat.Pattern, definitely);
+                                }
                             }
-                        }
-                        if (!pat.Properties.IsDefaultOrEmpty)
-                        {
-                            foreach (BoundSubpattern sub in pat.Properties)
+                            if (!pat.Properties.IsDefaultOrEmpty)
                             {
-                                AssignPatternVariables(sub.Pattern, definitely);
+                                foreach (BoundSubpattern sub in pat.Properties)
+                                {
+                                    if (sub is BoundPropertySubpattern { Member: var member }
+                                        && _sourceAssembly is not null)
+                                    {
+                                        while (member is not null)
+                                        {
+                                            if (member.Symbol is FieldSymbol field)
+                                            {
+                                                _sourceAssembly.NoteFieldAccess(field, read: true, write: false);
+                                            }
+
+                                            member = member.Receiver;
+                                        }
+                                    }
+                                    assignPatternVariablesAndMarkReadFields(sub.Pattern, definitely);
+                                }
                             }
+                            if (definitely)
+                                Assign(pat, null, false, false);
+                            break;
                         }
-                        if (definitely)
-                            Assign(pat, null, false, false);
-                        break;
-                    }
-                case BoundKind.ITuplePattern:
-                    {
-                        var pat = (BoundITuplePattern)pattern;
-                        foreach (var subpat in pat.Subpatterns)
+                    case BoundKind.ITuplePattern:
                         {
-                            AssignPatternVariables(subpat.Pattern, definitely);
+                            var pat = (BoundITuplePattern)pattern;
+                            foreach (var subpat in pat.Subpatterns)
+                            {
+                                assignPatternVariablesAndMarkReadFields(subpat.Pattern, definitely);
+                            }
+                            break;
                         }
+                    case BoundKind.TypePattern:
                         break;
-                    }
-                case BoundKind.TypePattern:
-                    break;
-                case BoundKind.RelationalPattern:
-                    {
-                        var pat = (BoundRelationalPattern)pattern;
-                        this.VisitRvalue(pat.Value);
-                        break;
-                    }
-                case BoundKind.NegatedPattern:
-                    {
-                        var pat = (BoundNegatedPattern)pattern;
-                        AssignPatternVariables(pat.Negated, definitely: false);
-                        break;
-                    }
-                case BoundKind.BinaryPattern:
-                    {
-                        var pat = (BoundBinaryPattern)pattern;
-                        bool def = definitely && !pat.Disjunction;
-                        AssignPatternVariables(pat.Left, def);
-                        AssignPatternVariables(pat.Right, def);
-                        break;
-                    }
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+                    case BoundKind.RelationalPattern:
+                        {
+                            var pat = (BoundRelationalPattern)pattern;
+                            this.VisitRvalue(pat.Value);
+                            break;
+                        }
+                    case BoundKind.NegatedPattern:
+                        {
+                            var pat = (BoundNegatedPattern)pattern;
+                            assignPatternVariablesAndMarkReadFields(pat.Negated, definitely: false);
+                            break;
+                        }
+                    case BoundKind.BinaryPattern:
+                        {
+                            var pat = (BoundBinaryPattern)pattern;
+                            bool def = definitely && !pat.Disjunction;
+                            assignPatternVariablesAndMarkReadFields(pat.Left, def);
+                            assignPatternVariablesAndMarkReadFields(pat.Right, def);
+                            break;
+                        }
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+                }
             }
         }
 
