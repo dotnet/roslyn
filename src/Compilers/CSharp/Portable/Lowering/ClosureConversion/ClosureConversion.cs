@@ -1687,7 +1687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!method.IsGenericMethod)
                 {
-                    typeMap = default;
+                    typeMap = null;
                     return false;
                 }
 
@@ -1703,7 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                typeMap = default;
+                typeMap = null;
                 return false;
             }
         }
