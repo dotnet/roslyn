@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, _factory.Call(input, e.Property.GetMethod, _factory.Literal(e.Index)));
                         }
 
-                    case BoundDagIndexerEvaluation { IndexerAccess: null } e:
+                    case BoundDagIndexerEvaluation { IndexerAccess: null, IndexerSymbol: null } e:
                         {
                             // array[int]
                             Debug.Assert(input.Type?.IsSZArray() == true);
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, access);
                         }
 
-                    case BoundDagIndexerEvaluation { IndexerAccess: BoundIndexOrRangePatternIndexerAccess { PatternSymbol: PropertySymbol indexer } } e:
+                    case BoundDagIndexerEvaluation { IndexerSymbol: PropertySymbol indexer } e:
                         {
                             // this[int]
                             BoundExpression access = _factory.Indexer(input, indexer, makeImplicitIndexArgument(e.Index, e.LengthTemp));
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, access);
                         }
 
-                    case BoundDagSliceEvaluation { IndexerAccess: null } e:
+                    case BoundDagSliceEvaluation { IndexerAccess: null, SliceMethod: null } e:
                         {
                             // RuntimeHelpers.GetSubArray(T[], Range)
                             TypeSymbol inputType = input.Type;
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, callExpr);
                         }
 
-                    case BoundDagSliceEvaluation { IndexerAccess: BoundIndexOrRangePatternIndexerAccess { PatternSymbol: MethodSymbol sliceMethod } } e:
+                    case BoundDagSliceEvaluation { SliceMethod: MethodSymbol sliceMethod } e:
                         {
                             // Slice(int, int)
                             Debug.Assert(sliceMethod.ParameterCount == 2);

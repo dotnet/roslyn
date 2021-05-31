@@ -194,7 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            BoundExpression? indexerAccess = null;
+            BoundIndexerAccess? indexerAccess = null;
+            MethodSymbol? sliceMethod = null;
             BoundPattern? pattern = null;
 
             // We don't require the type to be sliceable if there's no subpattern.
@@ -205,9 +206,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     sliceType = inputType;
                 }
-                else if (TryPerformPatternIndexerLookup(node, inputType, argIsIndex: false, out indexerAccess, diagnostics))
+                else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: false, out indexerAccess, out Symbol? patternSymbol, diagnostics))
                 {
-                    sliceType = indexerAccess.Type!;
+                    if (patternSymbol is MethodSymbol method)
+                    {
+                        sliceMethod = method;
+                        sliceType = method.ReturnType;
+                    }
+                    else
+                    {
+                        Debug.Assert(indexerAccess is not null);
+                        sliceType = indexerAccess.Type;
+                    }
                 }
                 else
                 {
@@ -219,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 pattern = BindPattern(node.Pattern, sliceType, ExternalScope, permitDesignations, hasErrors, diagnostics);
             }
 
-            return new BoundSlicePattern(node, pattern, indexerAccess, inputType: inputType, narrowedType: inputType, hasErrors);
+            return new BoundSlicePattern(node, pattern, indexerAccess, sliceMethod, inputType: inputType, narrowedType: inputType, hasErrors);
         }
 
         private ImmutableArray<BoundPattern> BindListPatternSubpatterns(
@@ -289,15 +299,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause));
 
             TypeSymbol elementType;
-            BoundExpression? indexerAccess = null;
+            BoundIndexerAccess? indexerAccess = null;
+            PropertySymbol? indexerSymbol = null;
             bool isUnsupported = false;
             if (inputType.IsSZArray())
             {
                 elementType = ((ArrayTypeSymbol)inputType).ElementType;
             }
-            else if (TryPerformPatternIndexerLookup(node, inputType, argIsIndex: true, out indexerAccess, diagnostics))
+            else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, diagnostics))
             {
-                elementType = indexerAccess.Type!;
+                if (patternSymbol is PropertySymbol indexer)
+                {
+                    indexerSymbol = indexer;
+                    elementType = indexer.Type;
+                }
+                else
+                {
+                    Debug.Assert(indexerAccess is not null);
+                    elementType = indexerAccess.Type;
+                }
             }
             else
             {
@@ -317,12 +337,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(node.Subpatterns, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
-            return new BoundListPatternClause(node, subpatterns, sawSlice, indexerAccess, hasErrors);
+            return new BoundListPatternClause(node, subpatterns, sawSlice, indexerAccess, indexerSymbol, hasErrors);
         }
 
         private bool TryPerformPatternIndexerLookup(
             SyntaxNode syntax, TypeSymbol receiverType, bool argIsIndex,
-            [NotNullWhen(true)] out BoundExpression? result,
+            out BoundIndexerAccess? indexerAccess,
+            out Symbol? patternSymbol,
             BindingDiagnosticBag diagnostics)
         {
             result = null;
