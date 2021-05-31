@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     sliceType = inputType;
                 }
-                else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: false, out indexerAccess, diagnostics))
+                else if (TryPerformPatternIndexerLookup(node, inputType, argIsIndex: false, out indexerAccess, diagnostics))
                 {
                     sliceType = indexerAccess.Type!;
                 }
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 elementType = ((ArrayTypeSymbol)inputType).ElementType;
             }
-            else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: true, out indexerAccess, diagnostics))
+            else if (TryPerformPatternIndexerLookup(node, inputType, argIsIndex: true, out indexerAccess, diagnostics))
             {
                 elementType = indexerAccess.Type!;
             }
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundListPatternClause(node, subpatterns, sawSlice, indexerAccess, hasErrors);
         }
 
-        private bool TryFindIndexerOrIndexerPattern(
+        private bool TryPerformPatternIndexerLookup(
             SyntaxNode syntax, TypeSymbol receiverType, bool argIsIndex,
             [NotNullWhen(true)] out BoundExpression? result,
             BindingDiagnosticBag diagnostics)
@@ -329,15 +329,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol argType = Compilation.GetWellKnownType(argIsIndex ? WellKnownType.System_Index : WellKnownType.System_Range);
 
-            // TODO
-            //if (argType.IsErrorType())
-            //{
-            //    // If the argType is missing, we will fallback to the implicit indexer support.
-            //    return false;
-            //}
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var bindingDiagnostics = BindingDiagnosticBag.Create(diagnostics);
 
             var lookupResult = LookupResult.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            if (argType.IsErrorType())
+            {
+                // If the argType is missing, we will fallback to the implicit indexer support.
+                if (TryFindIndexOrRangeIndexerPattern(lookupResult, receiverOpt: null, receiverType, argIsIndex, out Symbol? patternSymbol, bindingDiagnostics, ref useSiteInfo))
+                {
+                    throw new System.NotImplementedException();
+                }
+
+                return false;
+            }
+
             LookupMembersInType(
                 lookupResult,
                 receiverType,
@@ -361,7 +367,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 analyzedArguments.Arguments.Add(new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, argType));
                 var receiver = new BoundImplicitReceiver(syntax, receiverType);
-                var bindingDiagnostics = BindingDiagnosticBag.Create(diagnostics);
                 var boundAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, indexerGroup, analyzedArguments, bindingDiagnostics);
                 if (boundAccess is BoundIndexerAccess { ResultKind: LookupResultKind.Viable } indexerAccess &&
                     indexerAccess.Indexer.GetMethod is { } getMethod && IsAccessible(getMethod, ref useSiteInfo))
