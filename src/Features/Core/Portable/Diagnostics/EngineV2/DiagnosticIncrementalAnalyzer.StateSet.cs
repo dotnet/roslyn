@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public readonly DiagnosticAnalyzer Analyzer;
             public readonly string ErrorSourceName;
 
-            // analyzer version this state belong to
-            public readonly VersionStamp AnalyzerVersion;
             private readonly PersistentNames _persistentNames;
 
             private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
@@ -36,9 +34,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Language = language;
                 Analyzer = analyzer;
                 ErrorSourceName = errorSourceName;
-
-                var (_, version) = Analyzer.GetAnalyzerIdAndVersion();
-                AnalyzerVersion = version;
 
                 _persistentNames = PersistentNames.Create(Analyzer);
 
