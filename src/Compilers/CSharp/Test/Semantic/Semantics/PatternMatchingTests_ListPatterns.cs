@@ -970,26 +970,13 @@ class X
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "a[..]").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(7, 13));
         }
 
-        [Theory(Skip = "TODO")]
-        [CombinatorialData]
-        public void ListPattern_MissingMembers(bool isIndexable, bool isSliceable, bool isCountable)
+        [Theory]
+        [PairwiseData]
+        public void ListPattern_MissingMembers(
+            bool implicitIndex, bool explicitIndex,
+            bool implicitRange, bool explicitRange,
+            bool hasLengthProp, bool hasCountProp)
         {
-            var random = new Random();
-            (bool, bool) split(bool supported)
-            {
-                return !supported ? (false, false) : random.Next(3) switch
-                {
-                    0 => (false, true),
-                    1 => (true, false),
-                    2 => (true, true),
-                    _ => throw new("unreachable"),
-                };
-            }
-
-            var (implicitIndex, explicitIndex) = split(isIndexable);
-            var (implicitRange, explicitRange) = split(isSliceable);
-            var (hasLengthProp, hasCountProp) = split(isCountable);
-
             var source = @$"
 class X
 {{
@@ -1007,6 +994,10 @@ class X
 }}
 ";
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+
+            var isCountable = hasLengthProp || hasCountProp;
+            var isSliceable = implicitRange || explicitRange;
+            var isIndexable = implicitIndex || explicitIndex;
             var expectedDiagnostics = new[]
             {
                 // (13,24): error CS9202: Length patterns may not be used for a value of type 'X'.
@@ -1017,7 +1008,7 @@ class X
                 !isIndexable || !isCountable ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{ .._ }").WithArguments("X").WithLocation(13, 28) : null,
                 // (13,30): error CS9201: Slice patterns may not be used for a value of type 'X'.
                 //         _ = new X() is [_] { .._ };
-                !isSliceable ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".._").WithArguments("X").WithLocation(13, 30) : null
+                !isSliceable || !isCountable ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".._").WithArguments("X").WithLocation(13, 30) : null
             };
             compilation.VerifyEmitDiagnostics(expectedDiagnostics.WhereNotNull().ToArray());
         }
@@ -1306,7 +1297,7 @@ class X
             CompileAndVerify(compilation, expectedOutput: "True");
         }
 
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ListPattern_MemberLookup_Fallback_MissingIndexOrRange()
         {
             var source = @"
