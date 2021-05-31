@@ -32,10 +32,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Contract.ThrowIfTrue(symbols.IsDefaultOrEmpty);
 
-            // We should only get an actual group of symbols if these were from source.
-            // Metadata symbols never form a group.
-            Contract.ThrowIfTrue(symbols.Length >= 2 && symbols.Any(s => s.Locations.Any(loc => loc.IsInMetadata)));
-
             Symbols = ImmutableHashSet.CreateRange(
                 MetadataUnifyingEquivalenceComparer.Instance, symbols);
         }
