@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task SynchronizeWithBuildAsync(
+        public void SynchronizeWithBuild(
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> buildDiagnostics,
             TaskQueue postBuildAndErrorListRefreshTaskQueue,
@@ -66,13 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
 
                         // Save into in-memory cache.
-                        await state.SaveInMemoryCacheAsync(project, result).ConfigureAwait(false);
-
-                        // Save into persistent storage on a separate post-build and post error list refresh task queue.
-                        _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(
-                                nameof(SynchronizeWithBuildAsync),
-                                () => state.SaveAsync(PersistentStorageService, project, result),
-                                cancellationToken);
+                        state.SaveInMemoryCache(project, result);
                     }
 
                     // Raise diagnostic updated events after the new diagnostics have been stored into the in-memory cache.
@@ -97,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // Enqueue remaining re-analysis with normal priority on a separate task queue
                     // that will execute at the end of all the post build and error list refresh tasks.
-                    _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuildAsync), () =>
+                    _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuild), () =>
                     {
                         // Enqueue re-analysis of open documents.
                         AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds());

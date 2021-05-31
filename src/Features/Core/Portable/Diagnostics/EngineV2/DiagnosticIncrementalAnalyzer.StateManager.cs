@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// </summary>
         private partial class StateManager
         {
-            private readonly IPersistentStorageService _persistentStorageService;
             private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
 
             /// <summary>
@@ -40,9 +39,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// </summary>
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
 
-            public StateManager(IPersistentStorageService persistentStorageService, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            public StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache)
             {
-                _persistentStorageService = persistentStorageService;
                 _analyzerInfoCache = analyzerInfoCache;
 
                 _hostAnalyzerStateMap = ImmutableDictionary<string, HostAnalyzerStateSets>.Empty;
@@ -202,25 +200,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return removed;
             }
 
-            public async Task<bool> OnDocumentOpenedAsync(IEnumerable<StateSet> stateSets, TextDocument document)
+            public static async Task<bool> OnDocumentOpenedAsync(IEnumerable<StateSet> stateSets, TextDocument document)
             {
                 // can not be cancelled
                 var opened = false;
                 foreach (var stateSet in stateSets)
                 {
-                    opened |= await stateSet.OnDocumentOpenedAsync(_persistentStorageService, document).ConfigureAwait(false);
+                    opened |= await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
                 }
 
                 return opened;
             }
 
-            public async Task<bool> OnDocumentClosedAsync(IEnumerable<StateSet> stateSets, TextDocument document)
+            public static async Task<bool> OnDocumentClosedAsync(IEnumerable<StateSet> stateSets, TextDocument document)
             {
                 // can not be cancelled
                 var removed = false;
                 foreach (var stateSet in stateSets)
                 {
-                    removed |= await stateSet.OnDocumentClosedAsync(_persistentStorageService, document).ConfigureAwait(false);
+                    removed |= await stateSet.OnDocumentClosedAsync(document).ConfigureAwait(false);
                 }
 
                 return removed;

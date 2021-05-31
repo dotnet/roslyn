@@ -8,15 +8,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -158,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var state = stateSet.GetOrCreateProjectState(project.Id);
 
-                    await state.SaveAsync(PersistentStorageService, project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
+                    state.SaveInMemoryCache(project, result.GetResult(stateSet.Analyzer));
                 }
 
                 RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
@@ -183,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other component knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                await _stateManager.OnDocumentOpenedAsync(stateSets, document).ConfigureAwait(false);
+                await StateManager.OnDocumentOpenedAsync(stateSets, document).ConfigureAwait(false);
             }
         }
 
@@ -201,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var documentHadDiagnostics = await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
+                var documentHadDiagnostics = await StateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
                 RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
         }

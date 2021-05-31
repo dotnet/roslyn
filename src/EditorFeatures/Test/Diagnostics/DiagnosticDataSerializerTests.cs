@@ -4,6 +4,8 @@
 
 #nullable disable
 
+#if false
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -362,3 +364,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
     }
 }
+
+#endif
