@@ -809,17 +809,10 @@ True
 
         [Theory]
         [CombinatorialData]
-        public void ListPattern_UnsupportedTypes(bool hasLengthPattern, [CombinatorialRange(0, 4)] int hasListPattern)
+        public void ListPattern_UnsupportedTypes(bool hasLengthPattern, [CombinatorialValues("", "0", "..", ".._")] string elementPattern)
         {
             var lengthPattern = hasLengthPattern ? "[0]" : null;
-            var listPattern = hasListPattern switch
-            {
-                0 => null,
-                1 => "{0}",
-                2 => "{..}",
-                3 => "{.._}",
-                _ => throw new("unreachable")
-            };
+            var listPattern = elementPattern != "" ? "{" + elementPattern + "}" : "";
             var source = @"
 class X
 {
@@ -834,9 +827,9 @@ class X
                 // error CS9202: Length patterns may not be used for a value of type 'object'.
                 hasLengthPattern ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForLengthPattern, lengthPattern).WithArguments("object") : null,
                 // error CS9200: List patterns may not be used for a value of type 'object'.
-                hasListPattern > 0 ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, listPattern).WithArguments("object") : null,
+                elementPattern != "" ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, listPattern).WithArguments("object") : null,
                 // error CS9201: Slice patterns may not be used for a value of type 'object'.
-                hasListPattern == 3 ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, ".._").WithArguments("object") : null
+                elementPattern.StartsWith("..") ? Diagnostic(ErrorCode.ERR_UnsupportedTypeForSlicePattern, elementPattern).WithArguments("object") : null
             };
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
             compilation.VerifyEmitDiagnostics(expectedDiagnostics.WhereNotNull().ToArray());
