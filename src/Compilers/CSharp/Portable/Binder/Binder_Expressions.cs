@@ -7879,7 +7879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool argIsIndex = argIsIndexNotRange.Value();
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            if (!TryFindIndexOrRangeIndexerPattern(syntax, receiverOpt, receiverType, argIsIndex: argIsIndex,
+            if (!TryFindIndexOrRangeIndexerPattern(receiverOpt, receiverType, argIsIndex: argIsIndex,
                 out PropertySymbol? lengthOrCountProperty, out Symbol? patternSymbol, diagnostics, ref useSiteInfo))
             {
                 return false;
@@ -7893,6 +7893,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindToNaturalType(argument, diagnostics),
                 patternSymbol.GetTypeOrReturnType().Type);
 
+            if (!argIsIndex)
+            {
+                checkWellKnown(WellKnownMember.System_Range__get_Start);
+                checkWellKnown(WellKnownMember.System_Range__get_End);
+            }
+            checkWellKnown(WellKnownMember.System_Index__GetOffset);
+
             _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
             if (arguments.Names.Count > 0)
             {
@@ -7903,10 +7910,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments.Names[0].GetLocation());
             }
             return true;
+
+            void checkWellKnown(WellKnownMember member)
+            {
+                // Check required well-known member. They may not be needed
+                // during lowering, but it's simpler to always require them to prevent
+                // the user from getting surprising errors when optimizations fail
+                _ = GetWellKnownTypeMember(member, diagnostics, syntax: syntax);
+            }
         }
 
         private bool TryFindIndexOrRangeIndexerPattern(
-            SyntaxNode syntax,
             BoundExpression? receiverOpt,
             TypeSymbol receiverType,
             bool argIsIndex,
@@ -7928,7 +7942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
 
             if (TryLookupLengthOrCount(receiverType, lookupResult, out lengthOrCountProperty, ref useSiteInfo) &&
-                TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo))
+                TryFindIndexOrRangeIndexerPattern(lookupResult, receiverOpt, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo))
             {
                 CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
                 lookupResult.Free();
@@ -7941,15 +7955,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool TryFindIndexOrRangeIndexerPattern(
-            SyntaxNode syntax,
             LookupResult lookupResult,
             BoundExpression? receiverOpt,
             TypeSymbol receiverType,
             bool argIsIndex,
             [NotNullWhen(true)] out Symbol? patternSymbol,
             BindingDiagnosticBag diagnostics,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            bool forPattern = false)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (argIsIndex)
             {
@@ -7978,7 +7990,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternSymbol = property;
-                            checkWellKnown(WellKnownMember.System_Index__GetOffset);
                             return true;
                         }
                     }
@@ -7993,9 +8004,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (substring is object)
                 {
                     patternSymbol = substring;
-                    checkWellKnown(WellKnownMember.System_Range__get_Start);
-                    checkWellKnown(WellKnownMember.System_Range__get_End);
-                    checkWellKnown(WellKnownMember.System_Index__GetOffset);
                     return true;
                 }
             }
@@ -8030,9 +8038,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             patternSymbol = method;
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
-                            checkWellKnown(WellKnownMember.System_Range__get_Start);
-                            checkWellKnown(WellKnownMember.System_Range__get_End);
-                            checkWellKnown(WellKnownMember.System_Index__GetOffset);
                             return true;
                         }
                     }
@@ -8041,17 +8046,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             patternSymbol = null;
             return false;
-
-            void checkWellKnown(WellKnownMember member)
-            {
-                // For list or slice patterns, there's no index or range expression in the source so we won't report missing members here.
-                if (forPattern)
-                    return;
-                // Check required well-known member. They may not be needed
-                // during lowering, but it's simpler to always require them to prevent
-                // the user from getting surprising errors when optimizations fail
-                _ = GetWellKnownTypeMember(member, diagnostics, syntax: syntax);
-            }
         }
 
         private bool TryLookupLengthOrCount(
