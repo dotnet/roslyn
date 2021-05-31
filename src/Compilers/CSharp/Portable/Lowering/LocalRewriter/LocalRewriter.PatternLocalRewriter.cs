@@ -280,6 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(inputType is { });
                             Debug.Assert(inputType.IsSZArray());
                             Debug.Assert(e.StartIndex >= 0 && e.EndIndex <= 0);
+
                             BoundExpression callExpr = _factory.Call(
                                 receiver: null,
                                 _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T)
