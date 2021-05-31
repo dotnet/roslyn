@@ -188,53 +188,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return stateSets.ToImmutable();
             }
 
-            public static bool OnDocumentReset(IEnumerable<StateSet> stateSets, TextDocument document)
-            {
-                // can not be cancelled
-                var removed = false;
-                foreach (var stateSet in stateSets)
-                {
-                    removed |= stateSet.OnDocumentReset(document);
-                }
-
-                return removed;
-            }
-
-            public static async Task<bool> OnDocumentOpenedAsync(IEnumerable<StateSet> stateSets, TextDocument document)
-            {
-                // can not be cancelled
-                var opened = false;
-                foreach (var stateSet in stateSets)
-                {
-                    opened |= await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
-                }
-
-                return opened;
-            }
-
-            public static async Task<bool> OnDocumentClosedAsync(IEnumerable<StateSet> stateSets, TextDocument document)
-            {
-                // can not be cancelled
-                var removed = false;
-                foreach (var stateSet in stateSets)
-                {
-                    removed |= await stateSet.OnDocumentClosedAsync(document).ConfigureAwait(false);
-                }
-
-                return removed;
-            }
-
-            public static bool OnDocumentRemoved(IEnumerable<StateSet> stateSets, DocumentId documentId)
-            {
-                var removed = false;
-                foreach (var stateSet in stateSets)
-                {
-                    removed |= stateSet.OnDocumentRemoved(documentId);
-                }
-
-                return removed;
-            }
-
             public bool OnProjectRemoved(IEnumerable<StateSet> stateSets, ProjectId projectId)
             {
                 var removed = false;
