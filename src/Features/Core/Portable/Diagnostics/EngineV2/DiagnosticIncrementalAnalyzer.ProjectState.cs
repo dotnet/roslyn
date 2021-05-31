@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    if (!TryDeserializeDocumentDiagnostics(serializerVersion, document, builder))
+                    if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
                     {
                         Debug.Assert(lastResult.Version == VersionStamp.Default);
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                if (!TryDeserializeProjectDiagnostics(serializerVersion, project, builder))
+                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
                 {
                     // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
                     // analysis happened.
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = lastResult.Version;
                 var builder = new Builder(document.Project, lastResult.Version);
 
-                if (!TryDeserializeDocumentDiagnostics(serializerVersion, document, builder))
+                if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
                 {
                     Debug.Assert(lastResult.Version == VersionStamp.Default);
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = lastResult.Version;
                 var builder = new Builder(project, lastResult.Version);
 
-                if (!TryDeserializeProjectDiagnostics(serializerVersion, project, builder))
+                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
                 {
                     // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
                     // analysis happened.
@@ -187,10 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            public void SaveInMemoryCache(Project project, DiagnosticAnalysisResult result)
-                => SaveCore(project, result);
-
-            private void SaveCore(Project project, DiagnosticAnalysisResult result)
+            public void SaveToInMemoryStorage(Project project, DiagnosticAnalysisResult result)
             {
                 Contract.ThrowIfTrue(result.IsAggregatedForm);
                 Contract.ThrowIfNull(result.DocumentIds);
@@ -217,12 +214,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         continue;
                     }
 
-                    Serialize(serializerVersion, project, document, document.Id, _owner.SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
-                    Serialize(serializerVersion, project, document, document.Id, _owner.SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
-                    Serialize(serializerVersion, project, document, document.Id, _owner.NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
+                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, _owner.SyntaxStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Syntax));
+                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, _owner.SemanticStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.Semantic));
+                    AddToInMemoryStorage(serializerVersion, project, document, document.Id, _owner.NonLocalStateName, result.GetDocumentDiagnostics(document.Id, AnalysisKind.NonLocal));
                 }
 
-                Serialize(serializerVersion, project, document: null, result.ProjectId, _owner.NonLocalStateName, result.GetOtherDiagnostics());
+                AddToInMemoryStorage(serializerVersion, project, document: null, result.ProjectId, _owner.NonLocalStateName, result.GetOtherDiagnostics());
             }
 
             public void ResetVersion()
@@ -270,8 +267,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = version;
 
                 // save active file diagnostics back to project state
-                Serialize(serializerVersion, project, document, document.Id, _owner.SyntaxStateName, syntax.Items);
-                Serialize(serializerVersion, project, document, document.Id, _owner.SemanticStateName, semantic.Items);
+                AddToInMemoryStorage(serializerVersion, project, document, document.Id, _owner.SyntaxStateName, syntax.Items);
+                AddToInMemoryStorage(serializerVersion, project, document, document.Id, _owner.SemanticStateName, semantic.Items);
 
                 // save last aggregated form of analysis result
                 _lastResult = _lastResult.UpdateAggregatedResult(version, state.DocumentId, fromBuild);
@@ -300,13 +297,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!TryDeserializeDocumentDiagnostics(serializerVersion, document, builder))
+                    if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
                     {
                         continue;
                     }
                 }
 
-                if (!TryDeserializeProjectDiagnostics(serializerVersion, project, builder))
+                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
                 {
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
@@ -323,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = version;
                 var builder = new Builder(project, version);
 
-                if (!TryDeserializeDocumentDiagnostics(serializerVersion, document, builder))
+                if (!TryGetDiagnosticsFromInMemoryStorage(serializerVersion, document, builder))
                 {
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
@@ -338,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = version;
                 var builder = new Builder(project, version);
 
-                if (!TryDeserializeProjectDiagnostics(serializerVersion, project, builder))
+                if (!TryGetProjectDiagnosticsFromInMemoryStorage(serializerVersion, project, builder))
                 {
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
@@ -346,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return builder.ToResult();
             }
 
-            private void Serialize(VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
+            private void AddToInMemoryStorage(VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, ImmutableArray<DiagnosticData> diagnostics)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 
@@ -354,13 +351,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 InMemoryStorage.Cache(_owner.Analyzer, (key, stateKey), new CacheEntry(serializerVersion, diagnostics));
             }
 
-            private bool TryDeserializeDocumentDiagnostics(VersionStamp serializerVersion, TextDocument document, Builder builder)
+            private bool TryGetDiagnosticsFromInMemoryStorage(VersionStamp serializerVersion, TextDocument document, Builder builder)
             {
                 var success = true;
                 var project = document.Project;
                 var documentId = document.Id;
 
-                var diagnostics = DeserializeDiagnostics(serializerVersion, project, document, documentId, _owner.SyntaxStateName);
+                var diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, project, document, documentId, _owner.SyntaxStateName);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSyntaxLocals(documentId, diagnostics);
@@ -370,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = DeserializeDiagnostics(serializerVersion, project, document, documentId, _owner.SemanticStateName);
+                diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, project, document, documentId, _owner.SemanticStateName);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSemanticLocals(documentId, diagnostics);
@@ -380,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = DeserializeDiagnostics(serializerVersion, project, document, documentId, _owner.NonLocalStateName);
+                diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, project, document, documentId, _owner.NonLocalStateName);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddNonLocals(documentId, diagnostics);
@@ -393,9 +390,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return success;
             }
 
-            private bool TryDeserializeProjectDiagnostics(VersionStamp serializerVersion, Project project, Builder builder)
+            private bool TryGetProjectDiagnosticsFromInMemoryStorage(VersionStamp serializerVersion, Project project, Builder builder)
             {
-                var diagnostics = DeserializeDiagnostics(serializerVersion, project, document: null, project.Id, _owner.NonLocalStateName);
+                var diagnostics = GetDiagnosticsFromInMemoryStorage(serializerVersion, project, document: null, project.Id, _owner.NonLocalStateName);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddOthers(diagnostics);
@@ -405,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return false;
             }
 
-            private ImmutableArray<DiagnosticData> DeserializeDiagnostics(
+            private ImmutableArray<DiagnosticData> GetDiagnosticsFromInMemoryStorage(
                 VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);

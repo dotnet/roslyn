@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
 
                         // Save into in-memory cache.
-                        state.SaveInMemoryCache(project, result);
+                        state.SaveToInMemoryStorage(project, result);
                     }
 
                     // Raise diagnostic updated events after the new diagnostics have been stored into the in-memory cache.
