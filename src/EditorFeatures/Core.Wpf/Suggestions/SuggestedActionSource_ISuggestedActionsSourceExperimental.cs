@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (workspace is null)
                     yield break;
 
-                await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(true);
+                var selection = TryGetCodeRefactoringSelection(state, range);
+                await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActionsAsync, cancellationToken))
                 {
@@ -50,12 +51,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     // Compute and return the high pri set of fixes and refactorings first so the user
                     // can act on them immediately without waiting on the regular set.
                     var highPriSet = GetCodeFixesAndRefactoringsAsync(
-                        state, requestedActionCategories, document, range, _ => null, CodeActionRequestPriority.High, cancellationToken);
+                        state, requestedActionCategories, document, range, selection, _ => null,
+                        CodeActionRequestPriority.High, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
                     await foreach (var set in highPriSet)
                         yield return set;
 
                     var lowPriSet = GetCodeFixesAndRefactoringsAsync(
-                        state, requestedActionCategories, document, range, _ => null, CodeActionRequestPriority.Normal, cancellationToken);
+                        state, requestedActionCategories, document, range, selection, _ => null,
+                        CodeActionRequestPriority.Normal, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
                     await foreach (var set in lowPriSet)
                         yield return set;
                 }
@@ -66,14 +69,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ISuggestedActionCategorySet requestedActionCategories,
                 Document document,
                 SnapshotSpan range,
+                TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
                 CodeActionRequestPriority priority,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 var workspace = document.Project.Solution.Workspace;
                 var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
-
-                var selection = TryGetCodeRefactoringSelection(state, range);
 
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
