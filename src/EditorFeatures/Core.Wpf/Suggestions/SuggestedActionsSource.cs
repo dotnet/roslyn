@@ -261,13 +261,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
 
-                // Make sure we include the suppression fixes even when the light bulb is only asking for only code fixes.
-                // See https://github.com/dotnet/roslyn/issues/29589
-                const bool includeSuppressionFixes = true;
-
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
-                    includeSuppressionFixes, priority, isBlocking, addOperationScope, cancellationToken).AsTask();
+                    priority, isBlocking, addOperationScope, cancellationToken).AsTask();
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
