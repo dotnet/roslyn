@@ -420,34 +420,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
             var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(request.Context, document, position, cancellationToken).ConfigureAwait(false);
 
-            // Get the cached completion list in the case of a request for an incomplete list or calculate a new list and cache it.
-            CompletionList completionList;
-            long resultId;
-            if (request.Context?.TriggerKind == LSP.CompletionTriggerKind.TriggerForIncompleteCompletions)
+            var result = await GetOrCalculateCompletionListAsync(request, document, position, completionTrigger, completionOptions, _completionListCache, completionService, cancellationToken).ConfigureAwait(false);
+            if (result == null)
             {
-                // This is a request for a list we already calculated but was incomplete.
-                // Use the resultId to retrieve the completion list we cached for the original result.
-                Contract.ThrowIfFalse(_lastIncompleteResultId.HasValue, "Trigger for incomplete list missing previous result id");
-                var cachedList = _completionListCache.GetCachedCompletionList(_lastIncompleteResultId.Value);
-                Contract.ThrowIfNull(cachedList, "Trigger for incomplete list missing cached list");
-
-                completionList = cachedList.CompletionList;
-                resultId = _lastIncompleteResultId.Value;
+                return null;
             }
-            else
-            {
-                // This is a new completion request, clear out the last result Id for incomplete results.
-                _lastIncompleteResultId = null;
 
-                completionList = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (completionList == null || completionList.Items.IsEmpty || cancellationToken.IsCancellationRequested)
-                {
-                    return null;
-                }
-
-                // Cache the completion list so we can avoid recomputation in the resolve handler
-                resultId = _completionListCache.UpdateCache(request.TextDocument, completionList);
-            }
+            var (completionList, resultId) = result.Value;
 
             // Determine the current filter text based on the position in the document.
             var filterText = sourceText.GetSubText(completionService.GetDefaultCompletionListSpan(sourceText, position)).ToString();
@@ -515,6 +494,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     CompletionTriggerKind.Deletion => CompletionFilterReason.Deletion,
                     _ => CompletionFilterReason.Other,
                 };
+            }
+        }
+
+        private async Task<(CompletionList CompletionList, long ResultId)?> GetOrCalculateCompletionListAsync(
+            LSP.CompletionParams request,
+            Document document,
+            int position,
+            CompletionTrigger completionTrigger,
+            OptionSet completionOptions,
+            CompletionListCache completionListCache,
+            CompletionService completionService,
+            CancellationToken cancellationToken)
+        {
+            // Get the cached completion list in the case of a request for an incomplete list or calculate a new list and cache it.
+            CompletionList completionList;
+            long resultId;
+            if (request.Context?.TriggerKind == LSP.CompletionTriggerKind.TriggerForIncompleteCompletions)
+            {
+                // This is a request for a list we already calculated but was incomplete.
+                // Use the resultId to retrieve the completion list we cached for the original result.
+                Contract.ThrowIfFalse(_lastIncompleteResultId.HasValue, "Trigger for incomplete list missing previous result id");
+                var cachedList = completionListCache.GetCachedCompletionList(_lastIncompleteResultId.Value);
+                Contract.ThrowIfNull(cachedList, "Trigger for incomplete list missing cached list");
+
+                return (cachedList.CompletionList, _lastIncompleteResultId.Value);
+            }
+            else
+            {
+                // This is a new completion request, clear out the last result Id for incomplete results.
+                _lastIncompleteResultId = null;
+
+                completionList = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                if (completionList == null || completionList.Items.IsEmpty || cancellationToken.IsCancellationRequested)
+                {
+                    return null;
+                }
+
+                // Cache the completion list so we can avoid recomputation in the resolve handler
+                resultId = _completionListCache.UpdateCache(request.TextDocument, completionList);
+
+                return (completionList, resultId);
             }
         }
 
