@@ -30277,7 +30277,7 @@ class C2 : I(0)
 
 public record C(int I) : B(I);";
 
-            var compA = CreateCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetStandard20);
+            var compA = CreateEmptyCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, references: TargetFrameworkUtil.GetReferences(TargetFramework.NetStandard20));
             compA.VerifyDiagnostics();
             Assert.False(compA.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             var actualMembers = compA.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
@@ -30305,9 +30305,9 @@ public record C(int I) : B(I);";
             var sourceB = "record D(int I) : C(I);";
 
             // CS1701: Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy
-            var compB = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.StandardLatest);
+            var compB = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
             compB.VerifyDiagnostics();
-            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
+            Assert.True(compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
 
             actualMembers = compB.GetMember<NamedTypeSymbol>("D").GetMembers().ToTestDisplayStrings();
             expectedMembers = new[]
