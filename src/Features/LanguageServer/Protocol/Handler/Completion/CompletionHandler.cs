@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionService = document.Project.LanguageServices.GetRequiredService<CompletionService>();
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var completionListResult = await GetCompletionListAndFilterDownAsync(request, documentText, document, completionOptions, completionService, cancellationToken).ConfigureAwait(false);
+            var completionListResult = await GetFilteredCompletionListAsync(request, documentText, document, completionOptions, completionService, cancellationToken).ConfigureAwait(false);
             if (completionListResult == null)
             {
                 return null;
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private async Task<(CompletionList CompletionList, bool IsIncomplete, long ResultId)?> GetCompletionListAndFilterDownAsync(
+        private async Task<(CompletionList CompletionList, bool IsIncomplete, long ResultId)?> GetFilteredCompletionListAsync(
             LSP.CompletionParams request,
             SourceText sourceText,
             Document document,
