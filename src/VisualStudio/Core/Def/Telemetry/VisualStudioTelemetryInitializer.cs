@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         {
             if (workspace is VisualStudioWorkspace)
             {
-                var _ = StartListeningAsync();
+                _ = StartListeningAsync();
             }
         }
 
