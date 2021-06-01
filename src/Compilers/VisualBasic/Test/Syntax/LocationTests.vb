@@ -301,9 +301,9 @@ End Class".NormalizeLineEndings()
             Dim loc2 = New SourceLocation(tree, span2)
 
             'Assert.Equal("SourceLocation(@4:12)""x""", loc1.DebugView)
-            Assert.Equal("SourceFile([73..74))", loc1.ToString) 'use the override in Location
+            Assert.Equal("SourceFile([76..77))", loc1.ToString) 'use the override in Location
             'Assert.Equal("SourceLocation(@6:12)""y""", loc2.DebugView)
-            Assert.Equal("SourceFile([117..118))", loc2.ToString)
+            Assert.Equal("SourceFile([122..123))", loc2.ToString)
         End Sub
 
     End Class
