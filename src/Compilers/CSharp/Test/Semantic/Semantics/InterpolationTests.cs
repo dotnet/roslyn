@@ -4367,7 +4367,7 @@ public partial struct CustomHandler
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaInference_AmbiguousInOlderLangVersions()
         {
             var code = @"
