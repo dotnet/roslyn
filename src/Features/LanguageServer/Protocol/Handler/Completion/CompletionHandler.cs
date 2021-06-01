@@ -527,7 +527,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _lastIncompleteResultId = null;
 
                 completionList = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (completionList == null || completionList.Items.IsEmpty || cancellationToken.IsCancellationRequested)
+                cancellationToken.ThrowIfCancellationRequested();
+                if (completionList == null || completionList.Items.IsEmpty)
                 {
                     return null;
                 }
