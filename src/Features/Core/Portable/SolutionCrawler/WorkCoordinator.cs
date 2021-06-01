@@ -301,13 +301,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private void OnDocumentOpened(object? sender, DocumentEventArgs e)
             {
                 _eventProcessingQueue.ScheduleTask("OnDocumentOpened",
-                    () => EnqueueWorkItemAsync(e.Document.Project, e.Document.Id, InvocationReasons.DocumentOpened), _shutdownToken);
+                    () => EnqueueWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentOpened), _shutdownToken);
             }
 
             private void OnDocumentClosed(object? sender, DocumentEventArgs e)
             {
                 _eventProcessingQueue.ScheduleTask("OnDocumentClosed",
-                    () => EnqueueWorkItemAsync(e.Document.Project, e.Document.Id, InvocationReasons.DocumentClosed), _shutdownToken);
+                    () => EnqueueWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
             }
 
             private void ProcessDocumentEvent(WorkspaceChangeEventArgs e, string eventName)
@@ -436,13 +436,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     () => EnqueueWorkItemAfterDiffAsync(oldSolution, newSolution, documentId), _shutdownToken);
             }
 
-            private async Task EnqueueWorkItemAsync(Project project, DocumentId documentId, InvocationReasons invocationReasons, SyntaxNode? changedMember = null)
+            private async Task EnqueueWorkItemAsync(Project project, DocumentId documentId, Document? document, InvocationReasons invocationReasons, SyntaxNode? changedMember = null)
             {
                 // we are shutting down
                 _shutdownToken.ThrowIfCancellationRequested();
 
                 var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
-                var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(project.GetRequiredDocument(documentId), _shutdownToken).ConfigureAwait(false);
+                var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(GetRequiredDocument(project, documentId, document), _shutdownToken).ConfigureAwait(false);
 
                 var currentMember = GetSyntaxPath(changedMember);
 
@@ -455,9 +455,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // must use "Document" here so that the snapshot doesn't go away. we need the snapshot to calculate p2p dependency graph later.
                     // due to this, we might hold onto solution (and things kept alive by it) little bit longer than usual.
-                    _semanticChangeProcessor.Enqueue(project.GetRequiredDocument(documentId), currentMember);
+                    _semanticChangeProcessor.Enqueue(GetRequiredDocument(project, documentId, document), currentMember);
                 }
             }
+
+            private static Document GetRequiredDocument(Project project, DocumentId documentId, Document? document)
+                => document ?? project.GetRequiredDocument(documentId);
 
             private static SyntaxPath? GetSyntaxPath(SyntaxNode? changedMember)
             {
@@ -474,7 +477,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private async Task EnqueueWorkItemAsync(Project project, InvocationReasons invocationReasons)
             {
                 foreach (var documentId in project.DocumentIds)
-                    await EnqueueWorkItemAsync(project, documentId, invocationReasons).ConfigureAwait(false);
+                    await EnqueueWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
             }
 
             private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)
@@ -483,14 +486,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
 
                 foreach (var (project, documentId) in scope.GetDocumentIds(solution))
-                    await EnqueueWorkItemAsync(analyzer, project, documentId, invocationReasons).ConfigureAwait(false);
+                    await EnqueueWorkItemAsync(analyzer, project, documentId, document: null, invocationReasons).ConfigureAwait(false);
             }
 
-            private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, Project project, DocumentId documentId, InvocationReasons invocationReasons)
+            private async Task EnqueueWorkItemAsync(
+                IIncrementalAnalyzer analyzer, Project project, DocumentId documentId, Document? document, InvocationReasons invocationReasons)
             {
                 var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
                 var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(
-                    project.GetRequiredDocument(documentId), _shutdownToken).ConfigureAwait(false);
+                    GetRequiredDocument(project, documentId, document), _shutdownToken).ConfigureAwait(false);
 
                 _documentAndProjectWorkerProcessor.Enqueue(
                     new WorkItem(documentId, project.Language, invocationReasons,
@@ -523,7 +527,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 await EnqueueProjectConfigurationChangeWorkItemAsync(projectChanges).ConfigureAwait(false);
 
                 foreach (var addedDocumentId in projectChanges.GetAddedDocuments())
-                    await EnqueueWorkItemAsync(projectChanges.NewProject, addedDocumentId, InvocationReasons.DocumentAdded).ConfigureAwait(false);
+                    await EnqueueWorkItemAsync(projectChanges.NewProject, addedDocumentId, document: null, InvocationReasons.DocumentAdded).ConfigureAwait(false);
 
                 foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
                 {
@@ -532,7 +536,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 foreach (var removedDocumentId in projectChanges.GetRemovedDocuments())
-                    await EnqueueWorkItemAsync(projectChanges.OldProject, removedDocumentId, InvocationReasons.DocumentRemoved).ConfigureAwait(false);
+                    await EnqueueWorkItemAsync(projectChanges.OldProject, removedDocumentId, document: null, InvocationReasons.DocumentRemoved).ConfigureAwait(false);
             }
 
             private async Task EnqueueProjectConfigurationChangeWorkItemAsync(ProjectChanges projectChanges)
@@ -581,24 +585,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // For languages that don't use a Roslyn syntax tree, they don't export a document difference service.
                     // The whole document should be considered as changed in that case.
-                    await EnqueueWorkItemAsync(newDocument.Project, newDocument.Id, InvocationReasons.DocumentChanged).ConfigureAwait(false);
+                    await EnqueueWorkItemAsync(newDocument.Project, newDocument.Id, newDocument, InvocationReasons.DocumentChanged).ConfigureAwait(false);
                 }
                 else
                 {
                     var differenceResult = await differenceService.GetDifferenceAsync(oldDocument, newDocument, _shutdownToken).ConfigureAwait(false);
 
                     if (differenceResult != null)
-                    {
-                        await EnqueueWorkItemAsync(newDocument.Project, newDocument.Id, differenceResult.ChangeType, differenceResult.ChangedMember).ConfigureAwait(false);
-                    }
+                        await EnqueueWorkItemAsync(newDocument.Project, newDocument.Id, newDocument, differenceResult.ChangeType, differenceResult.ChangedMember).ConfigureAwait(false);
                 }
             }
 
             private Task EnqueueWorkItemForDocumentAsync(Solution solution, DocumentId documentId, InvocationReasons invocationReasons)
             {
                 var project = solution.GetRequiredProject(documentId.ProjectId);
-
-                return EnqueueWorkItemAsync(project, documentId, invocationReasons);
+                return EnqueueWorkItemAsync(project, documentId, document: null, invocationReasons);
             }
 
             private Task EnqueueWorkItemForProjectAsync(Solution solution, ProjectId projectId, InvocationReasons invocationReasons)

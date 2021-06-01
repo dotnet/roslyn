@@ -185,11 +185,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         var document = solution.GetDocument(location.SourceTree, projectId);
                         if (document == null || thisDocument == document)
-                        {
                             continue;
-                        }
 
-                        await _processor.EnqueueWorkItemAsync(document.Project, document.Id).ConfigureAwait(false);
+                        await _processor.EnqueueWorkItemAsync(document.Project, document.Id, document).ConfigureAwait(false);
                     }
                 }
 
@@ -394,14 +392,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Logger.Log(FunctionId.WorkCoordinator_Project_Enqueue, s_enqueueLogger, Environment.TickCount, projectId);
                     }
 
-                    public async Task EnqueueWorkItemAsync(Project project, DocumentId documentId)
+                    public async Task EnqueueWorkItemAsync(Project project, DocumentId documentId, Document? document)
                     {
                         // we are shutting down
                         CancellationToken.ThrowIfCancellationRequested();
 
                         // call to this method is serialized. and only this method does the writing.
                         var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
-                        var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(project.GetRequiredDocument(documentId), CancellationToken).ConfigureAwait(false);
+                        var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(GetRequiredDocument(project, documentId, document), CancellationToken).ConfigureAwait(false);
 
                         _processor.Enqueue(
                             new WorkItem(documentId, project.Language, InvocationReasons.SemanticChanged,
@@ -445,12 +443,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     private async Task EnqueueWorkItemAsync(Project? project)
                     {
                         if (project == null)
-                        {
                             return;
-                        }
 
                         foreach (var documentId in project.DocumentIds)
-                            await EnqueueWorkItemAsync(project, documentId).ConfigureAwait(false);
+                            await EnqueueWorkItemAsync(project, documentId, document: null).ConfigureAwait(false);
                     }
 
                     private readonly struct Data
