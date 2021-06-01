@@ -7,17 +7,23 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
     public abstract class AbstractBaseValueTrackingTests
     {
+        protected TestWorkspace CreateWorkspace(string code, TestHost testHost)
+            => CreateWorkspace(code, EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost));
+
+        protected abstract TestWorkspace CreateWorkspace(string code, TestComposition composition);
+
         internal static async Task<ImmutableArray<ValueTrackedItem>> GetTrackedItemsAsync(TestWorkspace testWorkspace, CancellationToken cancellationToken = default)
         {
             var cursorDocument = testWorkspace.DocumentWithCursor;
@@ -31,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
         internal static async Task<ImmutableArray<ValueTrackedItem>> GetTrackedItemsAsync(TestWorkspace testWorkspace, ValueTrackedItem item, CancellationToken cancellationToken = default)
         {
             var service = testWorkspace.Services.GetRequiredService<IValueTrackingService>();
-            return await service.TrackValueSourceAsync(item, cancellationToken);
+            return await service.TrackValueSourceAsync(testWorkspace.CurrentSolution, item, cancellationToken);
         }
 
         internal static async Task<ImmutableArray<ValueTrackedItem>> ValidateItemsAsync(TestWorkspace testWorkspace, (int line, string text)[] itemInfo, CancellationToken cancellationToken = default)

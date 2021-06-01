@@ -3,12 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
@@ -38,16 +42,19 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IGlyphService glyphService,
             IValueTrackingService valueTrackingService,
             IThreadingContext threadingContext,
+            string fileName,
             ImmutableArray<TreeItemViewModel> children = default)
             : base(
-                  trackedItem.Document,
                   trackedItem.Span,
                   trackedItem.SourceText,
-                  trackedItem.Symbol,
+                  trackedItem.DocumentId,
+                  fileName,
+                  trackedItem.Glyph,
                   trackedItem.ClassifiedSpans,
                   treeViewModel,
                   glyphService,
                   threadingContext,
+                  solution.Workspace,
                   children: children)
         {
 
@@ -89,21 +96,15 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             {
                 try
                 {
-                    var items = await _valueTrackingService.TrackValueSourceAsync(_trackedItem, ThreadingContext.DisposalToken).ConfigureAwait(false);
+                    var children = await CalculateChildrenAsync(ThreadingContext.DisposalToken).ConfigureAwait(false);
 
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                     ChildItems.Clear();
 
-                    foreach (var valueTrackedItem in items)
+                    foreach (var child in children)
                     {
-                        ChildItems.Add(new ValueTrackedTreeItemViewModel(
-                                valueTrackedItem,
-                                _solution,
-                                TreeViewModel,
-                                _glyphService,
-                                _valueTrackingService,
-                                ThreadingContext));
+                        ChildItems.Add(child);
                     }
                 }
                 finally
@@ -118,19 +119,46 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         public override void Select()
         {
-            var workspace = Document.Project.Solution.Workspace;
-            var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+            var navigationService = Workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService is null)
             {
                 return;
             }
 
             // While navigating do not activate the tab, which will change focus from the tool window
-            var options = workspace.Options
+            var options = Workspace.Options
                 .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
                 .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
 
-            _ = navigationService.TryNavigateToSpan(workspace, Document.Id, _trackedItem.Span, options, ThreadingContext.DisposalToken);
+            navigationService.TryNavigateToSpan(Workspace, DocumentId, _trackedItem.Span, options, ThreadingContext.DisposalToken);
+        }
+
+        private async Task<ImmutableArray<TreeItemViewModel>> CalculateChildrenAsync(CancellationToken cancellationToken)
+        {
+            var valueTrackedItems = await _valueTrackingService.TrackValueSourceAsync(
+                _solution,
+                _trackedItem,
+                cancellationToken).ConfigureAwait(false);
+
+            var builder = ImmutableArray.CreateBuilder<TreeItemViewModel>(valueTrackedItems.Length);
+
+            foreach (var valueTrackedItem in valueTrackedItems)
+            {
+                var document = _solution.GetRequiredDocument(valueTrackedItem.DocumentId);
+                var fileName = document.FilePath ?? document.Name;
+
+                builder.Add(new ValueTrackedTreeItemViewModel(
+                    valueTrackedItem,
+                    _solution,
+                    TreeViewModel,
+                    _glyphService,
+                    _valueTrackingService,
+                    ThreadingContext,
+                    fileName
+                    ));
+            }
+
+            return builder.ToImmutableArray();
         }
     }
 }

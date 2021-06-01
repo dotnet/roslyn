@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var valueTrackingService = solution.Workspace.Services.GetRequiredService<IValueTrackingService>();
             var classificationFormatMap = _classificationFormatMapService.GetClassificationFormatMap(textView);
 
-            var childItems = await valueTrackingService.TrackValueSourceAsync(item, cancellationToken).ConfigureAwait(false);
+            var childItems = await valueTrackingService.TrackValueSourceAsync(solution, item, cancellationToken).ConfigureAwait(false);
             var childViewModels = childItems.SelectAsArray(child => CreateViewModel(child));
 
             RoslynDebug.AssertNotNull(location.SourceTree);
@@ -164,14 +164,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, cancellationToken).ConfigureAwait(false);
 
             var root = new TreeItemViewModel(
-                document,
                 location.SourceSpan,
                 sourceText,
-                selectedSymbol,
+                document.Id,
+                document.FilePath ?? document.Name,
+                selectedSymbol.GetGlyph(),
                 classificationResult.ClassifiedSpans,
                 toolWindow.ViewModel,
                 _glyphService,
                 _threadingContext,
+                solution.Workspace,
                 children: childViewModels);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -182,14 +184,20 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             await ShowToolWindowAsync(cancellationToken).ConfigureAwait(true);
 
             TreeItemViewModel CreateViewModel(ValueTrackedItem valueTrackedItem, ImmutableArray<TreeItemViewModel> children = default)
-                => new ValueTrackedTreeItemViewModel(
+            {
+                var document = solution.GetRequiredDocument(valueTrackedItem.DocumentId);
+                var fileName = document.FilePath ?? document.Name;
+
+                return new ValueTrackedTreeItemViewModel(
                    valueTrackedItem,
                    solution,
                    toolWindow.ViewModel,
                    _glyphService,
                    valueTrackingService,
                    _threadingContext,
+                   fileName,
                    children);
+            }
         }
 
         private async Task ShowToolWindowAsync(CancellationToken cancellationToken)

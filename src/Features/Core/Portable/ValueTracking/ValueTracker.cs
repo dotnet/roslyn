@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,41 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
-    [ExportWorkspaceService(typeof(IValueTrackingService)), Shared]
-    internal partial class ValueTrackingService : IValueTrackingService
+    internal static partial class ValueTracker
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ValueTrackingService()
-        {
-        }
-
-        public async Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
-            TextSpan selection,
-            Document document,
-            CancellationToken cancellationToken)
-        {
-            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
-            var progressTracker = new ValueTrackingProgressCollector();
-            await TrackValueSourceInternalAsync(selection, document, progressTracker, cancellationToken).ConfigureAwait(false);
-            return progressTracker.GetItems();
-        }
-
-        public async Task TrackValueSourceAsync(
-            TextSpan selection,
-            Document document,
-            ValueTrackingProgressCollector progressCollector,
-            CancellationToken cancellationToken)
-        {
-            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
-            await TrackValueSourceInternalAsync(
-                selection,
-                document,
-                progressCollector,
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task TrackValueSourceInternalAsync(
+        public static async Task TrackValueSourceAsync(
             TextSpan selection,
             Document document,
             ValueTrackingProgressCollector progressCollector,
@@ -107,51 +71,31 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             }
         }
 
-        public async Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
-            ValueTrackedItem previousTrackedItem,
-            CancellationToken cancellationToken)
-        {
-            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
-            var progressTracker = new ValueTrackingProgressCollector();
-            await TrackValueSourceInternalAsync(previousTrackedItem, progressTracker, cancellationToken).ConfigureAwait(false);
-            return progressTracker.GetItems();
-        }
-
-        public async Task TrackValueSourceAsync(
-            ValueTrackedItem previousTrackedItem,
-            ValueTrackingProgressCollector progressCollector,
-            CancellationToken cancellationToken)
-        {
-            using var logger = Logger.LogBlock(FunctionId.ValueTracking_TrackValueSource, cancellationToken, LogLevel.Information);
-            await TrackValueSourceInternalAsync(
-                previousTrackedItem,
-                progressCollector,
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task TrackValueSourceInternalAsync(
+        public static async Task TrackValueSourceAsync(
+            Solution solution,
             ValueTrackedItem previousTrackedItem,
             ValueTrackingProgressCollector progressCollector,
             CancellationToken cancellationToken)
         {
             progressCollector.Parent = previousTrackedItem;
-            var operationCollector = new OperationCollector(progressCollector, previousTrackedItem.Document.Project.Solution);
+            var operationCollector = new OperationCollector(progressCollector, solution);
+            var symbol = await GetSymbolAsync(previousTrackedItem, solution, cancellationToken).ConfigureAwait(false);
 
-            switch (previousTrackedItem.Symbol)
+            switch (symbol)
             {
                 case ILocalSymbol:
                 case IPropertySymbol:
                 case IFieldSymbol:
                     {
                         // The "output" is a variable assignment, track places where it gets assigned and defined
-                        await TrackVariableDefinitionsAsync(previousTrackedItem.Symbol, operationCollector, cancellationToken).ConfigureAwait(false);
-                        await TrackVariableReferencesAsync(previousTrackedItem.Symbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                        await TrackVariableDefinitionsAsync(symbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                        await TrackVariableReferencesAsync(symbol, operationCollector, cancellationToken).ConfigureAwait(false);
                     }
                     break;
 
                 case IParameterSymbol parameterSymbol:
                     {
-                        var previousSymbol = previousTrackedItem.Parent?.Symbol;
+                        var previousSymbol = await GetSymbolAsync(previousTrackedItem.Parent, solution, cancellationToken).ConfigureAwait(false);
 
                         // If the current parameter is a parameter symbol for the previous tracked method it should be treated differently.
                         // For example: 
@@ -189,41 +133,30 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             }
         }
 
-        private static async Task TrackVariableDefinitionsAsync(ISymbol symbol, OperationCollector collector, CancellationToken cancellationToken)
+        private static async Task AddItemsFromAssignmentAsync(Document document, SyntaxNode lhsNode, OperationCollector collector, CancellationToken cancellationToken)
         {
-            foreach (var definitionLocation in symbol.Locations)
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var operation = semanticModel.GetOperation(lhsNode, cancellationToken);
+            if (operation is null)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (definitionLocation is not { SourceTree: not null })
-                {
-                    continue;
-                }
-
-                var node = definitionLocation.FindNode(cancellationToken);
-                var document = collector.Solution.GetRequiredDocument(node.SyntaxTree);
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                var operation = semanticModel.GetOperation(node, cancellationToken);
-
-                var declarators = operation switch
-                {
-                    IVariableDeclaratorOperation variableDeclarator => ImmutableArray.Create(variableDeclarator),
-                    IVariableDeclarationOperation variableDeclaration => variableDeclaration.Declarators,
-                    _ => ImmutableArray<IVariableDeclaratorOperation>.Empty
-                };
-
-                foreach (var declarator in declarators)
-                {
-                    var initializer = declarator.GetVariableInitializer();
-                    if (initializer is null)
-                    {
-                        continue;
-                    }
-
-                    await collector.VisitAsync(initializer, cancellationToken).ConfigureAwait(false);
-                }
+                return;
             }
+
+            IAssignmentOperation? assignmentOperation = null;
+
+            while (assignmentOperation is null
+                && operation is not null)
+            {
+                assignmentOperation = operation as IAssignmentOperation;
+                operation = operation.Parent;
+            }
+
+            if (assignmentOperation is null)
+            {
+                return;
+            }
+
+            await collector.VisitAsync(assignmentOperation, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task TrackVariableReferencesAsync(ISymbol symbol, OperationCollector collector, CancellationToken cancellationToken)
@@ -346,30 +279,53 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             return (selectedSymbol, selectedNode);
         }
 
-        private static async Task AddItemsFromAssignmentAsync(Document document, SyntaxNode lhsNode, OperationCollector collector, CancellationToken cancellationToken)
+        private static async Task TrackVariableDefinitionsAsync(ISymbol symbol, OperationCollector collector, CancellationToken cancellationToken)
         {
+            foreach (var definitionLocation in symbol.Locations)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (definitionLocation is not { SourceTree: not null })
+                {
+                    continue;
+                }
+
+                var node = definitionLocation.FindNode(cancellationToken);
+                var document = collector.Solution.GetRequiredDocument(node.SyntaxTree);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var operation = semanticModel.GetOperation(node, cancellationToken);
+
+                var declarators = operation switch
+                {
+                    IVariableDeclaratorOperation variableDeclarator => ImmutableArray.Create(variableDeclarator),
+                    IVariableDeclarationOperation variableDeclaration => variableDeclaration.Declarators,
+                    _ => ImmutableArray<IVariableDeclaratorOperation>.Empty
+                };
+
+                foreach (var declarator in declarators)
+                {
+                    var initializer = declarator.GetVariableInitializer();
+                    if (initializer is null)
+                    {
+                        continue;
+                    }
+
+                    await collector.VisitAsync(initializer, cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task<ISymbol?> GetSymbolAsync(ValueTrackedItem? item, Solution solution, CancellationToken cancellationToken)
+        {
+            if (item is null)
+            {
+                return null;
+            }
+
+            var document = solution.GetRequiredDocument(item.DocumentId);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var operation = semanticModel.GetOperation(lhsNode, cancellationToken);
-            if (operation is null)
-            {
-                return;
-            }
-
-            IAssignmentOperation? assignmentOperation = null;
-
-            while (assignmentOperation is null
-                && operation is not null)
-            {
-                assignmentOperation = operation as IAssignmentOperation;
-                operation = operation.Parent;
-            }
-
-            if (assignmentOperation is null)
-            {
-                return;
-            }
-
-            await collector.VisitAsync(assignmentOperation, cancellationToken).ConfigureAwait(false);
+            return item.SymbolKey.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
         }
     }
 }

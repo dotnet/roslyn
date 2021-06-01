@@ -2,19 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Xunit;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using System.Linq;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
     [UseExportProvider]
     public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
     {
-        [Fact]
-        public async Task TestProperty()
+        protected override TestWorkspace CreateWorkspace(string code, TestComposition composition)
+            => TestWorkspace.CreateCSharp(code, composition: composition);
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestProperty(TestHost testHost)
         {
             var code =
 @"
@@ -30,7 +35,7 @@ class C
     public string GetS() => S;
 }
 ";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
 
             //
             // property S 
@@ -46,8 +51,9 @@ class C
                 });
         }
 
-        [Fact]
-        public async Task TestPropertyWithThis()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestPropertyWithThis(TestHost testHost)
         {
             var code =
 @"
@@ -63,7 +69,7 @@ class C
     public string GetS() => this.S;
 }
 ";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
 
             //
             // property S 
@@ -79,8 +85,9 @@ class C
                 });
         }
 
-        [Fact]
-        public async Task TestField()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestField(TestHost testHost)
         {
             var code =
 @"
@@ -95,7 +102,7 @@ class C
 
     public string GetS() => _s;
 }";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
@@ -112,8 +119,9 @@ class C
                 });
         }
 
-        [Fact]
-        public async Task TestFieldWithThis()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestFieldWithThis(TestHost testHost)
         {
             var code =
 @"
@@ -128,7 +136,7 @@ class C
 
     public string GetS() => this._s;
 }";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
@@ -145,8 +153,9 @@ class C
                 });
         }
 
-        [Fact]
-        public async Task TestLocal()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestLocal(TestHost testHost)
         {
             var code =
 @"
@@ -159,7 +168,7 @@ class C
         return z;
     }
 }";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
@@ -172,8 +181,9 @@ class C
             ValidateItem(initialItems[1], 5);
         }
 
-        [Fact]
-        public async Task TestParameter()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestParameter(TestHost testHost)
         {
             var code =
 @"
@@ -185,7 +195,7 @@ class C
         return x;
     }
 }";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
@@ -198,8 +208,9 @@ class C
             ValidateItem(initialItems[1], 3);
         }
 
-        [Fact]
-        public async Task TestMissingOnMethod()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestMissingOnMethod(TestHost testHost)
         {
             var code =
 @"
@@ -211,13 +222,14 @@ class C
         return x;
     }
 }";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
             Assert.Empty(initialItems);
         }
 
-        [Fact]
-        public async Task TestMissingOnClass()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestMissingOnClass(TestHost testHost)
         {
             var code =
 @"
@@ -229,13 +241,14 @@ class $$C
         return x;
     }
 }";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
             Assert.Empty(initialItems);
         }
 
-        [Fact]
-        public async Task TestMissingOnNamespace()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestMissingOnNamespace(TestHost testHost)
         {
             var code =
 @"
@@ -250,13 +263,14 @@ namespace $$N
         }
     }
 }";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
             Assert.Empty(initialItems);
         }
 
-        [Fact]
-        public async Task MethodTracking1()
+        [Theory]
+        [CombinatorialData]
+        public async Task MethodTracking1(TestHost testHost)
         {
             var code =
 @"
@@ -300,7 +314,7 @@ class Other
     }
 }
 ";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
@@ -365,8 +379,9 @@ class Other
             }
         }
 
-        [Fact]
-        public async Task MethodTracking2()
+        [Theory]
+        [CombinatorialData]
+        public async Task MethodTracking2(TestHost testHost)
         {
             var code =
 @"
@@ -426,7 +441,7 @@ class Program
     }
 }
 ";
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
@@ -532,8 +547,9 @@ class Program
             await ValidateChildrenEmptyAsync(workspace, items[4]);
         }
 
-        [Fact]
-        public async Task MethodTracking3()
+        [Theory]
+        [CombinatorialData]
+        public async Task MethodTracking3(TestHost testHost)
         {
             var code =
 @"
@@ -566,7 +582,7 @@ namespace N
             //      |> [|Task.FromResult|](Add(x, y)) [Code.cs:13]
             //      |> Task.FromResult([|Add(x, y)|]) [Code.cs:13]
             //        |> return x [Code.cs:11]
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
             Assert.Equal(1, initialItems.Length);
             ValidateItem(initialItems.Single(), 18, "x"); // |> return [|x|] [Code.cs:18]
@@ -606,8 +622,9 @@ namespace N
                 });
         }
 
-        [Fact]
-        public async Task OutParam()
+        [Theory]
+        [CombinatorialData]
+        public async Task OutParam(TestHost testHost)
         {
             var code = @"
 class C
@@ -644,7 +661,7 @@ class C
             //    |> if (TryConvertInt(o, out [|i|])) [Code.cs:18]
             //      |> if (int.TryParse(o.ToString(), out [|i|])) [Code.cs:5]
             //    |> int i = 0 [Code.cs:15]
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             Assert.Equal(1, initialItems.Length);
@@ -677,8 +694,9 @@ class C
             await ValidateChildrenEmptyAsync(workspace, children.Single());
         }
 
-        [Fact]
-        public async Task TestVariableReferenceStart()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestVariableReferenceStart(TestHost testHost)
         {
             var code =
 @"
@@ -703,7 +721,7 @@ class Test
             //    |> int x = GetM() [Code.cs:5]
             //      |> return x; [Code.cs:13]
             //        |> var x = 0; [Code.cs:12]
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
 
             var items = await ValidateItemsAsync(
                 workspace,
@@ -739,8 +757,9 @@ class Test
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
 
-        [Fact]
-        public async Task TestVariableReferenceStart2()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestVariableReferenceStart2(TestHost testHost)
         {
             var code =
 @"
@@ -765,7 +784,7 @@ class Test
             //    |> int x = GetM() [Code.cs:5]
             //      |> return x; [Code.cs:13]
             //        |> var x = 0; [Code.cs:12]
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
 
             var items = await ValidateItemsAsync(
                 workspace,
@@ -801,8 +820,9 @@ class Test
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
 
-        [Fact]
-        public async Task TestVariableReferenceStart3()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestVariableReferenceStart3(TestHost testHost)
         {
             var code =
 @"
@@ -831,7 +851,7 @@ class Test
             //      |> return x; [Code.cs:13]
             //        |> var x = 0; [Code.cs:12]
             //    |> x += 1 [Code.cs:8]
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
 
             var items = await ValidateItemsAsync(
                 workspace,
@@ -870,8 +890,9 @@ class Test
             await ValidateChildrenEmptyAsync(workspace, items.Single());
         }
 
-        [Fact]
-        public async Task TestMultipleDeclarators()
+        [Theory]
+        [CombinatorialData]
+        public async Task TestMultipleDeclarators(TestHost testHost)
         {
             var code =
 @"
@@ -900,7 +921,7 @@ class Test
             //      |> return x; [Code.cs:13]
             //        |> var x = 0; [Code.cs:12]
             //    |> x += 1 [Code.cs:8]
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            using var workspace = CreateWorkspace(code, testHost);
 
             var items = await ValidateItemsAsync(
                 workspace,
