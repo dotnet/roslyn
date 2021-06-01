@@ -224,6 +224,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInferredDelegateType = MessageBase + 12799,
         IDS_FeatureLambdaAttributes = MessageBase + 12800,
         IDS_FeatureWithOnAnonymousTypes = MessageBase + 12801,
+
+        // PROTOTYPE: compact before merge
+        IDS_FeatureCallerArgumentExpression = MessageBase + 13000,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -332,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# preview features.
                 case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction: // semantic check
+                case MessageID.IDS_FeatureCallerArgumentExpression: // semantic check
                 case MessageID.IDS_FeatureSealedToStringInRecord: // semantic check
                 case MessageID.IDS_FeatureRecordStructs:
                 case MessageID.IDS_FeatureWithOnStructs: // semantic check

@@ -17,6 +17,403 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_CallerInfoAttributes : WellKnownAttributesTestBase
     {
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(123);
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "123");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia()
+        {
+            // PROTOTYPE(caller-expr): What should the expected output be?
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(// comment
+               123 /* comment */ +
+               5 /* comment */ // comment
+        );
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:
+@"123 /* comment */ +
+               5");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute_SwapArguments()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(q: 123, p: 124);
+    }
+    const string p = nameof(p);
+    static void Log(int p, int q, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
+    {
+        Console.WriteLine($""{p}, {q}, {arg}"");
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "124, 123, 124");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute_DifferentAssembly()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public static class FromFirstAssembly
+{
+    const string p = nameof(p);
+    public static void Log(int p, int q, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+            var comp1 = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp1.VerifyDiagnostics();
+            var ref1 = comp1.EmitToImageReference();
+
+            var source2 = @"
+public static class Program
+{
+    public static void Main() => FromFirstAssembly.Log(2 + 2, 3 + 1);
+}
+";
+
+            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "2 + 2");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_ThisParameter()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public static class Program
+{
+    public static void Main()
+    {
+        int myIntegerExpression = 5;
+        myIntegerExpression.M();
+    }
+    const string p = nameof(p);
+    public static void M(this int p, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_NotThisParameter()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public static class Program
+{
+    public static void Main()
+    {
+        int myIntegerExpression = 5;
+        myIntegerExpression.M(myIntegerExpression * 2);
+    }
+    const string q = nameof(q);
+    public static void M(this int p, int q, [CallerArgumentExpression(q)] string arg = ""<default-arg>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestIncorrectParameterNameInCallerArgumentExpressionAttribute()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log();
+    }
+    const string pp = nameof(pp);
+    static void Log([CallerArgumentExpression(pp)] string arg = ""<default>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (12,22): warning CS8918: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
+                //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 22)
+                );
+            CompileAndVerify(compilation, expectedOutput: "<default>");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentWithMemberNameAttributes()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = ""<default>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (12,29): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the MemberNameAttribute.
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
+                );
+            CompileAndVerify(compilation, expectedOutput: "Main");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentExpressionWithOptionalTargetParameter()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        string callerTargetExp = ""caller target value"";
+        Log(0);
+        Log(0, callerTargetExp);
+    }
+    const string target = nameof(target);
+    static void Log(int p, string target = ""target default value"", [CallerArgumentExpression(target)] string arg = ""arg default value"")
+    {
+        Console.WriteLine(target);
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:
+@"target default value
+arg default value
+caller target value
+callerTargetExp");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentExpressionWithMultipleOptionalAttribute()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        string callerTargetExp = ""caller target value"";
+        Log(0);
+        Log(0, callerTargetExp);
+        Log(0, target: callerTargetExp);
+        Log(0, notTarget: ""Not target value"");
+        Log(0, notTarget: ""Not target value"", target: callerTargetExp);
+    }
+    const string target = nameof(target);
+    static void Log(int p, string target = ""target default value"", string notTarget = ""not target default value"", [CallerArgumentExpression(target)] string arg = ""arg default value"")
+    {
+        Console.WriteLine(target);
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:
+@"target default value
+arg default value
+caller target value
+callerTargetExp
+caller target value
+callerTargetExp
+target default value
+arg default value
+caller target value
+callerTargetExp");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestCallerArgumentExpressionWithDifferentParametersReferringToEachOther()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        M();
+        M(""param1_value"");
+        M(param1: ""param1_value"");
+        M(param2: ""param2_value"");
+        M(param1: ""param1_value"", param2: ""param2_value"");
+        M(param2: ""param2_value"", param1: ""param1_value"");
+    }
+
+    static void M([CallerArgumentExpression(""param2"")] string param1 = ""param1_default"", [CallerArgumentExpression(""param1"")] string param2 = ""param2_default"")
+    {
+        Console.WriteLine($""param1: {param1}, param2: {param2}"");
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:
+@"param1: param1_default, param2: param2_default
+param1: param1_value, param2: ""param1_value""
+param1: param1_value, param2: ""param1_value""
+param1: ""param2_value"", param2: param2_value
+param1: param1_value, param2: param2_value
+param1: param1_value, param2: param2_value");
+        }
+
+        // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionIsCallerMember()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+C.M();
+
+public static class C
+{
+    public static void M(
+        [CallerMemberName] string callerName = ""<default-caller-name>"",
+        [CallerArgumentExpression(""callerName"")] string argumentExp = ""<default-arg-expression>"")
+    {
+        Console.WriteLine(callerName);
+        Console.WriteLine(argumentExp);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"<Main>$
+<default-arg-expression>");
+        }
+
+        // PROTOTYPE(caller-expr): Should this have a warning?
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionIsReferingToItself()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+C.M();
+C.M(""value"");
+
+public static class C
+{
+    public static void M(
+        [CallerArgumentExpression(""p"")] string p = ""<default>"")
+    {
+        Console.WriteLine(p);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"<default>
+value");
+        }
+
         [Fact]
         public void TestCallerInfoAttributesWithSaneDefaultValues()
         {

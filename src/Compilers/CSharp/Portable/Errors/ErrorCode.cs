@@ -1939,6 +1939,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
         ERR_CannotInferDelegateType = 8917,
 
+        // PROTOTYPE: Compact these before merge
+        WRN_CallerArgumentExpressionParamForUnconsumedLocation = 9000,
+        ERR_NoConversionForCallerArgumentExpressionParam = 9001,
+        ERR_BadCallerArgumentExpressionParamWithoutDefaultValue = 9006,
+        WRN_CallerLineNumberPreferredOverCallerArgumentExpression = 9002,
+        WRN_CallerFilePathPreferredOverCallerArgumentExpression = 9003,
+        WRN_CallerMemberNamePreferredOverCallerArgumentExpression = 9004,
+        WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 9005,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
