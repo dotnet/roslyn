@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             continue;
                         }
 
-                        await _processor.EnqueueWorkItemAsync(document).ConfigureAwait(false);
+                        await _processor.EnqueueWorkItemAsync(document.Project, document.Id).ConfigureAwait(false);
                     }
                 }
 
@@ -394,17 +394,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Logger.Log(FunctionId.WorkCoordinator_Project_Enqueue, s_enqueueLogger, Environment.TickCount, projectId);
                     }
 
-                    public async Task EnqueueWorkItemAsync(Document document)
+                    public async Task EnqueueWorkItemAsync(Project project, DocumentId documentId)
                     {
                         // we are shutting down
                         CancellationToken.ThrowIfCancellationRequested();
 
                         // call to this method is serialized. and only this method does the writing.
-                        var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
-                        var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, CancellationToken).ConfigureAwait(false);
+                        var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
+                        var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(project.GetRequiredDocument(documentId), CancellationToken).ConfigureAwait(false);
 
                         _processor.Enqueue(
-                            new WorkItem(document.Id, document.Project.Language, InvocationReasons.SemanticChanged,
+                            new WorkItem(documentId, project.Language, InvocationReasons.SemanticChanged,
                                 isLowPriority, activeMember: null, Listener.BeginAsyncOperation(nameof(EnqueueWorkItemAsync), tag: EnqueueItem)));
                     }
 
@@ -449,10 +449,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return;
                         }
 
-                        foreach (var document in project.Documents)
-                        {
-                            await EnqueueWorkItemAsync(document).ConfigureAwait(false);
-                        }
+                        foreach (var documentId in project.DocumentIds)
+                            await EnqueueWorkItemAsync(project, documentId).ConfigureAwait(false);
                     }
 
                     private readonly struct Data

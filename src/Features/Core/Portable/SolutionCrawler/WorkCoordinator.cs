@@ -301,13 +301,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private void OnDocumentOpened(object? sender, DocumentEventArgs e)
             {
                 _eventProcessingQueue.ScheduleTask("OnDocumentOpened",
-                    () => EnqueueWorkItemAsync(e.Document, InvocationReasons.DocumentOpened), _shutdownToken);
+                    () => EnqueueWorkItemAsync(e.Document.Project, e.Document.Id, InvocationReasons.DocumentOpened), _shutdownToken);
             }
 
             private void OnDocumentClosed(object? sender, DocumentEventArgs e)
             {
                 _eventProcessingQueue.ScheduleTask("OnDocumentClosed",
-                    () => EnqueueWorkItemAsync(e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
+                    () => EnqueueWorkItemAsync(e.Document.Project, e.Document.Id, InvocationReasons.DocumentClosed), _shutdownToken);
             }
 
             private void ProcessDocumentEvent(WorkspaceChangeEventArgs e, string eventName)
@@ -436,26 +436,26 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     () => EnqueueWorkItemAfterDiffAsync(oldSolution, newSolution, documentId), _shutdownToken);
             }
 
-            private async Task EnqueueWorkItemAsync(Document document, InvocationReasons invocationReasons, SyntaxNode? changedMember = null)
+            private async Task EnqueueWorkItemAsync(Project project, DocumentId documentId, InvocationReasons invocationReasons, SyntaxNode? changedMember = null)
             {
                 // we are shutting down
                 _shutdownToken.ThrowIfCancellationRequested();
 
-                var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
-                var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, _shutdownToken).ConfigureAwait(false);
+                var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
+                var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(project.GetRequiredDocument(documentId), _shutdownToken).ConfigureAwait(false);
 
                 var currentMember = GetSyntaxPath(changedMember);
 
                 // call to this method is serialized. and only this method does the writing.
                 _documentAndProjectWorkerProcessor.Enqueue(
-                    new WorkItem(document.Id, document.Project.Language, invocationReasons, isLowPriority, currentMember, _listener.BeginAsyncOperation("WorkItem")));
+                    new WorkItem(documentId, project.Language, invocationReasons, isLowPriority, currentMember, _listener.BeginAsyncOperation("WorkItem")));
 
                 // enqueue semantic work planner
                 if (invocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged))
                 {
                     // must use "Document" here so that the snapshot doesn't go away. we need the snapshot to calculate p2p dependency graph later.
                     // due to this, we might hold onto solution (and things kept alive by it) little bit longer than usual.
-                    _semanticChangeProcessor.Enqueue(document, currentMember);
+                    _semanticChangeProcessor.Enqueue(project.GetRequiredDocument(documentId), currentMember);
                 }
             }
 
@@ -474,10 +474,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private async Task EnqueueWorkItemAsync(Project project, InvocationReasons invocationReasons)
             {
                 foreach (var documentId in project.DocumentIds)
-                {
-                    var document = project.GetRequiredDocument(documentId);
-                    await EnqueueWorkItemAsync(document, invocationReasons).ConfigureAwait(false);
-                }
+                    await EnqueueWorkItemAsync(project, documentId, invocationReasons).ConfigureAwait(false);
             }
 
             private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)
@@ -485,20 +482,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var solution = _registration.GetSolutionToAnalyze();
                 var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
 
-                foreach (var document in scope.GetDocuments(solution))
-                {
-                    await EnqueueWorkItemAsync(analyzer, document, invocationReasons).ConfigureAwait(false);
-                }
+                foreach (var (project, documentId) in scope.GetDocumentIds(solution))
+                    await EnqueueWorkItemAsync(analyzer, project, documentId, invocationReasons).ConfigureAwait(false);
             }
 
-            private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, Document document, InvocationReasons invocationReasons)
+            private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, Project project, DocumentId documentId, InvocationReasons invocationReasons)
             {
-                var priorityService = document.GetLanguageService<IWorkCoordinatorPriorityService>();
-                var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(document, _shutdownToken).ConfigureAwait(false);
+                var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
+                var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(
+                    project.GetRequiredDocument(documentId), _shutdownToken).ConfigureAwait(false);
 
                 _documentAndProjectWorkerProcessor.Enqueue(
-                    new WorkItem(document.Id, document.Project.Language, invocationReasons,
-                    isLowPriority, analyzer, _listener.BeginAsyncOperation("WorkItem")));
+                    new WorkItem(documentId, project.Language, invocationReasons,
+                        isLowPriority, analyzer, _listener.BeginAsyncOperation("WorkItem")));
             }
 
             private async Task EnqueueWorkItemAsync(Solution oldSolution, Solution newSolution)
@@ -527,9 +523,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 await EnqueueProjectConfigurationChangeWorkItemAsync(projectChanges).ConfigureAwait(false);
 
                 foreach (var addedDocumentId in projectChanges.GetAddedDocuments())
-                {
-                    await EnqueueWorkItemAsync(projectChanges.NewProject.GetRequiredDocument(addedDocumentId), InvocationReasons.DocumentAdded).ConfigureAwait(false);
-                }
+                    await EnqueueWorkItemAsync(projectChanges.NewProject, addedDocumentId, InvocationReasons.DocumentAdded).ConfigureAwait(false);
 
                 foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
                 {
@@ -538,9 +532,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 foreach (var removedDocumentId in projectChanges.GetRemovedDocuments())
-                {
-                    await EnqueueWorkItemAsync(projectChanges.OldProject.GetRequiredDocument(removedDocumentId), InvocationReasons.DocumentRemoved).ConfigureAwait(false);
-                }
+                    await EnqueueWorkItemAsync(projectChanges.OldProject, removedDocumentId, InvocationReasons.DocumentRemoved).ConfigureAwait(false);
             }
 
             private async Task EnqueueProjectConfigurationChangeWorkItemAsync(ProjectChanges projectChanges)
@@ -589,7 +581,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // For languages that don't use a Roslyn syntax tree, they don't export a document difference service.
                     // The whole document should be considered as changed in that case.
-                    await EnqueueWorkItemAsync(newDocument, InvocationReasons.DocumentChanged).ConfigureAwait(false);
+                    await EnqueueWorkItemAsync(newDocument.Project, newDocument.Id, InvocationReasons.DocumentChanged).ConfigureAwait(false);
                 }
                 else
                 {
@@ -597,16 +589,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     if (differenceResult != null)
                     {
-                        await EnqueueWorkItemAsync(newDocument, differenceResult.ChangeType, differenceResult.ChangedMember).ConfigureAwait(false);
+                        await EnqueueWorkItemAsync(newDocument.Project, newDocument.Id, differenceResult.ChangeType, differenceResult.ChangedMember).ConfigureAwait(false);
                     }
                 }
             }
 
             private Task EnqueueWorkItemForDocumentAsync(Solution solution, DocumentId documentId, InvocationReasons invocationReasons)
             {
-                var document = solution.GetRequiredDocument(documentId);
+                var project = solution.GetRequiredProject(documentId.ProjectId);
 
-                return EnqueueWorkItemAsync(document, invocationReasons);
+                return EnqueueWorkItemAsync(project, documentId, invocationReasons);
             }
 
             private Task EnqueueWorkItemForProjectAsync(Solution solution, ProjectId projectId, InvocationReasons invocationReasons)
@@ -796,7 +788,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 return count;
             }
 
-            public IEnumerable<Document> GetDocuments(Solution solution)
+            public IEnumerable<(Project project, DocumentId documentId)> GetDocumentIds(Solution solution)
             {
                 if (_solutionId != null && solution.Id != _solutionId)
                 {
@@ -805,9 +797,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 if (_solutionId != null)
                 {
-                    foreach (var document in solution.Projects.SelectMany(p => p.Documents))
+                    foreach (var project in solution.Projects)
                     {
-                        yield return document;
+                        foreach (var documentId in project.DocumentIds)
+                            yield return (project, documentId);
                     }
 
                     yield break;
@@ -824,22 +817,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 var project = solution.GetProject(projectId);
                                 if (project != null)
                                 {
-                                    foreach (var document in project.Documents)
-                                    {
-                                        yield return document;
-                                    }
+                                    foreach (var documentId in project.DocumentIds)
+                                        yield return (project, documentId);
                                 }
 
                                 break;
                             }
                         case DocumentId documentId:
                             {
-                                var document = solution.GetDocument(documentId);
-                                if (document != null)
-                                {
-                                    yield return document;
-                                }
-
+                                var project = solution.GetProject(documentId.ProjectId);
+                                if (project != null)
+                                    yield return (project, documentId);
                                 break;
                             }
                     }
