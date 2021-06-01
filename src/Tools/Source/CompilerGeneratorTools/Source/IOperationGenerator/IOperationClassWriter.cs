@@ -156,7 +156,7 @@ namespace IOperationGenerator
                 }
             }
 
-            using (_writer = new StreamWriter(File.Open(Path.Combine(_location, "OperationKind.Generated.cs"), FileMode.Create)))
+            using (_writer = new StreamWriter(File.Open(Path.Combine(_location, "OperationKind.Generated.cs"), FileMode.Create), Encoding.UTF8))
             {
                 writeHeader();
                 WriteUsing("System");
