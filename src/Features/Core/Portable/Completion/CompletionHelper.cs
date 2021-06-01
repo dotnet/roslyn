@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionFilterReason filterReason,
             ImmutableArray<string> recentItems,
             bool includeMatchSpans,
-            ref int currentIndex,
+            int currentIndex,
             out MatchResult<T> matchResult)
         {
             // Get the match of the given completion item for the pattern provided so far. 
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 matchResult = new MatchResult<T>(
                     item, editorCompletionItem, matchedFilterText: matchedFilterText,
-                    patternMatch: patternMatch, index: currentIndex++);
+                    patternMatch: patternMatch, currentIndex);
 
                 return true;
             }

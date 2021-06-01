@@ -208,10 +208,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         filterReason,
                         _recentItemsManager.RecentItems,
                         highlightMatchingPortions: highlightMatchingPortions,
-                        ref currentIndex,
+                        currentIndex,
                         out var matchResult))
                     {
                         initialListOfItemsToBeIncluded.Add(matchResult);
+                        currentIndex++;
                     }
                 }
 
@@ -641,11 +642,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionFilterReason filterReason,
             ImmutableArray<string> recentItems,
             bool highlightMatchingPortions,
-            ref int currentIndex,
+            int currentIndex,
             out MatchResult<VSCompletionItem> matchResult)
         {
             var roslynItem = GetOrAddRoslynCompletionItem(item);
-            return CompletionHelper.TryCreateMatchResult(completionHelper, roslynItem, item, filterText, initialTriggerKind, filterReason, recentItems, highlightMatchingPortions, ref currentIndex, out matchResult);
+            return CompletionHelper.TryCreateMatchResult(completionHelper, roslynItem, item, filterText, initialTriggerKind, filterReason, recentItems, highlightMatchingPortions, currentIndex, out matchResult);
         }
 
         // PERF: Create a singleton to avoid lambda allocation on hot path

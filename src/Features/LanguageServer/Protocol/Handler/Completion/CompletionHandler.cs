@@ -446,10 +446,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     GetFilterReason(completionTrigger),
                     ImmutableArray<string>.Empty,
                     includeMatchSpans: false,
-                    ref index,
+                    index,
                     out var matchResult))
                 {
                     matchResultsBuilder.Add(matchResult);
+                    index++;
                 }
             }
 
