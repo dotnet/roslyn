@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             Assumes.Present(_componentModel);
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
-            foreach (var provider in await GetOptionPersistersAsync(_componentModel, cancellationToken).ConfigureAwait(true))
+            foreach (var provider in await GetOptionPersistersAsync(_componentModel).ConfigureAwait(true))
             {
                 _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
             }
@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var settingsEditorFactory = _componentModel.GetService<SettingsEditorFactory>();
             RegisterEditorFactory(settingsEditorFactory);
 
-            static async Task<ImmutableArray<IOptionPersisterProvider>> GetOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
+            static async Task<ImmutableArray<IOptionPersisterProvider>> GetOptionPersistersAsync(IComponentModel componentModel)
             {
                 // Switch to a background thread to ensure assembly loads don't show up as UI delays attributed to
                 // InitializeAsync.
