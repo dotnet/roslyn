@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   This set consists of S0 (if S0 is a class or struct), the base classes of S0 (if S0 is a class),
             //   T0 (if T0 is a class or struct), and the base classes of T0 (if T0 is a class).
 
-            // PROTOTYPE(StaticAbstractMembersInInterfaces): Adjust the above specification quote appropriately.
+            // https://github.com/dotnet/roslyn/issues/53798: Adjust the above specification quote appropriately.
 
             if ((object)type == null)
             {
