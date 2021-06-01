@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             return _format;
         }
 
+        /// <summary>
+        /// Get the spans located on each line so that I can only display the first one that appears on the line
+        /// </summary>
         private Dictionary<int, List<IMappingTagSpan<InlineErrorTag>>> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
             _tagSpanToPointMap.Clear();
