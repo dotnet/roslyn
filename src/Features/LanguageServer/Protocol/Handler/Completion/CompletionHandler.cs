@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var (filteredList, isIncomplete, resultId) = completionListResult.Value;
+            var (list, isIncomplete, resultId) = completionListResult.Value;
 
             var lspVSClientCapability = context.ClientCapabilities.HasVisualStudioLspCapability() == true;
             var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // We use the first item in the completion list as our comparison point for span
                 // and range for optimization when generating the TextEdits later on.
                 var completionChange = await completionService.GetChangeAsync(
-                    document, filteredList.Items.First(), cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document, list.Items.First(), cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // If possible, we want to compute the item's span and range just once.
                 // Individual items can override this range later.
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             };
             var stringBuilder = new StringBuilder();
             using var _ = ArrayBuilder<LSP.CompletionItem>.GetInstance(out var lspCompletionItems);
-            foreach (var item in filteredList.Items)
+            foreach (var item in list.Items)
             {
                 var completionItemResolveData = supportsCompletionListData ? null : completionResolveData;
                 var lspCompletionItem = await CreateLSPCompletionItemAsync(
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionList = new LSP.VSCompletionList
             {
                 Items = lspCompletionItems.ToArray(),
-                SuggestionMode = filteredList.SuggestionModeItem != null,
+                SuggestionMode = list.SuggestionModeItem != null,
                 IsIncomplete = isIncomplete,
             };
 
