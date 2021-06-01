@@ -98,7 +98,6 @@ modifier
   : 'abstract'
   | 'async'
   | 'const'
-  | 'data'
   | 'extern'
   | 'fixed'
   | 'internal'

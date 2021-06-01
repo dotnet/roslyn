@@ -3219,5 +3219,40 @@ class C
             var treeText = newDocTree.GetText();
             Assert.Same(newDocText, treeText);
         }
+
+        [Fact]
+        public async Task ReplacingTextMultipleTimesDoesNotRootIntermediateCopiesIfCompilationNotAskedFor()
+        {
+            // This test replicates the pattern of some operation changing a bunch of files, but the files aren't kept open.
+            // In Visual Studio we do large refactorings by opening files with an invisible editor, making changes, and closing
+            // again. This process means we'll queue up intermediate changes to those files, but we don't want to hold onto
+            // the intermediate edits when we don't really need to since the final version will be all that matters.
+
+            using var workspace = CreateWorkspaceWithProjectAndDocuments();
+
+            var solution = workspace.CurrentSolution;
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+
+            // Fetch the compilation, so further edits are going to be incremental updates of this one
+            var originalCompilation = await solution.Projects.Single().GetCompilationAsync();
+
+            // Create a source text we'll release and ensure it disappears. We'll also make sure we don't accidentally root
+            // that solution in the middle.
+            var sourceTextToRelease = ObjectReference.CreateFromFactory(static () => SourceText.From(Guid.NewGuid().ToString()));
+            var solutionWithSourceTextToRelease = sourceTextToRelease.GetObjectReference(
+                static (sourceText, document) => document.Project.Solution.WithDocumentText(document.Id, sourceText, PreservationMode.PreserveIdentity),
+                solution.GetDocument(documentId));
+
+            // Change it again, this time by editing the text loader; this replicates us closing a file, and we don't want to pin the changes from the
+            // prior change.
+            var finalSolution = solutionWithSourceTextToRelease.GetObjectReference(
+                static (s, documentId) => s.WithDocumentTextLoader(documentId, new TestTextLoader(Guid.NewGuid().ToString()), PreservationMode.PreserveValue), documentId).GetReference();
+
+            // The text in the middle shouldn't be held at all, since we replaced it.
+            solutionWithSourceTextToRelease.ReleaseStrongReference();
+            sourceTextToRelease.AssertReleased();
+
+            GC.KeepAlive(finalSolution);
+        }
     }
 }
