@@ -456,13 +456,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // Next, we sort the list based on the pattern matching result.
             matchResultsBuilder.Sort(MatchResult<CompletionItem?>.SortingComparer);
-            var matchedResults = matchResultsBuilder.ToImmutableArray();
 
-            // Finally, truncate the list to 1000 items and any preselected items.
-            var count = MaxCompletionListSize;
-            var filteredList = matchedResults
-                .Where(match => count-- > 0 || match.RoslynCompletionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection)
-                .Select(match => match.RoslynCompletionItem)
+            // Finally, truncate the list to 1000 items plus any preselected items that occur after the first 1000.
+            var filteredList = matchResultsBuilder
+                .Take(MaxCompletionListSize)
+                .Concat(matchResultsBuilder.Skip(MaxCompletionListSize).Where(match => match.RoslynCompletionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection))
+                .Select(matchResult => matchResult.RoslynCompletionItem)
                 .ToImmutableArray();
             var newCompletionList = completionList.WithItems(filteredList);
 
@@ -484,6 +483,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // We do not want to clear out the _lastIncompleteResultId if isIncomplete = false.
             // This is in order to support cases where we sent a complete list for a filtered down result, but the
             // user deletes some of the filter text and the client re-triggers us for previous incomplete completions.
+            // Completion list retrieval handles clearing out the _lastIncompleteResultId if we were not triggered for an incomplete request.
             if (isIncomplete)
             {
                 _lastIncompleteResultId = resultId;
