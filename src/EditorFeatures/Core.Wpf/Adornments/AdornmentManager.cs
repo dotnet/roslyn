@@ -43,13 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// <summary>Spans that are invalidated, and need to be removed from the layer..</summary>
         protected List<IMappingSpan> _invalidatedSpans;
 
-        /*public abstract AdornmentManager<T> Create(
-            IThreadingContext threadingContext,
-            IWpfTextView textView,
-            IViewTagAggregatorFactoryService aggregatorService,
-            IAsynchronousOperationListener asyncListener,
-            string adornmentLayerName);*/
-
         internal AdornmentManager(
             IThreadingContext threadingContext,
             IWpfTextView textView,
