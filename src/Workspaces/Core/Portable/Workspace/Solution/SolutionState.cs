@@ -220,12 +220,20 @@ namespace Microsoft.CodeAnalysis
             solutionAttributes ??= _solutionAttributes;
             projectIds ??= ProjectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
-            options ??= Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap));
             analyzerReferences ??= AnalyzerReferences;
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
             dependencyGraph ??= _dependencyGraph;
             var newFrozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument.HasValue ? frozenSourceGeneratedDocument.Value : _frozenSourceGeneratedDocumentState;
+
+            // PERF: Only invoke WithLanguages if we have different set of project IDs (AddProject/RemoveProject operation)
+            Debug.Assert(idToProjectStateMap.Count != _projectIdToProjectStateMap.Count ||
+                idToProjectStateMap.Keys.SetEquals(_projectIdToProjectStateMap.Keys));
+            Debug.Assert(idToProjectStateMap.Count != _projectIdToProjectStateMap.Count ||
+                Options == Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap)));
+            options ??= (idToProjectStateMap.Count != _projectIdToProjectStateMap.Count
+                ? Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap))
+                : Options);
 
             var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
