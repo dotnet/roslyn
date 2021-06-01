@@ -54,29 +54,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             }
         }
 
-        /*public override AdornmentManager<GraphicsTag> Create(
-            IThreadingContext threadingContext,
-            IWpfTextView textView,
-            IViewTagAggregatorFactoryService aggregatorService,
-            IAsynchronousOperationListener asyncListener,
-            string adornmentLayerName)
-        {
-            Contract.ThrowIfNull(threadingContext);
-            Contract.ThrowIfNull(textView);
-            Contract.ThrowIfNull(aggregatorService);
-            Contract.ThrowIfNull(adornmentLayerName);
-            Contract.ThrowIfNull(asyncListener);
-
-            return new InlineErrorAdornmentManager(threadingContext, textView, aggregatorService, asyncListener, adornmentLayerName);
-        }*/
-
         private TextFormattingRunProperties GetFormat(IClassificationType classificationType)
         {
             _format = _formatMap.GetTextProperties(classificationType);
             return _format;
         }
 
-        private Dictionary<int, List<IMappingTagSpan<InlineErrorTag>>> GetSpansOnOwnLine(NormalizedSnapshotSpanCollection changedSpanCollection)
+        private Dictionary<int, List<IMappingTagSpan<InlineErrorTag>>> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
             _tagSpanToPointMap.Clear();
             var map = new Dictionary<int, List<IMappingTagSpan<InlineErrorTag>>>();
@@ -93,9 +77,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 var tagSpans = _tagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    // We don't want to draw line separators if they would intersect a collapsed outlining
-                    // region.  So we test if we can map the start of the line separator up to our visual 
-                    // snapshot. If we can't, then we just skip it.
                     var point = tagMappingSpan.Span.Start.GetPoint(changedSpan.Snapshot, PositionAffinity.Predecessor);
                     if (point == null)
                     {
@@ -162,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 }
             }
 
-            var map = GetSpansOnOwnLine(changedSpanCollection);
+            var map = GetSpansOnEachLine(changedSpanCollection);
             foreach (var (lineNum, tagMappingSpanList) in map)
             {
                 if (tagMappingSpanList.Count >= 1)

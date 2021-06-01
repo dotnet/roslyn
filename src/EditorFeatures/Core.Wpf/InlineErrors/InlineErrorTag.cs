@@ -19,18 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 {
     internal class InlineErrorTag : GraphicsTag
     {
-        public const string TagId = "inline error";
-
         public readonly string ErrorType;
         private readonly DiagnosticData _diagnostic;
-        private readonly IEditorFormatMap _editorFormatMap;
 
         public InlineErrorTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap)
             : base(editorFormatMap)
         {
             ErrorType = errorType;
             _diagnostic = diagnostic;
-            _editorFormatMap = editorFormatMap;
         }
 
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format)

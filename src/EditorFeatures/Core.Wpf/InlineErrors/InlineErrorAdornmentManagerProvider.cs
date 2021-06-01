@@ -30,15 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         [Name(LayerName)]
         [ContentType(ContentTypeNames.RoslynContentType)]
         [Order(After = PredefinedAdornmentLayers.Selection, Before = PredefinedAdornmentLayers.Squiggle)]
-#pragma warning disable IDE0051 // Remove unused private members
-        private readonly AdornmentLayerDefinition _inlineErrorLayer;
-#pragma warning restore IDE0051 // Remove unused private members
+        internal readonly AdornmentLayerDefinition InlineErrorLayer;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public InlineErrorAdornmentManagerProvider(
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
             IThreadingContext threadingContext,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -66,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 return;
             }
 
-            var manager = new InlineErrorAdornmentManager(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
+            _ = new InlineErrorAdornmentManager(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
             // the manager keeps itself alive by listening to text view events.
             //LineSeparatorAdornmentManager.Create(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
         }

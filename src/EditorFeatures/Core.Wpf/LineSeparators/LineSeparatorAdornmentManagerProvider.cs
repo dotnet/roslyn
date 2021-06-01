@@ -65,9 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 return;
             }
 
-            var manager = new LineSeparatorAdornmentManager(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
+            _ = new LineSeparatorAdornmentManager(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
             // the manager keeps itself alive by listening to text view events.
-            //LineSeparatorAdornmentManager.Create(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
         }
     }
 }
