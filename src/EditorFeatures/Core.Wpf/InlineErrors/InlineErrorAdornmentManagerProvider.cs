@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.InlineErrors;
@@ -62,9 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 return;
             }
 
-            _ = new InlineErrorAdornmentManager(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
             // the manager keeps itself alive by listening to text view events.
-            //LineSeparatorAdornmentManager.Create(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
+            _ = new InlineErrorAdornmentManager(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
         }
     }
 }

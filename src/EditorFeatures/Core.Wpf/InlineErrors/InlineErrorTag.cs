@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             _diagnostic = diagnostic;
         }
 
+        /// <summary>
+        /// Creates a GraphicsResult object which is the error block based on the geometry and formatting set for the item.
+        /// </summary>
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format)
         {
             var block = new TextBlock
@@ -37,8 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 FontSize = 0.75 * format.FontRenderingEmSize,
                 FontStyle = FontStyles.Normal,
                 Foreground = format.ForegroundBrush,
-                // Adds a little bit of padding to the left of the text relative to the border to make the text seem
-                // more balanced in the border
                 Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
                 VerticalAlignment = VerticalAlignment.Center,
             };
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 Background = format.BackgroundBrush,
                 Child = block,
                 CornerRadius = new CornerRadius(2),
-                // Highlighting lines are 2px buffer.  So shift us up by one from the bottom so we feel centered between them.
+                // Highlighting lines are 2px buffer. So shift us up by one from the bottom so we feel centered between them.
                 Margin = new Thickness(0, top: 0, 0, bottom: 2),
                 Padding = new Thickness(2)
             };
@@ -69,7 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
             view.ViewportWidthChanged += ViewportWidthChangedHandler;
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
-            // affect layout
+            // affect layout.
+            // TODO: Not sure if these are needed anymore since the errors are not intratextadornment tags
             TextOptions.SetTextFormattingMode(border, TextOptions.GetTextFormattingMode(view.VisualElement));
             TextOptions.SetTextHintingMode(border, TextOptions.GetTextHintingMode(view.VisualElement));
             TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(view.VisualElement));
@@ -86,6 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             }
         }
 
+        /// <summary>
+        /// Navigates to the requrest URL
+        /// </summary>
         private void HandleRequestNavigate(object sender, RoutedEventArgs e)
         {
             var link = (Hyperlink)sender;
@@ -94,6 +99,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             e.Handled = true;
         }
 
+        /// <summary>
+        /// Gets called when the ClassificationFormatMap is changed to update the adornment
+        /// </summary>
         public void UpdateColor(TextFormattingRunProperties format, UIElement adornment)
         {
             var border = (Border)adornment;
@@ -107,20 +115,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// We do not need to set a default color so this remains unimplemented
+        /// </summary>
         protected override Color? GetColor(IWpfTextView view, IEditorFormatMap editorFormatMap)
         {
-            if (ErrorType is PredefinedErrorTypeNames.SyntaxError)
-            {
-                return Colors.Red;
-            }
-            else if (ErrorType is PredefinedErrorTypeNames.Warning)
-            {
-                return Colors.Green;
-            }
-            else
-            {
-                return Colors.Purple;
-            }
+            throw new NotImplementedException();
         }
     }
 }
