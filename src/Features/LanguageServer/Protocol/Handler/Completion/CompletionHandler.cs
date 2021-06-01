@@ -455,7 +455,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // Next, we sort the list based on the pattern matching result.
-            var matchedResults = matchResultsBuilder.ToImmutableArray().Sort(MatchResult<CompletionItem?>.SortingComparer);
+            matchResultsBuilder.Sort(MatchResult<CompletionItem?>.SortingComparer);
+            var matchedResults = matchResultsBuilder.ToImmutableArray();
 
             // Finally, truncate the list to 1000 items and any preselected items.
             var count = MaxCompletionListSize;
