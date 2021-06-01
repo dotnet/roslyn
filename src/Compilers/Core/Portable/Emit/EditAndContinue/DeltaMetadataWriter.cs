@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private void PopulateEncLogTableCustomAttributes()
         {
-            var attributeMap = CreateExistingAttributeMap(_previousGeneration.OriginalMetadata.MetadataReader, _previousGeneration.CustomAttributesAdded, out var lastRow);
+            var attributeMap = CreateExistingAttributeMap(_previousGeneration.OriginalMetadata.MetadataReader, _previousGeneration.CustomAttributesAdded, _customAttributeTargets, out var lastRow);
 
             var nextCustomAttributeRow = lastRow + 1;
 
@@ -856,15 +856,19 @@ namespace Microsoft.CodeAnalysis.Emit
         /// so that when we emit the new attributes we can overwrite them.
         /// We also do this for attributes emitted in previous deltas, so the rows may not be a contiguous block
         /// </summary>
-        private static Dictionary<EntityHandle, Queue<int>> CreateExistingAttributeMap(MetadataReader metadataReader, IReadOnlyDictionary<int, EntityHandle> customAttributesAdded, out int lastRowId)
+        private static Dictionary<EntityHandle, Queue<int>> CreateExistingAttributeMap(MetadataReader metadataReader, IReadOnlyDictionary<int, EntityHandle> customAttributesAdded, List<EntityHandle> _customAttributeTargets, out int lastRowId)
         {
+            // We expect the number of attributes emitted in the delta (_customAttributeTargets) to be small, and
+            // the attributes in the original metadata to be large, so we use a hashset as an index
+            var parentsWeCareAbout = new HashSet<EntityHandle>(_customAttributeTargets, HandleComparer.Default);
+
             var result = new Dictionary<EntityHandle, Queue<int>>(HandleComparer.Default);
 
             int rowId = 1;
             foreach (var customAttributeHandle in metadataReader.CustomAttributes)
             {
                 var parent = metadataReader.GetCustomAttribute(customAttributeHandle).Parent;
-                AddCustomAttribute(result, rowId, parent);
+                AddCustomAttribute(result, rowId, parent, parentsWeCareAbout);
 
                 rowId++;
             }
@@ -874,13 +878,18 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var pair in customAttributesAdded)
             {
                 lastRowId = Math.Max(lastRowId, pair.Key);
-                AddCustomAttribute(result, pair.Key, pair.Value);
+                AddCustomAttribute(result, pair.Key, pair.Value, parentsWeCareAbout);
             }
 
             return result;
 
-            static void AddCustomAttribute(Dictionary<EntityHandle, Queue<int>> result, int index, EntityHandle parent)
+            static void AddCustomAttribute(Dictionary<EntityHandle, Queue<int>> result, int index, EntityHandle parent, HashSet<EntityHandle> parentsWeCareAbout)
             {
+                if (!parentsWeCareAbout.Contains(parent))
+                {
+                    return;
+                }
+
                 if (!result.TryGetValue(parent, out var queue))
                 {
                     queue = new Queue<int>();
