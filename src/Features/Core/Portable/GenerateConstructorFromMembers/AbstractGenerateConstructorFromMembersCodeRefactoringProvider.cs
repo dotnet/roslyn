@@ -202,6 +202,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return null;
             }
 
+            // We shouldn't offer a refactoring if the compilation is invalid.
+            if (semanticModel.Compilation.GetTypeByMetadataName("System.ArgumentNullException") is null)
+            {
+                return null;
+            }
+
             using var _ = ArrayBuilder<PickMembersOption>.GetInstance(out var pickMemberOptions);
             var canAddNullCheck = viableMembers.Any(
                 m => m.GetSymbolType().CanAddNullCheck());

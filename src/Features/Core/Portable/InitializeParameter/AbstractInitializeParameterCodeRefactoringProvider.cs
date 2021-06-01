@@ -102,6 +102,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
+            // We shouldn't offer a refactoring if the compilation is invalid.
+            if (semanticModel.Compilation.GetTypeByMetadataName("System.ArgumentNullException") is null)
+            {
+                return;
+            }
+
             if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
             {
                 // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
