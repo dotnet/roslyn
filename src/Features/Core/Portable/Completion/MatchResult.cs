@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// The actual editor completion item associated with this <see cref="RoslynCompletionItem"/>
+        /// In VS for example, this is the associated VS async completion item.
         /// </summary>
         public readonly T EditorCompletionItem;
 
