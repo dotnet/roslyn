@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         /// <summary>
         /// This id is set when we return an incomplete completion list.
-        /// When the client asks us for more items  using <see cref="LSP.CompletionTriggerKind.TriggerForIncompleteCompletions"/>
+        /// When the client asks us for more items using <see cref="LSP.CompletionTriggerKind.TriggerForIncompleteCompletions"/>
         /// we use this result id to lookup the previously calculated list.
         /// </summary>
         private long? _lastIncompleteResultId;
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var (filteredList, isInComplete, resultId) = completionListResult.Value;
+            var (filteredList, isIncomplete, resultId) = completionListResult.Value;
 
             var lspVSClientCapability = context.ClientCapabilities.HasVisualStudioLspCapability() == true;
             var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 Items = lspCompletionItems.ToArray(),
                 SuggestionMode = filteredList.SuggestionModeItem != null,
-                IsIncomplete = isInComplete,
+                IsIncomplete = isIncomplete,
             };
 
             if (supportsCompletionListData)
@@ -497,15 +497,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Currently the VS client does not remember to re-request, so the completion list only ever shows items from "Som"
             // so we always set the isIncomplete flag to true when the original list size (computed when no filter text was typed) is too large.
             // VS bug here - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1335142
-            var isInComplete = completionList.Items.Length > newCompletionList.Items.Length;
+            var isIncomplete = completionList.Items.Length > newCompletionList.Items.Length;
 
             // The list is incomplete, store the result id so we can find this list for followup completion requests.
-            if (isInComplete)
+            if (isIncomplete)
             {
                 _lastIncompleteResultId = resultId;
             }
 
-            return (newCompletionList, isInComplete, resultId);
+            return (newCompletionList, isIncomplete, resultId);
 
             static CompletionFilterReason GetFilterReason(CompletionTrigger trigger)
             {
