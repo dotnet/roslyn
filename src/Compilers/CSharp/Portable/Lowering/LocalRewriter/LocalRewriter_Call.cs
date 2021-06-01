@@ -5,13 +5,11 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -505,10 +503,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Patch refKinds for arguments that match 'In' parameters to have effective RefKind.
+        /// Patch refKinds for arguments that match 'In' or 'Ref' parameters to have effective RefKind.
         /// For the purpose of further analysis we will mark the arguments as -
         /// - In        if was originally passed as None
         /// - StrictIn  if was originally passed as In
+        /// - Ref       if the argument is an interpolated string literal subject to an interpolated string handler conversion. No other types
+        ///             are patched here.
         /// Here and in the layers after the lowering we only care about None/notNone differences for the arguments
         /// Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
         /// </summary>
@@ -521,22 +521,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (paramRefKind == RefKind.In)
                 {
                     var argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
-
-                    if (refKindsBuilder == null)
-                    {
-                        if (!argumentRefKindsOpt.IsDefault)
-                        {
-                            Debug.Assert(!argumentRefKindsOpt.IsEmpty);
-                            refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameters.Length);
-                            refKindsBuilder.AddRange(argumentRefKindsOpt);
-                        }
-                        else
-                        {
-                            refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameters.Length, fillWithValue: RefKind.None);
-                        }
-                    }
-
+                    fillRefKindsBuilder(argumentRefKindsOpt, parameters, ref refKindsBuilder);
                     refKindsBuilder[i] = argRefKind == RefKind.None ? paramRefKind : RefKindExtensions.StrictIn;
+                }
+                else if (paramRefKind == RefKind.Ref)
+                {
+                    var argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
+                    if (argRefKind == RefKind.None)
+                    {
+                        // Interpolated strings used as interpolated string handlers are allowed to match ref parameters without `ref`
+                        Debug.Assert(parameters[i].Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true });
+
+                        fillRefKindsBuilder(argumentRefKindsOpt, parameters, ref refKindsBuilder);
+                        refKindsBuilder[i] = RefKind.Ref;
+                    }
                 }
             }
 
@@ -548,6 +546,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: we may have more arguments than parameters in a case of arglist. That is ok.
             Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length >= parameters.Length);
             return argumentRefKindsOpt;
+
+            static void fillRefKindsBuilder(ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<ParameterSymbol> parameters, [NotNull] ref ArrayBuilder<RefKind>? refKindsBuilder)
+            {
+                if (refKindsBuilder == null)
+                {
+                    if (!argumentRefKindsOpt.IsDefault)
+                    {
+                        Debug.Assert(!argumentRefKindsOpt.IsEmpty);
+                        refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameters.Length);
+                        refKindsBuilder.AddRange(argumentRefKindsOpt);
+                    }
+                    else
+                    {
+                        refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(parameters.Length, fillWithValue: RefKind.None);
+                    }
+                }
+            }
         }
 
         internal static ImmutableArray<IArgumentOperation> MakeArgumentsInEvaluationOrder(

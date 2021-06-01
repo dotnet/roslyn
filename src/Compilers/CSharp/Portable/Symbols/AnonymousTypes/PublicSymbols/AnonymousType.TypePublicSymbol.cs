@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+            internal override bool IsInterpolatedStringHandlerType => false;
+
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
                 var symbols = _nameToSymbols[name];

@@ -84,10 +84,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override Conversion GetInterpolatedStringConversion(BoundUnconvertedInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            if (destination is NamedTypeSymbol { IsInterpolatedStringHandlerType: true })
+            {
+                return Conversion.InterpolatedStringHandler;
+            }
+
             // An interpolated string expression may be converted to the types
             // System.IFormattable and System.FormattableString
-            return (TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_IFormattable), TypeCompareKind.ConsiderEverything2) ||
-                    TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything2))
+            return (TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_IFormattable), TypeCompareKind.ConsiderEverything) ||
+                    TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything))
                 ? Conversion.InterpolatedString : Conversion.NoConversion;
         }
 

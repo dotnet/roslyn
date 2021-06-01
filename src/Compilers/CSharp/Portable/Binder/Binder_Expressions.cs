@@ -4404,7 +4404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Helper method to create a synthesized constructor invocation.
         /// </summary>
-        private BoundExpression MakeClassCreationExpression(
+        private BoundExpression MakeConstructorInvocation(
             NamedTypeSymbol type,
             ImmutableArray<BoundExpression> arguments,
             SyntaxNode node,
@@ -4446,7 +4446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeBadExpressionForObjectCreation(node, type, analyzedArguments, node.Initializer, node.Type, diagnostics, wasCompilerGenerated);
         }
 
-        /// <param name="typeSyntax">If <paramref name="initializerOpt"/> is not null, this should not be null.</param>
+        /// <param name="typeSyntax">Shouldn't be null if <paramref name="initializerOpt"/> is not null.</param>
         private BoundExpression MakeBadExpressionForObjectCreation(SyntaxNode node, TypeSymbol type, AnalyzedArguments analyzedArguments, InitializerExpressionSyntax? initializerOpt, SyntaxNode? typeSyntax, BindingDiagnosticBag diagnostics, bool wasCompilerGenerated = false)
         {
             var children = ArrayBuilder<BoundExpression>.GetInstance();

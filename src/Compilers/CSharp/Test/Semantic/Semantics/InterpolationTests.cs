@@ -4,9 +4,12 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -1208,7 +1211,7 @@ static class C
 namespace System.Runtime.CompilerServices
 {
     using System.Text;
-    public ref struct DefaultInterpolatedStringHandler
+    public ref partial struct DefaultInterpolatedStringHandler
     {
         private readonly StringBuilder _builder;
         public DefaultInterpolatedStringHandler(int literalLength, int formattedCount)
@@ -3171,9 +3174,2058 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-            // PROTOTYPE(interp-string): Have a symmetric test for just using AppendLiteral when we have general builder
-            // type support (that the compiler won't optimize away to just the literal value)
             CompileAndVerify(source, expectedOutput: "value:1");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void MixedBuilderReturnTypes_04()
+        {
+            var source = @"
+using System;
+using System.Text;
+using System.Runtime.CompilerServices;
+
+Console.WriteLine((CustomHandler)$""l"");
+
+[InterpolatedStringHandler]
+public class CustomHandler
+{
+    private readonly StringBuilder _builder;
+    public CustomHandler(int literalLength, int formattedCount)
+    {
+        _builder = new StringBuilder();
+    }
+    public override string ToString() => _builder.ToString();
+    public bool AppendFormatted(object o) => true;
+    public void AppendLiteral(string s)
+    {
+        _builder.AppendLine(""literal:"" + s.ToString());
+    }
+}
+";
+
+            CompileAndVerify(new[] { source, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, expectedOutput: "literal:l");
+        }
+
+        private const string InterpolatedStringHandlerAttribute = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
+    public sealed class InterpolatedStringHandlerAttribute : Attribute
+    {
+        public InterpolatedStringHandlerAttribute()
+        {
+        }
+    }
+}
+";
+
+        private string GetCustomHandlerType(string name, string type, bool useBoolReturns, bool includeOneTimeHelpers = true)
+        {
+            var returnType = useBoolReturns ? "bool" : "void";
+            var returnStatement = useBoolReturns ? "return true;" : "return;";
+
+            var cultureInfoHandler = @"
+public class CultureInfoNormalizer
+{
+    public static void Normalize()
+    {
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+    }
+}
+";
+
+            return (includeOneTimeHelpers ? "using System.Globalization;\n" : "") + @"
+using System.Text;
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public " + type + " " + name + @"
+{
+    private readonly StringBuilder _builder;
+    public " + name + @"(int literalLength, int formattedCount)
+    {
+        _builder = new();
+    }
+    public " + returnType + @" AppendLiteral(string literal)
+    {
+        _builder.AppendLine(""literal:"" + literal);
+        " + returnStatement + @"
+    }
+    public " + returnType + @" AppendFormatted(object o, int alignment = 0, string format = null)
+    {
+        _builder.AppendLine(""value:"" + o?.ToString());
+        _builder.AppendLine(""alignment:"" + alignment.ToString());
+        _builder.AppendLine(""format:"" + format);
+        " + returnStatement + @"
+    }
+    public override string ToString() => _builder.ToString();
+}
+" + (includeOneTimeHelpers ? InterpolatedStringHandlerAttribute + cultureInfoHandler : "");
+        }
+
+        private void VerifyInterpolatedStringExpression(CSharpCompilation comp, string handlerType = "CustomHandler")
+        {
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var interpolatedString = tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().Single();
+            var semanticInfo = model.GetSemanticInfoSummary(interpolatedString);
+
+            Assert.Equal(SpecialType.System_String, semanticInfo.Type.SpecialType);
+            Assert.Equal(handlerType, semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.InterpolatedStringHandler, semanticInfo.ImplicitConversion.Kind);
+            Assert.True(semanticInfo.ImplicitConversion.Exists);
+            Assert.True(semanticInfo.ImplicitConversion.IsValid);
+            Assert.True(semanticInfo.ImplicitConversion.IsInterpolatedStringHandler);
+            Assert.Null(semanticInfo.ImplicitConversion.Method);
+
+            // PROTOTYPE(interp-string): Assert IConversionOperation.IsImplicit when IOperation is implemented for interpolated strings.
+        }
+
+        private CompilationVerifier CompileAndVerifyOnCorrectPlatforms(CSharpCompilation compilation, string expectedOutput)
+         => CompileAndVerify(
+             compilation,
+             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
+             verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+
+        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [CombinatorialData]
+        public void CustomHandlerLocal([CombinatorialValues("class", "struct")] string type, bool useBoolReturns)
+        {
+            var code = @"
+CustomHandler builder = $""Literal{1,2:f}"";
+System.Console.WriteLine(builder.ToString());";
+
+            var builder = GetCustomHandlerType("CustomHandler", type, useBoolReturns);
+            var comp = CreateCompilation(new[] { code, builder }, parseOptions: TestOptions.RegularPreview);
+            VerifyInterpolatedStringExpression(comp);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+literal:Literal
+value:1
+alignment:2
+format:f");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", getIl());
+
+            string getIl() => (type, useBoolReturns) switch
+            {
+                (type: "struct", useBoolReturns: true) => @"
+{
+  // Code size       67 (0x43)
+  .maxstack  4
+  .locals init (CustomHandler V_0, //builder
+                CustomHandler V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  ldc.i4.7
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""CustomHandler..ctor(int, int)""
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  ldstr      ""Literal""
+  IL_0010:  call       ""bool CustomHandler.AppendLiteral(string)""
+  IL_0015:  brfalse.s  IL_002c
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldc.i4.1
+  IL_001a:  box        ""int""
+  IL_001f:  ldc.i4.2
+  IL_0020:  ldstr      ""f""
+  IL_0025:  call       ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_002a:  br.s       IL_002d
+  IL_002c:  ldc.i4.0
+  IL_002d:  pop
+  IL_002e:  ldloc.1
+  IL_002f:  stloc.0
+  IL_0030:  ldloca.s   V_0
+  IL_0032:  constrained. ""CustomHandler""
+  IL_0038:  callvirt   ""string object.ToString()""
+  IL_003d:  call       ""void System.Console.WriteLine(string)""
+  IL_0042:  ret
+}
+",
+                (type: "struct", useBoolReturns: false) => @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  4
+  .locals init (CustomHandler V_0, //builder
+                CustomHandler V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  ldc.i4.7
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""CustomHandler..ctor(int, int)""
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  ldstr      ""Literal""
+  IL_0010:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  ldc.i4.1
+  IL_0018:  box        ""int""
+  IL_001d:  ldc.i4.2
+  IL_001e:  ldstr      ""f""
+  IL_0023:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0028:  ldloc.1
+  IL_0029:  stloc.0
+  IL_002a:  ldloca.s   V_0
+  IL_002c:  constrained. ""CustomHandler""
+  IL_0032:  callvirt   ""string object.ToString()""
+  IL_0037:  call       ""void System.Console.WriteLine(string)""
+  IL_003c:  ret
+}
+",
+                (type: "class", useBoolReturns: true) => @"
+{
+  // Code size       55 (0x37)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldstr      ""Literal""
+  IL_000e:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
+  IL_0013:  brfalse.s  IL_0029
+  IL_0015:  ldloc.0
+  IL_0016:  ldc.i4.1
+  IL_0017:  box        ""int""
+  IL_001c:  ldc.i4.2
+  IL_001d:  ldstr      ""f""
+  IL_0022:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  pop
+  IL_002b:  ldloc.0
+  IL_002c:  callvirt   ""string object.ToString()""
+  IL_0031:  call       ""void System.Console.WriteLine(string)""
+  IL_0036:  ret
+}
+",
+                (type: "class", useBoolReturns: false) => @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  5
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  dup
+  IL_0008:  ldstr      ""Literal""
+  IL_000d:  callvirt   ""void CustomHandler.AppendLiteral(string)""
+  IL_0012:  dup
+  IL_0013:  ldc.i4.1
+  IL_0014:  box        ""int""
+  IL_0019:  ldc.i4.2
+  IL_001a:  ldstr      ""f""
+  IL_001f:  callvirt   ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0024:  callvirt   ""string object.ToString()""
+  IL_0029:  call       ""void System.Console.WriteLine(string)""
+  IL_002e:  ret
+}
+",
+                _ => throw ExceptionUtilities.Unreachable
+            };
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void CustomHandlerMethodArgument()
+        {
+            var code = @"
+M($""{1,2:f}Literal"");
+void M(CustomHandler b)
+{
+    System.Console.WriteLine(b.ToString());
+}";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL(@"<top-level-statements-entry-point>", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  box        ""int""
+  IL_000f:  ldc.i4.2
+  IL_0010:  ldstr      ""f""
+  IL_0015:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_001a:  brfalse.s  IL_0029
+  IL_001c:  ldloc.0
+  IL_001d:  ldstr      ""Literal""
+  IL_0022:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  pop
+  IL_002b:  ldloc.0
+  IL_002c:  call       ""void <Program>$.<<Main>$>g__M|0_0(CustomHandler)""
+  IL_0031:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void ExplicitHandlerCast_InCode()
+        {
+            var code = @"System.Console.WriteLine((CustomHandler)$""{1,2:f}Literal"");";
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            SyntaxNode syntax = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Single();
+            var semanticInfo = model.GetSemanticInfoSummary(syntax);
+            Assert.Equal("CustomHandler", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(SpecialType.System_Object, semanticInfo.ConvertedType.SpecialType);
+            Assert.Equal(ConversionKind.ImplicitReference, semanticInfo.ImplicitConversion.Kind);
+
+            syntax = ((CastExpressionSyntax)syntax).Expression;
+            Assert.IsType<InterpolatedStringExpressionSyntax>(syntax);
+            semanticInfo = model.GetSemanticInfoSummary(syntax);
+            Assert.Equal(SpecialType.System_String, semanticInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, semanticInfo.ConvertedType.SpecialType);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            // PROTOTYPE(interp-string): Assert cast is explicit after IOperation is implemented
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  5
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.1
+  IL_0009:  box        ""int""
+  IL_000e:  ldc.i4.2
+  IL_000f:  ldstr      ""f""
+  IL_0014:  callvirt   ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0019:  dup
+  IL_001a:  ldstr      ""Literal""
+  IL_001f:  callvirt   ""void CustomHandler.AppendLiteral(string)""
+  IL_0024:  call       ""void System.Console.WriteLine(object)""
+  IL_0029:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void HandlerConversionPreferredOverStringForNonConstant()
+        {
+            var code = @"
+C.M($""{1,2:f}Literal"");
+class C
+{
+    public static void M(CustomHandler b)
+    {
+        System.Console.WriteLine(b.ToString());
+    }
+    public static void M(string s)
+    {
+        throw null;
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL(@"<top-level-statements-entry-point>", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  box        ""int""
+  IL_000f:  ldc.i4.2
+  IL_0010:  ldstr      ""f""
+  IL_0015:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_001a:  brfalse.s  IL_0029
+  IL_001c:  ldloc.0
+  IL_001d:  ldstr      ""Literal""
+  IL_0022:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  pop
+  IL_002b:  ldloc.0
+  IL_002c:  call       ""void C.M(CustomHandler)""
+  IL_0031:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void StringPreferredOverHandlerConversionForConstant()
+        {
+            var code = @"
+C.M($""{""Literal""}"");
+class C
+{
+    public static void M(CustomHandler b)
+    {
+        throw null;
+    }
+    public static void M(string s)
+    {
+        System.Console.WriteLine(s);
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"Literal");
+
+            verifier.VerifyIL(@"<top-level-statements-entry-point>", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""Literal""
+  IL_0005:  call       ""void C.M(string)""
+  IL_000a:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void HandlerConversionPreferredOverStringForNonConstant_AttributeConstructor()
+        {
+            var code = @"
+using System;
+
+[Attr($""{1}"")]
+class Attr : Attribute
+{
+    public Attr(string s) {}
+    public Attr(CustomHandler c) {}
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0181: Attribute constructor parameter 'c' has type 'CustomHandler', which is not a valid attribute parameter type
+                // [Attr($"{1}")]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Attr").WithArguments("c", "CustomHandler").WithLocation(4, 2)
+            );
+            VerifyInterpolatedStringExpression(comp);
+
+            var attr = comp.SourceAssembly.SourceModule.GlobalNamespace.GetTypeMember("Attr");
+            Assert.Equal("Attr..ctor(CustomHandler c)", attr.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void StringPreferredOverHandlerConversionForConstant_AttributeConstructor()
+        {
+            var code = @"
+using System;
+
+[Attr($""{""Literal""}"")]
+class Attr : Attribute
+{
+    public Attr(string s) {}
+    public Attr(CustomHandler c) {}
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
+
+            void validate(ModuleSymbol m)
+            {
+                var attr = m.GlobalNamespace.GetTypeMember("Attr");
+                Assert.Equal("Attr..ctor(System.String s)", attr.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
+            }
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void MultipleBuilderTypes()
+        {
+            var code = @"
+C.M($"""");
+
+class C
+{
+    public static void M(CustomHandler1 c) => throw null;
+    public static void M(CustomHandler2 c) => throw null;
+}";
+
+            var comp = CreateCompilation(new[]
+            {
+                code,
+                GetCustomHandlerType("CustomHandler1", "struct", useBoolReturns: false),
+                GetCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeOneTimeHelpers: false)
+            }, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics(
+                // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(CustomHandler1)' and 'C.M(CustomHandler2)'
+                // C.M($"");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(CustomHandler1)", "C.M(CustomHandler2)").WithLocation(2, 3)
+            );
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void GenericOverloadResolution_01()
+        {
+            var code = @"
+using System;
+
+C.M($""{1,2:f}Literal"");
+
+class C
+{
+    public static void M<T>(T t) => throw null;
+    public static void M(CustomHandler c) => Console.WriteLine(c);
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  box        ""int""
+  IL_000f:  ldc.i4.2
+  IL_0010:  ldstr      ""f""
+  IL_0015:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_001a:  brfalse.s  IL_0029
+  IL_001c:  ldloc.0
+  IL_001d:  ldstr      ""Literal""
+  IL_0022:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  pop
+  IL_002b:  ldloc.0
+  IL_002c:  call       ""void C.M(CustomHandler)""
+  IL_0031:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void GenericOverloadResolution_02()
+        {
+            var code = @"
+using System;
+
+C.M($""{1,2:f}Literal"");
+
+class C
+{
+    public static void M<T>(T t) where T : CustomHandler => throw null;
+    public static void M(CustomHandler c) => Console.WriteLine(c);
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  box        ""int""
+  IL_000f:  ldc.i4.2
+  IL_0010:  ldstr      ""f""
+  IL_0015:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_001a:  brfalse.s  IL_0029
+  IL_001c:  ldloc.0
+  IL_001d:  ldstr      ""Literal""
+  IL_0022:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  pop
+  IL_002b:  ldloc.0
+  IL_002c:  call       ""void C.M(CustomHandler)""
+  IL_0031:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void GenericOverloadResolution_03()
+        {
+            var code = @"
+C.M($""{1,2:f}Literal"");
+
+class C
+{
+    public static void M<T>(T t) where T : CustomHandler => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,3): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>(T)'. There is no implicit reference conversion from 'string' to 'CustomHandler'.
+                // C.M($"{1,2:f}Literal");
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("C.M<T>(T)", "CustomHandler", "T", "string").WithLocation(2, 3)
+            );
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void GenericInference_01()
+        {
+            var code = @"
+C.M($""{1,2:f}Literal"", default(CustomHandler));
+C.M(default(CustomHandler), $""{1,2:f}Literal"");
+
+class C
+{
+    public static void M<T>(T t1, T t2) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,3): error CS0411: The type arguments for method 'C.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // C.M($"{1,2:f}Literal", default(CustomHandler));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(T, T)").WithLocation(2, 3),
+                // (3,3): error CS0411: The type arguments for method 'C.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // C.M(default(CustomHandler), $"{1,2:f}Literal");
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(T, T)").WithLocation(3, 3)
+            );
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void GenericInference_02()
+        {
+            var code = @"
+using System;
+C.M(default(CustomHandler), () => $""{1,2:f}Literal"");
+
+class C
+{
+    public static void M<T>(T t1, Func<T> t2) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (3,3): error CS0411: The type arguments for method 'C.M<T>(T, Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                // C.M(default(CustomHandler), () => $"{1,2:f}Literal");
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(T, System.Func<T>)").WithLocation(3, 3)
+            );
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void GenericInference_03()
+        {
+            var code = @"
+using System;
+C.M($""{1,2:f}Literal"", default(CustomHandler));
+
+class C
+{
+    public static void M<T>(T t1, T t2) => Console.WriteLine(t1);
+}
+
+partial class CustomHandler
+{
+    public static implicit operator CustomHandler(string s) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  box        ""int""
+  IL_000f:  ldc.i4.2
+  IL_0010:  ldstr      ""f""
+  IL_0015:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_001a:  brfalse.s  IL_0029
+  IL_001c:  ldloc.0
+  IL_001d:  ldstr      ""Literal""
+  IL_0022:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  pop
+  IL_002b:  ldloc.0
+  IL_002c:  ldnull
+  IL_002d:  call       ""void C.M<CustomHandler>(CustomHandler, CustomHandler)""
+  IL_0032:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void GenericInference_04()
+        {
+            var code = @"
+using System;
+C.M(default(CustomHandler), () => $""{1,2:f}Literal"");
+
+class C
+{
+    public static void M<T>(T t1, Func<T> t2) => Console.WriteLine(t2());
+}
+
+partial class CustomHandler
+{
+    public static implicit operator CustomHandler(string s) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<Program>$.<>c.<<Main>$>b__0_0()", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  box        ""int""
+  IL_000f:  ldc.i4.2
+  IL_0010:  ldstr      ""f""
+  IL_0015:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_001a:  brfalse.s  IL_0029
+  IL_001c:  ldloc.0
+  IL_001d:  ldstr      ""Literal""
+  IL_0022:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  pop
+  IL_002b:  ldloc.0
+  IL_002c:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaReturnInference_01()
+        {
+            var code = @"
+using System;
+Func<CustomHandler> f = () => $""{1,2:f}Literal"";
+Console.WriteLine(f());
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  box        ""int""
+  IL_000f:  ldc.i4.2
+  IL_0010:  ldstr      ""f""
+  IL_0015:  callvirt   ""bool CustomHandler.AppendFormatted(object, int, string)""
+  IL_001a:  brfalse.s  IL_0029
+  IL_001c:  ldloc.0
+  IL_001d:  ldstr      ""Literal""
+  IL_0022:  callvirt   ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  pop
+  IL_002b:  ldloc.0
+  IL_002c:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaReturnInference_02()
+        {
+            var code = @"
+using System;
+CultureInfoNormalizer.Normalize();
+C.M(() => $""{1,2:f}Literal"");
+
+class C
+{
+    public static void M(Func<string> f) => Console.WriteLine(f());
+    public static void M(Func<CustomHandler> f) => throw null;
+}
+";
+
+            // Interpolated string handler conversions are not considered when determining the natural type of an expression: the natural return type of this lambda is string,
+            // so we don't even consider that there is a conversion from interpolated string expression to CustomHandler here (Sections 12.6.3.13 and 12.6.3.15 of the spec).
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"1.00Literal");
+
+            // No DefaultInterpolatedStringHandler was included in the compilation, so it falls back to string.Format
+            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldstr      ""{0,2:f}Literal""
+  IL_0005:  ldc.i4.1
+  IL_0006:  box        ""int""
+  IL_000b:  call       ""string string.Format(string, object)""
+  IL_0010:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaReturnInference_03()
+        {
+            // Same as 2, but using a type that isn't allowed in an interpolated string. There is an implicit conversion error on the ref struct
+            // when converting to a string, because S cannot be a component of an interpolated string. This conversion error causes the lambda to
+            // fail to bind as Func<string>, even though the natural return type is string, and the only successful bind is Func<CustomHandler>.
+
+            var code = @"
+using System;
+C.M(() => $""{new S { Field = ""Field"" }}"");
+
+static class C
+{
+    public static void M(Func<string> f) => throw null;
+    public static void M(Func<CustomHandler> f) => Console.WriteLine(f());
+}
+
+public partial class CustomHandler
+{
+    public void AppendFormatted(S value) => _builder.AppendLine(""value:"" + value.Field);
+}
+public ref struct S
+{
+    public string Field { get; set; }
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"value:Field");
+
+            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  4
+  .locals init (S V_0)
+  IL_0000:  ldc.i4.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  dup
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  initobj    ""S""
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  ldstr      ""Field""
+  IL_0017:  call       ""void S.Field.set""
+  IL_001c:  ldloc.0
+  IL_001d:  callvirt   ""void CustomHandler.AppendFormatted(S)""
+  IL_0022:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaReturnInference_04()
+        {
+            // Same as 3, but with S added to DefaultInterpolatedStringHandler (which then allows the lambda to be bound as Func<string>, matching the natural return type)
+
+            var code = @"
+using System;
+C.M(() => $""{new S { Field = ""Field"" }}"");
+
+static class C
+{
+    public static void M(Func<string> f) => Console.WriteLine(f());
+    public static void M(Func<CustomHandler> f) => throw null;
+}
+
+public partial class CustomHandler
+{
+    public void AppendFormatted(S value) => throw null;
+}
+public ref struct S
+{
+    public string Field { get; set; }
+}
+namespace System.Runtime.CompilerServices
+{
+    public ref partial struct DefaultInterpolatedStringHandler
+    {
+        public void AppendFormatted(S value) => _builder.AppendLine(""value:"" + value.Field);
+    }
+}
+";
+
+            string[] source = new[] {
+                code,
+                GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false),
+                GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: true, useBoolReturns: false)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (3,11): error CS8652: The feature 'interpolated string handlers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // C.M(() => $"{new S { Field = "Field" }}");
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{new S { Field = ""Field"" }}""").WithArguments("interpolated string handlers").WithLocation(3, 11),
+                // (3,14): error CS8652: The feature 'interpolated string handlers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // C.M(() => $"{new S { Field = "Field" }}");
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"new S { Field = ""Field"" }").WithArguments("interpolated string handlers").WithLocation(3, 14)
+            );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"value:Field");
+
+            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_0,
+                S V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""S""
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  ldstr      ""Field""
+  IL_001a:  call       ""void S.Field.set""
+  IL_001f:  ldloc.1
+  IL_0020:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(S)""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_002c:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaReturnInference_05()
+        {
+            var code = @"
+using System;
+C.M(b => 
+    {
+        if (b) return default(CustomHandler);
+        else return $""{1,2:f}Literal"";
+    });
+
+static class C
+{
+    public static void M(Func<bool, string> f) => throw null;
+    public static void M(Func<bool, CustomHandler> f) => Console.WriteLine(f(false));
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_000d
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    ""CustomHandler""
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldc.i4.7
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       ""CustomHandler..ctor(int, int)""
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldc.i4.1
+  IL_0019:  box        ""int""
+  IL_001e:  ldc.i4.2
+  IL_001f:  ldstr      ""f""
+  IL_0024:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  ldstr      ""Literal""
+  IL_0030:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0035:  ldloc.0
+  IL_0036:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaReturnInference_06()
+        {
+            // Same as 5, but with an implicit conversion from the builder type to string. This implicit conversion
+            // means that a best common type can be inferred for all branches of the lambda expression (Section 12.6.3.15 of the spec)
+            // and because there is a best common type, the inferred return type of the lambda is string. Since the inferred return type
+            // has an identity conversion to the return type of Func<bool, string>, that is preferred.
+            var code = @"
+using System;
+CultureInfoNormalizer.Normalize();
+C.M(b => 
+    {
+        if (b) return default(CustomHandler);
+        else return $""{1,2:f}Literal"";
+    });
+
+static class C
+{
+    public static void M(Func<bool, string> f) => Console.WriteLine(f(false));
+    public static void M(Func<bool, CustomHandler> f) => throw null;
+}
+public partial struct CustomHandler
+{
+    public static implicit operator string(CustomHandler c) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
+
+            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_0012
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    ""CustomHandler""
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
+  IL_0011:  ret
+  IL_0012:  ldstr      ""{0,2:f}Literal""
+  IL_0017:  ldc.i4.1
+  IL_0018:  box        ""int""
+  IL_001d:  call       ""string string.Format(string, object)""
+  IL_0022:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaReturnInference_07()
+        {
+            // Same as 5, but with an implicit conversion from string to the builder type.
+            var code = @"
+using System;
+C.M(b => 
+    {
+        if (b) return default(CustomHandler);
+        else return $""{1,2:f}Literal"";
+    });
+
+static class C
+{
+    public static void M(Func<bool, string> f) => Console.WriteLine(f(false));
+    public static void M(Func<bool, CustomHandler> f) => Console.WriteLine(f(false));
+}
+public partial struct CustomHandler
+{
+    public static implicit operator CustomHandler(string s) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"
+{
+  // Code size       55 (0x37)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  brfalse.s  IL_000d
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    ""CustomHandler""
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldc.i4.7
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       ""CustomHandler..ctor(int, int)""
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldc.i4.1
+  IL_0019:  box        ""int""
+  IL_001e:  ldc.i4.2
+  IL_001f:  ldstr      ""f""
+  IL_0024:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  ldstr      ""Literal""
+  IL_0030:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0035:  ldloc.0
+  IL_0036:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaReturnInference_08()
+        {
+            // Same as 5, but with an implicit conversion from the builder type to string and from string to the builder type.
+            var code = @"
+using System;
+C.M(b => 
+    {
+        if (b) return default(CustomHandler);
+        else return $""{1,2:f}Literal"";
+    });
+
+static class C
+{
+    public static void M(Func<bool, string> f) => Console.WriteLine(f(false));
+    public static void M(Func<bool, CustomHandler> f) => throw null;
+}
+public partial struct CustomHandler
+{
+    public static implicit operator string(CustomHandler c) => throw null;
+    public static implicit operator CustomHandler(string c) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Func<bool, string>)' and 'C.M(Func<bool, CustomHandler>)'
+                // C.M(b => 
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Func<bool, string>)", "C.M(System.Func<bool, CustomHandler>)").WithLocation(3, 3)
+            );
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void LambdaInference_AmbiguousInOlderLangVersions()
+        {
+            var code = @"
+using System;
+C.M(param => 
+    {
+        param = $""{1}"";
+    });
+
+static class C
+{
+    public static void M(Action<string> f) => throw null;
+    public static void M(Action<CustomHandler> f) => throw null;
+}
+";
+
+            var source = new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+
+            // This successful emit is being caused by https://github.com/dotnet/roslyn/issues/53761, along with the duplicate diagnostics in LambdaReturnInference_04
+            // We should not be changing binding behavior based on LangVersion.
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Action<string>)' and 'C.M(Action<CustomHandler>)'
+                // C.M(param => 
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Action<string>)", "C.M(System.Action<CustomHandler>)").WithLocation(3, 3)
+            );
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void TernaryTypes_01()
+        {
+            var code = @"
+using System;
+
+var x = (bool)(object)false ? default(CustomHandler) : $""{1,2:f}Literal"";
+Console.WriteLine(x);
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       76 (0x4c)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.0
+  IL_0001:  box        ""bool""
+  IL_0006:  unbox.any  ""bool""
+  IL_000b:  brtrue.s   IL_0038
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldc.i4.7
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       ""CustomHandler..ctor(int, int)""
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldc.i4.1
+  IL_0019:  box        ""int""
+  IL_001e:  ldc.i4.2
+  IL_001f:  ldstr      ""f""
+  IL_0024:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  ldstr      ""Literal""
+  IL_0030:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0035:  ldloc.0
+  IL_0036:  br.s       IL_0041
+  IL_0038:  ldloca.s   V_0
+  IL_003a:  initobj    ""CustomHandler""
+  IL_0040:  ldloc.0
+  IL_0041:  box        ""CustomHandler""
+  IL_0046:  call       ""void System.Console.WriteLine(object)""
+  IL_004b:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void TernaryTypes_02()
+        {
+            // Same as 01, but with a conversion from CustomHandler to string. The rules here are similar to LambdaReturnInference_06
+            var code = @"
+using System;
+
+CultureInfoNormalizer.Normalize();
+var x = (bool)(object)false ? default(CustomHandler) : $""{1,2:f}Literal"";
+Console.WriteLine(x);
+
+public partial struct CustomHandler
+{
+    public static implicit operator string(CustomHandler c) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  2
+  .locals init (CustomHandler V_0)
+  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  IL_0005:  ldc.i4.0
+  IL_0006:  box        ""bool""
+  IL_000b:  unbox.any  ""bool""
+  IL_0010:  brtrue.s   IL_0024
+  IL_0012:  ldstr      ""{0,2:f}Literal""
+  IL_0017:  ldc.i4.1
+  IL_0018:  box        ""int""
+  IL_001d:  call       ""string string.Format(string, object)""
+  IL_0022:  br.s       IL_0032
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  initobj    ""CustomHandler""
+  IL_002c:  ldloc.0
+  IL_002d:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
+  IL_0032:  call       ""void System.Console.WriteLine(string)""
+  IL_0037:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void TernaryTypes_03()
+        {
+            // Same as 02, but with a target-type
+            var code = @"
+using System;
+
+CustomHandler x = (bool)(object)false ? default(CustomHandler) : $""{1,2:f}Literal"";
+Console.WriteLine(x);
+
+public partial struct CustomHandler
+{
+    public static implicit operator string(CustomHandler c) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0029: Cannot implicitly convert type 'string' to 'CustomHandler'
+                // CustomHandler x = (bool)(object)false ? default(CustomHandler) : $"{1,2:f}Literal";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(bool)(object)false ? default(CustomHandler) : $""{1,2:f}Literal""").WithArguments("string", "CustomHandler").WithLocation(4, 19)
+            );
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void TernaryTypes_04()
+        {
+            // Same 01, but with a conversion from string to CustomHandler. The rules here are similar to LambdaReturnInference_07
+            var code = @"
+using System;
+
+var x = (bool)(object)false ? default(CustomHandler) : $""{1,2:f}Literal"";
+Console.WriteLine(x);
+
+public partial struct CustomHandler
+{
+    public static implicit operator CustomHandler(string c) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       76 (0x4c)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.0
+  IL_0001:  box        ""bool""
+  IL_0006:  unbox.any  ""bool""
+  IL_000b:  brtrue.s   IL_0038
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldc.i4.7
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       ""CustomHandler..ctor(int, int)""
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldc.i4.1
+  IL_0019:  box        ""int""
+  IL_001e:  ldc.i4.2
+  IL_001f:  ldstr      ""f""
+  IL_0024:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  ldstr      ""Literal""
+  IL_0030:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0035:  ldloc.0
+  IL_0036:  br.s       IL_0041
+  IL_0038:  ldloca.s   V_0
+  IL_003a:  initobj    ""CustomHandler""
+  IL_0040:  ldloc.0
+  IL_0041:  box        ""CustomHandler""
+  IL_0046:  call       ""void System.Console.WriteLine(object)""
+  IL_004b:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void TernaryTypes_05()
+        {
+            // Same 01, but with a conversion from string to CustomHandler and CustomHandler to string.
+            var code = @"
+using System;
+
+var x = (bool)(object)false ? default(CustomHandler) : $""{1,2:f}Literal"";
+Console.WriteLine(x);
+
+public partial struct CustomHandler
+{
+    public static implicit operator CustomHandler(string c) => throw null;
+    public static implicit operator string(CustomHandler c) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (4,9): error CS0172: Type of conditional expression cannot be determined because 'CustomHandler' and 'string' implicitly convert to one another
+                // var x = (bool)(object)false ? default(CustomHandler) : $"{1,2:f}Literal";
+                Diagnostic(ErrorCode.ERR_AmbigQM, @"(bool)(object)false ? default(CustomHandler) : $""{1,2:f}Literal""").WithArguments("CustomHandler", "string").WithLocation(4, 9)
+            );
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void TernaryTypes_06()
+        {
+            // Same 05, but with a target type
+            var code = @"
+using System;
+
+CustomHandler x = (bool)(object)false ? default(CustomHandler) : $""{1,2:f}Literal"";
+Console.WriteLine(x);
+
+public partial struct CustomHandler
+{
+    public static implicit operator CustomHandler(string c) => throw null;
+    public static implicit operator string(CustomHandler c) => c.ToString();
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       76 (0x4c)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.0
+  IL_0001:  box        ""bool""
+  IL_0006:  unbox.any  ""bool""
+  IL_000b:  brtrue.s   IL_0038
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldc.i4.7
+  IL_0010:  ldc.i4.1
+  IL_0011:  call       ""CustomHandler..ctor(int, int)""
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldc.i4.1
+  IL_0019:  box        ""int""
+  IL_001e:  ldc.i4.2
+  IL_001f:  ldstr      ""f""
+  IL_0024:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  ldstr      ""Literal""
+  IL_0030:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0035:  ldloc.0
+  IL_0036:  br.s       IL_0041
+  IL_0038:  ldloca.s   V_0
+  IL_003a:  initobj    ""CustomHandler""
+  IL_0040:  ldloc.0
+  IL_0041:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
+  IL_0046:  call       ""void System.Console.WriteLine(string)""
+  IL_004b:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void SwitchTypes_01()
+        {
+            // Switch expressions infer a best type based on _types_, not based on expressions (section 12.6.3.15 of the spec). Because this is based on types
+            // and not on expression conversions, no best type can be found for this switch expression.
+
+            var code = @"
+using System;
+
+var x = (bool)(object)false switch { true => default(CustomHandler), false => $""{1,2:f}Literal"" };
+Console.WriteLine(x);
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (4,29): error CS8506: No best type was found for the switch expression.
+                // var x = (bool)(object)false switch { true => default(CustomHandler), false => $"{1,2:f}Literal" };
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(4, 29)
+            );
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void SwitchTypes_02()
+        {
+            // Same as 01, but with a conversion from CustomHandler. This allows the switch expression to infer a best-common type, which is string.
+            var code = @"
+using System;
+
+CultureInfoNormalizer.Normalize();
+var x = (bool)(object)false switch { true => default(CustomHandler), false => $""{1,2:f}Literal"" };
+Console.WriteLine(x);
+
+public partial struct CustomHandler
+{
+    public static implicit operator string(CustomHandler c) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (string V_0,
+                CustomHandler V_1)
+  IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
+  IL_0005:  ldc.i4.0
+  IL_0006:  box        ""bool""
+  IL_000b:  unbox.any  ""bool""
+  IL_0010:  brfalse.s  IL_0023
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  initobj    ""CustomHandler""
+  IL_001a:  ldloc.1
+  IL_001b:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
+  IL_0020:  stloc.0
+  IL_0021:  br.s       IL_0034
+  IL_0023:  ldstr      ""{0,2:f}Literal""
+  IL_0028:  ldc.i4.1
+  IL_0029:  box        ""int""
+  IL_002e:  call       ""string string.Format(string, object)""
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  call       ""void System.Console.WriteLine(string)""
+  IL_003a:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void SwitchTypes_03()
+        {
+            // Same 02, but with a target-type. The natural type will fail to compile, so the switch will use a target type (unlike TernaryTypes_03, which fails to compile).
+            var code = @"
+using System;
+
+CustomHandler x = (bool)(object)false switch { true => default(CustomHandler), false => $""{1,2:f}Literal"" };
+Console.WriteLine(x);
+
+public partial struct CustomHandler
+{
+    public static implicit operator string(CustomHandler c) => c.ToString();
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (CustomHandler V_0,
+                CustomHandler V_1)
+  IL_0000:  ldc.i4.0
+  IL_0001:  box        ""bool""
+  IL_0006:  unbox.any  ""bool""
+  IL_000b:  brfalse.s  IL_0019
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  initobj    ""CustomHandler""
+  IL_0015:  ldloc.1
+  IL_0016:  stloc.0
+  IL_0017:  br.s       IL_0043
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  ldc.i4.7
+  IL_001c:  ldc.i4.1
+  IL_001d:  call       ""CustomHandler..ctor(int, int)""
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  ldc.i4.1
+  IL_0025:  box        ""int""
+  IL_002a:  ldc.i4.2
+  IL_002b:  ldstr      ""f""
+  IL_0030:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0035:  ldloca.s   V_1
+  IL_0037:  ldstr      ""Literal""
+  IL_003c:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0041:  ldloc.1
+  IL_0042:  stloc.0
+  IL_0043:  ldloc.0
+  IL_0044:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
+  IL_0049:  call       ""void System.Console.WriteLine(string)""
+  IL_004e:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void SwitchTypes_04()
+        {
+            // Same as 01, but with a conversion to CustomHandler. This allows the switch expression to infer a best-common type, which is CustomHandler.
+            var code = @"
+using System;
+
+var x = (bool)(object)false switch { true => default(CustomHandler), false => $""{1,2:f}Literal"" };
+Console.WriteLine(x);
+
+public partial struct CustomHandler
+{
+    public static implicit operator CustomHandler(string c) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (CustomHandler V_0,
+                CustomHandler V_1)
+  IL_0000:  ldc.i4.0
+  IL_0001:  box        ""bool""
+  IL_0006:  unbox.any  ""bool""
+  IL_000b:  brfalse.s  IL_0019
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  initobj    ""CustomHandler""
+  IL_0015:  ldloc.1
+  IL_0016:  stloc.0
+  IL_0017:  br.s       IL_0043
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  ldc.i4.7
+  IL_001c:  ldc.i4.1
+  IL_001d:  call       ""CustomHandler..ctor(int, int)""
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  ldc.i4.1
+  IL_0025:  box        ""int""
+  IL_002a:  ldc.i4.2
+  IL_002b:  ldstr      ""f""
+  IL_0030:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0035:  ldloca.s   V_1
+  IL_0037:  ldstr      ""Literal""
+  IL_003c:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0041:  ldloc.1
+  IL_0042:  stloc.0
+  IL_0043:  ldloc.0
+  IL_0044:  box        ""CustomHandler""
+  IL_0049:  call       ""void System.Console.WriteLine(object)""
+  IL_004e:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void SwitchTypes_05()
+        {
+            // Same as 01, but with conversions in both directions. No best common type can be found.
+            var code = @"
+using System;
+
+var x = (bool)(object)false switch { true => default(CustomHandler), false => $""{1,2:f}Literal"" };
+Console.WriteLine(x);
+
+public partial struct CustomHandler
+{
+    public static implicit operator CustomHandler(string c) => throw null;
+    public static implicit operator string(CustomHandler c) => throw null;
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (4,29): error CS8506: No best type was found for the switch expression.
+                // var x = (bool)(object)false switch { true => default(CustomHandler), false => $"{1,2:f}Literal" };
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(4, 29)
+            );
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void SwitchTypes_06()
+        {
+            // Same as 05, but with a target type.
+            var code = @"
+using System;
+
+CustomHandler x = (bool)(object)false switch { true => default(CustomHandler), false => $""{1,2:f}Literal"" };
+Console.WriteLine(x);
+
+public partial struct CustomHandler
+{
+    public static implicit operator CustomHandler(string c) => throw null;
+    public static implicit operator string(CustomHandler c) => c.ToString();
+}
+";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       79 (0x4f)
+  .maxstack  4
+  .locals init (CustomHandler V_0,
+                CustomHandler V_1)
+  IL_0000:  ldc.i4.0
+  IL_0001:  box        ""bool""
+  IL_0006:  unbox.any  ""bool""
+  IL_000b:  brfalse.s  IL_0019
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  initobj    ""CustomHandler""
+  IL_0015:  ldloc.1
+  IL_0016:  stloc.0
+  IL_0017:  br.s       IL_0043
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  ldc.i4.7
+  IL_001c:  ldc.i4.1
+  IL_001d:  call       ""CustomHandler..ctor(int, int)""
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  ldc.i4.1
+  IL_0025:  box        ""int""
+  IL_002a:  ldc.i4.2
+  IL_002b:  ldstr      ""f""
+  IL_0030:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0035:  ldloca.s   V_1
+  IL_0037:  ldstr      ""Literal""
+  IL_003c:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0041:  ldloc.1
+  IL_0042:  stloc.0
+  IL_0043:  ldloc.0
+  IL_0044:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
+  IL_0049:  call       ""void System.Console.WriteLine(string)""
+  IL_004e:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void PassAsRefWithoutKeyword_01()
+        {
+            var code = @"
+M($""{1,2:f}Literal"");
+
+void M(ref CustomHandler c) => System.Console.WriteLine(c);";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.7
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""CustomHandler..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldc.i4.1
+  IL_000c:  box        ""int""
+  IL_0011:  ldc.i4.2
+  IL_0012:  ldstr      ""f""
+  IL_0017:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldstr      ""Literal""
+  IL_0023:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""void <Program>$.<<Main>$>g__M|0_0(ref CustomHandler)""
+  IL_002f:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void PassAsRefWithoutKeyword_02()
+        {
+            var code = @"
+M($""{1,2:f}Literal"");
+M(ref $""{1,2:f}Literal"");
+
+void M(ref CustomHandler c) => System.Console.WriteLine(c);";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (2,3): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                // M($"{1,2:f}Literal");
+                Diagnostic(ErrorCode.ERR_BadArgRef, @"$""{1,2:f}Literal""").WithArguments("1", "ref").WithLocation(2, 3),
+                // (3,7): error CS1510: A ref or out value must be an assignable variable
+                // M(ref $"{1,2:f}Literal");
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, @"$""{1,2:f}Literal""").WithLocation(3, 7)
+            );
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void PassAsRefWithoutKeyword_03()
+        {
+            var code = @"
+M($""{1,2:f}Literal"");
+
+void M(in CustomHandler c) => System.Console.WriteLine(c);";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  5
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldc.i4.7
+  IL_0001:  ldc.i4.1
+  IL_0002:  newobj     ""CustomHandler..ctor(int, int)""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.1
+  IL_0009:  box        ""int""
+  IL_000e:  ldc.i4.2
+  IL_000f:  ldstr      ""f""
+  IL_0014:  callvirt   ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0019:  dup
+  IL_001a:  ldstr      ""Literal""
+  IL_001f:  callvirt   ""void CustomHandler.AppendLiteral(string)""
+  IL_0024:  stloc.0
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""void <Program>$.<<Main>$>g__M|0_0(in CustomHandler)""
+  IL_002c:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void PassAsRefWithoutKeyword_04()
+        {
+            var code = @"
+M($""{1,2:f}Literal"");
+
+void M(in CustomHandler c) => System.Console.WriteLine(c);";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.7
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""CustomHandler..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldc.i4.1
+  IL_000c:  box        ""int""
+  IL_0011:  ldc.i4.2
+  IL_0012:  ldstr      ""f""
+  IL_0017:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldstr      ""Literal""
+  IL_0023:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""void <Program>$.<<Main>$>g__M|0_0(in CustomHandler)""
+  IL_002f:  ret
+}
+");
+        }
+
+        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [CombinatorialData]
+        public void RefOverloadResolution_Struct([CombinatorialValues("in", "ref")] string refKind)
+        {
+            var code = @"
+C.M($""{1,2:f}Literal"");
+
+class C
+{
+    public static void M(CustomHandler c) => System.Console.WriteLine(c);
+    public static void M(" + refKind + @" CustomHandler c) => System.Console.WriteLine(c);
+}";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.7
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""CustomHandler..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldc.i4.1
+  IL_000c:  box        ""int""
+  IL_0011:  ldc.i4.2
+  IL_0012:  ldstr      ""f""
+  IL_0017:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldstr      ""Literal""
+  IL_0023:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0028:  ldloc.0
+  IL_0029:  call       ""void C.M(CustomHandler)""
+  IL_002e:  ret
+}
+");
+        }
+
+        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [CombinatorialData]
+        public void RefOverloadResolution_Class([CombinatorialValues("in", "ref")] string refKind)
+        {
+            var code = @"
+C.M($""{1,2:f}Literal"");
+
+class C
+{
+    public static void M(CustomHandler c) => System.Console.WriteLine(c);
+    public static void M(" + refKind + @" CustomHandler c) => System.Console.WriteLine(c);
+}";
+
+            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            VerifyInterpolatedStringExpression(comp);
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  4
+  .locals init (CustomHandler V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.7
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""CustomHandler..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldc.i4.1
+  IL_000c:  box        ""int""
+  IL_0011:  ldc.i4.2
+  IL_0012:  ldstr      ""f""
+  IL_0017:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldstr      ""Literal""
+  IL_0023:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0028:  ldloc.0
+  IL_0029:  call       ""void C.M(CustomHandler)""
+  IL_002e:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void RefOverloadResolution_MultipleBuilderTypes()
+        {
+            var code = @"
+C.M($""{1,2:f}Literal"");
+
+class C
+{
+    public static void M(CustomHandler1 c) => System.Console.WriteLine(c);
+    public static void M(ref CustomHandler2 c) => throw null;
+}";
+
+            var comp = CreateCompilation(new[]
+            {
+                code,
+                GetCustomHandlerType("CustomHandler1", "struct", useBoolReturns: false),
+                GetCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeOneTimeHelpers: false)
+            }, parseOptions: TestOptions.RegularPreview);
+            VerifyInterpolatedStringExpression(comp, "CustomHandler1");
+            var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
+value:1
+alignment:2
+format:f
+literal:Literal");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  4
+  .locals init (CustomHandler1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.7
+  IL_0003:  ldc.i4.1
+  IL_0004:  call       ""CustomHandler1..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldc.i4.1
+  IL_000c:  box        ""int""
+  IL_0011:  ldc.i4.2
+  IL_0012:  ldstr      ""f""
+  IL_0017:  call       ""void CustomHandler1.AppendFormatted(object, int, string)""
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldstr      ""Literal""
+  IL_0023:  call       ""void CustomHandler1.AppendLiteral(string)""
+  IL_0028:  ldloc.0
+  IL_0029:  call       ""void C.M(CustomHandler1)""
+  IL_002e:  ret
+}
+");
         }
     }
 }

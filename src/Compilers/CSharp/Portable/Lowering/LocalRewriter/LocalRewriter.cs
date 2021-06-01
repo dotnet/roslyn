@@ -789,8 +789,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rhs.IsDefaultValue();
         }
 
-        // There are two situations in which the language permits passing rvalues by reference.
-        // (technically there are 4, but we can ignore COM and dynamic here, since that results in byval semantics regardless of the parameter ref kind)
+        // There are three situations in which the language permits passing rvalues by reference.
+        // (technically there are 5, but we can ignore COM and dynamic here, since that results in byval semantics regardless of the parameter ref kind)
         //
         // #1: Receiver of a struct/generic method call.
         //
@@ -850,6 +850,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         //            x = 42;
         //            Console.WriteLine(y);
         //        }
+        //
+        // #3: Ordinary byval interpolated string expression passed to a "ref" interpolated string handler value type.
+        //
+        // Interpolated string expressions passed to a builder type are lowered into a handler form. When the handler type
+        // is a value type (struct, or type parameter constrained to struct (though the latter will fail to bind today because
+        // there's no constructor)), the final handler instance type is passed by reference if the parameter is by reference.
+        //
+        // Example:
+        //        M($""); // Language lowers this to a sequence of creating CustomHandler, appending all values, and evaluting to the builder
+        //        static void M(ref CustomHandler c) { }
         //
         // NB: The readonliness is not considered here.
         //     We only care about possible introduction of aliasing. I.E. RValue->LValue change.
@@ -931,6 +941,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.PatternSymbol)
                     };
                     return refKind != RefKind.None;
+
+                case BoundKind.Conversion:
+                    var conversion = ((BoundConversion)expr);
+                    return expr is BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, Type: { IsValueType: true } };
             }
 
             return false;
