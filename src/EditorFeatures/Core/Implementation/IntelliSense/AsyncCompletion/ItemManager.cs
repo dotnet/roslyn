@@ -513,8 +513,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // Since VS item's display text is created as Prefix + DisplayText + Suffix, 
                     // we can calculate the highlighted span by adding an offset that is the length of the Prefix.
-                    return patternMatch.Value.MatchedSpans
-                        .SelectAsArray(s_highlightSpanGetter, matchResult.RoslynCompletionItem);
+                    return patternMatch.Value.MatchedSpans.SelectAsArray(s_highlightSpanGetter, matchResult.RoslynCompletionItem);
                 }
 
                 // If there's no match for Roslyn item's filter text which is identical to its display text,
