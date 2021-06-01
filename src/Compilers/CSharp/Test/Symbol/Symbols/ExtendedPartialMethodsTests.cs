@@ -2816,7 +2816,17 @@ partial class C
     public partial IEnumerable<V> M4<V>() => default;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,22): warning CS8826: Partial method declarations 'U C.M1<U>()' and 'V C.M1<V>()' have differences in parameter names, parameter types, or return types.
+                //     public partial V M1<V>() => default;
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("U C.M1<U>()", "V C.M1<V>()").WithLocation(7, 22),
+                // (13,22): warning CS8826: Partial method declarations 'U C.M3<U>()' and 'V C.M3<V>()' have differences in parameter names, parameter types, or return types.
+                //     public partial V M3<V>() => default;
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M3").WithArguments("U C.M3<U>()", "V C.M3<V>()").WithLocation(13, 22),
+                // (16,35): warning CS8826: Partial method declarations 'IEnumerable<U> C.M4<U>()' and 'IEnumerable<V> C.M4<V>()' have differences in parameter names, parameter types, or return types.
+                //     public partial IEnumerable<V> M4<V>() => default;
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M4").WithArguments("IEnumerable<U> C.M4<U>()", "IEnumerable<V> C.M4<V>()").WithLocation(16, 35)
+            );
         }
 
         [Fact, WorkItem(44930, "https://github.com/dotnet/roslyn/issues/44930")]

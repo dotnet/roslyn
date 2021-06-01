@@ -4032,6 +4032,9 @@ partial class P<T>
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have differences in parameter names, parameter types, or return types.
+                //     partial void M1<V>() { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void P<T>.M1<U>()", "void P<T>.M1<V>()").WithLocation(29, 18),
                 // (2,22): warning CS1711: XML comment has a typeparam tag for 'T', but there is no type parameter by that name
                 // /// <typeparam name="T"/> -- warning
                 Diagnostic(ErrorCode.WRN_UnmatchedTypeParamTag, "T").WithArguments("T"),
@@ -4165,6 +4168,9 @@ partial class P<T>
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have differences in parameter names, parameter types, or return types.
+                //     partial void M1<V>() { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void P<T>.M1<U>()", "void P<T>.M1<V>()").WithLocation(29, 18),
                 // (2,25): warning CS1735: XML comment on 'C' has a typeparamref tag for 'T', but there is no type parameter by that name
                 // /// <typeparamref name="T"/> -- warning
                 Diagnostic(ErrorCode.WRN_UnmatchedTypeParamRefTag, "T").WithArguments("T", "C"),
