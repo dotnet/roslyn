@@ -231,9 +231,9 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap.Keys.SetEquals(_projectIdToProjectStateMap.Keys));
             Debug.Assert(idToProjectStateMap.Count != _projectIdToProjectStateMap.Count ||
                 Options == Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap)));
-            options ??= (idToProjectStateMap.Count != _projectIdToProjectStateMap.Count
+            options ??= idToProjectStateMap.Count != _projectIdToProjectStateMap.Count
                 ? Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap))
-                : Options);
+                : Options;
 
             var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
