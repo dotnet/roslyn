@@ -674,6 +674,146 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void LengthPattern_17()
+        {
+            UsingExpression(@"c is not [<0]");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.NotPattern);
+                {
+                    N(SyntaxKind.NotKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.LengthPatternClause);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.RelationalPattern);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void LengthPattern_18()
+        {
+            UsingExpression(@"c is [0] and [1]");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.AndPattern);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.LengthPatternClause);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.AndKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.LengthPatternClause);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void LengthPattern_19()
+        {
+            UsingExpression(@"c is int [0] or [1]");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.OrPattern);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.LengthPatternClause);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.OrKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.LengthPatternClause);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "1");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void NoRegressionOnEmptyPropertyPattern()
         {
             UsingExpression(@"c is {}");

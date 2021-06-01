@@ -1060,7 +1060,7 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(list-patterns)")]
         public void IsPattern_BadRecursivePattern_02()
         {
             var vbSource = @"

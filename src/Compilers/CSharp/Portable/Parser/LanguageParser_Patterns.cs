@@ -452,6 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             case SyntaxKind.IdentifierToken:
                             case SyntaxKind.OpenBraceToken:
                             case SyntaxKind.OpenParenToken:
+                            case SyntaxKind.OpenBracketToken:
                                 // these all can start a pattern
                                 return false;
                             default:
