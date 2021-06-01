@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             char typeChar,
             List<MatchResult<VSCompletionItem>> itemsInList,
             bool hasSuggestedItemOptions,
-            bool highlightMatchingSpans,
+            bool highlightMatchingPortions,
             CompletionHelper completionHelper)
         {
             // Not deletion.  Defer to the language to decide which item it thinks best
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var updateSelectionHint = isHardSelection ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected;
 
             return new FilteredCompletionModel(
-                GetHighlightedList(itemsInList, filterText, highlightMatchingSpans, completionHelper), selectedItemIndex, filters,
+                GetHighlightedList(itemsInList, filterText, highlightMatchingPortions, completionHelper), selectedItemIndex, filters,
                 updateSelectionHint, centerSelection: true, uniqueItem);
         }
 
