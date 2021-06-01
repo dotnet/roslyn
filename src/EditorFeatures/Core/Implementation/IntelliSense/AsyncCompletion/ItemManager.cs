@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             });
 
             static ImmutableArray<Span> GetHighlightedSpans(
-                MatchResult<VSCompletionItem> matchResult
+                MatchResult<VSCompletionItem> matchResult,
                 CompletionHelper completionHelper,
                 string filterText,
                 bool highlightMatchingPortions)
