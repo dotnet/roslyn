@@ -921,6 +921,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             pdbStream.ToImmutableArray(),
                             lineEdits,
                             updatedMethodTokens,
+                            updatedTypes: ImmutableArray<int>.Empty,
                             activeStatementsInUpdatedMethods,
                             exceptionRegionUpdates));
 
