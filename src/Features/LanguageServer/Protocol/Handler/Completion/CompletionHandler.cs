@@ -420,7 +420,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
             var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(request.Context, document, position, cancellationToken).ConfigureAwait(false);
 
-            var result = await GetOrCalculateCompletionListAsync(request, document, position, completionTrigger, completionOptions, _completionListCache, completionService, cancellationToken).ConfigureAwait(false);
+            var result = await GetOrCalculateCompletionListAsync(
+                request,
+                document,
+                sourceText,
+                position,
+                completionTrigger,
+                completionOptions,
+                _completionListCache,
+                completionService,
+                cancellationToken).ConfigureAwait(false);
             if (result == null)
             {
                 return null;
@@ -505,6 +514,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private async Task<(CompletionList CompletionList, long ResultId)?> GetOrCalculateCompletionListAsync(
             LSP.CompletionParams request,
             Document document,
+            SourceText sourceText,
             int position,
             CompletionTrigger completionTrigger,
             OptionSet completionOptions,
@@ -512,36 +522,67 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CompletionService completionService,
             CancellationToken cancellationToken)
         {
-            // Get the cached completion list in the case of a request for an incomplete list or calculate a new list and cache it.
-            CompletionList completionList;
-            long resultId;
             if (request.Context?.TriggerKind == LSP.CompletionTriggerKind.TriggerForIncompleteCompletions)
             {
-                // This is a request for a list we already calculated but was incomplete.
-                // Use the resultId to retrieve the completion list we cached for the original result.
-                Contract.ThrowIfFalse(_lastIncompleteResultId.HasValue, "Trigger for incomplete list missing previous result id");
-                var cachedList = completionListCache.GetCachedCompletionList(_lastIncompleteResultId.Value);
-                Contract.ThrowIfNull(cachedList, "Trigger for incomplete list missing cached list");
+                var cachedList = GetCachedList(_lastIncompleteResultId, completionListCache);
+                if (cachedList == null)
+                {
+                    // We're missing the cached completion list for this incomplete request.
+                    // We can re-compute what the list would have been had the user just started typing the word.
+                    // We get this by creating a document that has the filter text removed.
+                    var currentCompletionListSpan = completionService.GetDefaultCompletionListSpan(sourceText, position);
+                    var originalDocument = document.WithText(sourceText.WithChanges(new TextChange(currentCompletionListSpan, string.Empty)));
+                    // We don't have access to the original trigger, but we know the completion list is already present.
+                    // It is safe to recompute with the invoked trigger as we will get all the items and filter down based on the current trigger.
+                    var originalTrigger = new CompletionTrigger(CompletionTriggerKind.Invoke);
+                    return await CalculateListAsync(request, originalDocument, currentCompletionListSpan.Start, originalTrigger, completionOptions, completionService, cancellationToken).ConfigureAwait(false);
+                }
 
-                return (cachedList.CompletionList, _lastIncompleteResultId.Value);
+                return cachedList;
             }
             else
             {
-                // This is a new completion request, clear out the last result Id for incomplete results.
-                _lastIncompleteResultId = null;
+                return await CalculateListAsync(request, document, position, completionTrigger, completionOptions, completionService, cancellationToken).ConfigureAwait(false);
+            }
 
-                completionList = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-                if (completionList == null || completionList.Items.IsEmpty)
+            static (CompletionList, long)? GetCachedList(long? lastResultId, CompletionListCache completionListCache)
+            {
+                if (lastResultId.HasValue)
                 {
-                    return null;
+                    var cachedList = completionListCache.GetCachedCompletionList(lastResultId.Value);
+                    if (cachedList != null)
+                    {
+                        return (cachedList.CompletionList, lastResultId.Value);
+                    }
                 }
 
-                // Cache the completion list so we can avoid recomputation in the resolve handler
-                resultId = _completionListCache.UpdateCache(request.TextDocument, completionList);
-
-                return (completionList, resultId);
+                return null;
             }
+        }
+
+        private async Task<(CompletionList CompletionList, long ResultId)?> CalculateListAsync(
+            LSP.CompletionParams request,
+            Document document,
+            int position,
+            CompletionTrigger completionTrigger,
+            OptionSet completionOptions,
+            CompletionService completionService,
+            CancellationToken cancellationToken)
+        {
+            // This is a new completion request, clear out the last result Id for incomplete results.
+            _lastIncompleteResultId = null;
+
+            var completionList = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (completionList == null || completionList.Items.IsEmpty)
+            {
+                return null;
+            }
+
+            // Cache the completion list so we can avoid recomputation in the resolve handler
+            var resultId = _completionListCache.UpdateCache(request.TextDocument, completionList);
+
+            return (completionList, resultId);
         }
 
         internal static ImmutableHashSet<char> GetTriggerCharacters(CompletionProvider provider)
