@@ -70,6 +70,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 !string.IsNullOrWhiteSpace(diagnostic.Message);
         }
 
+        /// <summary>
+        /// Creates the InlineErrorTag with the error distinction
+        /// </summary>
         protected override InlineErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));
