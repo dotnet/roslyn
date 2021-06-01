@@ -11,7 +11,7 @@ using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal readonly struct MatchResult<T>
+    internal readonly struct MatchResult<TEditorCompletionItem>
     {
         public readonly RoslynCompletionItem RoslynCompletionItem;
         public readonly bool MatchedFilterText;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The actual editor completion item associated with this <see cref="RoslynCompletionItem"/>
         /// In VS for example, this is the associated VS async completion item.
         /// </summary>
-        public readonly T EditorCompletionItem;
+        public readonly TEditorCompletionItem EditorCompletionItem;
 
         // We want to preserve the original alphabetical order for items with same pattern match score,
         // but `ArrayBuilder.Sort` we currently use isn't stable. So we have to add a monotonically increasing 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public MatchResult(
             RoslynCompletionItem roslynCompletionItem,
-            T editorCompletionItem,
+            TEditorCompletionItem editorCompletionItem,
             bool matchedFilterText,
             PatternMatch? patternMatch,
             int index)
@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.Completion
             _indexInOriginalSortedOrder = index;
         }
 
-        public static IComparer<MatchResult<T>> SortingComparer => FilterResultSortingComparer.Instance;
+        public static IComparer<MatchResult<TEditorCompletionItem>> SortingComparer => FilterResultSortingComparer.Instance;
 
-        private class FilterResultSortingComparer : IComparer<MatchResult<T>>
+        private class FilterResultSortingComparer : IComparer<MatchResult<TEditorCompletionItem>>
         {
             public static FilterResultSortingComparer Instance { get; } = new FilterResultSortingComparer();
 
             // This comparison is used for sorting items in the completion list for the original sorting.
-            public int Compare(MatchResult<T> x, MatchResult<T> y)
+            public int Compare(MatchResult<TEditorCompletionItem> x, MatchResult<TEditorCompletionItem> y)
             {
                 var matchX = x.PatternMatch;
                 var matchY = y.PatternMatch;
@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         // This comparison is used in the deletion/backspace scenario for selecting best elements.
-        public int CompareTo(MatchResult<T> other, string filterText)
+        public int CompareTo(MatchResult<TEditorCompletionItem> other, string filterText)
             => ComparerWithState.CompareTo(this, other, filterText, s_comparers);
 
-        private static readonly ImmutableArray<Func<MatchResult<T>, string, IComparable>> s_comparers =
-            ImmutableArray.Create<Func<MatchResult<T>, string, IComparable>>(
+        private static readonly ImmutableArray<Func<MatchResult<TEditorCompletionItem>, string, IComparable>> s_comparers =
+            ImmutableArray.Create<Func<MatchResult<TEditorCompletionItem>, string, IComparable>>(
                 // Prefer the item that matches a longer prefix of the filter text.
                 (f, s) => f.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(s),
                 // If there are "Abc" vs "abc", we should prefer the case typed by user.
