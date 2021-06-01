@@ -481,6 +481,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var isIncomplete = completionList.Items.Length > newCompletionList.Items.Length;
 
             // The list is incomplete, store the result id so we can find this list for followup completion requests.
+            // We do not want to clear out the _lastIncompleteResultId if isIncomplete = false.
+            // This is in order to support cases where we sent a complete list for a filtered down result, but the
+            // user deletes some of the filter text and the client re-triggers us for previous incomplete completions.
             if (isIncomplete)
             {
                 _lastIncompleteResultId = resultId;
