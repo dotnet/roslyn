@@ -7989,6 +7989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!argIsIndex);
                 // Look for Substring
                 var substring = (MethodSymbol)Compilation.GetSpecialTypeMember(SpecialMember.System_String__Substring);
+                // PROTOTYPE(list-patterns) Consider reporting a missing member for string.Substring
                 if (substring is object)
                 {
                     patternSymbol = substring;
@@ -8059,6 +8060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            // PROTOTYPE(list-patterns) Assert about whether diagnostics and dependencies are being accumulated.
             return tryLookupLengthOrCount(WellKnownMemberNames.LengthPropertyName, out lengthOrCountProperty, ref useSiteInfo) ||
                    tryLookupLengthOrCount(WellKnownMemberNames.CountPropertyName, out lengthOrCountProperty, ref useSiteInfo);
 
