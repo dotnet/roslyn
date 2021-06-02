@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         }
 
         private static ISymbol CreateSymbolMock(
-            SymbolKind kind,
+            SymbolKind kindj,
             Accessibility declaredAccessibility = Accessibility.NotApplicable,
             bool isExtensionMethod = false,
             MethodKind methodKind = MethodKind.Ordinary,
@@ -206,48 +206,48 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         {
             var symbolMock = new Mock<ISymbol>(MockBehavior.Strict);
 
-            symbolMock.SetupGet(s => s.Kind).Returns(kind);
+            symbolMock.SetupGet(s => s.Kind).Returns(kindj);
             symbolMock.SetupGet(s => s.DeclaredAccessibility).Returns(declaredAccessibility);
             symbolMock.SetupGet(s => s.ContainingType).Returns(containingType);
 
-            if (kind == SymbolKind.ArrayType)
+            if (kindj == SymbolKind.ArrayType)
             {
                 var arrayTypeMock = symbolMock.As<IArrayTypeSymbol>();
                 arrayTypeMock.SetupGet(s => s.ElementType).Returns(elementType);
             }
 
-            if (kind == SymbolKind.Alias)
+            if (kindj == SymbolKind.Alias)
             {
                 var aliasMock = symbolMock.As<IAliasSymbol>();
                 aliasMock.SetupGet(s => s.Target).Returns(target);
             }
 
-            if (kind == SymbolKind.Method)
+            if (kindj == SymbolKind.Method)
             {
                 var methodTypeMock = symbolMock.As<IMethodSymbol>();
                 methodTypeMock.SetupGet(s => s.MethodKind).Returns(methodKind);
                 methodTypeMock.SetupGet(s => s.IsExtensionMethod).Returns(isExtensionMethod);
             }
 
-            if (kind == SymbolKind.NamedType)
+            if (kindj == SymbolKind.NamedType)
             {
                 var namedTypeMock = symbolMock.As<INamedTypeSymbol>();
                 namedTypeMock.SetupGet(s => s.TypeKind).Returns(typeKind);
             }
 
-            if (kind == SymbolKind.Field)
+            if (kindj == SymbolKind.Field)
             {
                 var fieldMock = symbolMock.As<IFieldSymbol>();
                 fieldMock.SetupGet(s => s.IsConst).Returns(isConst);
             }
 
-            if (kind == SymbolKind.PointerType)
+            if (kindj == SymbolKind.PointerType)
             {
                 var pointerTypeMock = symbolMock.As<IPointerTypeSymbol>();
                 pointerTypeMock.SetupGet(s => s.PointedAtType).Returns(pointedAtType);
             }
 
-            if (kind == SymbolKind.Property)
+            if (kindj == SymbolKind.Property)
             {
                 var propertyMock = symbolMock.As<IPropertySymbol>();
                 propertyMock.SetupGet(s => s.IsWithEvents).Returns(isWithEvents);
