@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 OpenClose = false
             },
             SupportsDiagnosticRequests = true,
-            LinkedEditingRangeProvider = new LinkedEditingRangeOptions { /*WordPattern = OnTypeRenameHandler.NamePattern*/ },
+            LinkedEditingRangeProvider = new LinkedEditingRangeOptions { },
             ExecuteCommandProvider = new ExecuteCommandOptions { Commands = new[] { StringConstants.CreateEventHandlerCommand } },
         };
 
