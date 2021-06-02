@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -265,7 +263,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private static DTE GetDebuggerHostDte()
+        private static DTE? GetDebuggerHostDte()
         {
             var currentProcessId = Process.GetCurrentProcess().Id;
             foreach (var process in Process.GetProcessesByName("devenv"))
