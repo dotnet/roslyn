@@ -300,9 +300,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 if (!await TryGetProjectDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, builder, cancellationToken).ConfigureAwait(false))
-                {
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
-                }
 
                 return builder.ToResult();
             }
@@ -332,9 +330,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var builder = new Builder(project, version);
 
                 if (!await TryGetProjectDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, builder, cancellationToken).ConfigureAwait(false))
-                {
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
-                }
 
                 return builder.ToResult();
             }
