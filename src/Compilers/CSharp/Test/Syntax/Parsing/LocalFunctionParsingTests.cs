@@ -1343,33 +1343,30 @@ class c
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.InvocationExpression);
+                                N(SyntaxKind.ParenthesizedLambdaExpression);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
                                         N(SyntaxKind.IdentifierToken, "await");
                                     }
-                                    N(SyntaxKind.ArgumentList);
+                                    N(SyntaxKind.ParameterList);
                                     {
                                         N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.CloseParenToken);
                                     }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
-                                N(SyntaxKind.ObjectCreationExpression);
-                                {
-                                    N(SyntaxKind.NewKeyword);
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.ObjectCreationExpression);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "await");
-                                    }
-                                    N(SyntaxKind.ArgumentList);
-                                    {
-                                        N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.CloseParenToken);
+                                        N(SyntaxKind.NewKeyword);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "await");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
                                     }
                                 }
                                 N(SyntaxKind.SemicolonToken);

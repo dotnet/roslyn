@@ -6058,30 +6058,24 @@ fixed int x[10];
                                 N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "m");
                                 }
-                                N(SyntaxKind.ParameterList);
+                                N(SyntaxKind.ArgumentList);
                                 {
                                     N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.Argument);
                                     {
                                         N(SyntaxKind.OutKeyword);
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "c");
                                         }
-                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     M(SyntaxKind.CloseParenToken);
-                                }
-                                M(SyntaxKind.EqualsGreaterThanToken);
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
                             M(SyntaxKind.ColonToken);
@@ -6115,30 +6109,24 @@ fixed int x[10];
                                 N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "m");
                                 }
-                                N(SyntaxKind.ParameterList);
+                                N(SyntaxKind.ArgumentList);
                                 {
                                     N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.Argument);
                                     {
                                         N(SyntaxKind.RefKeyword);
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "c");
                                         }
-                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     M(SyntaxKind.CloseParenToken);
-                                }
-                                M(SyntaxKind.EqualsGreaterThanToken);
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
                             M(SyntaxKind.ColonToken);
@@ -7000,35 +6988,32 @@ fixed int x[10];
                                 N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
-                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "a");
                                 }
-                                N(SyntaxKind.ParameterList);
+                                N(SyntaxKind.ArgumentList);
                                 {
                                     N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.Argument);
                                     {
                                         N(SyntaxKind.RefKeyword);
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "a");
                                         }
-                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    M(SyntaxKind.Parameter);
+                                    M(SyntaxKind.Argument);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
                                     }
                                     M(SyntaxKind.CloseParenToken);
-                                }
-                                M(SyntaxKind.EqualsGreaterThanToken);
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
                             M(SyntaxKind.ColonToken);

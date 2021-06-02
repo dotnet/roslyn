@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -6317,6 +6316,7 @@ tryAgain:
         {
             Debug.Assert(mode != ParseTypeMode.NewExpression);
             ScanTypeFlags result;
+            bool isFunctionPointer = false;
 
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
@@ -6406,6 +6406,7 @@ tryAgain:
             }
             else if (IsFunctionPointerStart())
             {
+                isFunctionPointer = true;
                 result = ScanFunctionPointerType(out lastTokenOfType);
             }
             else
@@ -6422,7 +6423,8 @@ tryAgain:
                 {
                     case SyntaxKind.QuestionToken
                             when lastTokenOfType.Kind != SyntaxKind.QuestionToken && // don't allow `Type??`
-                                 lastTokenOfType.Kind != SyntaxKind.AsteriskToken: // don't allow `Type*?`
+                                 lastTokenOfType.Kind != SyntaxKind.AsteriskToken && // don't allow `Type*?`
+                                 !isFunctionPointer: // don't allow `delegate*<...>?`
                         lastTokenOfType = this.EatToken();
                         result = ScanTypeFlags.NullableType;
                         break;
@@ -6446,6 +6448,7 @@ tryAgain:
                                 goto done;
                             default:
                                 lastTokenOfType = this.EatToken();
+                                isFunctionPointer = false;
                                 if (result == ScanTypeFlags.GenericTypeOrExpression || result == ScanTypeFlags.NonGenericTypeOrExpression)
                                 {
                                     result = ScanTypeFlags.PointerOrMultiplication;
@@ -6472,6 +6475,7 @@ tryAgain:
                         }
 
                         lastTokenOfType = this.EatToken();
+                        isFunctionPointer = false;
                         result = ScanTypeFlags.MustBeType;
                         break;
                     default:
@@ -9726,7 +9730,6 @@ tryAgain:
             return IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true);
         }
 
-        // PROTOTYPE: Does this need to be updated to include lambdas with explicit return type?
         private bool IsPossibleExpression(bool allowBinaryExpressions, bool allowAssignmentExpressions)
         {
             SyntaxKind tk = this.CurrentToken.Kind;
@@ -9769,7 +9772,7 @@ tryAgain:
                     // expression (whether it is used as an identifier or a keyword).
                     return this.IsTrueIdentifier() || (this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword);
                 default:
-                    return (IsPredefinedType(tk) && tk != SyntaxKind.VoidKeyword)
+                    return IsPredefinedType(tk)
                         || SyntaxFacts.IsAnyUnaryExpression(tk)
                         || (allowBinaryExpressions && SyntaxFacts.IsBinaryExpression(tk))
                         || (allowAssignmentExpressions && SyntaxFacts.IsAssignmentExpressionOperatorToken(tk));
@@ -10422,9 +10425,9 @@ tryAgain:
                         {
                             return this.ParseAnonymousMethodExpression();
                         }
-                        else if (this.IsPossibleLambdaExpression(precedence))
+                        else if (this.IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda)
                         {
-                            return this.ParseLambdaExpression();
+                            return lambda;
                         }
                         else if (this.IsPossibleDeconstructionLeft(precedence))
                         {
@@ -10469,6 +10472,7 @@ tryAgain:
                 case SyntaxKind.StackAllocKeyword:
                     return this.ParseStackAllocExpression();
                 case SyntaxKind.DelegateKeyword:
+                    // check for lambda expression with explicit function pointer return type
                     if (this.IsPossibleLambdaExpression(precedence))
                     {
                         return this.ParseLambdaExpression();
@@ -10601,7 +10605,8 @@ tryAgain:
                 tokenIndex++;
             }
 
-            return this.PeekToken(tokenIndex).Kind == SyntaxKind.DelegateKeyword;
+            return this.PeekToken(tokenIndex).Kind == SyntaxKind.DelegateKeyword &&
+                this.PeekToken(tokenIndex + 1).Kind != SyntaxKind.AsteriskToken;
         }
 
         private ExpressionSyntax ParsePostFixExpression(ExpressionSyntax expr)
@@ -11153,21 +11158,13 @@ tryAgain:
             var resetPoint = this.GetResetPoint();
             try
             {
-                bool foundParameterModifier = false;
-
                 // do we have the following, possibly with attributes before the parameter:
-                //   case 1: ( T x , ... ) =>
-                //   case 2: ( T x ) =>
-                //   case 3: ( out T x,
-                //   case 4: ( ref T x,
-                //   case 5: ( out T x ) =>
-                //   case 6: ( ref T x ) =>
-                //   case 7: ( in T x ) =>
+                //   case 1: ( T x [, ...]) =>
+                //   case 2: ( out T x [, ...]) =>
+                //   case 3: ( ref T x [, ...]) =>
+                //   case 4: ( in T x [, ...]) =>
                 //
                 // if so then parse it as a lambda
-
-                // Note: in the first two cases, we cannot distinguish a lambda from a tuple expression
-                // containing declaration expressions, so we scan forwards to the `=>` so we know for sure.
 
                 while (true)
                 {
@@ -11176,13 +11173,12 @@ tryAgain:
 
                     _ = ParseAttributeDeclarations();
 
-                    // Eat 'out' or 'ref' for cases [3, 6]. Even though not allowed in a lambda,
+                    // Eat 'out', 'ref', and 'in'. Even though not allowed in a lambda,
                     // we treat `params` similarly for better error recovery.
                     switch (this.CurrentToken.Kind)
                     {
                         case SyntaxKind.RefKeyword:
                             this.EatToken();
-                            foundParameterModifier = true;
                             if (this.CurrentToken.Kind == SyntaxKind.ReadOnlyKeyword)
                             {
                                 this.EatToken();
@@ -11192,13 +11188,7 @@ tryAgain:
                         case SyntaxKind.InKeyword:
                         case SyntaxKind.ParamsKeyword:
                             this.EatToken();
-                            foundParameterModifier = true;
                             break;
-                    }
-
-                    if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
-                    {
-                        return foundParameterModifier;
                     }
 
                     // NOTE: advances CurrentToken
@@ -11215,9 +11205,6 @@ tryAgain:
 
                     switch (this.CurrentToken.Kind)
                     {
-                        case SyntaxKind.EndOfFileToken:
-                            return foundParameterModifier;
-
                         case SyntaxKind.CommaToken:
                             continue;
 
@@ -11240,9 +11227,9 @@ tryAgain:
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenParenToken);
 
-            if (IsPossibleLambdaExpression(precedence))
+            if (IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda)
             {
-                return this.ParseLambdaExpression();
+                return lambda;
             }
 
             var resetPoint = this.GetResetPoint();
@@ -11264,12 +11251,6 @@ tryAgain:
                         var expr = this.ParseSubExpression(Precedence.Cast);
                         return _syntaxFactory.CastExpression(openParen, type, closeParen, expr);
                     }
-                }
-
-                this.Reset(ref resetPoint);
-                if (this.ScanExplicitlyTypedLambda(precedence))
-                {
-                    return this.ParseLambdaExpression();
                 }
 
                 // Doesn't look like a cast, so parse this as a parenthesized expression or tuple.
@@ -11518,7 +11499,8 @@ tryAgain:
 
                 // Have checked all the static forms.  And have checked for the basic `a => a` form.  
                 // At this point we have must be on 'async' or an explicit return type for this to still be a lambda.
-                if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword)
+                if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
+                    IsAnonymousFunctionAsyncModifier())
                 {
                     EatToken();
                 }
@@ -11526,7 +11508,7 @@ tryAgain:
                 var nestedResetPoint = this.GetResetPoint();
                 try
                 {
-                    var st = ScanType(); // PROTOTYPE: Are default arguments to ScanType() correct?
+                    var st = ScanType();
                     if (st == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.OpenParenToken)
                     {
                         this.Reset(ref nestedResetPoint);
@@ -12363,7 +12345,7 @@ tryAgain:
                 }
 
                 if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
-                    this.PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
+                    IsAnonymousFunctionAsyncModifier())
                 {
                     var asyncToken = this.EatContextualToken(SyntaxKind.AsyncKeyword);
                     asyncToken = CheckFeatureAvailability(asyncToken, MessageID.IDS_FeatureAsync);
@@ -12377,6 +12359,50 @@ tryAgain:
             var result = modifiers.ToList();
             _pool.Free(modifiers);
             return result;
+        }
+
+        private bool IsAnonymousFunctionAsyncModifier()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword);
+
+            switch (this.PeekToken(1).Kind)
+            {
+                case SyntaxKind.OpenParenToken:
+                case SyntaxKind.IdentifierToken:
+                case SyntaxKind.StaticKeyword:
+                case SyntaxKind.RefKeyword:
+                case SyntaxKind.DelegateKeyword:
+                    return true;
+                case var kind:
+                    return IsPredefinedType(kind);
+            };
+        }
+
+        /// <summary>
+        /// Parse expected lambda expression but assume `x ? () => y :` is a conditional
+        /// expression rather than a lambda expression with an explicit return type and
+        /// return null in that case only.
+        /// </summary>
+        private LambdaExpressionSyntax TryParseLambdaExpression()
+        {
+            var resetPoint = this.GetResetPoint();
+            try
+            {
+                var result = ParseLambdaExpression();
+
+                if (this.CurrentToken.Kind == SyntaxKind.ColonToken &&
+                    result is ParenthesizedLambdaExpressionSyntax { ReturnType: NullableTypeSyntax { } })
+                {
+                    this.Reset(ref resetPoint);
+                    return null;
+                }
+
+                return result;
+            }
+            finally
+            {
+                this.Release(ref resetPoint);
+            }
         }
 
         private LambdaExpressionSyntax ParseLambdaExpression()
