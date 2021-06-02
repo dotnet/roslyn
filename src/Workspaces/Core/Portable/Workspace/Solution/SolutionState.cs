@@ -227,11 +227,9 @@ namespace Microsoft.CodeAnalysis
             var newFrozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument.HasValue ? frozenSourceGeneratedDocument.Value : _frozenSourceGeneratedDocumentState;
 
             // PERF: Only invoke WithLanguages if we have different set of project IDs (AddProject/RemoveProject operation)
-            Debug.Assert(idToProjectStateMap.Count != _projectIdToProjectStateMap.Count ||
-                idToProjectStateMap.Keys.SetEquals(_projectIdToProjectStateMap.Keys));
-            Debug.Assert(idToProjectStateMap.Count != _projectIdToProjectStateMap.Count ||
+            Debug.Assert(projectIds != ProjectIds ||
                 Options == Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap)));
-            options ??= idToProjectStateMap.Count != _projectIdToProjectStateMap.Count
+            options ??= projectIds != ProjectIds
                 ? Options.WithLanguages(GetRemoteSupportedProjectLanguages(idToProjectStateMap))
                 : Options;
 
