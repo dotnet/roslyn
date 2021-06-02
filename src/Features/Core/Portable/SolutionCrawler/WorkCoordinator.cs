@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // must use "Document" here so that the snapshot doesn't go away. we need the snapshot to calculate p2p dependency graph later.
                     // due to this, we might hold onto solution (and things kept alive by it) little bit longer than usual.
-                    _semanticChangeProcessor.Enqueue(GetRequiredDocument(project, documentId, document), currentMember);
+                    _semanticChangeProcessor.Enqueue(project, documentId, document, currentMember);
                 }
             }
 
