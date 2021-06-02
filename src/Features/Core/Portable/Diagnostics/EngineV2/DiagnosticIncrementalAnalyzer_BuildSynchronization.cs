@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public void SynchronizeWithBuild(
+        public async ValueTask SynchronizeWithBuildAsync(
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> buildDiagnostics,
             TaskQueue postBuildAndErrorListRefreshTaskQueue,
@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var state = stateSet.GetOrCreateProjectState(project.Id);
                         var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
 
-                        // Save into in-memory cache.
-                        state.SaveToInMemoryStorage(project, result);
+                        await state.SaveToInMemoryStorageAsync(project, result).ConfigureAwait(false);
                     }
 
                     // Raise diagnostic updated events after the new diagnostics have been stored into the in-memory cache.
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     // Enqueue remaining re-analysis with normal priority on a separate task queue
                     // that will execute at the end of all the post build and error list refresh tasks.
-                    _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuild), () =>
+                    _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuildAsync), () =>
                     {
                         // Enqueue re-analysis of open documents.
                         AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds());

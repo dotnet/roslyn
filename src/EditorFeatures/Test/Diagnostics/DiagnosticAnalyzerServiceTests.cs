@@ -367,7 +367,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             // cause analysis
             var location = Location.Create(document.FilePath, textSpan: default, lineSpan: default);
 
-            service.SynchronizeWithBuild(
+            await service.SynchronizeWithBuildAsync(
                 workspace,
                 ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>.Empty.Add(
                     document.Project.Id,

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Synchronize build errors with live error.
         /// </summary>
-        public void SynchronizeWithBuild(
+        public ValueTask SynchronizeWithBuildAsync(
             Workspace workspace,
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> diagnostics,
@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool onBuildCompleted,
             CancellationToken cancellationToken)
         {
-            if (_map.TryGetValue(workspace, out var analyzer))
-            {
-                analyzer.SynchronizeWithBuild(diagnostics, postBuildAndErrorListRefreshTaskQueue, onBuildCompleted, cancellationToken);
-            }
+            return _map.TryGetValue(workspace, out var analyzer)
+                ? analyzer.SynchronizeWithBuildAsync(diagnostics, postBuildAndErrorListRefreshTaskQueue, onBuildCompleted, cancellationToken)
+                : default;
         }
     }
 }
