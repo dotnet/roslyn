@@ -43,6 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             var textManager = await _serviceProvider.GetServiceAsync<SVsTextManager, IVsTextManager4>().ConfigureAwait(false);
 
+            // LanguageSettingsPersister requires being instantiated the UI thread.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             _lazyPersister ??= new LanguageSettingsPersister(_threadingContext, textManager, _optionService);
             return _lazyPersister;
         }

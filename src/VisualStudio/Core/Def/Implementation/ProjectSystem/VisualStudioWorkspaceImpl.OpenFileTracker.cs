@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -108,14 +109,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
             }
 
-            public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
+            public static async Task<OpenFileTracker> CreateAsync(
+                VisualStudioWorkspaceImpl workspace, IThreadingContext threadingContext, IAsyncServiceProvider asyncServiceProvider)
             {
                 var runningDocumentTable = await asyncServiceProvider.GetServiceAsync<SVsRunningDocumentTable, IVsRunningDocumentTable>().ConfigureAwait(false);
                 var componentModel = await asyncServiceProvider.GetServiceAsync<SComponentModel, IComponentModel>().ConfigureAwait(false);
 
-                Assumes.Present(runningDocumentTable);
-                Assumes.Present(componentModel);
-
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(threadingContext.DisposalToken);
                 return new OpenFileTracker(workspace, runningDocumentTable, componentModel);
             }
 

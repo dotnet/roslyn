@@ -43,6 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return _lazyPersister;
 
             var settingsManager = await _serviceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(throwOnFailure: false).ConfigureAwait(false);
+
+            // RoamingVisualStudioProfileOptionPersister requires being instantiated on the UI thread.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _lazyPersister ??= new RoamingVisualStudioProfileOptionPersister(_threadingContext, _optionService, settingsManager);
             return _lazyPersister;
         }
