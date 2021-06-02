@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 DiagnosticType = diagnosticData.Category,
                 Projects = new[]
                 {
-                    new ProjectAndContext
+                    new VSProjectAndContext
                     {
                         ProjectIdentifier = project.Id.Id.ToString(),
                         ProjectName = project.Name,

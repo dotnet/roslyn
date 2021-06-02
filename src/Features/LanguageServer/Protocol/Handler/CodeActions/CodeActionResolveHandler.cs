@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService;
         }
 
-        public string Method => MSLSPMethods.TextDocumentCodeActionResolveName;
+        public string Method => LSP.Methods.CodeActionResolveName;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;

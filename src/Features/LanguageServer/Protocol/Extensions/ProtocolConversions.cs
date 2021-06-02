@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -18,7 +19,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
@@ -206,13 +206,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static Task<LSP.Location?> DocumentSpanToLocationAsync(DocumentSpan documentSpan, CancellationToken cancellationToken)
             => TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, isStale: false, cancellationToken);
 
-        public static async Task<LSP.LocationWithText?> DocumentSpanToLocationWithTextAsync(
+        public static async Task<LSP.VSInternalLocation?> DocumentSpanToLocationWithTextAsync(
             DocumentSpan documentSpan, ClassifiedTextElement text, CancellationToken cancellationToken)
         {
             var location = await TextSpanToLocationAsync(
                 documentSpan.Document, documentSpan.SourceSpan, isStale: false, cancellationToken).ConfigureAwait(false);
 
-            return location == null ? null : new LSP.LocationWithText
+            return location == null ? null : new LSP.VSInternalLocation
             {
                 Uri = location.Uri,
                 Range = location.Range,
@@ -280,9 +280,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
             }
 
-            var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => uriAndEdit.TextEdit, (uri, edits) => new TextDocumentEdit
+            var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => uriAndEdit.TextEdit, (uri, edits) => new LSP.TextDocumentEdit
             {
-                TextDocument = new VersionedTextDocumentIdentifier { Uri = uri },
+                TextDocument = new LSP.VersionedTextDocumentIdentifier { Uri = uri },
                 Edits = edits.ToArray(),
             }).ToArray();
 
@@ -538,6 +538,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
+        public static LSP.VSImageId GetImageIdFromGlyph(Glyph glyph)
+        {
+            var imageId = glyph.GetImageId();
+            return new LSP.VSImageId
+            {
+                GuidString = imageId.Guid.ToString(),
+                Id = imageId.Id
+            };
+        }
+
         // The mappings here are roughly based off of SymbolUsageInfoExtensions.ToSymbolReferenceKinds.
         public static LSP.ReferenceKind[] SymbolUsageInfoToReferenceKinds(SymbolUsageInfo symbolUsageInfo)
         {
@@ -615,7 +625,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return id.Id + "|" + id.DebugName;
         }
 
-        public static ProjectId ProjectContextToProjectId(ProjectContext projectContext)
+        public static ProjectId ProjectContextToProjectId(LSP.VSProjectContext projectContext)
         {
             var delimiter = projectContext.Id.IndexOf('|');
 

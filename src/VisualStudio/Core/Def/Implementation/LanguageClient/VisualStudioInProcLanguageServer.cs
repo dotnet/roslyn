@@ -89,12 +89,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             }
         }
 
-        [JsonRpcMethod(MSLSPMethods.TextDocumentCodeActionResolveName, UseSingleObjectParameterDeserialization = true)]
+        [JsonRpcMethod(Methods.CodeActionResolveName, UseSingleObjectParameterDeserialization = true)]
         public Task<VSCodeAction> ResolveCodeActionAsync(VSCodeAction vsCodeAction, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<VSCodeAction, VSCodeAction>(Queue, MSLSPMethods.TextDocumentCodeActionResolveName,
+            return RequestDispatcher.ExecuteRequestAsync<VSCodeAction, VSCodeAction>(Queue, Methods.CodeLensResolveName,
                 vsCodeAction, _clientCapabilities, ClientName, cancellationToken);
         }
 
@@ -118,12 +118,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 diagnosticsParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
-        [JsonRpcMethod(MSLSPMethods.ProjectContextsName, UseSingleObjectParameterDeserialization = true)]
-        public Task<ActiveProjectContexts?> GetProjectContextsAsync(GetTextDocumentWithContextParams textDocumentWithContextParams, CancellationToken cancellationToken)
+        [JsonRpcMethod(VSLSPMethods.ProjectContextsName, UseSingleObjectParameterDeserialization = true)]
+        public Task<VSActiveProjectContexts?> GetProjectContextsAsync(VSGetTextDocumentWithContextParams textDocumentWithContextParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<GetTextDocumentWithContextParams, ActiveProjectContexts?>(Queue, MSLSPMethods.ProjectContextsName,
+            return RequestDispatcher.ExecuteRequestAsync<VSGetTextDocumentWithContextParams, VSActiveProjectContexts?>(Queue, VSLSPMethods.ProjectContextsName,
                 textDocumentWithContextParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
@@ -136,12 +136,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 autoInsertParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
-        [JsonRpcMethod(MSLSPMethods.OnTypeRenameName, UseSingleObjectParameterDeserialization = true)]
-        public Task<DocumentOnTypeRenameResponseItem?> GetTypeRenameAsync(DocumentOnTypeRenameParams renameParams, CancellationToken cancellationToken)
+        [JsonRpcMethod(Methods.TextDocumentLinkedEditingRangeName, UseSingleObjectParameterDeserialization = true)]
+        public Task<LinkedEditingRanges?> GetLinkedEditingRangesAsync(LinkedEditingRangeParams renameParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return RequestDispatcher.ExecuteRequestAsync<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem?>(Queue, MSLSPMethods.OnTypeRenameName,
+            return RequestDispatcher.ExecuteRequestAsync<LinkedEditingRangeParams, LinkedEditingRanges?>(Queue, Methods.TextDocumentLinkedEditingRangeName,
                 renameParams, _clientCapabilities, ClientName, cancellationToken);
         }
 

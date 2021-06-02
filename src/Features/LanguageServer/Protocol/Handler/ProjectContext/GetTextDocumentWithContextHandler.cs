@@ -16,8 +16,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(MSLSPMethods.ProjectContextsName)]
-    internal class GetTextDocumentWithContextHandler : AbstractStatelessRequestHandler<GetTextDocumentWithContextParams, ActiveProjectContexts?>
+    [ProvidesMethod(VSLSPMethods.ProjectContextsName)]
+    internal class GetTextDocumentWithContextHandler : AbstractStatelessRequestHandler<VSGetTextDocumentWithContextParams, VSActiveProjectContexts?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override string Method => MSLSPMethods.ProjectContextsName;
+        public override string Method => VSLSPMethods.ProjectContextsName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(GetTextDocumentWithContextParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSGetTextDocumentWithContextParams request) => new TextDocumentIdentifier { Uri = request.TextDocument.Uri };
 
-        public override Task<ActiveProjectContexts?> HandleRequestAsync(GetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
+        public override Task<VSActiveProjectContexts?> HandleRequestAsync(VSGetTextDocumentWithContextParams request, RequestContext context, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -41,15 +41,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             if (!documents.Any())
             {
-                return SpecializedTasks.Null<ActiveProjectContexts>();
+                return SpecializedTasks.Null<VSActiveProjectContexts>();
             }
 
-            var contexts = new List<ProjectContext>();
+            var contexts = new List<VSProjectContext>();
 
             foreach (var document in documents)
             {
                 var project = document.Project;
-                var projectContext = new ProjectContext
+                var projectContext = new VSProjectContext
                 {
                     Id = ProtocolConversions.ProjectIdToProjectContextId(project.Id),
                     Label = project.Name
@@ -57,11 +57,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (project.Language == LanguageNames.CSharp)
                 {
-                    projectContext.Kind = ProjectContextKind.CSharp;
+                    projectContext.Kind = VSProjectContextKind.CSharp;
                 }
                 else if (project.Language == LanguageNames.VisualBasic)
                 {
-                    projectContext.Kind = ProjectContextKind.VisualBasic;
+                    projectContext.Kind = VSProjectContextKind.VisualBasic;
                 }
 
                 contexts.Add(projectContext);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var openDocument = documents.First();
             var currentContextDocumentId = openDocument.Project.Solution.Workspace.GetDocumentIdInCurrentContext(openDocument.Id);
 
-            return Task.FromResult<ActiveProjectContexts?>(new ActiveProjectContexts
+            return Task.FromResult<VSActiveProjectContexts?>(new VSActiveProjectContexts
             {
                 ProjectContexts = contexts.ToArray(),
                 DefaultIndex = documents.IndexOf(d => d.Id == currentContextDocumentId)

@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 Source = d.Tool,
                 Projects = new[]
                 {
-                    new ProjectAndContext
+                    new VSProjectAndContext
                     {
                         ProjectIdentifier = project.Id.Id.ToString(),
                         ProjectName = project.Name,

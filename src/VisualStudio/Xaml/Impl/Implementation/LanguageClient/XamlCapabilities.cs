@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// <summary>
         /// The currently supported set of XAML LSP Server capabilities
         /// </summary>
-        public static VSServerCapabilities Current => new()
+        public static VSInternalServerCapabilities Current => new()
         {
             CompletionProvider = new CompletionOptions
             {
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 OpenClose = false
             },
             SupportsDiagnosticRequests = true,
-            OnTypeRenameProvider = new DocumentOnTypeRenameOptions { WordPattern = OnTypeRenameHandler.NamePattern },
+            LinkedEditingRangeProvider = new LinkedEditingRangeOptions { /*WordPattern = OnTypeRenameHandler.NamePattern*/ },
             ExecuteCommandProvider = new ExecuteCommandOptions { Commands = new[] { StringConstants.CreateEventHandlerCommand } },
         };
 

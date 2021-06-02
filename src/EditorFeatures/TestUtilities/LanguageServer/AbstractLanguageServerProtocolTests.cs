@@ -187,7 +187,7 @@ namespace Roslyn.Test.Utilities
                 Kind = kind,
                 Name = name,
                 Location = location,
-                Icon = new ImageElement(glyph.GetImageId()),
+                Icon = ProtocolConversions.GetImageIdFromGlyph(glyph)
             };
 
             if (containerName != null)
@@ -205,7 +205,7 @@ namespace Roslyn.Test.Utilities
             if (projectContext != null)
             {
                 documentIdentifier.ProjectContext =
-                    new LSP.ProjectContext { Id = ProtocolConversions.ProjectIdToProjectContextId(projectContext) };
+                    new LSP.VSProjectContext { Id = ProtocolConversions.ProjectIdToProjectContextId(projectContext) };
             }
 
             return documentIdentifier;
