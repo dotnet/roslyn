@@ -1713,7 +1713,7 @@ I agree to all of the foregoing:</value>
   <data name="Error_updating_suppressions_0" xml:space="preserve">
     <value>Error updating suppressions: {0}</value>
   </data>
-  <data name="Display_inline_errors" xml:space="preserve">
+  <data name="Display_inline_errors_experimental" xml:space="preserve">
     <value>Display inline errors (experimental)</value>
   </data>
 </root>

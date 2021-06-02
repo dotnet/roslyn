@@ -18,13 +18,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 {
     internal sealed class ClassificationTypeDefinitions
     {
+        public const string InlineErrorName = "Inline Errors: ";
+
         [Export]
-        [Name("IE: " + PredefinedErrorTypeNames.SyntaxError)]
+        [Name(InlineErrorName + PredefinedErrorTypeNames.SyntaxError)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition InlineErrorsErrorTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name("IE: " + PredefinedErrorTypeNames.SyntaxError)]
+        [Name(InlineErrorName + PredefinedErrorTypeNames.SyntaxError)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         private class InlineErrorsErrorFormatDefinition : EditorFormatDefinition
@@ -33,19 +35,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public InlineErrorsErrorFormatDefinition()
             {
-                DisplayName = EditorFeaturesResources.Inline_Errors_Error;
+                DisplayName = EditorFeaturesResources.Inline_Diagnostics_Error;
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(252, 62, 54));
                 ForegroundBrush = new SolidColorBrush(Color.FromRgb(33, 33, 33));
             }
         }
 
         [Export]
-        [Name("IE: " + PredefinedErrorTypeNames.Warning)]
+        [Name(InlineErrorName + PredefinedErrorTypeNames.Warning)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition InlineErrorsWarningTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name("IE: " + PredefinedErrorTypeNames.Warning)]
+        [Name(InlineErrorName + PredefinedErrorTypeNames.Warning)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         private class InlineErrorsWarningFormatDefinition : EditorFormatDefinition
@@ -54,19 +56,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public InlineErrorsWarningFormatDefinition()
             {
-                DisplayName = EditorFeaturesResources.Inline_Errors_Warning;
+                DisplayName = EditorFeaturesResources.Inline_Diagnostics_Warning;
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(149, 219, 125));
                 ForegroundBrush = new SolidColorBrush(Color.FromRgb(33, 33, 33));
             }
         }
 
         [Export]
-        [Name("IE: " + EditAndContinueErrorTypeDefinition.Name)]
+        [Name(InlineErrorName + EditAndContinueErrorTypeDefinition.Name)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition InlineErrorsRudeEditTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name("IE: " + EditAndContinueErrorTypeDefinition.Name)]
+        [Name(InlineErrorName + EditAndContinueErrorTypeDefinition.Name)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         private class InlineErrorsRudeEditFormatDefinition : EditorFormatDefinition
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public InlineErrorsRudeEditFormatDefinition()
             {
-                DisplayName = EditorFeaturesResources.Inline_Errors_Rude_Edit;
+                DisplayName = EditorFeaturesResources.Inline_Diagnostics_Rude_Edit;
                 BackgroundBrush = Brushes.Purple;
                 ForegroundBrush = new SolidColorBrush(Color.FromRgb(180, 180, 180));
             }

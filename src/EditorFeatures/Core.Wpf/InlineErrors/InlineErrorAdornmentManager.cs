@@ -4,11 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -21,9 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 {
     internal class InlineErrorAdornmentManager : AdornmentManager<InlineErrorTag>
     {
+        public const string InlineErrorName = "Inline Errors: ";
+
         private readonly IClassificationTypeRegistryService _classificationRegistryService;
         private readonly IClassificationFormatMap _formatMap;
-        private TextFormattingRunProperties? _format;
         private readonly Dictionary<IMappingTagSpan<InlineErrorTag>, SnapshotPoint> _tagSpanToPointMap;
 
         public InlineErrorAdornmentManager(IThreadingContext threadingContext,
@@ -41,13 +39,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
         {
-            if (_format != null)
+            if (AdornmentLayer is not null)
             {
-                var elements = _adornmentLayer.Elements;
+                var elements = AdornmentLayer.Elements;
                 foreach (var element in elements)
                 {
                     var tag = (InlineErrorTag)element.Tag;
-                    var classificationType = _classificationRegistryService.GetClassificationType("IE: " + tag.ErrorType);
+                    var classificationType = _classificationRegistryService.GetClassificationType(InlineErrorName + tag.ErrorType);
                     var format = GetFormat(classificationType);
                     tag.UpdateColor(format, element.Adornment);
                 }
@@ -56,19 +54,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
         private TextFormattingRunProperties GetFormat(IClassificationType classificationType)
         {
-            _format = _formatMap.GetTextProperties(classificationType);
-            return _format;
+            return _formatMap.GetTextProperties(classificationType);
         }
 
         /// <summary>
         /// Get the spans located on each line so that I can only display the first one that appears on the line
         /// </summary>
-        private Dictionary<int, List<IMappingTagSpan<InlineErrorTag>>> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
+        private IDictionary<int, List<IMappingTagSpan<InlineErrorTag>>> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
             _tagSpanToPointMap.Clear();
+            if (changedSpanCollection.IsEmpty())
+            {
+                return SpecializedCollections.EmptyDictionary<int, List<IMappingTagSpan<InlineErrorTag>>>();
+            }
+
             var map = new Dictionary<int, List<IMappingTagSpan<InlineErrorTag>>>();
-            var viewSnapshot = _textView.TextSnapshot;
-            var viewLines = _textView.TextViewLines;
+            var viewSnapshot = TextView.TextSnapshot;
+            var viewLines = TextView.TextViewLines;
 
             foreach (var changedSpan in changedSpanCollection)
             {
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                     continue;
                 }
 
-                var tagSpans = _tagAggregator.GetTags(changedSpan);
+                var tagSpans = TagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
                     var point = tagMappingSpan.Span.Start.GetPoint(changedSpan.Snapshot, PositionAffinity.Predecessor);
@@ -86,8 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                         continue;
                     }
 
-                    var mappedPoint = _textView.BufferGraph.MapUpToSnapshot(
-                        point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, _textView.VisualSnapshot);
+                    var mappedPoint = TextView.BufferGraph.MapUpToSnapshot(
+                        point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, TextView.VisualSnapshot);
                     if (mappedPoint == null)
                     {
                         continue;
@@ -125,9 +127,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             Contract.ThrowIfNull(changedSpanCollection);
 
             // this method should only run on UI thread as we do WPF here.
-            Contract.ThrowIfFalse(_textView.VisualElement.Dispatcher.CheckAccess());
+            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
 
-            var viewLines = _textView.TextViewLines;
+            var viewLines = TextView.TextViewLines;
             if (viewLines == null || viewLines.Count == 0)
             {
                 return; // nothing to draw on
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                     // is there any effect on the view?
                     if (viewLines.IntersectsBufferSpan(changedSpan))
                     {
-                        _adornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
+                        AdornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
                     }
                 }
             }
@@ -151,23 +153,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             {
                 if (tagMappingSpanList.Count >= 1)
                 {
-                    TryMapToSingleSnapshotSpan(tagMappingSpanList[0].Span, _textView.TextSnapshot, out var span);
+                    TryMapToSingleSnapshotSpan(tagMappingSpanList[0].Span, TextView.TextSnapshot, out var span);
                     var geometry = viewLines.GetMarkerGeometry(span);
                     if (geometry != null)
                     {
                         var tag = tagMappingSpanList[0].Tag;
-                        var classificationType = _classificationRegistryService.GetClassificationType("IE: " + tag.ErrorType);
-                        var graphicsResult = tag.GetGraphics(_textView, geometry, GetFormat(classificationType));
+                        var classificationType = _classificationRegistryService.GetClassificationType(InlineErrorName + tag.ErrorType);
+                        var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
                         if (!_tagSpanToPointMap.TryGetValue(tagMappingSpanList[0], out var point))
                         {
                             continue;
                         }
 
-                        var lineView = _textView.GetTextViewLineContainingBufferPosition(point);
+                        var lineView = TextView.GetTextViewLineContainingBufferPosition(point);
 
-                        if (lineView.Right < _textView.ViewportWidth - graphicsResult.VisualElement.DesiredSize.Width)
+                        if (lineView.Right < TextView.ViewportWidth - graphicsResult.VisualElement.DesiredSize.Width)
                         {
-                            _adornmentLayer.AddAdornment(
+                            AdornmentLayer.AddAdornment(
                                 behavior: AdornmentPositioningBehavior.TextRelative,
                                 visualSpan: span,
                                 tag: tag,

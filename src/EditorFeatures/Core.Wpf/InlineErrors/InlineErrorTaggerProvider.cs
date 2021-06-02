@@ -46,28 +46,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
         }
 
-        protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
-        => AdjustSnapshotSpan(span, minimumLength, int.MaxValue);
-
-        protected static new SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
-        {
-            var snapshot = span.Snapshot;
-
-            // new length
-            var length = Math.Min(Math.Max(span.Length, minimumLength), maximumLength);
-
-            // make sure start + length is smaller than snapshot.Length and start is >= 0
-            var start = Math.Max(0, Math.Min(span.Start, snapshot.Length - length));
-
-            // make sure length is smaller than snapshot.Length which can happen if start == 0
-            return new SnapshotSpan(snapshot, start, Math.Min(start + length, snapshot.Length) - start);
-        }
-
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             return
-                (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error) &&
-                !string.IsNullOrWhiteSpace(diagnostic.Message);
+                diagnostic.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error &&
+                !string.IsNullOrWhiteSpace(diagnostic.Message) && !diagnostic.IsSuppressed;
         }
 
         /// <summary>
@@ -87,12 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
         {
-            if (diagnostic.IsSuppressed)
-            {
-                // Don't squiggle suppressed diagnostics.
-                return null;
-            }
-
             return GetErrorTypeFromDiagnosticTags(diagnostic) ??
                    GetErrorTypeFromDiagnosticSeverity(diagnostic);
         }

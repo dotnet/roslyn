@@ -141,7 +141,7 @@
                     <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
                               Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
                     <CheckBox x:Name="DisplayInlineErrors"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_errors}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_errors_experimental}" />
                 </StackPanel>
             </GroupBox>
 
