@@ -180,19 +180,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other component knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                await OnDocumentOpenedAsync(stateSets, document).ConfigureAwait(false);
-            }
 
-            return;
-
-            static async Task<bool> OnDocumentOpenedAsync(IEnumerable<StateSet> stateSets, TextDocument document)
-            {
                 // can not be canceled
-                var opened = false;
                 foreach (var stateSet in stateSets)
-                    opened |= await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
-
-                return opened;
+                    await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
             }
         }
 
@@ -210,20 +201,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var documentHadDiagnostics = await OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
-                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
-            }
 
-            return;
-
-            static async Task<bool> OnDocumentClosedAsync(IEnumerable<StateSet> stateSets, TextDocument document)
-            {
                 // can not be canceled
-                var removed = false;
+                var documentHadDiagnostics = false;
                 foreach (var stateSet in stateSets)
-                    removed |= await stateSet.OnDocumentClosedAsync(document).ConfigureAwait(false);
+                    documentHadDiagnostics |= await stateSet.OnDocumentClosedAsync(document).ConfigureAwait(false);
 
-                return removed;
+                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
         }
 
@@ -241,21 +225,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var documentHadDiagnostics = OnDocumentReset(stateSets, document);
+                // can not be canceled
+                var documentHadDiagnostics = false;
+                foreach (var stateSet in stateSets)
+                    documentHadDiagnostics |= stateSet.OnDocumentReset(document);
+
                 RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
 
             return Task.CompletedTask;
-
-            static bool OnDocumentReset(IEnumerable<StateSet> stateSets, TextDocument document)
-            {
-                // can not be canceled
-                var removed = false;
-                foreach (var stateSet in stateSets)
-                    removed |= stateSet.OnDocumentReset(document);
-
-                return removed;
-            }
         }
 
         private void RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(TextDocument document, IEnumerable<StateSet> stateSets, bool documentHadDiagnostics)
@@ -286,26 +264,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var changed = OnDocumentRemoved(stateSets, documentId);
+
+                var changed = false;
+                foreach (var stateSet in stateSets)
+                    changed |= stateSet.OnDocumentRemoved(documentId);
 
                 // if there was no diagnostic reported for this document, nothing to clean up
                 // this is Perf to reduce raising events unnecessarily.
                 if (changed)
-                {
                     RaiseDiagnosticsRemovedForDocument(documentId, stateSets);
-                }
             }
 
             return Task.CompletedTask;
-
-            static bool OnDocumentRemoved(IEnumerable<StateSet> stateSets, DocumentId documentId)
-            {
-                var removed = false;
-                foreach (var stateSet in stateSets)
-                    removed |= stateSet.OnDocumentRemoved(documentId);
-
-                return removed;
-            }
         }
 
         private void RaiseDiagnosticsRemovedForDocument(DocumentId documentId, IEnumerable<StateSet> stateSets)
