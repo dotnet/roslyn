@@ -1020,6 +1020,111 @@ class A
             Assert.Contains("ta", results.Items.First().Label, StringComparison.OrdinalIgnoreCase);
         }
 
+        [Fact]
+        public async Task TestRequestForIncompleteListUsesCorrectCachedListAsync()
+        {
+            var markup =
+@"using System;
+using System.Buffers;
+using System.Buffers.Binary;
+using System.Buffers.Text;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.ComponentModel.Design;
+using System.Configuration;
+using System.Data;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Dynamic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Media;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+class A
+{
+    void M1()
+    {
+        int Taaa = 1;
+        T{|firstCaret:|}
+    }
+
+    void M2()
+    {
+        int Saaa = 1;
+        {|secondCaret:|}
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var firstCaretLocation = locations["firstCaret"].Single();
+            await testLspServer.OpenDocumentAsync(firstCaretLocation.Uri);
+
+            // Create request to on insertion of 'T'
+            var completionParams = CreateCompletionParams(
+                firstCaretLocation,
+                invokeKind: LSP.VSCompletionInvokeKind.Typing,
+                triggerCharacter: "T",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Equal(1000, results.Items.Length);
+            Assert.True(results.IsIncomplete);
+            Assert.Equal("T", results.Items.First().Label);
+            Assert.Single(results.Items, item => item.Label == "Taaa");
+
+            // Insert 'S' at the second caret
+            var secondCaretLocation = locations["secondCaret"].Single();
+            await testLspServer.InsertTextAsync(secondCaretLocation.Uri, (secondCaretLocation.Range.End.Line, secondCaretLocation.Range.End.Character, "S"));
+
+            // Trigger completion on 'S'
+            var triggerLocation = GetLocationPlusOne(secondCaretLocation);
+            completionParams = CreateCompletionParams(
+                triggerLocation,
+                invokeKind: LSP.VSCompletionInvokeKind.Typing,
+                triggerCharacter: "S",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+            results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Equal(1000, results.Items.Length);
+            Assert.True(results.IsIncomplete);
+            Assert.Equal("Saaa", results.Items.First().Label);
+
+            // Now type 'a' in M1 after 'T'
+            await testLspServer.InsertTextAsync(firstCaretLocation.Uri, (firstCaretLocation.Range.End.Line, firstCaretLocation.Range.End.Character, "a"));
+
+            // Trigger completion on 'a' (using incomplete as we previously returned incomplete completions from 'T').
+            triggerLocation = GetLocationPlusOne(firstCaretLocation);
+            completionParams = CreateCompletionParams(
+                triggerLocation,
+                invokeKind: LSP.VSCompletionInvokeKind.Typing,
+                triggerCharacter: "a",
+                triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
+            results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+
+            // Verify we get completions for 'Ta' and not from the 'S' location in M2
+            Assert.True(results.IsIncomplete);
+            Assert.True(results.Items.Length < 1000);
+            Assert.DoesNotContain(results.Items, item => item.Label == "Saaa");
+            Assert.Contains(results.Items, item => item.Label == "Taaa");
+
+            static LSP.Location GetLocationPlusOne(LSP.Location originalLocation)
+            {
+                var newPosition = new LSP.Position { Character = originalLocation.Range.Start.Character + 1, Line = originalLocation.Range.Start.Line };
+                return new LSP.Location
+                {
+                    Uri = originalLocation.Uri,
+                    Range = new LSP.Range { Start = newPosition, End = newPosition }
+                };
+            }
+        }
+
         private static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
         {
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
