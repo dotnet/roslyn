@@ -519,7 +519,6 @@ class C
             var reader3 = md3.Reader;
             readers = new[] { reader0, reader1, reader2, reader3 };
 
-            var y = Visualize(generation0.OriginalMetadata, md1, md2, md3);
             CheckNames(readers, reader3.GetTypeDefNames());
             CheckNames(readers, reader3.GetMethodDefNames(), "F");
             CheckNames(readers, reader3.GetMemberRefNames(), /*BrowsableAttribute*/".ctor", /*DescriptionAttribute*/".ctor", /*CategoryAttribute*/".ctor", /*String.*/"Empty");
@@ -2521,6 +2520,7 @@ delegate void D();
                 Row(8, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(15, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                 Row(9, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -2529,7 +2529,6 @@ delegate void D();
                 Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                 Row(5, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
