@@ -110,10 +110,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
             {
-                var runningDocumentTable = (IVsRunningDocumentTable?)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
-                Assumes.Present(runningDocumentTable);
+                var runningDocumentTable = await asyncServiceProvider.GetServiceAsync<SVsRunningDocumentTable, IVsRunningDocumentTable>().ConfigureAwait(false);
+                var componentModel = await asyncServiceProvider.GetServiceAsync<SComponentModel, IComponentModel>().ConfigureAwait(false);
 
-                var componentModel = (IComponentModel?)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+                Assumes.Present(runningDocumentTable);
                 Assumes.Present(componentModel);
 
                 return new OpenFileTracker(workspace, runningDocumentTable, componentModel);

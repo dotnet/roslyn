@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.Shell;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using ITaskList = Microsoft.VisualStudio.Shell.ITaskList;
 using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
@@ -39,14 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
             if (_lazyPersister is not null)
-            {
                 return _lazyPersister;
-            }
-
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Not all SVsTaskList implementations implement ITaskList, but when it does we will use it
-            var taskList = await _serviceProvider.GetServiceAsync(typeof(SVsTaskList)).ConfigureAwait(true) as ITaskList;
+            var taskList = await _serviceProvider.GetServiceAsync<SVsTaskList, ITaskList>(throwOnFailure: false).ConfigureAwait(false);
             _lazyPersister ??= new CommentTaskTokenSerializer(_optionService, taskList);
             return _lazyPersister;
         }

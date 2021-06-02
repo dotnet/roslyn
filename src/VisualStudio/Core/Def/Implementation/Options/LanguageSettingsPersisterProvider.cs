@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TextManager.Interop;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
@@ -38,14 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
             if (_lazyPersister is not null)
-            {
                 return _lazyPersister;
-            }
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var textManager = (IVsTextManager4?)await _serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
-            Assumes.Present(textManager);
+            var textManager = await _serviceProvider.GetServiceAsync<SVsTextManager, IVsTextManager4>().ConfigureAwait(false);
 
             _lazyPersister ??= new LanguageSettingsPersister(_threadingContext, textManager, _optionService);
             return _lazyPersister;

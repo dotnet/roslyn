@@ -218,16 +218,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
         }
 
-        private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)
+        private async Task LoadInteractiveMenusAsync(CancellationToken _)
         {
-            // Obtain services and QueryInterface from the main thread
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
-            var monitorSelectionService = (IVsMonitorSelection)await GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
-
             // Switch to the background object for constructing commands
             await TaskScheduler.Default;
+
+            var menuCommandService = await this.GetServiceAsync<IMenuCommandService, OleMenuCommandService>().ConfigureAwait(false);
+            var monitorSelectionService = await this.GetServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>().ConfigureAwait(true);
 
             await new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
                 .InitializeResetInteractiveFromProjectCommandAsync()

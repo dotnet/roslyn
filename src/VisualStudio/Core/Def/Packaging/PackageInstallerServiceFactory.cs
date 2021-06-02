@@ -34,6 +34,7 @@ using NuGet.VisualStudio;
 using NuGet.VisualStudio.Contracts;
 using Roslyn.Utilities;
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
+using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
@@ -482,7 +483,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private async Task<T?> PerformNuGetProjectServiceWorkAsync<T>(
             Func<INuGetProjectService, CancellationToken, ValueTask<T?>> doWorkAsync, CancellationToken cancellationToken)
         {
-            var serviceContainer = (IBrokeredServiceContainer?)await _asyncServiceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false);
+            var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(_asyncServiceProvider, throwOnFailure: false).ConfigureAwait(false);
             var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
             if (serviceBroker == null)
                 return default;

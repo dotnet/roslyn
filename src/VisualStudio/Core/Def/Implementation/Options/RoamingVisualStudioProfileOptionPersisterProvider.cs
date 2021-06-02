@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Settings;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
@@ -39,14 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
             if (_lazyPersister is not null)
-            {
                 return _lazyPersister;
-            }
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var settingsManager = (ISettingsManager?)await _serviceProvider.GetServiceAsync(typeof(SVsSettingsPersistenceManager)).ConfigureAwait(true);
-
+            var settingsManager = await _serviceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(throwOnFailure: false).ConfigureAwait(false);
             _lazyPersister ??= new RoamingVisualStudioProfileOptionPersister(_threadingContext, _optionService, settingsManager);
             return _lazyPersister;
         }
