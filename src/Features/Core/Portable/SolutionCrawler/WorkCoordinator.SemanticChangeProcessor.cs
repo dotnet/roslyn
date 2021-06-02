@@ -183,11 +183,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         Debug.Assert(location.IsInSource);
 
-                        var document = solution.GetDocument(location.SourceTree, projectId);
-                        if (document == null || thisDocument == document)
+                        var documentId = solution.GetDocumentId(location.SourceTree, projectId);
+                        if (documentId == null || thisDocument.Id == documentId)
                             continue;
 
-                        await _processor.EnqueueWorkItemAsync(document.Project, document.Id, document).ConfigureAwait(false);
+                        await _processor.EnqueueWorkItemAsync(solution.GetRequiredProject(documentId.ProjectId), documentId, document: null).ConfigureAwait(false);
                     }
                 }
 
