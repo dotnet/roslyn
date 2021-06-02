@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         }
 
         private static ISymbol CreateSymbolMock(
-            SymbolKind kindj,
+            SymbolKind fit,
             Accessibility declaredAccessibility = Accessibility.NotApplicable,
             bool isExtensionMethod = false,
             MethodKind methodKind = MethodKind.Ordinary,
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         {
             var symbolMock = new Mock<ISymbol>(MockBehavior.Strict);
 
-            symbolMock.SetupGet(s => s.Kind).Returns(kindj);
+            symbolMock.SetupGet(s => s.Kind).Returns(fit);
             symbolMock.SetupGet(s => s.DeclaredAccessibility).Returns(declaredAccessibility);
             symbolMock.SetupGet(s => s.ContainingType).Returns(containingType);
 
