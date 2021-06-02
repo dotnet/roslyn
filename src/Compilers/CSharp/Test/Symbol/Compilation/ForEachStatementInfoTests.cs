@@ -4,9 +4,11 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -39,6 +41,9 @@ class E2
             var mn1 = (IMethodSymbol)e1.GetMembers("MoveNext").Single();
             var cur1 = (IPropertySymbol)e1.GetMembers("Current").Single();
             var disp1 = (IMethodSymbol)e1.GetMembers("Dispose").Single();
+            var dispArgs1 = ImmutableArray<IArgumentOperation>.Empty;
+            var mnArgs1 = ImmutableArray<IArgumentOperation>.Empty;
+            var geArgs1 = ImmutableArray<IArgumentOperation>.Empty;
             var conv1 = Conversion.Identity;
 
             var e2 = (ITypeSymbol)c.GlobalNamespace.GetMembers("E2").Single();
@@ -49,14 +54,14 @@ class E2
             var conv2 = Conversion.NoConversion;
 
             EqualityTesting.AssertEqual(default(ForEachStatementInfo), default(ForEachStatementInfo));
-            EqualityTesting.AssertEqual(new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp1, e1, conv1, conv1), new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp1, e1, conv1, conv1));
-            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge2, mn1, cur1, disp1, e1, conv1, conv1), new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp1, e1, conv1, conv1));
-            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, mn2, cur1, disp1, e1, conv1, conv1), new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp1, e1, conv1, conv1));
-            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, mn1, cur2, disp1, e1, conv1, conv1), new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp1, e1, conv1, conv1));
-            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp2, e1, conv1, conv1), new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp1, e1, conv1, conv1));
-            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp1, e1, conv2, conv1), new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp1, e1, conv1, conv1));
-            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp1, e1, conv1, conv2), new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp1, e1, conv1, conv1));
-            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, mn1, cur1, disp1, e1, conv1, conv1), new ForEachStatementInfo(isAsync: false, ge1, mn1, cur1, disp1, e1, conv1, conv1));
+            EqualityTesting.AssertEqual(new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1), new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1));
+            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge2, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1), new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1));
+            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn2, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1), new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1));
+            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur2, disp1, dispArgs1, e1, conv1, conv1), new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1));
+            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp2, dispArgs1, e1, conv1, conv1), new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1));
+            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv2, conv1), new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1));
+            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv2), new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1));
+            EqualityTesting.AssertNotEqual(new ForEachStatementInfo(isAsync: true, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1), new ForEachStatementInfo(isAsync: false, ge1, geArgs1, mn1, mnArgs1, cur1, disp1, dispArgs1, e1, conv1, conv1));
         }
     }
 }
