@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static IEnumerable<string> InspectLineMapping(SyntaxTree tree)
         {
             var text = tree.GetText();
-            return tree.GetLineMappings(default).Select(mapping => $"[|{text.GetSubText(text.Lines.GetTextSpan(mapping.Span))}|] -> {(mapping.IsHidden ? "<hidden>" : mapping.MappedSpan)}");
+            return tree.GetLineMappings().Select(mapping => $"[|{text.GetSubText(text.Lines.GetTextSpan(mapping.Span))}|] -> {(mapping.IsHidden ? "<hidden>" : mapping.MappedSpan)}");
         }
 
         [ClrOnlyFact]
