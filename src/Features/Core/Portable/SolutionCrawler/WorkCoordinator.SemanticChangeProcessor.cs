@@ -316,24 +316,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private readonly struct Data
                 {
+                    private readonly DocumentId _documentId;
                     private readonly Document? _document;
 
                     public readonly Project Project;
-                    public readonly DocumentId DocumentId;
                     public readonly SyntaxPath? ChangedMember;
                     public readonly IAsyncToken AsyncToken;
 
                     public Data(Project project, DocumentId documentId, Document? document, SyntaxPath? changedMember, IAsyncToken asyncToken)
                     {
+                        _documentId = documentId;
                         _document = document;
                         Project = project;
-                        DocumentId = documentId;
                         ChangedMember = changedMember;
                         AsyncToken = asyncToken;
                     }
 
                     public Document GetRequiredDocument()
-                        => WorkCoordinator.GetRequiredDocument(Project, DocumentId, _document);
+                        => WorkCoordinator.GetRequiredDocument(Project, _documentId, _document);
                 }
 
                 private class ProjectProcessor : IdleProcessor
