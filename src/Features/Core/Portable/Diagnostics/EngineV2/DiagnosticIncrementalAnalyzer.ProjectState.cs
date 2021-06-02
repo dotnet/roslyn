@@ -84,11 +84,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     var document = project.GetDocument(documentId);
                     if (document == null)
-                    {
                         continue;
-                    }
 
-                    if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder).ConfigureAwait(false))
+                    if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder, cancellationToken).ConfigureAwait(false))
                     {
                         Debug.Assert(lastResult.Version == VersionStamp.Default);
 
@@ -98,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
                 }
 
-                if (!await TryGetProjectDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, builder).ConfigureAwait(false))
+                if (!await TryGetProjectDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, builder, cancellationToken).ConfigureAwait(false))
                 {
                     // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
                     // analysis happened.
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = lastResult.Version;
                 var builder = new Builder(document.Project, lastResult.Version);
 
-                if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder).ConfigureAwait(false))
+                if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder, cancellationToken).ConfigureAwait(false))
                 {
                     Debug.Assert(lastResult.Version == VersionStamp.Default);
 
@@ -178,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = lastResult.Version;
                 var builder = new Builder(project, lastResult.Version);
 
-                if (!await TryGetProjectDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, builder).ConfigureAwait(false))
+                if (!await TryGetProjectDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, builder, cancellationToken).ConfigureAwait(false))
                 {
                     // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
                     // analysis happened.
@@ -297,13 +295,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder).ConfigureAwait(false))
-                    {
+                    if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder, cancellationToken).ConfigureAwait(false))
                         continue;
-                    }
                 }
 
-                if (!await TryGetProjectDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, builder).ConfigureAwait(false))
+                if (!await TryGetProjectDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, builder, cancellationToken).ConfigureAwait(false))
                 {
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
@@ -320,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = version;
                 var builder = new Builder(project, version);
 
-                if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder).ConfigureAwait(false))
+                if (!await TryGetDiagnosticsFromInMemoryStorageAsync(serializerVersion, document, builder, cancellationToken).ConfigureAwait(false))
                 {
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
@@ -335,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = version;
                 var builder = new Builder(project, version);
 
-                if (!await TryGetProjectDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, builder).ConfigureAwait(false))
+                if (!await TryGetProjectDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, builder, cancellationToken).ConfigureAwait(false))
                 {
                     return DiagnosticAnalysisResult.CreateEmpty(project.Id, VersionStamp.Default);
                 }
@@ -352,13 +348,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return default;
             }
 
-            private async ValueTask<bool> TryGetDiagnosticsFromInMemoryStorageAsync(VersionStamp serializerVersion, TextDocument document, Builder builder)
+            private async ValueTask<bool> TryGetDiagnosticsFromInMemoryStorageAsync(VersionStamp serializerVersion, TextDocument document, Builder builder, CancellationToken cancellationToken)
             {
                 var success = true;
                 var project = document.Project;
                 var documentId = document.Id;
 
-                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, _owner.SyntaxStateName).ConfigureAwait(false);
+                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, _owner.SyntaxStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSyntaxLocals(documentId, diagnostics);
@@ -368,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, _owner.SemanticStateName).ConfigureAwait(false);
+                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, _owner.SemanticStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddSemanticLocals(documentId, diagnostics);
@@ -378,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     success = false;
                 }
 
-                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, _owner.NonLocalStateName).ConfigureAwait(false);
+                diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document, documentId, _owner.NonLocalStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddNonLocals(documentId, diagnostics);
@@ -391,9 +387,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return success;
             }
 
-            private async ValueTask<bool> TryGetProjectDiagnosticsFromInMemoryStorageAsync(VersionStamp serializerVersion, Project project, Builder builder)
+            private async ValueTask<bool> TryGetProjectDiagnosticsFromInMemoryStorageAsync(VersionStamp serializerVersion, Project project, Builder builder, CancellationToken cancellationToken)
             {
-                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document: null, project.Id, _owner.NonLocalStateName).ConfigureAwait(false);
+                var diagnostics = await GetDiagnosticsFromInMemoryStorageAsync(serializerVersion, project, document: null, project.Id, _owner.NonLocalStateName, cancellationToken).ConfigureAwait(false);
                 if (!diagnostics.IsDefault)
                 {
                     builder.AddOthers(diagnostics);
@@ -404,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsFromInMemoryStorageAsync(
-                VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey)
+                VersionStamp serializerVersion, Project project, TextDocument? document, object key, string stateKey, CancellationToken _)
             {
                 Contract.ThrowIfFalse(document == null || document.Project == project);
 
