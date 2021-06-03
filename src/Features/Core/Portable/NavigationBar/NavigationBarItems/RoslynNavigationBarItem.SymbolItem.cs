@@ -14,12 +14,14 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             public readonly string Name;
             public readonly bool IsObsolete;
             /// <summary>
-            /// All the spans in the starting document where this symbol was found.  ANy time the caret is within
-            /// one of these spans, the item should be appropriately 'selected' in whatever UI is displaying these.
+            /// All the spans in the starting document where this symbol was found.  ANy time the caret is within one of
+            /// these spans, the item should be appropriately 'selected' in whatever UI is displaying these. If this
+            /// symbol's location is in another document then this will be empty.
             /// </summary>
             public readonly ImmutableArray<TextSpan> Spans;
             /// <summary>
-            /// The location in the starting document that should be navigated to when this item is selected.
+            /// The location in the starting document that should be navigated to when this item is selected. If this
+            /// symbol's location is in another document then this will be <see langword="null"/>.
             /// </summary>
             public readonly TextSpan? SelectionSpan;
             public readonly SymbolKey NavigationSymbolId;
