@@ -51,7 +51,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private Func<Project, CompilationOutputs> _compilationOutputsProvider;
         private Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
-        private DebuggingSession? _debuggingSession;
+        /// <summary>
+        /// List of active debugging sessions (small number of simoultaneously active sessions is expected).
+        /// </summary>
+        private readonly List<DebuggingSession> _debuggingSessions = new();
+        private static int s_debuggingSessionId;
 
         internal EditAndContinueWorkspaceService()
         {
@@ -69,9 +73,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputInfo.AssemblyPath);
         }
 
-        public void OnSourceFileUpdated(Document document)
+        private DebuggingSession? TryGetDebuggingSession(DebuggingSessionId sessionId)
         {
-            var debuggingSession = _debuggingSession;
+            lock (_debuggingSessions)
+            {
+                return _debuggingSessions.SingleOrDefault(s => s.Id == sessionId);
+            }
+        }
+
+        public void OnSourceFileUpdated(DebuggingSessionId sessionId, Document document)
+        {
+            var debuggingSession = TryGetDebuggingSession(sessionId);
             if (debuggingSession != null)
             {
                 // fire and forget
@@ -79,7 +91,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public async ValueTask StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken)
+        public async ValueTask<DebuggingSession> StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
             var initialDocumentStates =
                 captureMatchingDocuments ? await CommittedSolution.GetMatchingDocumentsAsync(solution, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false) :
@@ -95,9 +107,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition;
             }
 
-            var newSession = new DebuggingSession(solution, debuggerService, capabilities, _compilationOutputsProvider, initialDocumentStates, _debuggingSessionTelemetry, _editSessionTelemetry);
-            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, newSession, null);
-            Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
+            var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
+            var newSession = new DebuggingSession(sessionId, solution, debuggerService, capabilities, _compilationOutputsProvider, initialDocumentStates, _debuggingSessionTelemetry, _editSessionTelemetry);
+
+            lock (_debuggingSessions)
+            {
+                _debuggingSessions.Add(newSession);
+            }
+
+            return newSession;
         }
 
         // internal for testing
@@ -126,9 +144,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return caps;
         }
 
-        public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void EndDebuggingSession(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
-            var debuggingSession = Interlocked.Exchange(ref _debuggingSession, null);
+            DebuggingSession? debuggingSession;
+            lock (_debuggingSessions)
+            {
+                _debuggingSessions.TryRemoveFirst((s, sessionId) => s.Id == sessionId, sessionId, out debuggingSession);
+            }
+
             Contract.ThrowIfNull(debuggingSession, "Debugging session has not started.");
 
             debuggingSession.EndSession(out documentsToReanalyze, out var telemetryData);
@@ -136,16 +159,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _reportTelemetry(telemetryData);
         }
 
-        public void BreakStateEntered(out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void BreakStateEntered(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
-            var debuggingSession = _debuggingSession;
+            var debuggingSession = TryGetDebuggingSession(sessionId);
             Contract.ThrowIfNull(debuggingSession);
             debuggingSession.RestartEditSession(inBreakState: true, out documentsToReanalyze);
         }
 
-        public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(
+            DebuggingSessionId sessionId,
+            Document document,
+            ActiveStatementSpanProvider activeStatementSpanProvider,
+            CancellationToken cancellationToken)
         {
-            var debuggingSession = _debuggingSession;
+            var debuggingSession = TryGetDebuggingSession(sessionId);
             if (debuggingSession == null)
             {
                 return ValueTaskFactory.FromResult(ImmutableArray<Diagnostic>.Empty);
@@ -167,12 +194,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
         /// the update is valid or not.
         /// </returns>
-        public ValueTask<bool> HasChangesAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
+        public ValueTask<bool> HasChangesAsync(
+            DebuggingSessionId sessionId,
+            Solution solution,
+            ActiveStatementSpanProvider activeStatementSpanProvider,
+            string? sourceFilePath,
+            CancellationToken cancellationToken)
         {
             // GetStatusAsync is called outside of edit session when the debugger is determining
             // whether a source file checksum matches the one in PDB.
             // The debugger expects no changes in this case.
-            var debuggingSession = _debuggingSession;
+            var debuggingSession = TryGetDebuggingSession(sessionId);
             if (debuggingSession == null)
             {
                 return default;
@@ -182,11 +214,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
+            DebuggingSessionId sessionId,
             Solution solution,
             ActiveStatementSpanProvider activeStatementSpanProvider,
             CancellationToken cancellationToken)
         {
-            var debuggingSession = _debuggingSession;
+            var debuggingSession = TryGetDebuggingSession(sessionId);
             if (debuggingSession == null)
             {
                 return ValueTaskFactory.FromResult(EmitSolutionUpdateResults.Empty);
@@ -195,25 +228,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return debuggingSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken);
         }
 
-        public void CommitSolutionUpdate(out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void CommitSolutionUpdate(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
-            var debuggingSession = _debuggingSession;
+            var debuggingSession = TryGetDebuggingSession(sessionId);
             Contract.ThrowIfNull(debuggingSession);
 
             debuggingSession.CommitSolutionUpdate(out documentsToReanalyze);
         }
 
-        public void DiscardSolutionUpdate()
+        public void DiscardSolutionUpdate(DebuggingSessionId sessionId)
         {
-            var debuggingSession = _debuggingSession;
+            var debuggingSession = TryGetDebuggingSession(sessionId);
             Contract.ThrowIfNull(debuggingSession);
 
             debuggingSession.DiscardSolutionUpdate();
         }
 
-        public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
-            var debuggingSession = _debuggingSession;
+            var debuggingSession = TryGetDebuggingSession(sessionId);
             if (debuggingSession == null)
             {
                 return default;
@@ -222,9 +255,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return debuggingSession.GetBaseActiveStatementSpansAsync(solution, documentIds, cancellationToken);
         }
 
-        public ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(TextDocument mappedDocument, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(DebuggingSessionId sessionId, TextDocument mappedDocument, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
-            var debuggingSession = _debuggingSession;
+            var debuggingSession = TryGetDebuggingSession(sessionId);
             if (debuggingSession == null)
             {
                 return ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
@@ -233,11 +266,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return debuggingSession.GetAdjustedActiveStatementSpansAsync(mappedDocument, activeStatementSpanProvider, cancellationToken);
         }
 
-        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
+        public ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(DebuggingSessionId sessionId, Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
             // It is allowed to call this method before entering or after exiting break mode. In fact, the VS debugger does so.
             // We return null since there the concept of active statement only makes sense during break mode.
-            var debuggingSession = _debuggingSession;
+            var debuggingSession = TryGetDebuggingSession(sessionId);
             if (debuggingSession == null)
             {
                 return ValueTaskFactory.FromResult<LinePositionSpan?>(null);
@@ -246,9 +279,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return debuggingSession.GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instructionId, cancellationToken);
         }
 
-        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
+        public ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(DebuggingSessionId sessionId, Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
-            var debuggingSession = _debuggingSession;
+            var debuggingSession = TryGetDebuggingSession(sessionId);
             if (debuggingSession == null)
             {
                 return ValueTaskFactory.FromResult<bool?>(null);
@@ -333,8 +366,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _service = service;
             }
 
-            internal DebuggingSession? GetDebuggingSession() => _service._debuggingSession;
-            internal EditSession? GetEditSession() => _service._debuggingSession?.EditSession;
             internal void SetOutputProvider(Func<Project, CompilationOutputs> value) => _service._compilationOutputsProvider = value;
             internal void SetReportTelemetry(Action<DebuggingSessionTelemetry.Data> value) => _service._reportTelemetry = value;
         }

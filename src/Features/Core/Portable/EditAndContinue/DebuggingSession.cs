@@ -106,12 +106,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal readonly EditAndContinueCapabilities Capabilities;
 
+        internal readonly DebuggingSessionId Id;
+
         private readonly DebuggingSessionTelemetry _telemetry;
         internal EditSession EditSession;
 
         private PendingSolutionUpdate? _pendingUpdate;
 
         internal DebuggingSession(
+            DebuggingSessionId id,
             Solution solution,
             IManagedEditAndContinueDebuggerService debuggerService,
             EditAndContinueCapabilities capabilities,
@@ -123,6 +126,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _compilationOutputsProvider = compilationOutputsProvider;
             _telemetry = debuggingSessionTelemetry;
 
+            Id = id;
             Capabilities = capabilities;
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
