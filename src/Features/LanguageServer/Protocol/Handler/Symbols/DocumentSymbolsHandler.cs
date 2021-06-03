@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (item is not RoslynNavigationBarItem.SymbolItem symbolItem)
                 return null;
 
-            var location = GetLocation(item, compilation, tree, cancellationToken);
+            var location = GetLocation(symbolItem, compilation, tree, cancellationToken);
 
             return location == null
                 ? Create(item, symbolItem.Spans.First(), containerName, document, text)
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
 
             // it is actually symbol location getter. but anyway.
-            var location = GetLocation(item, compilation, tree, cancellationToken);
+            var location = GetLocation(symbolItem, compilation, tree, cancellationToken);
             if (location == null)
                 return null;
 
@@ -182,11 +182,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Get a location for a particular nav bar item.
         /// </summary>
-        private static Location? GetLocation(RoslynNavigationBarItem item, Compilation compilation, SyntaxTree tree, CancellationToken cancellationToken)
+        private static Location? GetLocation(RoslynNavigationBarItem.SymbolItem symbolItem, Compilation compilation, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            if (item is not RoslynNavigationBarItem.SymbolItem symbolItem)
-                return null;
-
             var symbols = symbolItem.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
             var symbol = symbols.Symbol;
 
