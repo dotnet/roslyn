@@ -999,6 +999,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
             private void Fail(BoundNode node)
             {
                 Debug.Assert(false, $"Bound nodes of kind {node.Kind} should not survive past local rewriting");

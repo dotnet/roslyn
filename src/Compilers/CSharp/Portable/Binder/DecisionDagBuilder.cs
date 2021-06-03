@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <see cref="BoundUnconvertedSwitchExpression"/>) and is used for semantic analysis and lowering.
     /// </para>
     /// </summary>
-    internal sealed class DecisionDagBuilder
+    internal sealed partial class DecisionDagBuilder
     {
         private readonly CSharpCompilation _compilation;
         private readonly Conversions _conversions;
@@ -275,7 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MakeTestsAndBindingsForDeclarationPattern(input, declaration, out output, bindings);
                 case BoundConstantPattern constant:
                     return MakeTestsForConstantPattern(input, constant, out output);
-                case BoundDiscardPattern _:
+                case BoundDiscardPattern:
+                case BoundSlicePattern:
                     output = input;
                     return Tests.True.Instance;
                 case BoundRecursivePattern recursive:
@@ -522,6 +523,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // To prevent this pattern from subsuming other patterns and triggering a cascaded diagnostic, we add a test that will fail.
                     tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
                 }
+            }
+
+            if (recursive.LengthPattern is not null || recursive.ListPatternClause is not null)
+            {
+                MakeTestsAndBindingsForLengthAndListPatterns(input, recursive, bindings, tests);
             }
 
             if (!recursive.Properties.IsDefault)

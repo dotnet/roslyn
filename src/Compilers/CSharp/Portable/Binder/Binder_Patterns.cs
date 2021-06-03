@@ -175,11 +175,256 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UnaryPatternSyntax p => BindUnaryPattern(p, inputType, inputValEscape, hasErrors, diagnostics, underIsPattern),
                 RelationalPatternSyntax p => BindRelationalPattern(p, inputType, hasErrors, diagnostics),
                 TypePatternSyntax p => BindTypePattern(p, inputType, hasErrors, diagnostics),
+                SlicePatternSyntax p => BindSlicePattern(p, inputType, permitDesignations, ref hasErrors, misplaced: true, diagnostics),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
         }
 
-        private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)
+        private BoundPattern BindSlicePattern(
+            SlicePatternSyntax node,
+            TypeSymbol inputType,
+            bool permitDesignations,
+            ref bool hasErrors,
+            bool misplaced,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (misplaced && !hasErrors)
+            {
+                diagnostics.Add(ErrorCode.ERR_MisplacedSlicePattern, node.Location);
+                hasErrors = true;
+            }
+
+            BoundIndexerAccess? indexerAccess = null;
+            MethodSymbol? sliceMethod = null;
+            BoundPattern? pattern = null;
+
+            // We don't require the type to be sliceable if there's no subpattern.
+            if (node.Pattern is not null)
+            {
+                TypeSymbol sliceType;
+                if (inputType.IsSZArray())
+                {
+                    sliceType = inputType;
+                }
+                else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: false, out indexerAccess, out Symbol? patternSymbol, diagnostics))
+                {
+                    if (patternSymbol is MethodSymbol method)
+                    {
+                        sliceMethod = method;
+                        sliceType = method.ReturnType;
+                    }
+                    else
+                    {
+                        Debug.Assert(indexerAccess is not null);
+                        sliceType = indexerAccess.Type;
+                    }
+                }
+                else
+                {
+                    if (!inputType.IsErrorType())
+                        diagnostics.Add(ErrorCode.ERR_UnsupportedTypeForSlicePattern, node.Location, inputType.ToDisplayString());
+                    hasErrors = true;
+                    sliceType = CreateErrorType();
+                }
+                pattern = BindPattern(node.Pattern, sliceType, ExternalScope, permitDesignations, hasErrors, diagnostics);
+            }
+
+            return new BoundSlicePattern(node, pattern, indexerAccess, sliceMethod, inputType: inputType, narrowedType: inputType, hasErrors);
+        }
+
+        private ImmutableArray<BoundPattern> BindListPatternSubpatterns(
+            SeparatedSyntaxList<SubpatternSyntax> subpatterns,
+            TypeSymbol inputType,
+            TypeSymbol elementType,
+            bool permitDesignations,
+            ref bool hasErrors,
+            out bool sawSlice,
+            BindingDiagnosticBag diagnostics)
+        {
+            sawSlice = false;
+            var builder = ArrayBuilder<BoundPattern>.GetInstance(subpatterns.Count);
+            foreach (SubpatternSyntax subpat in subpatterns)
+            {
+                // Any name would have made this a PropertyPatternClause
+                Debug.Assert(subpat.NameColon is null);
+
+                PatternSyntax pattern = subpat.Pattern;
+                BoundPattern boundPattern;
+                if (pattern is SlicePatternSyntax slice)
+                {
+                    boundPattern = BindSlicePattern(slice, inputType, permitDesignations, ref hasErrors, misplaced: sawSlice, diagnostics);
+                    sawSlice = true;
+                }
+                else
+                {
+                    boundPattern = BindPattern(pattern, elementType, ExternalScope, permitDesignations, hasErrors, diagnostics);
+                }
+
+                builder.Add(boundPattern);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        private BoundPattern BindLengthPatternClause(
+            LengthPatternClauseSyntax node, TypeSymbol inputType,
+            bool permitDesignations, out PropertySymbol? lengthProperty, ref bool hasErrors, BindingDiagnosticBag diagnostics)
+        {
+            if (!TryLookupLengthOrCount(node, inputType, out lengthProperty) && !inputType.IsErrorType())
+            {
+                Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForLengthPattern, node, inputType.ToDisplayString());
+                hasErrors = true;
+            }
+            return BindPattern(node.Pattern, Compilation.GetSpecialType(SpecialType.System_Int32), ExternalScope, permitDesignations, hasErrors, diagnostics);
+        }
+
+        private bool TryLookupLengthOrCount(SyntaxNode node, TypeSymbol inputType, out PropertySymbol? lengthProperty)
+        {
+            Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause) || node.IsKind(SyntaxKind.LengthPatternClause));
+            var lookupResult = LookupResult.GetInstance();
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            bool found = TryLookupLengthOrCount(inputType, lookupResult, out lengthProperty, ref useSiteInfo);
+            lookupResult.Free();
+            return found;
+        }
+
+        private BoundListPatternClause BindListPatternClause(
+            PropertyPatternClauseSyntax node,
+            TypeSymbol inputType,
+            bool permitDesignations,
+            ref PropertySymbol? lengthProperty,
+            ref bool hasErrors,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause));
+
+            TypeSymbol elementType;
+            BoundIndexerAccess? indexerAccess = null;
+            PropertySymbol? indexerSymbol = null;
+            bool isUnsupported = false;
+            if (inputType.IsSZArray())
+            {
+                elementType = ((ArrayTypeSymbol)inputType).ElementType;
+            }
+            else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, diagnostics))
+            {
+                if (patternSymbol is PropertySymbol indexer)
+                {
+                    indexerSymbol = indexer;
+                    elementType = indexer.Type;
+                }
+                else
+                {
+                    Debug.Assert(indexerAccess is not null);
+                    elementType = indexerAccess.Type;
+                }
+            }
+            else
+            {
+                elementType = CreateErrorType();
+                isUnsupported = true;
+            }
+
+            // We may have looked up the length property for the length pattern.
+            if (lengthProperty is null && !TryLookupLengthOrCount(node, inputType, out lengthProperty))
+                isUnsupported = true;
+
+            if (isUnsupported && !inputType.IsErrorType())
+            {
+                // Report an unsupported type if either the length property or a viable indexer is missing.
+                Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
+                hasErrors = true;
+            }
+
+            ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(node.Subpatterns, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
+            return new BoundListPatternClause(node, subpatterns, sawSlice, indexerAccess, indexerSymbol, hasErrors);
+        }
+
+        private bool TryFindIndexerOrIndexerPattern(
+            SyntaxNode syntax, TypeSymbol receiverType, bool argIsIndex,
+            out BoundIndexerAccess? indexerAccess,
+            out Symbol? patternSymbol,
+            BindingDiagnosticBag diagnostics)
+        {
+            patternSymbol = null;
+            var lookupResult = LookupResult.GetInstance();
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            if (TryPerformPatternIndexerLookup(syntax, receiverType, lookupResult, argIsIndex, out indexerAccess, diagnostics, ref useSiteInfo) ||
+                TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo, forPattern: true))
+            {
+                diagnostics.Add(syntax, useSiteInfo);
+                lookupResult.Free();
+                return true;
+            }
+
+            lookupResult.Free();
+            return false;
+        }
+
+        private bool TryPerformPatternIndexerLookup(
+            SyntaxNode syntax,
+            TypeSymbol receiverType,
+            LookupResult lookupResult,
+            bool argIsIndex,
+            [NotNullWhen(true)] out BoundIndexerAccess? result,
+            BindingDiagnosticBag diagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            result = null;
+
+            TypeSymbol argType = Compilation.GetWellKnownType(argIsIndex ? WellKnownType.System_Index : WellKnownType.System_Range);
+            if (argType.IsErrorType())
+            {
+                // If the argType is missing, we will fallback to the implicit indexer support.
+                return false;
+            }
+
+            LookupMembersInType(
+                lookupResult,
+                receiverType,
+                WellKnownMemberNames.Indexer,
+                arity: 0,
+                basesBeingResolved: null,
+                LookupOptions.Default,
+                originalBinder: this,
+                diagnose: false,
+                ref useSiteInfo);
+
+            if (lookupResult.IsMultiViable)
+            {
+                var indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance(lookupResult.Symbols.Count);
+                foreach (Symbol symbol in lookupResult.Symbols)
+                {
+                    Debug.Assert(symbol.IsIndexer());
+                    indexerGroup.Add((PropertySymbol)symbol);
+                }
+
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                analyzedArguments.Arguments.Add(new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, argType));
+                var receiver = new BoundImplicitReceiver(syntax, receiverType);
+                var bindingDiagnostics = BindingDiagnosticBag.Create(diagnostics);
+                var boundAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, indexerGroup, analyzedArguments, bindingDiagnostics);
+                if (boundAccess is BoundIndexerAccess { ResultKind: LookupResultKind.Viable } indexerAccess &&
+                    indexerAccess.Indexer.GetMethod is { } getMethod && IsAccessible(getMethod, ref useSiteInfo))
+                {
+                    // PROTOTYPE(list-patterns) Can this be ever true? If so, move to if above
+                    Debug.Assert(!indexerAccess.Indexer.IsStatic);
+                    result = BindIndexerDefaultArguments(indexerAccess, BindValueKind.RValue, bindingDiagnostics);
+                    _ = GetWellKnownTypeMember(argIsIndex ? WellKnownMember.System_Index__ctor : WellKnownMember.System_Range__ctor, bindingDiagnostics, syntax: syntax);
+                    // At this point we have succeeded to bind a viable indexer,
+                    // report additional binding diagnostics that we have seen so far
+                    diagnostics.AddRange(bindingDiagnostics);
+                }
+
+                analyzedArguments.Free();
+                indexerGroup.Free();
+            }
+
+            lookupResult.Clear();
+            return result is not null;
+        }
+
+        private static BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)
         {
             return new BoundDiscardPattern(node, inputType: inputType, narrowedType: inputType);
         }
@@ -224,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e)
+        private static ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e)
         {
             while (true)
             {
@@ -737,11 +982,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 deconstructionSubpatterns = patternsBuilder.ToImmutableAndFree();
             }
 
-            ImmutableArray<BoundSubpattern> properties = default;
-            if (node.PropertyPatternClause != null)
-            {
-                properties = BindPropertyPatternClause(node.PropertyPatternClause, declType, inputValEscape, permitDesignations, diagnostics, ref hasErrors);
-            }
+            PropertySymbol? lengthProperty = null;
+            BoundPattern? lengthPattern = node.LengthPatternClause is not null
+                ? BindLengthPatternClause(node.LengthPatternClause, declType, permitDesignations, out lengthProperty, ref hasErrors, diagnostics)
+                : null;
+
+            BoundListPatternClause? listPatternClause = node.PropertyPatternClause.IsKind(SyntaxKind.ListPatternClause)
+                ? BindListPatternClause(node.PropertyPatternClause, declType, permitDesignations, ref lengthProperty, ref hasErrors, diagnostics)
+                : null;
+
+            ImmutableArray<BoundSubpattern> properties = node.PropertyPatternClause.IsKind(SyntaxKind.PropertyPatternClause)
+                ? BindPropertyPatternClause(node.PropertyPatternClause, declType, inputValEscape, permitDesignations, diagnostics, ref hasErrors)
+                : default;
 
             BindPatternDesignation(
                 node.Designation, declTypeWithAnnotations, inputValEscape, permitDesignations, typeSyntax, diagnostics,
@@ -754,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 deconstructionSubpatterns.IsDefault;
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
-                deconstruction: deconstructionSubpatterns, properties: properties, variable: variableSymbol,
+                deconstruction: deconstructionSubpatterns, properties: properties, lengthProperty, lengthPattern, listPatternClause, variable: variableSymbol,
                 variableAccess: variableAccess, isExplicitNotNullTest: isExplicitNotNullTest, inputType: inputType,
                 narrowedType: boundDeclType?.Type ?? inputType.StrippedType(), hasErrors: hasErrors);
         }
@@ -1124,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return new BoundRecursivePattern(
                             syntax: node, declaredType: null, deconstructMethod: deconstructMethod,
-                            deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null,
+                            deconstruction: subPatterns.ToImmutableAndFree(), properties: default, lengthProperty: null, lengthPattern: null, listPatternClause: null, variable: null, variableAccess: null,
                             isExplicitNotNullTest: false, inputType: inputType, narrowedType: inputType.StrippedType(), hasErrors: hasErrors);
 
                         void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes)
