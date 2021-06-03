@@ -895,6 +895,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public MethodSymbol Retarget(MethodSymbol method, IEqualityComparer<MethodSymbol> retargetedMethodComparer)
             {
+                Debug.Assert((object)method == method.ConstructedFrom);
+
                 if (ReferenceEquals(method.ContainingModule, this.UnderlyingModule) && ReferenceEquals(method, method.OriginalDefinition))
                 {
                     return Retarget(method);
@@ -902,6 +904,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 var containingType = method.ContainingType;
                 var retargetedType = Retarget(containingType, RetargetOptions.RetargetPrimitiveTypesByName);
+
+                if (!containingType.IsDefinition)
+                {
+                    Debug.Assert(!retargetedType.IsDefinition);
+
+                    var retargetedDefinition = Retarget(method.OriginalDefinition, retargetedMethodComparer);
+
+                    if (retargetedDefinition is null)
+                    {
+                        return null;
+                    }
+
+                    return retargetedDefinition.AsMember(retargetedType);
+                }
+
+                Debug.Assert(retargetedType.IsDefinition);
 
                 // NB: may return null if the method cannot be found in the retargeted type (e.g. removed in a subsequent version)
                 return ReferenceEquals(retargetedType, containingType) ?

@@ -884,12 +884,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Public Function Retarget(method As MethodSymbol, retargetedMethodComparer As IEqualityComparer(Of MethodSymbol)) As MethodSymbol
+                Debug.Assert(method Is method.ConstructedFrom)
+
                 If method.ContainingModule Is Me.UnderlyingModule AndAlso method.IsDefinition Then
                     Return DirectCast(SymbolMap.GetOrAdd(method, _retargetingModule._createRetargetingMethod), RetargetingMethodSymbol)
                 End If
 
                 Dim containingType = method.ContainingType
                 Dim retargetedType = Retarget(containingType, RetargetOptions.RetargetPrimitiveTypesByName)
+
+                If Not containingType.IsDefinition Then
+                    Debug.Assert(Not retargetedType.IsDefinition)
+
+                    Dim retargetedDefinition = Retarget(method.OriginalDefinition, retargetedMethodComparer)
+
+                    If retargetedDefinition Is Nothing Then
+                        Return Nothing
+                    End If
+
+                    Return retargetedDefinition.AsMember(retargetedType)
+                End If
+
+                Debug.Assert(retargetedType.IsDefinition)
 
                 ' NB: may return null if the method cannot be found in the retargeted type (e.g. removed in a subsequent version)
                 Return If(retargetedType Is containingType,

@@ -25088,5 +25088,263 @@ class Test
                 Diagnostic((op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv), (needCast ? "(T)" : "") + "x").WithArguments("int", "T").WithLocation(15, 16)
                 );
         }
+
+        [Fact]
+        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        public void TestAmbiguousImplementationMethod_01()
+        {
+            var source1 = @"
+public interface Interface<T, U>
+{
+    abstract static void Method(int i);
+    abstract static void Method(T i);
+    abstract static void Method(U i);
+}
+
+public class Base<T> : Interface<T, T>
+{
+    public static void Method(int i) { }
+    public static void Method(T i) { }
+}
+
+public class Derived : Base<int>, Interface<int, int>
+{
+}
+
+class YetAnother : Interface<int, int>
+{
+    public static void Method(int i) { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var b = module.GlobalNamespace.GetTypeMember("Base");
+                var bI = b.Interfaces().Single();
+                var biMethods = bI.GetMembers();
+
+                Assert.Equal("void Interface<T, U>.Method(System.Int32 i)", biMethods[0].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(T i)", biMethods[1].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(U i)", biMethods[2].OriginalDefinition.ToTestDisplayString());
+
+                var bM1 = b.FindImplementationForInterfaceMember(biMethods[0]);
+
+                Assert.Equal("void Base<T>.Method(System.Int32 i)", bM1.ToTestDisplayString());
+
+                var bM2 = b.FindImplementationForInterfaceMember(biMethods[1]);
+
+                Assert.Equal("void Base<T>.Method(T i)", bM2.ToTestDisplayString());
+                Assert.Same(bM2, b.FindImplementationForInterfaceMember(biMethods[2]));
+
+                var bM1Impl = ((MethodSymbol)bM1).ExplicitInterfaceImplementations;
+                var bM2Impl = ((MethodSymbol)bM2).ExplicitInterfaceImplementations;
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(biMethods[0], bM1Impl.Single());
+
+                    Assert.Equal(2, bM2Impl.Length);
+                    Assert.Equal(biMethods[1], bM2Impl[0]);
+                    Assert.Equal(biMethods[2], bM2Impl[1]);
+                }
+                else
+                {
+                    Assert.Empty(bM1Impl);
+                    Assert.Empty(bM2Impl);
+                }
+
+                var d = module.GlobalNamespace.GetTypeMember("Derived");
+                var dB = d.BaseTypeNoUseSiteDiagnostics;
+                var dI = d.Interfaces().Single();
+                var diMethods = dI.GetMembers();
+
+                Assert.Equal("void Interface<T, U>.Method(System.Int32 i)", diMethods[0].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(T i)", diMethods[1].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(U i)", diMethods[2].OriginalDefinition.ToTestDisplayString());
+
+                var dM1 = d.FindImplementationForInterfaceMember(diMethods[0]);
+
+                Assert.Same(bM1, dM1.OriginalDefinition);
+
+                var dM2 = d.FindImplementationForInterfaceMember(diMethods[1]);
+
+                Assert.Same(bM2, dM2.OriginalDefinition);
+                Assert.Same(bM2, d.FindImplementationForInterfaceMember(diMethods[2]).OriginalDefinition);
+            }
+        }
+
+        [Fact]
+        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        public void TestAmbiguousImplementationMethod_02()
+        {
+            var source0 = @"
+public interface Interface<T, U>
+{
+    abstract static void Method(int i);
+    abstract static void Method(T i);
+    abstract static void Method(U i);
+}
+
+public class Base<T> : Interface<T, T>
+{
+    public static void Method(int i) { }
+    public static void Method(T i) { }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation0.VerifyDiagnostics();
+
+            var source1 = @"
+public class Derived : Base<int>, Interface<int, int>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation0.EmitToImageReference() });
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var d = module.GlobalNamespace.GetTypeMember("Derived");
+                var dB = d.BaseTypeNoUseSiteDiagnostics;
+                var dI = d.Interfaces().Single();
+                var diMethods = dI.GetMembers();
+
+                Assert.Equal("void Interface<T, U>.Method(System.Int32 i)", diMethods[0].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(T i)", diMethods[1].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(U i)", diMethods[2].OriginalDefinition.ToTestDisplayString());
+
+                var dM1 = d.FindImplementationForInterfaceMember(diMethods[0]);
+
+                Assert.Equal("void Base<T>.Method(System.Int32 i)", dM1.OriginalDefinition.ToTestDisplayString());
+
+                var dM2 = d.FindImplementationForInterfaceMember(diMethods[1]);
+
+                Assert.Equal("void Base<T>.Method(T i)", dM2.OriginalDefinition.ToTestDisplayString());
+                Assert.Same(dM2, d.FindImplementationForInterfaceMember(diMethods[2]));
+
+                var dM1Impl = ((MethodSymbol)dM1).ExplicitInterfaceImplementations;
+                var dM2Impl = ((MethodSymbol)dM2).ExplicitInterfaceImplementations;
+
+                Assert.Equal(diMethods[0], dM1Impl.Single());
+
+                Assert.Equal(2, dM2Impl.Length);
+                Assert.Equal(diMethods[1], dM2Impl[0]);
+                Assert.Equal(diMethods[2], dM2Impl[1]);
+            }
+        }
+
+        [Fact]
+        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        public void TestAmbiguousImplementationMethod_03()
+        {
+            var source0 = @"
+public interface Interface<T, U>
+{
+    abstract static void Method(int i);
+    abstract static void Method(T i);
+    abstract static void Method(U i);
+}
+
+public class Base<T> : Interface<T, T>
+{
+    public static void Method(int i) { }
+    public static void Method(T i) { }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { CreateEmptyCompilation("").ToMetadataReference() });
+
+            compilation0.VerifyDiagnostics();
+
+            var source1 = @"
+public class Derived : Base<int>, Interface<int, int>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation0.ToMetadataReference() });
+
+            var d = compilation1.GlobalNamespace.GetTypeMember("Derived");
+            var dB = d.BaseTypeNoUseSiteDiagnostics;
+            var dI = d.Interfaces().Single();
+            var diMethods = dI.GetMembers();
+
+            Assert.IsType<RetargetingNamedTypeSymbol>(dB.OriginalDefinition);
+
+            Assert.Equal("void Interface<T, U>.Method(System.Int32 i)", diMethods[0].OriginalDefinition.ToTestDisplayString());
+            Assert.Equal("void Interface<T, U>.Method(T i)", diMethods[1].OriginalDefinition.ToTestDisplayString());
+            Assert.Equal("void Interface<T, U>.Method(U i)", diMethods[2].OriginalDefinition.ToTestDisplayString());
+
+            var dM1 = d.FindImplementationForInterfaceMember(diMethods[0]);
+
+            Assert.Equal("void Base<T>.Method(System.Int32 i)", dM1.OriginalDefinition.ToTestDisplayString());
+
+            var dM2 = d.FindImplementationForInterfaceMember(diMethods[1]);
+
+            Assert.Equal("void Base<T>.Method(T i)", dM2.OriginalDefinition.ToTestDisplayString());
+            Assert.Equal(dM2, d.FindImplementationForInterfaceMember(diMethods[2]));
+
+            var dM1Impl = ((MethodSymbol)dM1).ExplicitInterfaceImplementations;
+            var dM2Impl = ((MethodSymbol)dM2).ExplicitInterfaceImplementations;
+
+            Assert.Empty(dM1Impl);
+            Assert.Empty(dM2Impl);
+        }
+
+        [Fact]
+        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        public void TestAmbiguousImplementationMethod_04()
+        {
+            var source2 = @"
+public interface Interface<T, U>
+{
+    abstract static void Method(int i);
+    abstract static void Method(T i);
+    abstract static void Method(U i);
+}
+
+class Other : Interface<int, int>
+{
+    static void Interface<int, int>.Method(int i) { }
+}
+";
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation2.VerifyDiagnostics(
+                // (9,15): error CS0535: 'Other' does not implement interface member 'Interface<int, int>.Method(int)'
+                // class Other : Interface<int, int>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface<int, int>").WithArguments("Other", "Interface<int, int>.Method(int)").WithLocation(9, 15),
+                // (9,15): error CS0535: 'Other' does not implement interface member 'Interface<int, int>.Method(int)'
+                // class Other : Interface<int, int>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface<int, int>").WithArguments("Other", "Interface<int, int>.Method(int)").WithLocation(9, 15),
+                // (11,37): warning CS0473: Explicit interface implementation 'Other.Interface<int, int>.Method(int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     static void Interface<int, int>.Method(int i) { }
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Other.Interface<int, int>.Method(int)").WithLocation(11, 37)
+                );
+        }
     }
 }
