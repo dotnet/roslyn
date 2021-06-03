@@ -27,9 +27,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
     internal struct ResettableSqlStatement : IDisposable
     {
         public readonly SqlStatement Statement;
+        private readonly bool _throwOnResetError;
 
-        public ResettableSqlStatement(SqlStatement statement)
-            => Statement = statement;
+        public ResettableSqlStatement(SqlStatement statement, bool throwOnResetError)
+        {
+            Statement = statement;
+            _throwOnResetError = throwOnResetError;
+        }
 
         public void Dispose()
         {
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             Statement.ClearBindings();
 
             // Reset the statement so it can be run again.
-            Statement.Reset();
+            Statement.Reset(_throwOnResetError);
         }
     }
 }

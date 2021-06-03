@@ -44,8 +44,18 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         public void ClearBindings()
             => _connection.ThrowIfNotOk(NativeMethods.sqlite3_clear_bindings(_rawStatement));
 
-        public void Reset()
-            => _connection.ThrowIfNotOk(NativeMethods.sqlite3_reset(_rawStatement));
+        public void Reset(bool throwOnError)
+        {
+            // https://www.sqlite.org/c3ref/reset.html
+            //
+            // If the most recent call to sqlite3_step(S) for the prepared statement S indicated an error, then
+            // sqlite3_reset(S) returns an appropriate error code.
+            //
+            // So we will throw as well if the caller didn't expect for failures to occur.
+            var result = NativeMethods.sqlite3_reset(_rawStatement);
+            if (throwOnError)
+                _connection.ThrowIfNotOk(result);
+        }
 
         public Result Step(bool throwOnError = true)
         {

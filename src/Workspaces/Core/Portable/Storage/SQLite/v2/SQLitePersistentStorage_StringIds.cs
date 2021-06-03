@@ -53,23 +53,24 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return stringId;
             }
 
-            // The string wasn't in the db string table.  Add it.  Note: this may fail if some
+            // The string wasn't in the db string table.  Add it.  Note: this may no-op if some
             // other thread/process beats us there as this table has a 'unique' constraint on the
             // values.
             try
             {
                 stringId = connection.RunInTransaction(
-                    static t => t.self.InsertStringIntoDatabase_MustRunInTransaction(t.connection, t.value),
+                    static t => t.self.TryInsertStringIntoDatabase_MustRunInTransaction(t.connection, t.value),
                     (self: this, connection, value));
 
+                if (stringId == null)
+                {
+                    // Another thread beat us to adding this string.  In this case we should just be able
+                    // to read the string out from the table.  Note: this cannot fail as the string must
+                    // be in the table.
+                    stringId = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: false);
+                }
+
                 Contract.ThrowIfTrue(stringId == null);
-                return stringId;
-            }
-            catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
-            {
-                // We got a constraint violation.  This means someone else beat us to adding this
-                // string to the string-table.  We should always be able to find the string now.
-                stringId = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: false);
                 return stringId;
             }
             catch (Exception ex)
@@ -81,34 +82,35 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return null;
         }
 
-        private int InsertStringIntoDatabase_MustRunInTransaction(SqlConnection connection, string value)
+        private int? TryInsertStringIntoDatabase_MustRunInTransaction(SqlConnection connection, string value)
         {
             if (!connection.IsInTransaction)
-            {
                 throw new InvalidOperationException("Must call this while connection has transaction open");
-            }
 
-            var id = -1;
+            using var resettableStatement = connection.GetResettableStatement(_insert_into_string_table_values_0, throwOnResetError: false);
 
-            using (var resettableStatement = connection.GetResettableStatement(_insert_into_string_table_values_0))
-            {
-                var statement = resettableStatement.Statement;
+            var statement = resettableStatement.Statement;
 
-                // SQLite bindings are 1-based.
-                statement.BindStringParameter(parameterIndex: 1, value: value);
+            // SQLite bindings are 1-based.
+            statement.BindStringParameter(parameterIndex: 1, value: value);
 
-                // Try to insert the value.  This may throw a constraint exception if some
-                // other process beat us to this string.
-                statement.Step();
+            // Try to insert the value.  Because we of the UNIQUE constraint on the table this may fail with a
+            // constraint violation if another thread beats us to this.
+            var stepResult = statement.Step(throwOnError: false);
 
-                // Successfully added the string.  The ID for it can be retrieved as the LastInsertRowId
-                // for the db.  This is also safe to call because we must be in a transaction when this
-                // is invoked.
-                id = connection.LastInsertRowId();
-            }
+            // If we got a constraint violation, notify our caller so they can retry reading the value that
+            // someone else added.
+            if (stepResult == Result.CONSTRAINT)
+                return null;
 
-            Contract.ThrowIfTrue(id == -1);
-            return id;
+            // Otherwise, we should have successfully inserted the value.  Return its row for the caller as that
+            // is the effective ID we have for it.
+            if (stepResult == Result.DONE || stepResult == Result.ROW)
+                return connection.LastInsertRowId();
+
+            // Anything else is a true failure and we want to have our exception path handle this.
+            connection.Throw(stepResult);
+            throw ExceptionUtilities.Unreachable;
         }
 
         private int? TryGetStringIdFromDatabaseWorker(

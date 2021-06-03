@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 
         public void ExecuteCommand(string command, bool throwOnError = true)
         {
-            using var resettableStatement = GetResettableStatement(command);
+            using var resettableStatement = GetResettableStatement(command, throwOnError);
             var statement = resettableStatement.Statement;
             var result = statement.Step(throwOnError);
             if (result != Result.DONE && throwOnError)
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             }
         }
 
-        public ResettableSqlStatement GetResettableStatement(string query)
+        public ResettableSqlStatement GetResettableStatement(string query, bool throwOnResetError = true)
         {
             if (!_queryToStatement.TryGetValue(query, out var statement))
             {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 }
             }
 
-            return new ResettableSqlStatement(statement);
+            return new ResettableSqlStatement(statement, throwOnResetError);
         }
 
         public void RunInTransaction<TState>(Action<TState> action, TState state)
