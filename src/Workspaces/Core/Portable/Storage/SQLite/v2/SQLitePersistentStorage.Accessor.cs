@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // First, just try to optimistically read the data id from the db.  This can be done with
                 // just a read connection, so we can run concurrently with all other readers.
                 var (succeeded, dataId) = await Storage.PerformReadAsync(
-                    static t => t.self.TryGetDatabaseId(t.key, allowWrite: false, t.cancellationToken),
+                    static t => TryGetDatabaseId(t.self, t.key, allowWrite: false, t.cancellationToken),
                     (self: this, key, cancellationToken), cancellationToken).ConfigureAwait(false);
 
                 if (succeeded)
@@ -136,20 +136,20 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // always happen the first time we write anything new into the DB.  But from that point on
                 // will very rarely be hit as most read requests will be to a key already written in the past.
                 return await Storage.PerformWriteAsync(
-                    static t => t.self.TryGetDatabaseId(t.key, allowWrite: true, t.cancellationToken),
+                    static t => TryGetDatabaseId(t.self, t.key, allowWrite: true, t.cancellationToken),
                     (self: this, key, cancellationToken), cancellationToken).ConfigureAwait(false);
-            }
 
-            private (bool succeeded, TDatabaseId dataId) TryGetDatabaseId(
-                TKey key, bool allowWrite, CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+                static (bool succeeded, TDatabaseId dataId) TryGetDatabaseId(
+                    Accessor<TKey, TWriteQueueKey, TDatabaseId> self, TKey key, bool allowWrite, CancellationToken cancellationToken)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
+                    using var _ = self.Storage._connectionPool.Target.GetPooledConnection(out var connection);
 
-                // Determine the appropriate data-id to store this stream at.
-                var succeeded = TryGetDatabaseId(connection, key, allowWrite, out var dataId);
-                return (succeeded, dataId);
+                    // Determine the appropriate data-id to store this stream at.
+                    var succeeded = self.TryGetDatabaseId(connection, key, allowWrite, out var dataId);
+                    return (succeeded, dataId);
+                }
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
