@@ -4,14 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
@@ -89,6 +92,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             MetadataAsSourceGeneratedFileInfo fileInfo;
             Location? navigateLocation = null;
+            Document? navigateDocument = null;
+
             var topLevelNamedType = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -98,6 +103,40 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 InitializeWorkspace(project);
                 Contract.ThrowIfNull(_workspace);
 
+                var projectId = ProjectId.CreateNewId();
+                var languageName = LanguageNames.CSharp;
+                var languageServices = _workspace.Services.GetLanguageServices(languageName);
+
+                var compilationOptions = languageServices.CompilationFactory!.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
+                var parseOptions = languageServices.GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
+                var assemblyName = topLevelNamedType.ContainingAssembly.Identity.Name;
+                var decompiledSourceService = languageServices.GetRequiredService<IDecompiledSourceService>();
+                var pdbPath = Path.ChangeExtension(((PortableExecutableReference)compilation!.GetMetadataReference(symbol.ContainingAssembly)!).FilePath, ".pdb");
+                var filePaths = decompiledSourceService.GetSourcePaths(symbol, pdbPath);
+
+                var documentInfos = filePaths.Select(filePath => DocumentInfo.Create(
+                    DocumentId.CreateNewId(projectId),
+                    Path.GetFileName(filePath),
+                    filePath: filePath,
+                    loader: new FileTextLoader(filePath, Encoding.UTF8)));
+
+                var projectInfo = ProjectInfo.Create(
+                    projectId,
+                    VersionStamp.Default,
+                    name: assemblyName,
+                    assemblyName: assemblyName,
+                    language: languageName,
+                    compilationOptions: compilationOptions,
+                    parseOptions: parseOptions,
+                    documents: documentInfos,
+                    metadataReferences: project.MetadataReferences.ToImmutableArray());
+
+                var temporarySolution = _workspace.CurrentSolution.AddProject(projectInfo);
+                var temporaryProject = temporarySolution.GetRequiredProject(projectId);
+
+                navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryProject.Documents.First(), cancellationToken).ConfigureAwait(false);
+                navigateDocument = temporaryProject.GetDocument(navigateLocation.SourceTree);
+#if FALSE
                 var infoKey = await GetUniqueDocumentKeyAsync(project, topLevelNamedType, allowDecompilation, cancellationToken).ConfigureAwait(false);
                 fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(), project, topLevelNamedType, allowDecompilation));
 
@@ -105,11 +144,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                 if (!File.Exists(fileInfo.TemporaryFilePath))
                 {
-                    // We need to generate this. First, we'll need a temporary project to do the generation into. We
-                    // avoid loading the actual file from disk since it doesn't exist yet.
-                    var temporaryProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(_workspace, loadFileFromDisk: false);
-                    var temporaryDocument = _workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
-                                                                     .GetDocument(temporaryProjectInfoAndDocumentId.Item2);
+
+                    var (temporaryProjectInfo, temporaryDocumentId) = fileInfo.GetProjectInfoAndDocumentId(_workspace, loadFileFromDisk: false);
+                    var temporaryDocument = _workspace.CurrentSolution.AddProject(temporaryProjectInfo)
+                                                                      .GetDocument(temporaryDocumentId);
 
                     Contract.ThrowIfNull(temporaryDocument, "The temporary ProjectInfo didn't contain the document it said it would.");
 
@@ -183,6 +221,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     navigateLocation = await RelocateSymbol_NoLockAsync(fileInfo, symbolId, cancellationToken).ConfigureAwait(false);
                 }
+#endif
             }
 
             var documentName = string.Format(
@@ -192,7 +231,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
-            return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
+            return new MetadataAsSourceFile(navigateDocument!.FilePath, navigateLocation, documentName, documentTooltip);
         }
 
         private async Task<Location> RelocateSymbol_NoLockAsync(MetadataAsSourceGeneratedFileInfo fileInfo, SymbolKey symbolId, CancellationToken cancellationToken)

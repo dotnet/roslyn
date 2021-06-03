@@ -123,12 +123,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
                 if (allowDecompilation && !ThreadingContext.JoinableTaskFactory.Run(() => eulaService.IsAcceptedAsync(cancellationToken)))
                 {
+#if FALSE
                     var notificationService = project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
                     allowDecompilation = notificationService.ConfirmMessageBox(ServicesVSResources.Decompiler_Legal_Notice_Message, ServicesVSResources.Decompiler_Legal_Notice_Title, NotificationSeverity.Warning);
                     if (allowDecompilation)
                     {
                         ThreadingContext.JoinableTaskFactory.Run(() => eulaService.MarkAcceptedAsync(cancellationToken));
                     }
+#endif
+                    allowDecompilation = true;
                 }
             }
 

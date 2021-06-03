@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         public CSharpDecompiledSourceService(HostLanguageServices provider)
             => this.provider = provider;
 
+        public IEnumerable<string> GetSourcePaths(ISymbol symbol, string pdbPath)
+            => SymbolSourceFileFinder.FindSourceFiles(symbol, pdbPath);
+
         public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
             // Get the name of the type the symbol is in

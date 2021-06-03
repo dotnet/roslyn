@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -23,5 +24,7 @@ namespace Microsoft.CodeAnalysis.DecompiledSource
         /// <param name="cancellationToken">To cancel document operations</param>
         /// <returns>The updated document</returns>
         Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken);
+
+        IEnumerable<string> GetSourcePaths(ISymbol symbol, string pdbPath);
     }
 }
