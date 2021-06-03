@@ -498,6 +498,45 @@ namespace NS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ExtendedPropertyPattern_Before()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ExtendedPropertyPattern_After()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+            A.B: 1,
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 8,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Block()
         {
             var code = @"using System;
