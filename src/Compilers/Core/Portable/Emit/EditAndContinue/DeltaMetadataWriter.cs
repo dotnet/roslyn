@@ -828,24 +828,26 @@ namespace Microsoft.CodeAnalysis.Emit
             // _customAttributeParents is ordered by the order that the compiler emits the attributes but the metadata
             // underneath reorders on serialization. We need to do that reordering here to match the order of the attributes
             // in the original metadata for this algorithm to work.
-            var emittedAttributeParents = _customAttributeParents.OrderBy(att => CodedIndex.HasCustomAttribute(att)).ToList();
+            _customAttributeParents.Sort((lhs, rhs) => CodedIndex.HasCustomAttribute(lhs).CompareTo(CodedIndex.HasCustomAttribute(rhs)));
 
             // The first phase of this is to iterate through the (potentially huge) custom attributes from the original
             // compilation, and issue updates for existing rows as we go.
-            // This call mutates the list passed in, removing anything it emits a log entry for.
-            PopulateEncLogTableCustomAttributesFromOriginalMetadata(emittedAttributeParents);
+            var skippedParents = PopulateEncLogTableCustomAttributesFromOriginalMetadata(_customAttributeParents);
 
             // The second phase is to go through the rows emitted for each delta and issue updates to them, and also
-            // additions for new attributes, from whatever is left in the list.
-            PopulateEncLogTableCustomAttributesFromDeltas(emittedAttributeParents);
+            // additions for new attributes, from whatever parents were skipped in the first phase
+            PopulateEncLogTableCustomAttributesFromDeltas(skippedParents);
         }
 
-        private void PopulateEncLogTableCustomAttributesFromOriginalMetadata(List<EntityHandle> emittedAttributeParents)
+        private List<EntityHandle> PopulateEncLogTableCustomAttributesFromOriginalMetadata(List<EntityHandle> emittedAttributeParents)
         {
             var metadataReader = _previousGeneration.OriginalMetadata.MetadataReader;
 
             var rowId = 1;
             var emittedIndex = 0;
+
+            // Create a list to store the parents we skip, that come from subsequent generations
+            var skippedParents = new List<EntityHandle>();
 
             // We do this by also iterating through the emitted attributes at the same time, since they're sorted the same.
             foreach (var customAttributeHandle in metadataReader.CustomAttributes)
@@ -863,6 +865,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (parentCodedIndex > emittedCodedIndex)
                 {
                     // Skip this current attribute because we didn't find it
+                    skippedParents.Add(emittedParent);
                     emittedIndex++;
                     if (emittedIndex == emittedAttributeParents.Count)
                     {
@@ -875,8 +878,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     // If we found the attribute we want then add an EncLog table record for it
                     AddEncLogCustomAttributeEntry(rowId);
-                    // Remove the attribute from our list because we've already dealt with it
-                    emittedAttributeParents.RemoveAt(emittedIndex);
+
+                    emittedIndex++;
                     if (emittedIndex == emittedAttributeParents.Count)
                     {
                         break;
@@ -885,6 +888,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 rowId++;
             }
+
+            // If we exhausted the original custom attributes table but there are still attributes that were emitted
+            // they must be part of the deltas
+            for (int i = emittedIndex; i < emittedAttributeParents.Count; i++)
+            {
+                skippedParents.Add(emittedAttributeParents[i]);
+            }
+
+            return skippedParents;
         }
 
         private void PopulateEncLogTableCustomAttributesFromDeltas(List<EntityHandle> emittedAttributeParents)
