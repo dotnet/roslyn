@@ -1809,6 +1809,7 @@ namespace Microsoft.Cci
 
                 EmbedCompilationOptions(pdbOptionsBlobReader, module);
                 EmbedMetadataReferenceInformation(module);
+                TypeDocumentInformation(module);
             }
 
             int[] methodBodyOffsets;
