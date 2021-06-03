@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
     {
         private readonly ConcurrentDictionary<string, int> _stringToIdMap = new();
 
-        private int? TryGetStringId(SqlConnection connection, string? value)
+        private int? TryGetStringId(SqlConnection connection, string? value, bool allowWrite)
         {
             // Null strings are not supported at all.  Just ignore these. Any read/writes 
             // to null values will fail and will return 'false/null' to indicate failure
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             // Otherwise, try to get or add the string to the string table in the database.
-            var id = TryGetStringIdFromDatabase(connection, value);
+            var id = TryGetStringIdFromDatabase(connection, value, allowWrite);
             if (id != null)
             {
                 _stringToIdMap[value] = id.Value;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return id;
         }
 
-        private int? TryGetStringIdFromDatabase(SqlConnection connection, string value)
+        private int? TryGetStringIdFromDatabase(SqlConnection connection, string value, bool allowWrite)
         {
             // First, check if we can find that string in the string table.
             var stringId = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: true);
@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 // We're done at this point.
                 return stringId;
             }
+
+            // If we're in a context where our caller doesn't have hte write lock, give up now.  They will
+            // call back in with the write lock to allow safe adding of this db ID after this.
+            if (!allowWrite)
+                return null;
 
             // The string wasn't in the db string table.  Add it.  Note: this may fail if some
             // other thread/process beats us there as this table has a 'unique' constraint on the

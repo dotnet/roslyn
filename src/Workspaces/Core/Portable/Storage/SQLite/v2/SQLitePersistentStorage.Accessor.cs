@@ -68,35 +68,85 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             protected abstract Table Table { get; }
 
-            protected abstract bool TryGetDatabaseId(SqlConnection connection, TKey key, out TDatabaseId dataId);
+            protected abstract bool TryGetDatabaseId(SqlConnection connection, TKey key, bool allowWrite, out TDatabaseId dataId);
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
             protected abstract bool TryGetRowId(SqlConnection connection, Database database, TDatabaseId dataId, out long rowId);
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            public Task<bool> ChecksumMatchesAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
-                => Storage.PerformReadAsync(
-                    static t => t.self.ChecksumMatches(t.key, t.checksum, t.cancellationToken),
-                    (self: this, key, checksum, cancellationToken), cancellationToken);
-
-            private bool ChecksumMatches(TKey key, Checksum checksum, CancellationToken cancellationToken)
+            public async Task<bool> ChecksumMatchesAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
             {
-                var hashData = ReadChecksumColumn(key, cancellationToken);
+                var (succeeded, dataId) = await TryGetDatabaseIdAsync(key, cancellationToken).ConfigureAwait(false);
+                if (!succeeded)
+                    return false;
+
+                return await Storage.PerformReadAsync(
+                    static t => t.self.ChecksumMatches(t.dataId, t.checksum, t.cancellationToken),
+                    (self: this, dataId, checksum, cancellationToken), cancellationToken).ConfigureAwait(false);
+            }
+
+            private bool ChecksumMatches(TDatabaseId dataId, Checksum checksum, CancellationToken cancellationToken)
+            {
+                var hashData = ReadChecksumColumn(dataId, cancellationToken);
                 return hashData != null && checksum == hashData.Value;
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            public Task<Stream?> ReadStreamAsync(TKey key, Checksum? checksum, CancellationToken cancellationToken)
-                => Storage.PerformReadAsync(
-                    static t => t.self.ReadStream(t.key, t.checksum, t.cancellationToken),
-                    (self: this, key, checksum, cancellationToken), cancellationToken);
+            public async Task<Stream?> ReadStreamAsync(TKey key, Checksum? checksum, CancellationToken cancellationToken)
+            {
+                var (succeeded, dataId) = await TryGetDatabaseIdAsync(key, cancellationToken).ConfigureAwait(false);
+                if (!succeeded)
+                    return null;
+
+                return await Storage.PerformReadAsync(
+                    static t => t.self.ReadStream(t.dataId, t.checksum, t.cancellationToken),
+                    (self: this, dataId, checksum, cancellationToken), cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task<(bool succeeded, TDatabaseId dataId)> TryGetDatabaseIdAsync(TKey key, CancellationToken cancellationToken)
+            {
+                if (Storage._shutdownTokenSource.IsCancellationRequested)
+                    return default;
+
+                // Getting the database ID may end up needing to write to the DB (to create a unique DB key corresponding
+                // to the data-key the client is passing in).  As such, we have to try to acquire the DB-key in a fashion
+                // that has exclusive write access to the DB to prevent locking errors.
+
+                // First, just try to optimistically read the data id from the db.  This can be done with
+                // just a read connection, so we can run concurrently with all other readers.
+                var (succeeded, dataId) = await Storage.PerformReadAsync(
+                    static t => t.self.TryGetDatabaseId(t.key, allowWrite: false, t.cancellationToken),
+                    (self: this, key, cancellationToken), cancellationToken).ConfigureAwait(false);
+
+                if (succeeded)
+                    return (succeeded, dataId);
+
+                // Data id was not in the db.  Switch over to an exclusive write lock to add it.  This will
+                // always happen the first time we write anything new into the DB.  But from that point on
+                // will very rarely be hit as most read requests will be to a key already written in the past.
+                return await Storage.PerformWriteAsync(
+                    static t => t.self.TryGetDatabaseId(t.key, allowWrite: true, t.cancellationToken),
+                    (self: this, key, cancellationToken), cancellationToken).ConfigureAwait(false);
+            }
+
+            private (bool succeeded, TDatabaseId dataId) TryGetDatabaseId(
+                TKey key, bool allowWrite, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
+
+                // Determine the appropriate data-id to store this stream at.
+                var succeeded = TryGetDatabaseId(connection, key, allowWrite, out var dataId);
+                return (succeeded, dataId);
+            }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            private Stream? ReadStream(TKey key, Checksum? checksum, CancellationToken cancellationToken)
-                => ReadDataBlobColumn(key, checksum, cancellationToken);
+            private Stream? ReadStream(TDatabaseId dataId, Checksum? checksum, CancellationToken cancellationToken)
+                => ReadDataBlobColumn(dataId, checksum, cancellationToken);
 
             private Optional<T> ReadColumn<T, TData>(
-                TKey key,
+                TDatabaseId dataId,
                 Func<TData, SqlConnection, Database, long, Optional<T>> readColumn,
                 TData data,
                 CancellationToken cancellationToken)
@@ -106,25 +156,22 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
                     using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
-                    if (TryGetDatabaseId(connection, key, out var dataId))
+                    try
                     {
-                        try
-                        {
-                            // First, try to see if there was a write to this key in our in-memory db.
-                            // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
+                        // First, try to see if there was a write to this key in our in-memory db.
+                        // If it wasn't in the in-memory write-cache.  Check the full on-disk file.
 
-                            var optional = ReadColumnHelper(connection, Database.WriteCache, dataId);
-                            if (optional.HasValue)
-                                return optional;
+                        var optional = ReadColumnHelper(connection, Database.WriteCache, dataId);
+                        if (optional.HasValue)
+                            return optional;
 
-                            optional = ReadColumnHelper(connection, Database.Main, dataId);
-                            if (optional.HasValue)
-                                return optional;
-                        }
-                        catch (Exception ex)
-                        {
-                            StorageDatabaseLogger.LogException(ex);
-                        }
+                        optional = ReadColumnHelper(connection, Database.Main, dataId);
+                        if (optional.HasValue)
+                            return optional;
+                    }
+                    catch (Exception ex)
+                    {
+                        StorageDatabaseLogger.LogException(ex);
                     }
                 }
 
@@ -144,10 +191,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             private Stream? ReadDataBlobColumn(
-                TKey key, Checksum? checksum, CancellationToken cancellationToken)
+                TDatabaseId dataId, Checksum? checksum, CancellationToken cancellationToken)
             {
                 var optional = ReadColumn(
-                    key,
+                    dataId,
                     static (t, connection, database, rowId) => t.self.ReadDataBlob(connection, database, rowId, t.checksum),
                     (self: this, checksum),
                     cancellationToken);
@@ -156,10 +203,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return optional.HasValue ? optional.Value : null;
             }
 
-            private Checksum.HashData? ReadChecksumColumn(TKey key, CancellationToken cancellationToken)
+            private Checksum.HashData? ReadChecksumColumn(TDatabaseId dataId, CancellationToken cancellationToken)
             {
                 var optional = ReadColumn(
-                    key,
+                    dataId,
                     static (self, connection, database, rowId) => self.ReadChecksum(connection, database, rowId),
                     this, cancellationToken);
 
@@ -180,7 +227,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
 
                     // Determine the appropriate data-id to store this stream at.
-                    if (TryGetDatabaseId(connection, key, out var dataId))
+                    if (TryGetDatabaseId(connection, key, allowWrite: true, out var dataId))
                     {
                         checksum ??= Checksum.Null;
                         Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
