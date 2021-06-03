@@ -33,10 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // https://github.com/dotnet/roslyn/issues/44682 Add to all in one
             missingSyntaxKinds.Add(SyntaxKind.WithExpression);
             missingSyntaxKinds.Add(SyntaxKind.RecordDeclaration);
-            // PROTOTYPE(list-patterns)
-            missingSyntaxKinds.Add(SyntaxKind.SlicePattern);
-            missingSyntaxKinds.Add(SyntaxKind.LengthPatternClause);
-            missingSyntaxKinds.Add(SyntaxKind.ListPatternClause);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());

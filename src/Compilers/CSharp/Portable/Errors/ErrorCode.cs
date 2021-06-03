@@ -1932,6 +1932,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 9.0
 
+        // PROTOTYPE(list-patterns)
+        ERR_UnsupportedTypeForListPattern = 9200,
+        ERR_UnsupportedTypeForSlicePattern,
+        ERR_UnsupportedTypeForLengthPattern,
+        ERR_MisplacedSlicePattern,
+
         #region diagnostics introduced for C# 10.0
 
         ERR_InheritingFromRecordWithSealedToString = 8912

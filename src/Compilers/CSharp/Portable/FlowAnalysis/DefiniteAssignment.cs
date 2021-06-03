@@ -1600,7 +1600,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 case BoundKind.DiscardPattern:
+                case BoundKind.TypePattern:
                     break;
+                case BoundKind.SlicePattern:
+                    {
+                        var pat = (BoundSlicePattern)pattern;
+                        if (pat.Pattern != null)
+                        {
+                            AssignPatternVariables(pat.Pattern, definitely);
+                        }
+                        break;
+                    }
                 case BoundKind.ConstantPattern:
                     {
                         var pat = (BoundConstantPattern)pattern;
@@ -1617,11 +1627,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignPatternVariables(subpat.Pattern, definitely);
                             }
                         }
+                        if (pat.LengthPattern is not null)
+                        {
+                            AssignPatternVariables(pat.LengthPattern, definitely);
+                        }
                         if (!pat.Properties.IsDefaultOrEmpty)
                         {
                             foreach (BoundSubpattern sub in pat.Properties)
                             {
                                 AssignPatternVariables(sub.Pattern, definitely);
+                            }
+                        }
+                        if (pat.ListPatternClause is not null)
+                        {
+                            if (!pat.ListPatternClause.Subpatterns.IsDefaultOrEmpty)
+                            {
+                                foreach (BoundPattern p in pat.ListPatternClause.Subpatterns)
+                                {
+                                    AssignPatternVariables(p, definitely);
+                                }
                             }
                         }
                         if (definitely)
@@ -1637,8 +1661,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     }
-                case BoundKind.TypePattern:
-                    break;
                 case BoundKind.RelationalPattern:
                     {
                         var pat = (BoundRelationalPattern)pattern;
