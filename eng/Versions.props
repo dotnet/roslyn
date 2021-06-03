@@ -31,7 +31,7 @@
     <MicrosoftCodeAnalysisNetAnalyzersVersion>6.0.0-preview1.21054.10</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20623.3</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.9.0</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>16.10.44</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>16.10.230</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.10.161</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
@@ -120,8 +120,8 @@
     <MicrosoftVisualStudioCacheVersion>16.10.40-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
-    <MicrosoftVisualStudioComponentModelHostVersion>16.10.44</MicrosoftVisualStudioComponentModelHostVersion>
-    <MicrosoftVisualStudioCompositionVersion>16.5.13</MicrosoftVisualStudioCompositionVersion>
+    <MicrosoftVisualStudioComponentModelHostVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioComponentModelHostVersion>
+    <MicrosoftVisualStudioCompositionVersion>16.9.20</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>16.10.0-beta.21214.1</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
     <MicrosoftVisualStudioDebuggerContractsVersion>16.10.0-beta.21214.1</MicrosoftVisualStudioDebuggerContractsVersion>
@@ -182,8 +182,8 @@
     <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
     <MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>
     <MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion>16.0.0</MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion>
-    <MicrosoftVisualStudioThreadingAnalyzersVersion>16.10.41-alpha</MicrosoftVisualStudioThreadingAnalyzersVersion>
-    <MicrosoftVisualStudioThreadingVersion>16.10.41-alpha</MicrosoftVisualStudioThreadingVersion>
+    <MicrosoftVisualStudioThreadingAnalyzersVersion>16.10.56</MicrosoftVisualStudioThreadingAnalyzersVersion>
+    <MicrosoftVisualStudioThreadingVersion>16.10.56</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioUtilitiesVersion>
     <MicrosoftVisualStudioValidationVersion>16.9.30</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>2.8.0</MicrosoftVisualStudioVsInteractiveWindowVersion>
