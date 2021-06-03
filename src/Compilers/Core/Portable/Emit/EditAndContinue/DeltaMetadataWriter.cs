@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // remainingEmittedAttributeParents only contains records that haven't been logged, but since we know it is in the
                 // right order, we don't need to know what the original index we can just fill log rows in order, but and skip any
                 // that were already filled in the previous phase.
-                Debug.Assert(logIndex < encLogRows.Length, "encLogRows length cannot be larged than remainingEmittedAttributeParents length.");
+                Debug.Assert(logIndex < encLogRows.Length, "encLogRows cannot be larger than remainingEmittedAttributeParents.");
                 while (encLogRows[logIndex] != 0)
                 {
                     logIndex++;
