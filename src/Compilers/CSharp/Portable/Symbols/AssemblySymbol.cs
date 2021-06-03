@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsStaticAbstractMembersInInterfaces
         {
-            // PROTOTYPE(StaticAbstractMembersInInterfaces): Implement the actual check, this is a temporary stub. 
+            // https://github.com/dotnet/roslyn/issues/53800: Implement the actual check, this is a temporary stub. 
             get => RuntimeSupportsDefaultInterfaceImplementation;
         }
 

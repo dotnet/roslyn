@@ -6366,9 +6366,9 @@ class Test
 
             Assert.Equal("T.M01()", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IInvocationOperation (virtual void I1.M01()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'T.M01()')
   Instance Receiver: 
@@ -6450,6 +6450,7 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
+            // https://github.com/dotnet/roslyn/issues/53796: Confirm whether we want to enable the 'from t in T' scenario.
             compilation1.VerifyDiagnostics(
                 // (11,23): error CS0119: 'T' is a type parameter, which is not valid in the given context
                 //         _ = from t in T select t + 1;
@@ -6915,9 +6916,9 @@ class Test
                 case ("", "++"):
                 case ("", "--"):
                     VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IIncrementOrDecrementOperation (" + (prefixOp != "" ? "Prefix" : "Postfix") + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x)) (OperationKind." + opKind + @", Type: T) (Syntax: '" + prefixOp + "x" + postfixOp + @"')
   Target: 
@@ -6927,9 +6928,9 @@ IIncrementOrDecrementOperation (" + (prefixOp != "" ? "Prefix" : "Postfix") + @"
 
                 default:
                     VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IUnaryOperation (UnaryOperatorKind." + opKind + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x)) (OperationKind.Unary, Type: T) (Syntax: '" + prefixOp + "x" + postfixOp + @"')
   Operand: 
@@ -7166,9 +7167,9 @@ class Test
 
             Assert.Equal("x ? true : false", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IConditionalOperation (OperationKind.Conditional, Type: System.Boolean) (Syntax: 'x ? true : false')
   Condition: 
@@ -7983,9 +7984,9 @@ partial class Test
 
             Assert.Equal("x " + op + " 1", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x, System.Int32 a)) (OperationKind.Binary, Type: T) (Syntax: 'x " + op + @" 1')
   Left: 
@@ -8178,9 +8179,9 @@ public partial interface I1<T0>
 
             Assert.Equal("x " + op + " 1", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @") (OperatorMethod: System.Boolean I1<T>." + metadataName + @"(T x, System.Int32 a)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x " + op + @" 1')
   Left: 
@@ -8370,9 +8371,9 @@ public partial interface I1<T0>
 
             Assert.Equal("x " + op + " y", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IBinaryOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + @", IsLifted) (OperatorMethod: System.Boolean I1<T>." + metadataName + @"(T x, T a)) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x " + op + @" y')
   Left: 
@@ -8567,9 +8568,9 @@ class Test
                 Assert.Equal("x " + op + op + " y", node1.ToString());
 
                 VerifyOperationTreeForNode(compilation1, model, node1,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: T I1<T>." + binaryMetadataName + @"(T a, T x)) (OperationKind.Binary, Type: T) (Syntax: 'x " + op + op + @" y')
   Left: 
@@ -8824,9 +8825,9 @@ class Test
                 Assert.Equal("x " + op + op + " y", node1.ToString());
 
                 VerifyOperationTreeForNode(compilation1, model, node1,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: I1 I1." + binaryMetadataName + @"(I1 a, I1 x)) (OperationKind.Binary, Type: I1) (Syntax: 'x " + op + op + @" y')
   Left: 
@@ -9176,7 +9177,7 @@ class Test
 
             Assert.Equal("x " + op + "= 1", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
 //                                               reflected in the IOperation tree. Should we change the shape of the tree in order
 //                                               to expose this information? 
 @"
@@ -9986,9 +9987,9 @@ class Test
 
             Assert.Equal("T.P01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'T.P01')
   Instance Receiver: 
@@ -10062,9 +10063,9 @@ class Test
 
             Assert.Equal("T.P01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'T.P01')
   Instance Receiver: 
@@ -10174,9 +10175,9 @@ class Test
 
             Assert.Equal("T.P01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'T.P01')
   Instance Receiver: 
@@ -10850,9 +10851,9 @@ class Test
 
             Assert.Equal("T.E01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IEventReferenceOperation: event System.Action I1.E01 (Static) (OperationKind.EventReference, Type: System.Action) (Syntax: 'T.E01')
   Instance Receiver: 
@@ -11405,9 +11406,9 @@ class Test
 
             Assert.Equal("T.M01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
   Instance Receiver: 
@@ -11665,9 +11666,9 @@ class Test
 
             Assert.Equal("T.M01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
   Instance Receiver: 
@@ -11924,9 +11925,9 @@ unsafe class Test
 
             Assert.Equal("T.M01", node.ToString());
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" qualifier is important for this invocation, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" qualifier is important for this invocation, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IMethodReferenceOperation: void I1.M01() (IsVirtual) (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'T.M01')
   Instance Receiver: 
@@ -24239,9 +24240,9 @@ class Test
             Assert.Equal("return " + (needCast ? "(int)" : "") + @"x;", node.ToString());
 
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
-//                                               reflected in the IOperation tree. Should we change the shape of the tree in order
-//                                               to expose this information? 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
+//                                                reflected in the IOperation tree. Should we change the shape of the tree in order
+//                                                to expose this information? 
 @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return " + (needCast ? "(int)" : "") + @"x;')
   ReturnedValue: 
@@ -24548,7 +24549,7 @@ class Test
             Assert.Equal("return " + (needCast ? "(T)" : "") + @"x;", node.ToString());
 
             VerifyOperationTreeForNode(compilation1, model, node,
-// PROTOTYPE(StaticAbstractMembersInInterfaces): It feels like the "T" constraint is important for this operator, but it is not 
+// https://github.com/dotnet/roslyn/issues/53803: It feels like the "T" constraint is important for this operator, but it is not 
 //                                               reflected in the IOperation tree. Should we change the shape of the tree in order
 //                                               to expose this information? 
 @"

@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundBinaryOperator binary:
                     PrepareBoolConversionAndTruthOperator(binary.Type, node, kind, diagnostics, out Conversion conversionIntoBoolOperator, out UnaryOperatorSignature boolOperator);
-                    // PROTOTYPE(StaticAbstractMembersInInterfaces): Ensure we have a unit-test for this code path.
+                    // https://github.com/dotnet/roslyn/issues/53797: Ensure we have a unit-test for this code path.
                     return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.MethodOpt, binary.ConstrainedToTypeOpt, conversionIntoBoolOperator, boolOperator);
 
                 default:
