@@ -6697,12 +6697,9 @@ switch (e)
         public void TrailingCommaInPositionalPattern_01()
         {
             UsingExpression("e is ( X: 3, )",
-                // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // e is { , }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "{ , }").WithArguments("list pattern").WithLocation(1, 6),
-                // (1,8): error CS8504: Pattern missing
-                // e is { , }
-                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 8)
+                // (1,14): error CS8504: Pattern missing
+                // e is ( X: 3, )
+                Diagnostic(ErrorCode.ERR_MissingPattern, ")").WithLocation(1, 14)
                 );
             N(SyntaxKind.IsPatternExpression);
             {
