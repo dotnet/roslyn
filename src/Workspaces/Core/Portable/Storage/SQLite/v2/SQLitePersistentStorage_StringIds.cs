@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
@@ -44,6 +45,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         private int? TryGetStringIdFromDatabase(SqlConnection connection, string value, bool allowWrite)
         {
+            // We're reading or writing.  This can be under either of our schedulers.
+            Contract.ThrowIfFalse(
+                TaskScheduler.Current == _connectionPoolService.Scheduler.ExclusiveScheduler ||
+                TaskScheduler.Current == _connectionPoolService.Scheduler.ConcurrentScheduler);
+
             // First, check if we can find that string in the string table.
             var stringId = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: true);
             if (stringId != null)
@@ -53,10 +59,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return stringId;
             }
 
-            // If we're in a context where our caller doesn't have hte write lock, give up now.  They will
+            // If we're in a context where our caller doesn't have the write lock, give up now.  They will
             // call back in with the write lock to allow safe adding of this db ID after this.
             if (!allowWrite)
                 return null;
+
+            // We're writing.  This better always be under the exclusive scheduler.
+            Contract.ThrowIfFalse(TaskScheduler.Current == _connectionPoolService.Scheduler.ExclusiveScheduler);
 
             // The string wasn't in the db string table.  Add it.  Note: this may fail if some
             // other thread/process beats us there as this table has a 'unique' constraint on the
