@@ -521,5 +521,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Overloads Function Translate(symbol As ArrayTypeSymbol) As Microsoft.Cci.IArrayTypeReference
             Return DirectCast(GetCciAdapter(symbol), Microsoft.Cci.IArrayTypeReference)
         End Function
+
+        Public Overrides Function GetTypeDocument(context As CodeAnalysis.Emit.EmitContext) As List(Of (definition As IDefinition, document As DebugSourceDocument()))
+            Return New List(Of (definition As IDefinition, document As DebugSourceDocument()))
+        End Function
     End Class
 End Namespace
