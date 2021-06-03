@@ -1763,6 +1763,133 @@ class X
         }
 
         [Fact]
+        public void ListPattern_UseSiteErrorOnIndexerAndSlice()
+        {
+            var missing_cs = @"
+public class Missing
+{
+}
+";
+            var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+                .EmitToImageReference();
+
+            var lib2_cs = @"
+public class C
+{
+    public int Length => 0;
+    public Missing this[int i] => throw null;
+    public Missing Slice(int i, int j) => throw null;
+}
+";
+            var lib2Ref = CreateCompilation(lib2_cs, references: new[] { missingRef })
+                .EmitToImageReference();
+
+            var source = @"
+class D
+{
+    void M(C c)
+    {
+        _ = c is { var item };
+        _ = c is { ..var rest };
+        var index = c[^1];
+        var range = c[1..^1];
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range },
+                references: new[] { lib2Ref }, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (6,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         _ = c is { var item };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "{ var item }").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18),
+                // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         _ = c is { ..var rest };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "{ ..var rest }").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
+                // (7,20): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         _ = c is { ..var rest };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "..var rest").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 20),
+                // (8,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var index = c[^1];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "c[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 21),
+                // (9,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var range = c[1..^1];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "c[1..^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 21)
+                );
+
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+            var declarations = tree.GetRoot().DescendantNodes().OfType<VarPatternSyntax>().ToArray();
+
+            verify(declarations[0], "item", "Missing?");
+            verify(declarations[1], "rest", "Missing?");
+
+            void verify(VarPatternSyntax declaration, string name, string expectedType)
+            {
+                var local = (ILocalSymbol)model.GetDeclaredSymbol(declaration.Designation)!;
+                Assert.Equal(name, local.Name);
+                Assert.Equal(expectedType, local.Type.ToTestDisplayString(includeNonNullable: true));
+            }
+        }
+
+        [Fact]
+        public void ListPattern_UseSiteErrorOnIndexAndRangeIndexers_WithFallback()
+        {
+            var missing_cs = @"
+public class Missing
+{
+}
+";
+            var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+                .EmitToImageReference();
+
+            var lib2_cs = @"
+using System;
+public class C
+{
+    public int Length => 0;
+    public Missing this[Index i] => throw null;
+    public Missing this[Range r] => throw null;
+    public int this[int i] => throw null;
+    public int Slice(int i, int j) => throw null;
+}
+";
+            var lib2Ref = CreateCompilation(new[] { lib2_cs, TestSources.Index, TestSources.Range }, references: new[] { missingRef })
+                .EmitToImageReference();
+
+            var source = @"
+class D
+{
+    void M(C c)
+    {
+        _ = c is { var item };
+        _ = c is { ..var rest };
+        var index = c[^1];
+        var range = c[1..^1];
+    }
+}
+";
+            var compilation = CreateCompilation(source, references: new[] { lib2Ref }, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (6,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         _ = c is { var item };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "{ var item }").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18),
+                // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         _ = c is { ..var rest };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "{ ..var rest }").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
+                // (7,20): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         _ = c is { ..var rest };
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "..var rest").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 20),
+                // (8,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var index = c[^1];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "c[^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 21),
+                // (9,21): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         var range = c[1..^1];
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "c[1..^1]").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 21)
+                );
+        }
+
+        [Fact]
         public void ListPattern_Symbols_01()
         {
             var source =
