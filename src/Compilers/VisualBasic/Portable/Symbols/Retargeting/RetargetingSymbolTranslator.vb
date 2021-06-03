@@ -893,6 +893,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Dim containingType = method.ContainingType
                 Dim retargetedType = Retarget(containingType, RetargetOptions.RetargetPrimitiveTypesByName)
 
+                If retargetedType Is containingType Then
+                    Return method
+                End If
+
                 If Not containingType.IsDefinition Then
                     Debug.Assert(Not retargetedType.IsDefinition)
 
@@ -908,9 +912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Debug.Assert(retargetedType.IsDefinition)
 
                 ' NB: may return null if the method cannot be found in the retargeted type (e.g. removed in a subsequent version)
-                Return If(retargetedType Is containingType,
-                          method,
-                          FindMethodInRetargetedType(method, retargetedType, retargetedMethodComparer))
+                Return FindMethodInRetargetedType(method, retargetedType, retargetedMethodComparer)
             End Function
 
             Private Function FindMethodInRetargetedType(method As MethodSymbol, retargetedType As NamedTypeSymbol, retargetedMethodComparer As IEqualityComparer(Of MethodSymbol)) As MethodSymbol
@@ -920,8 +922,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Private Class RetargetedTypeMethodFinder
                 Inherits RetargetingSymbolTranslator
 
-                Private Sub New(retargetingModule As RetargetingModuleSymbol)
+                Private ReadOnly _retargetedType As NamedTypeSymbol
+                Private ReadOnly _toFind As MethodSymbol
+
+                Private Sub New(retargetingModule As RetargetingModuleSymbol, retargetedType As NamedTypeSymbol, toFind As MethodSymbol)
                     MyBase.New(retargetingModule)
+
+                    _retargetedType = retargetedType
+                    _toFind = toFind
                 End Sub
 
                 Public Shared Function Find(
@@ -934,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                         Return Nothing
                     End If
 
-                    If Not method.IsGenericMethod Then
+                    If Not method.IsGenericMethod AndAlso Not retargetedType.IsGenericType Then
                         Return FindWorker(translator, method, retargetedType, retargetedMethodComparer)
                     End If
 
@@ -942,9 +950,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     ' among members of a type, constructed methods are never returned through GetMembers API.
                     Debug.Assert(method Is method.ConstructedFrom)
 
-                    ' A generic method needs special handling because its signature is very likely
-                    ' to refer to method's type parameters.
-                    Dim finder = New RetargetedTypeMethodFinder(translator._retargetingModule)
+                    ' A generic method or a method in generic type needs special handling because its signature is very likely
+                    ' to refer to method's or type's type parameters.
+                    Dim finder = New RetargetedTypeMethodFinder(translator._retargetingModule, retargetedType, method)
                     Return FindWorker(finder, method, retargetedType, retargetedMethodComparer)
                 End Function
 
@@ -993,15 +1001,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 End Function
 
                 Public Overrides Function Retarget(typeParameter As TypeParameterSymbol) As TypeParameterSymbol
-                    If typeParameter.ContainingModule Is Me.UnderlyingModule Then
-                        Return MyBase.Retarget(typeParameter)
+                    If typeParameter.TypeParameterKind = TypeParameterKind.Method Then
+                        Debug.Assert(typeParameter.ContainingSymbol Is _toFind)
+
+                        ' The method symbol we are building will be using IndexedTypeParameterSymbols as 
+                        ' its type parameters, therefore, we should return them here as well.
+                        Return IndexedTypeParameterSymbol.GetTypeParameter(typeParameter.Ordinal)
                     End If
 
-                    Debug.Assert(typeParameter.TypeParameterKind = TypeParameterKind.Method)
+                    Dim containingType As NamedTypeSymbol = _toFind.ContainingType
+                    Dim retargetedContainingType As NamedTypeSymbol = _retargetedType
 
-                    ' The method symbol we are building will be using IndexedTypeParameterSymbols as 
-                    ' its type parameters, therefore, we should return them here as well.
-                    Return IndexedTypeParameterSymbol.GetTypeParameter(typeParameter.Ordinal)
+                    Do
+                        If containingType Is typeParameter.ContainingSymbol Then
+                            Return retargetedContainingType.TypeParameters(typeParameter.Ordinal)
+                        End If
+
+                        containingType = containingType.ContainingType
+                        retargetedContainingType = retargetedContainingType.ContainingType
+                    Loop While containingType IsNot Nothing
+
+                    Throw ExceptionUtilities.Unreachable
                 End Function
             End Class
 
