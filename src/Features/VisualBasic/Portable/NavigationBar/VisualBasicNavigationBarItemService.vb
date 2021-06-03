@@ -361,14 +361,12 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                     eventContainer.Name,
                     eventContainer.GetGlyph(),
                     indent:=1,
-                    spans:=allMethodSpans.ToImmutableArray(),
                     childItems:=rightHandMemberItems.ToImmutableArray())
             Else
                 Return New ActionlessItem(
                     String.Format(VBFeaturesResources._0_Events, containingType.Name),
                     Glyph.EventPublic,
                     indent:=1,
-                    spans:=allMethodSpans.ToImmutableArray(),
                     childItems:=rightHandMemberItems.ToImmutableArray())
             End If
         End Function

@@ -91,19 +91,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private static SymbolInformation? GetSymbolInformation(RoslynNavigationBarItem item, Compilation compilation, SyntaxTree tree, Document document,
             SourceText text, CancellationToken cancellationToken, string? containerName = null)
         {
-            if (item.Spans.IsEmpty)
-            {
+            if (item is not RoslynNavigationBarItem.SymbolItem symbolItem)
                 return null;
-            }
 
             var location = GetLocation(item, compilation, tree, cancellationToken);
 
-            if (location == null)
-            {
-                return Create(item, item.Spans.First(), containerName, document, text);
-            }
-
-            return Create(item, location.SourceSpan, containerName, document, text);
+            return location == null
+                ? Create(item, symbolItem.Spans.First(), containerName, document, text)
+                : Create(item, location.SourceSpan, containerName, document, text);
 
             static VSSymbolInformation Create(RoslynNavigationBarItem item, TextSpan span, string? containerName, Document document, SourceText text)
             {
@@ -128,18 +123,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private static async Task<DocumentSymbol?> GetDocumentSymbolAsync(RoslynNavigationBarItem item, Compilation compilation, SyntaxTree tree,
             SourceText text, CancellationToken cancellationToken)
         {
+            if (item is not RoslynNavigationBarItem.SymbolItem symbolItem)
+                return null;
+
             // it is actually symbol location getter. but anyway.
             var location = GetLocation(item, compilation, tree, cancellationToken);
             if (location == null)
-            {
                 return null;
-            }
 
             var symbol = await GetSymbolAsync(location, compilation, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
-            {
                 return null;
-            }
 
             return new DocumentSymbol
             {
@@ -147,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Detail = item.Text,
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                 Deprecated = symbol.IsObsolete(),
-                Range = ProtocolConversions.TextSpanToRange(item.Spans.First(), text),
+                Range = ProtocolConversions.TextSpanToRange(symbolItem.Spans.First(), text),
                 SelectionRange = ProtocolConversions.TextSpanToRange(location.SourceSpan, text),
                 Children = await GetChildrenAsync(item.ChildItems, compilation, tree, text, cancellationToken).ConfigureAwait(false),
             };

@@ -36,10 +36,11 @@ namespace Microsoft.CodeAnalysis.NavigationBar
         public readonly int Indent;
         [DataMember(Order = 6)]
         public readonly ImmutableArray<SerializableNavigationBarItem> ChildItems;
-        [DataMember(Order = 7)]
-        public readonly ImmutableArray<TextSpan> Spans;
 
         // Set when kind == RoslynNavigationBarItemKind.Symbol
+
+        [DataMember(Order = 7)]
+        public readonly ImmutableArray<TextSpan> Spans;
 
         [DataMember(Order = 8)]
         public readonly SymbolKey? NavigationSymbolId;
@@ -104,15 +105,15 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 RoslynNavigationBarItemKind.GenerateEventHandler => new RoslynNavigationBarItem.GenerateEventHandler(Text, Glyph, ContainerName!, EventSymbolKey!.Value, DestinationTypeSymbolKey!.Value),
                 RoslynNavigationBarItemKind.GenerateFinalizer => new RoslynNavigationBarItem.GenerateFinalizer(Text, DestinationTypeSymbolKey!.Value),
                 RoslynNavigationBarItemKind.GenerateMethod => new RoslynNavigationBarItem.GenerateMethod(Text, Glyph, DestinationTypeSymbolKey!.Value, MethodToReplicateSymbolKey!.Value),
-                RoslynNavigationBarItemKind.Actionless => new RoslynNavigationBarItem.ActionlessItem(Text, Glyph, Spans, ChildItems.SelectAsArray(v => v.Rehydrate()), Indent, Bolded, Grayed),
+                RoslynNavigationBarItemKind.Actionless => new RoslynNavigationBarItem.ActionlessItem(Text, Glyph, ChildItems.SelectAsArray(v => v.Rehydrate()), Indent, Bolded, Grayed),
                 _ => throw ExceptionUtilities.UnexpectedValue(this.Kind),
             };
 
         public static ImmutableArray<SerializableNavigationBarItem> Dehydrate(ImmutableArray<RoslynNavigationBarItem> values)
             => values.SelectAsArray(v => v.Dehydrate());
 
-        public static SerializableNavigationBarItem ActionlessItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<SerializableNavigationBarItem> childItems = default, int indent = 0, bool bolded = false, bool grayed = false)
-            => new(RoslynNavigationBarItemKind.Actionless, text, glyph, bolded, grayed, indent, childItems, spans, null, 0, null, null, null, null);
+        public static SerializableNavigationBarItem ActionlessItem(string text, Glyph glyph, ImmutableArray<SerializableNavigationBarItem> childItems = default, int indent = 0, bool bolded = false, bool grayed = false)
+            => new(RoslynNavigationBarItemKind.Actionless, text, glyph, bolded, grayed, indent, childItems, default, null, 0, null, null, null, null);
 
         public static SerializableNavigationBarItem SymbolItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, SymbolKey navigationSymbolId, int navigationSymbolIndex, ImmutableArray<SerializableNavigationBarItem> childItems = default, int indent = 0, bool bolded = false, bool grayed = false)
             => new(RoslynNavigationBarItemKind.Symbol, text, glyph, bolded, grayed, indent, childItems, spans, navigationSymbolId, navigationSymbolIndex, null, null, null, null);

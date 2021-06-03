@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar
     {
         public sealed class SymbolItem : RoslynNavigationBarItem
         {
+            public readonly ImmutableArray<TextSpan> Spans;
             public readonly SymbolKey NavigationSymbolId;
             public readonly int NavigationSymbolIndex;
 
@@ -24,8 +25,9 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 int indent = 0,
                 bool bolded = false,
                 bool grayed = false)
-                : base(RoslynNavigationBarItemKind.Symbol, text, glyph, bolded, grayed, indent, childItems, spans)
+                : base(RoslynNavigationBarItemKind.Symbol, text, glyph, bolded, grayed, indent, childItems)
             {
+                this.Spans = spans.NullToEmpty();
                 this.NavigationSymbolId = navigationSymbolId;
                 this.NavigationSymbolIndex = navigationSymbolIndex;
             }
