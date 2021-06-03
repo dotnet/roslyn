@@ -13183,6 +13183,59 @@ public class C
         }
 
         [Fact]
+        public void ParameterAttributeInsert_SupportedByRuntime_NonCustomAttribute()
+        {
+            var src1 = @"class C { public void M(int a) {} }";
+            var src2 = @"class C { public void M([System.Runtime.InteropServices.InAttribute]int a) {} } ";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int a]@24 -> [[System.Runtime.InteropServices.InAttribute]int a]@24");
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes,
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void ParameterAttributeInsert_SupportedByRuntime_SecurityAttribute1()
+        {
+            var attribute = "public class AAttribute : System.Security.Permissions.SecurityAttribute { }\n\n";
+
+            var src1 = attribute + @"class C { public void M(int a) {} }";
+            var src2 = attribute + @"class C { public void M([A]int a) {} } ";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int a]@101 -> [[A]int a]@101");
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes,
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void ParameterAttributeInsert_SupportedByRuntime_SecurityAttribute2()
+        {
+            var attribute = "public class BAttribute : System.Security.Permissions.SecurityAttribute { }\n\n" +
+                            "public class AAttribute : BAttribute { }\n\n";
+
+            var src1 = attribute + @"class C { public void M(int a) {} }";
+            var src2 = attribute + @"class C { public void M([A]int a) {} } ";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int a]@143 -> [[A]int a]@143");
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes,
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+        }
+
+        [Fact]
         public void ParameterAttributeInsert1()
         {
             var attribute = "public class AAttribute : System.Attribute { }\n\n";

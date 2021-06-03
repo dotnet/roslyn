@@ -3032,14 +3032,63 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return symbol.DeclaringSyntaxReferences.First().GetSyntax();
             }
 
-#pragma warning disable IDE0060 // Remove unused parameter
             static bool IsNonCustomAttribute(AttributeData attribute)
             {
-                // TODO: Only attributes that are stored in CustomAttributes table can be changed
-                return false;
+                // TODO: Use a compiler API to get this information rather than hard coding a list: https://github.com/dotnet/roslyn/issues/53410
+
+                // This list comes from ShouldEmitAttribute in src\Compilers\CSharp\Portable\Symbols\Attributes\AttributeData.cs
+                // and src\Compilers\VisualBasic\Portable\Symbols\Attributes\AttributeData.vb
+                return attribute.AttributeClass?.ToNameDisplayString() switch
+                {
+                    "System.CLSCompliantAttribute" => true,
+                    "System.Diagnostics.CodeAnalysis.AllowNullAttribute" => true,
+                    "System.Diagnostics.CodeAnalysis.DisallowNullAttribute" => true,
+                    "System.Diagnostics.CodeAnalysis.MaybeNullAttribute" => true,
+                    "System.Diagnostics.CodeAnalysis.NotNullAttribute" => true,
+                    "System.NonSerializedAttribute" => true,
+                    "System.Reflection.AssemblyAlgorithmIdAttribute" => true,
+                    "System.Reflection.AssemblyCultureAttribute" => true,
+                    "System.Reflection.AssemblyFlagsAttribute" => true,
+                    "System.Reflection.AssemblyVersionAttribute" => true,
+                    "System.Runtime.CompilerServices.DllImportAttribute" => true,       // Already covered by other rude edits, but included for completeness
+                    "System.Runtime.CompilerServices.IndexerNameAttribute" => true,
+                    "System.Runtime.CompilerServices.MethodImplAttribute" => true,
+                    "System.Runtime.CompilerServices.SpecialNameAttribute" => true,
+                    "System.Runtime.CompilerServices.TypeForwardedToAttribute" => true,
+                    "System.Runtime.InteropServices.ComImportAttribute" => true,
+                    "System.Runtime.InteropServices.DefaultParameterValueAttribute" => true,
+                    "System.Runtime.InteropServices.FieldOffsetAttribute" => true,
+                    "System.Runtime.InteropServices.InAttribute" => true,
+                    "System.Runtime.InteropServices.MarshalAsAttribute" => true,
+                    "System.Runtime.InteropServices.OptionalAttribute" => true,
+                    "System.Runtime.InteropServices.OutAttribute" => true,
+                    "System.Runtime.InteropServices.PreserveSigAttribute" => true,
+                    "System.Runtime.InteropServices.StructLayoutAttribute" => true,
+                    "System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeImportAttribute" => true,
+                    "System.Security.DynamicSecurityMethodAttribute" => true,
+                    "System.SerializableAttribute" => true,
+                    not null => IsSecurityAttribute(attribute.AttributeClass),
+                    _ => false
+                };
             }
 
-#pragma warning restore IDE0060 // Remove unused parameter
+            static bool IsSecurityAttribute(INamedTypeSymbol namedTypeSymbol)
+            {
+                // Security attributes are any attribute derived from System.Security.Permissions.SecurityAttribute, directly or indirectly
+
+                var symbol = namedTypeSymbol;
+                while (symbol is not null)
+                {
+                    if (symbol.ToNameDisplayString() == "System.Security.Permissions.SecurityAttribute")
+                    {
+                        return true;
+                    }
+
+                    symbol = symbol.BaseType;
+                }
+
+                return false;
+            }
         }
 
         private static bool CanAddNewMember(ISymbol newSymbol, EditAndContinueCapabilities capabilities)
