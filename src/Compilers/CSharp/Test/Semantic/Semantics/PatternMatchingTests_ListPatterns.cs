@@ -351,7 +351,7 @@ class X
 
     public static void Main()
     {
-        foreach (var a in new[] { new[]{1}, new[]{1,2}, new []{1,2,3} })
+        foreach (var a in new[] { new int[1], new int[2], new int[3] })
         {
             Console.WriteLine(Test1(a));
             Console.WriteLine(Test2(a));
