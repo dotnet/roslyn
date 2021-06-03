@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 private readonly NamedTypeSymbol _retargetedType;
                 private readonly MethodSymbol _toFind;
 
-                private RetargetedTypeMethodFinder(RetargetingModuleSymbol retargetingModule,  NamedTypeSymbol retargetedType, MethodSymbol toFind) :
+                private RetargetedTypeMethodFinder(RetargetingModuleSymbol retargetingModule, NamedTypeSymbol retargetedType, MethodSymbol toFind) :
                     base(retargetingModule)
                 {
                     _retargetedType = retargetedType;
