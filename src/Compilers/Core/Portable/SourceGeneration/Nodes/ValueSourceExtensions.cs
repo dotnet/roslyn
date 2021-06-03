@@ -27,9 +27,13 @@ namespace Microsoft.CodeAnalysis
 
         public static IncrementalValueProvider<ImmutableArray<TSource>> AsSingleValue<TSource>(this IncrementalValuesProvider<TSource> source) => new IncrementalValueProvider<ImmutableArray<TSource>>(new BatchNode<TSource>(source.Node));
 
-        public static IncrementalValuesProvider<(TSource, TSource2)> Associate<TSource, TSource2>(this IncrementalValuesProvider<TSource> provider1, IncrementalValueProvider<TSource2> provider2) => new IncrementalValuesProvider<(TSource, TSource2)>(new AssociateNode<TSource, TSource2>(provider1.Node, provider2.Node));
+        public static IncrementalValuesProvider<(TFirst, TSecond)> Associate<TFirst, TSecond>(this IncrementalValuesProvider<TFirst> provider1, IncrementalValueProvider<TSecond> provider2) => new IncrementalValuesProvider<(TFirst, TSecond)>(new AssociateNode<TFirst, TSecond>(provider1.Node, provider2.Node));
 
-        public static IncrementalValueProvider<(TSource, TSource2)> Associate<TSource, TSource2>(this IncrementalValueProvider<TSource> provider1, IncrementalValueProvider<TSource2> provider2) => new IncrementalValueProvider<(TSource, TSource2)>(new AssociateNode<TSource, TSource2>(provider1.Node, provider2.Node));
+        public static IncrementalValueProvider<(TFirst, TSecond)> Associate<TFirst, TSecond>(this IncrementalValueProvider<TFirst> provider1, IncrementalValueProvider<TSecond> provider2) => new IncrementalValueProvider<(TFirst, TSecond)>(new AssociateNode<TFirst, TSecond>(provider1.Node, provider2.Node));
+
+        public static IncrementalValuesProvider<TResult> Associate<TFirst, TSecond, TResult>(this IncrementalValuesProvider<TFirst> provider1, IncrementalValueProvider<TSecond> provider2, Func<TFirst, TSecond, TResult> selector) => Associate(provider1, provider2).Select(item => selector(item.Item1, item.Item2));
+
+        public static IncrementalValueProvider<TResult> Associate<TFirst, TSecond, TResult>(this IncrementalValueProvider<TFirst> provider1, IncrementalValueProvider<TSecond> provider2, Func<TFirst, TSecond, TResult> selector) => Associate(provider1, provider2).Select(item => selector(item.Item1, item.Item2));
 
         // helper for filtering
         public static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, bool> predicate)
