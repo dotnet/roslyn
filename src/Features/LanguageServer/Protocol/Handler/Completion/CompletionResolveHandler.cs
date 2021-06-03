@@ -4,12 +4,14 @@
 
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -90,9 +92,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Contract.ThrowIfTrue(completionItem.TextEdit != null);
 
                 var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
+                var optionSet = await GetCompletionFormattingOptionsAsync(document, cancellationToken).ConfigureAwait(false);
 
                 completionItem.TextEdit = await GenerateTextEditAsync(
-                    document, completionService, selectedItem, snippetsSupported, cancellationToken).ConfigureAwait(false);
+                    document, completionService, selectedItem, snippetsSupported, optionSet, cancellationToken).ConfigureAwait(false);
             }
 
             return completionItem;
@@ -126,12 +129,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CompletionService completionService,
             CompletionItem selectedItem,
             bool snippetsSupported,
+            OptionSet optionSet,
             CancellationToken cancellationToken)
         {
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var completionChange = await completionService.GetChangeAsync(
-                document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, optionSet, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
             var completionChangeSpan = completionChange.TextChange.Span;
             var newText = completionChange.TextChange.NewText;
             Contract.ThrowIfNull(newText);
@@ -184,6 +188,40 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             return cacheEntry;
+        }
+
+        // Certain language servers such as Razor may want TextEdits formatted using custom options instead of document options.
+        private static async Task<OptionSet> GetCompletionFormattingOptionsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var optionsService = document.Services.GetService<IDocumentOptionsProvider>();
+            if (optionsService == null)
+            {
+                return documentOptions;
+            }
+
+            var options = await optionsService.GetOptionsForDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            if (options == null)
+            {
+                return documentOptions;
+            }
+
+            if (options.TryGetDocumentOption(new OptionKey(FormattingOptions.UseTabs, document.Project.Language), out var useTabs) &&
+                useTabs != null &&
+                useTabs.GetType() == typeof(bool))
+            {
+                documentOptions = documentOptions.WithChangedOption(FormattingOptions.UseTabs, (bool)useTabs);
+            }
+
+            if (options.TryGetDocumentOption(new OptionKey(FormattingOptions.TabSize, document.Project.Language), out var tabSize) &&
+                tabSize != null &&
+                tabSize.GetType() == typeof(int))
+            {
+                documentOptions = documentOptions.WithChangedOption(FormattingOptions.TabSize, (int)tabSize);
+            }
+
+            return documentOptions;
         }
     }
 }

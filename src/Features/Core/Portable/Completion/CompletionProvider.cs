@@ -69,11 +69,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="item">The item to be committed.</param>
         /// <param name="commitKey">The optional key character that caused the commit.</param>
         /// <param name="cancellationToken"></param>
-        public virtual Task<CompletionChange> GetChangeAsync(
-            Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
-        }
+        public virtual Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+            => Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
+
+        // TO-DO: Add comment
+        internal virtual Task<CompletionChange> GetChangeAsync(Document document, OptionSet optionSet, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+            => GetChangeAsync(document, item, commitKey, cancellationToken);
 
         /// <summary>
         /// True if the provider produces snippet items.

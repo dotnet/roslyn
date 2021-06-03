@@ -171,6 +171,17 @@ namespace Microsoft.CodeAnalysis.Completion
             return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
         }
 
+        // TO-DO: Add comment
+        internal virtual Task<CompletionChange> GetChangeAsync(
+            Document document,
+            OptionSet documentOptions,
+            CompletionItem item,
+            char? commitCharacter = null,
+            CancellationToken cancellationToken = default)
+        {
+            return GetChangeAsync(document, item, commitCharacter, cancellationToken);
+        }
+
         /// <summary>
         /// Given a list of completion items that match the current code typed by the user,
         /// returns the item that is considered the best match, and whether or not that
