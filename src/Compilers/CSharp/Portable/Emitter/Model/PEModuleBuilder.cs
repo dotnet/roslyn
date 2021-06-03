@@ -11,6 +11,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -208,6 +209,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
+        public sealed override List<(Cci.IDefinition definition, Cci.DebugSourceDocument[] document)> GetTypeDocument(EmitContext context)
+        {
+            var result = new List<(Cci.IDefinition definition, Cci.DebugSourceDocument[] document)>();
+
+            var namespacesAndTypesToProcess = new Stack<NamespaceOrTypeSymbol>();
+            namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace);
+            while (namespacesAndTypesToProcess.Count > 0)
+            {
+                NamespaceOrTypeSymbol symbol = namespacesAndTypesToProcess.Pop();
+                var locations = symbol.Locations.ToArray();
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Namespace:
+                        if (!locations.IsEmpty())
+                        {
+                            foreach (var member in symbol.GetMembers())
+                            {
+                                switch (member.Kind)
+                                {
+                                    case SymbolKind.Namespace:
+                                    case SymbolKind.NamedType:
+                                        namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
+                                        break;
+                                    default:
+                                        throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                                }
+                            }
+                        }
+                        break;
+                    case SymbolKind.NamedType:
+                        if (!locations.IsEmpty())
+                        {
+                            var docList = new HashSet<Cci.DebugSourceDocument>();
+                            if (!TypeHasIL(symbol, context, docList))
+                            {
+                                AddDefinitionAndDocument(result, locations, (Cci.IDefinition)symbol.GetCciAdapter(), docList);
+                            }
+                            docList.Clear();
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+                }
+            }
+            return result;
+        }
+
+        // Method checks if all methods contained in the type have IL, methods with IL documents will be added to a document list.
+        // The method will return true if all methods in the type have IL, otherwise will return false.
+        private static bool TypeHasIL(NamespaceOrTypeSymbol typeSymbol, EmitContext context, HashSet<Cci.DebugSourceDocument> docList)
+        {
+            var typeDef = (Cci.ITypeDefinition)typeSymbol.GetCciAdapter();
+            var typeMethods = typeDef.GetMethods(context);
+            var methodDoesHaveIL = false;
+            var aMethodDoesHaveIL = true;
+            foreach (var method in typeMethods)
+            {
+                if (Cci.Extensions.HasBody(method) && !method.GetBody(context).SequencePoints.IsEmpty)
+                {
+                    methodDoesHaveIL = true;
+
+                    foreach (var point in method.GetBody(context).SequencePoints)
+                    {
+                        if (!docList.Contains(point.Document))
+                        {
+                            docList.Add(point.Document);
+                        }
+                    }
+                }
+                else
+                {
+                    aMethodDoesHaveIL = false;
+                }
+            }
+            return methodDoesHaveIL && aMethodDoesHaveIL;
+        }
+
+
         public sealed override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
         {
             var result = new MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation>();
@@ -337,6 +416,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                span.StartLinePosition.Character,
                                span.EndLinePosition.Line,
                                span.EndLinePosition.Character));
+            }
+        }
+
+        private void AddDefinitionAndDocument(List<(Cci.IDefinition definition, Cci.DebugSourceDocument[] document)> result, Location[] location, Cci.IDefinition definition, HashSet<Cci.DebugSourceDocument> doclist)
+        {
+            int i = 0;
+            Cci.DebugSourceDocument[] sourceDoc = new Cci.DebugSourceDocument[location.Length];
+            foreach (var loc in location)
+            {
+                FileLinePositionSpan span = loc.GetLineSpan();
+                Cci.DebugSourceDocument doc = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: loc.SourceTree.FilePath);
+                sourceDoc[i] = doc;
+                i++;
+            }
+            foreach (var source in sourceDoc)
+            {
+                if (!doclist.Contains(source))
+                {
+                    result.Add((definition, sourceDoc));
+                }
             }
         }
 

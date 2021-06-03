@@ -214,6 +214,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public abstract MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap();
 
+        public abstract List<(Cci.IDefinition definition, Cci.DebugSourceDocument[] document)> GetTypeDocument(EmitContext context);
+
         /// <summary>
         /// Number of debug documents in the module. 
         /// Used to determine capacities of lists and indices when emitting debug info.
