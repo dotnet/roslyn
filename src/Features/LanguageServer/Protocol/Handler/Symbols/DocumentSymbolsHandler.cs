@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 foreach (var item in navBarItems)
                 {
                     // only top level ones
-                    symbols.AddIfNotNull(await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
+                    symbols.AddIfNotNull(GetDocumentSymbol(item, tree, text, cancellationToken));
                 }
             }
             else
@@ -120,62 +121,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Get a document symbol from a specified nav bar item.
         /// </summary>
-        private static async Task<DocumentSymbol?> GetDocumentSymbolAsync(RoslynNavigationBarItem item, Compilation compilation, SyntaxTree tree,
-            SourceText text, CancellationToken cancellationToken)
+        private static DocumentSymbol? GetDocumentSymbol(
+            RoslynNavigationBarItem item, SyntaxTree tree, SourceText text, CancellationToken cancellationToken)
         {
-            if (item is not RoslynNavigationBarItem.SymbolItem symbolItem)
-                return null;
-
-            // it is actually symbol location getter. but anyway.
-            var location = GetLocation(symbolItem, compilation, tree, cancellationToken);
-            if (location == null)
-                return null;
-
-            var symbol = await GetSymbolAsync(location, compilation, cancellationToken).ConfigureAwait(false);
-            if (symbol == null)
+            if (item is not RoslynNavigationBarItem.SymbolItem symbolItem || symbolItem.Spans.Length == 0 || symbolItem.SelectionSpan == null)
                 return null;
 
             return new DocumentSymbol
             {
-                Name = symbol.Name,
+                Name = symbolItem.Name,
                 Detail = item.Text,
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
-                Deprecated = symbol.IsObsolete(),
+                Deprecated = symbolItem.IsObsolete,
                 Range = ProtocolConversions.TextSpanToRange(symbolItem.Spans.First(), text),
-                SelectionRange = ProtocolConversions.TextSpanToRange(location.SourceSpan, text),
-                Children = await GetChildrenAsync(item.ChildItems, compilation, tree, text, cancellationToken).ConfigureAwait(false),
+                SelectionRange = ProtocolConversions.TextSpanToRange(symbolItem.SelectionSpan.Value, text),
+                Children = GetChildren(item.ChildItems, tree, text, cancellationToken),
             };
 
-            static async Task<DocumentSymbol[]> GetChildrenAsync(IEnumerable<RoslynNavigationBarItem> items, Compilation compilation, SyntaxTree tree,
-                SourceText text, CancellationToken cancellationToken)
+            static DocumentSymbol[] GetChildren(
+                ImmutableArray<RoslynNavigationBarItem> items, SyntaxTree tree, SourceText text, CancellationToken cancellationToken)
             {
                 using var _ = ArrayBuilder<DocumentSymbol>.GetInstance(out var list);
                 foreach (var item in items)
-                {
-                    list.AddIfNotNull(await GetDocumentSymbolAsync(item, compilation, tree, text, cancellationToken).ConfigureAwait(false));
-                }
+                    list.AddIfNotNull(GetDocumentSymbol(item, tree, text, cancellationToken));
 
                 return list.ToArray();
-            }
-
-            static async Task<ISymbol?> GetSymbolAsync(Location location, Compilation compilation, CancellationToken cancellationToken)
-            {
-                var model = compilation.GetSemanticModel(location.SourceTree);
-                var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                var node = root.FindNode(location.SourceSpan);
-
-                while (node != null)
-                {
-                    var symbol = model.GetDeclaredSymbol(node, cancellationToken);
-                    if (symbol != null)
-                    {
-                        return symbol;
-                    }
-
-                    node = node.Parent;
-                }
-
-                return null;
             }
         }
 
