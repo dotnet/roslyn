@@ -220,13 +220,18 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             private bool WriteStream(TKey key, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             {
+                // We're writing.  This better always be under the exclusive scheduler.
+                Contract.ThrowIfFalse(TaskScheduler.Current == Storage._connectionPoolService.Scheduler.ExclusiveScheduler);
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
                     using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
 
-                    // Determine the appropriate data-id to store this stream at.
+                    // Determine the appropriate data-id to store this stream at.  We already are running
+                    // with an exclusive write lock on the DB, so it's safe for us to write the data id to 
+                    // the db on this connection if we need to.
                     if (TryGetDatabaseId(connection, key, allowWrite: true, out var dataId))
                     {
                         checksum ??= Checksum.Null;
