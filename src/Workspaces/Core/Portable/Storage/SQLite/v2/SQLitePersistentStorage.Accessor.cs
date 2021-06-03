@@ -68,6 +68,17 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             protected abstract Table Table { get; }
 
+            /// <summary>
+            /// Gets the internal sqlite db-id (effectively the row-id for the doc or proj table, or just the string-id
+            /// for the solution table) for the provided caller key.  This db-id will be looked up and returned if a
+            /// mapping already exists for it in the db.  Otherwise, a guaranteed unique id will be created for it and
+            /// stored in the db for the future.  This allows all associated data to be cheaply associated with the 
+            /// simple ID, avoiding lots of db bloat if we used the full <paramref name="key"/> in numerous places.
+            /// </summary>
+            /// <param name="allowWrite">Whether or not the caller owns the write lock and thus is ok with the DB id
+            /// being generated and stored for this component key when it currently does not exist.  If <see
+            /// langword="false"/> then failing to find the key will result in <see langword="false"/> being returned.
+            /// </param>
             protected abstract bool TryGetDatabaseId(SqlConnection connection, TKey key, bool allowWrite, out TDatabaseId dataId);
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
             protected abstract TWriteQueueKey GetWriteQueueKey(TKey key);
