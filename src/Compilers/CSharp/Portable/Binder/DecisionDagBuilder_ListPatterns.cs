@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (slice.Pattern is BoundPattern slicePattern)
                         {
-                            var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slicePattern.InputType, lengthTemp, startIndex: startIndex, endIndex: index, slice.IndexerAccess, slice.SliceMethod, input);
+                            var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slicePattern.InputType, lengthTemp, startIndex: startIndex, endIndex: index, slice.IndexerAccess, input);
                             tests.Add(new Tests.One(sliceEvaluation));
                             var sliceTemp = new BoundDagTemp(syntax, slicePattern.InputType, sliceEvaluation);
                             tests.Add(MakeTestsAndBindings(sliceTemp, slicePattern, bindings));
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var indexEvaluation = new BoundDagIndexerEvaluation(syntax, subpattern.InputType, lengthTemp, index++, clause.IndexerAccess, clause.IndexerSymbol, input);
+                    var indexEvaluation = new BoundDagIndexerEvaluation(syntax, subpattern.InputType, lengthTemp, index++, clause.IndexerAccess, input);
                     tests.Add(new Tests.One(indexEvaluation));
                     var indexTemp = new BoundDagTemp(syntax, subpattern.InputType, indexEvaluation);
                     tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));

@@ -29,10 +29,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagTypeEvaluation e => e.Type,
                     BoundDagDeconstructEvaluation e => e.DeconstructMethod,
                     BoundDagIndexEvaluation e => e.Property,
-                    BoundDagSliceEvaluation e => (Symbol?)e.SliceMethod ?? e.IndexerAccess?.Indexer,
-                    BoundDagIndexerEvaluation e => e.IndexerSymbol ?? e.IndexerAccess?.Indexer,
+                    BoundDagSliceEvaluation e => getSymbol(e.IndexerAccess),
+                    BoundDagIndexerEvaluation e => getSymbol(e.IndexerAccess),
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
+
+                static Symbol? getSymbol(BoundExpression? indexerAccess)
+                {
+                    return indexerAccess switch
+                    {
+                        null => null,
+                        BoundIndexerAccess e => e.Indexer,
+                        BoundIndexOrRangePatternIndexerAccess e => e.PatternSymbol,
+                        var v => throw ExceptionUtilities.UnexpectedValue(v.Kind)
+                    };
+                }
             }
         }
 

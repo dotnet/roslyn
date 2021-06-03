@@ -970,7 +970,7 @@ class X
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "a[..]").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(7, 13));
         }
 
-        [Theory]
+        [Theory(Skip = "TODO")]
         [CombinatorialData]
         public void ListPattern_MissingMembers(bool isIndexable, bool isSliceable, bool isCountable)
         {
@@ -1306,7 +1306,7 @@ class X
             CompileAndVerify(compilation, expectedOutput: "True");
         }
 
-        [Fact]
+        [Fact(Skip = "TODO")]
         public void ListPattern_MemberLookup_Fallback_MissingIndexOrRange()
         {
             var source = @"

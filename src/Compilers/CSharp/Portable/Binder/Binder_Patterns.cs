@@ -194,8 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            BoundIndexerAccess? indexerAccess = null;
-            MethodSymbol? sliceMethod = null;
+            BoundExpression? indexerAccess = null;
             BoundPattern? pattern = null;
 
             // We don't require the type to be sliceable if there's no subpattern.
@@ -206,18 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     sliceType = inputType;
                 }
-                else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: false, out indexerAccess, out Symbol? patternSymbol, diagnostics))
+                else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: false, out indexerAccess, diagnostics))
                 {
-                    if (patternSymbol is MethodSymbol method)
-                    {
-                        sliceMethod = method;
-                        sliceType = method.ReturnType;
-                    }
-                    else
-                    {
-                        Debug.Assert(indexerAccess is not null);
-                        sliceType = indexerAccess.Type;
-                    }
+                    sliceType = indexerAccess.Type!;
                 }
                 else
                 {
@@ -229,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 pattern = BindPattern(node.Pattern, sliceType, ExternalScope, permitDesignations, hasErrors, diagnostics);
             }
 
-            return new BoundSlicePattern(node, pattern, indexerAccess, sliceMethod, inputType: inputType, narrowedType: inputType, hasErrors);
+            return new BoundSlicePattern(node, pattern, indexerAccess, inputType: inputType, narrowedType: inputType, hasErrors);
         }
 
         private ImmutableArray<BoundPattern> BindListPatternSubpatterns(
@@ -299,25 +289,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause));
 
             TypeSymbol elementType;
-            BoundIndexerAccess? indexerAccess = null;
-            PropertySymbol? indexerSymbol = null;
+            BoundExpression? indexerAccess = null;
             bool isUnsupported = false;
             if (inputType.IsSZArray())
             {
                 elementType = ((ArrayTypeSymbol)inputType).ElementType;
             }
-            else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, diagnostics))
+            else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: true, out indexerAccess, diagnostics))
             {
-                if (patternSymbol is PropertySymbol indexer)
-                {
-                    indexerSymbol = indexer;
-                    elementType = indexer.Type;
-                }
-                else
-                {
-                    Debug.Assert(indexerAccess is not null);
-                    elementType = indexerAccess.Type;
-                }
+                elementType = indexerAccess.Type!;
             }
             else
             {
@@ -337,48 +317,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(node.Subpatterns, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
-            return new BoundListPatternClause(node, subpatterns, sawSlice, indexerAccess, indexerSymbol, hasErrors);
+            return new BoundListPatternClause(node, subpatterns, sawSlice, indexerAccess, hasErrors);
         }
 
         private bool TryFindIndexerOrIndexerPattern(
             SyntaxNode syntax, TypeSymbol receiverType, bool argIsIndex,
-            out BoundIndexerAccess? indexerAccess,
-            out Symbol? patternSymbol,
+            [NotNullWhen(true)] out BoundExpression? result,
             BindingDiagnosticBag diagnostics)
-        {
-            patternSymbol = null;
-            var lookupResult = LookupResult.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            if (TryPerformPatternIndexerLookup(syntax, receiverType, lookupResult, argIsIndex, out indexerAccess, diagnostics, ref useSiteInfo) ||
-                TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo, forPattern: true))
-            {
-                diagnostics.Add(syntax, useSiteInfo);
-                lookupResult.Free();
-                return true;
-            }
-
-            lookupResult.Free();
-            return false;
-        }
-
-        private bool TryPerformPatternIndexerLookup(
-            SyntaxNode syntax,
-            TypeSymbol receiverType,
-            LookupResult lookupResult,
-            bool argIsIndex,
-            [NotNullWhen(true)] out BoundIndexerAccess? result,
-            BindingDiagnosticBag diagnostics,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             result = null;
 
             TypeSymbol argType = Compilation.GetWellKnownType(argIsIndex ? WellKnownType.System_Index : WellKnownType.System_Range);
-            if (argType.IsErrorType())
-            {
-                // If the argType is missing, we will fallback to the implicit indexer support.
-                return false;
-            }
 
+            // TODO
+            //if (argType.IsErrorType())
+            //{
+            //    // If the argType is missing, we will fallback to the implicit indexer support.
+            //    return false;
+            //}
+
+            var lookupResult = LookupResult.GetInstance();
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             LookupMembersInType(
                 lookupResult,
                 receiverType,
@@ -414,13 +373,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // At this point we have succeeded to bind a viable indexer,
                     // report additional binding diagnostics that we have seen so far
                     diagnostics.AddRange(bindingDiagnostics);
+                    diagnostics.Add(syntax, useSiteInfo);
                 }
-
+                else if (boundAccess is BoundIndexOrRangePatternIndexerAccess)
+                {
+                    result = boundAccess;
+                    diagnostics.AddRange(bindingDiagnostics);
+                    diagnostics.Add(syntax, useSiteInfo);
+                }
                 analyzedArguments.Free();
                 indexerGroup.Free();
             }
-
-            lookupResult.Clear();
+            // TODO
+            else if (!argIsIndex)
+            {
+                // Indexer lookup failed, look for Slice, etc.
+            }
+            lookupResult.Free();
             return result is not null;
         }
 
