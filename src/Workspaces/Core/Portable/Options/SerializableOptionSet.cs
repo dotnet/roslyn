@@ -136,11 +136,15 @@ namespace Microsoft.CodeAnalysis.Options
             // Make sure we first load this in current optionset
             var currentValue = this.GetOption(optionKey);
 
+            var languages = optionKey.Language != null && RemoteSupportedLanguages.IsSupported(optionKey.Language)
+                ? _languages.Add(optionKey.Language)
+                : _languages;
+
             // Check if the new value is the same as the current value.
             if (Equals(value, currentValue))
             {
                 // Return a cloned option set as the public API 'WithChangedOption' guarantees a new option set is returned.
-                return new SerializableOptionSet(_languages, _workspaceOptionSet, _serializableOptions,
+                return new SerializableOptionSet(languages, _workspaceOptionSet, _serializableOptions,
                     _serializableOptionValues, _changedOptionKeysSerializable, _changedOptionKeysNonSerializable);
             }
 
@@ -163,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Options
                 changedOptionKeysNonSerializable = _changedOptionKeysNonSerializable.Add(optionKey);
             }
 
-            return new SerializableOptionSet(_languages, workspaceOptionSet, _serializableOptions,
+            return new SerializableOptionSet(languages, workspaceOptionSet, _serializableOptions,
                 serializableOptionValues, changedOptionKeysSerializable, changedOptionKeysNonSerializable);
         }
 
