@@ -1410,9 +1410,9 @@ class C
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
                 });
 
-                var source2 = source.Join(context.AdditionalTextsProvider)
-                                    .Join(context.AnalyzerConfigOptionsProvider)
-                                    .Join(context.ParseOptionsProvider);
+                var source2 = source.Associate(context.AdditionalTextsProvider.AsSingleValue())
+                                    .Associate(context.AnalyzerConfigOptionsProvider)
+                                    .Associate(context.ParseOptionsProvider);
 
                 source2.GenerateSource((spc, output) =>
                 {
@@ -1458,7 +1458,7 @@ class C
                 var comparerSource = source.WithComparer(new LambdaComparer<string>((a, b) => false));
 
                 // now join the two sources together
-                var joinedSource = source.Join(comparerSource);
+                var joinedSource = source.Associate(comparerSource.AsSingleValue());
                 joinedSource.GenerateSource((spc, fieldName) =>
                 {
                     outputCalledFor.Add(fieldName.Item1);

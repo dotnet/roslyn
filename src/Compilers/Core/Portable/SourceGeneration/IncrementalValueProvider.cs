@@ -9,19 +9,38 @@ using System.Text;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a provider of values that can be transformed to it to construct an execution pipeline
+    /// Represents a provider of a value that can be transformed as part of constructing an execution pipeline
     /// </summary>
     /// <remarks>
     /// This is an opaque type that cannot be used directly. Instead an <see cref="IIncrementalGenerator" />
     /// will receive a set of value providers when constructing its execution pipeline. A set of extension methods
     /// are then used to create transforms over the data that creates the actual pipeline.
     /// </remarks>
-    /// <typeparam name="T">The type of value that this source provides access to</typeparam>
-    public readonly struct IncrementalValueProvider<T>
+    /// <typeparam name="TValue">The type of value that this source provides access to</typeparam>
+    public readonly struct IncrementalValueProvider<TValue>
     {
-        internal readonly IIncrementalGeneratorNode<T> Node;
+        internal readonly IIncrementalGeneratorNode<TValue> Node;
 
-        internal IncrementalValueProvider(IIncrementalGeneratorNode<T> node)
+        internal IncrementalValueProvider(IIncrementalGeneratorNode<TValue> node)
+        {
+            this.Node = node;
+        }
+    }
+
+    /// <summary>
+    /// Represents a provider of values that can be transformed to construct an execution pipeline
+    /// </summary>
+    /// <remarks>
+    /// This is an opaque type that cannot be used directly. Instead an <see cref="IIncrementalGenerator" />
+    /// will receive a set of value providers when constructing its execution pipeline. A set of extension methods
+    /// are then used to create transforms over the data that creates the actual pipeline.
+    /// </remarks>
+    /// <typeparam name="TValues">The type of value that this source provides access to</typeparam>
+    public readonly struct IncrementalValuesProvider<TValues>
+    {
+        internal readonly IIncrementalGeneratorNode<TValues> Node;
+
+        internal IncrementalValuesProvider(IIncrementalGeneratorNode<TValues> node)
         {
             this.Node = node;
         }

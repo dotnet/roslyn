@@ -9,40 +9,41 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    public static class IncrementalValueSourceExtensions
+    public static class IncrementalValueProviderExtensions
     {
         // 1 => 1 transform 
-        public static IncrementalValueProvider<U> Transform<T, U>(this IncrementalValueProvider<T> source, Func<T, U> func) => new IncrementalValueProvider<U>(new TransformNode<T, U>(source.Node, func.WrapUserFunction()));
+        public static IncrementalValueProvider<TResult> Select<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, TResult> selector) => new IncrementalValueProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunction()));
+
+        public static IncrementalValuesProvider<TResult> Select<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, TResult> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunction()));
 
         // 1 => many (or none) transform
-        public static IncrementalValueProvider<U> TransformMany<T, U>(this IncrementalValueProvider<T> source, Func<T, ImmutableArray<U>> func) => new IncrementalValueProvider<U>(new TransformNode<T, U>(source.Node, func.WrapUserFunction()));
+        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, ImmutableArray<TResult>> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunction()));
 
-        // 1 => many (or none) transform with enumerable
-        public static IncrementalValueProvider<U> TransformMany<T, U>(this IncrementalValueProvider<T> source, Func<T, IEnumerable<U>> func) => new IncrementalValueProvider<U>(new TransformNode<T, U>(source.Node, t => func.WrapUserFunction()(t).AsImmutable()));
+        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValueProvider<TSource> source, Func<TSource, IEnumerable<TResult>> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, t => selector.WrapUserFunction()(t).ToImmutableArray()));
 
-        // collection => collection
-        public static IncrementalValueProvider<U> BatchTransform<T, U>(this IncrementalValueProvider<T> source, Func<ImmutableArray<T>, U> func) => new IncrementalValueProvider<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()));
+        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, ImmutableArray<TResult>> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, selector.WrapUserFunction()));
 
-        // single
-        public static IncrementalValueProvider<U> BatchTransformMany<T, U>(this IncrementalValueProvider<T> source, Func<ImmutableArray<T>, ImmutableArray<U>> func) => new IncrementalValueProvider<U>(new BatchTransformNode<T, U>(source.Node, func.WrapUserFunction()));
+        public static IncrementalValuesProvider<TResult> SelectMany<TSource, TResult>(this IncrementalValuesProvider<TSource> source, Func<TSource, IEnumerable<TResult>> selector) => new IncrementalValuesProvider<TResult>(new TransformNode<TSource, TResult>(source.Node, t => selector.WrapUserFunction()(t).ToImmutableArray()));
 
-        // single (enumerable)
-        public static IncrementalValueProvider<U> BatchTransformMany<T, U>(this IncrementalValueProvider<T> source, Func<ImmutableArray<T>, IEnumerable<U>> func) => new IncrementalValueProvider<U>(new BatchTransformNode<T, U>(source.Node, t => func.WrapUserFunction()(t).ToImmutableArray()));
+        public static IncrementalValueProvider<ImmutableArray<TSource>> AsSingleValue<TSource>(this IncrementalValuesProvider<TSource> source) => new IncrementalValueProvider<ImmutableArray<TSource>>(new BatchNode<TSource>(source.Node));
 
+        public static IncrementalValuesProvider<(TSource, TSource2)> Associate<TSource, TSource2>(this IncrementalValuesProvider<TSource> provider1, IncrementalValueProvider<TSource2> provider2) => new IncrementalValuesProvider<(TSource, TSource2)>(new AssociateNode<TSource, TSource2>(provider1.Node, provider2.Node));
 
-        // join many => many ((source1[0], source2), (source1[0], source2) ...)
-        public static IncrementalValueProvider<(T, ImmutableArray<U>)> Join<T, U>(this IncrementalValueProvider<T> source1, IncrementalValueProvider<U> source2) => new IncrementalValueProvider<(T, ImmutableArray<U>)>(new JoinNode<T, U>(source1.Node, source2.Node));
+        public static IncrementalValueProvider<(TSource, TSource2)> Associate<TSource, TSource2>(this IncrementalValueProvider<TSource> provider1, IncrementalValueProvider<TSource2> provider2) => new IncrementalValueProvider<(TSource, TSource2)>(new AssociateNode<TSource, TSource2>(provider1.Node, provider2.Node));
 
         // helper for filtering
-        public static IncrementalValueProvider<T> Filter<T>(this IncrementalValueProvider<T> source, Func<T, bool> filter)
+        public static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, bool> predicate)
         {
-            return source.TransformMany((item) => filter(item) ? ImmutableArray.Create(item) : ImmutableArray<T>.Empty);
+            return source.SelectMany((item) => predicate(item) ? ImmutableArray.Create(item) : ImmutableArray<TSource>.Empty);
         }
 
-        // 1 => 1 production
-        public static void GenerateSource<T>(this IncrementalValueProvider<T> source, Action<SourceProductionContext, T> action) => source.Node.RegisterOutput(new SourceOutputNode<T>(source.Node, action.WrapUserAction()));
+        public static void GenerateSource<TSource>(this IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
+
+        public static void GenerateSource<TSource>(this IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
 
         // custom comparer for given node
-        public static IncrementalValueProvider<T> WithComparer<T>(this IncrementalValueProvider<T> source, IEqualityComparer<T> comparer) => new IncrementalValueProvider<T>(source.Node.WithComparer(comparer));
+        public static IncrementalValueProvider<TSource> WithComparer<TSource>(this IncrementalValueProvider<TSource> source, IEqualityComparer<TSource> comparer) => new IncrementalValueProvider<TSource>(source.Node.WithComparer(comparer));
+
+        public static IncrementalValuesProvider<TSource> WithComparer<TSource>(this IncrementalValuesProvider<TSource> source, IEqualityComparer<TSource> comparer) => new IncrementalValuesProvider<TSource>(source.Node.WithComparer(comparer));
     }
 }

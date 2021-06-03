@@ -33,16 +33,16 @@ namespace Microsoft.CodeAnalysis
             initContext.RegisterExecutionPipeline((executionContext) =>
             {
                 var contextBuilderSource = executionContext.CompilationProvider
-                                            .Transform(c => new GeneratorContextBuilder(c))
-                                            .Join(executionContext.ParseOptionsProvider).Transform(p => p.Item1 with { ParseOptions = p.Item2.FirstOrDefault() })
-                                            .Join(executionContext.AnalyzerConfigOptionsProvider).Transform(p => p.Item1 with { ConfigOptions = p.Item2.FirstOrDefault() })
-                                            .Join(executionContext.AdditionalTextsProvider).Transform(p => p.Item1 with { AdditionalTexts = p.Item2 });
+                                            .Select(c => new GeneratorContextBuilder(c))
+                                            .Associate(executionContext.ParseOptionsProvider).Select(p => p.Item1 with { ParseOptions = p.Item2 })
+                                            .Associate(executionContext.AnalyzerConfigOptionsProvider).Select(p => p.Item1 with { ConfigOptions = p.Item2 })
+                                            .Associate(executionContext.AdditionalTextsProvider.AsSingleValue()).Select(p => p.Item1 with { AdditionalTexts = p.Item2 });
 
                 if (syntaxContextReceiverCreator is object)
                 {
                     contextBuilderSource = contextBuilderSource
-                                           .Join(executionContext.SyntaxProvider.CreateSyntaxReceiverProvider(syntaxContextReceiverCreator))
-                                           .Transform(p => p.Item1 with { Receiver = p.Item2.FirstOrDefault() });
+                                           .Associate(executionContext.SyntaxProvider.CreateSyntaxReceiverProvider(syntaxContextReceiverCreator))
+                                           .Select(p => p.Item1 with { Receiver = p.Item2 });
                 }
 
                 contextBuilderSource.GenerateSource((productionContext, contextBuilder) =>

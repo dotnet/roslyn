@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="predicate">A function that determines if the given <see cref="SyntaxNode"/> should be transformed</param>
         /// <param name="transform">A function that performs the transform, when <paramref name="predicate"/>returns <c>true</c> for a given node</param>
         /// <returns>An <see cref="IncrementalValueProvider{T}"/> that provides the results of the transformation</returns>
-        public IncrementalValueProvider<T> CreateSyntaxProvider<T>(Func<SyntaxNode, bool> predicate, Func<GeneratorSyntaxContext, T> transform)
+        public IncrementalValuesProvider<T> CreateSyntaxProvider<T>(Func<SyntaxNode, bool> predicate, Func<GeneratorSyntaxContext, T> transform)
         {
             // registration of the input is deferred until we know the node is used
             return new IncrementalValueProvider<T>(new SyntaxInputNode<T>(predicate.WrapUserFunction(), transform.WrapUserFunction(), RegisterOutputAndDeferredInput));
@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a syntax receiver input node. Only used for back compat in <see cref="SourceGeneratorAdaptor"/>
         /// </summary>
-        internal IncrementalValueProvider<ISyntaxContextReceiver> CreateSyntaxReceiverProvider(SyntaxContextReceiverCreator creator)
+        internal IncrementalValueProvider<ISyntaxContextReceiver?> CreateSyntaxReceiverProvider(SyntaxContextReceiverCreator creator)
         {
             var node = new SyntaxReceiverInputNode(creator, _registerOutput);
             _inputNodes.Add(node);
-            return new IncrementalValueProvider<ISyntaxContextReceiver>(node);
+            return new IncrementalValueProvider<ISyntaxContextReceiver?>(node);
         }
 
         private void RegisterOutputAndDeferredInput(ISyntaxInputNode node, IIncrementalGeneratorOutputNode output)
