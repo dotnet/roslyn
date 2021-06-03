@@ -37,23 +37,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// </summary>
         public ImmutableArray<InheritanceMenuItemViewModel> MenuItemViewModels { get; }
 
+        /// <summary>
+        /// Scale factor for the margin.
+        /// </summary>
+        public double ScaleFactor { get; }
+
         // Internal for testing purpose
         internal InheritanceMarginViewModel(
             ImageMoniker imageMoniker,
             TextBlock toolTipTextBlock,
             string automationName,
+            double scaleFactor,
             ImmutableArray<InheritanceMenuItemViewModel> menuItemViewModels)
         {
             ImageMoniker = imageMoniker;
             ToolTipTextBlock = toolTipTextBlock;
             AutomationName = automationName;
             MenuItemViewModels = menuItemViewModels;
+            ScaleFactor = scaleFactor;
         }
 
         public static InheritanceMarginViewModel Create(
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
-            InheritanceMarginTag tag)
+            InheritanceMarginTag tag,
+            double scaleFactor)
         {
             var members = tag.MembersOnLine;
             if (members.Length == 1)
@@ -74,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
                 var automationName = string.Format(ServicesVSResources._0_is_inherited, member.DisplayTexts.JoinText());
                 var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForSingleMember(member.TargetItems);
-                return new InheritanceMarginViewModel(tag.Moniker, toolTipTextBlock, automationName, menuItemViewModels);
+                return new InheritanceMarginViewModel(tag.Moniker, toolTipTextBlock, automationName, scaleFactor, menuItemViewModels);
             }
             else
             {
@@ -86,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // Same automation name can't be set for control for accessibility purpose. So add the line number info.
                 var automationName = string.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
                 var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForMultipleMembers(tag.MembersOnLine);
-                return new InheritanceMarginViewModel(tag.Moniker, textBlock, automationName, menuItemViewModels);
+                return new InheritanceMarginViewModel(tag.Moniker, textBlock, automationName, scaleFactor, menuItemViewModels);
             }
         }
     }

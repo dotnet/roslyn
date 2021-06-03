@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputInfo.AssemblyPath);
         }
 
-        public async ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
+        public void OnSourceFileUpdated(Document document)
         {
             var debuggingSession = _debuggingSession;
             if (debuggingSession != null)
             {
-                using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(debuggingSession.CancellationToken, cancellationToken);
-                await debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(document, linkedTokenSource.Token).ConfigureAwait(false);
+                // fire and forget
+                _ = Task.Run(() => debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(document, debuggingSession.CancellationToken));
             }
         }
 
