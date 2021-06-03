@@ -563,7 +563,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundLiteral(left.Syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType);
             }
 
-            // https://github.com/dotnet/roslyn/issues/53799: Make sure we have test coverage for this code path
             BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, left, right, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt, single.ConstrainedToTypeOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;
             Conversion boolConversion = single.ConversionForBool;
@@ -577,7 +576,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression convertedBinary = MakeConversionNode(_factory.Syntax, binary, boolConversion, boolOperator.OperandType, @checked: false);
 
                 Debug.Assert(boolOperator.ReturnType.SpecialType == SpecialType.System_Boolean);
-                // https://github.com/dotnet/roslyn/issues/53799: Make sure we have test coverage for this code path
                 result = MakeUnaryOperator(boolOperator.Kind, binary.Syntax, boolOperator.Method, boolOperator.ConstrainedToTypeOpt, convertedBinary, boolType);
 
                 if (operatorKind == BinaryOperatorKind.Equal)
