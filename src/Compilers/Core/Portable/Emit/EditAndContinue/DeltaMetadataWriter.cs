@@ -830,16 +830,29 @@ namespace Microsoft.CodeAnalysis.Emit
             // in the original metadata for this algorithm to work.
             _customAttributeParents.Sort((lhs, rhs) => CodedIndex.HasCustomAttribute(lhs).CompareTo(CodedIndex.HasCustomAttribute(rhs)));
 
+            // Because we skip emitted rows when processing the original metadata, for efficiency, we can't emit log records
+            // as we go so we use an array to hold the rowIds we will need to log.
+            var encLogRows = new int[_customAttributeParents.Count];
+
             // The first phase of this is to iterate through the (potentially huge) custom attributes from the original
             // compilation, and issue updates for existing rows as we go.
-            var skippedParents = PopulateEncLogTableCustomAttributesFromOriginalMetadata(_customAttributeParents);
+            var skippedParents = PopulateEncLogTableCustomAttributesFromOriginalMetadata(_customAttributeParents, encLogRows);
 
             // The second phase is to go through the rows emitted for each delta and issue updates to them, and also
             // additions for new attributes, from whatever parents were skipped in the first phase
-            PopulateEncLogTableCustomAttributesFromDeltas(skippedParents);
+            PopulateEncLogTableCustomAttributesFromDeltas(skippedParents, encLogRows);
+
+            // Now we just write out our log table that we calculated previously
+            foreach (var rowId in encLogRows)
+            {
+                _customAttributeRows.Add(rowId);
+                metadata.AddEncLogEntry(
+                    entity: MetadataTokens.CustomAttributeHandle(rowId),
+                    code: EditAndContinueOperation.Default);
+            }
         }
 
-        private List<EntityHandle> PopulateEncLogTableCustomAttributesFromOriginalMetadata(List<EntityHandle> emittedAttributeParents)
+        private List<EntityHandle> PopulateEncLogTableCustomAttributesFromOriginalMetadata(List<EntityHandle> emittedAttributeParents, int[] encLogRows)
         {
             var metadataReader = _previousGeneration.OriginalMetadata.MetadataReader;
 
@@ -850,9 +863,15 @@ namespace Microsoft.CodeAnalysis.Emit
             var skippedParents = new List<EntityHandle>();
 
             // We do this by also iterating through the emitted attributes at the same time, since they're sorted the same.
-            foreach (var customAttributeHandle in metadataReader.CustomAttributes)
+            // metadataReader.CustomAttributes is indexable so we're enumerating manually
+            using var enumerator = metadataReader.CustomAttributes.GetEnumerator();
+            var hasData = enumerator.MoveNext();
+
+            // We want to manually control where we are in the list of custom attributes so we only MoveNext at the end
+            while (hasData)
             {
                 // Data from the existing CA table
+                var customAttributeHandle = enumerator.Current;
                 var parent = metadataReader.GetCustomAttribute(customAttributeHandle).Parent;
                 var parentCodedIndex = CodedIndex.HasCustomAttribute(parent);
 
@@ -866,27 +885,32 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     // Skip this current attribute because we didn't find it
                     skippedParents.Add(emittedParent);
-                    emittedIndex++;
-                    if (emittedIndex == emittedAttributeParents.Count)
-                    {
-                        break;
-                    }
-                    emittedParent = emittedAttributeParents[emittedIndex];
-                }
 
-                if (parent == emittedParent)
+                    // We're skipping the emitted attribute, so move that index on, but we want to re-check the
+                    // existing attribute in case it matches our next emitted attribute
+                    emittedIndex++;
+                }
+                else if (parent == emittedParent)
                 {
-                    // If we found the attribute we want then add an EncLog table record for it
-                    AddEncLogCustomAttributeEntry(rowId);
+                    // If we found the attribute we want then add an EncLog table record for it in the right position
+                    encLogRows[emittedIndex] = rowId;
 
+                    // We matched, so move both indexes forward
                     emittedIndex++;
-                    if (emittedIndex == emittedAttributeParents.Count)
-                    {
-                        break;
-                    }
+                    rowId++;
+                    hasData = enumerator.MoveNext();
+                }
+                else
+                {
+                    // No match, but ordering is how we want it, so we're still looking for our current emitted parent
+                    rowId++;
+                    hasData = enumerator.MoveNext();
                 }
 
-                rowId++;
+                if (emittedIndex == emittedAttributeParents.Count)
+                {
+                    break;
+                }
             }
 
             // If we exhausted the original custom attributes table but there are still attributes that were emitted
@@ -899,9 +923,9 @@ namespace Microsoft.CodeAnalysis.Emit
             return skippedParents;
         }
 
-        private void PopulateEncLogTableCustomAttributesFromDeltas(List<EntityHandle> emittedAttributeParents)
+        private void PopulateEncLogTableCustomAttributesFromDeltas(List<EntityHandle> remainingEmittedAttributeParents, int[] encLogRows)
         {
-            if (emittedAttributeParents.Count == 0)
+            if (remainingEmittedAttributeParents.Count == 0)
             {
                 return;
             }
@@ -912,7 +936,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             int rowId;
             var nextRowId = lastRowId + 1;
-            foreach (var customAttributeTarget in emittedAttributeParents)
+            var logIndex = 0;
+            foreach (var customAttributeTarget in remainingEmittedAttributeParents)
             {
                 if (attributeMap.TryGetValue(customAttributeTarget, out var queue) &&
                     queue.Count > 0)
@@ -931,16 +956,17 @@ namespace Microsoft.CodeAnalysis.Emit
                     _customAttributesAdded[rowId] = customAttributeTarget;
                 }
 
-                AddEncLogCustomAttributeEntry(rowId);
-            }
-        }
+                // remainingEmittedAttributeParents only contains records that haven't been logged, but since we know it is in the
+                // right order, we don't need to know what the original index we can just fill log rows in order, but and skip any
+                // that were already filled in the previous phase.
+                Debug.Assert(logIndex < encLogRows.Length, "encLogRows length cannot be larged than remainingEmittedAttributeParents length.");
+                while (encLogRows[logIndex] != 0)
+                {
+                    logIndex++;
+                }
 
-        private void AddEncLogCustomAttributeEntry(int rowId)
-        {
-            _customAttributeRows.Add(rowId);
-            metadata.AddEncLogEntry(
-                entity: MetadataTokens.CustomAttributeHandle(rowId),
-                code: EditAndContinueOperation.Default);
+                encLogRows[logIndex++] = rowId;
+            }
         }
 
         /// <summary>
