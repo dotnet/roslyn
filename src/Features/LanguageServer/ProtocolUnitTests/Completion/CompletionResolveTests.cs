@@ -177,10 +177,11 @@ class B : A
             using var testLspServer = CreateTestLspServer(markup, out _);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+            var optionSet = await document.GetOptionsAsync().ConfigureAwait(false);
 
             var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M");
             var textEdit = await CompletionResolveHandler.GenerateTextEditAsync(
-                document, new TestCaretOutOfScopeCompletionService(), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
+                document, new TestCaretOutOfScopeCompletionService(), selectedItem, snippetsSupported: true, optionSet, CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(@"public override void M()
     {

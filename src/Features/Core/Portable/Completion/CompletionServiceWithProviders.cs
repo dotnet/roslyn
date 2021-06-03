@@ -576,6 +576,20 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
+        internal override async Task<CompletionChange> GetChangeAsync(
+            Document document, OptionSet optionSet, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        {
+            var provider = GetProvider(item);
+            if (provider != null)
+            {
+                return await provider.GetChangeAsync(document, optionSet, item, commitKey, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return CompletionChange.Create(new TextChange(item.Span, item.DisplayText));
+            }
+        }
+
         bool IEqualityComparer<ImmutableHashSet<string>>.Equals(ImmutableHashSet<string> x, ImmutableHashSet<string> y)
         {
             if (x == y)
