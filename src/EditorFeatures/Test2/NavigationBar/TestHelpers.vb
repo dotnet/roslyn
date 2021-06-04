@@ -149,24 +149,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Next
         End Sub
 
-        'Private Class NavigationBarItemNavigationSymbolComparer
-        '    Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem)
-
-        '    Private ReadOnly _symbolIdComparer As IEqualityComparer(Of SymbolKey)
-
-        '    Public Sub New(ignoreCase As Boolean)
-        '        _symbolIdComparer = If(ignoreCase, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False), SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False))
-        '    End Sub
-
-        '    Public Function IEqualityComparer_Equals(x As RoslynNavigationBarItem.SymbolItem, y As RoslynNavigationBarItem.SymbolItem) As Boolean Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem).Equals
-        '        Return _symbolIdComparer.Equals(x.NavigationSymbolId, y.NavigationSymbolId) AndAlso x.NavigationSymbolIndex = y.NavigationSymbolIndex
-        '    End Function
-
-        '    Public Function IEqualityComparer_GetHashCode(obj As RoslynNavigationBarItem.SymbolItem) As Integer Implements IEqualityComparer(Of RoslynNavigationBarItem.SymbolItem).GetHashCode
-        '        Return _symbolIdComparer.GetHashCode(obj.NavigationSymbolId) Xor obj.NavigationSymbolIndex
-        '    End Function
-        'End Class
-
         Private Sub AssertEqual(expectedItem As ExpectedItem, actualItem As NavigationBarItem, isCaseSensitive As Boolean)
             If expectedItem Is Nothing AndAlso actualItem Is Nothing Then
                 Return
