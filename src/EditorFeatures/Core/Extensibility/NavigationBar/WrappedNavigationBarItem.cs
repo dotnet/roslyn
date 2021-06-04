@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.NavigationBar;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             return underlyingItem is not RoslynNavigationBarItem.SymbolItem symbolItem
                 ? ImmutableArray<ITrackingSpan>.Empty
-                : GetTrackingSpans(textSnapshot, symbolItem.Spans);
+                : GetTrackingSpans(textSnapshot, symbolItem.Location.InDocumentInfo?.spans ?? ImmutableArray<TextSpan>.Empty);
         }
     }
 }

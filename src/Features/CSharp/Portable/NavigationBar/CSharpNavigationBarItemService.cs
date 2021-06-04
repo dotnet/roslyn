@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
 
 namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
 {
@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
             SymbolDisplayFormat.CSharpErrorMessageFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeVariance);
 
         private static readonly SymbolDisplayFormat s_memberFormat =
-            new(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            new(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters |
                                SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -95,17 +94,16 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
                         return textComparison != 0 ? textComparison : x.Grayed.CompareTo(y.Grayed);
                     });
 
-                    var spans = GetSpansInDocument(solution, type, tree, cancellationToken);
+                    var spans = GetSymbolLocation(solution, type, tree, cancellationToken);
                     if (spans == null)
                         continue;
 
-                    items.Add(new RoslynNavigationBarItem.SymbolItem(
+                    items.Add(new SymbolItem(
                         type.Name,
                         text: type.ToDisplayString(s_typeFormat),
                         glyph: type.GetGlyph(),
                         isObsolete: type.IsObsolete(),
-                        spans?.inDocumentSpans,
-                        spans?.otherDocumentSpans,
+                        spans.Value,
                         childItems: memberItems.ToImmutable()));
                 }
 
@@ -188,22 +186,19 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
         private static RoslynNavigationBarItem? CreateItemForMember(
             Solution solution, ISymbol member, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            var spans = GetSpansInDocument(solution, member, tree, cancellationToken);
-            if (spans == null)
+            var location = GetSymbolLocation(solution, member, tree, cancellationToken);
+            if (location == null)
                 return null;
 
-            return new RoslynNavigationBarItem.SymbolItem(
+            return new SymbolItem(
                 member.Name,
                 member.ToDisplayString(s_memberFormat),
                 member.GetGlyph(),
                 member.IsObsolete(),
-                spans?.inDocumentSpans,
-                spans?.otherDocumentSpans,
-                grayed: spans?.otherDocumentSpans != null);
+                location.Value);
         }
 
-        private static ((TextSpan fullSpan, TextSpan navigationSpan)? inDocumentSpans,
-                        (DocumentId documentId, TextSpan span)? otherDocumentSpans)? GetSpansInDocument(
+        private static SymbolItemLocation? GetSymbolLocation(
             Solution solution, ISymbol symbol, SyntaxTree tree, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -211,12 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
             if (symbol.Kind == SymbolKind.Field)
             {
                 return symbol.ContainingType.TypeKind == TypeKind.Enum
-                    ? GetSpans(solution, symbol, tree, static reference => GetEnumMemberSpan(reference))
-                    : GetSpans(solution, symbol, tree, static reference => GetFieldReferenceSpan(reference));
+                    ? GetSymbolLocation(solution, symbol, tree, static reference => GetEnumMemberSpan(reference))
+                    : GetSymbolLocation(solution, symbol, tree, static reference => GetFieldReferenceSpan(reference));
             }
             else
             {
-                return GetSpans(solution, symbol, tree, static reference => reference.Span);
+                return GetSymbolLocation(solution, symbol, tree, static reference => reference.Span);
             }
         }
 

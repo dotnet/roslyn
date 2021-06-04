@@ -163,8 +163,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                           Order By member.Name
                           Select CreateSymbolItem(solution, member, tree, symbolDeclarationService)
 
-            Dim spans = GetSpans(solution, type, tree, symbolDeclarationService)
-            If spans Is Nothing Then
+            Dim location = GetSymbolLocation(solution, type, tree, symbolDeclarationService)
+            If location Is Nothing Then
                 Return Nothing
             End If
 
@@ -173,10 +173,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 type.Name,
                 type.GetGlyph(),
                 type.IsObsolete,
-                spans?.inDocumentSpans,
-                spans?.otherDocumentSpans,
-                ImmutableArray(Of RoslynNavigationBarItem).CastUp(members.WhereNotNull().ToImmutableArray()),
-                grayed:=spans?.otherDocumentSpans IsNot Nothing)
+                location.Value,
+                ImmutableArray(Of RoslynNavigationBarItem).CastUp(members.WhereNotNull().ToImmutableArray()))
         End Function
 
         Private Shared Function CreateSymbolItem(
@@ -185,8 +183,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 tree As SyntaxTree,
                 symbolDeclarationService As ISymbolDeclarationService) As SymbolItem
 
-            Dim spans = GetSpans(solution, member, tree, symbolDeclarationService)
-            If spans Is Nothing Then
+            Dim location = GetSymbolLocation(solution, member, tree, symbolDeclarationService)
+            If location Is Nothing Then
                 Return Nothing
             End If
 
@@ -195,9 +193,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 member.Name,
                 member.GetGlyph(),
                 member.IsObsolete,
-                spans?.inDocumentSpans,
-                spans?.otherDocumentSpans,
-                grayed:=spans?.otherDocumentSpans IsNot Nothing)
+                location.Value)
         End Function
 
         Private Function CreatePrimaryItemForType(
@@ -254,8 +250,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 name &= " (" & type.ContainingType.ToDisplayString() & ")"
             End If
 
-            Dim spans = GetSpans(solution, type, tree, symbolDeclarationService)
-            If spans Is Nothing Then
+            Dim location = GetSymbolLocation(solution, type, tree, symbolDeclarationService)
+            If location Is Nothing Then
                 Return Nothing
             End If
 
@@ -264,10 +260,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 name,
                 type.GetGlyph(),
                 type.IsObsolete,
-                spans?.inDocumentSpans,
-                spans?.otherDocumentSpans,
-                childItems:=childItems.ToImmutableArray(),
-                grayed:=spans?.otherDocumentSpans IsNot Nothing)
+                location.Value,
+                childItems:=childItems.ToImmutableArray())
         End Function
 
         Private Shared Function IncludeMember(symbol As ISymbol) As Boolean
@@ -346,16 +340,14 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
             ' Generate an item for each event
             For Each e In accessibleEvents
                 If eventToImplementingMethods.ContainsKey(e) Then
-                    Dim methodSpans = GetSpans(solution, eventToImplementingMethods(e).First(), semanticModel.SyntaxTree, symbolDeclarationService)
-                    If methodSpans IsNot Nothing Then
+                    Dim methodLocation = GetSymbolLocation(solution, eventToImplementingMethods(e).First(), semanticModel.SyntaxTree, symbolDeclarationService)
+                    If methodLocation IsNot Nothing Then
                         rightHandMemberItems.Add(New SymbolItem(
                             e.Name,
                             e.Name,
                             e.GetGlyph(),
                             e.IsObsolete,
-                            methodSpans?.inDocumentSpans,
-                            methodSpans?.otherDocumentSpans,
-                            grayed:=methodSpans?.otherDocumentSpans IsNot Nothing))
+                            methodLocation.Value))
                     End If
                 Else
                     If workspaceSupportsDocumentChanges AndAlso
@@ -417,16 +409,14 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 If method IsNot Nothing AndAlso method.PartialImplementationPart IsNot Nothing Then
                     method = method.PartialImplementationPart
 
-                    Dim spans = GetSpans(solution, method, tree, symbolDeclarationService)
-                    If spans IsNot Nothing Then
+                    Dim location = GetSymbolLocation(solution, method, tree, symbolDeclarationService)
+                    If location IsNot Nothing Then
                         items.Add(New SymbolItem(
                             method.Name,
                             method.ToDisplayString(displayFormat),
                             method.GetGlyph(),
                             method.IsObsolete,
-                            spans?.inDocumentSpans,
-                            spans?.otherDocumentSpans,
-                            grayed:=spans?.otherDocumentSpans IsNot Nothing))
+                            location.Value))
                     End If
                 ElseIf method IsNot Nothing AndAlso IsUnimplementedPartial(method) Then
                     If workspaceSupportsDocumentChanges Then
@@ -437,16 +427,14 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                             member.GetSymbolKey(cancellationToken)))
                     End If
                 Else
-                    Dim spans = GetSpans(solution, member, tree, symbolDeclarationService)
-                    If spans IsNot Nothing Then
+                    Dim location = GetSymbolLocation(solution, member, tree, symbolDeclarationService)
+                    If location IsNot Nothing Then
                         items.Add(New SymbolItem(
                             member.Name,
                             member.ToDisplayString(displayFormat),
                             member.GetGlyph(),
                             member.IsObsolete,
-                            spans?.inDocumentSpans,
-                            spans?.otherDocumentSpans,
-                            grayed:=spans?.otherDocumentSpans IsNot Nothing))
+                            location.Value))
                     End If
                 End If
             Next

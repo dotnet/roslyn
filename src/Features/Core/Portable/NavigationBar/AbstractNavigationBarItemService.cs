@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
 
 namespace Microsoft.CodeAnalysis.NavigationBar
 {
@@ -38,53 +39,60 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             return items;
         }
 
-        protected static ((TextSpan fullSpan, TextSpan navigationSpan)? inDocumentSpans,
-                          (DocumentId documentId, TextSpan span)? otherDocumentSpans)? GetSpans(
+        protected static SymbolItemLocation? GetSymbolLocation(
             Solution solution, ISymbol symbol, SyntaxTree tree, Func<SyntaxReference, TextSpan> computeFullSpan)
         {
-            // Prefer a location in the current document over one from another.
-            var reference = symbol.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == tree) ??
-                            symbol.DeclaringSyntaxReferences.FirstOrDefault();
-            if (reference == null)
-                return null;
-
-            return GetSpans(solution, symbol, tree, computeFullSpan, reference);
+            return GetSymbolLocation(solution, symbol, tree, computeFullSpan, symbol.DeclaringSyntaxReferences);
         }
 
-        private static ((TextSpan fullSpan, TextSpan navigationSpan)? inDocumentSpans,
-                        (DocumentId documentId, TextSpan span)? otherDocumentSpans)? GetSpans(
-            Solution solution, ISymbol symbol, SyntaxTree tree, Func<SyntaxReference, TextSpan> computeFullSpan, SyntaxReference reference)
+        private static SymbolItemLocation? GetSymbolLocation(
+            Solution solution, ISymbol symbol, SyntaxTree tree,
+            Func<SyntaxReference, TextSpan> computeFullSpan,
+            ImmutableArray<SyntaxReference> allReferences)
         {
-            // Find an appropriate navigation location in the same file.
-            var navigationLocation = symbol.Locations.FirstOrDefault(r => r.SourceTree == reference.SyntaxTree);
-            if (navigationLocation == null)
+            if (allReferences.Length == 0)
                 return null;
 
-            // If we found the reference in this file return the full span and nav span for this file.
-            if (reference.SyntaxTree == tree)
-                return ((computeFullSpan(reference), navigationLocation.SourceSpan), null);
+            // First see if there are any references in the starting file.  We always prefer those
+            // for any symbol we find.
+            var referencesInCurrentFile = allReferences.WhereAsArray(r => r.SyntaxTree == tree);
+            if (referencesInCurrentFile.Length > 0)
+            {
+                // the symbol had one or more declarations in this file.  We want to include all those
+                // spans in what we return so that if the use enters any of its spans we highlight it
+                // in the list.  An example of having multiple locations in the same file would be a
+                // a partial type with multiple parts in the same file.
 
-            // Otherwise, return the location in the other doc.
-            var otherDocument = solution.GetDocumentId(reference.SyntaxTree);
-            if (otherDocument == null)
-                return null;
+                // If we're not able to find a navigation location in this file though, then don't include
+                // this.  We'd have no place for the use to navigate to when selecting the item.
+                var navigationLocation = symbol.Locations.FirstOrDefault(loc => loc.SourceTree == tree);
+                if (navigationLocation == null)
+                    return null;
 
-            return (null, (otherDocument, navigationLocation.SourceSpan));
+                var spans = referencesInCurrentFile.SelectAsArray(r => computeFullSpan(r));
+                return new SymbolItemLocation((spans, navigationLocation.SourceSpan), otherDocumentInfo: null);
+            }
+            else
+            {
+                // the symbol was defined in another file altogether.  We don't care about it's full span
+                // (since that is only needed for intersecting with the caret.  Instead, we just need a 
+                // reasonably location to navigate them to.
+                var navigationLocation = symbol.Locations.FirstOrDefault(loc => loc.SourceTree != null && loc.SourceTree != tree);
+                if (navigationLocation == null)
+                    return null;
+
+                var documentId = solution.GetDocumentId(navigationLocation.SourceTree);
+                if (documentId == null)
+                    return null;
+
+                return new SymbolItemLocation(inDocumentInfo: null, (documentId, navigationLocation.SourceSpan));
+            }
         }
 
-        protected static ((TextSpan fullSpan, TextSpan navigationSpan)? inDocumentSpans,
-                          (DocumentId documentId, TextSpan span)? otherDocumentSpans)? GetSpans(
+        protected static SymbolItemLocation? GetSymbolLocation(
             Solution solution, ISymbol symbol, SyntaxTree tree, ISymbolDeclarationService symbolDeclarationService)
         {
-            var references = symbolDeclarationService.GetDeclarations(symbol);
-
-            // Prefer a location in the current document over one from another.
-            var reference = references.FirstOrDefault(r => r.SyntaxTree == tree) ??
-                            references.FirstOrDefault();
-            if (reference == null)
-                return null;
-
-            return GetSpans(solution, symbol, tree, r => r.GetSyntax().FullSpan, reference);
+            return GetSymbolLocation(solution, symbol, tree, r => r.GetSyntax().FullSpan, symbolDeclarationService.GetDeclarations(symbol));
         }
     }
 }

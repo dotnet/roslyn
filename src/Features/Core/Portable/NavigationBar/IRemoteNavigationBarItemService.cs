@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar
         public RoslynNavigationBarItem Rehydrate()
             => this.Kind switch
             {
-                RoslynNavigationBarItemKind.Symbol => new SymbolItem(Name!, Text, Glyph, IsObsolete, Location.Value, ChildItems.SelectAsArray(i => i.Rehydrate()), Indent, Bolded, Grayed),
+                RoslynNavigationBarItemKind.Symbol => new SymbolItem(Name!, Text, Glyph, IsObsolete, Location!.Value, ChildItems.SelectAsArray(i => i.Rehydrate()), Indent, Bolded),
                 RoslynNavigationBarItemKind.GenerateDefaultConstructor => new GenerateDefaultConstructor(Text, DestinationTypeSymbolKey!.Value),
                 RoslynNavigationBarItemKind.GenerateEventHandler => new GenerateEventHandler(Text, Glyph, ContainerName!, EventSymbolKey!.Value, DestinationTypeSymbolKey!.Value),
                 RoslynNavigationBarItemKind.GenerateFinalizer => new GenerateFinalizer(Text, DestinationTypeSymbolKey!.Value),
