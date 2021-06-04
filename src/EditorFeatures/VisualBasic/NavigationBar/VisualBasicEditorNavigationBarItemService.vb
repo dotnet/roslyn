@@ -73,16 +73,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return location
         End Function
 
-        Protected Overrides Async Function NavigateToItemAsync(document As Document, item As WrappedNavigationBarItem, textView As ITextView, cancellationToken As CancellationToken) As Task
+        Protected Overrides Async Function TryNavigateToItemAsync(
+                document As Document, item As WrappedNavigationBarItem, textView As ITextView, cancellationToken As CancellationToken) As Task(Of Boolean)
             Dim underlying = item.UnderlyingItem
 
             Dim generateCodeItem = TryCast(underlying, AbstractGenerateCodeItem)
             Dim symbolItem = TryCast(underlying, SymbolItem)
             If generateCodeItem IsNot Nothing Then
                 Await GenerateCodeForItemAsync(document, generateCodeItem, textView, cancellationToken).ConfigureAwait(False)
+                Return True
             ElseIf symbolItem IsNot Nothing Then
                 Await NavigateToSymbolItemAsync(document, symbolItem, cancellationToken).ConfigureAwait(False)
+                Return True
             End If
+
+            Return False
         End Function
     End Class
 End Namespace
