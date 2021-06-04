@@ -19,11 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor
         public ImmutableArray<NavigationBarItem> ChildItems { get; }
 
         public ImmutableArray<ITrackingSpan> TrackingSpans { get; }
+        public ITrackingSpan? NavigationTrackingSpan { get; }
 
         public NavigationBarItem(
             string text,
             Glyph glyph,
             ImmutableArray<ITrackingSpan> trackingSpans,
+            ITrackingSpan? navigationTrackingSpan,
             ImmutableArray<NavigationBarItem> childItems = default,
             int indent = 0,
             bool bolded = false,
@@ -32,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor
             this.Text = text;
             this.Glyph = glyph;
             this.TrackingSpans = trackingSpans;
+            this.NavigationTrackingSpan = navigationTrackingSpan;
             this.ChildItems = childItems.NullToEmpty();
             this.Indent = indent;
             this.Bolded = bolded;
@@ -39,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         internal static ImmutableArray<ITrackingSpan> GetTrackingSpans(ITextSnapshot textSnapshot, ImmutableArray<TextSpan> spans)
-            => spans.NullToEmpty().SelectAsArray(static (s, ts) => ts.CreateTrackingSpan(s.ToSpan(), SpanTrackingMode.EdgeExclusive), textSnapshot);
+            => spans.NullToEmpty().SelectAsArray(static (s, ts) => GetTrackingSpan(ts, s), textSnapshot);
+
+        internal static ITrackingSpan GetTrackingSpan(ITextSnapshot textSnapshot, TextSpan textSpan)
+            => textSnapshot.CreateTrackingSpan(textSpan.ToSpan(), SpanTrackingMode.EdgeExclusive);
     }
 }

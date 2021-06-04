@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
@@ -37,8 +38,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             Document document, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            return items.SelectAsArray(x => ConvertToNavigationBarItem(x, textSnapshot));
+            return ConvertItems(textSnapshot, items);
         }
+
+        private static ImmutableArray<NavigationBarItem> ConvertItems(ITextSnapshot textSnapshot, ImmutableArray<VSTypescriptNavigationBarItem> items)
+            => items.SelectAsArray(x => !x.Spans.IsEmpty, x => ConvertToNavigationBarItem(x, textSnapshot));
 
         public async Task<bool> TryNavigateToItemAsync(
             Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
@@ -63,11 +67,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         private static NavigationBarItem ConvertToNavigationBarItem(VSTypescriptNavigationBarItem item, ITextSnapshot textSnapshot)
         {
+            Contract.ThrowIfTrue(item.Spans.IsEmpty);
             return new InternalNavigationBarItem(
                 item.Text,
                 VSTypeScriptGlyphHelpers.ConvertTo(item.Glyph),
                 NavigationBarItem.GetTrackingSpans(textSnapshot, item.Spans),
-                item.ChildItems.SelectAsArray(x => ConvertToNavigationBarItem(x, textSnapshot)),
+                ConvertItems(textSnapshot, item.ChildItems),
                 item.Indent,
                 item.Bolded,
                 item.Grayed);
@@ -76,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         private class InternalNavigationBarItem : NavigationBarItem
         {
             public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<ITrackingSpan> trackingSpans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-                : base(text, glyph, trackingSpans, childItems, indent, bolded, grayed)
+                : base(text, glyph, trackingSpans, trackingSpans.First(), childItems, indent, bolded, grayed)
             {
             }
         }

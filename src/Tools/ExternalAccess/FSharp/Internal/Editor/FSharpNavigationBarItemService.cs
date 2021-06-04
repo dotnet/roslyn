@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -42,8 +43,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items == null
                 ? ImmutableArray<NavigationBarItem>.Empty
-                : items.SelectAsArray(x => ConvertToNavigationBarItem(x, textSnapshot));
+                : ConvertItems(textSnapshot, items);
         }
+
+        private static ImmutableArray<NavigationBarItem> ConvertItems(ITextSnapshot textSnapshot, IList<FSharpNavigationBarItem> items)
+            => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).Where(x => x.Spans.Any()).SelectAsArray(x => ConvertToNavigationBarItem(x, textSnapshot));
 
         public async Task<bool> TryNavigateToItemAsync(
             Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
@@ -76,16 +80,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return false;
         }
 
-        private static NavigationBarItem ConvertToNavigationBarItem(
-            FSharpNavigationBarItem item, ITextSnapshot textSnapshot)
+        private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item, ITextSnapshot textSnapshot)
         {
-            var childItems = item.ChildItems ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>();
-
             return new InternalNavigationBarItem(
                 item.Text,
                 FSharpGlyphHelpers.ConvertTo(item.Glyph),
                 NavigationBarItem.GetTrackingSpans(textSnapshot, item.Spans.ToImmutableArrayOrEmpty()),
-                childItems.SelectAsArray(x => ConvertToNavigationBarItem(x, textSnapshot)),
+                ConvertItems(textSnapshot, item.ChildItems),
                 item.Indent,
                 item.Bolded,
                 item.Grayed);
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         private class InternalNavigationBarItem : NavigationBarItem
         {
             public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<ITrackingSpan> trackingSpans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-                : base(text, glyph, trackingSpans, childItems, indent, bolded, grayed)
+                : base(text, glyph, trackingSpans, trackingSpans.First(), childItems, indent, bolded, grayed)
             {
             }
         }
