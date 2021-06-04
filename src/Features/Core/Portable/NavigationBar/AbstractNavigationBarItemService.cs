@@ -63,23 +63,22 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 // in the list.  An example of having multiple locations in the same file would be a
                 // a partial type with multiple parts in the same file.
 
-                // If we're not able to find a navigation location in this file though, then don't include
-                // this.  We'd have no place for the use to navigate to when selecting the item.
-                var navigationLocation = symbol.Locations.FirstOrDefault(loc => loc.SourceTree == tree);
-                if (navigationLocation == null)
-                    return null;
+                // If we're not able to find a narrower navigation location in this file though then just navigate to
+                // the first reference itself.
+                var navigationLocationSpan = symbol.Locations.FirstOrDefault(loc => loc.SourceTree == tree)?.SourceSpan ??
+                                             referencesInCurrentFile.First().Span;
 
                 var spans = referencesInCurrentFile.SelectAsArray(r => computeFullSpan(r));
-                return new SymbolItemLocation((spans, navigationLocation.SourceSpan), otherDocumentInfo: null);
+                return new SymbolItemLocation((spans, navigationLocationSpan), otherDocumentInfo: null);
             }
             else
             {
                 // the symbol was defined in another file altogether.  We don't care about it's full span
                 // (since that is only needed for intersecting with the caret.  Instead, we just need a 
-                // reasonably location to navigate them to.
-                var navigationLocation = symbol.Locations.FirstOrDefault(loc => loc.SourceTree != null && loc.SourceTree != tree);
-                if (navigationLocation == null)
-                    return null;
+                // reasonable location to navigate them to.  First try to find a narrow location to navigate to.
+                // And, if we can't, just go to the first reference we can find.
+                var navigationLocation = symbol.Locations.FirstOrDefault(loc => loc.SourceTree != null && loc.SourceTree != tree) ??
+                                         Location.Create(allReferences.First().SyntaxTree, allReferences.First().Span);
 
                 var documentId = solution.GetDocumentId(navigationLocation.SourceTree);
                 if (documentId == null)
