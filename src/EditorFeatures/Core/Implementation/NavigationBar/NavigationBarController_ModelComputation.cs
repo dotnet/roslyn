@@ -117,12 +117,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
-                    var items = await languageService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
+                    var items = await languageService.GetItemsAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
                     if (items != null)
                     {
-                        items.Do(i => i.InitializeTrackingSpans(snapshot));
                         var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
                         return new NavigationBarModel(items.ToImmutableArray(), version, languageService);
                     }
                 }
@@ -210,28 +208,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             foreach (var item in items)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (item.TrackingSpan == null)
-                    continue;
-
-                var span = item.TrackingSpan.GetSpan(point.Snapshot);
-                if (span.Contains(point) || span.End == point)
+                foreach (var trackingSpan in item.TrackingSpans)
                 {
-                    // This is the item we should show normally. We'll continue looking at other
-                    // items as there might be a nested type that we're actually in. If there
-                    // are multiple items containing the point, choose whichever containing span
-                    // starts later because that will be the most nested item.
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    if (exactItem == null || span.Start >= exactItemStart)
+                    var span = trackingSpan.GetSpan(point.Snapshot);
+                    if (span.Contains(point) || span.End == point)
                     {
-                        exactItem = item;
-                        exactItemStart = span.Start;
+                        // This is the item we should show normally. We'll continue looking at other
+                        // items as there might be a nested type that we're actually in. If there
+                        // are multiple items containing the point, choose whichever containing span
+                        // starts later because that will be the most nested item.
+
+                        if (exactItem == null || span.Start >= exactItemStart)
+                        {
+                            exactItem = item;
+                            exactItemStart = span.Start;
+                        }
                     }
-                }
-                else if (span.Start > point && span.Start <= nextItemStart)
-                {
-                    nextItem = item;
-                    nextItemStart = span.Start;
+                    else if (span.Start > point && span.Start <= nextItemStart)
+                    {
+                        nextItem = item;
+                        nextItemStart = span.Start;
+                    }
                 }
             }
 
@@ -263,14 +262,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // price soon or later to figure out selected item.
             foreach (var type in model.Types)
             {
-                if (!SpanStillValid(type.TrackingSpan, snapshot))
+                if (!SpansStillValid(type.TrackingSpans, snapshot))
                     return false;
 
                 foreach (var member in type.ChildItems)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!SpanStillValid(member.TrackingSpan, snapshot))
+                    if (!SpansStillValid(member.TrackingSpans, snapshot))
                         return false;
                 }
             }
@@ -278,9 +277,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             return true;
         }
 
-        private static bool SpanStillValid(ITrackingSpan span, ITextSnapshot snapshot)
+        private static bool SpansStillValid(ImmutableArray<ITrackingSpan> spans, ITextSnapshot snapshot)
         {
-            if (span != null)
+            foreach (var span in spans)
             {
                 var currentSpan = span.GetSpan(snapshot);
                 if (currentSpan.IsEmpty)

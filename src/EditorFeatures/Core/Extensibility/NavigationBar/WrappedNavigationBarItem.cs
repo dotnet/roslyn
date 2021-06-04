@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.NavigationBar;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -14,17 +15,25 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         public readonly RoslynNavigationBarItem UnderlyingItem;
 
-        internal WrappedNavigationBarItem(RoslynNavigationBarItem underlyingItem)
+        internal WrappedNavigationBarItem(
+            RoslynNavigationBarItem underlyingItem, ITextSnapshot textSnapshot)
             : base(
                   underlyingItem.Text,
                   underlyingItem.Glyph,
-                  (underlyingItem as RoslynNavigationBarItem.SymbolItem)?.Spans.FirstOrNull(),
-                  underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v)),
+                  GetTrackingSpans(underlyingItem, textSnapshot),
+                  underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v, textSnapshot)),
                   underlyingItem.Indent,
                   underlyingItem.Bolded,
                   underlyingItem.Grayed)
         {
             UnderlyingItem = underlyingItem;
+        }
+
+        private static ImmutableArray<ITrackingSpan> GetTrackingSpans(RoslynNavigationBarItem underlyingItem, ITextSnapshot textSnapshot)
+        {
+            return underlyingItem is not RoslynNavigationBarItem.SymbolItem symbolItem
+                ? ImmutableArray<ITrackingSpan>.Empty
+                : GetTrackingSpans(textSnapshot, symbolItem.Spans);
         }
     }
 }

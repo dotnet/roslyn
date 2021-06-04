@@ -38,8 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
-                Dim actualItems = Await service.GetItemsAsync(document, Nothing)
-                actualItems.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
+                Dim actualItems = Await service.GetItemsAsync(document, snapshot, Nothing)
 
                 AssertEqual(expectedItems, actualItems, document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive)
             End Using
@@ -57,8 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
-                Dim items = Await service.GetItemsAsync(document, Nothing)
-                items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
+                Dim items = Await service.GetItemsAsync(document, snapshot, Nothing)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim model As New NavigationBarModel(items.ToImmutableArray(), VersionStamp.Create(), service)
@@ -91,8 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
 
-                Dim items = Await service.GetItemsAsync(document, Nothing)
-                items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
+                Dim items = Await service.GetItemsAsync(document, snapshot, Nothing)
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = selectRightItem(leftItem.ChildItems)
@@ -120,8 +117,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemService)(), AbstractEditorNavigationBarItemService)
-                Dim items = Await service.GetItemsAsync(sourceDocument, Nothing)
-                items.Do(Sub(i) i.InitializeTrackingSpans(snapshot))
+                Dim items = Await service.GetItemsAsync(sourceDocument, snapshot, Nothing)
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)
