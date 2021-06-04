@@ -174,7 +174,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 type.GetGlyph(),
                 type.IsObsolete,
                 location.Value,
-                ImmutableArray(Of RoslynNavigationBarItem).CastUp(members.WhereNotNull().ToImmutableArray()))
+                ImmutableArray(Of RoslynNavigationBarItem).CastUp(members.WhereNotNull().ToImmutableArray()),
+                bolded:=True)
         End Function
 
         Private Shared Function CreateSymbolItem(
@@ -261,7 +262,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 type.GetGlyph(),
                 type.IsObsolete,
                 location.Value,
-                childItems:=childItems.ToImmutableArray())
+                childItems:=childItems.ToImmutableArray(),
+                bolded:=True)
         End Function
 
         Private Shared Function IncludeMember(symbol As ISymbol) As Boolean
@@ -347,7 +349,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                             e.Name,
                             e.GetGlyph(),
                             e.IsObsolete,
-                            methodLocation.Value))
+                            methodLocation.Value,
+                            bolded:=True))
                     End If
                 Else
                     If workspaceSupportsDocumentChanges AndAlso
@@ -416,7 +419,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                             method.ToDisplayString(displayFormat),
                             method.GetGlyph(),
                             method.IsObsolete,
-                            location.Value))
+                            location.Value,
+                            bolded:=location.Value.InDocumentInfo IsNot Nothing))
                     End If
                 ElseIf method IsNot Nothing AndAlso IsUnimplementedPartial(method) Then
                     If workspaceSupportsDocumentChanges Then
@@ -434,7 +438,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                             member.ToDisplayString(displayFormat),
                             member.GetGlyph(),
                             member.IsObsolete,
-                            location.Value))
+                            location.Value,
+                            bolded:=location.Value.InDocumentInfo IsNot Nothing))
                     End If
                 End If
             Next
