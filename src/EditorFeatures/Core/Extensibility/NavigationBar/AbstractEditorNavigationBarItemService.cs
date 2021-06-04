@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         {
             var workspace = document.Project.Solution.Workspace;
 
-            var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(document, item, symbolItem, textSnapshot).ConfigureAwait(false);
+            var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(false);
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
             if (navigationService.CanNavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken))
@@ -57,7 +57,11 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         }
 
         internal virtual Task<(DocumentId documentId, int position, int virtualSpace)> GetNavigationLocationAsync(
-            Document document, NavigationBarItem item, RoslynNavigationBarItem.SymbolItem symbolItem, ITextSnapshot textSnapshot)
+            Document document,
+            NavigationBarItem item,
+            RoslynNavigationBarItem.SymbolItem symbolItem,
+            ITextSnapshot textSnapshot,
+            CancellationToken cancellationToken)
         {
             if (item.NavigationTrackingSpan != null)
             {

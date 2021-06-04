@@ -126,7 +126,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     sourceDocument,
                     rightItem,
                     DirectCast(DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem),
-                    snapshot)
+                    snapshot,
+                    cancellationToken:=Nothing)
 
                 Dim expectedNavigationDocument = workspace.Documents.Single(Function(doc) doc.CursorPosition.HasValue)
                 Assert.Equal(expectedNavigationDocument.Id, navigationPoint.documentId)
