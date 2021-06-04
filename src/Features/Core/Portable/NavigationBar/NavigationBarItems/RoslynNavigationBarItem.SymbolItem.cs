@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigationBar
 {
@@ -13,45 +14,41 @@ namespace Microsoft.CodeAnalysis.NavigationBar
         {
             public readonly string Name;
             public readonly bool IsObsolete;
+
             /// <summary>
-            /// All the spans in the starting document where this symbol was found.  ANy time the caret is within one of
-            /// these spans, the item should be appropriately 'selected' in whatever UI is displaying these. If this
-            /// symbol's location is in another document then this will be empty.
+            /// The full span and navigation span in the originating document where this symbol was found.  Any time the
+            /// caret is within the full span, the item should be appropriately 'selected' in whatever UI is displaying
+            /// these.  The navigation span is the location in the starting document that should be navigated to when
+            /// this item is selected If this symbol's location is in another document then this will be <see
+            /// langword="null"/>.
             /// </summary>
-            public readonly ImmutableArray<TextSpan> Spans;
-            /// <summary>
-            /// The location in the starting document that should be navigated to when this item is selected. If this
-            /// symbol's location is in another document then this will be <see langword="null"/>.
-            /// </summary>
-            public readonly TextSpan? SelectionSpan;
-            public readonly SymbolKey NavigationSymbolId;
-            public readonly int NavigationSymbolIndex;
+            public readonly (TextSpan fullSpan, TextSpan navigationSpan)? InDocumentSpans;
+            public readonly (DocumentId documentId, TextSpan span)? OtherDocumentSpans;
 
             public SymbolItem(
                 string name,
                 string text,
                 Glyph glyph,
                 bool isObsolete,
-                ImmutableArray<TextSpan> spans,
-                TextSpan? selectionSpan,
-                SymbolKey navigationSymbolId,
-                int navigationSymbolIndex,
+                (TextSpan fullSpan, TextSpan navigationSpan)? inDocumentSpans,
+                (DocumentId documentId, TextSpan span)? otherDocumentSpans,
                 ImmutableArray<RoslynNavigationBarItem> childItems = default,
                 int indent = 0,
                 bool bolded = false,
                 bool grayed = false)
                 : base(RoslynNavigationBarItemKind.Symbol, text, glyph, bolded, grayed, indent, childItems)
             {
+                Contract.ThrowIfTrue(inDocumentSpans == null && otherDocumentSpans == null);
+                Contract.ThrowIfTrue(inDocumentSpans != null && otherDocumentSpans != null);
+
                 this.Name = name;
                 this.IsObsolete = isObsolete;
-                this.Spans = spans.NullToEmpty();
-                this.SelectionSpan = selectionSpan;
-                this.NavigationSymbolId = navigationSymbolId;
-                this.NavigationSymbolIndex = navigationSymbolIndex;
+                InDocumentSpans = inDocumentSpans;
+                OtherDocumentSpans = otherDocumentSpans;
             }
 
             protected internal override SerializableNavigationBarItem Dehydrate()
-                => SerializableNavigationBarItem.SymbolItem(Text, Glyph, Name, IsObsolete, Spans, SelectionSpan, NavigationSymbolId, NavigationSymbolIndex, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);
+                => SerializableNavigationBarItem.SymbolItem(Text, Glyph, Name, IsObsolete, InDocumentSpans?.fullSpan, InDocumentSpans?.navigationSpan, OtherDocumentSpans?.documentId, OtherDocumentSpans?.span, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);
         }
     }
 }

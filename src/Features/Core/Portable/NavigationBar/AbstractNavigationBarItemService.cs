@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
@@ -35,15 +37,31 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             return items;
         }
 
-        protected static TextSpan? GetSelectionSpan(ISymbol symbol, SyntaxTree tree)
+        protected static ((TextSpan fullSpan, TextSpan navigationSpan)? inDocumentSpans,
+                        (DocumentId documentId, TextSpan span)? otherDocumentSpans) GetSpans(
+            Solution solution, ISymbol symbol, SyntaxTree tree, Func<SyntaxReference, TextSpan> computeFullSpan)
         {
-            foreach (var location in symbol.Locations)
-            {
-                if (location.SourceTree == tree)
-                    return location.SourceSpan;
-            }
+            // Prefer a location in the current document over one from another.
+            var reference = symbol.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == tree) ??
+                            symbol.DeclaringSyntaxReferences.FirstOrDefault();
+            if (reference == null)
+                return default;
 
-            return null;
+            // Find an appropriate navigation location in the same file.
+            var navigationLocation = symbol.Locations.FirstOrDefault(r => r.SourceTree == reference.SyntaxTree);
+            if (navigationLocation == null)
+                return default;
+
+            // If we found the reference in this file return the full span and nav span for this file.
+            if (reference.SyntaxTree == tree)
+                return ((computeFullSpan(reference), navigationLocation.SourceSpan), null);
+
+            // Otherwise, return the location in the other doc.
+            var otherDocument = solution.GetDocumentId(reference.SyntaxTree);
+            if (otherDocument == null)
+                return default;
+
+            return (null, (otherDocument, navigationLocation.SourceSpan));
         }
     }
 }

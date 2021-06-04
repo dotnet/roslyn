@@ -51,7 +51,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
             For Each typeAndDeclaration In typesAndDeclarations
                 Dim type = typeAndDeclaration.Item1
                 Dim position = typeAndDeclaration.Item2.SpanStart
-                typeItems.AddRange(CreateItemsForType(type, position, typeSymbolIndexProvider.GetIndexForSymbolId(type.GetSymbolKey(cancellationToken)), semanticModel, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
+                typeItems.AddRange(CreateItemsForType(
+                    document.Project.Solution, type, position, typeSymbolIndexProvider.GetIndexForSymbolId(type.GetSymbolKey(cancellationToken)), semanticModel, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
             Next
 
             Return typeItems.ToImmutable()
@@ -98,6 +99,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
         End Function
 
         Private Function CreateItemsForType(
+                solution As Solution,
                 type As INamedTypeSymbol,
                 position As Integer,
                 typeSymbolIdIndex As Integer,
@@ -110,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
             If type.TypeKind = TypeKind.Enum Then
                 items.Add(CreateItemForEnum(type, typeSymbolIdIndex, semanticModel.SyntaxTree, symbolDeclarationService, cancellationToken))
             Else
-                items.Add(CreatePrimaryItemForType(type, typeSymbolIdIndex, semanticModel.SyntaxTree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
+                items.Add(CreatePrimaryItemForType(solution, type, typeSymbolIdIndex, semanticModel.SyntaxTree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
 
                 If type.TypeKind <> TypeKind.Interface Then
                     Dim typeEvents = CreateItemForEvents(
@@ -186,6 +188,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
         End Function
 
         Private Function CreatePrimaryItemForType(
+                solution As Solution,
                 type As INamedTypeSymbol,
                 typeSymbolIdIndex As Integer,
                 tree As SyntaxTree,
@@ -238,6 +241,8 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
             If type.ContainingType IsNot Nothing Then
                 name &= " (" & type.ContainingType.ToDisplayString() & ")"
             End If
+
+            Dim spans = GetSpans(solution, type, tree, Function(r) )
 
             Return New SymbolItem(
                 type.Name,
