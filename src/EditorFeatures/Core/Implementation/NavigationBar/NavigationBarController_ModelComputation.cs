@@ -118,11 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
                     var items = await languageService.GetItemsAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
-                    if (items != null)
-                    {
-                        var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-                        return new NavigationBarModel(items.ToImmutableArray(), version, languageService);
-                    }
+                    var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+                    return new NavigationBarModel(items, version, languageService);
                 }
             }
 
