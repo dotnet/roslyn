@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
                         return textComparison != 0 ? textComparison : x.Grayed.CompareTo(y.Grayed);
                     });
 
-                    var (inDocumentSpans, otherDocumentSpans) = GetSpansInDocument(solution, type, tree, cancellationToken);
-                    if (inDocumentSpans == null && otherDocumentSpans == null)
+                    var spans = GetSpansInDocument(solution, type, tree, cancellationToken);
+                    if (spans == null)
                         continue;
 
                     items.Add(new RoslynNavigationBarItem.SymbolItem(
@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
                         text: type.ToDisplayString(s_typeFormat),
                         glyph: type.GetGlyph(),
                         isObsolete: type.IsObsolete(),
-                        inDocumentSpans,
-                        otherDocumentSpans,
+                        spans?.inDocumentSpans,
+                        spans?.otherDocumentSpans,
                         childItems: memberItems.ToImmutable()));
                 }
 
@@ -188,24 +188,22 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
         private static RoslynNavigationBarItem? CreateItemForMember(
             Solution solution, ISymbol member, SyntaxTree tree, CancellationToken cancellationToken)
         {
-            var (inDocumentSpans, otherDocumentSpans) = GetSpansInDocument(solution, member, tree, cancellationToken);
-            if (inDocumentSpans == null && otherDocumentSpans == null)
+            var spans = GetSpansInDocument(solution, member, tree, cancellationToken);
+            if (spans == null)
                 return null;
-
-            Contract.ThrowIfTrue(inDocumentSpans != null && otherDocumentSpans != null);
 
             return new RoslynNavigationBarItem.SymbolItem(
                 member.Name,
                 member.ToDisplayString(s_memberFormat),
                 member.GetGlyph(),
                 member.IsObsolete(),
-                inDocumentSpans,
-                otherDocumentSpans,
-                grayed: otherDocumentSpans != null);
+                spans?.inDocumentSpans,
+                spans?.otherDocumentSpans,
+                grayed: spans?.otherDocumentSpans != null);
         }
 
         private static ((TextSpan fullSpan, TextSpan navigationSpan)? inDocumentSpans,
-                        (DocumentId documentId, TextSpan span)? otherDocumentSpans) GetSpansInDocument(
+                        (DocumentId documentId, TextSpan span)? otherDocumentSpans)? GetSpansInDocument(
             Solution solution, ISymbol symbol, SyntaxTree tree, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

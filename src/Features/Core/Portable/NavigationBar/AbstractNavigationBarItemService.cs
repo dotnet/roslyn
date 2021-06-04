@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
@@ -38,19 +39,26 @@ namespace Microsoft.CodeAnalysis.NavigationBar
         }
 
         protected static ((TextSpan fullSpan, TextSpan navigationSpan)? inDocumentSpans,
-                        (DocumentId documentId, TextSpan span)? otherDocumentSpans) GetSpans(
+                          (DocumentId documentId, TextSpan span)? otherDocumentSpans)? GetSpans(
             Solution solution, ISymbol symbol, SyntaxTree tree, Func<SyntaxReference, TextSpan> computeFullSpan)
         {
             // Prefer a location in the current document over one from another.
             var reference = symbol.DeclaringSyntaxReferences.FirstOrDefault(r => r.SyntaxTree == tree) ??
                             symbol.DeclaringSyntaxReferences.FirstOrDefault();
             if (reference == null)
-                return default;
+                return null;
 
+            return GetSpans(solution, symbol, tree, computeFullSpan, reference);
+        }
+
+        private static ((TextSpan fullSpan, TextSpan navigationSpan)? inDocumentSpans,
+                        (DocumentId documentId, TextSpan span)? otherDocumentSpans)? GetSpans(
+            Solution solution, ISymbol symbol, SyntaxTree tree, Func<SyntaxReference, TextSpan> computeFullSpan, SyntaxReference reference)
+        {
             // Find an appropriate navigation location in the same file.
             var navigationLocation = symbol.Locations.FirstOrDefault(r => r.SourceTree == reference.SyntaxTree);
             if (navigationLocation == null)
-                return default;
+                return null;
 
             // If we found the reference in this file return the full span and nav span for this file.
             if (reference.SyntaxTree == tree)
@@ -59,9 +67,24 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             // Otherwise, return the location in the other doc.
             var otherDocument = solution.GetDocumentId(reference.SyntaxTree);
             if (otherDocument == null)
-                return default;
+                return null;
 
             return (null, (otherDocument, navigationLocation.SourceSpan));
+        }
+
+        protected static ((TextSpan fullSpan, TextSpan navigationSpan)? inDocumentSpans,
+                          (DocumentId documentId, TextSpan span)? otherDocumentSpans)? GetSpans(
+            Solution solution, ISymbol symbol, SyntaxTree tree, ISymbolDeclarationService symbolDeclarationService)
+        {
+            var references = symbolDeclarationService.GetDeclarations(symbol);
+
+            // Prefer a location in the current document over one from another.
+            var reference = references.FirstOrDefault(r => r.SyntaxTree == tree) ??
+                            references.FirstOrDefault();
+            if (reference == null)
+                return null;
+
+            return GetSpans(solution, symbol, tree, r => r.GetSyntax().FullSpan, reference);
         }
     }
 }
