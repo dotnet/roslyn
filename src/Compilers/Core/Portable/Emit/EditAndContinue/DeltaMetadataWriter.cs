@@ -930,6 +930,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 return;
             }
 
+            Debug.Assert(remainingEmittedAttributeParents.Count <= encLogRows.Length, "remainingEmittedAttributeParents must be the same size or smaller than encLogRows");
+            Debug.Assert(encLogRows.Count(r => r == 0) == remainingEmittedAttributeParents.Count, "There must be enough 0s in encLogRows for each of the remaining emitted attribute.");
+
             // The data in _previousGeneration.CustomAttributesAdded is not nicely sorted, or even necessarily contiguous
             // so we need to map each target onto the rows its attributes occupy so we know which rows to update
             var attributeMap = CreateExistingAttributeMap(_previousGeneration.OriginalMetadata.MetadataReader, _previousGeneration.CustomAttributesAdded, out var lastRowId);
@@ -957,15 +960,15 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 // remainingEmittedAttributeParents only contains records that haven't been logged, but since we know it is in the
-                // right order, we don't need to know what the original index we can just fill log rows in order, but and skip any
+                // right order, we don't need to know the original index we can just fill log rows in order, and skip any
                 // that were already filled in the previous phase.
-                Debug.Assert(logIndex < encLogRows.Length, "encLogRows cannot be larger than remainingEmittedAttributeParents.");
+                Debug.Assert(logIndex < encLogRows.Length, "logIndex is invalid, possibly caused by a bug in this loop specifically. Is something incrementing it twice?");
                 while (encLogRows[logIndex] != 0)
                 {
                     logIndex++;
                 }
 
-                encLogRows[logIndex++] = rowId;
+                encLogRows[logIndex] = rowId;
             }
         }
 
@@ -980,17 +983,17 @@ namespace Microsoft.CodeAnalysis.Emit
 
             lastRowId = metadataReader.GetTableRowCount(TableIndex.CustomAttribute);
 
-            foreach (var pair in customAttributesAdded)
+            foreach (var (rowId, parent) in customAttributesAdded)
             {
-                lastRowId = Math.Max(lastRowId, pair.Key);
+                lastRowId = Math.Max(lastRowId, rowId);
 
-                if (!result.TryGetValue(pair.Value, out var queue))
+                if (!result.TryGetValue(parent, out var queue))
                 {
                     queue = new Queue<int>();
-                    result.Add(pair.Value, queue);
+                    result.Add(parent, queue);
                 }
 
-                queue.Enqueue(pair.Key);
+                queue.Enqueue(rowId);
             }
 
             return result;
