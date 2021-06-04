@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
@@ -190,7 +189,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return cacheEntry;
         }
 
-        // Certain language servers such as Razor may want TextEdits formatted using custom options instead of document options.
+        // Certain language servers such as Razor may want TextEdits formatted using their own options instead of C#/VB options.
         private static async Task<OptionSet> GetCompletionFormattingOptionsAsync(Document document, CancellationToken cancellationToken)
         {
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);

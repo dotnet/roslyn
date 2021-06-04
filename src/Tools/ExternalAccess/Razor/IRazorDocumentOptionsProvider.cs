@@ -9,6 +9,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal interface IRazorDocumentOptionsProvider
     {
+        /// <summary>
+        /// Returns the Razor options for a specific document.
+        /// </summary>
         Task<RazorDocumentOptions> GetDocumentOptionsAsync(Document document, CancellationToken cancellationToken);
     }
 }

@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Gets the change to be applied when the item is committed. Change is generated via a
         /// custom option set instead of using the document's options.
         /// </summary>
-        /// <param name="document">The document that completion is occurring within.</param>\
+        /// <param name="document">The document that completion is occurring within.</param>
         /// <param name="optionSet">The set of options to use to generate the change.</param>
         /// <param name="item">The item to get the change for.</param>
         /// <param name="commitCharacter">The typed character that caused the item to be committed. 
