@@ -13270,5 +13270,69 @@ public class C
         }
 
         #endregion
+
+        #region Top Level Statements
+
+        // This test don't _really_ belong here, but it's actually the top level syntax comparer that is aware of global statements
+        // in order to recognize that an edit has actually occured.
+
+        [Fact]
+        public void TopLevelStatements_Update()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(""Hello World"");
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [Console.WriteLine(\"Hello\");]@19 -> [Console.WriteLine(\"Hello World\");]@19");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_Insert()
+        {
+            var src1 = @"
+using System;
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(""Hello World"");
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Insert [Console.WriteLine(\"Hello World\");]@19");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_Delete()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(""Hello World"");
+";
+            var src2 = @"
+using System;
+
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Delete [Console.WriteLine(\"Hello World\");]@19");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        #endregion
     }
 }
