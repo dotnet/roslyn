@@ -219,6 +219,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 tabSize.GetType() == typeof(int))
             {
                 documentOptions = documentOptions.WithChangedOption(FormattingOptions.TabSize, (int)tabSize);
+                documentOptions = documentOptions.WithChangedOption(FormattingOptions.IndentationSize, (int)tabSize);
             }
 
             return documentOptions;

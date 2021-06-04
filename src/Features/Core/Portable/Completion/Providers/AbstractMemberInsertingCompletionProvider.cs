@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var annotatedRoot = tree.GetRoot(cancellationToken).ReplaceToken(token, token.WithAdditionalAnnotations(_otherAnnotation));
             document = document.WithSyntaxRoot(annotatedRoot);
 
-            var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, optionSet, completionItem, line, cancellationToken).ConfigureAwait(false);
+            var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, completionItem, line, cancellationToken).ConfigureAwait(false);
             if (memberContainingDocument == null)
             {
                 // Generating the new document failed because we somehow couldn't resolve
@@ -119,12 +119,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var declaration = GetSyntax(newRoot.FindToken(destinationSpan.End));
 
             document = document.WithSyntaxRoot(newRoot.ReplaceNode(declaration, declaration.WithAdditionalAnnotations(_annotation)));
-            return await Formatter.FormatAsync(document, _annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await Formatter.FormatAsync(document, _annotation, optionSet, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Document> GenerateMemberAndUsingsAsync(
             Document document,
-            OptionSet optionSet,
             CompletionItem completionItem,
             TextLine line,
             CancellationToken cancellationToken)
@@ -146,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // CodeGenerationOptions containing before and after
             var options = new CodeGenerationOptions(
                 contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)),
-                options: optionSet);
+                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
             var generatedMember = await GenerateMemberAsync(overriddenMember, containingType, document, completionItem, cancellationToken).ConfigureAwait(false);
             generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Document memberContainingDocument, CancellationToken cancellationToken)
         {
             memberContainingDocument = await Simplifier.ReduceAsync(memberContainingDocument, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
-            memberContainingDocument = await Formatter.FormatAsync(memberContainingDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            memberContainingDocument = await Formatter.FormatAsync(memberContainingDocument, Formatter.Annotation, options: null, cancellationToken).ConfigureAwait(false);
 
             var root = await memberContainingDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return root.GetAnnotatedNodesAndTokens(_annotation).Single().AsNode().ToString().Trim();
