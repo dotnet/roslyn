@@ -7,7 +7,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     internal readonly struct RazorDocumentOptions
     {
         public readonly bool UseTabs;
-
         public readonly int TabSize;
 
         public RazorDocumentOptions(bool useTabs, int tabSize)
