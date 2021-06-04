@@ -5381,5 +5381,41 @@ class C
   IL_0059:  ret
 }");
         }
+
+        [Fact, WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        public void Issue44720()
+        {
+            var source =
+@"
+using System;
+
+namespace roslyn_44720
+{
+    static class Program
+    {
+        static void Main()
+        {
+            var parameter = """";
+
+            for (int i = 0; i < 1; i++)
+            {
+                void LocalMethod<T>()
+                {
+                    StaticMethod<T, string>(_ => parameter);
+                }
+
+                LocalMethod<int>();
+            }
+        }
+
+        static void StaticMethod<TIn, TOut>(Func<TIn, TOut> func)
+        {
+            System.Console.WriteLine(""Executed"");
+        }
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: "Executed");
+        }
     }
 }

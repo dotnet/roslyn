@@ -1634,6 +1634,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // different from the local variable `type`, which has the node's type substituted for the current container.
                         var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
 
+                        if (referencesMethodTypeParameter(cacheVariableType))
+                        {
+                            return result;
+                        }
+
                         var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
                             // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
                             // no need to include the top-level method ordinal in the field name.
@@ -1648,6 +1653,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        if (referencesMethodTypeParameter(type))
+                        {
+                            return result;
+                        }
+
                         // the lambda captures at most the "this" of the enclosing method.  We cache its delegate in a local variable.
                         var cacheLocal = F.SynthesizedLocal(type, kind: SynthesizedLocalKind.CachedAnonymousMethodDelegate);
                         if (_addedLocals == null) _addedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
@@ -1656,6 +1666,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         cache = F.Local(cacheLocal);
                         _addedStatements.Add(F.Assignment(cache, F.Null(type)));
                     }
+
+                    Debug.Assert(!referencesMethodTypeParameter(cache.Type));
 
                     result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
                 }
@@ -1667,6 +1679,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+
+            static bool referencesMethodTypeParameter(TypeSymbol cacheVariableType)
+            {
+                return cacheVariableType.VisitType((type, unused1, unused2) => (type as TypeParameterSymbol)?.TypeParameterKind == TypeParameterKind.Method, (object)null) is object;
+            }
         }
 
         // This helper checks syntactically whether there is a loop or lambda expression
