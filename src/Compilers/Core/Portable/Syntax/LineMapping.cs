@@ -12,13 +12,11 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a line mapping defined by a single line mapping directive (<c>#line</c> in C# or <c>#ExternalSource</c> in VB).
     /// </summary>
-    [DataContract]
     public readonly struct LineMapping : IEquatable<LineMapping>
     {
         /// <summary>
         /// The span in the syntax tree containing the line mapping directive.
         /// </summary>
-        [DataMember(Order = 0)]
         public readonly LinePositionSpan Span { get; }
 
         /// <summary>
@@ -26,7 +24,6 @@ namespace Microsoft.CodeAnalysis
         /// If the path is not mapped <see cref="FileLinePositionSpan.Path"/> is empty and <see cref="FileLinePositionSpan.HasMappedPath"/> is false.
         /// If the line mapping directive marks hidden code <see cref="FileLinePositionSpan.IsValid"/> is false.
         /// </summary>
-        [DataMember(Order = 1)]
         public readonly FileLinePositionSpan MappedSpan { get; }
 
         public LineMapping(LinePositionSpan span, FileLinePositionSpan mappedSpan)

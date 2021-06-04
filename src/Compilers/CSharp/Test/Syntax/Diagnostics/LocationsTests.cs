@@ -140,7 +140,6 @@ int f;
 #endif
 int a;
 }".NormalizeLineEndings();
-            var resolver = new TestSourceResolver();
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sampleProgram, path: "goo.cs");
 
@@ -279,7 +278,7 @@ class X {}
 #line default
 class C {}
 #line 5
-#line 6
+#line 10
 class D {}
 ".NormalizeLineEndings();
 
@@ -288,7 +287,7 @@ class D {}
             AssertEx.Equal(new[]
             {
                 "[|class C {}\r\n|] -> : (2,0)-(2,12)",
-                "[|class D {}\r\n|] -> : (5,0)-(6,0)",
+                "[|class D {}\r\n|] -> : (9,0)-(10,0)",
             }, InspectLineMapping(syntaxTree));
         }
 

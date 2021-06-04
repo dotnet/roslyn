@@ -135,6 +135,9 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract LineVisibility GetUnknownStateVisibility(int index);
 
+        /// <summary>
+        /// The caller is expected to not call this if <see cref="Entries"/> is empty.
+        /// </summary>
         public IEnumerable<LineMapping> GetLineMappings(TextLineCollection lines)
         {
             Debug.Assert(Entries.Length > 1);
@@ -148,22 +151,22 @@ namespace Microsoft.CodeAnalysis
                 current.MappedLine == 0 &&
                 current.MappedPathOpt == null);
 
-            LineMapping CreateCurrentEntryMapping(int unmappedEndLine, int lineLength, int currentIndex)
+            LineMapping CreateCurrentEntryMapping(in LineMappingEntry entry, int unmappedEndLine, int lineLength, int currentIndex)
             {
                 var unmapped = new LinePositionSpan(
-                    new LinePosition(current.UnmappedLine, character: 0),
+                    new LinePosition(entry.UnmappedLine, character: 0),
                     new LinePosition(unmappedEndLine, lineLength));
 
                 var isHidden =
-                    current.State == PositionState.Hidden ||
-                    current.State == PositionState.Unknown && GetUnknownStateVisibility(currentIndex) == LineVisibility.Hidden;
+                    entry.State == PositionState.Hidden ||
+                    entry.State == PositionState.Unknown && GetUnknownStateVisibility(currentIndex) == LineVisibility.Hidden;
 
                 var mapped = isHidden ? default : new FileLinePositionSpan(
-                    current.MappedPathOpt ?? string.Empty,
+                    entry.MappedPathOpt ?? string.Empty,
                     new LinePositionSpan(
-                        new LinePosition(current.MappedLine, character: 0),
-                        new LinePosition(current.MappedLine + unmappedEndLine - current.UnmappedLine, lineLength)),
-                    hasMappedPath: current.MappedPathOpt != null);
+                        new LinePosition(entry.MappedLine, character: 0),
+                        new LinePosition(entry.MappedLine + unmappedEndLine - entry.UnmappedLine, lineLength)),
+                    hasMappedPath: entry.MappedPathOpt != null);
 
                 return new LineMapping(unmapped, mapped);
             }
@@ -194,7 +197,7 @@ namespace Microsoft.CodeAnalysis
                     var endLine = lines[unmappedEndLine];
                     int lineLength = endLine.EndIncludingLineBreak - endLine.Start;
 
-                    yield return CreateCurrentEntryMapping(unmappedEndLine, lineLength, currentIndex: i - 1);
+                    yield return CreateCurrentEntryMapping(current, unmappedEndLine, lineLength, currentIndex: i - 1);
                 }
 
                 current = next;
@@ -215,7 +218,7 @@ namespace Microsoft.CodeAnalysis
                 int lineLength = lastLine.EndIncludingLineBreak - lastLine.Start;
                 int unmappedEndLine = lastLine.LineNumber;
 
-                yield return CreateCurrentEntryMapping(unmappedEndLine, lineLength, currentIndex: Entries.Length - 1);
+                yield return CreateCurrentEntryMapping(current, unmappedEndLine, lineLength, currentIndex: Entries.Length - 1);
             }
         }
     }
