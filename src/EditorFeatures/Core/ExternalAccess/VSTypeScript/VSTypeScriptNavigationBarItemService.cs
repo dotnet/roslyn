@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public async Task<bool> TryNavigateToItemAsync(
             Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
-            if (item.TrackingSpans.Any())
+            if (item.NavigationTrackingSpan != null)
             {
-                var span = item.TrackingSpans[0].GetSpan(textSnapshot);
+                var span = item.NavigationTrackingSpan.GetSpan(textSnapshot);
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 var workspace = document.Project.Solution.Workspace;

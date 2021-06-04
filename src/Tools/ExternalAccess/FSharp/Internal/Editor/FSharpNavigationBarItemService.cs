@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
-            if (item.TrackingSpans.Any())
+            if (item.NavigationTrackingSpan != null)
             {
-                var span = item.TrackingSpans[0].GetSpan(textSnapshot);
+                var span = item.NavigationTrackingSpan.GetSpan(textSnapshot);
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
 
