@@ -46,6 +46,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         private async Task StartProjectTelemetryWorkerAsync(RemoteHostClient client, CancellationToken cancellationToken)
         {
+            if (!HasActiveSession)
+            {
+                // Telemetry is disabled, we don't need to start this telemetry collection.
+                return;
+            }
+
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
             _lazyConnection = client.CreateConnection<IRemoteProjectTelemetryService>(callbackTarget: this);
