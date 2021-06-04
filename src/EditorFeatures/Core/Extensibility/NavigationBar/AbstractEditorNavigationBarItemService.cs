@@ -99,27 +99,5 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
         public virtual bool ShowItemGrayedIfNear(NavigationBarItem item)
             => true;
-
-        //public async Task<VirtualTreePoint?> GetSymbolItemNavigationPointAsync(Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
-        //{
-        //    Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
-        //    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-        //    var symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
-
-        //    var symbol = symbols.Symbol;
-        //    if (symbol == null)
-        //    {
-        //        if (item.NavigationSymbolIndex < symbols.CandidateSymbols.Length)
-        //        {
-        //            symbol = symbols.CandidateSymbols[item.NavigationSymbolIndex];
-        //        }
-        //        else
-        //        {
-        //            return null;
-        //        }
-        //    }
-
-        //    return await GetSymbolNavigationPointAsync(document, symbol, cancellationToken).ConfigureAwait(false);
-        //}
     }
 }
