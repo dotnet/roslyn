@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor
             string language)
                 : base(text, glyph,
                        trackingSpans: ImmutableArray<ITrackingSpan>.Empty,
+                       navigationTrackingSpan: null,
                        childItems: ImmutableArray<NavigationBarItem>.Empty,
                        indent: 0, bolded: false, grayed: false)
         {
