@@ -1424,7 +1424,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return default(TextSpan);
 
                 case SyntaxKind.GlobalStatement:
-                    // TODO:
                     return node.Span;
 
                 case SyntaxKind.ExternAliasDirective:
@@ -2150,8 +2149,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (newNode.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
-                        // TODO:
-                        ReportError(RudeEditKind.Move);
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
@@ -2216,8 +2213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (node.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
-                        // TODO:
-                        ReportError(RudeEditKind.Insert);
+                        ClassifyUpdate((GlobalStatementSyntax)node);
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
@@ -2305,8 +2301,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (oldNode.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
-                        // TODO:
-                        ReportError(RudeEditKind.Delete);
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
@@ -2409,7 +2403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (newNode.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
-                        ReportError(RudeEditKind.Update);
+                        ClassifyUpdate((GlobalStatementSyntax)newNode);
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
@@ -2536,6 +2530,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 {
                     throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
                 }
+            }
+
+            private void ClassifyUpdate(GlobalStatementSyntax newNode)
+            {
+                ClassifyDeclarationBodyRudeUpdates(newNode.Statement);
             }
 
             private void ClassifyUpdate(NamespaceDeclarationSyntax oldNode, NamespaceDeclarationSyntax newNode)

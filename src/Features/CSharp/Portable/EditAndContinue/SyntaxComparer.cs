@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // Top level syntax kinds
             CompilationUnit,
 
+            GlobalStatement,
+
             NamespaceDeclaration,
             ExternAliasDirective,              // tied to parent 
             UsingDirective,                    // tied to parent
@@ -548,9 +550,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (kind)
             {
                 case SyntaxKind.GlobalStatement:
-                    // TODO:
                     isLeaf = true;
-                    return Label.Ignored;
+                    return Label.GlobalStatement;
 
                 case SyntaxKind.ExternAliasDirective:
                     isLeaf = true;
