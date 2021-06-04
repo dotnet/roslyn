@@ -53,15 +53,13 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             if (allReferences.Length == 0)
                 return null;
 
-            // First see if there are any references in the starting file.  We always prefer those
-            // for any symbol we find.
+            // See if there are any references in the starting file. We always prefer those for any symbol we find.
             var referencesInCurrentFile = allReferences.WhereAsArray(r => r.SyntaxTree == tree);
             if (referencesInCurrentFile.Length > 0)
             {
-                // the symbol had one or more declarations in this file.  We want to include all those
-                // spans in what we return so that if the use enters any of its spans we highlight it
-                // in the list.  An example of having multiple locations in the same file would be a
-                // a partial type with multiple parts in the same file.
+                // the symbol had one or more declarations in this file.  We want to include all those spans in what we
+                // return so that if the use enters any of its spans we highlight it in the list.  An example of having
+                // multiple locations in the same file would be a a partial type with multiple parts in the same file.
 
                 // If we're not able to find a narrower navigation location in this file though then just navigate to
                 // the first reference itself.
