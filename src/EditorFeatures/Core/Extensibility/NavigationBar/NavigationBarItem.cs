@@ -18,7 +18,20 @@ namespace Microsoft.CodeAnalysis.Editor
         public int Indent { get; }
         public ImmutableArray<NavigationBarItem> ChildItems { get; }
 
+        /// <summary>
+        /// The tracking spans in the owning document corresponding to this nav bar item.  If the user's
+        /// caret enters one of these spans, we'll select that item in the nav bar (except if they're in
+        /// an item's span that is nested within this).  Tracking spans allow us to know where things are
+        /// as the users edits while the computation for the latest items might be going on.
+        /// </summary>
+        /// <remarks>This can be empty for items whose location is in another document.</remarks>
         public ImmutableArray<ITrackingSpan> TrackingSpans { get; }
+
+        /// <summary>
+        /// The tracking span in the owning document corresponding to where to navigate to if the user
+        /// selects this item in the drop down.
+        /// </summary>
+        /// <remarks>This can be <see langword="null"/> for items whose location is in another document.</remarks>
         public ITrackingSpan? NavigationTrackingSpan { get; }
 
         public NavigationBarItem(
