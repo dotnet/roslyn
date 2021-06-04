@@ -669,6 +669,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (sortedBoundDagNodes[i] is BoundEvaluationDecisionDagNode { Evaluation: var evaluation })
                 {
                     evaluation.Id = tempIdentifier(evaluation);
+                    if (evaluation.Input.Source is { } source)
+                    {
+                        source.Id = tempIdentifier(source);
+                    }
                 }
             }
             tempIdentifierMap.Free();

@@ -74,61 +74,66 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
-            builder.AppendLine($"State " + this.Id);
+            builder.Append($"[{this.Id}]: ");
             switch (this)
             {
                 case BoundTestDecisionDagNode node:
-                    builder.AppendLine($"  Test: {dumpDagTest(node.Test)}");
-                    if (node.WhenTrue != null)
-                    {
-                        builder.AppendLine($"  WhenTrue: {node.WhenTrue.Id}");
-                    }
+                    builder.Append($"{dumpDagTest(node.Test)} ");
+                    builder.Append(node.WhenTrue != null
+                        ? $"? [{node.WhenTrue.Id}] "
+                        : "? <unreachable> ");
 
-                    if (node.WhenFalse != null)
-                    {
-                        builder.AppendLine($"  WhenFalse: {node.WhenFalse.Id}");
-                    }
+                    builder.Append(node.WhenFalse != null
+                        ? $": [{node.WhenFalse.Id}]"
+                        : ": <unreachable>");
                     break;
                 case BoundEvaluationDecisionDagNode node:
-                    builder.AppendLine($"  Test: {dumpDagTest(node.Evaluation)}");
-                    if (node.Next != null)
-                    {
-                        builder.AppendLine($"  Next: {node.Next.Id}");
-                    }
+                    builder.Append($"{dumpDagTest(node.Evaluation)}; ");
+                    builder.Append(node.Next != null
+                        ? $"[{node.Next.Id}]"
+                        : "<unreachable>");
                     break;
                 case BoundWhenDecisionDagNode node:
-                    builder.AppendLine($"  WhenClause: " + node.WhenExpression?.Syntax);
-                    if (node.WhenTrue != null)
-                    {
-                        builder.AppendLine($"  WhenTrue: {node.WhenTrue.Id}");
-                    }
+                    builder.Append("when ");
+                    builder.Append(node.WhenExpression is { } when
+                        ? $"({when.Syntax}) "
+                        : "<true> ");
 
-                    if (node.WhenFalse != null)
-                    {
-                        builder.AppendLine($"  WhenFalse: {node.WhenFalse.Id}");
-                    }
+                    builder.Append(node.WhenTrue != null
+                        ? $"? [{node.WhenTrue.Id}] "
+                        : "? <unreachable> ");
+
+                    builder.Append(node.WhenFalse != null
+                        ? $": [{node.WhenFalse.Id}]"
+                        : ": <unreachable>");
+
                     break;
                 case BoundLeafDecisionDagNode node:
-                    builder.AppendLine($"  Case: {node.Label.Name}" + node.Syntax);
+                    builder.Append($"leaf {node.Label.Name}");
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this);
             }
+            builder.AppendLine();
 
             return pooledBuilder.ToStringAndFree();
 
-            string dumpDagTest(BoundDagTest d)
+            static string dumpDagTest(BoundDagTest d)
             {
                 switch (d)
                 {
                     case BoundDagTypeEvaluation a:
-                        return $"{a.GetDebuggerDisplay()}={a.Kind}({a.GetDebuggerDisplay()} as {a.Type})";
+                        return $"{a.GetDebuggerDisplay()} = ({a.Type}){a.Input.GetDebuggerDisplay()}";
+                    case BoundDagPropertyEvaluation e:
+                        return $"{e.GetDebuggerDisplay()} = {e.Input.GetDebuggerDisplay()}.{e.Property.Name}";
+                    case BoundDagFieldEvaluation e:
+                        return $"{e.GetDebuggerDisplay()} = {e.Input.GetDebuggerDisplay()}.{e.Field.Name}";
                     case BoundDagEvaluation e:
-                        return $"{e.GetDebuggerDisplay()}={e.Kind}({e.GetDebuggerDisplay()})";
+                        return $"{e.GetDebuggerDisplay()} = {e.Kind}({e.Input.GetDebuggerDisplay()})";
                     case BoundDagTypeTest b:
-                        return $"?{d.Kind}({d.Input.GetDebuggerDisplay()} is {b.Type})";
+                        return $"{d.Input.GetDebuggerDisplay()} is {b.Type}";
                     case BoundDagValueTest v:
-                        return $"?{d.Kind}({d.Input.GetDebuggerDisplay()} == {v.Value})";
+                        return $"{d.Input.GetDebuggerDisplay()} == {v.Value.GetValueToDisplay()}";
                     case BoundDagRelationalTest r:
                         var operatorName = r.Relation.Operator() switch
                         {
@@ -138,9 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BinaryOperatorKind.GreaterThanOrEqual => ">=",
                             _ => "??"
                         };
-                        return $"?{d.Kind}({d.Input.GetDebuggerDisplay()} {operatorName} {r.Value})";
+                        return $"{d.Input.GetDebuggerDisplay()} {operatorName} {r.Value.GetValueToDisplay()}";
                     default:
-                        return $"?{d.Kind}({d.Input.GetDebuggerDisplay()})";
+                        return $"{d.Kind}({d.Input.GetDebuggerDisplay()})";
                 }
             }
         }
