@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.NavigationBar
     <ExportLanguageService(GetType(INavigationBarItemService), LanguageNames.VisualBasic), [Shared]>
@@ -108,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
 
             Dim items = ArrayBuilder(Of RoslynNavigationBarItem).GetInstance()
             If type.TypeKind = TypeKind.Enum Then
-                items.AddIfNotNull(CreateItemForEnum(solution, type, semanticModel.SyntaxTree, symbolDeclarationService, cancellationToken))
+                items.AddIfNotNull(CreateItemForEnum(solution, type, semanticModel.SyntaxTree, symbolDeclarationService))
             Else
                 items.AddIfNotNull(CreatePrimaryItemForType(solution, type, semanticModel.SyntaxTree, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
 
@@ -155,36 +156,48 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 solution As Solution,
                 type As INamedTypeSymbol,
                 tree As SyntaxTree,
-                symbolDeclarationService As ISymbolDeclarationService,
-                cancellationToken As CancellationToken) As RoslynNavigationBarItem
+                symbolDeclarationService As ISymbolDeclarationService) As RoslynNavigationBarItem
 
-            Dim symbolIndexProvider As New NavigationBarSymbolIdIndexProvider(caseSensitive:=False)
-
-            Dim members = Aggregate member In type.GetMembers()
-                          Where member.IsShared AndAlso member.Kind = SymbolKind.Field
+            Dim members = From member In type.GetMembers()
+                          Where member.IsShared AndAlso member.Kind = Global.Microsoft.CodeAnalysis.SymbolKind.Field
                           Order By member.Name
-                          Select DirectCast(New SymbolItem(
-                              member.Name,
-                              member.Name,
-                              member.GetGlyph(),
-                              member.IsObsolete,
-                              GetSpansInDocument(member, tree, symbolDeclarationService, cancellationToken),
-                              GetSelectionSpan(member, tree),
-                              member.GetSymbolKey(cancellationToken),
-                              symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken))), RoslynNavigationBarItem)
-                          Into ToImmutableArray()
+                          Select CreateSymbolItem(solution, member, tree, symbolDeclarationService)
+
+            Dim spans = GetSpans(solution, type, tree, symbolDeclarationService)
+            If spans Is Nothing Then
+                Return Nothing
+            End If
 
             Return New SymbolItem(
                 type.Name,
                 type.Name,
                 type.GetGlyph(),
                 type.IsObsolete,
-                GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
-                GetSelectionSpan(type, tree),
-                type.GetSymbolKey(cancellationToken),
-                typeSymbolIdIndex,
-                members,
-                bolded:=True)
+                spans?.inDocumentSpans,
+                spans?.otherDocumentSpans,
+                ImmutableArray(Of RoslynNavigationBarItem).CastUp(members.WhereNotNull().ToImmutableArray()),
+                grayed:=spans?.otherDocumentSpans IsNot Nothing)
+        End Function
+
+        Private Shared Function CreateSymbolItem(
+                solution As Solution,
+                member As ISymbol,
+                tree As SyntaxTree,
+                symbolDeclarationService As ISymbolDeclarationService) As SymbolItem
+
+            Dim spans = GetSpans(solution, member, tree, symbolDeclarationService)
+            If spans Is Nothing Then
+                Return Nothing
+            End If
+
+            Return New SymbolItem(
+                member.Name,
+                member.Name,
+                member.GetGlyph(),
+                member.IsObsolete,
+                spans?.inDocumentSpans,
+                spans?.otherDocumentSpans,
+                grayed:=spans?.otherDocumentSpans IsNot Nothing)
         End Function
 
         Private Function CreatePrimaryItemForType(
@@ -254,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 spans?.inDocumentSpans,
                 spans?.otherDocumentSpans,
                 childItems:=childItems.ToImmutableArray(),
-                bolded:=True)
+                grayed:=spans?.otherDocumentSpans IsNot Nothing)
         End Function
 
         Private Shared Function IncludeMember(symbol As ISymbol) As Boolean
@@ -342,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                             e.IsObsolete,
                             methodSpans?.inDocumentSpans,
                             methodSpans?.otherDocumentSpans,
-                            bolded:=True))
+                            grayed:=methodSpans?.otherDocumentSpans IsNot Nothing))
                     End If
                 Else
                     If workspaceSupportsDocumentChanges AndAlso
@@ -397,10 +410,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
             End If
 
             Dim items As New List(Of RoslynNavigationBarItem)
-            Dim symbolIdIndexProvider As New NavigationBarSymbolIdIndexProvider(caseSensitive:=False)
-
             For Each member In members
-
                 ' If this is a partial method, we'll care about the implementation part if one
                 ' exists
                 Dim method = TryCast(member, IMethodSymbol)
