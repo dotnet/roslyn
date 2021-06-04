@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -13,7 +12,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
@@ -34,21 +33,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             _service = service;
         }
 
-        public async Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
+            Document document, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            return items.Select(x => ConvertToNavigationBarItem(x)).ToList();
+            return items.SelectAsArray(x => ConvertToNavigationBarItem(x, textSnapshot));
         }
 
-        public async Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
+        public async Task<bool> TryNavigateToItemAsync(
+            Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
-            if (item.Spans.Length > 0)
+            if (item.TrackingSpans.Any())
             {
+                var span = item.TrackingSpans[0].GetSpan(textSnapshot);
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = VSTypeScriptDocumentNavigationServiceWrapper.Create(workspace);
-                navigationService.TryNavigateToPosition(workspace, document.Id, item.Spans[0].Start, virtualSpace: 0, options: null, cancellationToken: cancellationToken);
+                navigationService.TryNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, options: null, cancellationToken: cancellationToken);
             }
 
             return true;
@@ -59,13 +61,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             return true;
         }
 
-        private static NavigationBarItem ConvertToNavigationBarItem(VSTypescriptNavigationBarItem item)
+        private static NavigationBarItem ConvertToNavigationBarItem(VSTypescriptNavigationBarItem item, ITextSnapshot textSnapshot)
         {
             return new InternalNavigationBarItem(
                 item.Text,
                 VSTypeScriptGlyphHelpers.ConvertTo(item.Glyph),
-                item.Spans,
-                item.ChildItems.SelectAsArray(x => ConvertToNavigationBarItem(x)),
+                NavigationBarItem.GetTrackingSpans(textSnapshot, item.Spans),
+                item.ChildItems.SelectAsArray(x => ConvertToNavigationBarItem(x, textSnapshot)),
                 item.Indent,
                 item.Bolded,
                 item.Grayed);
@@ -73,8 +75,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         private class InternalNavigationBarItem : NavigationBarItem
         {
-            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-                : base(text, glyph, spans, childItems, indent, bolded, grayed)
+            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<ITrackingSpan> trackingSpans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
+                : base(text, glyph, trackingSpans, childItems, indent, bolded, grayed)
             {
             }
         }

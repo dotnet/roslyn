@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
@@ -26,15 +28,16 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         protected abstract Task<VirtualTreePoint?> GetSymbolNavigationPointAsync(Document document, ISymbol symbol, CancellationToken cancellationToken);
         protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 
-        public async Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
+            Document document, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<CodeAnalysis.NavigationBar.INavigationBarItemService>();
             var workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
             var items = await service.GetItemsAsync(document, workspaceSupportsDocumentChanges, cancellationToken).ConfigureAwait(false);
-            return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v));
+            return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v, textSnapshot));
         }
 
-        public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
+        public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
             => TryNavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, cancellationToken);
 
         protected async Task NavigateToSymbolItemAsync(
